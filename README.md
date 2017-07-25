@@ -1,11 +1,13 @@
 # ECSJobDemos
 Github project for the Compute demo for Unite Austin 2017
 
-Requires latest from unity/unity branch (Please always keep this up to date when master requires new builds):
-scripting/jobsystem/playerloop-prototype
+Requires latest from unity/unity
+branch: scripting/jobsystem/playerloop-prototype
+(Please always keep this up to date when master requires new builds):
 
 # Intro
 
+Talk about C# job system at Unite Europe
 https://www.youtube.com/watch?v=AXUvnk7Jws4
 
 

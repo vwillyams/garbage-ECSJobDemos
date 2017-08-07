@@ -46,9 +46,9 @@ namespace ECS
 			Assert.IsTrue (m_Manager.HasComponent<EcsTestData>(go1));
 			Assert.IsTrue (m_Manager.HasComponent<EcsTestData>(go2));
 
-			Assert.AreEqual (0, m_Manager.GetComponentData<EcsTestData>(go0).value);
-			Assert.AreEqual (1, m_Manager.GetComponentData<EcsTestData>(go1).value);
-			Assert.AreEqual (2, m_Manager.GetComponentData<EcsTestData>(go2).value);
+			Assert.AreEqual (0, m_Manager.GetComponent<EcsTestData>(go0).value);
+			Assert.AreEqual (1, m_Manager.GetComponent<EcsTestData>(go1).value);
+			Assert.AreEqual (2, m_Manager.GetComponent<EcsTestData>(go2).value);
 
 			m_Manager.Destroy (go1);
 
@@ -56,8 +56,8 @@ namespace ECS
 			Assert.IsFalse(m_Manager.HasComponent<EcsTestData>(go1));
 			Assert.IsTrue (m_Manager.HasComponent<EcsTestData>(go2));
 
-			Assert.AreEqual (0, m_Manager.GetComponentData<EcsTestData>(go0).value);
-			Assert.AreEqual (2, m_Manager.GetComponentData<EcsTestData>(go2).value);
+			Assert.AreEqual (0, m_Manager.GetComponent<EcsTestData>(go0).value);
+			Assert.AreEqual (2, m_Manager.GetComponent<EcsTestData>(go2).value);
 
 			m_Manager.Destroy (go0);
 			m_Manager.Destroy (go2);
@@ -73,9 +73,9 @@ namespace ECS
 			var go = m_Manager.AllocateGameObject ();
 
 			m_Manager.AddComponent (go, new EcsTestData(0));
-			m_Manager.SetComponentData (go, new EcsTestData(1));
+			m_Manager.SetComponent (go, new EcsTestData(1));
 
-			Assert.AreEqual (1, m_Manager.GetComponentData<EcsTestData>(go).value);
+			Assert.AreEqual (1, m_Manager.GetComponent<EcsTestData>(go).value);
 
 			m_Manager.Destroy (go);
 		}
@@ -87,8 +87,8 @@ namespace ECS
 			m_Manager.AddComponent (go, new EcsTestData(0));
 			m_Manager.Destroy (go);
 
-			Assert.Throws<System.InvalidOperationException>(()=> { m_Manager.SetComponentData (go, new EcsTestData(0)); });
-			Assert.Throws<System.InvalidOperationException>(()=> { m_Manager.GetComponentData<EcsTestData> (go); });
+			Assert.Throws<System.InvalidOperationException>(()=> { m_Manager.SetComponent (go, new EcsTestData(0)); });
+			Assert.Throws<System.InvalidOperationException>(()=> { m_Manager.GetComponent<EcsTestData> (go); });
 		}
 
 		[Test]

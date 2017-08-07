@@ -145,7 +145,7 @@ namespace ECS
 				tuple.tupleSystem.AddTupleIfSupported(fullGameObject, gameObject);
 		}
 			
-    	public T GetComponentData<T>(LightweightGameObject gameObject) where T : struct, IComponentData
+    	public T GetComponent<T>(LightweightGameObject gameObject) where T : struct, IComponentData
     	{
     		int index = GetComponentIndex<T> (gameObject);
     		if (index == -1)
@@ -156,7 +156,7 @@ namespace ECS
 			return manager.m_Data[index];
     	}
 
-    	public void SetComponentData<T>(LightweightGameObject gameObject, T componentData) where T: struct, IComponentData
+    	public void SetComponent<T>(LightweightGameObject gameObject, T componentData) where T: struct, IComponentData
     	{
     		int index = GetComponentIndex<T> (gameObject);
     		if (index == -1)

@@ -43,7 +43,7 @@ namespace ECS
 					var boid = new ECS.BoidData ();
 					boid.position = Random.insideUnitSphere + transform.position;
 					boid.forward = Random.onUnitSphere;
-					m_LightweightGameObjects.SetComponentData(gos[i], boid);
+					m_LightweightGameObjects.SetComponent(gos[i], boid);
 				}
 
 				gos.Dispose ();

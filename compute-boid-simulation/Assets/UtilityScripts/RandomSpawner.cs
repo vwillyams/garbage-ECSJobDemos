@@ -33,7 +33,7 @@ public class RandomSpawner : ScriptBehaviour
 				var boid = new ECS.BoidData ();
 				boid.position = Random.insideUnitSphere * radius + transform.position;
 				boid.forward = Random.onUnitSphere;
-				m_LightweightGameObjects.SetComponentData(gos[i], boid);
+				m_LightweightGameObjects.SetComponent(gos[i], boid);
 			}
 
 			gos.Dispose ();

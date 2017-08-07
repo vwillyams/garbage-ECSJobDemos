@@ -265,6 +265,10 @@
       <Project>{03E66FEB-C47E-E2E4-D652-59C74CCA358E}</Project>      <Name>NativeContainers</Name>    </ProjectReference>
     <ProjectReference Include="UnityEngine.math.csproj">
       <Project>{72A1AF9A-DD18-B905-51E8-CF4BF67EC99E}</Project>      <Name>UnityEngine.math</Name>    </ProjectReference>
+    <ProjectReference Include="ECS.csproj">
+      <Project>{48493CFC-0C24-B808-DAA3-947004093BF3}</Project>      <Name>ECS</Name>    </ProjectReference>
+    <ProjectReference Include="NativeContainers.Editor.csproj">
+      <Project>{783B78EC-A504-7136-CC66-F459F27774F6}</Project>      <Name>NativeContainers.Editor</Name>    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

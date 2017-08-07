@@ -8,7 +8,7 @@ using UnityEngine.Assertions;
 
 //@TODO: Checks to ensure base override is always called.
 [AttributeUsage(AttributeTargets.Class)]
-class UpdateAfter : System.Attribute
+public class UpdateAfter : System.Attribute
 {
     public string NativeSystem { get; set; }
     public Type  ManagedSystem { get; set; }

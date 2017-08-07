@@ -74,18 +74,9 @@
      <Compile Include="Assets\ECS\BoidsECS\BoidsSpawner.cs" />
      <Compile Include="Assets\ECS\BoidsECS\BoidTargetComponent.cs" />
      <Compile Include="Assets\ECS\BoidsECS\InstancedMeshRendererPrototype.cs" />
-     <Compile Include="Assets\ECS\ComponentArray.cs" />
-     <Compile Include="Assets\ECS\ComponentData.cs" />
-     <Compile Include="Assets\ECS\ComponentDataArray.cs" />
-     <Compile Include="Assets\ECS\ComponentSystem.cs" />
-     <Compile Include="Assets\ECS\InjectTuples.cs" />
-     <Compile Include="Assets\ECS\LightWeighGameObject.cs" />
-     <Compile Include="Assets\ECS\LightweightComponentManager.cs" />
-     <Compile Include="Assets\ECS\PlayerLoopManager.cs" />
      <Compile Include="Assets\ECS\RotatorSample\DamageComponent.cs" />
      <Compile Include="Assets\ECS\RotatorSample\RotationSpeedComponent.cs" />
      <Compile Include="Assets\ECS\RotatorSample\RotationSpeedDataComponent.cs" />
-     <Compile Include="Assets\ECS\TupleSystem.cs" />
      <Compile Include="Assets\Jobs\IJobParalellForFilter.cs" />
      <Compile Include="Assets\p2gc\P2GCCompilationEngine.cs" />
      <Compile Include="Assets\p2gc\RestrictNoAliasAttribute.cs" />
@@ -136,9 +127,6 @@
      <Compile Include="Assets\Rotator\RotatorWithManager.cs" />
      <Compile Include="Assets\Rotator\RotatorWithManagerMainThread.cs" />
      <Compile Include="Assets\Rotator\RotatorWithManagerTransformInject.cs" />
-     <Compile Include="Assets\ScriptBehaviour\DependencyManager.cs" />
-     <Compile Include="Assets\ScriptBehaviour\ScriptBehaviour.cs" />
-     <Compile Include="Assets\ScriptBehaviour\ScriptBehaviourManager.cs" />
      <Compile Include="Assets\ScriptBehaviourSamples\Timeslice.cs" />
      <Compile Include="Assets\UtilityScripts\RandomSpawner.cs" />
      <None Include="Assets\PostProcessing\Resources\Shaders\DepthOfField.shader" />
@@ -355,6 +343,10 @@
       <Project>{03E66FEB-C47E-E2E4-D652-59C74CCA358E}</Project>      <Name>NativeContainers</Name>    </ProjectReference>
     <ProjectReference Include="UnityEngine.math.csproj">
       <Project>{72A1AF9A-DD18-B905-51E8-CF4BF67EC99E}</Project>      <Name>UnityEngine.math</Name>    </ProjectReference>
+    <ProjectReference Include="ECS.csproj">
+      <Project>{48493CFC-0C24-B808-DAA3-947004093BF3}</Project>      <Name>ECS</Name>    </ProjectReference>
+    <ProjectReference Include="NativeContainers.Editor.csproj">
+      <Project>{783B78EC-A504-7136-CC66-F459F27774F6}</Project>      <Name>NativeContainers.Editor</Name>    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -73,11 +73,11 @@ public class PathUtils
         , ref int straightPathCount
         , int maxStraightPath)
     {
-        Assert.IsTrue(pathSize > 0);
-        Assert.IsTrue(path.Length > 0);
-        Assert.IsTrue(maxStraightPath > 1);
-        Assert.IsTrue(straightPath.Length >= pathSize);
-        Assert.IsTrue(straightPath.Length == straightPathFlags.Length);
+        Assert.IsTrue(pathSize > 0, "FindStraightPath: The path cannot be empty");
+        Assert.IsTrue(path.Length >= pathSize, "FindStraightPath: The array of path polygons must fit at least the size specified");
+        Assert.IsTrue(maxStraightPath > 1, "FindStraightPath: At least two corners need to be returned, the start and end");
+        Assert.IsTrue(straightPath.Length >= maxStraightPath, "FindStraightPath: The array of returned corners cannot be smaller than the desired maximum corner count");
+        Assert.IsTrue(straightPathFlags.Length >= straightPath.Length, "FindStraightPath: The array of returned flags must not be smaller than the array of returned corners");
 
         // TODO Assert.IsTrue(startPos is in the polygon of path[0].polygonId);
 

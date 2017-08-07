@@ -7,9 +7,9 @@ using UnityEngine.Experimental.AI;
 
 public class Crowd : MonoBehaviour
 {
-    public int m_Count = 16;
-    public GameObject m_Prefab;
-    public bool m_DrawDebug = false;
+    public int agentSpawnCount = 16;
+    public GameObject prefab;
+    public bool drawDebug = false;
 
     NativeArray<Vector3> m_Positions;
     NativeArray<NavMeshLocation> m_Locations;
@@ -19,12 +19,14 @@ public class Crowd : MonoBehaviour
     // Workaround for missing support for nested arrays
     List<PolygonPath> m_Paths;
 
+    int m_Count;
     TransformAccessArray m_TransformArray;
     JobHandle m_WriteFence;
     PathQueryQueue m_QueryQueue;
 
     void OnEnable()
     {
+        m_Count = agentSpawnCount;
         m_QueryQueue = new PathQueryQueue();
         m_Positions = new NativeArray<Vector3>(m_Count, Allocator.Persistent);
         m_Velocities = new NativeArray<Vector3>(m_Count, Allocator.Persistent);
@@ -44,7 +46,7 @@ public class Crowd : MonoBehaviour
 
         for (int i = 0; i < m_Count; ++i)
         {
-            var go = GameObject.Instantiate(m_Prefab, m_Locations[i].position, Quaternion.identity) as GameObject;
+            var go = GameObject.Instantiate(prefab, m_Locations[i].position, Quaternion.identity) as GameObject;
             m_TransformArray.Add(go.transform);
         }
     }
@@ -113,15 +115,27 @@ public class Crowd : MonoBehaviour
 
             if (p.size > 1)
             {
-                Vector3 left, right;
-                var p0 = p.polygons[0];
-                var p1 = p.polygons[1];
-                if (NavMeshQuery.GetPortalPoints(p0, p1, out left, out right))
-                {
-                    Vector3 cpa1, cpa2;
-                    GeometryUtils.SegmentSegmentCPA(out cpa1, out cpa2, left, right, currentPos, endPos);
-                    steeringTarget = cpa1;
-                }
+                const int maxCorners = 2;
+                var straightPath = new NativeArray<NavMeshLocation>(maxCorners, Allocator.TempJob);
+                var straightPathFlags = new NativeArray<NavMeshStraightPathFlags>(straightPath.Length, Allocator.TempJob);
+                var cornerCount = 0;
+                var pathStatus = PathUtils.FindStraightPath(currentPos, endPos, p.polygons, p.size, ref straightPath, ref straightPathFlags, ref cornerCount, straightPath.Length);
+                steeringTarget = pathStatus == PathQueryStatus.Success && cornerCount > 1 ? straightPath[1].position : currentPos;
+
+                straightPath.Dispose();
+                straightPathFlags.Dispose();
+
+                //{
+                //    Vector3 left, right;
+                //    var p0 = p.polygons[0];
+                //    var p1 = p.polygons[1];
+                //    if (NavMeshQuery.GetPortalPoints(p0, p1, out left, out right))
+                //    {
+                //        Vector3 cpa1, cpa2;
+                //        GeometryUtils.SegmentSegmentCPA(out cpa1, out cpa2, left, right, currentPos, endPos);
+                //        steeringTarget = cpa1;
+                //    }
+                //}
             }
             var velocity = steeringTarget - currentPos;
             velocity.y = 0.0f;
@@ -205,7 +219,7 @@ public class Crowd : MonoBehaviour
 
     void DrawDebug()
     {
-        if (!m_DrawDebug)
+        if (!drawDebug)
             return;
 
         for (int i = 0; i < m_Count; ++i)
@@ -219,6 +233,11 @@ public class Crowd : MonoBehaviour
             offset = 0.9f * offset;
             Debug.DrawLine(m_Positions[i] + offset, m_Paths[i].end.position + offset, Color.grey);
         }
+    }
+
+    void Start()
+    {
+        m_Count = agentSpawnCount;
     }
 
     void Update()

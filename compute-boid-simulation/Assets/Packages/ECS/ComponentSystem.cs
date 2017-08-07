@@ -18,14 +18,16 @@ namespace ECS
     	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     	static void Initialize()
     	{
-			var types = typeof(ComponentSystem).Assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(ComponentSystem)) && !t.IsAbstract);
-    		foreach (var type in types)
-    			DependencyManager.GetBehaviourManager (type);	
+			foreach (var ass in AppDomain.CurrentDomain.GetAssemblies ())
+			{
+				var types = ass.GetTypes().Where(t => t.IsSubclassOf(typeof(ComponentSystem)) && !t.IsAbstract);
+				foreach (var type in types)
+					DependencyManager.GetBehaviourManager (type);	
+			}
     	}
     	override protected void OnCreateManager(int capacity)
     	{
     		base.OnCreateManager(capacity);
-
     		InjectTuples.CreateTuplesInjection (GetType(), this, out m_Tuples, out m_JobDependencyManagers);
     	}
 

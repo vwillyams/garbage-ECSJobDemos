@@ -2,3 +2,5 @@
 compute-boid-simulation/Library
 compute-boid-simulation/Temp
 compute-boid-simulation/obj
+
+*.csproj

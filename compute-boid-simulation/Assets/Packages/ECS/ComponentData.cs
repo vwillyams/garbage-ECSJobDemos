@@ -42,7 +42,7 @@ namespace ECS
 					var go = GetLightWeightGameObject();
 					if (m_GameObjectManager.HasComponent<T> (go))
 					{
-						return m_GameObjectManager.GetComponentData<T> (go);
+						return m_GameObjectManager.GetComponent<T> (go);
 					}
     			}
     			
@@ -55,7 +55,7 @@ namespace ECS
 					var go = GetLightWeightGameObject();
 					if (m_GameObjectManager.HasComponent<T> (go))
 					{
-						m_GameObjectManager.SetComponentData<T> (go, value);
+						m_GameObjectManager.SetComponent<T> (go, value);
 						return;
 					}
 				}
@@ -71,7 +71,7 @@ namespace ECS
 				var go = GetLightWeightGameObject();
 				if (m_GameObjectManager.HasComponent<T> (go))
 				{
-					m_GameObjectManager.SetComponentData<T> (go, m_SerializedData);
+					m_GameObjectManager.SetComponent<T> (go, m_SerializedData);
 				}
     		}
     	}
@@ -83,7 +83,7 @@ namespace ECS
 				var go = GetLightWeightGameObject();
 				if (m_GameObjectManager.HasComponent<T> (go))
 				{
-					m_SerializedData = m_GameObjectManager.GetComponentData<T> (GetLightWeightGameObject ());
+					m_SerializedData = m_GameObjectManager.GetComponent<T> (GetLightWeightGameObject ());
 				}
     		}
     	}

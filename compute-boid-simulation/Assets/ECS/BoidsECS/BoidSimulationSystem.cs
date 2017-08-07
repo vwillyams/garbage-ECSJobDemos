@@ -2,8 +2,9 @@
 using UnityEngine.Jobs;
 using UnityEngine.Collections;
 using System.Collections.Generic;
+using UnityEngine.ECS;
 
-namespace ECS
+namespace BoidSimulations
 {
 	[UpdateAfter("PreLateUpdate.ParticleSystemBeginUpdateAll")]
 	public class BoidSimulationSystem : JobComponentSystem

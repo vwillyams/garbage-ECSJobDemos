@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Profiling;
+using UnityEngine.ECS;
 
-namespace ECS
+namespace BoidSimulations
 {
     public class InstancedMeshRendererPrototype : ScriptBehaviour
     {

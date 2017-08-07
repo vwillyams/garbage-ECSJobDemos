@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using UnityEngine.Assertions;
 using System.Linq;
 
-namespace ECS
+namespace UnityEngine.ECS
 {
     internal class TupleSystem
     {

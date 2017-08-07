@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Jobs;
+using UnityEngine.ECS;
 
-namespace ECS
+namespace BoidSimulations
 {
-
 	public class BoidsSpawner : ScriptBehaviour
 	{
 		public GameObject prefab;
@@ -17,7 +17,7 @@ namespace ECS
 		private List<GameObject> roots = new List<GameObject>();
 
 		[InjectDependency]
-		ECS.LightweightGameObjectManager m_LightweightGameObjects;
+		LightweightGameObjectManager m_LightweightGameObjects;
 
 		public bool performanceDemoMode = false;
 
@@ -40,7 +40,7 @@ namespace ECS
 
 				for (int i = 0; i != gos.Length; i++)
 				{
-					var boid = new ECS.BoidData ();
+					var boid = new BoidData ();
 					boid.position = Random.insideUnitSphere + transform.position;
 					boid.forward = Random.onUnitSphere;
 					m_LightweightGameObjects.SetComponent(gos[i], boid);

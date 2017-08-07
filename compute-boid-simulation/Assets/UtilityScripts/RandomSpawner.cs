@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Profiling;
+using UnityEngine.ECS;
 
 public class RandomSpawner : ScriptBehaviour
 {
@@ -11,12 +12,8 @@ public class RandomSpawner : ScriptBehaviour
 	public int transformsPerHierarchy = 500;
 	public enum ActivateMode{ None, ActivateDeactivateAll }
 	public ActivateMode activateMode;
-	public bool lightweightInstantiate;
 
 	private List<GameObject> roots = new List<GameObject>();
-
-	[InjectDependency]
-	ECS.LightweightGameObjectManager m_LightweightGameObjects;
 
 	protected override void OnEnable()
 	{
@@ -24,35 +21,17 @@ public class RandomSpawner : ScriptBehaviour
 		Profiler.BeginSample ("Spawn '" + prefab.name + "'");
 		GameObject root = null;
 
-		if (lightweightInstantiate)
+		for (int i = 0; i != count; i++)
 		{
-			var gos = m_LightweightGameObjects.Instantiate (prefab, count);
-
-			for (int i = 0; i != gos.Length; i++)
+			if (transformsPerHierarchy != 0 && i % transformsPerHierarchy == 0)
 			{
-				var boid = new ECS.BoidData ();
-				boid.position = Random.insideUnitSphere * radius + transform.position;
-				boid.forward = Random.onUnitSphere;
-				m_LightweightGameObjects.SetComponent(gos[i], boid);
+				root = new GameObject("Chunk "+i);
+				root.transform.hierarchyCapacity = transformsPerHierarchy;
+				roots.Add (root);
 			}
 
-			gos.Dispose ();
+			Instantiate (prefab, Random.insideUnitSphere * radius + transform.position, Random.rotation, root.transform);
 		}
-		else
-		{
-			for (int i = 0; i != count; i++)
-			{
-				if (transformsPerHierarchy != 0 && i % transformsPerHierarchy == 0)
-				{
-					root = new GameObject("Chunk "+i);
-					root.transform.hierarchyCapacity = transformsPerHierarchy;
-					roots.Add (root);
-				}
-
-				Instantiate (prefab, Random.insideUnitSphere * radius + transform.position, Random.rotation, root.transform);
-			}
-		}
-
 
 		Profiler.EndSample ();
 	}

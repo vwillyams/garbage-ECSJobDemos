@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
 using UnityEngine.Collections;
 using UnityEngine.Jobs;
+using UnityEngine.ECS;
 
-namespace ECS
+namespace BoidSimulations
 {
+
 	class matrix_math_util
 	{
 		const float epsilon = 0.000001F;
@@ -66,15 +68,15 @@ namespace ECS
 		Bounds 			m_Bounds = new Bounds(new Vector3(0.0F, 0.0F, 0.0F), new Vector3(10000.0F, 10000.0F, 10000.0F));
 
 		[InjectTuples]
-		ComponentDataArray<ECS.BoidData> m_Boids;
+		ComponentDataArray<BoidData> m_Boids;
 
 		[InjectTuples]
-		ComponentDataArray<ECS.BoidInstanceRenderer> m_Instancing;
+		ComponentDataArray<BoidInstanceRenderer> m_Instancing;
 
 		[ComputeJobOptimizationAttribute(Accuracy.Med, Support.Relaxed)]
 		struct BoidToMatricesJob : IJobParallelFor 
 		{
-			public ComponentDataArray<ECS.BoidData> 	boids;
+			public ComponentDataArray<BoidData> 	boids;
 			public NativeArray<float4x4> 				matrices;
 
 			public void Execute(int index)

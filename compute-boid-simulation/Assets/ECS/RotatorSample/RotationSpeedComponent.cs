@@ -1,7 +1,8 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.ECS;
 
-namespace ECS
+namespace RotatorSamples
 {
 	public class RotationSpeedComponent : ScriptBehaviour
 	{

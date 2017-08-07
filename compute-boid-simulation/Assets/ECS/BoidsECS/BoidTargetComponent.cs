@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.ECS;
 
-namespace ECS
+namespace BoidSimulations
 {
 	public struct BoidTarget : IComponentData { }
 

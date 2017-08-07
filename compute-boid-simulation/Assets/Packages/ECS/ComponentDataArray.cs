@@ -9,7 +9,7 @@ using System.Reflection;
 
 //@TODO: ZERO TEST COVERAGE!!!
 
-namespace ECS
+namespace UnityEngine.ECS
 {
 	[NativeContainer]
 	[NativeContainerSupportsMinMaxWriteRestriction]

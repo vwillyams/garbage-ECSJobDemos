@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine.Assertions;
 #pragma warning disable 0649
 
-namespace ECS
+namespace UnityEngine.ECS
 {
     public struct ComponentArray<T> where T : Component
     {

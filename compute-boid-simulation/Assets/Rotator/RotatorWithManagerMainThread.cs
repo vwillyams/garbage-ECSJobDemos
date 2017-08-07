@@ -4,99 +4,104 @@ using UnityEngine;
 using UnityEngine.Collections;
 using UnityEngine.Jobs;
 using UnityEngine.Assertions;
+using UnityEngine.ECS;
 
-class RotatorManagerMainThread : ScriptBehaviourManager
+namespace RotatorSamples
 {
-	List<Transform>			m_Transforms;
-	NativeList<float> 		m_Speeds;
 
-	protected override void OnCreateManager (int capacity)
+	class RotatorManagerMainThread : ScriptBehaviourManager
 	{
-		base.OnCreateManager (capacity);
+		List<Transform>			m_Transforms;
+		NativeList<float> 		m_Speeds;
 
-		m_Transforms = new List<Transform> (capacity);
-		m_Speeds = new NativeList<float> (capacity, Allocator.Persistent);
-	}
-
-	protected override void OnDestroyManager()
-	{
-		base.OnDestroyManager ();
-
-		Assert.AreEqual(0, m_Speeds.Length);
-		m_Speeds.Dispose();		
-	}
-
-	protected override void OnUpdate()
-	{
-		base.OnUpdate ();
-
-		float deltaTime = Time.deltaTime;
-		NativeArray<float> speeds = m_Speeds;
-		for (int i = 0; i != m_Transforms.Count; i++)
+		protected override void OnCreateManager (int capacity)
 		{
-			var transform = m_Transforms [i];
-			transform.rotation = transform.rotation * Quaternion.AngleAxis (speeds[i] * deltaTime, Vector3.up);
+			base.OnCreateManager (capacity);
+
+			m_Transforms = new List<Transform> (capacity);
+			m_Speeds = new NativeList<float> (capacity, Allocator.Persistent);
+		}
+
+		protected override void OnDestroyManager()
+		{
+			base.OnDestroyManager ();
+
+			Assert.AreEqual(0, m_Speeds.Length);
+			m_Speeds.Dispose();		
+		}
+
+		protected override void OnUpdate()
+		{
+			base.OnUpdate ();
+
+			float deltaTime = Time.deltaTime;
+			NativeArray<float> speeds = m_Speeds;
+			for (int i = 0; i != m_Transforms.Count; i++)
+			{
+				var transform = m_Transforms [i];
+				transform.rotation = transform.rotation * Quaternion.AngleAxis (speeds[i] * deltaTime, Vector3.up);
+			}
+		}
+
+		public int Add(Transform transform, float speed)
+		{
+			m_Speeds.Add(speed);
+			m_Transforms.Add(transform);
+			return m_Transforms.Count - 1;
+		}
+
+		public void SetSpeed(int index, float speed)
+		{
+			m_Speeds[index] = speed;
+		}
+
+		public void Remove(RotatorWithManagerMainThread rotator)
+		{
+			var lastRotator = m_Transforms[m_Transforms.Count - 1].GetComponent<RotatorWithManagerMainThread> ();
+			lastRotator.m_Index = rotator.m_Index;
+
+			m_Speeds.RemoveAtSwapBack (rotator.m_Index);
+			m_Transforms.RemoveAtSwapBack (rotator.m_Index);
+
+			rotator.m_Index = -1;
 		}
 	}
 
-	public int Add(Transform transform, float speed)
+	[DisallowMultipleComponent]
+	public class RotatorWithManagerMainThread : ScriptBehaviour
 	{
-		m_Speeds.Add(speed);
-		m_Transforms.Add(transform);
-		return m_Transforms.Count - 1;
-	}
+		// Both static & instance value dependency injection works.
+		// (m_Manager can be marked static, this would result in less memory consumption,
+		// but no per instance control over the manager from the dependency manager)
+		[InjectDependency]
+		RotatorManagerMainThread 	m_Manager;
 
-	public void SetSpeed(int index, float speed)
-	{
-		m_Speeds[index] = speed;
-	}
+		[SerializeField]
+		float 					m_Speed;
 
-	public void Remove(RotatorWithManagerMainThread rotator)
-	{
-		var lastRotator = m_Transforms[m_Transforms.Count - 1].GetComponent<RotatorWithManagerMainThread> ();
-		lastRotator.m_Index = rotator.m_Index;
+		internal int 			m_Index = -1;
 
-		m_Speeds.RemoveAtSwapBack (rotator.m_Index);
-		m_Transforms.RemoveAtSwapBack (rotator.m_Index);
-
-		rotator.m_Index = -1;
-	}
-}
-
-[DisallowMultipleComponent]
-public class RotatorWithManagerMainThread : ScriptBehaviour
-{
-	// Both static & instance value dependency injection works.
-	// (m_Manager can be marked static, this would result in less memory consumption,
-	// but no per instance control over the manager from the dependency manager)
-	[InjectDependency]
-	RotatorManagerMainThread 	m_Manager;
-
-	[SerializeField]
-	float 					m_Speed;
-
-	internal int 			m_Index = -1;
-
-	public float speed
-	{
-		get { return m_Speed; }
-		set
+		public float speed
 		{
-			m_Speed = value;
-			if (m_Index != -1)
-				m_Manager.SetSpeed(m_Index, value);
+			get { return m_Speed; }
+			set
+			{
+				m_Speed = value;
+				if (m_Index != -1)
+					m_Manager.SetSpeed(m_Index, value);
+			}
 		}
-	}
 
-	protected override void OnEnable()
-	{
-		base.OnEnable ();
-		m_Index = m_Manager.Add(transform, m_Speed);
-	}
+		protected override void OnEnable()
+		{
+			base.OnEnable ();
+			m_Index = m_Manager.Add(transform, m_Speed);
+		}
 
-	protected override void OnDisable()
-	{
-		base.OnDisable ();
-		m_Manager.Remove(this);
+		protected override void OnDisable()
+		{
+			base.OnDisable ();
+			m_Manager.Remove(this);
+		}
 	}
 }

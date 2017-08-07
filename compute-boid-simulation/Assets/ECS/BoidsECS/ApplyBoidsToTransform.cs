@@ -2,10 +2,11 @@ using UnityEngine;
 using UnityEngine.Jobs;
 using UnityEngine.Collections;
 using System.Collections.Generic;
+using UnityEngine.ECS;
 
-
-namespace ECS
+namespace BoidSimulations
 {
+
 	[UpdateAfter(typeof(BoidSimulationSystem))]
 	class BoidsToTransformSystem : JobComponentSystem
 	{
@@ -38,4 +39,3 @@ namespace ECS
 		}
 	}
 }
-

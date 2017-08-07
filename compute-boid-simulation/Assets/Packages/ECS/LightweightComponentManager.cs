@@ -7,7 +7,7 @@ using UnityEngine.Assertions;
 using System.Linq;
 using System.Reflection;
 
-namespace ECS
+namespace UnityEngine.ECS
 {
     public interface ILightweightComponentManager
     {

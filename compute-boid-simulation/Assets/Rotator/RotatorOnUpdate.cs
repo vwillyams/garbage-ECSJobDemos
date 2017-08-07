@@ -4,22 +4,26 @@ using UnityEngine;
 using UnityEngine.Collections;
 using UnityEngine.Jobs;
 using UnityEngine.Assertions;
+using UnityEngine.ECS;
 
-public class RotatorOnUpdate : ScriptBehaviour
+namespace RotatorSamples
 {
-	[SerializeField]
-	float 					m_Speed;
-
-	public float speed
+	public class RotatorOnUpdate : ScriptBehaviour
 	{
-		get { return m_Speed; }
-		set { m_Speed = value; }
-	}
+		[SerializeField]
+		float 					m_Speed;
 
-	protected override void OnUpdate ()
-	{
-		base.OnUpdate ();
+		public float speed
+		{
+			get { return m_Speed; }
+			set { m_Speed = value; }
+		}
 
-		transform.rotation = transform.rotation * Quaternion.AngleAxis (m_Speed * Time.deltaTime, Vector3.up);
+		protected override void OnUpdate ()
+		{
+			base.OnUpdate ();
+
+			transform.rotation = transform.rotation * Quaternion.AngleAxis (m_Speed * Time.deltaTime, Vector3.up);
+		}
 	}
 }

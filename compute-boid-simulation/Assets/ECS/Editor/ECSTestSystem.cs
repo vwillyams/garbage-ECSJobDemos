@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using NUnit.Framework;
 using UnityEngine.Jobs;
+using UnityEngine.ECS;
 
-namespace ECS
+namespace UnityEngine.ECS.Tests
 {
 	public class PureEcsTestSystem : ComponentSystem
 	{

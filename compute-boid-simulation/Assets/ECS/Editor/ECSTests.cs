@@ -1,13 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.ECS;
 using NUnit.Framework;
 
-namespace ECS
+namespace UnityEngine.ECS.Tests
 {
 	//@TODO: Tests for misconfiguring attributes...
 
-	public class ECSTests
+	public class ECS
 	{
 		DependencyManager m_DependencyManager;
 		LightweightGameObjectManager m_Manager;

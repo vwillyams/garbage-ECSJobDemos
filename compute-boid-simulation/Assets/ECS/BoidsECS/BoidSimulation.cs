@@ -2,9 +2,10 @@
 using UnityEngine.Experimental;
 using UnityEngine.Jobs;
 using UnityEngine.Collections;
+using UnityEngine.ECS;
 using System.Collections.Generic;
 
-namespace ECS
+namespace BoidSimulations
 {
 	public struct BoidSimulationState
 	{

@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using NUnit.Framework;
+using UnityEngine.ECS;
 
-namespace ECS
+namespace UnityEngine.ECS.Tests
 {
 	public struct EcsTestData : IComponentData
 	{

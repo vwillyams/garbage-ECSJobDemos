@@ -7,9 +7,8 @@ using UnityEngine.Assertions;
 using System.Linq;
 using System.Reflection;
 
-namespace ECS
+namespace UnityEngine.ECS
 {
-
     [AttributeUsage(AttributeTargets.Field)]
     public class InjectTuples : System.Attribute
     {

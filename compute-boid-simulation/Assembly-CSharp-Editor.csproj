@@ -55,19 +55,6 @@
      <Compile Include="Assets\ECS\Editor\ECSTestComponent.cs" />
      <Compile Include="Assets\ECS\Editor\ECSTests.cs" />
      <Compile Include="Assets\ECS\Editor\ECSTestSystem.cs" />
-     <Compile Include="Assets\Editor\NativeContainerTests\NativeContainerTests_ValidateTypes.cs" />
-     <Compile Include="Assets\Editor\NativeContainerTests\NativeContainerTests_ValidateTypes_JobDebugger.cs" />
-     <Compile Include="Assets\Editor\NativeContainerTests\NativeContainerTests_ValidateTypesFixture.cs" />
-     <Compile Include="Assets\Editor\NativeContainerTests\NativeFreeListTests.cs" />
-     <Compile Include="Assets\Editor\NativeContainerTests\NativeHashMapTests.cs" />
-     <Compile Include="Assets\Editor\NativeContainerTests\NativeHashMapTests_InJobs.cs" />
-     <Compile Include="Assets\Editor\NativeContainerTests\NativeHashMapTests_NativeChecks.cs" />
-     <Compile Include="Assets\Editor\NativeContainerTests\NativeHashMapTestsFixture.cs" />
-     <Compile Include="Assets\Editor\NativeContainerTests\NativeListTests.cs" />
-     <Compile Include="Assets\Editor\NativeContainerTests\NativeListTests_JobDebugger.cs" />
-     <Compile Include="Assets\Editor\NativeContainerTests\NativeMultiHashMapTests_InJobs.cs" />
-     <Compile Include="Assets\Editor\NativeContainerTests\NativeMultiHashMapTests_JobDebugger.cs" />
-     <Compile Include="Assets\Editor\NativeContainerTests\NativeMultiHashMapTestsFixture.cs" />
      <Compile Include="Assets\Editor\NativeContainerTests\ParallelFilterJobTests.cs" />
      <Compile Include="Assets\p2gc\Editor\P2GCTests.cs" />
      <Compile Include="Assets\PostProcessing\Editor\Attributes\PostProcessingModelEditorAttribute.cs" />
@@ -353,6 +340,10 @@
       <Project>{E93783ED-96B1-8C1F-8ABC-C0066B641879}</Project>      <Name>Assembly-CSharp-firstpass</Name>    </ProjectReference>
     <ProjectReference Include="Assembly-CSharp.csproj">
       <Project>{4C00EC3B-64BE-0FBB-8F11-1E3B65C055E1}</Project>      <Name>Assembly-CSharp</Name>    </ProjectReference>
+    <ProjectReference Include="NativeContainers.csproj">
+      <Project>{03E66FEB-C47E-E2E4-D652-59C74CCA358E}</Project>      <Name>NativeContainers</Name>    </ProjectReference>
+    <ProjectReference Include="UnityEngine.math.csproj">
+      <Project>{72A1AF9A-DD18-B905-51E8-CF4BF67EC99E}</Project>      <Name>UnityEngine.math</Name>    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

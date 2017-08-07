@@ -260,6 +260,12 @@
  <HintPath>/Users/joe/Library/Unity/cache/packages/packages.unity.com/com.unity.purchasing@0.0.18/UnityEngine.Purchasing.dll</HintPath>
  </Reference>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="NativeContainers.csproj">
+      <Project>{03E66FEB-C47E-E2E4-D652-59C74CCA358E}</Project>      <Name>NativeContainers</Name>    </ProjectReference>
+    <ProjectReference Include="UnityEngine.math.csproj">
+      <Project>{72A1AF9A-DD18-B905-51E8-CF4BF67EC99E}</Project>      <Name>UnityEngine.math</Name>    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

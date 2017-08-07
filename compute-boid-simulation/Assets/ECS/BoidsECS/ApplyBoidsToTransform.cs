@@ -9,10 +9,10 @@ namespace ECS
 	[UpdateAfter(typeof(BoidSimulationSystem))]
 	class BoidsToTransformSystem : JobComponentSystem
 	{
-		[InjectTuples(0)]
+		[InjectTuples]
 		ComponentDataArray<BoidData> 				m_BoidData;
 
-		[InjectTuples(0)]
+		[InjectTuples]
 		TransformAccessArray 						m_BoidTransforms;
 
 		struct WriteBoidsToTransformsJob : IJobParallelForTransform
@@ -28,19 +28,9 @@ namespace ECS
 			}
 		}
 
-		override protected void OnCreateManager(int capacity)
-		{
-			base.OnCreateManager (capacity);
-		}
-
 		override protected void OnUpdate()
 		{
 			base.OnUpdate ();
-
-			//@TODO: This shouldn't really be necessary right now
-			//       it is needed because job chaining is not properly supported...
-			if (m_BoidTransforms.Length == 0)
-				return;
 
 			WriteBoidsToTransformsJob writeJob;
 			writeJob.boids = m_BoidData;

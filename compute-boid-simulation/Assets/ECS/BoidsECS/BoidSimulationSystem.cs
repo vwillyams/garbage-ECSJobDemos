@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace ECS
 {
-	[UpdateAfter("")]
+	[UpdateAfter("PreLateUpdate.ParticleSystemBeginUpdateAll")]
 	public class BoidSimulationSystem : JobComponentSystem
 	{
 		[InjectTuples(0)]
@@ -35,8 +35,6 @@ namespace ECS
 
 		NativeMultiHashMap<int, int> 				m_Cells;
 
-		public static bool                          UseJobs = true;
-
 		[ComputeJobOptimizationAttribute(Accuracy.Med, Support.Relaxed)]
 		struct PrepareParallelBoidsJob : IJobParallelFor
 		{
@@ -55,30 +53,6 @@ namespace ECS
 				dst[index] = boidData;
 
 				BoidSimulationSettings.AddHashCell(boidData, index, cellRadius, outputCells);
-			}
-		}
-
-		[ComputeJobOptimizationAttribute(Accuracy.Med, Support.Relaxed)]
-		struct PrepareBoidsJob : IJob
-		{
-			[ReadOnly]
-			public ComponentDataArray<BoidData> 						src;
-
-			public NativeArray<BoidData> 								dst;
-
-			public NativeMultiHashMap<int, int> 						outputCells;
-
-			public float 												cellRadius;
-
-			public void Execute()
-			{
-				for (int index = 0; index != src.Length; index++)
-				{
-					var boidData = src[index];
-					dst[index] = boidData;
-
-					BoidSimulationSettings.AddHashCell(boidData, index, cellRadius, outputCells);
-				}
 			}
 		}
 
@@ -164,59 +138,18 @@ namespace ECS
 			for (int i = 0; i != simulateJob.targetPositions.Length; i++)
 				simulateJob.targetPositions[i] = m_BoidTargetsTransforms[i].position;
 
-			JobHandle prepareJobHandle = new JobHandle();
-			// Single threaded HashTable write
-			if (true)
+			var prepareParallelJob = new PrepareParallelBoidsJob
 			{
-				var preparejob = new PrepareBoidsJob
-				{
-					src = m_BoidData,
-					dst = boids,
-					outputCells = m_Cells,
-					cellRadius = m_BoidSimulationSettings[0].cellRadius
-				};
+				src = m_BoidData,
+				dst = boids,
+				outputCells = m_Cells,
+				cellRadius = m_BoidSimulationSettings[0].cellRadius
+			};
 
-				if (UseJobs)
-				{
-					prepareJobHandle = preparejob.Schedule (GetDependency ());
-				}
-				else
-				{
-					CompleteDependency ();
-					preparejob.Run ();
-				}
-			}
-			// Parallell HashTable write
-			else
-			{
-				var prepareParallelJob = new PrepareParallelBoidsJob
-				{
-					src = m_BoidData,
-					dst = boids,
-					outputCells = m_Cells,
-					cellRadius = m_BoidSimulationSettings[0].cellRadius
-				};
+			var prepareJobHandle = prepareParallelJob.Schedule(boids.Length, 512, GetDependency());
+			var simulationJobHandle = simulateJob.Schedule (boids.Length, 512, prepareJobHandle);
 
-				if (UseJobs)
-				{
-					prepareJobHandle = prepareParallelJob.Schedule(boids.Length, 512, GetDependency());
-				}
-				else
-				{
-					CompleteDependency ();
-					prepareParallelJob.Run (boids.Length);
-				}
-			}
-
-			if (UseJobs)
-			{
-				var simulationJobHandle = simulateJob.Schedule (boids.Length, 512, prepareJobHandle);
-				AddDependency (simulationJobHandle);
-			}
-			else
-			{
-				simulateJob.Run (boids.Length);
-			}
+			AddDependency (simulationJobHandle);
 
 			JobHandle.ScheduleBatchedJobs ();
 		}

@@ -23,13 +23,12 @@ namespace ECS
 
     public class LightweightGameObjectManager : ScriptBehaviourManager
     {
-    	List<Type> m_ComponentTypes = new List<Type>();
+    	List<Type> 										  m_ComponentTypes = new List<Type>();
 
-    	NativeMultiHashMap<int, LightWeightComponentInfo> m_GameObjectToComponent;
-    	int 											  m_InstanceIDAllocator = 1;
+		NativeMultiHashMap<int, LightWeightComponentInfo> m_GameObjectToComponent;
+
+    	int 											  m_InstanceIDAllocator = -1;
     	int 										      m_DebugManagerID;
-
-    	NativeHashMap<int, int> 	  					  m_GameObjectInstanceIDToLightweightID;
 
     	struct LightWeightComponentInfo
     	{
@@ -38,13 +37,11 @@ namespace ECS
     		public int 	index;
     	}
 
-
     	override protected void OnCreateManager(int capacity)
     	{
     		base.OnCreateManager(capacity);
 
 			m_GameObjectToComponent = new NativeMultiHashMap<int, LightWeightComponentInfo> (capacity, Allocator.Persistent);
-			m_GameObjectInstanceIDToLightweightID = new NativeHashMap<int, int> (capacity, Allocator.Persistent);
     		m_DebugManagerID = 1;
     	}
 
@@ -52,9 +49,7 @@ namespace ECS
     	{
     		base.OnDestroyManager();
     		m_GameObjectToComponent.Dispose ();
-    		m_GameObjectInstanceIDToLightweightID.Dispose ();
     	}
-
 
     	int GetTypeIndex(Type type)
     	{
@@ -66,13 +61,13 @@ namespace ECS
     		}
 
     		if (!typeof(IComponentData).IsAssignableFrom (type))
-    			throw new ArgumentException (string.Format("{0} must be a ILightweightComponent to be used when create a lightweight game object", type));
+				throw new ArgumentException (string.Format("{0} must be a IComponentData to be used when create a lightweight game object", type));
     		
     		m_ComponentTypes.Add (type);
     		return m_ComponentTypes.Count - 1;
     	}
 
-    	public int GetLightweightComponentIndex<T>(LightweightGameObject gameObject) where T : IComponentData
+    	public int GetComponentIndex<T>(LightweightGameObject gameObject) where T : IComponentData
     	{
     		return GetComponentIndex (gameObject, GetTypeIndex(typeof(T)));
     	}
@@ -81,6 +76,44 @@ namespace ECS
     	{
     		return GetComponentIndex (gameObject, GetTypeIndex(type));
     	}
+
+		public bool HasComponent<T>(LightweightGameObject gameObject) where T : IComponentData
+		{
+			return GetComponentIndex (gameObject, GetTypeIndex(typeof(T))) != -1;
+		}
+
+		public bool HasComponent(LightweightGameObject gameObject, Type type)
+		{
+			return GetComponentIndex (gameObject, GetTypeIndex(type)) != -1;
+		}
+
+		public LightweightGameObject AllocateGameObject()
+		{
+			var go = new LightweightGameObject(m_DebugManagerID, m_InstanceIDAllocator);
+			m_InstanceIDAllocator -= 2;
+			return go;
+		}
+
+		public void AddComponent<T>(LightweightGameObject gameObject, T componentData) where T : struct, IComponentData
+		{
+			Assert.IsFalse (HasComponent<T>(gameObject));
+
+			// Add to manager
+			var manager = GetComponentManager<T> ();
+			int index = manager.AddElement (componentData);
+
+			// game object lookup table
+			LightWeightComponentInfo info;
+			info.componentTypeIndex = GetTypeIndex (typeof(T));
+			info.index = index;
+			m_GameObjectToComponent.Add(gameObject.index, info);
+
+			var fullGameObject = UnityEditor.EditorUtility.InstanceIDToObject (gameObject.index) as GameObject;
+
+			// tuple management
+			foreach (var tuple in manager.m_RegisteredTuples)
+				tuple.tupleSystem.AddTupleIfSupported(fullGameObject, gameObject);
+		}
 
     	int GetComponentIndex(LightweightGameObject gameObject, int typeIndex)
     	{
@@ -104,23 +137,26 @@ namespace ECS
     		return -1;
     	}
 
-
-    	public T GetLightweightComponent<T>(LightweightGameObject gameObject) where T : struct, IComponentData
+    	public T GetComponentData<T>(LightweightGameObject gameObject) where T : struct, IComponentData
     	{
-    		int index = GetLightweightComponentIndex<T> (gameObject);
+    		int index = GetComponentIndex<T> (gameObject);
     		if (index == -1)
     			throw new InvalidOperationException (string.Format("{0} does not exist on the game object", typeof(T)));
 
-    		return GetComponentManager<T>().m_Data [index];
+			var manager = GetComponentManager<T> ();
+			manager.CompleteForReading ();
+			return manager.m_Data[index];
     	}
 
-    	public void SetLightweightComponent<T>(LightweightGameObject gameObject, T componentData) where T: struct, IComponentData
+    	public void SetComponentData<T>(LightweightGameObject gameObject, T componentData) where T: struct, IComponentData
     	{
-    		int index = GetLightweightComponentIndex<T> (gameObject);
+    		int index = GetComponentIndex<T> (gameObject);
     		if (index == -1)
     			throw new InvalidOperationException (string.Format("{0} does not exist on the game object", typeof(T)));
 
-    		GetComponentManager<T>().m_Data[index] = componentData;
+			var manager = GetComponentManager<T> ();
+			manager.CompleteForWriting ();
+    		manager.m_Data[index] = componentData;
     	}
 
     	LightweightComponentManager<T> GetComponentManager<T>() where T: struct, IComponentData
@@ -137,59 +173,52 @@ namespace ECS
     		var components = gameObject.GetComponents<ComponentDataWrapperBase> ();
     		var lightweightComponentTypes = new Type[components.Length];
     		for (int t = 0;t != components.Length;t++)
-    		{
-    			if (components[t].m_Index == -1)
-    				throw new InvalidOperationException (string.Format("{0} prefab component must be registered with a manager before instantiating", components.GetType()));
-
-    			lightweightComponentTypes[t] = components [t].m_LightWeightType;
-    		}
+				lightweightComponentTypes[t] = components[t].GetIComponentDataType();
 
     		//@TODO: Temp alloc
-    		var gameObjects = new NativeArray<LightweightGameObject> (numberOfInstances, Allocator.Persistent);
+			var gameObjects = new NativeArray<LightweightGameObject> (numberOfInstances, Allocator.Persistent);
+			var allComponentIndices = new NativeArray<int> (numberOfInstances * components.Length, Allocator.Persistent);
 
-    		int baseID = m_InstanceIDAllocator;
-    		m_InstanceIDAllocator += numberOfInstances;
-    		for (int i = 0; i < gameObjects.Length; i++)
-    			gameObjects[i] = new LightweightGameObject (m_DebugManagerID, baseID + i);
-
-    		var firstAddedComponentIndices = new NativeArray<int> (components.Length, Allocator.Temp);
     		for (int t = 0;t != components.Length;t++)
     		{
-    			var manager = GetLightweightComponentManager(GetTypeIndex(components[t].m_LightWeightType));
-    			firstAddedComponentIndices[t] = manager.AddElements (manager, components[t].m_Index, gameObjects);
+				var manager = GetLightweightComponentManager(GetTypeIndex(lightweightComponentTypes[t]));
+				manager.AddElements (gameObject, new NativeSlice<int>(allComponentIndices, t * numberOfInstances, numberOfInstances));
     		}
 
     		for (int t = 0; t != components.Length; t++)
     		{
-    			int firstAddedComponentIndex = firstAddedComponentIndices [t];
-
     			//@TOOD: Batchable
     			LightWeightComponentInfo componentInfo;
-    			componentInfo.componentTypeIndex = GetTypeIndex(components[t].m_LightWeightType);
+				componentInfo.componentTypeIndex = GetTypeIndex(lightweightComponentTypes[t]);
 
     			for (int g = 0; g != numberOfInstances; g++)
     			{
-    				componentInfo.index = firstAddedComponentIndex + g;
-    				m_GameObjectToComponent.Add (baseID + g, componentInfo);
+					componentInfo.index = allComponentIndices[g + t * numberOfInstances];
+					m_GameObjectToComponent.Add (m_InstanceIDAllocator - g * 2, componentInfo);
     			}
     		}
-    			
+
+			for (int i = 0; i < gameObjects.Length; i++)
+				gameObjects[i] = new LightweightGameObject (m_DebugManagerID, m_InstanceIDAllocator - i * 2);
+
+			m_InstanceIDAllocator -= numberOfInstances * 2;
+
 
     		// Collect all tuples that support the created game object schema
     		var tuples = new HashSet<TupleSystem> ();
     		for (int t = 0;t != components.Length;t++)
     		{
-    			var manager = GetLightweightComponentManager(GetTypeIndex(components[t].m_LightWeightType));
+				var manager = GetLightweightComponentManager(GetTypeIndex(lightweightComponentTypes[t]));
     			manager.CollectSupportedTupleSets (lightweightComponentTypes, tuples);
     		}
 
     		foreach (var tuple in tuples)
     		{
     			for (int t = 0; t != components.Length; t++)
-    				tuple.AddTuplesUnchecked(m_ComponentTypes[t], firstAddedComponentIndices[t], numberOfInstances);
+					tuple.AddTuplesUnchecked(m_ComponentTypes[t], new NativeSlice<int>(allComponentIndices, t * numberOfInstances, numberOfInstances));
     		}
 
-    		firstAddedComponentIndices.Dispose();
+			allComponentIndices.Dispose();
 
     		return gameObjects;
     	}
@@ -199,12 +228,7 @@ namespace ECS
     		var managerType = typeof(LightweightComponentManager<>).MakeGenericType(new Type[] { m_ComponentTypes[typeIndex] });
     		return DependencyManager.GetBehaviourManager (managerType)  as ILightweightComponentManager;
     	}
-
-    	public LightweightGameObject Create (params Type[] types)
-    	{
-    		throw new System.NotImplementedException();
-    	}
-
+			
     	public void Destroy (LightweightGameObject gameObject)
     	{
     		var temp = new NativeArray<LightweightGameObject> (1, Allocator.Persistent);
@@ -217,59 +241,80 @@ namespace ECS
     	{
     		LightweightGameObject light;
     		light.debugManagerIndex = m_DebugManagerID;
-    		light.index = 0;
-    		m_GameObjectInstanceIDToLightweightID.TryGetValue(go.GetInstanceID(), out light.index);
+			light.index = go.GetInstanceID();
 
     		return light;
     	}
 
-    	public int[] GetComponentTypeIndices(LightweightGameObject gameObject)
-    	{
-    		var types = new List<int>();
-    		LightWeightComponentInfo component;
-    		NativeMultiHashMapIterator<int> iterator;
-    		if (!m_GameObjectToComponent.TryGetFirstValue (gameObject.index, out component, out iterator))
-    			return types.ToArray();
+		//@TODO: Add HashMap functionality to remove a single component
+		int RemoveComponentFromGameObjectTable(LightweightGameObject gameObject, int typeIndex)
+		{
+			var components = new NativeList<LightWeightComponentInfo> (16, Allocator.Temp);
+			int removedComponentIndex = -1;
 
-    		types.Add(component.componentTypeIndex);
-    		while (m_GameObjectToComponent.TryGetNextValue(out component, ref iterator))
-    			types.Add(component.componentTypeIndex);
+			LightWeightComponentInfo component;
+			NativeMultiHashMapIterator<int> iterator;
 
-    		return types.ToArray();
-    	}
+			if (!m_GameObjectToComponent.TryGetFirstValue (gameObject.index, out component, out iterator))
+			{
+				components.Dispose ();
+				throw new ArgumentException ("RemoveComponent may not be invoked on a game object that does not exist");
+			}
 
+			if (component.componentTypeIndex != typeIndex)
+				components.Add (component);
+			else
+				removedComponentIndex = component.index;
+			
 
-    	public void MergeIntoFullGameObject(LightweightGameObject light, GameObject full)
-    	{
-    		//@TODO: Needs lots of work in defining behaviour of this... right now its just hack hack joy joy
+			while (m_GameObjectToComponent.TryGetNextValue(out component, ref iterator))
+			{
+				if (component.componentTypeIndex != typeIndex)
+					components.Add (component);
+				else
+					removedComponentIndex = component.index;
+			}
 
-    		foreach (var coms in full.GetComponents<ComponentDataWrapperBase>())
-    			UnityEngine.Object.DestroyImmediate (coms);
+			m_GameObjectToComponent.Remove (gameObject.index);
+			for (int i = 0; i != components.Length;i++)
+				m_GameObjectToComponent.Add (gameObject.index, components[i]);
 
-    		m_GameObjectInstanceIDToLightweightID.TryAdd(full.GetInstanceID(), light.index);
+			components.Dispose ();
 
-    		var typeIndices = GetComponentTypeIndices (light);
-    		var types = new Type[typeIndices.Length];
-    		// Collect all tuples that support the created game object schema
-    		var tuples = new HashSet<TupleSystem> ();
-    		for (int t = 0;t != typeIndices.Length;t++)
-    		{
-    			types[t] = m_ComponentTypes[typeIndices[t]];
-    			var manager = GetLightweightComponentManager(typeIndices[t]);
-    			manager.CollectSupportedTupleSets (null, tuples);
-    		}
+			return removedComponentIndex;
+		}
 
-    		foreach (var tuple in tuples)
-    		{
-    			// AddTupleIfSupported only if the light weight game object hasn't added into it already...
-    			if (!tuple.IsLightWeightTupleSupported(types))
-    				tuple.AddTupleIfSupported (full);
-    		}
-    	}
+		// * NOTE: Does not modify m_GameObjectToComponent
+		void RemoveComponentFromManagerAndTuples (NativeArray<int> components, int componentTypeIndex)
+		{
+			var manager = GetLightweightComponentManager(componentTypeIndex);
+			manager.RemoveElement (components);
+
+			foreach (var tuple in manager.GetRegisteredTuples())
+			{
+				for (int i = 0; i != components.Length;i++)
+					tuple.tupleSystem.RemoveSwapBackLightWeightComponent (tuple.tupleSystemIndex, components [i]);
+			}
+		}
+
+		public void RemoveComponent<T>(LightweightGameObject gameObject) where T : struct, IComponentData
+		{
+			Assert.IsTrue (HasComponent<T>(gameObject));
+
+			int componentTypeIndex = GetTypeIndex (typeof(T));
+			int componentIndex = RemoveComponentFromGameObjectTable (gameObject, componentTypeIndex);
+
+			var components = new NativeArray<int> (1, Allocator.Persistent);
+			components[0] = componentIndex;
+
+			RemoveComponentFromManagerAndTuples (components, componentTypeIndex);
+
+			components.Dispose ();
+		}
 
     	public void Destroy (NativeArray<LightweightGameObject> gameObjects)
     	{
-    		var array = new NativeArray<int> (1, Allocator.Persistent);
+			var array = new NativeArray<int> (1, Allocator.Persistent);
 
     		for (int i = 0; i < gameObjects.Length; i++)
     		{
@@ -282,20 +327,18 @@ namespace ECS
     			if (!m_GameObjectToComponent.TryGetFirstValue (gameObject.index, out component, out iterator))
     				throw new System.InvalidOperationException ("GameObject does not exist");
 
-    			var manager = GetLightweightComponentManager(component.componentTypeIndex);
     			array[0] = component.index;
-    			manager.RemoveElements (array);
+				RemoveComponentFromManagerAndTuples (array, component.componentTypeIndex);
 
     			while (m_GameObjectToComponent.TryGetNextValue(out component, ref iterator))
     			{
-    				manager = GetLightweightComponentManager(component.componentTypeIndex);
-    				array[0] = component.index;
-    				manager.RemoveElements (array);
+					array[0] = component.index;
+					RemoveComponentFromManagerAndTuples (array, component.componentTypeIndex);
     			}
 
 				m_GameObjectToComponent.Remove(gameObject.index);
     		}
-
+    		
     		array.Dispose ();
     	}
     }

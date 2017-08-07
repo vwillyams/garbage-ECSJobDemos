@@ -15,83 +15,96 @@ namespace ECS
 
 
     //@TODO: This should be fully implemented in C++ for efficiency
-    public class ComponentDataWrapperBase : ScriptBehaviour
+    public abstract class ComponentDataWrapperBase : ScriptBehaviour
     { 
-    	[NonSerialized]
-        public int         m_Index = -1;
-    	[NonSerialized]
-        public Type        m_LightWeightType;
-
-    	protected override void OnCreate ()
-    	{
-    		base.OnCreate ();
-    	}
+		abstract internal Type GetIComponentDataType ();
     }
 
     //@TODO: This should be fully implemented in C++ for efficiency
     public class ComponentDataWrapper<T> : ComponentDataWrapperBase, UnityEngine.ISerializationCallbackReceiver where T : struct, IComponentData
     {
+		LightweightGameObjectManager   m_GameObjectManager;
+
         [SerializeField]
         T m_SerializedData;
+
+		LightweightGameObject GetLightWeightGameObject()
+		{
+			return new LightweightGameObject(0, gameObject.GetInstanceID ());
+		}
 
     	public T Value
     	{
     		get
     		{ 
-    			if (m_Index != -1)
+				if (m_GameObjectManager != null)
     			{
-    				m_Manager.CompleteForReading ();
-    				return m_Manager.m_Data [m_Index];
+					var go = GetLightWeightGameObject();
+					if (m_GameObjectManager.HasComponent<T> (go))
+					{
+						return m_GameObjectManager.GetComponentData<T> (go);
+					}
     			}
-    			else
-    				return m_SerializedData;
+    			
+				return m_SerializedData;
     		}
     		set
     		{
-    			if (m_Index != -1)
-    			{
-    				m_Manager.CompleteForWriting ();
-    				m_Manager.m_Data [m_Index] = value;
-    			}
-    			else
-    				m_SerializedData = value;
+				if (m_GameObjectManager != null)
+				{
+					var go = GetLightWeightGameObject();
+					if (m_GameObjectManager.HasComponent<T> (go))
+					{
+						m_GameObjectManager.SetComponentData<T> (go, value);
+						return;
+					}
+				}
+
+    			m_SerializedData = value;
     		}
     	}
 
     	public void OnAfterDeserialize ()
     	{
-    		if (m_Index != -1)
+			if (m_GameObjectManager != null)
     		{
-    			m_Manager.CompleteForWriting ();
-    			m_Manager.m_Data[m_Index] = m_SerializedData;
+				var go = GetLightWeightGameObject();
+				if (m_GameObjectManager.HasComponent<T> (go))
+				{
+					m_GameObjectManager.SetComponentData<T> (go, m_SerializedData);
+				}
     		}
     	}
 
     	public void OnBeforeSerialize ()
     	{
-    		if (m_Index != -1)
-    		{
-    			m_Manager.CompleteForReading ();
-
-    			m_SerializedData = m_Manager.m_Data [m_Index];
+			if (m_GameObjectManager != null)
+			{			
+				var go = GetLightWeightGameObject();
+				if (m_GameObjectManager.HasComponent<T> (go))
+				{
+					m_SerializedData = m_GameObjectManager.GetComponentData<T> (GetLightWeightGameObject ());
+				}
     		}
     	}
 
-    	static LightweightComponentManager<T> m_Manager;
+		internal override Type GetIComponentDataType()
+		{
+			return typeof(T);
+		}
 
         override protected void OnEnable()
         {
-    		//@TODO: Why not constructor?
-    		m_LightWeightType = typeof(T);
+			if (m_GameObjectManager == null)
+				m_GameObjectManager = DependencyManager.GetBehaviourManager (typeof(LightweightGameObjectManager)) as LightweightGameObjectManager;
 
-    		if (m_Manager == null)
-    			m_Manager = DependencyManager.GetBehaviourManager (typeof(LightweightComponentManager<T>)) as LightweightComponentManager<T>;
-            m_Manager.AddElement(m_SerializedData, this);
+			m_GameObjectManager.AddComponent(GetLightWeightGameObject(), m_SerializedData);
         }
 
     	override protected void OnDisable()
     	{
-    		m_Manager.RemoveElement(this);
+			m_GameObjectManager.RemoveComponent<T>(GetLightWeightGameObject());
+			m_GameObjectManager = null;
     	}
     }
 }

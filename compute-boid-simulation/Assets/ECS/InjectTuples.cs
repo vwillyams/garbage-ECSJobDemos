@@ -8,10 +8,10 @@ using System.Linq;
 using System.Reflection;
 
 namespace ECS
-    {
+{
 
     [AttributeUsage(AttributeTargets.Field)]
-    class InjectTuples : System.Attribute
+    public class InjectTuples : System.Attribute
     {
     	public int TupleSetIndex { get; set; }
 
@@ -38,56 +38,58 @@ namespace ECS
     		
     	internal static void UpdateInjection(TupleSystem tuples, object targetObject)
     	{
-    		var injections = tuples.InjectionData;
-    		for (var i = 0; i != injections.Length; i++) 
+    		var dataInjections = tuples.ComponentDataInjections;
+			for (var i = 0; i != dataInjections.Length; i++) 
     		{
-    			var field = injections[i].field;
     			object container;
-
-				if (injections [i].containerType == typeof(ComponentDataArray<>))
-				{
-					container = GetLightWeightIndexedComponents (tuples, injections [i].genericType, i, false);
-					field.SetValue (targetObject, container);
-				}
+				container = GetLightWeightIndexedComponents (tuples, dataInjections[i].genericType, i, false);
+				dataInjections[i].field.SetValue (targetObject, container);
     		}
     	}
 
     	static TupleSystem CreateTuplesInjection(FieldInfo transformAccessArrayField, List<TupleInjectionData> injections, List<ILightweightComponentManager> outJobDependencies, object targetObject)
     	{
-    		//@TODO: Separate injection from collecting injections...
-
     		var types = new Type[injections.Count];
     		var managers = new ScriptBehaviourManager[injections.Count];
     		TransformAccessArray transformAccessArray = new TransformAccessArray();
     		if (transformAccessArrayField != null)
     			transformAccessArray = new TransformAccessArray (0);
 
-    		for (var i = 0; i != injections.Count; i++) 
-    		{
-    			types[i] = injections[i].genericType;
-
-    			if (injections [i].containerType == typeof(ComponentDataArray<>))
-    			{
-    				managers[i] = DependencyManager.GetBehaviourManager (typeof(LightweightComponentManager<>).MakeGenericType (injections [i].genericType));
-    				outJobDependencies.Add (managers[i] as ILightweightComponentManager);
-    			}
-    		}
-
-    		var tuples = new TupleSystem(types, managers, injections.ToArray(), transformAccessArray);
+			var componentInjections = new List<TupleInjectionData>();
+			var componentDataInjections = new List<TupleInjectionData>();
 
     		for (var i = 0; i != injections.Count; i++) 
     		{
-    			var field = injections[i].field;
-    			object container;
-    			if (injections [i].containerType == typeof(ComponentArray<>))
-    				container = GetComponentContainer (tuples, types[i], i);
-    			else if (injections [i].containerType == typeof(ComponentDataArray<>))
-    				container = GetLightWeightIndexedComponents (tuples, injections[i].genericType, i, true);
-    			else
-    				throw new System.InvalidOperationException();
+				if (injections[i].containerType == typeof(ComponentDataArray<>))
+				{
+					managers[i] = DependencyManager.GetBehaviourManager (typeof(LightweightComponentManager<>).MakeGenericType (injections [i].genericType));
+					outJobDependencies.Add (managers[i] as ILightweightComponentManager);
 
-    			field.SetValue (targetObject, container);
+					componentDataInjections.Add (injections [i]);
+				}
+				else if (injections[i].containerType == typeof(ComponentArray<>))
+				{
+					componentInjections.Add (injections[i]);
+				}
+				else
+				{
+					throw new System.ArgumentException ("[InjectTuples] may only be used on ComponentDataArray<>, ComponentArray<> and TransformAccessArray");
+				}
     		}
+
+			var tuples = new TupleSystem(DependencyManager.GetBehaviourManager<LightweightGameObjectManager>(), componentInjections.ToArray(), componentDataInjections.ToArray(), managers, transformAccessArray);
+
+			for (var i = 0; i != componentDataInjections.Count; i++) 
+    		{
+				object container = GetLightWeightIndexedComponents (tuples, componentDataInjections[i].genericType, i, true);
+				componentDataInjections[i].field.SetValue (targetObject, container);
+			}
+
+			for (var i = 0; i != componentInjections.Count; i++) 
+			{
+				object container = GetComponentContainer (tuples, componentInjections[i].genericType, i);
+				componentInjections[i].field.SetValue (targetObject, container);
+			}
 
     		if (transformAccessArrayField != null)
     			transformAccessArrayField.SetValue (targetObject, transformAccessArray);

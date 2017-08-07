@@ -26,7 +26,7 @@ namespace ECS
 		//@TODO: need safety for both data and indices... This is not safe...
 		#endif
 
-		public unsafe ComponentDataArray(NativeArray<T> data, NativeArray<int> indices)
+		public unsafe ComponentDataArray(NativeFreeList<T> data, NativeArray<int> indices)
 		{
 			m_Indices = (int*)indices.UnsafeReadOnlyPtr;
 			m_Length = indices.Length;

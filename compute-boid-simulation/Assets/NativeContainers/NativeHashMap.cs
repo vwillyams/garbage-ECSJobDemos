@@ -11,6 +11,8 @@ namespace UnityEngine.Collections
 		where TKey: struct
 	{
 		internal TKey key;
+		internal int NextEntryIndex;
+		//@TODO: Make unnecessary, is only used by SetValue API...
 		internal int EntryIndex;
 	}
 
@@ -352,20 +354,21 @@ namespace UnityEngine.Collections
 			it.key = key;
 			if (data->allocatedIndexLength <= 0)
 			{
-				it.EntryIndex = -1;
+				it.EntryIndex = it.NextEntryIndex = -1;
 				item = default(TValue);
 				return false;
 			}
 			// First find the slot based on the hash
 			int* buckets = (int*)data->buckets;
 			int bucket = Math.Abs(key.GetHashCode()) % data->bucketCapacity;
-			it.EntryIndex = buckets[bucket];
+			it.EntryIndex = it.NextEntryIndex = buckets[bucket];
 			return TryGetNextValueAtomic(data, out item, ref it);
 		}
 		
 		static unsafe public bool TryGetNextValueAtomic(NativeHashMapData* data, out TValue item, ref NativeMultiHashMapIterator<TKey> it)
 		{
-			int entryIdx = it.EntryIndex;
+			int entryIdx = it.NextEntryIndex;
+			it.NextEntryIndex = -1;
 			it.EntryIndex = -1;
 			item = default(TValue);
 			if (entryIdx < 0 || entryIdx >= data->capacity)
@@ -377,13 +380,25 @@ namespace UnityEngine.Collections
 				if (entryIdx < 0 || entryIdx >= data->capacity)
 					return false;
 			}
-			it.EntryIndex = nextPtrs[entryIdx];
+			it.NextEntryIndex = nextPtrs[entryIdx];
+			it.EntryIndex = entryIdx;
 
 			// Read the value
 			item = UnsafeUtility.ReadArrayElement<TValue>(data->values, entryIdx);
 
 			return true;
 		}
+
+		static unsafe public bool SetValue(NativeHashMapData* data, ref NativeMultiHashMapIterator<TKey> it, ref TValue item)
+		{
+			int entryIdx = it.EntryIndex;
+			if (entryIdx < 0 || entryIdx >= data->capacity)
+				return false;
+
+			UnsafeUtility.WriteArrayElement(data->values, entryIdx, item);
+			return true;
+		}
+
 	}
 
 	[StructLayout (LayoutKind.Sequential)]
@@ -643,6 +658,15 @@ namespace UnityEngine.Collections
 			#endif
 			return NativeHashMapBase<TKey, TValue>.TryGetNextValueAtomic((NativeHashMapData*)m_Buffer, out item, ref it);
 		}
+
+		unsafe public bool SetValue(TValue item, NativeMultiHashMapIterator<TKey> it)
+		{
+			#if ENABLE_NATIVE_ARRAY_CHECKS
+			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
+			#endif
+			return NativeHashMapBase<TKey, TValue>.SetValue((NativeHashMapData*)m_Buffer, ref it, ref item);
+		}
+
 
 		public bool IsCreated
 		{

@@ -5,89 +5,181 @@ using NUnit.Framework;
 
 namespace ECS
 {
+	//@TODO: Tests for misconfiguring attributes...
+
 	public class ECSTests
 	{
-		#if false
-	    [Test]
-	    public void TestEcs()
-	    {
-			var manager = DependencyManager.GetBehaviourManager(typeof(SystemRotator)) as SystemRotator;
+		DependencyManager m_DependencyManager;
+		LightweightGameObjectManager m_Manager;
 
-			var go1 = new GameObject("test1", typeof(LightRotatorHolder));
-			var go2 = new GameObject("test2", typeof(LightRotatorHolder));
-			var go3 = new GameObject("test3", typeof(LightRotatorHolder));
+		[SetUp]
+		public void Setup()
+		{
+			m_DependencyManager = DependencyManager.Root;
+			DependencyManager.Root = new DependencyManager ();
 
-			Assert.AreEqual(3, manager.m_Transforms.Count);
-			Assert.AreEqual(3, manager.m_Rotators.Length);
+			m_Manager = DependencyManager.GetBehaviourManager<LightweightGameObjectManager> ();
+		}
 
-			Assert.AreEqual(go1.transform, manager.m_Transforms[0]);
-			Assert.AreEqual(0, manager.m_Rotators[0].speed);
-
-			Assert.AreEqual(go2.transform, manager.m_Transforms[1]);
-			Assert.AreEqual(0, manager.m_Rotators[1].speed);
-
-			Assert.AreEqual(go3.transform, manager.m_Transforms[2]);
-			Assert.AreEqual(0, manager.m_Rotators[2].speed);
-
-			Object.DestroyImmediate (go2);
-			try
-			{
-				Assert.AreEqual(2, manager.m_Transforms.Count);
-				Assert.AreEqual(2, manager.m_Rotators.Length);
-
-				Assert.AreEqual(go1.transform, manager.m_Transforms[0]);
-				Assert.AreEqual(0, manager.m_Rotators[0].speed);
-
-				Assert.AreEqual(go3.transform, manager.m_Transforms[1]);
-				Assert.AreEqual(0, manager.m_Rotators[1].speed);
-			}
-			finally
-			{
-				Object.DestroyImmediate (go1);
-				Object.DestroyImmediate (go3);
-			}
-	    }
-		#endif
+		[TearDown]
+		public void TearDown()
+		{
+			DependencyManager.Root.Dispose ();
+			DependencyManager.Root = m_DependencyManager;
+		}
 
 		[Test]
-		public void TestEcsGO()
+		public void ECSCreateAndDestroy()
 		{
-			var gos = DependencyManager.GetBehaviourManager<LightweightGameObjectManager> ();
+			var go0 = m_Manager.AllocateGameObject ();
+			var go1 = m_Manager.AllocateGameObject ();
+			var go2 = m_Manager.AllocateGameObject ();
 
-			var go = new GameObject ("test", typeof(RotationSpeedDataComponent));
-			go.GetComponent<RotationSpeedDataComponent> ().Value = new RotationSpeed(50);
+			Assert.IsFalse (m_Manager.HasComponent<EcsTestData>(go0));
+			Assert.IsFalse (m_Manager.HasComponent<EcsTestData>(go1));
+			Assert.IsFalse (m_Manager.HasComponent<EcsTestData>(go2));
+			m_Manager.AddComponent (go0, new EcsTestData(0));
+			m_Manager.AddComponent (go1, new EcsTestData(1));
+			m_Manager.AddComponent (go2, new EcsTestData(2));
 
-			var instances = gos.Instantiate (go, 3);
+			Assert.IsTrue (m_Manager.HasComponent<EcsTestData>(go0));
+			Assert.IsTrue (m_Manager.HasComponent<EcsTestData>(go1));
+			Assert.IsTrue (m_Manager.HasComponent<EcsTestData>(go2));
 
-			Assert.AreEqual (3, instances.Length);
-			Assert.AreEqual (50, gos.GetLightweightComponent<RotationSpeed> (instances [0]).speed);
-			Assert.AreEqual (50, gos.GetLightweightComponent<RotationSpeed> (instances [1]).speed);
-			Assert.AreEqual (50, gos.GetLightweightComponent<RotationSpeed> (instances [2]).speed);
-			Assert.AreEqual (50, go.GetComponent<RotationSpeedDataComponent> ().Value.speed);
+			Assert.AreEqual (0, m_Manager.GetComponentData<EcsTestData>(go0).value);
+			Assert.AreEqual (1, m_Manager.GetComponentData<EcsTestData>(go1).value);
+			Assert.AreEqual (2, m_Manager.GetComponentData<EcsTestData>(go2).value);
 
-			go.GetComponent<RotationSpeedDataComponent> ().Value = new RotationSpeed(-1);
-			gos.SetLightweightComponent<RotationSpeed> (instances [0], new RotationSpeed (0));
-			gos.SetLightweightComponent<RotationSpeed> (instances [1], new RotationSpeed (100));
-			gos.SetLightweightComponent<RotationSpeed> (instances [2], new RotationSpeed (200));
+			m_Manager.Destroy (go1);
 
-			gos.Destroy (instances[1]);
+			Assert.IsTrue (m_Manager.HasComponent<EcsTestData>(go0));
+			Assert.IsFalse(m_Manager.HasComponent<EcsTestData>(go1));
+			Assert.IsTrue (m_Manager.HasComponent<EcsTestData>(go2));
 
-			Assert.AreEqual (-1, go.GetComponent<RotationSpeedDataComponent> ().Value.speed);
-			Assert.AreEqual (0, gos.GetLightweightComponent<RotationSpeed> (instances [0]).speed);
-			Assert.AreEqual (200, gos.GetLightweightComponent<RotationSpeed> (instances [2]).speed);
+			Assert.AreEqual (0, m_Manager.GetComponentData<EcsTestData>(go0).value);
+			Assert.AreEqual (2, m_Manager.GetComponentData<EcsTestData>(go2).value);
 
-	//@TODO: Add this test... Currently can't be done because 
-	//		Assert.Throws<System.InvalidOperationException> (() => {
-	//			gos.GetLightweightComponent<RotationSpeed> (instances [1]);
-	//		});
-			
-			gos.Destroy (instances[2]);
-			gos.Destroy (instances[0]);
+			m_Manager.Destroy (go0);
+			m_Manager.Destroy (go2);
 
-			instances.Dispose ();
+			Assert.IsFalse (m_Manager.HasComponent<EcsTestData>(go0));
+			Assert.IsFalse (m_Manager.HasComponent<EcsTestData>(go1));
+			Assert.IsFalse (m_Manager.HasComponent<EcsTestData>(go2));
+		}
+
+		[Test]
+		public void SetComponentData()
+		{
+			var go = m_Manager.AllocateGameObject ();
+
+			m_Manager.AddComponent (go, new EcsTestData(0));
+			m_Manager.SetComponentData (go, new EcsTestData(1));
+
+			Assert.AreEqual (1, m_Manager.GetComponentData<EcsTestData>(go).value);
+
+			m_Manager.Destroy (go);
+		}
+
+		[Test]
+		public void SetComponentDataOnDeletedGameObject()
+		{
+			var go = m_Manager.AllocateGameObject ();
+			m_Manager.AddComponent (go, new EcsTestData(0));
+			m_Manager.Destroy (go);
+
+			Assert.Throws<System.InvalidOperationException>(()=> { m_Manager.SetComponentData (go, new EcsTestData(0)); });
+			Assert.Throws<System.InvalidOperationException>(()=> { m_Manager.GetComponentData<EcsTestData> (go); });
+		}
+
+		[Test]
+		public void LightWeightGameObjectTupleTracking()
+		{
+			var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
+			var ecsAndTransformArray = DependencyManager.GetBehaviourManager<EcsTestAndTransformArraySystem> ();
+
+			var go = m_Manager.AllocateGameObject ();
+			m_Manager.AddComponent (go, new EcsTestData(2));
+
+			pureSystem.OnUpdate ();
+			Assert.AreEqual (1, pureSystem.m_Data.Length);
+			Assert.AreEqual (2, pureSystem.m_Data[0].value);
+
+			ecsAndTransformArray.OnUpdate ();
+			Assert.AreEqual (0, ecsAndTransformArray.m_Data.Length);
+		}
+
+		[Test]
+		public void RemoveComponentTupleTracking()
+		{
+			//@TODO: Moving this after m_Manager.AddComponent seems to break stuff. Investigate...
+			var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
+
+			var go0 = m_Manager.AllocateGameObject ();
+			m_Manager.AddComponent (go0, new EcsTestData(10));
+
+			var go1 = m_Manager.AllocateGameObject ();
+			m_Manager.AddComponent (go1, new EcsTestData(20));
+
+			pureSystem.OnUpdate ();
+			Assert.AreEqual (2, pureSystem.m_Data.Length);
+			Assert.AreEqual (10, pureSystem.m_Data[0].value);
+			Assert.AreEqual (20, pureSystem.m_Data[1].value);
+
+			m_Manager.RemoveComponent<EcsTestData> (go0);
+
+			pureSystem.OnUpdate ();
+			Assert.AreEqual (1, pureSystem.m_Data.Length);
+			Assert.AreEqual (20, pureSystem.m_Data[0].value);
+
+			m_Manager.RemoveComponent<EcsTestData> (go1);
+			pureSystem.OnUpdate ();
+			Assert.AreEqual (0, pureSystem.m_Data.Length);
+		}
+
+
+		[Test]
+		public void GameObjectTupleTracking()
+		{
+			var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
+			var ecsAndTransformArray = DependencyManager.GetBehaviourManager<EcsTestAndTransformArraySystem> ();
+
+			var go = new GameObject ();
+			var com = go.AddComponent<EcsTestComponent> ();
+			com.Value = new EcsTestData(9);
+
+			pureSystem.OnUpdate ();
+			Assert.AreEqual (1, pureSystem.m_Data.Length);
+			Assert.AreEqual (9, pureSystem.m_Data[0].value);
+
+			ecsAndTransformArray.OnUpdate ();
+			Assert.AreEqual (9, ecsAndTransformArray.m_Data[0].value);
+			Assert.AreEqual (go.transform, ecsAndTransformArray.m_Transforms[0]);
 
 			Object.DestroyImmediate (go);
 		}
 
+		[Test]
+		public void LightInstantiateTupleTracking()
+		{
+			var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
+
+			//@TODO: Try out instantiate game object activate / deactivate
+			var go = new GameObject ();
+			go.SetActive (false);
+			var com = go.AddComponent<EcsTestComponent> ();
+			com.Value = new EcsTestData(9);
+
+			pureSystem.OnUpdate ();
+			Assert.AreEqual (0, pureSystem.m_Data.Length);
+
+			var instances = m_Manager.Instantiate (go, 10);
+
+			pureSystem.OnUpdate ();
+			Assert.AreEqual (10, pureSystem.m_Data.Length);
+			for (int i = 0; i < 10; i++)
+				Assert.AreEqual (9, pureSystem.m_Data[i].value);
+
+			instances.Dispose ();
+		}
 	}
 }

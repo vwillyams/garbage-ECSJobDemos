@@ -33,6 +33,7 @@ public class RotationSpeedDataComponent : ComponentDataWrapper<RotationSpeed> { 
 #if false
 
 // Single thread
+[UpdateAfter(typeof(DamageSystem))]
 public class RotatingSystem : ComponentSystem
 {
 	// NOTE: InjectTuples scans all [InjectTuples] in the class
@@ -58,6 +59,7 @@ public class RotatingSystem : ComponentSystem
 	
 #else
 // Multithread
+[UpdateAfter(typeof(DamageSystem))]
 public class SystemRotator : JobComponentSystem
 {
 	// NOTE: InjectTuples scans all [InjectTuples] in the class

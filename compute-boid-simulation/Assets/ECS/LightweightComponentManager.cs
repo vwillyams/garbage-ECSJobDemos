@@ -20,54 +20,59 @@ namespace ECS
     	void AddWriteDependency (JobHandle handle);
     	void AddReadDependency (JobHandle handle);
 
-    	int AddElements (ILightweightComponentManager src, int srcIndex, NativeArray<LightweightGameObject> gameObjects);
-    	void RemoveElements (NativeArray<int> elements);
+		void AddElements (GameObject srcGameObject, NativeSlice<int> outComponentIndices);
+		void RemoveElement (NativeArray<int> elements);
 
-    	void CollectSupportedTupleSets (Type[] supportedTypes, HashSet<TupleSystem> tuples);
+		void CollectSupportedTupleSets (Type[] supportedTypes, HashSet<TupleSystem> tuples);
+
+		List<TupleSystem.RegisteredTuple> GetRegisteredTuples ();
     }
 
     //@TODO: This should be fully implemented in C++ for efficiency
     public class LightweightComponentManager<T> : ScriptBehaviourManager, ILightweightComponentManager where T : struct, IComponentData
     {
-    	internal NativeList<T>                              m_Data;
-    	internal NativeList<LightweightGameObject>          m_LightweightGameObject;
-        internal List<ComponentDataWrapperBase>      m_Components;
+    	internal NativeFreeList<T>                          m_Data;
     //	internal NativeList<JobHandle>                      m_Readers;
         JobHandle                                           m_Writer;
 
-
-    	internal List<TupleSystem.RegisteredTuple>         m_RegisteredTuples;
+    	internal List<TupleSystem.RegisteredTuple>         	m_RegisteredTuples;
+		internal LightweightGameObjectManager				m_GameObjectManager;
 
         protected override void OnCreateManager(int capacity)
         {
             base.OnCreateManager(capacity);
 
-    		m_Components = new List<ComponentDataWrapperBase> ();
-            m_Data = new NativeList<T>(capacity, Allocator.Persistent);
-    		m_LightweightGameObject = new NativeList<LightweightGameObject> (capacity, Allocator.Persistent);
+            m_Data = new NativeFreeList<T>(Allocator.Persistent);
+			m_Data.Capacity = capacity;
             m_RegisteredTuples = new List<TupleSystem.RegisteredTuple>();
         }
 
     	protected override void OnDestroyManager()
     	{
     		base.OnDestroyManager();
+
+			CompleteForWriting ();
     		m_Data.Dispose();
-    		m_LightweightGameObject.Dispose ();
+			m_RegisteredTuples = null;
+			m_GameObjectManager = null;
     	}
 
-    	public int AddElements (ILightweightComponentManager src, int srcIndex, NativeArray<LightweightGameObject> gameObjects)
+		public void AddElements (GameObject sourceGameObject, NativeSlice<int> outComponentIndices)
     	{
-    		var castedSrc = src as LightweightComponentManager<T>;
+			CompleteForWriting ();
+
+			var value = sourceGameObject.GetComponent<ComponentDataWrapper<T> > ().Value;
 
     		int baseIndex = m_Data.Length;
-    		for (int i = 0; i != gameObjects.Length; i++)
-    		{
-    			m_Data.Add (castedSrc.m_Data[srcIndex]);
-    			m_Components.Add (null);
-    			m_LightweightGameObject.Add (gameObjects[i]);
-    		}
-    		return baseIndex;
+			for (int i = 0; i != outComponentIndices.Length; i++)
+				outComponentIndices[i] = m_Data.Add (value);
     	}
+
+		public int AddElement(T value)
+		{
+			CompleteForWriting ();
+			return m_Data.Add (value);
+		}
 
     	public void CollectSupportedTupleSets(Type[] requiredComponentTypes, HashSet<TupleSystem> tuples)
     	{
@@ -78,48 +83,13 @@ namespace ECS
     		}
     	}
 
-    	public void RemoveElements (NativeArray<int> elements)
+		public void RemoveElement (NativeArray<int> elements)
     	{
-    		
+			CompleteForWriting ();
+
+			for (int i = 0; i < elements.Length; i++)
+				m_Data.Remove (elements[i]);
     	}
-
-    	internal void AddElement(T serializedData, ComponentDataWrapperBase com)
-        {
-    		CompleteForWriting ();
-
-            int index = m_Data.Length;
-            m_Data.Add(serializedData);
-    		m_Components.Add(com);
-    		m_LightweightGameObject.Add (new LightweightGameObject());
-            com.m_Index = index;
-
-    		foreach (var tuple in m_RegisteredTuples)
-    			tuple.tupleSystem.AddTupleIfSupported(com.gameObject);
-        }
-    		
-    	internal void RemoveElement(ComponentDataWrapperBase com)
-    	{
-    		CompleteForWriting ();
-
-            var lastEntity = m_Components[m_Components.Count - 1];
-    		if (lastEntity != null)
-    		{
-    			lastEntity.m_Index = com.m_Index;
-    		}
-
-    		foreach (var tuple in m_RegisteredTuples)
-    		{
-    			tuple.tupleSystem.RemoveSwapBackLightWeightComponent (tuple.tupleSystemIndex, com.m_Index);
-    		}
-
-			if (m_Data.IsCreated)
-	    		m_Data.RemoveAtSwapBack(com.m_Index);
-    		m_Components.RemoveAtSwapBack(com.m_Index);
-			if (m_LightweightGameObject.IsCreated)
-	    		m_LightweightGameObject.RemoveAtSwapBack (com.m_Index);
-
-            com.m_Index = -1;
-        }
 
     	//@TODO: Proper support for read / write dependencies
 
@@ -156,13 +126,23 @@ namespace ECS
 
     	public void AddWriteDependency(JobHandle handle)
     	{
-    		//@TODO: JobDebugger check that dependency depends on all previous?
+			#if ENABLE_NATIVE_ARRAY_CHECKS
+			if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(m_Writer, handle))
+			{
+				Debug.LogError("AddDependency is required to depend on any previous jobs (Use GetDependency())");
+			}
+			#endif
+
     		m_Writer = handle;
     	}
 
     	public void AddReadDependency(JobHandle handle)
     	{
-    		m_Writer = handle;
+			AddWriteDependency (handle);
     	}
+		public List<TupleSystem.RegisteredTuple> GetRegisteredTuples ()
+		{
+			return m_RegisteredTuples;
+		}
     }
 }

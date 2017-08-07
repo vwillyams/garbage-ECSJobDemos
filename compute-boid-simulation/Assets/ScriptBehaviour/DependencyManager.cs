@@ -12,7 +12,7 @@ public class InjectDependencyAttribute : System.Attribute
 {}
 
 
-public class DependencyManager
+public class DependencyManager : IDisposable
 {
 	class Dependencies
 	{
@@ -32,8 +32,50 @@ public class DependencyManager
 		public Manager[] 				managers;
 		public GetComponent[] getComponents;
 	}
-	static List<ScriptBehaviourManager> 	ms_BehaviourManagers;
-	static Dictionary<Type, Dependencies> 	ms_InstanceDependencies = new Dictionary<Type, Dependencies>();
+
+	List<ScriptBehaviourManager> 	ms_BehaviourManagers = new List<ScriptBehaviourManager> ();
+	Dictionary<Type, Dependencies> 	ms_InstanceDependencies = new Dictionary<Type, Dependencies>();
+
+	static DependencyManager m_Root = null;
+	static bool 			 m_DidInitialize = false;
+
+	static public DependencyManager Root
+	{
+		get
+		{
+			return m_Root;
+		}
+		set
+		{
+			if (!m_DidInitialize)
+			{
+				PlayerLoopManager.RegisterDomainUnload (DomainUnloadShutdown);
+				m_DidInitialize = true; 
+			}
+
+			m_Root = value;
+		}
+	}
+
+	static DependencyManager AutoRoot
+	{
+		get
+		{
+			if (m_Root == null)
+				Root = new DependencyManager();
+			return m_Root;
+		}
+	}
+
+	static void DomainUnloadShutdown()
+	{
+		if (Root != null)
+		{
+			Root.Dispose ();
+			Root = null;
+		}
+	}
+
 
 	static int GetCapacityForType(Type type)
 	{
@@ -41,13 +83,14 @@ public class DependencyManager
 		return 10000;
 	}
 
-	static void ShutDown()
+	public void Dispose()
 	{
 		foreach (var behaviourManager in ms_BehaviourManagers)
 			ScriptBehaviourManager.DestroyInstance (behaviourManager);
 
 		ms_BehaviourManagers.Clear();
 	}
+
 
 	internal static DefaultUpdateManager CreateDefaultUpdateManager (System.Type type)
 	{
@@ -66,13 +109,8 @@ public class DependencyManager
 
 	public static ScriptBehaviourManager GetBehaviourManager (System.Type type)
 	{
-		if (ms_BehaviourManagers == null)
-		{
-			PlayerLoopManager.RegisterDomainUnload (ShutDown);
-			ms_BehaviourManagers = new List<ScriptBehaviourManager> ();
-		}
-		
-		foreach(var behaviourManager in ms_BehaviourManagers)
+		var root = AutoRoot;
+		foreach(var behaviourManager in root.ms_BehaviourManagers)
 		{
 			if (behaviourManager.GetType() == type || behaviourManager.GetType().IsSubclassOf(type))
 				return behaviourManager;
@@ -81,12 +119,12 @@ public class DependencyManager
 		//@TODO: Check that type inherit from ScriptBehaviourManager
 
 		var obj = ScriptBehaviourManager.CreateInstance(type, GetCapacityForType(type));
-		ms_BehaviourManagers.Add(obj);
+		root.ms_BehaviourManagers.Add(obj);
 
 		return obj;
 	}
 
-	static void PerformStaticDependencyInjection(Type type)
+	void PerformStaticDependencyInjection(Type type)
 	{
 		var fields = type.GetFields (BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic);
 
@@ -146,6 +184,11 @@ public class DependencyManager
 
 
 	internal static DefaultUpdateManager DependencyInject(ScriptBehaviour behaviour)
+	{
+		return AutoRoot.DependencyInjectInstance (behaviour);
+	}
+
+	DefaultUpdateManager DependencyInjectInstance(ScriptBehaviour behaviour)
 	{
 		var type = behaviour.GetType ();
 		Dependencies deps;

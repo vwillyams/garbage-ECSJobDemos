@@ -31,9 +31,9 @@ public class RandomSpawner : ScriptBehaviour
 			for (int i = 0; i != gos.Length; i++)
 			{
 				var boid = new ECS.BoidData ();
-				boid.position = Random.insideUnitSphere + transform.position;
+				boid.position = Random.insideUnitSphere * radius + transform.position;
 				boid.forward = Random.onUnitSphere;
-				m_LightweightGameObjects.SetLightweightComponent(gos[i], boid);
+				m_LightweightGameObjects.SetComponentData(gos[i], boid);
 			}
 
 			gos.Dispose ();
@@ -49,7 +49,7 @@ public class RandomSpawner : ScriptBehaviour
 					roots.Add (root);
 				}
 
-				Instantiate (prefab, Random.insideUnitSphere + transform.position, Random.rotation, root.transform);
+				Instantiate (prefab, Random.insideUnitSphere * radius + transform.position, Random.rotation, root.transform);
 			}
 		}
 

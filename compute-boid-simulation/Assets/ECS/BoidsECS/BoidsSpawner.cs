@@ -43,7 +43,7 @@ namespace ECS
 					var boid = new ECS.BoidData ();
 					boid.position = Random.insideUnitSphere + transform.position;
 					boid.forward = Random.onUnitSphere;
-					m_LightweightGameObjects.SetLightweightComponent(gos[i], boid);
+					m_LightweightGameObjects.SetComponentData(gos[i], boid);
 				}
 
 				gos.Dispose ();
@@ -74,7 +74,6 @@ namespace ECS
 			if (performanceDemoMode)
 			{
 				JobsUtility.SetAllowUsingJobCompiler(false);
-				BoidSimulationSystem.UseJobs = false;
 				Instantiate (initialCount);
 			}
 			else
@@ -87,7 +86,6 @@ namespace ECS
 		{
 			base.OnDisable ();
 			JobsUtility.SetAllowUsingJobCompiler(true);
-			BoidSimulationSystem.UseJobs = true;
 		}
 
 
@@ -105,18 +103,13 @@ namespace ECS
 			{
 				Instantiate (step1Count);
 			}
-			// 10k with jobs and no compiler
-			else if (stateIndex == 1)
-			{
-				BoidSimulationSystem.UseJobs = true;
-			}
 			// 200k with jobs and no compiler
-			else if (stateIndex == 2)
+			else if (stateIndex == 1)
 			{
 				Instantiate (step2Count);
 			}
 			// 200k with jobs and compiler
-			else if (stateIndex == 3)
+			else if (stateIndex == 2)
 			{
 				JobsUtility.SetAllowUsingJobCompiler(true);
 			}

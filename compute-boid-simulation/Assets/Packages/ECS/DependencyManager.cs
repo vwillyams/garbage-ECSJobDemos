@@ -5,6 +5,7 @@ using UnityEngine;
 using System.Reflection;
 using System;
 using UnityEngine.Assertions;
+using UnityEngine.ECS;
 
 //@TODO: Checks to ensure base override is always called.
 

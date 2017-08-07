@@ -49,13 +49,13 @@ namespace ECS
 
     	override protected void OnUpdate()
     	{
-			OnUpdateInjectionOnly ();
+			OnUpdateDontCompleteDependencies ();
 
 			foreach (var dep in m_JobDependencyManagers)
 				dep.CompleteWriteDependency ();
     	}
 
-		internal protected void OnUpdateInjectionOnly()
+		internal void OnUpdateDontCompleteDependencies()
 		{
 			base.OnUpdate ();
 			UpdateInjectedTuples ();
@@ -66,7 +66,7 @@ namespace ECS
 	{
 		override protected void OnUpdate()
 		{
-			OnUpdateInjectionOnly ();
+			OnUpdateDontCompleteDependencies ();
 		}
 
 		//@TODO: Need utility methods for dependency chaining

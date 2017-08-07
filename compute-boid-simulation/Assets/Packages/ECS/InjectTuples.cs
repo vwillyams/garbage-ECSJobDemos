@@ -133,7 +133,7 @@ namespace ECS
     				}
     				else
     				{
-    					//@TODO: Error or exception...
+						Debug.LogError ("[InjectTuples] may only be used on ComponentDataArray<>, ComponentArray<> or TransformAccessArray");
     					return false;
     				}
     			}

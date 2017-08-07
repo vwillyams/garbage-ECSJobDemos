@@ -8,10 +8,9 @@ using System.Linq;
 
 namespace ECS
 {
-    public class TupleSystem
+    internal class TupleSystem
     {
-		//@TODO: Internalize by moving into game object manager instead...
-    	public class RegisteredTuple
+    	internal class RegisteredTuple
     	{
     		public TupleSystem 	tupleSystem;
     		public int 			tupleSystemIndex;
@@ -57,7 +56,7 @@ namespace ECS
 		IGenericComponentListInjection[]    m_TupleComponentInjections;
 
 		Type[]                      		m_ComponentTypes;
-		Type[]                      		m_ComponentDataTypes;
+		int[]                      			m_ComponentDataTypes;
 		InjectTuples.TupleInjectionData[]	m_ComponentDataInjections;
     	ScriptBehaviourManager[]    		m_LightWeightManagers;
 		LightweightGameObjectManager 		m_GameObjectManager;
@@ -66,7 +65,7 @@ namespace ECS
         {
 			this.m_GameObjectManager = gameObjectManager;
 			this.m_ComponentTypes = new Type[componentInjections.Length];
-			this.m_ComponentDataTypes = new Type[componentDataInjections.Length];
+			this.m_ComponentDataTypes = new int[componentDataInjections.Length];
     		this.m_LightWeightManagers = lightweightManagers;
     		this.m_Transforms = transforms;
 			m_ComponentDataInjections = componentDataInjections;
@@ -86,7 +85,7 @@ namespace ECS
 			for (int i = 0; i != componentDataInjections.Length; i++)
 			{
 				m_TupleIndices[i] = new NativeList<int>(0, Allocator.Persistent);
-				m_ComponentDataTypes[i] = componentDataInjections [i].genericType;
+				m_ComponentDataTypes[i] = gameObjectManager.GetTypeIndex(componentDataInjections [i].genericType);
 			}
         }
 
@@ -108,8 +107,8 @@ namespace ECS
     		var manager = m_LightWeightManagers[index] as LightweightComponentManager<T>;
     		var container = new ComponentDataArray<T> (manager.m_Data, m_TupleIndices[index]);
 
-    		if (create)
-    			manager.m_RegisteredTuples.Add(new RegisteredTuple(this, index));
+			if (create)
+				m_GameObjectManager.RegisterTuple (m_GameObjectManager.GetTypeIndex(typeof(T)), this, index);
 
             return container;
         }
@@ -173,8 +172,7 @@ namespace ECS
 
 			foreach (var componentType in m_ComponentDataTypes)
 			{
-				//@TODO: use componentTypeIndex...
-				if (!m_GameObjectManager.HasComponent (lightGameObject, componentType))
+				if (m_GameObjectManager.GetComponentIndex (lightGameObject, componentType) == -1)
 					return false;
 			}
 
@@ -184,6 +182,20 @@ namespace ECS
 			return true;
 		}
 			
+		public bool IsComponentDataTypesSupported(NativeArray<int> types)
+		{
+			if (m_Transforms.IsCreated)
+				return false;
+
+			foreach (var componentType in m_ComponentDataTypes)
+			{
+				if (types.IndexOf(componentType) == -1)
+					return false;
+			}
+
+			return true;
+		}
+
     	public void AddTupleIfSupported(GameObject go, LightweightGameObject lightGameObject)
     	{
 			if (!IsTupleSupported (go, lightGameObject))
@@ -210,28 +222,15 @@ namespace ECS
     			m_Transforms.Add(go.transform);
     	}
 
-    	public bool IsLightWeightTupleSupported(Type[] types)
-    	{
-    		if (m_Transforms.IsCreated)
-    			return false;
-
-    		foreach (var componentType in m_ComponentTypes)
-    		{
-    			if (System.Array.IndexOf(types, componentType) == -1)
-    				return false;
-    		}
-
-    		return true;
-    	}
 
 		//@TODO: Rename to lightweight
-		public void AddTuplesUnchecked(Type componentType, NativeSlice<int> componentIndices)
+		public void AddTuplesUnchecked(int componentTypeIndex, NativeSlice<int> componentIndices)
     	{
-    		int componentTypeIndex = System.Array.IndexOf (m_ComponentDataTypes, componentType);
-    		if (componentTypeIndex == -1)
+			int tupleIndex = System.Array.IndexOf (m_ComponentDataTypes, componentTypeIndex);
+			if (tupleIndex == -1)
     			return;
 
-			var tuplesIndices = m_TupleIndices[componentTypeIndex];
+			var tuplesIndices = m_TupleIndices[tupleIndex];
 
 			int count = componentIndices.Length;
 			tuplesIndices.ResizeUninitialized (tuplesIndices.Length + count);

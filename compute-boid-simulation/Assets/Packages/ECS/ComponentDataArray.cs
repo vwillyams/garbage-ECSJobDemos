@@ -13,7 +13,7 @@ namespace ECS
 {
 	[NativeContainer]
 	[NativeContainerSupportsMinMaxWriteRestriction]
-	public struct ComponentDataArray<T> where T : struct
+	public struct ComponentDataArray<T> where T : struct, IComponentData
 	{
 		unsafe int*                 m_Indices;
 		IntPtr                   	m_Data;

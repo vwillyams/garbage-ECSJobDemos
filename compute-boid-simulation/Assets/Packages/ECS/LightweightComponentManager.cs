@@ -21,11 +21,7 @@ namespace ECS
     	void AddReadDependency (JobHandle handle);
 
 		void AddElements (GameObject srcGameObject, NativeSlice<int> outComponentIndices);
-		void RemoveElement (NativeArray<int> elements);
-
-		void CollectSupportedTupleSets (Type[] supportedTypes, HashSet<TupleSystem> tuples);
-
-		List<TupleSystem.RegisteredTuple> GetRegisteredTuples ();
+		void RemoveElements (NativeArray<int> elements);
     }
 
     //@TODO: This should be fully implemented in C++ for efficiency
@@ -35,16 +31,12 @@ namespace ECS
     //	internal NativeList<JobHandle>                      m_Readers;
         JobHandle                                           m_Writer;
 
-    	internal List<TupleSystem.RegisteredTuple>         	m_RegisteredTuples;
-		internal LightweightGameObjectManager				m_GameObjectManager;
-
         protected override void OnCreateManager(int capacity)
         {
             base.OnCreateManager(capacity);
 
             m_Data = new NativeFreeList<T>(Allocator.Persistent);
 			m_Data.Capacity = capacity;
-            m_RegisteredTuples = new List<TupleSystem.RegisteredTuple>();
         }
 
     	protected override void OnDestroyManager()
@@ -53,8 +45,6 @@ namespace ECS
 
 			CompleteForWriting ();
     		m_Data.Dispose();
-			m_RegisteredTuples = null;
-			m_GameObjectManager = null;
     	}
 
 		public void AddElements (GameObject sourceGameObject, NativeSlice<int> outComponentIndices)
@@ -74,16 +64,7 @@ namespace ECS
 			return m_Data.Add (value);
 		}
 
-    	public void CollectSupportedTupleSets(Type[] requiredComponentTypes, HashSet<TupleSystem> tuples)
-    	{
-    		foreach (var tuple in m_RegisteredTuples)
-    		{
-    			if (requiredComponentTypes == null || tuple.tupleSystem.IsLightWeightTupleSupported (requiredComponentTypes))
-    				tuples.Add (tuple.tupleSystem);
-    		}
-    	}
-
-		public void RemoveElement (NativeArray<int> elements)
+		public void RemoveElements (NativeArray<int> elements)
     	{
 			CompleteForWriting ();
 
@@ -140,9 +121,5 @@ namespace ECS
     	{
 			AddWriteDependency (handle);
     	}
-		public List<TupleSystem.RegisteredTuple> GetRegisteredTuples ()
-		{
-			return m_RegisteredTuples;
-		}
     }
 }

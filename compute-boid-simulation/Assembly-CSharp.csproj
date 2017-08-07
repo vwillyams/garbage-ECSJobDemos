@@ -77,7 +77,6 @@
      <Compile Include="Assets\ECS\RotatorSample\DamageComponent.cs" />
      <Compile Include="Assets\ECS\RotatorSample\RotationSpeedComponent.cs" />
      <Compile Include="Assets\ECS\RotatorSample\RotationSpeedDataComponent.cs" />
-     <Compile Include="Assets\Jobs\IJobParalellForFilter.cs" />
      <Compile Include="Assets\p2gc\P2GCCompilationEngine.cs" />
      <Compile Include="Assets\p2gc\RestrictNoAliasAttribute.cs" />
      <Compile Include="Assets\PostProcessing\Runtime\Attributes\GetSetAttribute.cs" />
@@ -339,14 +338,16 @@
   <ItemGroup>
     <ProjectReference Include="Assembly-CSharp-firstpass.csproj">
       <Project>{E93783ED-96B1-8C1F-8ABC-C0066B641879}</Project>      <Name>Assembly-CSharp-firstpass</Name>    </ProjectReference>
-    <ProjectReference Include="NativeContainers.csproj">
-      <Project>{03E66FEB-C47E-E2E4-D652-59C74CCA358E}</Project>      <Name>NativeContainers</Name>    </ProjectReference>
+    <ProjectReference Include="NativeContainers.Editor.csproj">
+      <Project>{783B78EC-A504-7136-CC66-F459F27774F6}</Project>      <Name>NativeContainers.Editor</Name>    </ProjectReference>
+    <ProjectReference Include="UnityEngine.Jobs.csproj">
+      <Project>{83F90F24-D4FC-2B13-AE23-49C28AB42C2E}</Project>      <Name>UnityEngine.Jobs</Name>    </ProjectReference>
     <ProjectReference Include="UnityEngine.math.csproj">
       <Project>{72A1AF9A-DD18-B905-51E8-CF4BF67EC99E}</Project>      <Name>UnityEngine.math</Name>    </ProjectReference>
     <ProjectReference Include="ECS.csproj">
       <Project>{48493CFC-0C24-B808-DAA3-947004093BF3}</Project>      <Name>ECS</Name>    </ProjectReference>
-    <ProjectReference Include="NativeContainers.Editor.csproj">
-      <Project>{783B78EC-A504-7136-CC66-F459F27774F6}</Project>      <Name>NativeContainers.Editor</Name>    </ProjectReference>
+    <ProjectReference Include="NativeContainers.csproj">
+      <Project>{03E66FEB-C47E-E2E4-D652-59C74CCA358E}</Project>      <Name>NativeContainers</Name>    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

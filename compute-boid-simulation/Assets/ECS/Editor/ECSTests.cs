@@ -111,7 +111,6 @@ namespace ECS
 		[Test]
 		public void RemoveComponentTupleTracking()
 		{
-			//@TODO: Moving this after m_Manager.AddComponent seems to break stuff. Investigate...
 			var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
 
 			var go0 = m_Manager.AllocateGameObject ();

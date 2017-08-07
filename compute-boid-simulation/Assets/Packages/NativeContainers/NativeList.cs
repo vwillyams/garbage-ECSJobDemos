@@ -1,7 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
-
 #if ENABLE_NATIVE_ARRAY_CHECKS
 using System.Diagnostics;
 #endif

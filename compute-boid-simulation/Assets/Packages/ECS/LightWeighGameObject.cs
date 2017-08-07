@@ -23,7 +23,9 @@ namespace ECS
 
     public class LightweightGameObjectManager : ScriptBehaviourManager
     {
-    	List<Type> 										  m_ComponentTypes = new List<Type>();
+		List<Type> 										  m_ComponentTypes = new List<Type>();
+		List<ILightweightComponentManager> 				  m_ComponentManagers = new List<ILightweightComponentManager>();
+		List<List<TupleSystem.RegisteredTuple> > 		  m_TuplesForComponent = new List<List<TupleSystem.RegisteredTuple> >();
 
 		NativeMultiHashMap<int, LightWeightComponentInfo> m_GameObjectToComponent;
 
@@ -51,7 +53,7 @@ namespace ECS
     		m_GameObjectToComponent.Dispose ();
     	}
 
-    	int GetTypeIndex(Type type)
+    	internal int GetTypeIndex(Type type)
     	{
     		//@TODO: Initialize with all types on startup instead? why continously populate...
     		for (int i = 0; i < m_ComponentTypes.Count; i++)
@@ -64,8 +66,36 @@ namespace ECS
 				throw new ArgumentException (string.Format("{0} must be a IComponentData to be used when create a lightweight game object", type));
     		
     		m_ComponentTypes.Add (type);
+			m_TuplesForComponent.Add (new List<TupleSystem.RegisteredTuple>());
+
+			var managerType = typeof(LightweightComponentManager<>).MakeGenericType(new Type[] { type });
+			var manager = DependencyManager.GetBehaviourManager (managerType) as ILightweightComponentManager;
+			m_ComponentManagers.Add (manager);
+
     		return m_ComponentTypes.Count - 1;
     	}
+
+		internal int GetComponentIndex(LightweightGameObject gameObject, int typeIndex)
+		{
+			//@TODO: debugManagerIndex validation
+
+			LightWeightComponentInfo component;
+			NativeMultiHashMapIterator<int> iterator;
+			if (!m_GameObjectToComponent.TryGetFirstValue (gameObject.index, out component, out iterator))
+				return -1;
+
+			if (component.componentTypeIndex == typeIndex)
+				return component.index;
+
+			//@TODO: Why do i need if + while... very inconvenient...
+			while (m_GameObjectToComponent.TryGetNextValue(out component, ref iterator))
+			{
+				if (component.componentTypeIndex == typeIndex)
+					return component.index;
+			}
+
+			return -1;
+		}
 
     	public int GetComponentIndex<T>(LightweightGameObject gameObject) where T : IComponentData
     	{
@@ -111,32 +141,10 @@ namespace ECS
 			var fullGameObject = UnityEditor.EditorUtility.InstanceIDToObject (gameObject.index) as GameObject;
 
 			// tuple management
-			foreach (var tuple in manager.m_RegisteredTuples)
+			foreach (var tuple in m_TuplesForComponent[info.componentTypeIndex])
 				tuple.tupleSystem.AddTupleIfSupported(fullGameObject, gameObject);
 		}
-
-    	int GetComponentIndex(LightweightGameObject gameObject, int typeIndex)
-    	{
-    		//@TODO: debugManagerIndex validation
-
-    		LightWeightComponentInfo component;
-    		NativeMultiHashMapIterator<int> iterator;
-    		if (!m_GameObjectToComponent.TryGetFirstValue (gameObject.index, out component, out iterator))
-    			return -1;
-
-    		if (component.componentTypeIndex == typeIndex)
-    			return component.index;
-
-    		//@TODO: Why do i need if + while... very inconvenient...
-    		while (m_GameObjectToComponent.TryGetNextValue(out component, ref iterator))
-    		{
-    			if (component.componentTypeIndex == typeIndex)
-    				return component.index;
-    		}
-
-    		return -1;
-    	}
-
+			
     	public T GetComponentData<T>(LightweightGameObject gameObject) where T : struct, IComponentData
     	{
     		int index = GetComponentIndex<T> (gameObject);
@@ -171,9 +179,10 @@ namespace ECS
     			throw new System.ArgumentException ("Number of instances must be greater than 1");
 
     		var components = gameObject.GetComponents<ComponentDataWrapperBase> ();
-    		var lightweightComponentTypes = new Type[components.Length];
+			//@TODO: Temp alloc
+			var componentDataTypes = new NativeArray<int> (components.Length, Allocator.Persistent);
     		for (int t = 0;t != components.Length;t++)
-				lightweightComponentTypes[t] = components[t].GetIComponentDataType();
+				componentDataTypes[t] = GetTypeIndex(components[t].GetIComponentDataType());
 
     		//@TODO: Temp alloc
 			var gameObjects = new NativeArray<LightweightGameObject> (numberOfInstances, Allocator.Persistent);
@@ -181,7 +190,7 @@ namespace ECS
 
     		for (int t = 0;t != components.Length;t++)
     		{
-				var manager = GetLightweightComponentManager(GetTypeIndex(lightweightComponentTypes[t]));
+				var manager = m_ComponentManagers[componentDataTypes[t]];
 				manager.AddElements (gameObject, new NativeSlice<int>(allComponentIndices, t * numberOfInstances, numberOfInstances));
     		}
 
@@ -189,7 +198,7 @@ namespace ECS
     		{
     			//@TOOD: Batchable
     			LightWeightComponentInfo componentInfo;
-				componentInfo.componentTypeIndex = GetTypeIndex(lightweightComponentTypes[t]);
+				componentInfo.componentTypeIndex = componentDataTypes[t];
 
     			for (int g = 0; g != numberOfInstances; g++)
     			{
@@ -207,28 +216,29 @@ namespace ECS
     		// Collect all tuples that support the created game object schema
     		var tuples = new HashSet<TupleSystem> ();
     		for (int t = 0;t != components.Length;t++)
-    		{
-				var manager = GetLightweightComponentManager(GetTypeIndex(lightweightComponentTypes[t]));
-    			manager.CollectSupportedTupleSets (lightweightComponentTypes, tuples);
-    		}
+				CollectComponentDataTupleSet (componentDataTypes[t], componentDataTypes, tuples);
 
     		foreach (var tuple in tuples)
     		{
     			for (int t = 0; t != components.Length; t++)
-					tuple.AddTuplesUnchecked(m_ComponentTypes[t], new NativeSlice<int>(allComponentIndices, t * numberOfInstances, numberOfInstances));
+					tuple.AddTuplesUnchecked(componentDataTypes[t], new NativeSlice<int>(allComponentIndices, t * numberOfInstances, numberOfInstances));
     		}
 
 			allComponentIndices.Dispose();
+			componentDataTypes.Dispose ();
 
     		return gameObjects;
     	}
 
-    	ILightweightComponentManager GetLightweightComponentManager(int typeIndex)
+		void CollectComponentDataTupleSet(int typeIndex, NativeArray<int> requiredComponentTypes, HashSet<TupleSystem> tuples)
     	{
-    		var managerType = typeof(LightweightComponentManager<>).MakeGenericType(new Type[] { m_ComponentTypes[typeIndex] });
-    		return DependencyManager.GetBehaviourManager (managerType)  as ILightweightComponentManager;
+			foreach (var tuple in m_TuplesForComponent[typeIndex])
+    		{
+				if (tuple.tupleSystem.IsComponentDataTypesSupported(requiredComponentTypes))
+    				tuples.Add (tuple.tupleSystem);
+    		}
     	}
-			
+
     	public void Destroy (LightweightGameObject gameObject)
     	{
     		var temp = new NativeArray<LightweightGameObject> (1, Allocator.Persistent);
@@ -287,10 +297,10 @@ namespace ECS
 		// * NOTE: Does not modify m_GameObjectToComponent
 		void RemoveComponentFromManagerAndTuples (NativeArray<int> components, int componentTypeIndex)
 		{
-			var manager = GetLightweightComponentManager(componentTypeIndex);
-			manager.RemoveElement (components);
+			var manager = m_ComponentManagers[componentTypeIndex];
+			manager.RemoveElements (components);
 
-			foreach (var tuple in manager.GetRegisteredTuples())
+			foreach (var tuple in m_TuplesForComponent[componentTypeIndex])
 			{
 				for (int i = 0; i != components.Length;i++)
 					tuple.tupleSystem.RemoveSwapBackLightWeightComponent (tuple.tupleSystemIndex, components [i]);
@@ -341,5 +351,10 @@ namespace ECS
     		
     		array.Dispose ();
     	}
+
+		internal void RegisterTuple(int componentTypeIndex, TupleSystem tuple, int tupleSystemIndex)
+		{
+			m_TuplesForComponent [componentTypeIndex].Add (new TupleSystem.RegisteredTuple (tuple, tupleSystemIndex));
+		}
     }
 }

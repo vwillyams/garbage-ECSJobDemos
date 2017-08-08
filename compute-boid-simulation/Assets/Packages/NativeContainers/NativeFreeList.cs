@@ -84,7 +84,7 @@ namespace UnityEngine.Collections
 				m_Buffer = newData;
 
 				#if ENABLE_NATIVE_ARRAY_CHECKS
-				DisposeSentinel.UpdateBufferPtr(ref m_DisposeSentinel, m_Buffer);
+				DisposeSentinel.UpdateBufferPtr(m_DisposeSentinel, m_Buffer);
 				#endif
 				for (int i = m_Capacity; i < value - 1; ++i)
 					UnsafeUtility.WriteArrayElementWithStride<int> (m_Buffer, i, m_SizeOf, i + 1);

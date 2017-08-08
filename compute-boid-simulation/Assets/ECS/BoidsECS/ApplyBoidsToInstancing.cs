@@ -102,8 +102,6 @@ namespace BoidSimulations
 			if (m_MatricesArray == null || m_Boids.Length != m_MatricesArray.Length)
 				InitializeBatch (m_Boids.Length);
 
-			Debug.Log ("Instancing: " + m_Boids.Length);
-
 			var job = new BoidToMatricesJob ()
 			{
 				boids = m_Boids,
@@ -122,9 +120,6 @@ namespace BoidSimulations
 
 		void CleanupBatch()
 		{
-			Object.DestroyImmediate (m_InstanceMaterial);
-			m_InstanceMaterial = null;
-
 			if (m_MatrixBuffer0 != null)
 				m_MatrixBuffer0.Release ();
 			m_MatrixBuffer0 = null;
@@ -143,12 +138,16 @@ namespace BoidSimulations
 			CleanupBatch ();
 
 			m_InstanceMaterial = Object.Instantiate(prefab.GetComponent<MeshRenderer> ().sharedMaterial);
+			m_InstanceMaterial.hideFlags = HideFlags.HideAndDontSave;
+
 			m_InstanceMesh = prefab.GetComponent<MeshFilter> ().sharedMesh;
 		}
 
 		public void CleanupInstanceRenderer ()
 		{
 			Object.DestroyImmediate (m_InstanceMaterial);
+			m_InstanceMaterial = null;
+
 			m_InstanceMesh = null;
 
 			CleanupBatch ();

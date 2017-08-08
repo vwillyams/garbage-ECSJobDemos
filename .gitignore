@@ -4,6 +4,5 @@ compute-boid-simulation/Temp
 compute-boid-simulation/obj
 
 *.csproj
+*.sln
 compute-boid-simulation/compute-boid-simulation.userprefs
-
-compute-boid-simulation/compute-boid-simulation.sln

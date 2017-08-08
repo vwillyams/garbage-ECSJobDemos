@@ -9,7 +9,7 @@ using System.Reflection;
 
 namespace UnityEngine.ECS
 {
-    public interface ILightweightComponentManager
+    public interface IComponentDataManager
     {
     	JobHandle GetReadDependency ();
     	JobHandle GetWriteDependency ();
@@ -25,7 +25,7 @@ namespace UnityEngine.ECS
     }
 
     //@TODO: This should be fully implemented in C++ for efficiency
-    public class LightweightComponentManager<T> : ScriptBehaviourManager, ILightweightComponentManager where T : struct, IComponentData
+    public class ComponentDataManager<T> : ScriptBehaviourManager, IComponentDataManager where T : struct, IComponentData
     {
     	internal NativeFreeList<T>                          m_Data;
     //	internal NativeList<JobHandle>                      m_Readers;

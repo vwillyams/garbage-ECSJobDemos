@@ -12,7 +12,7 @@ namespace UnityEngine.ECS
     public abstract class ComponentSystem : ScriptBehaviourManager
     {
         TupleSystem[] 							m_Tuples;
-    	internal ILightweightComponentManager[]	m_JobDependencyManagers;
+    	internal IComponentDataManager[]	m_JobDependencyManagers;
 
     	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     	static void Initialize()

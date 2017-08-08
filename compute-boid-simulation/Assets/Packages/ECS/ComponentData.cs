@@ -23,14 +23,14 @@ namespace UnityEngine.ECS
     //@TODO: This should be fully implemented in C++ for efficiency
     public class ComponentDataWrapper<T> : ComponentDataWrapperBase, UnityEngine.ISerializationCallbackReceiver where T : struct, IComponentData
     {
-		LightweightGameObjectManager   m_GameObjectManager;
+		EntityManager   m_GameObjectManager;
 
         [SerializeField]
         T m_SerializedData;
 
-		LightweightGameObject GetLightWeightGameObject()
+		Entity GetLightWeightGameObject()
 		{
-			return new LightweightGameObject(0, gameObject.GetInstanceID ());
+			return new Entity(0, gameObject.GetInstanceID ());
 		}
 
     	public T Value
@@ -96,7 +96,7 @@ namespace UnityEngine.ECS
         override protected void OnEnable()
         {
 			if (m_GameObjectManager == null)
-				m_GameObjectManager = DependencyManager.GetBehaviourManager (typeof(LightweightGameObjectManager)) as LightweightGameObjectManager;
+				m_GameObjectManager = DependencyManager.GetBehaviourManager (typeof(EntityManager)) as EntityManager;
 
 			m_GameObjectManager.AddComponent(GetLightWeightGameObject(), m_SerializedData);
         }

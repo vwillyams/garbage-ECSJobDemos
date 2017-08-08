@@ -46,7 +46,7 @@ namespace UnityEngine.ECS
     		}
     	}
 
-    	static TupleSystem CreateTuplesInjection(FieldInfo transformAccessArrayField, List<TupleInjectionData> injections, List<ILightweightComponentManager> outJobDependencies, object targetObject)
+    	static TupleSystem CreateTuplesInjection(FieldInfo transformAccessArrayField, List<TupleInjectionData> injections, List<IComponentDataManager> outJobDependencies, object targetObject)
     	{
     		var types = new Type[injections.Count];
     		var managers = new ScriptBehaviourManager[injections.Count];
@@ -61,8 +61,8 @@ namespace UnityEngine.ECS
     		{
 				if (injections[i].containerType == typeof(ComponentDataArray<>))
 				{
-					managers[i] = DependencyManager.GetBehaviourManager (typeof(LightweightComponentManager<>).MakeGenericType (injections [i].genericType));
-					outJobDependencies.Add (managers[i] as ILightweightComponentManager);
+					managers[i] = DependencyManager.GetBehaviourManager (typeof(ComponentDataManager<>).MakeGenericType (injections [i].genericType));
+					outJobDependencies.Add (managers[i] as IComponentDataManager);
 
 					componentDataInjections.Add (injections [i]);
 				}
@@ -76,7 +76,7 @@ namespace UnityEngine.ECS
 				}
     		}
 
-			var tuples = new TupleSystem(DependencyManager.GetBehaviourManager<LightweightGameObjectManager>(), componentInjections.ToArray(), componentDataInjections.ToArray(), managers, transformAccessArray);
+			var tuples = new TupleSystem(DependencyManager.GetBehaviourManager<EntityManager>(), componentInjections.ToArray(), componentDataInjections.ToArray(), managers, transformAccessArray);
 
 			for (var i = 0; i != componentDataInjections.Count; i++) 
     		{
@@ -141,7 +141,7 @@ namespace UnityEngine.ECS
     		return true;
     	}
 
-    	static void CreateTuplesInjection(Type type, object targetObject, List<TupleSystem> outTupleSystem, List<ILightweightComponentManager> outJobDependencies)
+    	static void CreateTuplesInjection(Type type, object targetObject, List<TupleSystem> outTupleSystem, List<IComponentDataManager> outJobDependencies)
     	{
     		var fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
@@ -164,10 +164,10 @@ namespace UnityEngine.ECS
     		}
     	}
 
-    	internal static void CreateTuplesInjection(Type type, object targetObject, out TupleSystem[] outTupleSystem, out ILightweightComponentManager[] outJobDependencies)
+    	internal static void CreateTuplesInjection(Type type, object targetObject, out TupleSystem[] outTupleSystem, out IComponentDataManager[] outJobDependencies)
     	{
     		var tuples = new List<TupleSystem> ();
-    		var dependencies = new List<ILightweightComponentManager> ();
+    		var dependencies = new List<IComponentDataManager> ();
     		CreateTuplesInjection(type, targetObject, tuples, dependencies);
 
 

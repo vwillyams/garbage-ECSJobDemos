@@ -59,9 +59,9 @@ namespace UnityEngine.ECS
 		int[]                      			m_ComponentDataTypes;
 		InjectTuples.TupleInjectionData[]	m_ComponentDataInjections;
     	ScriptBehaviourManager[]    		m_LightWeightManagers;
-		LightweightGameObjectManager 		m_GameObjectManager;
+		EntityManager 		m_GameObjectManager;
 
-		internal TupleSystem(LightweightGameObjectManager gameObjectManager, InjectTuples.TupleInjectionData[] componentInjections, InjectTuples.TupleInjectionData[] componentDataInjections, ScriptBehaviourManager[] lightweightManagers, TransformAccessArray transforms)
+		internal TupleSystem(EntityManager gameObjectManager, InjectTuples.TupleInjectionData[] componentInjections, InjectTuples.TupleInjectionData[] componentDataInjections, ScriptBehaviourManager[] lightweightManagers, TransformAccessArray transforms)
         {
 			this.m_GameObjectManager = gameObjectManager;
 			this.m_ComponentTypes = new Type[componentInjections.Length];
@@ -104,7 +104,7 @@ namespace UnityEngine.ECS
 			
     	public ComponentDataArray<T> GetLightWeightIndexedComponents<T>(int index, bool create) where T : struct, IComponentData
         {
-    		var manager = m_LightWeightManagers[index] as LightweightComponentManager<T>;
+    		var manager = m_LightWeightManagers[index] as ComponentDataManager<T>;
     		var container = new ComponentDataArray<T> (manager.m_Data, m_TupleIndices[index]);
 
 			if (create)
@@ -161,7 +161,7 @@ namespace UnityEngine.ECS
     		RemoveSwapBackTupleIndex(tupleIndex);
     	}
 
-		bool IsTupleSupported(GameObject go, LightweightGameObject lightGameObject)
+		bool IsTupleSupported(GameObject go, Entity lightGameObject)
 		{
 			foreach (var componentType in m_ComponentTypes)
 			{
@@ -196,7 +196,7 @@ namespace UnityEngine.ECS
 			return true;
 		}
 
-    	public void AddTupleIfSupported(GameObject go, LightweightGameObject lightGameObject)
+    	public void AddTupleIfSupported(GameObject go, Entity lightGameObject)
     	{
 			if (!IsTupleSupported (go, lightGameObject))
 				return;

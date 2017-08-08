@@ -11,7 +11,7 @@ namespace UnityEngine.ECS.Tests
 	public class ECS
 	{
 		DependencyManager m_DependencyManager;
-		LightweightGameObjectManager m_Manager;
+		EntityManager m_Manager;
 
 		[SetUp]
 		public void Setup()
@@ -19,7 +19,7 @@ namespace UnityEngine.ECS.Tests
 			m_DependencyManager = DependencyManager.Root;
 			DependencyManager.Root = new DependencyManager ();
 
-			m_Manager = DependencyManager.GetBehaviourManager<LightweightGameObjectManager> ();
+			m_Manager = DependencyManager.GetBehaviourManager<EntityManager> ();
 		}
 
 		[TearDown]
@@ -32,9 +32,9 @@ namespace UnityEngine.ECS.Tests
 		[Test]
 		public void ECSCreateAndDestroy()
 		{
-			var go0 = m_Manager.AllocateGameObject ();
-			var go1 = m_Manager.AllocateGameObject ();
-			var go2 = m_Manager.AllocateGameObject ();
+			var go0 = m_Manager.AllocateEntity ();
+			var go1 = m_Manager.AllocateEntity ();
+			var go2 = m_Manager.AllocateEntity ();
 
 			Assert.IsFalse (m_Manager.HasComponent<EcsTestData>(go0));
 			Assert.IsFalse (m_Manager.HasComponent<EcsTestData>(go1));
@@ -71,7 +71,7 @@ namespace UnityEngine.ECS.Tests
 		[Test]
 		public void SetComponentData()
 		{
-			var go = m_Manager.AllocateGameObject ();
+			var go = m_Manager.AllocateEntity ();
 
 			m_Manager.AddComponent (go, new EcsTestData(0));
 			m_Manager.SetComponent (go, new EcsTestData(1));
@@ -84,7 +84,7 @@ namespace UnityEngine.ECS.Tests
 		[Test]
 		public void SetComponentDataOnDeletedGameObject()
 		{
-			var go = m_Manager.AllocateGameObject ();
+			var go = m_Manager.AllocateEntity ();
 			m_Manager.AddComponent (go, new EcsTestData(0));
 			m_Manager.Destroy (go);
 
@@ -98,7 +98,7 @@ namespace UnityEngine.ECS.Tests
 			var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
 			var ecsAndTransformArray = DependencyManager.GetBehaviourManager<EcsTestAndTransformArraySystem> ();
 
-			var go = m_Manager.AllocateGameObject ();
+			var go = m_Manager.AllocateEntity ();
 			m_Manager.AddComponent (go, new EcsTestData(2));
 
 			pureSystem.OnUpdate ();
@@ -114,10 +114,10 @@ namespace UnityEngine.ECS.Tests
 		{
 			var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
 
-			var go0 = m_Manager.AllocateGameObject ();
+			var go0 = m_Manager.AllocateEntity ();
 			m_Manager.AddComponent (go0, new EcsTestData(10));
 
-			var go1 = m_Manager.AllocateGameObject ();
+			var go1 = m_Manager.AllocateEntity ();
 			m_Manager.AddComponent (go1, new EcsTestData(20));
 
 			pureSystem.OnUpdate ();

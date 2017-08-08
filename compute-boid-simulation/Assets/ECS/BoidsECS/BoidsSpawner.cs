@@ -17,7 +17,7 @@ namespace BoidSimulations
 		private List<GameObject> roots = new List<GameObject>();
 
 		[InjectDependency]
-		LightweightGameObjectManager m_LightweightGameObjects;
+		EntityManager m_LightweightGameObjects;
 
 		public bool performanceDemoMode = false;
 

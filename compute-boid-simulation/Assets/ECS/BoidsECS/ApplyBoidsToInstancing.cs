@@ -90,13 +90,22 @@ namespace BoidSimulations
 		{
 			base.OnUpdate();
 
-			if (m_Boids.Length == 0 || InstancedMeshRendererPrototype.Instance == null)
+			if (m_Boids.Length == 0)
 				return;
 
-			if (m_MatricesArray == null || m_MatricesArray.Length != m_Boids.Length)
-				InitializeBatch(InstancedMeshRendererPrototype.Instance.gameObject, m_Boids.Length);
+			if (m_InstanceMesh == null)
+			{
+				Debug.LogError ("Boid instance renderer system has not been configured");
+				return;
+			}
 
-			var job = new BoidToMatricesJob () {
+			if (m_MatricesArray == null || m_Boids.Length != m_MatricesArray.Length)
+				InitializeBatch (m_Boids.Length);
+
+			Debug.Log ("Instancing: " + m_Boids.Length);
+
+			var job = new BoidToMatricesJob ()
+			{
 				boids = m_Boids,
 				matrices = m_Matrices
 			};
@@ -128,13 +137,26 @@ namespace BoidSimulations
 				m_Matrices.Dispose ();
 		}
 
-
-		void InitializeBatch(GameObject prefab, int instanceCount)
+		public void InitializeInstanceRenderer (GameObject prefab)
 		{
+			CleanupInstanceRenderer ();
 			CleanupBatch ();
 
 			m_InstanceMaterial = Object.Instantiate(prefab.GetComponent<MeshRenderer> ().sharedMaterial);
 			m_InstanceMesh = prefab.GetComponent<MeshFilter> ().sharedMesh;
+		}
+
+		public void CleanupInstanceRenderer ()
+		{
+			Object.DestroyImmediate (m_InstanceMaterial);
+			m_InstanceMesh = null;
+
+			CleanupBatch ();
+		}
+
+		void InitializeBatch (int instanceCount)
+		{
+			CleanupBatch ();
 
 			m_MatricesArray = new float4x4[instanceCount];
 			m_Matrices = new NativeArray<float4x4> (instanceCount, Allocator.Persistent);
@@ -159,7 +181,8 @@ namespace BoidSimulations
 		protected override void OnDestroyManager ()
 		{
 			base.OnDestroyManager ();
-			CleanupBatch ();
+
+			CleanupInstanceRenderer ();
 		}
 	}
 }

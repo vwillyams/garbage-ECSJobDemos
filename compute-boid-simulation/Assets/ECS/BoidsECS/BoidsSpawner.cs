@@ -10,6 +10,8 @@ namespace BoidSimulations
 	public class BoidsSpawner : ScriptBehaviour
 	{
 		public GameObject prefab;
+		public GameObject lightweightPrefab;
+
 		public float radius = 4.0F;
 		public int transformsPerHierarchy = 500;
 		public bool lightweightInstantiate;
@@ -36,7 +38,7 @@ namespace BoidSimulations
 
 			if (lightweightInstantiate)
 			{
-				var gos = m_LightweightGameObjects.Instantiate (prefab, count);
+				var gos = m_LightweightGameObjects.Instantiate (lightweightPrefab, count);
 
 				for (int i = 0; i != gos.Length; i++)
 				{
@@ -47,6 +49,8 @@ namespace BoidSimulations
 				}
 
 				gos.Dispose ();
+
+				DependencyManager.GetBehaviourManager<ApplyBoidsToInstancing> ().InitializeInstanceRenderer (lightweightPrefab);
 			}
 			else
 			{

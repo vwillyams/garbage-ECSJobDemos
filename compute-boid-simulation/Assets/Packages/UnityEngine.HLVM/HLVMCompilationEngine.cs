@@ -1,6 +1,6 @@
-﻿//#define ENABLE_P2GC_COMPILER
+﻿//#define ENABLE_HLVM_COMPILER
 
-#if ENABLE_P2GC_COMPILER
+#if ENABLE_HLVM_COMPILER
 
 using System;
 using System.Collections.Generic;
@@ -28,19 +28,19 @@ namespace UnityEngine.Jobs
 
     public class ComputeJobOptimizationAttribute : System.Attribute
     {
-#if ENABLE_P2GC_COMPILER
+#if ENABLE_HLVM_COMPILER
         internal p2gc.JitOptions m_Options;
 #endif
         public ComputeJobOptimizationAttribute()
         {
-#if ENABLE_P2GC_COMPILER
+#if ENABLE_HLVM_COMPILER
             m_Options = new JitOptions();
 #endif
         }
 
         public ComputeJobOptimizationAttribute(Accuracy accuracy, Support support)
         {
-#if ENABLE_P2GC_COMPILER
+#if ENABLE_HLVM_COMPILER
 
             p2gc.Support p2gcSupport = p2gc.Support.VM_STRICT;
             switch (support)
@@ -74,11 +74,11 @@ namespace UnityEngine.Jobs
     }
 }
 
-#if ENABLE_P2GC_COMPILER
+#if ENABLE_HLVM_COMPILER
 
 
 [UnityEditor.InitializeOnLoad]
-class P2GCCompilationEngine
+class HLVMCompilationEngine
 {
     //@TODO: Investigate if this has additional unnecessary bindings / function indirection
     public static void AddICalls(List<JitExternalFunction> functions)
@@ -123,7 +123,6 @@ class P2GCCompilationEngine
 
     static System.IntPtr Compile(System.Type jobType, System.Object function)
     {
-        //string assemblyPath = typeof(P2GCDemoJob).Assembly.Location;
         string fullStructName = jobType.FullName;
         // Debug.Log("Compiling " + assemblyPath + " -> " + fullStructName);
 
@@ -155,7 +154,7 @@ class P2GCCompilationEngine
         return result.FunctionPointer;
     }
 
-    static P2GCCompilationEngine()
+    static HLVMCompilationEngine()
     {
         // Debug.Log("Initialize Compilation Engine");
         UnityEngineInternal.Jobs.JobCompiler.JitCompile += Compile;

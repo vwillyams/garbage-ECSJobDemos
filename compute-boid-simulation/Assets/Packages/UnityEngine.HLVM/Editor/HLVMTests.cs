@@ -5,9 +5,8 @@ using UnityEngine.TestTools;
 using NUnit.Framework;
 using System.Collections;
 
-public class P2GCTests
+public class HLVMTests
 {
-
 	[ComputeJobOptimization]
 	public struct SimpleArrayAssignJob : IJob
 	{

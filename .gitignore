@@ -9,4 +9,5 @@ AI_Prototyping/LowLevelQueryAPI/obj
 
 *.csproj
 *.sln
+*.suo
 *.userprefs

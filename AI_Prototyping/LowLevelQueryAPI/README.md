@@ -1,12 +1,14 @@
-This project is meant to work with code from the native branch scripting/jobsystem/navmesh .\
-Revision needed: **28ed0c7fe78f** (2017-07-28 17:04:48 +0200)
+This project is meant to work with code from the native branch scripting/jobsystem/unite-demo-2017 .\
+Revision needed: **b9675b37b2ae** (2017-08-08 14:51:36 +0200)
+Good build (with ECS): http://beta.unity3d.com/download/b9675b37b2ae/download.html
 
 Example scenes:
 
 **CrowdMoveTest**
 
 - showcases how to find paths between many source and destination points in parallel and time-sliced, and have entities move along simplified paths that go through the obtained polygons.
-- _TheCrowd_ has _Crowd_ behaviour, written with the new API, where the number of entities can be specified.
+- With ECS: Add the CrowdAgentComponent to game objects and they will start moving on paths controlled by the CrowdSystem.
+- Without ECS: _TheCrowd_ has _Crowd_ behaviour, written with the new API, where the number of entities can be specified.
     - It also hosts a disabled _Classic Crowd_ behaviour that can run an example of the old crowd simulation. The optional debug draw can show a red line above all agents that are waiting for the path to be computed or a short yellow line above the agents that have reached their destination and are currently waiting for new instructions.
 
 

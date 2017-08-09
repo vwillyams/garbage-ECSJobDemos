@@ -18,4 +18,4 @@ recent build: http://beta.unity3d.com/download/f4ff4ad24348/download.html
 
 # AI Navigation
 Sandbox project for pathfinding: [LowLevelQueryAPI](AI_Prototyping/LowLevelQueryAPI).\
-Required build: NOT READY YET - LATEST FROM `scripting/jobsystem/unite-demo-2017`
+Required build: http://beta.unity3d.com/download/b9675b37b2ae/download.html `(2017-08-08 b9675b37b2ae scripting/jobsystem/unite-demo-2017)`

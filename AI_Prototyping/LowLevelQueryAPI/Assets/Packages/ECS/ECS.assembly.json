@@ -1,0 +1,4 @@
+{
+	"name": "ECS",
+	"references": [ "NativeContainers" ]
+}

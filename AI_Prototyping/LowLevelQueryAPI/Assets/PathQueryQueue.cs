@@ -53,6 +53,11 @@ public class PathQueryQueue
     public void Dispose()
     {
         m_Costs.Dispose();
+
+        foreach (var path in m_Results)
+        {
+            path.polygons.Dispose();
+        }
     }
 
     Handle GetNewHandle()

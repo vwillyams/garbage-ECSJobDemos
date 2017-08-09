@@ -1,4 +1,4 @@
 {
-	"name": "ECS",
+	"name": "UnityEngine.ECS",
 	"references": [ "NativeContainers" ]
 }

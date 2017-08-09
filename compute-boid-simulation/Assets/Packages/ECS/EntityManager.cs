@@ -75,13 +75,13 @@ namespace UnityEngine.ECS
     		return m_ComponentTypes.Count - 1;
     	}
 
-		internal int GetComponentIndex(Entity gameObject, int typeIndex)
+		internal int GetComponentIndex(Entity entity, int typeIndex)
 		{
 			//@TODO: debugManagerIndex validation
 
 			LightWeightComponentInfo component;
 			NativeMultiHashMapIterator<int> iterator;
-			if (!m_EntityToComponent.TryGetFirstValue (gameObject.index, out component, out iterator))
+			if (!m_EntityToComponent.TryGetFirstValue (entity.index, out component, out iterator))
 				return -1;
 
 			if (component.componentTypeIndex == typeIndex)
@@ -97,24 +97,24 @@ namespace UnityEngine.ECS
 			return -1;
 		}
 
-    	public int GetComponentIndex<T>(Entity gameObject) where T : IComponentData
+    	public int GetComponentIndex<T>(Entity entity) where T : IComponentData
     	{
-    		return GetComponentIndex (gameObject, GetTypeIndex(typeof(T)));
+    		return GetComponentIndex (entity, GetTypeIndex(typeof(T)));
     	}
 
-    	public int GetComponentIndex(Entity gameObject, Type type)
+    	public int GetComponentIndex(Entity entity, Type type)
     	{
-    		return GetComponentIndex (gameObject, GetTypeIndex(type));
+    		return GetComponentIndex (entity, GetTypeIndex(type));
     	}
 
-		public bool HasComponent<T>(Entity gameObject) where T : IComponentData
+		public bool HasComponent<T>(Entity entity) where T : IComponentData
 		{
-			return GetComponentIndex (gameObject, GetTypeIndex(typeof(T))) != -1;
+			return GetComponentIndex (entity, GetTypeIndex(typeof(T))) != -1;
 		}
 
-		public bool HasComponent(Entity gameObject, Type type)
+		public bool HasComponent(Entity entity, Type type)
 		{
-			return GetComponentIndex (gameObject, GetTypeIndex(type)) != -1;
+			return GetComponentIndex (entity, GetTypeIndex(type)) != -1;
 		}
 
 		public Entity AllocateEntity()
@@ -124,9 +124,9 @@ namespace UnityEngine.ECS
 			return go;
 		}
 
-		public void AddComponent<T>(Entity gameObject, T componentData) where T : struct, IComponentData
+		public void AddComponent<T>(Entity entity, T componentData) where T : struct, IComponentData
 		{
-			Assert.IsFalse (HasComponent<T>(gameObject));
+			Assert.IsFalse (HasComponent<T>(entity));
 
 			// Add to manager
 			var manager = GetComponentManager<T> ();
@@ -136,18 +136,18 @@ namespace UnityEngine.ECS
 			LightWeightComponentInfo info;
 			info.componentTypeIndex = GetTypeIndex (typeof(T));
 			info.index = index;
-			m_EntityToComponent.Add(gameObject.index, info);
+			m_EntityToComponent.Add(entity.index, info);
 
-			var fullGameObject = UnityEditor.EditorUtility.InstanceIDToObject (gameObject.index) as GameObject;
+			var fullGameObject = UnityEditor.EditorUtility.InstanceIDToObject (entity.index) as GameObject;
 
 			// tuple management
 			foreach (var tuple in m_TuplesForComponent[info.componentTypeIndex])
-				tuple.tupleSystem.AddTupleIfSupported(fullGameObject, gameObject);
+				tuple.tupleSystem.AddTupleIfSupported(fullGameObject, entity);
 		}
 			
-    	public T GetComponent<T>(Entity gameObject) where T : struct, IComponentData
+    	public T GetComponent<T>(Entity entity) where T : struct, IComponentData
     	{
-    		int index = GetComponentIndex<T> (gameObject);
+    		int index = GetComponentIndex<T> (entity);
     		if (index == -1)
     			throw new InvalidOperationException (string.Format("{0} does not exist on the game object", typeof(T)));
 
@@ -156,9 +156,9 @@ namespace UnityEngine.ECS
 			return manager.m_Data[index];
     	}
 
-    	public void SetComponent<T>(Entity gameObject, T componentData) where T: struct, IComponentData
+    	public void SetComponent<T>(Entity entity, T componentData) where T: struct, IComponentData
     	{
-    		int index = GetComponentIndex<T> (gameObject);
+    		int index = GetComponentIndex<T> (entity);
     		if (index == -1)
     			throw new InvalidOperationException (string.Format("{0} does not exist on the game object", typeof(T)));
 
@@ -185,7 +185,7 @@ namespace UnityEngine.ECS
 				componentDataTypes[t] = GetTypeIndex(components[t].GetIComponentDataType());
 
     		//@TODO: Temp alloc
-			var gameObjects = new NativeArray<Entity> (numberOfInstances, Allocator.Persistent);
+			var entities = new NativeArray<Entity> (numberOfInstances, Allocator.Persistent);
 			var allComponentIndices = new NativeArray<int> (numberOfInstances * components.Length, Allocator.Persistent);
 
     		for (int t = 0;t != components.Length;t++)
@@ -207,8 +207,8 @@ namespace UnityEngine.ECS
     			}
     		}
 
-			for (int i = 0; i < gameObjects.Length; i++)
-				gameObjects[i] = new Entity (m_DebugManagerID, m_InstanceIDAllocator - i * 2);
+			for (int i = 0; i < entities.Length; i++)
+				entities[i] = new Entity (m_DebugManagerID, m_InstanceIDAllocator - i * 2);
 
 			m_InstanceIDAllocator -= numberOfInstances * 2;
 
@@ -227,7 +227,7 @@ namespace UnityEngine.ECS
 			allComponentIndices.Dispose();
 			componentDataTypes.Dispose ();
 
-    		return gameObjects;
+    		return entities;
     	}
 
 		void CollectComponentDataTupleSet(int typeIndex, NativeArray<int> requiredComponentTypes, HashSet<TupleSystem> tuples)
@@ -239,10 +239,10 @@ namespace UnityEngine.ECS
     		}
     	}
 
-    	public void Destroy (Entity gameObject)
+    	public void Destroy (Entity entity)
     	{
     		var temp = new NativeArray<Entity> (1, Allocator.Persistent);
-    		temp [0] = gameObject;
+    		temp [0] = entity;
     		Destroy(temp);
     		temp.Dispose ();
     	}
@@ -257,7 +257,7 @@ namespace UnityEngine.ECS
     	}
 
 		//@TODO: Add HashMap functionality to remove a single component
-		int RemoveComponentFromGameObjectTable(Entity gameObject, int typeIndex)
+		int RemoveComponentFromEntityTable(Entity entity, int typeIndex)
 		{
 			var components = new NativeList<LightWeightComponentInfo> (16, Allocator.Temp);
 			int removedComponentIndex = -1;
@@ -265,7 +265,7 @@ namespace UnityEngine.ECS
 			LightWeightComponentInfo component;
 			NativeMultiHashMapIterator<int> iterator;
 
-			if (!m_EntityToComponent.TryGetFirstValue (gameObject.index, out component, out iterator))
+			if (!m_EntityToComponent.TryGetFirstValue (entity.index, out component, out iterator))
 			{
 				components.Dispose ();
 				throw new ArgumentException ("RemoveComponent may not be invoked on a game object that does not exist");
@@ -285,17 +285,17 @@ namespace UnityEngine.ECS
 					removedComponentIndex = component.index;
 			}
 
-			m_EntityToComponent.Remove (gameObject.index);
+			m_EntityToComponent.Remove (entity.index);
 			for (int i = 0; i != components.Length;i++)
-				m_EntityToComponent.Add (gameObject.index, components[i]);
+				m_EntityToComponent.Add (entity.index, components[i]);
 
 			components.Dispose ();
 
 			return removedComponentIndex;
 		}
 
-		// * NOTE: Does not modify m_GameObjectToComponent
-		void RemoveComponentFromManagerAndTuples (NativeArray<int> components, int componentTypeIndex)
+		// * NOTE: Does not modify m_EntityToComponent
+		void RemoveComponentFromComponentManagerAndTuples (NativeArray<int> components, int componentTypeIndex)
 		{
 			var manager = m_ComponentManagers[componentTypeIndex];
 			manager.RemoveElements (components);
@@ -307,46 +307,46 @@ namespace UnityEngine.ECS
 			}
 		}
 
-		public void RemoveComponent<T>(Entity gameObject) where T : struct, IComponentData
+		public void RemoveComponent<T>(Entity entity) where T : struct, IComponentData
 		{
-			Assert.IsTrue (HasComponent<T>(gameObject));
+			Assert.IsTrue (HasComponent<T>(entity));
 
 			int componentTypeIndex = GetTypeIndex (typeof(T));
-			int componentIndex = RemoveComponentFromGameObjectTable (gameObject, componentTypeIndex);
+			int componentIndex = RemoveComponentFromEntityTable (entity, componentTypeIndex);
 
 			var components = new NativeArray<int> (1, Allocator.Persistent);
 			components[0] = componentIndex;
 
-			RemoveComponentFromManagerAndTuples (components, componentTypeIndex);
+			RemoveComponentFromComponentManagerAndTuples (components, componentTypeIndex);
 
 			components.Dispose ();
 		}
 
-    	public void Destroy (NativeArray<Entity> gameObjects)
+    	public void Destroy (NativeArray<Entity> entities)
     	{
 			var array = new NativeArray<int> (1, Allocator.Persistent);
 
-    		for (int i = 0; i < gameObjects.Length; i++)
+    		for (int i = 0; i < entities.Length; i++)
     		{
-    			var gameObject = gameObjects[i];
+				var entity = entities[i];
 
     			//@TODO: Validate manager index...
 
     			LightWeightComponentInfo component;
     			NativeMultiHashMapIterator<int> iterator;
-    			if (!m_EntityToComponent.TryGetFirstValue (gameObject.index, out component, out iterator))
-    				throw new System.InvalidOperationException ("GameObject does not exist");
+    			if (!m_EntityToComponent.TryGetFirstValue (entity.index, out component, out iterator))
+    				throw new System.InvalidOperationException ("Entity does not exist");
 
     			array[0] = component.index;
-				RemoveComponentFromManagerAndTuples (array, component.componentTypeIndex);
+				RemoveComponentFromComponentManagerAndTuples (array, component.componentTypeIndex);
 
     			while (m_EntityToComponent.TryGetNextValue(out component, ref iterator))
     			{
 					array[0] = component.index;
-					RemoveComponentFromManagerAndTuples (array, component.componentTypeIndex);
+					RemoveComponentFromComponentManagerAndTuples (array, component.componentTypeIndex);
     			}
 
-				m_EntityToComponent.Remove(gameObject.index);
+				m_EntityToComponent.Remove(entity.index);
     		}
     		
     		array.Dispose ();

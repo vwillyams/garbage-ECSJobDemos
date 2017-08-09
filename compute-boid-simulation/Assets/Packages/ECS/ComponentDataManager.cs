@@ -113,8 +113,7 @@ namespace UnityEngine.ECS
 				Debug.LogError("AddDependency is required to depend on any previous jobs (Use GetDependency())");
 			}
 			#endif
-
-    		m_Writer = handle;
+			m_Writer = handle;
     	}
 
     	public void AddReadDependency(JobHandle handle)

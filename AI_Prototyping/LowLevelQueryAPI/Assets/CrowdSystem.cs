@@ -127,9 +127,8 @@ public class CrowdSystem : ComponentSystem
             agent.position = agent.position + agent.velocity * dt;
 
             // Constrain the position using the location
-            var newLoc = NavMeshQuery.MoveLocation(agent.location, agent.position);
-            agent.position = newLoc.position;
-            agent.location = newLoc;
+			agent.location = NavMeshQuery.MoveLocation(agent.location, agent.position);
+			agent.position = agent.location;
 
             agents[index] = agent;
 

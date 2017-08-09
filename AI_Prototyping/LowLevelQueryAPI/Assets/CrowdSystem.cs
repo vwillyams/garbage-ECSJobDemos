@@ -138,20 +138,6 @@ public class CrowdSystem : ComponentSystem
         }
     }
 
-    public struct WriteTransformJob : IJobParallelForTransform
-    {
-        [ReadOnly]
-        public ComponentDataArray<CrowdAgent> agents;
-
-        public void Execute(int index, TransformAccess transform)
-        {
-            var agent = agents[index];
-            transform.position = agent.position;
-            if (math.length(agent.velocity) > 0.1f)
-                transform.rotation = Quaternion.LookRotation(agent.velocity);
-        }
-    }
-
     void GetPathResults()
     {
         var results = m_QueryQueue.GetAndClearResults();

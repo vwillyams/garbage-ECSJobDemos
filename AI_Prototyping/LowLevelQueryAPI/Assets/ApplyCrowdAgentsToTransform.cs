@@ -21,7 +21,7 @@ class CrowdAgentsToTransformSystem : JobComponentSystem
         public void Execute(int index, TransformAccess transform)
         {
             var agent = crowdAgents[index];
-            transform.position = agent.position;
+            transform.position = agent.worldPosition;
 			if (math.length(agent.velocity) > 0.1f)
 				transform.rotation = Quaternion.LookRotation(agent.velocity);
         }

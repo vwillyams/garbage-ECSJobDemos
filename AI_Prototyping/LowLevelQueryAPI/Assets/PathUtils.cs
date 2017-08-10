@@ -21,7 +21,7 @@ public class PathUtils
 
     // Retrace portals between corners register if type of polygon changes
     public static int RetracePortals(int startIndex, int endIndex
-        , NativeArray<PolygonID> path, int n, Vector3 termPos
+        , NativeSlice<PolygonID> path, int n, Vector3 termPos
         , ref NativeArray<NavMeshLocation> straightPath
         , ref NativeArray<NavMeshStraightPathFlags> straightPathFlags
         , int maxStraightPath)
@@ -39,7 +39,7 @@ public class PathUtils
                 var status = NavMeshQuery.GetPortalPoints(path[k], path[k + 1], out l, out r);
                 Assert.IsTrue(status); // Expect path elements k, k+1 to be verified
 
-                Vector3 cpa1, cpa2;
+                float3 cpa1, cpa2;
                 GeometryUtils.SegmentSegmentCPA(out cpa1, out cpa2, l, r, straightPath[n - 1].position, termPos);
                 straightPath[n] = new NavMeshLocation() { polygon = path[k + 1].polygon, position = cpa1 };
                 // TODO maybe the flag should be additive with |=
@@ -63,11 +63,11 @@ public class PathUtils
         , int maxStraightPath
         )
     {
-        return FindStraightPath(path.start.position, path.end.position, path.polygons, path.size, ref straightPath, ref straightPathFlags, ref straightPathCount, maxStraightPath);
+        return FindStraightPath(path.start.position, path.end.position, new NativeSlice<PolygonID>(path.polygons), path.size, ref straightPath, ref straightPathFlags, ref straightPathCount, maxStraightPath);
     }
 
     public static PathQueryStatus FindStraightPath(Vector3 startPos, Vector3 endPos
-        , NativeArray<PolygonID> path, int pathSize
+        , NativeSlice<PolygonID> path, int pathSize
         , ref NativeArray<NavMeshLocation> straightPath
         , ref NativeArray<NavMeshStraightPathFlags> straightPathFlags
         , ref int straightPathCount

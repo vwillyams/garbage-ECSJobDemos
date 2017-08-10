@@ -216,7 +216,7 @@ public class MultiplePaths : MonoBehaviour
             if (m_PathRequestHandles[i].valid /*|| !m_TargetLocations[i].valid*/ /* || m_Paths[i].size > 1*/)
                 continue;
 
-            // TODO Query for new paths only then the start/end polygonID changes ?
+            // TODO Query for new paths only when the start/end polygonID changes ?
 
             var oIdx = Math.Min(i, m_OriginLocations.Length - 1);
             if (m_Paths[i].size == 0 || !m_OriginLocations[oIdx].Equals(m_Paths[i].start) || !m_TargetLocations[i].Equals(m_Paths[i].end))
@@ -321,7 +321,7 @@ public class MultiplePaths : MonoBehaviour
                     var p1 = path.polygons[1];
                     if (NavMeshQuery.GetPortalPoints(p0, p1, out left, out right))
                     {
-                        Vector3 cpa1, cpa2;
+                        float3 cpa1, cpa2;
                         GeometryUtils.SegmentSegmentCPA(out cpa1, out cpa2, left, right, startPos, path.end.position);
                         straightPath[0] = NavMeshQuery.MapLocation(cpa1, Vector3.one, 0);
                         const int cornerCount = 1;

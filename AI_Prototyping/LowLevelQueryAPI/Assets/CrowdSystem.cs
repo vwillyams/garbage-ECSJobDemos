@@ -206,7 +206,7 @@ public class CrowdSystem : ComponentSystem
 
                 var velocity = steeringTarget - currentPos;
                 velocity.y = 0.0f;
-                agent.velocity = math.normalize(velocity);
+                agent.velocity = math.any(velocity) ? math.normalize(velocity) : new float3(0);
             }
             else
             {

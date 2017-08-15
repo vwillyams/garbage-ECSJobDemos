@@ -1,6 +1,6 @@
 This project is meant to work with code from the native branch scripting/jobsystem/unite-demo-2017 .\
-Revision needed: **b9675b37b2ae** (2017-08-08 14:51:36 +0200)\
-Good build (with ECS): http://beta.unity3d.com/download/b9675b37b2ae/download.html
+Revision needed: **5976ec88a8ca** (2017-08-15 15:07:19 +0200)\
+Good build (with ECS): http://beta.unity3d.com/download/5976ec88a8ca/download.html
 
 Example scenes:
 

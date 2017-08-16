@@ -79,6 +79,26 @@ public struct AgentPaths
         }
     }
 
+    public struct AllReadOnly
+    {
+        [ReadOnly]
+        public int maxPathSize;
+        [ReadOnly]
+        public NativeArray<PolygonID> nodes;
+        [ReadOnly]
+        public NativeArray<Path> ranges;
+
+        public NativeSlice<PolygonID> GetPath(int index)
+        {
+            return new NativeSlice<PolygonID>(nodes, ranges[index].begin, ranges[index].size);
+        }
+
+        public Path GetPathInfo(int index)
+        {
+            return ranges[index];
+        }
+    }
+
     NativeList<PolygonID> m_PathNodes;
     NativeList<Path> m_PathRanges;
     int m_MaxPathSize;
@@ -142,6 +162,11 @@ public struct AgentPaths
     public AllWritable GetAllData()
     {
         return new AllWritable() { nodes = m_PathNodes, ranges = m_PathRanges, maxPathSize = m_MaxPathSize };
+    }
+
+    public AllReadOnly GetReadOnlyData()
+    {
+        return new AllReadOnly() { nodes = m_PathNodes, ranges = m_PathRanges, maxPathSize = m_MaxPathSize };
     }
 }
 
@@ -225,7 +250,7 @@ public class CrowdSystem : JobComponentSystem
     public struct UpdateVelocityJob : IJobParallelFor
     {
         [ReadOnly]
-        public AgentPaths.RangesWritable paths;
+        public AgentPaths.AllReadOnly paths;
 
         public ComponentDataArray<CrowdAgent> agents;
 
@@ -424,7 +449,7 @@ public class CrowdSystem : JobComponentSystem
         var advance = new AdvancePathJob() { agents = m_Agents, paths = m_AgentPaths.GetRangesData() };
         var advanceFence = advance.Schedule(m_Agents.Length, 20, resultsFence);
 
-        var vel = new UpdateVelocityJob() { agents = m_Agents, paths = m_AgentPaths.GetRangesData() };
+        var vel = new UpdateVelocityJob() { agents = m_Agents, paths = m_AgentPaths.GetReadOnlyData() };
         var velFence = vel.Schedule(m_Agents.Length, 15, advanceFence);
 
         var move = new MoveLocationsJob() { agents = m_Agents, dt = Time.deltaTime };

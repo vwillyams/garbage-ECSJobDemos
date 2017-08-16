@@ -115,7 +115,7 @@ public struct PathQueryQueueEcs
         return m_State[0].resultPathsCount;
     }
 
-    public void CopyResultsTo(ref AgentPaths agentPaths)
+    public void CopyResultsTo(ref AgentPaths.AllWritable agentPaths)
     {
         var state = m_State[0];
         for (var i = 0; i < state.resultPathsCount; i++)

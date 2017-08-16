@@ -18,7 +18,7 @@ public struct AgentPaths
         public NavMeshLocation end;
     }
 
-    public struct JobData
+    public struct RangesWritable
     {
         [ReadOnly]
         public NativeArray<PolygonID> nodes;
@@ -45,6 +45,37 @@ public struct AgentPaths
             pathInfo.size = end - pathInfo.begin;
             Debug.Assert(pathInfo.size >= 0, "This should not happen");
             ranges[index] = pathInfo;
+        }
+    }
+
+    public struct AllWritable
+    {
+        [ReadOnly]
+        public int maxPathSize;
+        public NativeArray<PolygonID> nodes;
+        public NativeArray<Path> ranges;
+
+        public NativeSlice<PolygonID> GetMaxPath(int index)
+        {
+            return new NativeSlice<PolygonID>(nodes, maxPathSize * index, maxPathSize);
+        }
+
+        public void SetPath(int index, NativeSlice<PolygonID> newPath, NavMeshLocation start, NavMeshLocation end)
+        {
+            var nodeCount = Math.Min(newPath.Length, maxPathSize);
+            ranges[index] = new Path
+            {
+                begin = maxPathSize * index,
+                size = nodeCount,
+                start = start,
+                end = end
+            };
+            var agentPath = GetMaxPath(index);
+            for (var k = 0; k < nodeCount; k++)
+            {
+                var node = newPath[k];
+                agentPath[k] = node;
+            }
         }
     }
 
@@ -79,9 +110,23 @@ public struct AgentPaths
         InitializePath(m_PathRanges.Length - 1, 0);
     }
 
-    public NativeSlice<PolygonID> GetMaxPath(int index)
+    public void AddAgents(int n)
     {
-        return new NativeSlice<PolygonID>(m_PathNodes, m_MaxPathSize * index, m_MaxPathSize);
+        var world = NavMeshWorld.GetDefaultWorld();
+        if (!world.IsValid())
+            return;
+
+        var oldLength = m_PathRanges.Length;
+        m_PathRanges.ResizeUninitialized(m_PathRanges.Length + n);
+        for (var i = 0; i < n; i++)
+        {
+            m_PathRanges.Add(new Path());
+        }
+        m_PathNodes.ResizeUninitialized(m_MaxPathSize * m_PathRanges.Length);
+        for (var i = oldLength; i < m_PathRanges.Length; i++)
+        {
+            InitializePath(i, 0);
+        }
     }
 
     public Path GetPathInfo(int index)
@@ -89,28 +134,14 @@ public struct AgentPaths
         return m_PathRanges[index];
     }
 
-    public JobData GetJobData()
+    public RangesWritable GetRangesData()
     {
-        var jobData = new JobData() { nodes = m_PathNodes, ranges = m_PathRanges };
-        return jobData;
+        return new RangesWritable() { nodes = m_PathNodes, ranges = m_PathRanges };
     }
 
-    public void SetPath(int index, NativeSlice<PolygonID> newPath, NavMeshLocation start, NavMeshLocation end)
+    public AllWritable GetAllData()
     {
-        var nodeCount = Math.Min(newPath.Length, m_MaxPathSize);
-        m_PathRanges[index] = new Path
-        {
-            begin = m_MaxPathSize * index,
-            size = nodeCount,
-            start = start,
-            end = end
-        };
-        var agentPath = GetMaxPath(index);
-        for (var k = 0; k < nodeCount; k++)
-        {
-            var node = newPath[k];
-            agentPath[k] = node;
-        }
+        return new AllWritable() { nodes = m_PathNodes, ranges = m_PathRanges, maxPathSize = m_MaxPathSize };
     }
 }
 
@@ -135,19 +166,25 @@ public class CrowdSystem : JobComponentSystem
     {
         base.OnCreateManager(capacity);
 
-        m_AgentPaths = new AgentPaths(capacity, 128);
-        m_QueryQueues = new PathQueryQueueEcs[k_QueryCount];
-        m_QueryJobs = new NativeArray<UpdateQueriesJob>(k_QueryCount, Allocator.Persistent);
-        m_QueryFences = new NativeArray<JobHandle>(k_QueryCount, Allocator.Persistent);
+        var world = NavMeshWorld.GetDefaultWorld();
+        var queryCount = world.IsValid() ? 7 : 0;
+
+        m_AgentPaths = new AgentPaths(world.IsValid() ? capacity : 0, 128);
+        m_QueryQueues = new PathQueryQueueEcs[queryCount];
+        m_QueryJobs = new NativeArray<UpdateQueriesJob>(queryCount, Allocator.Persistent);
+        m_QueryFences = new NativeArray<JobHandle>(queryCount, Allocator.Persistent);
         for (var i = 0; i < m_QueryQueues.Length; i++)
         {
             m_QueryQueues[i] = new PathQueryQueueEcs(k_MaxQueryNodes);
+            m_QueryJobs[i] = new UpdateQueriesJob() { maxIterations = 10 + i * 5, queryQueue = m_QueryQueues[i] };
             m_QueryFences[i] = new JobHandle();
         }
     }
 
     override protected void OnDestroyManager()
     {
+        CompleteDependency();
+
         base.OnDestroyManager();
 
         for (var i = 0; i < m_QueryQueues.Length; i++)
@@ -164,7 +201,7 @@ public class CrowdSystem : JobComponentSystem
         [ReadOnly]
         public ComponentDataArray<CrowdAgent> agents;
 
-        public AgentPaths.JobData paths;
+        public AgentPaths.RangesWritable paths;
 
         public void Execute(int index)
         {
@@ -188,7 +225,7 @@ public class CrowdSystem : JobComponentSystem
     public struct UpdateVelocityJob : IJobParallelFor
     {
         [ReadOnly]
-        public AgentPaths.JobData paths;
+        public AgentPaths.RangesWritable paths;
 
         public ComponentDataArray<CrowdAgent> agents;
 
@@ -273,7 +310,22 @@ public class CrowdSystem : JobComponentSystem
         public void Execute()
         {
             queryQueue.UpdateTimeliced(maxIterations);
-        }    
+        }
+    }
+
+    public struct ApplyQueryResultsJob : IJob
+    {
+        public PathQueryQueueEcs queryQueue;
+        public AgentPaths.AllWritable paths;
+
+        public void Execute()
+        {
+            if (queryQueue.GetResultPathsCount() > 0)
+            {
+                queryQueue.CopyResultsTo(ref paths);
+                queryQueue.ClearResults();
+            }
+        }
     }
 
     // TODO QueryNewPaths() should move into a separate job [#adriant]
@@ -341,9 +393,9 @@ public class CrowdSystem : JobComponentSystem
         CompleteDependency();
 
         var missingPaths = m_Agents.Length - m_AgentPaths.Count;
-        for (var i = 0; i < missingPaths; ++i)
+        if (missingPaths > 0)
         {
-            m_AgentPaths.AddAgent();
+            m_AgentPaths.AddAgents(missingPaths);
         }
 
         DrawDebug();
@@ -357,28 +409,22 @@ public class CrowdSystem : JobComponentSystem
             if (m_QueryQueues[i].IsEmpty())
                 continue;
 
-            var someVariety = 10 + i * 5;
-            m_QueryJobs[i] = new UpdateQueriesJob() { maxIterations = someVariety, queryQueue = m_QueryQueues[i] };
             m_QueryFences[i] = m_QueryJobs[i].Schedule();
         }
         var queriesFence = JobHandle.CombineDependencies(m_QueryFences);
 
-        queriesFence.Complete();
-
-        // TODO CopyResultsTo() should move into a separate job [#adriant]
-        foreach (var queryQueue in m_QueryQueues)
+        var resultsFence = queriesFence;
+        var pathsWritable = m_AgentPaths.GetAllData();
+        foreach (var queue in m_QueryQueues)
         {
-            if (queryQueue.GetResultPathsCount() > 0)
-            {
-                queryQueue.CopyResultsTo(ref m_AgentPaths);
-                queryQueue.ClearResults();
-            }
+            var resultsJob = new ApplyQueryResultsJob() { queryQueue = queue, paths = pathsWritable };
+            resultsFence = resultsJob.Schedule(resultsFence);
         }
 
-        var advance = new AdvancePathJob() { agents = m_Agents, paths = m_AgentPaths.GetJobData() };
-        var advanceFence = advance.Schedule(m_Agents.Length, 20);
+        var advance = new AdvancePathJob() { agents = m_Agents, paths = m_AgentPaths.GetRangesData() };
+        var advanceFence = advance.Schedule(m_Agents.Length, 20, resultsFence);
 
-        var vel = new UpdateVelocityJob() { agents = m_Agents, paths = m_AgentPaths.GetJobData() };
+        var vel = new UpdateVelocityJob() { agents = m_Agents, paths = m_AgentPaths.GetRangesData() };
         var velFence = vel.Schedule(m_Agents.Length, 15, advanceFence);
 
         var move = new MoveLocationsJob() { agents = m_Agents, dt = Time.deltaTime };

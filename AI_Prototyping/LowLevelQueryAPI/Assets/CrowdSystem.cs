@@ -380,7 +380,7 @@ public class CrowdSystem : JobComponentSystem
                             minRequests = reqCount;
                         }
                     }
-                    var dest = new Vector3(Random.Range(-10.0f, 10.0f), 0, Random.Range(-10.0f, 10.0f));
+                    var dest = agent.location.position + new Vector3(Random.Range(-10.0f, 10.0f), 0, Random.Range(-10.0f, 10.0f));
                     m_QueryQueues[minQ].QueueRequest(i, agent.location.position, dest, NavMesh.AllAreas);
                 }
             }

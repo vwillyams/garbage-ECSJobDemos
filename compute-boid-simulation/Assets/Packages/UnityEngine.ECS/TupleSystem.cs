@@ -102,10 +102,10 @@ namespace UnityEngine.ECS
     			m_Transforms.Dispose ();
     	}
 			
-    	public ComponentDataArray<T> GetLightWeightIndexedComponents<T>(int index, bool create) where T : struct, IComponentData
+        public ComponentDataArray<T> GetLightWeightIndexedComponents<T>(int index, bool create, bool readOnly) where T : struct, IComponentData
         {
     		var manager = m_LightWeightManagers[index] as ComponentDataManager<T>;
-    		var container = new ComponentDataArray<T> (manager.m_Data, m_TupleIndices[index]);
+            var container = new ComponentDataArray<T> (manager.m_Data, m_TupleIndices[index], readOnly);
 
 			if (create)
 				m_GameObjectManager.RegisterTuple (m_GameObjectManager.GetTypeIndex(typeof(T)), this, index);

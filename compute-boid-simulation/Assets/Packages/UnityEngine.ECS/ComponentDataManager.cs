@@ -28,7 +28,8 @@ namespace UnityEngine.ECS
     public class ComponentDataManager<T> : ScriptBehaviourManager, IComponentDataManager where T : struct, IComponentData
     {
     	internal NativeFreeList<T>                          m_Data;
-    //	internal NativeList<JobHandle>                      m_Readers;
+        NativeList<JobHandle>                      	        m_ReadersList;
+        JobHandle                                           m_Readers;
         JobHandle                                           m_Writer;
 
         protected override void OnCreateManager(int capacity)
@@ -37,6 +38,7 @@ namespace UnityEngine.ECS
 
             m_Data = new NativeFreeList<T>(Allocator.Persistent);
 			m_Data.Capacity = capacity;
+			m_ReadersList = new NativeList<JobHandle>(Allocator.Persistent);
         }
 
     	protected override void OnDestroyManager()
@@ -44,6 +46,7 @@ namespace UnityEngine.ECS
     		base.OnDestroyManager();
 
 			CompleteForWriting ();
+			m_ReadersList.Dispose();
     		m_Data.Dispose();
     	}
 
@@ -72,11 +75,26 @@ namespace UnityEngine.ECS
 				m_Data.Remove (elements[i]);
     	}
 
-    	//@TODO: Proper support for read / write dependencies
-
     	public JobHandle GetReadDependency()
     	{
-    		return m_Writer;
+			if (m_ReadersList.Length > 0)
+			{
+				// @TODO: this would be much better if it created a single combined dependency instead of a chain
+				for (int i = 0; i < m_ReadersList.Length; ++i)
+				{
+					if (m_ReadersList[i].isDone)
+						m_ReadersList[i].Complete();
+					else if (m_Readers.isDone)
+					{
+						m_Readers.Complete();
+						m_Readers = m_ReadersList[i];
+					}
+					else
+						m_Readers = JobHandle.CombineDependencies(m_Readers, m_ReadersList[i]);
+				}
+				m_ReadersList.Clear();
+			}
+			return m_Readers;
     	}
 
     	public JobHandle GetWriteDependency()
@@ -91,7 +109,10 @@ namespace UnityEngine.ECS
 
     	public void CompleteReadDependency()
     	{
-    		m_Writer.Complete();
+			m_Readers.Complete();
+			for (int i = 0; i < m_ReadersList.Length; ++i)
+				m_ReadersList[i].Complete();
+			m_ReadersList.Clear();
     	}
 
     	public void CompleteForWriting()
@@ -118,7 +139,7 @@ namespace UnityEngine.ECS
 
     	public void AddReadDependency(JobHandle handle)
     	{
-			AddWriteDependency (handle);
+			m_ReadersList.Add(handle);
     	}
     }
 }

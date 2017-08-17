@@ -12,7 +12,8 @@ namespace UnityEngine.ECS
     public abstract class ComponentSystem : ScriptBehaviourManager
     {
         TupleSystem[] 							m_Tuples;
-    	internal IComponentDataManager[]	m_JobDependencyManagers;
+        internal IComponentDataManager[]		m_JobDependencyForReadingManagers;
+        internal IComponentDataManager[]		m_JobDependencyForWritingManagers;
 
     	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     	static void Initialize()
@@ -27,7 +28,7 @@ namespace UnityEngine.ECS
     	override protected void OnCreateManager(int capacity)
     	{
     		base.OnCreateManager(capacity);
-    		InjectTuples.CreateTuplesInjection (GetType(), this, out m_Tuples, out m_JobDependencyManagers);
+			InjectTuples.CreateTuplesInjection (GetType(), this, out m_Tuples, out m_JobDependencyForReadingManagers, out m_JobDependencyForWritingManagers);
     	}
 
     	override protected void OnDestroyManager()
@@ -39,7 +40,8 @@ namespace UnityEngine.ECS
     				m_Tuples[i].Dispose ();
     		}
     		m_Tuples = null;
-    		m_JobDependencyManagers = null;
+			m_JobDependencyForReadingManagers = null;
+			m_JobDependencyForWritingManagers = null;
     	}
 
     	protected void UpdateInjectedTuples()
@@ -52,8 +54,13 @@ namespace UnityEngine.ECS
     	{
 			OnUpdateDontCompleteDependencies ();
 
-			foreach (var dep in m_JobDependencyManagers)
+			foreach (var dep in m_JobDependencyForReadingManagers)
 				dep.CompleteWriteDependency ();
+			foreach (var dep in m_JobDependencyForWritingManagers)
+			{
+				dep.CompleteWriteDependency ();
+				dep.CompleteReadDependency ();
+			}
     	}
 
 		internal void OnUpdateDontCompleteDependencies()
@@ -70,31 +77,73 @@ namespace UnityEngine.ECS
 			OnUpdateDontCompleteDependencies ();
 		}
 
-		//@TODO: Need utility methods for dependency chaining
-		//       Right now doing Complete on main thread for multi-dependencies
-		//       Also use attribute to differentiate read write dependencies
 		public JobHandle GetDependency ()
 		{
-			if (m_JobDependencyManagers.Length == 1)
+			JobHandle handle = new JobHandle();
+			foreach (var dep in m_JobDependencyForReadingManagers)
 			{
-				return m_JobDependencyManagers[0].GetWriteDependency();
+				var newHandle = dep.GetWriteDependency ();
+				if (newHandle.isDone)
+					newHandle.Complete();
+				else if (handle.isDone)
+				{
+					handle.Complete();
+					handle = newHandle;
+				}
+				else
+				{
+					//@TODO: should combine all handles at once, not as a chain
+					handle = JobHandle.CombineDependencies(handle, newHandle);
+				}
 			}
-			else
+			foreach (var dep in m_JobDependencyForWritingManagers)
 			{
-				CompleteDependency();
-				return new JobHandle ();
+				var newHandle = dep.GetWriteDependency ();
+				if (newHandle.isDone)
+					newHandle.Complete();
+				else if (handle.isDone)
+				{
+					handle.Complete();
+					handle = newHandle;
+				}
+				else
+				{
+					//@TODO: should combine all handles at once, not as a chain
+					handle = JobHandle.CombineDependencies(handle, newHandle);
+				}
+				newHandle = dep.GetReadDependency ();
+				if (newHandle.isDone)
+					newHandle.Complete();
+				else if (handle.isDone)
+				{
+					handle.Complete();
+					handle = newHandle;
+				}
+				else
+				{
+					//@TODO: should combine all handles at once, not as a chain
+					handle = JobHandle.CombineDependencies(handle, newHandle);
+				}
 			}
+			return handle;
 		}
 
 		public void CompleteDependency ()
 		{
-			foreach (var dep in m_JobDependencyManagers)
+			foreach (var dep in m_JobDependencyForReadingManagers)
 				dep.CompleteWriteDependency ();
+			foreach (var dep in m_JobDependencyForWritingManagers)
+			{
+				dep.CompleteWriteDependency ();
+				dep.CompleteReadDependency ();
+			}
 		}
 
 		public void AddDependency (JobHandle handle)
 		{
-			foreach (var dep in m_JobDependencyManagers)
+			foreach (var dep in m_JobDependencyForReadingManagers)
+				dep.AddReadDependency (handle);
+			foreach (var dep in m_JobDependencyForWritingManagers)
 				dep.AddWriteDependency (handle);
 		}
 	}

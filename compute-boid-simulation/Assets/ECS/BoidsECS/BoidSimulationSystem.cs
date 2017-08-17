@@ -14,22 +14,26 @@ namespace BoidSimulations
 
 
 		[InjectTuples(1)]
+		[ReadOnly]
 		ComponentDataArray<BoidTarget> 				m_BoidTargets;
 		[InjectTuples(1)]
 		ComponentArray<Transform> 					m_BoidTargetsTransforms;
 
 
 		[InjectTuples(2)]
+		[ReadOnly]
 		ComponentDataArray<BoidSimulationSettings> 	m_BoidSimulationSettings;
 
 
 		[InjectTuples(3)]
+		[ReadOnly]
 		ComponentDataArray<BoidGround> 				m_BoidGrounds;
 		[InjectTuples(3)]
 		ComponentArray<Transform> 					m_BoidGroundsTransforms;
 
 
 		[InjectTuples(4)]
+		[ReadOnly]
 		ComponentDataArray<BoidObstacle> 			m_BoidObstacles;
 		[InjectTuples(4)]
 		ComponentArray<Transform> 					m_BoidObstacleTransforms;

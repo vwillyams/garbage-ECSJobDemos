@@ -17,6 +17,7 @@ namespace UnityEngine.ECS
 	{
 		unsafe int*                 m_Indices;
 		IntPtr                   	m_Data;
+		bool                        m_IsReadOnly;
 		int                      	m_Length;
 
 		#if ENABLE_NATIVE_ARRAY_CHECKS
@@ -26,10 +27,11 @@ namespace UnityEngine.ECS
 		//@TODO: need safety for both data and indices... This is not safe...
 		#endif
 
-		public unsafe ComponentDataArray(NativeFreeList<T> data, NativeArray<int> indices)
+		public unsafe ComponentDataArray(NativeFreeList<T> data, NativeArray<int> indices, bool isReadOnly)
 		{
 			m_Indices = (int*)indices.UnsafeReadOnlyPtr;
 			m_Length = indices.Length;
+			m_IsReadOnly = isReadOnly;
 
 			#if ENABLE_NATIVE_ARRAY_CHECKS
 			m_MinIndex = 0;
@@ -58,6 +60,8 @@ namespace UnityEngine.ECS
 			}
 			set
 			{
+				if (m_IsReadOnly)
+					throw new InvalidOperationException("Cannot write to read-only component data.");
 				#if ENABLE_NATIVE_ARRAY_CHECKS
 				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 				if (index < m_MinIndex || index > m_MaxIndex)

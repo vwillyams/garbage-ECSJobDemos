@@ -10,12 +10,16 @@ using UnityEngine.Jobs;
 
 public struct PathQueryQueueEcs
 {
-    struct RequestEcs
+    public struct RequestEcs
     {
         public Vector3 start;
         public Vector3 end;
-        public int agentIdx;
+        public int agentIndex;
+        public int agentType;
         public int mask;
+        public uint uid;
+
+        public const uint invalidId = 0;
     }
 
     struct QueryQueueState
@@ -70,14 +74,14 @@ public struct PathQueryQueueEcs
         m_State.Dispose();
     }
 
-    public bool QueueRequest(int index, Vector3 start, Vector3 end, int areaMask)
+    public bool Enqueue(RequestEcs request)
     {
         var state = m_State[0];
         if (state.requestCount == m_Requests.Length)
             return false;
 
         // TODO: check existing requests for collisions
-        m_Requests[state.requestCount] = new RequestEcs { agentIdx = index, start = start, end = end, mask = areaMask };
+        m_Requests[state.requestCount] = request;
         state.requestCount++;
         m_State[0] = state;
 
@@ -87,6 +91,11 @@ public struct PathQueryQueueEcs
     public int GetRequestCount()
     {
         return m_State[0].requestCount;
+    }
+
+    public int GetProcessedRequestCount()
+    {
+        return m_State[0].requestIndex;
     }
 
     public bool IsEmpty()
@@ -103,7 +112,7 @@ public struct PathQueryQueueEcs
 
         for (var i = 0; i < state.requestCount; i++)
         {
-            if (m_Requests[i].agentIdx == index)
+            if (m_Requests[i].agentIndex == index)
                 return true;
         }
 
@@ -142,11 +151,13 @@ public struct PathQueryQueueEcs
         {
             if (state.currentAgentIndex < 0 && state.requestCount > 0 && state.requestIndex < state.requestCount)
             {
-                // Initialize a new request
-                var req = m_Requests[state.requestIndex];
+                // Initialize a new query
+                var request = m_Requests[state.requestIndex];
+                request.uid = RequestEcs.invalidId;
+                m_Requests[state.requestIndex] = request;
                 state.requestIndex++;
-                var startLoc = NavMeshQuery.MapLocation(req.start, 10.0f * Vector3.one, 0, req.mask);
-                var endLoc = NavMeshQuery.MapLocation(req.end, 10.0f * Vector3.one, 0, req.mask);
+                var startLoc = NavMeshQuery.MapLocation(request.start, 10.0f * Vector3.one, 0, request.mask);
+                var endLoc = NavMeshQuery.MapLocation(request.end, 10.0f * Vector3.one, 0, request.mask);
                 if (!startLoc.valid || !endLoc.valid)
                     continue;
 
@@ -158,16 +169,16 @@ public struct PathQueryQueueEcs
                     end = endLoc
                 };
 
-                var status = m_Query.InitSlicedFindPath(startLoc, endLoc, 0, m_Costs, req.mask);
+                var status = m_Query.InitSlicedFindPath(startLoc, endLoc, 0, m_Costs, request.mask);
                 if (status != PathQueryStatus.Failure)
                 {
-                    state.currentAgentIndex = req.agentIdx;
+                    state.currentAgentIndex = request.agentIndex;
                 }
             }
 
             if (state.currentAgentIndex >= 0)
             {
-                // Continue existing request
+                // Continue existing query
                 var niter = 0;
                 var status = m_Query.UpdateSlicedFindPath(maxIter, out niter);
                 maxIter -= niter;
@@ -178,7 +189,7 @@ public struct PathQueryQueueEcs
                     status = m_Query.FinalizeSlicedFindPath(out npath);
                     if (status == PathQueryStatus.Success)
                     {
-                        // TODO: Maybe add a method to get beforehand the number of result nodes and check if it will fit in the remaining space in m_ResultNodes [#aturcanu]
+                        // TODO: Maybe add a method to get beforehand the number of result nodes and check if it will fit in the remaining space in m_ResultNodes [#adriant]
 
                         var resPolygons = new NativeArray<PolygonID>(npath, Allocator.TempJob);
                         var pathInfo = state.currentPathRequest;
@@ -206,9 +217,23 @@ public struct PathQueryQueueEcs
             }
         }
 
-        // discard processed requests
+        m_State[0] = state;
+    }
+
+    public void CleanupProcessedRequests(ref NativeArray<uint> pathRequestIdForAgent)
+    {
+        var state = m_State[0];
         if (state.requestIndex > 0)
         {
+            for (var i = 0; i < state.requestIndex; i++)
+            {
+                var req = m_Requests[i];
+                if (req.uid == RequestEcs.invalidId || req.uid == pathRequestIdForAgent[req.agentIndex])
+                {
+                    pathRequestIdForAgent[req.agentIndex] = RequestEcs.invalidId;
+                }
+            }
+
             var iDest = 0;
             var iSrc = state.requestIndex;
             for (; iSrc < state.requestCount; iSrc++, iDest++)
@@ -217,8 +242,8 @@ public struct PathQueryQueueEcs
             }
             state.requestCount -= state.requestIndex;
             state.requestIndex = 0;
-        }
 
-        m_State[0] = state;
+            m_State[0] = state;
+        }
     }
 }

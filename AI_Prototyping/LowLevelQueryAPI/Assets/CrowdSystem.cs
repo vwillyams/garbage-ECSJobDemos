@@ -137,16 +137,12 @@ public struct AgentPaths
             return;
 
         var oldLength = m_PathRanges.Length;
-        m_PathRanges.ResizeUninitialized(m_PathRanges.Length + n);
-        for (var i = 0; i < n; i++)
-        {
-            m_PathRanges.Add(new Path());
-        }
-        m_PathNodes.ResizeUninitialized(m_MaxPathSize * m_PathRanges.Length);
+        m_PathRanges.ResizeUninitialized(oldLength + n);
         for (var i = oldLength; i < m_PathRanges.Length; i++)
         {
             InitializePath(i, 0);
         }
+        m_PathNodes.ResizeUninitialized(m_MaxPathSize * m_PathRanges.Length);
     }
 
     public Path GetPathInfo(int index)
@@ -170,7 +166,9 @@ public struct AgentPaths
     }
 }
 
-
+//[UpdateBefore(Typeof(TargetsSystem))]
+    //[InjectTuples(1)]
+    //ComponentDataArray<AgentTarget> m_Targets;
 public class CrowdSystem : JobComponentSystem
 {
     public bool drawDebug = false;
@@ -178,11 +176,18 @@ public class CrowdSystem : JobComponentSystem
     [InjectTuples]
     ComponentDataArray<CrowdAgent> m_Agents;
 
+    NativeList<bool> m_PlanPathForAgent;
+    NativeList<uint> m_PathRequestIdForAgent;
+    NativeList<PathQueryQueueEcs.RequestEcs> m_PathRequests;
+    NativeArray<uint> m_UniqueIdStore;
+    NativeArray<int> m_CurrentAgentIndex;
+
     const int k_MaxQueryNodes = 2000;
     const int k_QueryCount = 7;
+    const int k_PathRequestsPerTick = 24;   // how many requests can be added to the query queues per tick
 
     PathQueryQueueEcs[] m_QueryQueues;
-    NativeArray<JobHandle> m_QueryFences;
+    NativeArray<JobHandle> m_AfterQueriesProcessed;
     NativeArray<UpdateQueriesJob> m_QueryJobs;
 
     AgentPaths m_AgentPaths;
@@ -192,17 +197,32 @@ public class CrowdSystem : JobComponentSystem
         base.OnCreateManager(capacity);
 
         var world = NavMeshWorld.GetDefaultWorld();
-        var queryCount = world.IsValid() ? 7 : 0;
+        var queryCount = world.IsValid() ? k_QueryCount : 0;
 
-        m_AgentPaths = new AgentPaths(world.IsValid() ? capacity : 0, 128);
+        var agentCount = world.IsValid() ? capacity : 0;
+        m_AgentPaths = new AgentPaths(agentCount, 128);
+        m_PlanPathForAgent = new NativeList<bool>(agentCount, Allocator.Persistent);
+        m_PathRequestIdForAgent = new NativeList<uint>(agentCount, Allocator.Persistent);
+        m_PathRequests = new NativeList<PathQueryQueueEcs.RequestEcs>(k_PathRequestsPerTick, Allocator.Persistent);
+        m_PathRequests.ResizeUninitialized(k_PathRequestsPerTick);
+        for (var i = 0; i < m_PathRequests.Length; i++)
+        {
+            var request = new PathQueryQueueEcs.RequestEcs();
+            request.uid = PathQueryQueueEcs.RequestEcs.invalidId;
+            m_PathRequests[i] = request;
+        }
+        m_UniqueIdStore = new NativeArray<uint>(1, Allocator.Persistent);
+        m_CurrentAgentIndex = new NativeArray<int>(1, Allocator.Persistent);
+        m_CurrentAgentIndex[0] = 0;
+
         m_QueryQueues = new PathQueryQueueEcs[queryCount];
         m_QueryJobs = new NativeArray<UpdateQueriesJob>(queryCount, Allocator.Persistent);
-        m_QueryFences = new NativeArray<JobHandle>(queryCount, Allocator.Persistent);
+        m_AfterQueriesProcessed = new NativeArray<JobHandle>(queryCount, Allocator.Persistent);
         for (var i = 0; i < m_QueryQueues.Length; i++)
         {
             m_QueryQueues[i] = new PathQueryQueueEcs(k_MaxQueryNodes);
             m_QueryJobs[i] = new UpdateQueriesJob() { maxIterations = 10 + i * 5, queryQueue = m_QueryQueues[i] };
-            m_QueryFences[i] = new JobHandle();
+            m_AfterQueriesProcessed[i] = new JobHandle();
         }
     }
 
@@ -216,9 +236,115 @@ public class CrowdSystem : JobComponentSystem
         {
             m_QueryQueues[i].Dispose();
         }
-        m_QueryFences.Dispose();
+        m_AfterQueriesProcessed.Dispose();
         m_QueryJobs.Dispose();
         m_AgentPaths.Dispose();
+        m_PlanPathForAgent.Dispose();
+        m_PathRequestIdForAgent.Dispose();
+        m_PathRequests.Dispose();
+        m_UniqueIdStore.Dispose();
+        m_CurrentAgentIndex.Dispose();
+    }
+
+    public void AddAgents(int n)
+    {
+        if (n <= 0)
+            return;
+
+        var oldLength = m_PlanPathForAgent.Length;
+        m_PlanPathForAgent.ResizeUninitialized(oldLength + n);
+        m_PathRequestIdForAgent.ResizeUninitialized(m_PlanPathForAgent.Length);
+        for (var i = oldLength; i < m_PlanPathForAgent.Length; i++)
+        {
+            m_PlanPathForAgent[i] = true;
+            m_PathRequestIdForAgent[i] = PathQueryQueueEcs.RequestEcs.invalidId;
+        }
+    }
+
+    public struct CheckPathNeededJob : IJobParallelFor
+    {
+        [ReadOnly]
+        public ComponentDataArray<CrowdAgent> agents;
+        [ReadOnly]
+        public AgentPaths.AllReadOnly paths;
+        [ReadOnly]
+        public NativeArray<uint> pathRequestIdForAgent;
+
+        public NativeArray<bool> planPathForAgent;
+
+        public void Execute(int index)
+        {
+            if (planPathForAgent[index] || index >= agents.Length)
+                return;
+
+            if (pathRequestIdForAgent[index] == PathQueryQueueEcs.RequestEcs.invalidId)
+            {
+                // If there's no path - or close to destination: pick a new destination
+                var agent = agents[index];
+                var pathInfo = paths.GetPathInfo(index);
+                planPathForAgent[index] = pathInfo.size == 0 || agent.location.valid && math.distance(pathInfo.end.position, agent.location.position) < 0.05f;
+            }
+        }
+    }
+
+    public struct MakePathRequestsJob : IJob
+    {
+        [ReadOnly]
+        public ComponentDataArray<CrowdAgent> agents;
+
+        public NativeArray<bool> planPathForAgent;
+        public NativeArray<uint> pathRequestIdForAgent;
+        public NativeArray<PathQueryQueueEcs.RequestEcs> pathRequests;
+        public NativeArray<uint> uniqueIdStore;
+        public NativeArray<int> currentAgentIndex;
+
+        public void Execute()
+        {
+            if (agents.Length == 0)
+                return;
+
+            var reqIndex = 0;
+            var reqMax = pathRequests.Length - 1;
+            var firstAgent = currentAgentIndex[0];
+            for (uint i = 0; i < planPathForAgent.Length; ++i)
+            {
+                if (reqIndex > reqMax)
+                    return;
+
+                var index = (int)(i + firstAgent) % planPathForAgent.Length;
+                if (planPathForAgent[index])
+                {
+                    var agent = agents[index];
+                    if (!agent.location.valid)
+                        continue;
+
+                    if (uniqueIdStore[0] == PathQueryQueueEcs.RequestEcs.invalidId)
+                    {
+                        uniqueIdStore[0] = 1 + PathQueryQueueEcs.RequestEcs.invalidId;
+                    }
+
+                    var agPos = agent.location.position;
+                    var agVel = agent.velocity;
+                    var randomAngle = ((agPos.x + agPos.y + agPos.z + agVel.x + agVel.y + agVel.z) * (1 + firstAgent + reqIndex) % 2f) * 360f;
+                    var heading = Quaternion.Euler(0, randomAngle, 0) * Vector3.forward;
+                    var dist = Mathf.Abs(randomAngle) % 10f;
+                    var dest = agent.location.position + dist * heading;
+                    pathRequests[reqIndex++] = new PathQueryQueueEcs.RequestEcs()
+                    {
+                        agentIndex = index,
+                        agentType = 0,
+                        mask = NavMesh.AllAreas,
+                        uid = uniqueIdStore[0],
+                        start = agent.location.position,
+                        end = dest
+                    };
+                    pathRequestIdForAgent[index] = uniqueIdStore[0];
+                    uniqueIdStore[0]++;
+                    planPathForAgent[index] = false;
+                }
+                currentAgentIndex[0] = index;
+            }
+        }
     }
 
     public struct AdvancePathJob : IJobParallelFor
@@ -230,6 +356,9 @@ public class CrowdSystem : JobComponentSystem
 
         public void Execute(int index)
         {
+            if (index >= agents.Length)
+                return;
+
             var path = paths.GetPath(index);
             var pathInfo = paths.GetPathInfo(index);
 
@@ -256,6 +385,9 @@ public class CrowdSystem : JobComponentSystem
 
         public void Execute(int index)
         {
+            if (index >= agents.Length)
+                return;
+
             var agent = agents[index];
             if (!agent.location.valid)
                 return;
@@ -305,6 +437,9 @@ public class CrowdSystem : JobComponentSystem
 
         public void Execute(int index)
         {
+            if (index >= agents.Length)
+                return;
+
             var agent = agents[index];
             var wantedPos = agent.worldPosition + agent.velocity * dt;
 
@@ -353,37 +488,14 @@ public class CrowdSystem : JobComponentSystem
         }
     }
 
-    // TODO QueryNewPaths() should move into a separate job [#adriant]
-    void QueryNewPaths()
+    public struct QueueCleanupJob : IJob
     {
-        for (var i = 0; i < m_Agents.Length; ++i)
-        {
-            var agent = m_Agents[i];
-            if (!agent.location.valid)
-                continue;
+        public PathQueryQueueEcs queryQueue;
+        public NativeArray<uint> pathRequestIdForAgent;
 
-            // If there's no path - or close to destination: pick a new destination
-            var pathInfo = m_AgentPaths.GetPathInfo(i);
-            if (pathInfo.size == 0 || math.distance(pathInfo.end.position, agent.location.position) < 1.0f)
-            {
-                var hasRequest = m_QueryQueues.Any(t => t.HasRequestForAgent(i));
-                if (!hasRequest)
-                {
-                    var minQ = 0;
-                    var minRequests = int.MaxValue;
-                    for (var q = 0; q < m_QueryQueues.Length; q++)
-                    {
-                        var reqCount = m_QueryQueues[q].GetRequestCount();
-                        if (reqCount < minRequests)
-                        {
-                            minQ = q;
-                            minRequests = reqCount;
-                        }
-                    }
-                    var dest = agent.location.position + new Vector3(Random.Range(-10.0f, 10.0f), 0, Random.Range(-10.0f, 10.0f));
-                    m_QueryQueues[minQ].QueueRequest(i, agent.location.position, dest, NavMesh.AllAreas);
-                }
-            }
+        public void Execute()
+        {
+            queryQueue.CleanupProcessedRequests(ref pathRequestIdForAgent);
         }
     }
 
@@ -396,18 +508,20 @@ public class CrowdSystem : JobComponentSystem
         {
             var agent = m_Agents[i];
             float3 offset = 0.5f * Vector3.up;
-            Debug.DrawRay(agent.worldPosition + offset, agent.velocity, Color.yellow);
+            //Debug.DrawRay(agent.worldPosition + offset, agent.velocity, Color.cyan);
 
             var pathInfo = m_AgentPaths.GetPathInfo(i);
-            if (pathInfo.size == 0)
+            if (pathInfo.size == 0 || m_PlanPathForAgent[i] || m_PathRequestIdForAgent[i] != PathQueryQueueEcs.RequestEcs.invalidId)
             {
-                Debug.DrawRay(agent.worldPosition + offset, 0.5f * Vector3.up, Color.red);
+                var requestInProcess = m_PathRequestIdForAgent[i] != PathQueryQueueEcs.RequestEcs.invalidId;
+                var stateColor = requestInProcess ? Color.yellow : (m_PlanPathForAgent[i] ? Color.magenta : Color.red);
+                Debug.DrawRay(agent.worldPosition + offset, 0.5f * Vector3.up, stateColor);
                 continue;
             }
 
             offset = 0.9f * offset;
             float3 pathEndPos = pathInfo.end.position;
-            Debug.DrawLine(agent.worldPosition + offset, pathEndPos + offset, Color.black);
+            Debug.DrawLine(agent.worldPosition + offset, pathEndPos, Color.black);
         }
     }
 
@@ -415,49 +529,106 @@ public class CrowdSystem : JobComponentSystem
     {
         base.OnUpdate();
 
+        if (m_Agents.Length == 0)
+            return;
+
         CompleteDependency();
 
         var missingPaths = m_Agents.Length - m_AgentPaths.Count;
         if (missingPaths > 0)
         {
             m_AgentPaths.AddAgents(missingPaths);
+            AddAgents(missingPaths);
         }
+        Debug.Assert(m_Agents.Length <= m_AgentPaths.Count && m_Agents.Length <= m_PathRequestIdForAgent.Length && m_Agents.Length <= m_PlanPathForAgent.Length,
+            "" + m_Agents.Length + " agents, "+ m_AgentPaths.Count + " path slots, " + m_PathRequestIdForAgent.Length + " path request IDs, " + m_PlanPathForAgent.Length + " slots for WantsPath");
 
         DrawDebug();
 
-        QueryNewPaths();
-        //var requestNewPaths = new RequestNewPathsJob() { agents = m_Agents, requestList = m_RequestList };
-        //var requestsFence = requestNewPaths.Schedule(m_Agents.Length, 20);
+        var afterRequestCleanup = new JobHandle();
+        for (var i = 0; i < m_QueryQueues.Length; i++)
+        {
+            var queue = m_QueryQueues[i];
+            if (queue.GetProcessedRequestCount() > 0)
+            {
+                var queueCleanupJob = new QueueCleanupJob()
+                {
+                    queryQueue = queue,
+                    pathRequestIdForAgent = m_PathRequestIdForAgent
+                };
+                afterRequestCleanup = queueCleanupJob.Schedule(afterRequestCleanup);
+            }
+        }
+
+        var pathNeededJob = new CheckPathNeededJob()
+        {
+            agents = m_Agents,
+            planPathForAgent = m_PlanPathForAgent,
+            pathRequestIdForAgent = m_PathRequestIdForAgent,
+            paths = m_AgentPaths.GetReadOnlyData()
+        };
+        var afterPathNeedChecked = pathNeededJob.Schedule(m_Agents.Length, 25, afterRequestCleanup);
+
+        //TODO: resize the m_PathRequests buffer as needed [#adriant]
+        var makeRequestsJob = new MakePathRequestsJob()
+        {
+            agents = m_Agents,
+            planPathForAgent = m_PlanPathForAgent,
+            pathRequestIdForAgent = m_PathRequestIdForAgent,
+            pathRequests = m_PathRequests,
+            currentAgentIndex = m_CurrentAgentIndex,
+            uniqueIdStore = m_UniqueIdStore
+        };
+        var afterNewRequestsAdded = makeRequestsJob.Schedule(afterPathNeedChecked);
+
+        afterNewRequestsAdded.Complete();
+        if (m_QueryQueues.Length > 0)
+        {
+            // simple request enqueuing
+            var qIdx = 0;
+            for (var i = 0; i < m_PathRequests.Length; ++i)
+            {
+                var pathRequest = m_PathRequests[i];
+                if (pathRequest.uid != PathQueryQueueEcs.RequestEcs.invalidId)
+                {
+                    m_QueryQueues[qIdx].Enqueue(pathRequest);
+                    qIdx = (qIdx + 1) % m_QueryQueues.Length;
+                    pathRequest.uid = PathQueryQueueEcs.RequestEcs.invalidId;
+                    m_PathRequests[i] = pathRequest;
+                }
+            }
+        }
 
         for (var i = 0; i < m_QueryJobs.Length; ++i)
         {
             if (m_QueryQueues[i].IsEmpty())
                 continue;
 
-            m_QueryFences[i] = m_QueryJobs[i].Schedule();
+            m_AfterQueriesProcessed[i] = m_QueryJobs[i].Schedule();
         }
-        var queriesFence = JobHandle.CombineDependencies(m_QueryFences);
+        var afterQueriesProcessed = JobHandle.CombineDependencies(m_AfterQueriesProcessed);
 
-        var resultsFence = queriesFence;
+        var afterPathsAdded = afterQueriesProcessed;
         var pathsWritable = m_AgentPaths.GetAllData();
-        foreach (var queue in m_QueryQueues)
+        for (var i = 0; i < m_QueryQueues.Length; i++)
         {
+            var queue = m_QueryQueues[i];
             var resultsJob = new ApplyQueryResultsJob() { queryQueue = queue, paths = pathsWritable };
-            resultsFence = resultsJob.Schedule(resultsFence);
+            afterPathsAdded = resultsJob.Schedule(afterPathsAdded);
         }
 
         var advance = new AdvancePathJob() { agents = m_Agents, paths = m_AgentPaths.GetRangesData() };
-        var advanceFence = advance.Schedule(m_Agents.Length, 20, resultsFence);
+        var afterPathsTrimmed = advance.Schedule(m_Agents.Length, 20, afterPathsAdded);
 
         var vel = new UpdateVelocityJob() { agents = m_Agents, paths = m_AgentPaths.GetReadOnlyData() };
-        var velFence = vel.Schedule(m_Agents.Length, 15, advanceFence);
+        var afterVelocitiesUpdated = vel.Schedule(m_Agents.Length, 15, afterPathsTrimmed);
 
         var move = new MoveLocationsJob() { agents = m_Agents, dt = Time.deltaTime };
-        var moveFence = move.Schedule(m_Agents.Length, 10, velFence);
+        var afterAgentsMoved = move.Schedule(m_Agents.Length, 10, afterVelocitiesUpdated);
 
-        AddDependency(moveFence);
+        AddDependency(afterAgentsMoved);
 
         // TODO: job safety for navmesh mutation
-        // NavMeshManager.DidScheduleQueryJobs(moveFence);
+        // NavMeshManager.DidScheduleQueryJobs(afterAgentsMoved);
     }
 }

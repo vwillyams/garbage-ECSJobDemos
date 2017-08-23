@@ -40,14 +40,14 @@ public struct PathQueryQueueEcs
     NativeArray<float> m_Costs;
     NativeArray<QueryQueueState> m_State;
 
-    public PathQueryQueueEcs(int nodePoolSize)
+    public PathQueryQueueEcs(int nodePoolSize, int maxRequestCount)
     {
         var world = NavMeshWorld.GetDefaultWorld();
         m_Query = new NavMeshPathQuery(world, nodePoolSize, Allocator.Persistent);
-        m_Requests = new NativeArray<RequestEcs>(100, Allocator.Persistent);
+        m_Requests = new NativeArray<RequestEcs>(maxRequestCount, Allocator.Persistent);
         m_ResultNodes = new NativeArray<PolygonID>(2 * nodePoolSize, Allocator.Persistent);
-        m_ResultRanges = new NativeArray<AgentPaths.Path>(100, Allocator.Persistent);
-        m_AgentIndices = new NativeArray<int>(100, Allocator.Persistent);
+        m_ResultRanges = new NativeArray<AgentPaths.Path>(maxRequestCount, Allocator.Persistent);
+        m_AgentIndices = new NativeArray<int>(maxRequestCount, Allocator.Persistent);
         m_Costs = new NativeArray<float>(32, Allocator.Persistent);
         for (var i = 0; i < m_Costs.Length; ++i)
             m_Costs[i] = 1.0f;
@@ -234,11 +234,11 @@ public struct PathQueryQueueEcs
                 }
             }
 
-            var iDest = 0;
-            var iSrc = state.requestIndex;
-            for (; iSrc < state.requestCount; iSrc++, iDest++)
+            var dest = 0;
+            var src = state.requestIndex;
+            for (; src < state.requestCount; src++, dest++)
             {
-                m_Requests[iDest] = m_Requests[iSrc];
+                m_Requests[dest] = m_Requests[src];
             }
             state.requestCount -= state.requestIndex;
             state.requestIndex = 0;

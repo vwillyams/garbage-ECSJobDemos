@@ -72,6 +72,19 @@ namespace UnityEngine.ECS
 
 	public abstract class JobComponentSystem : ComponentSystem
 	{
+		NativeList<JobHandle>                   m_JobDependencyCombineList;
+    	override protected void OnCreateManager(int capacity)
+    	{
+    		base.OnCreateManager(capacity);
+			m_JobDependencyCombineList = new NativeList<JobHandle>(Allocator.Persistent);
+    	}
+
+    	override protected void OnDestroyManager()
+    	{
+    		base.OnDestroyManager();
+			m_JobDependencyCombineList.Dispose();
+    	}
+		
 		override protected void OnUpdate()
 		{
 			OnUpdateDontCompleteDependencies ();
@@ -79,53 +92,20 @@ namespace UnityEngine.ECS
 
 		public JobHandle GetDependency ()
 		{
-			JobHandle handle = new JobHandle();
+			int maxDependencyLength = m_JobDependencyForReadingManagers.Length + m_JobDependencyForWritingManagers.Length * 2;
+			if (m_JobDependencyCombineList.Capacity < maxDependencyLength)
+				m_JobDependencyCombineList.Capacity = maxDependencyLength;
+			m_JobDependencyCombineList.Clear();
 			foreach (var dep in m_JobDependencyForReadingManagers)
 			{
-				var newHandle = dep.GetWriteDependency ();
-				if (newHandle.isDone)
-					newHandle.Complete();
-				else if (handle.isDone)
-				{
-					handle.Complete();
-					handle = newHandle;
-				}
-				else
-				{
-					//@TODO: should combine all handles at once, not as a chain
-					handle = JobHandle.CombineDependencies(handle, newHandle);
-				}
+				m_JobDependencyCombineList.Add(dep.GetWriteDependency ());
 			}
 			foreach (var dep in m_JobDependencyForWritingManagers)
 			{
-				var newHandle = dep.GetWriteDependency ();
-				if (newHandle.isDone)
-					newHandle.Complete();
-				else if (handle.isDone)
-				{
-					handle.Complete();
-					handle = newHandle;
-				}
-				else
-				{
-					//@TODO: should combine all handles at once, not as a chain
-					handle = JobHandle.CombineDependencies(handle, newHandle);
-				}
-				newHandle = dep.GetReadDependency ();
-				if (newHandle.isDone)
-					newHandle.Complete();
-				else if (handle.isDone)
-				{
-					handle.Complete();
-					handle = newHandle;
-				}
-				else
-				{
-					//@TODO: should combine all handles at once, not as a chain
-					handle = JobHandle.CombineDependencies(handle, newHandle);
-				}
+				m_JobDependencyCombineList.Add(dep.GetWriteDependency ());
+				m_JobDependencyCombineList.Add(dep.GetReadDependency ());
 			}
-			return handle;
+			return JobHandle.CombineDependencies(m_JobDependencyCombineList);
 		}
 
 		public void CompleteDependency ()

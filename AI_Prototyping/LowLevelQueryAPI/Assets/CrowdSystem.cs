@@ -39,7 +39,7 @@ public struct AgentPaths
                 return;
 
             var pathInfo = ranges[index];
-            var end = pathInfo.begin + ranges[index].size;        
+            var end = pathInfo.begin + ranges[index].size;
             pathInfo.begin = Math.Min(ranges[index].begin + howMany, end);
             pathInfo.size = end - pathInfo.begin;
             Debug.Assert(pathInfo.size >= 0, "This should not happen");
@@ -165,7 +165,7 @@ public struct AgentPaths
     }
 }
 
-//[UpdateBefore(Typeof(TargetsSystem))]
+//[UpdateAfter(typeof(TargetsSystem))]
     //[InjectTuples(1)]
     //ComponentDataArray<AgentTarget> m_Targets;
 public class CrowdSystem : JobComponentSystem
@@ -655,7 +655,7 @@ public class CrowdSystem : JobComponentSystem
 
         //
         // Begin scheduling jobs
-        // 
+        //
         var afterQueriesCleanup = new JobHandle();
         for (var i = 0; i < m_QueryQueues.Length; i++)
         {

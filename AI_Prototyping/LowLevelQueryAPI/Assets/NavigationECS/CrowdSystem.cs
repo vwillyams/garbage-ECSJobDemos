@@ -96,48 +96,6 @@ public partial class CrowdSystem : JobComponentSystem
         m_CurrentAgentIndex.Dispose();
     }
 
-    public void AddAgents(int n)
-    {
-        if (n <= 0)
-            return;
-
-        var oldLength = m_PlanPathForAgent.Length;
-        m_PlanPathForAgent.ResizeUninitialized(oldLength + n);
-        m_PathRequestIdForAgent.ResizeUninitialized(m_PlanPathForAgent.Length);
-        for (var i = oldLength; i < m_PlanPathForAgent.Length; i++)
-        {
-            m_PlanPathForAgent[i] = true;
-            m_PathRequestIdForAgent[i] = PathQueryQueueEcs.RequestEcs.invalidId;
-        }
-    }
-
-    void DrawDebug()
-    {
-        if (!drawDebug)
-            return;
-
-        for (var i = 0; i < m_Agents.Length; ++i)
-        {
-            var agent = m_Agents[i];
-            float3 offset = 0.5f * Vector3.up;
-
-            //Debug.DrawRay(agent.worldPosition + offset, agent.velocity, Color.cyan);
-
-            var pathInfo = m_AgentPaths.GetPathInfo(i);
-            if (pathInfo.size == 0 || m_PlanPathForAgent[i] || m_PathRequestIdForAgent[i] != PathQueryQueueEcs.RequestEcs.invalidId)
-            {
-                var requestInProcess = m_PathRequestIdForAgent[i] != PathQueryQueueEcs.RequestEcs.invalidId;
-                var stateColor = requestInProcess ? Color.yellow : (m_PlanPathForAgent[i] ? Color.magenta : Color.red);
-                Debug.DrawRay(agent.worldPosition + offset, 0.5f * Vector3.up, stateColor);
-                continue;
-            }
-
-            offset = 0.9f * offset;
-            float3 pathEndPos = pathInfo.end.position;
-            Debug.DrawLine(agent.worldPosition + offset, pathEndPos, Color.black);
-        }
-    }
-
     override protected void OnUpdate()
     {
         base.OnUpdate();
@@ -279,5 +237,47 @@ public partial class CrowdSystem : JobComponentSystem
 
         // TODO: job safety for navmesh mutation
         // NavMeshManager.DidScheduleQueryJobs(afterAgentsMoved);
+    }
+
+    public void AddAgents(int n)
+    {
+        if (n <= 0)
+            return;
+
+        var oldLength = m_PlanPathForAgent.Length;
+        m_PlanPathForAgent.ResizeUninitialized(oldLength + n);
+        m_PathRequestIdForAgent.ResizeUninitialized(m_PlanPathForAgent.Length);
+        for (var i = oldLength; i < m_PlanPathForAgent.Length; i++)
+        {
+            m_PlanPathForAgent[i] = true;
+            m_PathRequestIdForAgent[i] = PathQueryQueueEcs.RequestEcs.invalidId;
+        }
+    }
+
+    void DrawDebug()
+    {
+        if (!drawDebug)
+            return;
+
+        for (var i = 0; i < m_Agents.Length; ++i)
+        {
+            var agent = m_Agents[i];
+            float3 offset = 0.5f * Vector3.up;
+
+            //Debug.DrawRay(agent.worldPosition + offset, agent.velocity, Color.cyan);
+
+            var pathInfo = m_AgentPaths.GetPathInfo(i);
+            if (pathInfo.size == 0 || m_PlanPathForAgent[i] || m_PathRequestIdForAgent[i] != PathQueryQueueEcs.RequestEcs.invalidId)
+            {
+                var requestInProcess = m_PathRequestIdForAgent[i] != PathQueryQueueEcs.RequestEcs.invalidId;
+                var stateColor = requestInProcess ? Color.yellow : (m_PlanPathForAgent[i] ? Color.magenta : Color.red);
+                Debug.DrawRay(agent.worldPosition + offset, 0.5f * Vector3.up, stateColor);
+                continue;
+            }
+
+            offset = 0.9f * offset;
+            float3 pathEndPos = pathInfo.end.position;
+            Debug.DrawLine(agent.worldPosition + offset, pathEndPos, Color.black);
+        }
     }
 }

@@ -22,8 +22,8 @@ class CrowdAgentsToTransformSystem : JobComponentSystem
         {
             var agent = crowdAgents[index];
             transform.position = agent.worldPosition;
-			if (math.length(agent.velocity) > 0.1f)
-				transform.rotation = Quaternion.LookRotation(agent.velocity);
+            if (math.length(agent.velocity) > 0.1f)
+                transform.rotation = Quaternion.LookRotation(agent.velocity);
         }
     }
 

@@ -1,12 +1,6 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Collections;
 using UnityEngine.Experimental.AI;
-using UnityEngine.ECS;
-using UnityEngine.Jobs;
 
 public struct PathQueryQueueEcs
 {

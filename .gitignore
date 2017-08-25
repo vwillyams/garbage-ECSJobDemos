@@ -6,6 +6,7 @@ compute-boid-simulation/obj
 AI_Prototyping/LowLevelQueryAPI/Library
 AI_Prototyping/LowLevelQueryAPI/Temp
 AI_Prototyping/LowLevelQueryAPI/obj
+AI_Prototyping/LowLevelQueryAPI/.editorconfig
 
 *.csproj
 *.sln

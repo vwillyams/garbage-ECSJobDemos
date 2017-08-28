@@ -111,8 +111,22 @@ public partial class CrowdSystem : JobComponentSystem
         var missingPaths = m_Agents.Length - m_AgentPaths.Count;
         if (missingPaths > 0)
         {
+            var idx = m_AgentPaths.Count;
             m_AgentPaths.AddAgents(missingPaths);
             AddAgents(missingPaths);
+            var endIdx = m_Agents.Length + idx;
+            for (var i = idx; i < endIdx; i++)
+            {
+                var k = i % m_Agents.Length;
+                var agent = m_Agents[k];
+                if (agent.crowdId < 0)
+                {
+                    agent.crowdId = idx;
+                    idx++;
+                    m_Agents[k] = agent;
+                }
+            }
+            Debug.Assert(idx == m_PlanPathForAgent.Length);
         }
         Debug.Assert(m_Agents.Length <= m_AgentPaths.Count && m_Agents.Length <= m_PathRequestIdForAgent.Length && m_Agents.Length <= m_PlanPathForAgent.Length,
             "" + m_Agents.Length + " agents, " + m_AgentPaths.Count + " path slots, " + m_PathRequestIdForAgent.Length + " path request IDs, " + m_PlanPathForAgent.Length + " slots for WantsPath");
@@ -152,7 +166,7 @@ public partial class CrowdSystem : JobComponentSystem
             var queue = m_QueryQueues[i];
             if (queue.GetProcessedRequestCount() > 0)
             {
-                var queryCleanupJob = new QueryCleanupJob()
+                var queryCleanupJob = new QueryCleanupJob
                 {
                     queryQueue = queue,
                     pathRequestIdForAgent = m_PathRequestIdForAgent
@@ -161,7 +175,7 @@ public partial class CrowdSystem : JobComponentSystem
             }
         }
 
-        var pathNeededJob = new CheckPathNeededJob()
+        var pathNeededJob = new CheckPathNeededJob
         {
             agents = m_Agents,
             planPathForAgent = m_PlanPathForAgent,
@@ -170,8 +184,7 @@ public partial class CrowdSystem : JobComponentSystem
         };
         var afterPathNeedChecked = pathNeededJob.Schedule(m_Agents.Length, 25, afterQueriesCleanup);
 
-        //TODO: resize the m_PathRequests buffer as needed [#adriant]
-        var makeRequestsJob = new MakePathRequestsJob()
+        var makeRequestsJob = new MakePathRequestsJob
         {
             agents = m_Agents,
             planPathForAgent = m_PlanPathForAgent,
@@ -220,18 +233,21 @@ public partial class CrowdSystem : JobComponentSystem
         var afterPathsAdded = afterQueriesProcessed;
         foreach (var queue in m_QueryQueues)
         {
-            var resultsJob = new ApplyQueryResultsJob() { queryQueue = queue, paths = m_AgentPaths.GetAllData() };
+            var resultsJob = new ApplyQueryResultsJob { queryQueue = queue, paths = m_AgentPaths.GetAllData() };
             afterPathsAdded = resultsJob.Schedule(afterPathsAdded);
         }
 
-        var advance = new AdvancePathJob() { agents = m_Agents, paths = m_AgentPaths.GetRangesData() };
+        var advance = new AdvancePathJob { agents = m_Agents, paths = m_AgentPaths.GetRangesData() };
         var afterPathsTrimmed = advance.Schedule(m_Agents.Length, 20, afterPathsAdded);
 
-        var vel = new UpdateVelocityJob() { agents = m_Agents, paths = m_AgentPaths.GetReadOnlyData() };
+        var vel = new UpdateVelocityJob { agents = m_Agents, paths = m_AgentPaths.GetReadOnlyData() };
         var afterVelocitiesUpdated = vel.Schedule(m_Agents.Length, 15, afterPathsTrimmed);
 
-        var move = new MoveLocationsJob() { agents = m_Agents, dt = Time.deltaTime };
+        var move = new MoveLocationsJob { agents = m_Agents, dt = Time.deltaTime };
         var afterAgentsMoved = move.Schedule(m_Agents.Length, 10, afterVelocitiesUpdated);
+
+        //var arrivalJob = new CheckArrivalToDestinationJob { agents = m_Agents };
+        //afterAgentsMoved = arrivalJob.Schedule(afterAgentsMoved);
 
         AddDependency(afterAgentsMoved);
 

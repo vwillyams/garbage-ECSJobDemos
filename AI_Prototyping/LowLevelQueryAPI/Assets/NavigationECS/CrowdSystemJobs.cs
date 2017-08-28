@@ -21,15 +21,16 @@ public partial class CrowdSystem
 
         public void Execute(int index)
         {
-            if (planPathForAgent[index] || index >= agents.Length)
+            var agent = agents[index];
+            var crowdId = agent.crowdId;
+            if (planPathForAgent[crowdId] || index >= agents.Length)
                 return;
 
-            if (pathRequestIdForAgent[index] == PathQueryQueueEcs.RequestEcs.invalidId)
+            if (pathRequestIdForAgent[crowdId] == PathQueryQueueEcs.RequestEcs.invalidId)
             {
                 // If there's no path - or close to destination: pick a new destination
-                var agent = agents[index];
-                var pathInfo = paths.GetPathInfo(index);
-                planPathForAgent[index] = pathInfo.size == 0 || agent.location.valid && math.distance(pathInfo.end.position, agent.location.position) < 0.05f;
+                var pathInfo = paths.GetPathInfo(crowdId);
+                planPathForAgent[crowdId] = pathInfo.size == 0 || agent.location.valid && math.distance(pathInfo.end.position, agent.location.position) < 0.05f;
             }
         }
     }
@@ -55,15 +56,22 @@ public partial class CrowdSystem
             var reqIndex = pathRequestsRange[k_Start] + pathRequestsRange[k_Count];
             var reqMax = pathRequests.Length - 1;
             var firstAgent = currentAgentIndex[0];
-            for (uint i = 0; i < planPathForAgent.Length; ++i)
+            for (uint i = 0; i < agents.Length; ++i)
             {
                 if (reqIndex > reqMax)
                     break;
 
-                var index = (int)(i + firstAgent) % planPathForAgent.Length;
-                if (planPathForAgent[index])
+                var index = (int)(i + firstAgent) % agents.Length;
+                var agent = agents[index];
+                var crowdId = agent.crowdId;
+                if (planPathForAgent[crowdId])
                 {
-                    var agent = agents[index];
+                    if (!agent.active)
+                    {
+                        planPathForAgent[crowdId] = false;
+                        continue;
+                    }
+
                     if (!agent.location.valid)
                         continue;
 
@@ -72,24 +80,25 @@ public partial class CrowdSystem
                         uniqueIdStore[0] = 1 + PathQueryQueueEcs.RequestEcs.invalidId;
                     }
 
-                    var agPos = agent.location.position;
-                    var agVel = agent.velocity;
-                    var randomAngle = ((agPos.x + agPos.y + agPos.z + agVel.x + agVel.y + agVel.z) * (1 + firstAgent + reqIndex) % 2f) * 360f;
-                    var heading = Quaternion.Euler(0, randomAngle, 0) * Vector3.forward;
-                    var dist = Mathf.Abs(randomAngle) % 10f;
-                    var dest = agent.location.position + dist * heading;
+                    // TODO: move this to a CreateTargetsSystem [#adriant]
+                    //var agPos = agent.location.position;
+                    //var agVel = agent.velocity;
+                    //var randomAngle = ((agPos.x + agPos.y + agPos.z + agVel.x + agVel.y + agVel.z) * (1 + firstAgent + reqIndex) % 2f) * 360f;
+                    //var heading = Quaternion.Euler(0, randomAngle, 0) * Vector3.forward;
+                    //var dist = Mathf.Abs(randomAngle) % 10f;
+                    //var dest = agent.location.position + dist * heading;
                     pathRequests[reqIndex++] = new PathQueryQueueEcs.RequestEcs()
                     {
                         agentIndex = index,
-                        agentType = 0,
+                        agentType = agent.type,
                         mask = NavMesh.AllAreas,
                         uid = uniqueIdStore[0],
                         start = agent.location.position,
-                        end = dest
+                        end = agent.destination
                     };
-                    pathRequestIdForAgent[index] = uniqueIdStore[0];
+                    pathRequestIdForAgent[crowdId] = uniqueIdStore[0];
                     uniqueIdStore[0]++;
-                    planPathForAgent[index] = false;
+                    planPathForAgent[crowdId] = false;
                 }
                 currentAgentIndex[0] = index;
             }
@@ -176,20 +185,25 @@ public partial class CrowdSystem
             if (index >= agents.Length)
                 return;
 
-            var path = paths.GetPath(index);
-            var pathInfo = paths.GetPathInfo(index);
+            var agent = agents[index];
+            if (!agent.active)
+                return;
+
+            var crowdId = agent.crowdId;
+            var path = paths.GetPath(crowdId);
+            var pathInfo = paths.GetPathInfo(crowdId);
 
             var i = 0;
             for (; i < pathInfo.size; ++i)
             {
-                if (path[i].polygon == agents[index].location.polygon)
+                if (path[i].polygon == agent.location.polygon)
                     break;
             }
             if (i == 0)
                 return;
 
             // Shorten the path
-            paths.DiscardFirstNodes(index, i);
+            paths.DiscardFirstNodes(crowdId, i);
         }
     }
 
@@ -206,10 +220,11 @@ public partial class CrowdSystem
                 return;
 
             var agent = agents[index];
-            if (!agent.location.valid)
+            if (!agent.active || !agent.location.valid)
                 return;
 
-            var pathInfo = paths.GetPathInfo(index);
+            var crowdId = agents[index].crowdId;
+            var pathInfo = paths.GetPathInfo(crowdId);
             if (pathInfo.size > 0)
             {
                 float3 currentPos = agent.location.position;
@@ -222,7 +237,7 @@ public partial class CrowdSystem
                     var cornerCount = 0;
                     var straightPath = new NativeArray<NavMeshLocation>(maxCorners, Allocator.TempJob);
                     var straightPathFlags = new NativeArray<NavMeshStraightPathFlags>(straightPath.Length, Allocator.TempJob);
-                    var pathStatus = PathUtils.FindStraightPath(currentPos, endPos, paths.GetPath(index), pathInfo.size, ref straightPath, ref straightPathFlags, ref cornerCount, straightPath.Length);
+                    var pathStatus = PathUtils.FindStraightPath(currentPos, endPos, paths.GetPath(crowdId), pathInfo.size, ref straightPath, ref straightPathFlags, ref cornerCount, straightPath.Length);
                     if (pathStatus == PathQueryStatus.Success && cornerCount > 1)
                     {
                         steeringTarget = straightPath[1].position;
@@ -258,6 +273,9 @@ public partial class CrowdSystem
                 return;
 
             var agent = agents[index];
+            if (!agent.active)
+                return;
+
             var wantedPos = agent.worldPosition + agent.velocity * dt;
 
             if (agent.location.valid)

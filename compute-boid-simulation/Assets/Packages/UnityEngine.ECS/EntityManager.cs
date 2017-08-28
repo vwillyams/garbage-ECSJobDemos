@@ -221,9 +221,11 @@ namespace UnityEngine.ECS
     		foreach (var tuple in tuples)
     		{
     			for (int t = 0; t != components.Length; t++)
-					tuple.AddTuplesUnchecked(componentDataTypes[t], new NativeSlice<int>(allComponentIndices, t * numberOfInstances, numberOfInstances));
-    		}
+					tuple.AddTuplesComponentDataPartial(componentDataTypes[t], new NativeSlice<int>(allComponentIndices, t * numberOfInstances, numberOfInstances));
 
+				tuple.AddTuplesEntityIDPartial (entities);
+    		}
+							
 			allComponentIndices.Dispose();
 			componentDataTypes.Dispose ();
 
@@ -239,12 +241,10 @@ namespace UnityEngine.ECS
     		}
     	}
 
-    	public void Destroy (Entity entity)
+		public void Destroy (NativeArray<Entity> entities)
     	{
-    		var temp = new NativeArray<Entity> (1, Allocator.Persistent);
-    		temp [0] = entity;
-    		Destroy(temp);
-    		temp.Dispose ();
+			for (var i = 0;i != entities.Length;i++)
+	    		Destroy(entities[i]);
     	}
 
     	public Entity GameObjectToEntity(GameObject go)
@@ -295,16 +295,10 @@ namespace UnityEngine.ECS
 		}
 
 		// * NOTE: Does not modify m_EntityToComponent
-		void RemoveComponentFromComponentManagerAndTuples (NativeArray<int> components, int componentTypeIndex)
+		void RemoveEntityFromTuples (Entity entity, int componentTypeIndex)
 		{
-			var manager = m_ComponentManagers[componentTypeIndex];
-			manager.RemoveElements (components);
-
 			foreach (var tuple in m_TuplesForComponent[componentTypeIndex])
-			{
-				for (int i = 0; i != components.Length;i++)
-					tuple.tupleSystem.RemoveSwapBackLightWeightComponent (tuple.tupleSystemIndex, components [i]);
-			}
+				tuple.tupleSystem.RemoveSwapBackComponentData(entity);
 		}
 
 		public void RemoveComponent<T>(Entity entity) where T : struct, IComponentData
@@ -314,42 +308,34 @@ namespace UnityEngine.ECS
 			int componentTypeIndex = GetTypeIndex (typeof(T));
 			int componentIndex = RemoveComponentFromEntityTable (entity, componentTypeIndex);
 
-			var components = new NativeArray<int> (1, Allocator.Persistent);
-			components[0] = componentIndex;
-
-			RemoveComponentFromComponentManagerAndTuples (components, componentTypeIndex);
-
-			components.Dispose ();
+			m_ComponentManagers[componentTypeIndex].RemoveElement (componentIndex);
+			RemoveEntityFromTuples (entity, componentTypeIndex);
 		}
 
-    	public void Destroy (NativeArray<Entity> entities)
+    	public void Destroy (Entity entity)
     	{
-			var array = new NativeArray<int> (1, Allocator.Persistent);
+			//@TODO: Validate manager index...
 
-    		for (int i = 0; i < entities.Length; i++)
-    		{
-				var entity = entities[i];
+			LightWeightComponentInfo component;
+			NativeMultiHashMapIterator<int> iterator;
+			if (!m_EntityToComponent.TryGetFirstValue (entity.index, out component, out iterator))
+				throw new System.InvalidOperationException ("Entity does not exist");
 
-    			//@TODO: Validate manager index...
+			// Remove Component Data
+			m_ComponentManagers[component.componentTypeIndex].RemoveElement(component.index);
 
-    			LightWeightComponentInfo component;
-    			NativeMultiHashMapIterator<int> iterator;
-    			if (!m_EntityToComponent.TryGetFirstValue (entity.index, out component, out iterator))
-    				throw new System.InvalidOperationException ("Entity does not exist");
+			foreach (var tuple in m_TuplesForComponent[component.componentTypeIndex])
+				tuple.tupleSystem.RemoveSwapBackComponentData(entity);
 
-    			array[0] = component.index;
-				RemoveComponentFromComponentManagerAndTuples (array, component.componentTypeIndex);
+			while (m_EntityToComponent.TryGetNextValue(out component, ref iterator))
+			{
+				m_ComponentManagers[component.componentTypeIndex].RemoveElement(component.index);
 
-    			while (m_EntityToComponent.TryGetNextValue(out component, ref iterator))
-    			{
-					array[0] = component.index;
-					RemoveComponentFromComponentManagerAndTuples (array, component.componentTypeIndex);
-    			}
+				foreach (var tuple in m_TuplesForComponent[component.componentTypeIndex])
+					tuple.tupleSystem.RemoveSwapBackComponentData(entity);
+			}
 
-				m_EntityToComponent.Remove(entity.index);
-    		}
-    		
-    		array.Dispose ();
+			m_EntityToComponent.Remove(entity.index);
     	}
 
 		internal void RegisterTuple(int componentTypeIndex, TupleSystem tuple, int tupleSystemIndex)

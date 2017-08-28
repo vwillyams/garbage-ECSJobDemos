@@ -59,16 +59,24 @@ namespace UnityEngine.ECS
 		int[]                      			m_ComponentDataTypes;
 		InjectTuples.TupleInjectionData[]	m_ComponentDataInjections;
     	ScriptBehaviourManager[]    		m_LightWeightManagers;
-		EntityManager 		m_GameObjectManager;
+		EntityManager 						m_GameObjectManager;
+
+		NativeHashMap<int, int>				m_EntityToTupleIndex;
+		NativeList<Entity>					m_TupleToEntityIndex;
 
 		internal TupleSystem(EntityManager gameObjectManager, InjectTuples.TupleInjectionData[] componentInjections, InjectTuples.TupleInjectionData[] componentDataInjections, ScriptBehaviourManager[] lightweightManagers, TransformAccessArray transforms)
         {
+			//@TODO:
+			int capacity = 0;
+
 			this.m_GameObjectManager = gameObjectManager;
 			this.m_ComponentTypes = new Type[componentInjections.Length];
 			this.m_ComponentDataTypes = new int[componentDataInjections.Length];
     		this.m_LightWeightManagers = lightweightManagers;
     		this.m_Transforms = transforms;
-			m_ComponentDataInjections = componentDataInjections;
+			this.m_ComponentDataInjections = componentDataInjections;
+			this.m_EntityToTupleIndex = new NativeHashMap<int, int> (capacity, Allocator.Persistent);
+			this.m_TupleToEntityIndex = new NativeList<Entity>(capacity, Allocator.Persistent);
 
 			m_TupleComponentInjections = new IGenericComponentListInjection[componentInjections.Length];
 			m_TupleIndices = new NativeList<int>[componentDataInjections.Length];
@@ -92,14 +100,14 @@ namespace UnityEngine.ECS
     	public void Dispose()
     	{
     		for (int i = 0; i != m_TupleIndices.Length; i++)
-    		{
-    			if (m_TupleIndices[i].IsCreated)
-    				m_TupleIndices[i].Dispose();
-    		}
+				m_TupleIndices[i].Dispose();
 
     		//@TODO: Shouldn't dispose check this itself???
     		if (m_Transforms.IsCreated)
     			m_Transforms.Dispose ();
+
+			m_EntityToTupleIndex.Dispose();
+			m_TupleToEntityIndex.Dispose();
     	}
 			
         public ComponentDataArray<T> GetLightWeightIndexedComponents<T>(int index, bool create, bool readOnly) where T : struct, IComponentData
@@ -122,45 +130,6 @@ namespace UnityEngine.ECS
 			return array;
     	}
 
-    	private void RemoveSwapBackTupleIndex(int tupleIndex)
-        {
-            for (int i = 0; i != m_TupleComponentInjections.Length; i++)
-				m_TupleComponentInjections [i].RemoveAtSwapBackComponent (tupleIndex);
-
-			for (int i = 0; i != m_TupleIndices.Length; i++)
-				m_TupleIndices[i].RemoveAtSwapBack (tupleIndex);
-			
-    		if (m_Transforms.IsCreated)
-    	        m_Transforms.RemoveAtSwapBack(tupleIndex);
-    	}
-
-    	public void RemoveSwapBackLightWeightComponent(int tupleSystemIndex, int componentIndex)
-        {
-            int tupleIndex = -1;
-    		for (int i = 0; i != m_TupleIndices[tupleSystemIndex].Length; i++)
-            {
-				if (m_TupleIndices [tupleSystemIndex] [i] == componentIndex)
-				{
-					tupleIndex = i;
-					break;
-				}
-            }
-
-    		if (tupleIndex == -1)
-    			return;
-
-            RemoveSwapBackTupleIndex(tupleIndex);
-        }
-
-    	public void RemoveSwapBackComponent(int tupleSystemIndex, Component component)
-    	{
-    		int tupleIndex = m_TupleComponentInjections[tupleSystemIndex].GetIndex(component);
-    		if (tupleIndex == -1)
-    			return;
-
-    		RemoveSwapBackTupleIndex(tupleIndex);
-    	}
-
 		bool IsTupleSupported(GameObject go, Entity lightGameObject)
 		{
 			foreach (var componentType in m_ComponentTypes)
@@ -181,12 +150,14 @@ namespace UnityEngine.ECS
 
 			return true;
 		}
-			
+
 		public bool IsComponentDataTypesSupported(NativeArray<int> types)
 		{
 			if (m_Transforms.IsCreated)
 				return false;
-
+			if (m_ComponentTypes.Length != 0)
+				return false;
+			
 			foreach (var componentType in m_ComponentDataTypes)
 			{
 				if (types.IndexOf(componentType) == -1)
@@ -195,6 +166,50 @@ namespace UnityEngine.ECS
 
 			return true;
 		}
+
+		public void RemoveSwapBackComponentData(Entity entity)
+		{
+			int tupleIndex;
+			if (!m_EntityToTupleIndex.TryGetValue (entity.index, out tupleIndex))
+				return;
+
+			if (tupleIndex == -1)
+				return;
+
+			RemoveSwapBackTupleIndex(tupleIndex);
+		}
+
+		public void RemoveSwapBackComponent(int tupleSystemIndex, Component component)
+		{
+			int tupleIndex = m_TupleComponentInjections[tupleSystemIndex].GetIndex(component);
+			if (tupleIndex == -1)
+				return;
+
+			RemoveSwapBackTupleIndex(tupleIndex);
+		}
+
+    	private void RemoveSwapBackTupleIndex(int tupleIndex)
+        {
+            for (int i = 0; i != m_TupleComponentInjections.Length; i++)
+				m_TupleComponentInjections[i].RemoveAtSwapBackComponent (tupleIndex);
+
+			for (int i = 0; i != m_TupleIndices.Length; i++)
+				m_TupleIndices[i].RemoveAtSwapBack (tupleIndex);
+			
+    		if (m_Transforms.IsCreated)
+    	        m_Transforms.RemoveAtSwapBack(tupleIndex);
+
+			var entity = m_TupleToEntityIndex[tupleIndex];
+			m_EntityToTupleIndex.Remove (entity.index);
+			m_TupleToEntityIndex.RemoveAtSwapBack (tupleIndex);
+
+			if (tupleIndex != m_TupleToEntityIndex.Length)
+			{
+				var lastEntity = m_TupleToEntityIndex[tupleIndex];
+				m_EntityToTupleIndex.Remove(lastEntity.index);
+				m_EntityToTupleIndex.TryAdd (lastEntity.index, tupleIndex);
+			}
+    	}
 
     	public void AddTupleIfSupported(GameObject go, Entity lightGameObject)
     	{
@@ -208,7 +223,7 @@ namespace UnityEngine.ECS
 				m_TupleComponentInjections[i].AddComponent (component);
 			}
 
-			// Lightweight component injections
+			// IComponentData injections
 			for (int i = 0; i != m_ComponentDataTypes.Length; i++)
 			{		
 				int componentIndex = m_GameObjectManager.GetComponentIndex(lightGameObject, m_ComponentDataTypes[i]);
@@ -220,11 +235,24 @@ namespace UnityEngine.ECS
 			// Transform component injections
     		if (m_Transforms.IsCreated)
     			m_Transforms.Add(go.transform);
+
+			// Tuple / Entity mapping
+			int tupleIndex = m_TupleToEntityIndex.Length;
+			m_EntityToTupleIndex.TryAdd (lightGameObject.index, tupleIndex);
+			m_TupleToEntityIndex.Add (lightGameObject);
     	}
 
+		public void AddTuplesEntityIDPartial(NativeArray<Entity> entityIndices)
+		{
+			int baseIndex = m_TupleToEntityIndex.Length;
+			for (int i = 0;i<entityIndices.Length;i++)
+			{
+				m_TupleToEntityIndex.Add (entityIndices[i]);
+				m_EntityToTupleIndex.TryAdd (entityIndices[i].index, baseIndex + i);
+			}
+		}
 
-		//@TODO: Rename to lightweight
-		public void AddTuplesUnchecked(int componentTypeIndex, NativeSlice<int> componentIndices)
+		public void AddTuplesComponentDataPartial(int componentTypeIndex, NativeSlice<int> componentIndices)
     	{
 			int tupleIndex = System.Array.IndexOf (m_ComponentDataTypes, componentTypeIndex);
 			if (tupleIndex == -1)

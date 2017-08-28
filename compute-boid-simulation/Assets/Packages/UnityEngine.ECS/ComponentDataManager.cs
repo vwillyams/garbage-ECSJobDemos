@@ -21,7 +21,7 @@ namespace UnityEngine.ECS
     	void AddReadDependency (JobHandle handle);
 
 		void AddElements (GameObject srcGameObject, NativeSlice<int> outComponentIndices);
-		void RemoveElements (NativeArray<int> elements);
+		void RemoveElement (int componentIndex);
     }
 
     //@TODO: This should be fully implemented in C++ for efficiency
@@ -67,12 +67,10 @@ namespace UnityEngine.ECS
 			return m_Data.Add (value);
 		}
 
-		public void RemoveElements (NativeArray<int> elements)
+		public void RemoveElement (int componentIndex)
     	{
 			CompleteForWriting ();
-
-			for (int i = 0; i < elements.Length; i++)
-				m_Data.Remove (elements[i]);
+			m_Data.Remove (componentIndex);
     	}
 
     	public JobHandle GetReadDependency()

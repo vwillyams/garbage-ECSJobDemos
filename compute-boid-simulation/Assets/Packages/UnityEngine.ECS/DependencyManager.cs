@@ -139,7 +139,7 @@ namespace UnityEngine.ECS
 			}
 		}
 
-		static Dependencies CreateDependencyInjection(Type type)
+		static Dependencies CreateDependencyInjection(Type type, bool isComponent)
 		{
 			var managers = new List<Dependencies.Manager>();
 			var getComponents = new List<Dependencies.GetComponent>();
@@ -150,7 +150,7 @@ namespace UnityEngine.ECS
 				var hasInject = field.GetCustomAttributes (typeof(InjectDependencyAttribute), true).Length != 0;
 				if (hasInject)
 				{
-					if (field.FieldType.IsSubclassOf(typeof(Component)))
+					if (isComponent && field.FieldType.IsSubclassOf(typeof(Component)))
 					{
 						var com = new Dependencies.GetComponent();
 						com.type = field.FieldType;
@@ -171,7 +171,7 @@ namespace UnityEngine.ECS
 				}
 			}
 
-			var defaultManager = CreateDefaultUpdateManager (type);
+			var defaultManager = isComponent ? CreateDefaultUpdateManager (type) : null;
 
 			if (managers.Count != 0 || getComponents.Count != 0 || defaultManager != null)
 			{
@@ -188,20 +188,7 @@ namespace UnityEngine.ECS
 
 		internal static DefaultUpdateManager DependencyInject(ScriptBehaviour behaviour)
 		{
-			return AutoRoot.DependencyInjectInstance (behaviour);
-		}
-
-		DefaultUpdateManager DependencyInjectInstance(ScriptBehaviour behaviour)
-		{
-			var type = behaviour.GetType ();
-			Dependencies deps;
-			if (!ms_InstanceDependencies.TryGetValue (type, out deps))
-			{
-				deps = CreateDependencyInjection (type);
-				ms_InstanceDependencies.Add (type, deps);
-
-				PerformStaticDependencyInjection (type);
-			}
+			var deps = AutoRoot.PrepareDependendencyInjectionStatic (behaviour, true);
 
 			if (deps != null)
 			{
@@ -214,7 +201,33 @@ namespace UnityEngine.ECS
 				return deps.defaultManager;
 			}
 			else
-				return null;
+				return null;		
+		}
+
+		internal static void DependencyInject(ScriptBehaviourManager manager)
+		{
+			var deps = AutoRoot.PrepareDependendencyInjectionStatic (manager, false);
+		
+			if (deps != null)
+			{
+				for (int i = 0; i != deps.managers.Length; i++)
+					deps.managers[i].field.SetValue (manager, deps.managers[i].manager);
+			}
+		}
+
+		Dependencies PrepareDependendencyInjectionStatic(object behaviour, bool isComponent)
+		{
+			var type = behaviour.GetType ();
+			Dependencies deps;
+			if (!ms_InstanceDependencies.TryGetValue (type, out deps))
+			{
+				deps = CreateDependencyInjection (type, isComponent);
+				ms_InstanceDependencies.Add (type, deps);
+
+				PerformStaticDependencyInjection (type);
+			}
+
+			return deps;
 		}
 	}
 		

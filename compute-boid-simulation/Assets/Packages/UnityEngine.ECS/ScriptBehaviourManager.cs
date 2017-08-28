@@ -70,6 +70,9 @@ namespace UnityEngine.ECS
 		protected virtual void OnCreateManager(int capacity)
 		{
 			s_ActiveManagers.Add(this);
+
+			DependencyManager.DependencyInject (this);
+
 			UpdatePlayerLoop();
 		}
 

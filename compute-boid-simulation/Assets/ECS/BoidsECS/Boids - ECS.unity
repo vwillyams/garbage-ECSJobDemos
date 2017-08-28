@@ -465,7 +465,7 @@ MonoBehaviour:
   initialCount: 2000
   step1Count: 8000
   step2Count: 190000
-  normalInstantiateCount: 1000
+  normalInstantiateCount: 2000
 --- !u!1001 &225929383
 Prefab:
   m_ObjectHideFlags: 0

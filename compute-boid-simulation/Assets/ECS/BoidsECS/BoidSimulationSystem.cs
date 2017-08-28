@@ -6,7 +6,7 @@ using UnityEngine.ECS;
 
 namespace BoidSimulations
 {
-	[UpdateAfter("PreLateUpdate.ParticleSystemBeginUpdateAll")]
+	[UpdateAfter(typeof(BoidSimulationCopyPreviousFrame))]
 	public class BoidSimulationSystem : JobComponentSystem
 	{
 		[InjectTuples(0)]
@@ -93,6 +93,9 @@ namespace BoidSimulations
 				var resultBoid = simulationSettings.Steer(index, simulationState, boids, obstacles, targetPositions, cells, cellOffsetsTable);
 
 				outputBoids[index] = resultBoid;
+
+				if (index % 100 == 0)
+					System.Threading.Thread.Sleep (30);
 			}
 		}
 

@@ -12,6 +12,9 @@ namespace UnityEngine.ECS.Tests
 		[InjectTuples]
 		public ComponentDataArray<EcsTestData> m_Data;
 
+		[InjectTuples]
+		public EntityArray m_Entities;
+
 		public void OnUpdate() { base.OnUpdate (); }
 	}
 
@@ -25,5 +28,6 @@ namespace UnityEngine.ECS.Tests
 
 		public void OnUpdate() { base.OnUpdate (); }
 	}
+
 
 }

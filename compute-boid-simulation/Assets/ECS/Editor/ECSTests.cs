@@ -103,7 +103,9 @@ namespace UnityEngine.ECS.Tests
 
 			pureSystem.OnUpdate ();
 			Assert.AreEqual (1, pureSystem.m_Data.Length);
+			Assert.AreEqual (1, pureSystem.m_Entities.Length);
 			Assert.AreEqual (2, pureSystem.m_Data[0].value);
+			Assert.AreEqual (go, pureSystem.m_Entities[0]);
 
 			ecsAndTransformArray.OnUpdate ();
 			Assert.AreEqual (0, ecsAndTransformArray.m_Data.Length);
@@ -177,7 +179,10 @@ namespace UnityEngine.ECS.Tests
 			pureSystem.OnUpdate ();
 			Assert.AreEqual (10, pureSystem.m_Data.Length);
 			for (int i = 0; i < 10; i++)
-				Assert.AreEqual (9, pureSystem.m_Data[i].value);
+			{
+				Assert.AreEqual (9, pureSystem.m_Data [i].value);
+				Assert.AreEqual (instances[i], pureSystem.m_Entities[i]);
+			}
 
 			instances.Dispose ();
 		}

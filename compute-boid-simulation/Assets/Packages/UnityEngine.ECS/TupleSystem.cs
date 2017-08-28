@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
 using System.Linq;
+using System.Reflection;
 
 namespace UnityEngine.ECS
 {
@@ -54,6 +55,7 @@ namespace UnityEngine.ECS
         TransformAccessArray        		m_Transforms;
 		NativeList<int>[]           		m_TupleIndices;
 		IGenericComponentListInjection[]    m_TupleComponentInjections;
+		FieldInfo 							m_EntityArrayInjection;
 
 		Type[]                      		m_ComponentTypes;
 		int[]                      			m_ComponentDataTypes;
@@ -64,7 +66,7 @@ namespace UnityEngine.ECS
 		NativeHashMap<int, int>				m_EntityToTupleIndex;
 		NativeList<Entity>					m_TupleToEntityIndex;
 
-		internal TupleSystem(EntityManager gameObjectManager, InjectTuples.TupleInjectionData[] componentInjections, InjectTuples.TupleInjectionData[] componentDataInjections, ScriptBehaviourManager[] lightweightManagers, TransformAccessArray transforms)
+		internal TupleSystem(EntityManager gameObjectManager, InjectTuples.TupleInjectionData[] componentInjections, InjectTuples.TupleInjectionData[] componentDataInjections, ScriptBehaviourManager[] lightweightManagers, FieldInfo entityArrayInjection, TransformAccessArray transforms)
         {
 			//@TODO:
 			int capacity = 0;
@@ -77,7 +79,7 @@ namespace UnityEngine.ECS
 			this.m_ComponentDataInjections = componentDataInjections;
 			this.m_EntityToTupleIndex = new NativeHashMap<int, int> (capacity, Allocator.Persistent);
 			this.m_TupleToEntityIndex = new NativeList<Entity>(capacity, Allocator.Persistent);
-
+			this.m_EntityArrayInjection = entityArrayInjection;
 			m_TupleComponentInjections = new IGenericComponentListInjection[componentInjections.Length];
 			m_TupleIndices = new NativeList<int>[componentDataInjections.Length];
 
@@ -109,7 +111,7 @@ namespace UnityEngine.ECS
 			m_EntityToTupleIndex.Dispose();
 			m_TupleToEntityIndex.Dispose();
     	}
-			
+
         public ComponentDataArray<T> GetLightWeightIndexedComponents<T>(int index, bool create, bool readOnly) where T : struct, IComponentData
         {
     		var manager = m_LightWeightManagers[index] as ComponentDataManager<T>;
@@ -122,6 +124,14 @@ namespace UnityEngine.ECS
         }
 
 		internal InjectTuples.TupleInjectionData[] ComponentDataInjections { get { return m_ComponentDataInjections; } }
+		internal FieldInfo EntityArrayInjection { get { return m_EntityArrayInjection; } }
+
+		public EntityArray GetEntityArray()
+		{
+			EntityArray array;
+			array.m_Array = m_TupleToEntityIndex;
+			return array;
+		}
 
         public ComponentArray<T> GetComponentContainer<T>(int index) where T : Component
     	{

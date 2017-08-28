@@ -79,7 +79,6 @@ namespace UnityEngine.ECS
 			}
 		}
 
-
 		static int GetCapacityForType(Type type)
 		{
 			//@TODO:

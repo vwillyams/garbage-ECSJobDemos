@@ -46,9 +46,12 @@ namespace UnityEngine.ECS
 				container = GetLightWeightIndexedComponents (tuples, dataInjections[i].genericType, i, false, dataInjections[i].isReadOnly);
 				dataInjections[i].field.SetValue (targetObject, container);
     		}
+
+			if (tuples.EntityArrayInjection != null)
+				tuples.EntityArrayInjection.SetValue (targetObject, tuples.GetEntityArray());
     	}
 
-		static TupleSystem CreateTuplesInjection(FieldInfo transformAccessArrayField, List<TupleInjectionData> injections, List<IComponentDataManager> outReadJobDependencies, List<IComponentDataManager> outWriteJobDependencies, object targetObject)
+		static TupleSystem CreateTuplesInjection(FieldInfo entityArray, FieldInfo transformAccessArrayField, List<TupleInjectionData> injections, List<IComponentDataManager> outReadJobDependencies, List<IComponentDataManager> outWriteJobDependencies, object targetObject)
     	{
     		var managers = new ScriptBehaviourManager[injections.Count];
     		TransformAccessArray transformAccessArray = new TransformAccessArray();
@@ -80,7 +83,7 @@ namespace UnityEngine.ECS
 				}
     		}
 
-			var tuples = new TupleSystem(DependencyManager.GetBehaviourManager<EntityManager>(), componentInjections.ToArray(), componentDataInjections.ToArray(), managers, transformAccessArray);
+			var tuples = new TupleSystem(DependencyManager.GetBehaviourManager<EntityManager>(), componentInjections.ToArray(), componentDataInjections.ToArray(), managers, entityArray, transformAccessArray);
 
 			for (var i = 0; i != componentDataInjections.Count; i++) 
     		{
@@ -100,9 +103,10 @@ namespace UnityEngine.ECS
     		return tuples;
     	}
 
-    	internal static bool CollectTuples(FieldInfo[] fields, ref int i, ref int activeTupleSet, out FieldInfo transformAccessArrayField, List<TupleInjectionData> injections)
+		internal static bool CollectTuples(FieldInfo[] fields, ref int i, ref int activeTupleSet, out FieldInfo entityArrayField, out FieldInfo transformAccessArrayField, List<TupleInjectionData> injections)
     	{
     		transformAccessArrayField = null;
+			entityArrayField = null;
 
     		for (; i != fields.Length;i++)
     		{
@@ -122,25 +126,33 @@ namespace UnityEngine.ECS
     					return true;
     				}
 
-    				if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(ComponentDataArray<>))
-    				{
-						injections.Add (new TupleInjectionData(field, typeof(ComponentDataArray<>), field.FieldType.GetGenericArguments()[0], isReadOnly));
-    				} 
-    				else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(ComponentArray<>))
-    				{
+					if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(ComponentDataArray<>))
+					{
+						injections.Add (new TupleInjectionData (field, typeof(ComponentDataArray<>), field.FieldType.GetGenericArguments () [0], isReadOnly));
+					}
+					else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(ComponentArray<>))
+					{
 						if (isReadOnly)
 							Debug.LogError ("[ReadOnly] may only be used with [InjectTuples] on ComponentDataArray<>");
-						injections.Add (new TupleInjectionData(field, typeof(ComponentArray<>), field.FieldType.GetGenericArguments()[0], false));
-    				}
-    				else if (field.FieldType == typeof(TransformAccessArray))
-    				{
+						injections.Add (new TupleInjectionData (field, typeof(ComponentArray<>), field.FieldType.GetGenericArguments () [0], false));
+					}
+					else if (field.FieldType == typeof(TransformAccessArray))
+					{
 						if (isReadOnly)
 							Debug.LogError ("[ReadOnly] may only be used with [InjectTuples] on ComponentDataArray<>");
 						// Error on multiple transformAccessArray
 						if (transformAccessArrayField != null)
 							Debug.LogError ("[InjectTuples] may only be specified on a single TransformAccessArray");
-    					transformAccessArrayField = field;
-    				}
+						transformAccessArrayField = field;
+					}
+					else if (field.FieldType == typeof(EntityArray))
+					{
+						// Error on multiple transformAccessArray
+						if (entityArrayField != null)
+							Debug.LogError ("[InjectTuples] may only be specified on a single EntityArray");
+						
+						entityArrayField = field;
+					}
     				else
     				{
 						Debug.LogError ("[InjectTuples] may only be used on ComponentDataArray<>, ComponentArray<> or TransformAccessArray");
@@ -159,7 +171,8 @@ namespace UnityEngine.ECS
     		int activeTupleSetIndex = 0;
     		int fieldIndex = 0;
 
-    		FieldInfo transformAccessArrayField;
+			FieldInfo transformAccessArrayField;
+			FieldInfo entityArrayField;
     		var	injections = new List<TupleInjectionData>();
 
     		while (fieldIndex != fields.Length)
@@ -167,10 +180,10 @@ namespace UnityEngine.ECS
     			transformAccessArrayField = null;
     			injections.Clear ();
 
-    			if (!CollectTuples (fields, ref fieldIndex, ref activeTupleSetIndex, out transformAccessArrayField, injections))
+				if (!CollectTuples (fields, ref fieldIndex, ref activeTupleSetIndex, out entityArrayField, out transformAccessArrayField, injections))
     				return;
 
-				var tupleSystem = CreateTuplesInjection (transformAccessArrayField, injections, outReadJobDependencies, outWriteJobDependencies, targetObject);
+				var tupleSystem = CreateTuplesInjection (entityArrayField, transformAccessArrayField, injections, outReadJobDependencies, outWriteJobDependencies, targetObject);
     			outTupleSystem.Add (tupleSystem);
     		}
     	}

@@ -11,6 +11,7 @@ namespace UnityEngine.ECS
 {
     public abstract class ComponentSystem : ScriptBehaviourManager
     {
+		public TupleSystem[] Tuples { get { return m_Tuples; } }
         TupleSystem[] 							m_Tuples;
         internal IComponentDataManager[]		m_JobDependencyForReadingManagers;
         internal IComponentDataManager[]		m_JobDependencyForWritingManagers;

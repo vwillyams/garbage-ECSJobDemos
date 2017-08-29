@@ -53,6 +53,11 @@ namespace UnityEngine.ECS
     		m_EntityToComponent.Dispose ();
     	}
 
+		internal Type GetTypeFromIndex(int index)
+		{
+			return m_ComponentTypes[index];
+		}
+
     	internal int GetTypeIndex(Type type)
     	{
     		//@TODO: Initialize with all types on startup instead? why continously populate...

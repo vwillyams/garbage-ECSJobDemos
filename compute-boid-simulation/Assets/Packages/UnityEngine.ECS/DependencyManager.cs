@@ -4,6 +4,7 @@ using UnityEngine.Collections;
 using UnityEngine;
 using System.Reflection;
 using System;
+using System.Collections.ObjectModel;
 using UnityEngine.Assertions;
 using UnityEngine.ECS;
 
@@ -36,6 +37,12 @@ namespace UnityEngine.ECS
 			public GetComponent[] getComponents;
 		}
 
+		public ReadOnlyCollection<ScriptBehaviourManager> BehaviourManagers
+		{
+			get {
+				return new ReadOnlyCollection<ScriptBehaviourManager>(ms_BehaviourManagers);
+			}
+		}
 		List<ScriptBehaviourManager> 	ms_BehaviourManagers = new List<ScriptBehaviourManager> ();
 		Dictionary<Type, Dependencies> 	ms_InstanceDependencies = new Dictionary<Type, Dependencies>();
 

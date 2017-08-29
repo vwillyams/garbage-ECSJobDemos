@@ -6,10 +6,11 @@ using System.Collections.Generic;
 using UnityEngine.Assertions;
 using System.Linq;
 using System.Reflection;
+using System.Collections.ObjectModel;
 
 namespace UnityEngine.ECS
 {
-    internal class TupleSystem
+    public class TupleSystem
     {
     	internal class RegisteredTuple
     	{
@@ -51,6 +52,21 @@ namespace UnityEngine.ECS
     		}
     	}
 
+
+		public ReadOnlyCollection<Type> ComponentDataTypes
+		{
+			get {
+				return new ReadOnlyCollection<Type>(System.Array.ConvertAll(m_ComponentDataTypes, (i => m_GameObjectManager.GetTypeFromIndex(i))));
+			}
+		}
+		
+		public ReadOnlyCollection<Type> ComponentTypes {
+			get {
+				return new ReadOnlyCollection<Type>(m_ComponentTypes);
+			}
+		}
+
+		public bool HasTransformAccess { get { return m_Transforms.IsCreated; } }
 
         TransformAccessArray        		m_Transforms;
 		NativeList<int>[]           		m_TupleIndices;

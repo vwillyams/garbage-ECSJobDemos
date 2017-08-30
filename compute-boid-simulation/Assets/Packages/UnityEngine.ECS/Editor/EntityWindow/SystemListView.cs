@@ -24,8 +24,8 @@ namespace UnityEngine.ECS
             managersByID = new Dictionary<int, ComponentSystem>();
             foreach (var manager in managers)
             {
-                var ns = manager.GetType().Namespace;
-                if (!managersByNamespace.ContainsKey(ns ?? "global"))
+                var ns = manager.GetType().Namespace ?? "global";
+                if (!managersByNamespace.ContainsKey(ns))
                     managersByNamespace[ns] = new List<ComponentSystem>{manager};
                 else
                     managersByNamespace[ns].Add(manager);

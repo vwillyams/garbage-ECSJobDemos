@@ -10,8 +10,8 @@ namespace UnityEngine.ECS
 {
 	public interface IEntityGroupChange
 	{
-		void OnAddElements (int count);
-		void OnRemoveSwapBack (int element);
+		void OnAddElements (int numberOfEntitiesAddedToGroup);
+		void OnRemoveSwapBack (int indexOfEntityToBeRemoved);
 	}
 
 	public class EntityGroup

@@ -42,7 +42,6 @@ namespace UnityEngine.ECS.Tests
 	public class GroupChangeSystem : ComponentSystem, IEntityGroupChange
 	{
 		[InjectTuples]
-		[ReadOnlyAttribute]
 		public ComponentDataArray<EcsTestData> m_Data;
 
 		List<int> m_OnAddElements = new List<int> ();
@@ -53,9 +52,9 @@ namespace UnityEngine.ECS.Tests
 			m_OnAddElements.Add (count);
 		}
 
-		public void OnRemoveSwapBack (int element)
+		public void OnRemoveSwapBack (int index)
 		{
-			m_OnRemoveSwapBack.Add (element);
+			m_OnRemoveSwapBack.Add (index);
 		}
 
 		public void ExpectDidAddElements(int count)

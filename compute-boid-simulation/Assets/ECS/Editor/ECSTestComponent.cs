@@ -15,4 +15,12 @@ namespace UnityEngine.ECS.Tests
 
 	[ExecuteInEditMode]
 	public class EcsTestComponent : ComponentDataWrapper<EcsTestData> { }
+
+
+	public struct EcsBoolTestData : IComponentData
+	{
+		public bool value;
+		public EcsBoolTestData (bool input) { value = input; }
+	}
+
 }

@@ -212,5 +212,23 @@ namespace UnityEngine.ECS.Tests
 			m_Manager.Destroy (go);
 			changeSystem.ExpectDidRemoveSwapBack (0);
 		}
+
+		[Test]
+		[Ignore("Failing")]
+		public void EcsUnalignedBoolTest()
+		{
+			var group = new EntityGroup (m_Manager, typeof(EcsBoolTestData));
+
+			for (int i = 0; i != 1000; i++)
+				m_Manager.AddComponent (m_Manager.AllocateEntity (), new EcsBoolTestData (true));
+
+			var bools = group.GetComponentDataArray<EcsBoolTestData> ();
+			for (int i = 0; i != 1000; i++)
+			{
+				Assert.AreEqual (true, bools[i].value);
+			}
+
+			group.Dispose ();
+		}
 	}
 }

@@ -93,9 +93,6 @@ namespace BoidSimulations
 				var resultBoid = simulationSettings.Steer(index, simulationState, boids, obstacles, targetPositions, cells, cellOffsetsTable);
 
 				outputBoids[index] = resultBoid;
-
-				if (index % 100 == 0)
-					System.Threading.Thread.Sleep (30);
 			}
 		}
 

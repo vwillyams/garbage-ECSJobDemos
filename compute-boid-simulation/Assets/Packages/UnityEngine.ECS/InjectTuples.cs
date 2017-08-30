@@ -43,7 +43,7 @@ namespace UnityEngine.ECS
 			for (var i = 0; i != dataInjections.Length; i++) 
     		{
     			object container;
-				container = GetLightWeightIndexedComponents (tuples, dataInjections[i].genericType, i, false, dataInjections[i].isReadOnly);
+				container = GetComponentDataArray (tuples, dataInjections[i].genericType, i, dataInjections[i].isReadOnly);
 				dataInjections[i].field.SetValue (targetObject, container);
     		}
 
@@ -83,17 +83,17 @@ namespace UnityEngine.ECS
 				}
     		}
 
-			var tuples = new TupleSystem(DependencyManager.GetBehaviourManager<EntityManager>(), componentInjections.ToArray(), componentDataInjections.ToArray(), managers, entityArray, transformAccessArray);
+			var tuples = new TupleSystem(DependencyManager.GetBehaviourManager<EntityManager>(), componentDataInjections.ToArray(), managers, componentInjections.ToArray(), entityArray, transformAccessArray);
 
 			for (var i = 0; i != componentDataInjections.Count; i++) 
     		{
-				object container = GetLightWeightIndexedComponents (tuples, componentDataInjections[i].genericType, i, true, componentDataInjections[i].isReadOnly);
+				object container = GetComponentDataArray (tuples, componentDataInjections[i].genericType, i, componentDataInjections[i].isReadOnly);
 				componentDataInjections[i].field.SetValue (targetObject, container);
 			}
 
 			for (var i = 0; i != componentInjections.Count; i++) 
 			{
-				object container = GetComponentContainer (tuples, componentInjections[i].genericType, i);
+				object container = GetComponentArray (tuples, componentInjections[i].genericType, i);
 				componentInjections[i].field.SetValue (targetObject, container);
 			}
 
@@ -119,9 +119,10 @@ namespace UnityEngine.ECS
     				int tupleSetIndex = src.TupleSetIndex;
     				if (activeTupleSet != tupleSetIndex)
     				{
+						if (tupleSetIndex < activeTupleSet)
+							Debug.LogError ("[InjectTuples] must be ordered incrementally by their index");
+						
     					activeTupleSet = tupleSetIndex;
-
-    					//@TODO: Must be increasing tupleset index...
 
     					return true;
     				}
@@ -202,16 +203,16 @@ namespace UnityEngine.ECS
     	}
 
 
-		static object GetLightWeightIndexedComponents(TupleSystem tuple, Type type, int index, bool create, bool readOnly)
+		static object GetComponentDataArray(TupleSystem tuple, Type type, int index, bool readOnly)
 		{
-			object[] args = { index, create, readOnly };
-			return tuple.GetType ().GetMethod ("GetLightWeightIndexedComponents").MakeGenericMethod (type).Invoke(tuple, args);
+			object[] args = { index, readOnly };
+			return tuple.GetType ().GetMethod ("GetComponentDataArray").MakeGenericMethod (type).Invoke(tuple, args);
 		}
 
-    	static object GetComponentContainer(TupleSystem tuple, Type type, int index)
+    	static object GetComponentArray(TupleSystem tuple, Type type, int index)
     	{
     		object[] args = { index };
-    		return tuple.GetType ().GetMethod ("GetComponentContainer").MakeGenericMethod (type).Invoke(tuple, args);
+    		return tuple.GetType ().GetMethod ("GetComponentArray").MakeGenericMethod (type).Invoke(tuple, args);
     	}
     }
 }

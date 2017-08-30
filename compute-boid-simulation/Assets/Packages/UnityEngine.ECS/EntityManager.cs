@@ -25,7 +25,7 @@ namespace UnityEngine.ECS
     {
 		List<Type> 										  m_ComponentTypes = new List<Type>();
 		List<IComponentDataManager> 				      m_ComponentManagers = new List<IComponentDataManager>();
-		List<List<TupleSystem.RegisteredTuple> > 		  m_TuplesForComponent = new List<List<TupleSystem.RegisteredTuple> >();
+		List<List<EntityGroup.RegisteredTuple> > 		  m_EntityGroupsForComponent = new List<List<EntityGroup.RegisteredTuple> >();
 
 		NativeMultiHashMap<int, LightWeightComponentInfo> m_EntityToComponent;
 
@@ -71,7 +71,7 @@ namespace UnityEngine.ECS
 				throw new ArgumentException (string.Format("{0} must be a IComponentData to be used when create a lightweight game object", type));
     		
     		m_ComponentTypes.Add (type);
-			m_TuplesForComponent.Add (new List<TupleSystem.RegisteredTuple>());
+			m_EntityGroupsForComponent.Add (new List<EntityGroup.RegisteredTuple>());
 
 			var managerType = typeof(ComponentDataManager<>).MakeGenericType(new Type[] { type });
 			var manager = DependencyManager.GetBehaviourManager (managerType) as IComponentDataManager;
@@ -146,7 +146,7 @@ namespace UnityEngine.ECS
 			var fullGameObject = UnityEditor.EditorUtility.InstanceIDToObject (entity.index) as GameObject;
 
 			// tuple management
-			foreach (var tuple in m_TuplesForComponent[info.componentTypeIndex])
+			foreach (var tuple in m_EntityGroupsForComponent[info.componentTypeIndex])
 				tuple.tupleSystem.AddTupleIfSupported(fullGameObject, entity);
 		}
 			
@@ -219,7 +219,7 @@ namespace UnityEngine.ECS
 
 
     		// Collect all tuples that support the created game object schema
-    		var tuples = new HashSet<TupleSystem> ();
+    		var tuples = new HashSet<EntityGroup> ();
     		for (int t = 0;t != components.Length;t++)
 				CollectComponentDataTupleSet (componentDataTypes[t], componentDataTypes, tuples);
 
@@ -237,9 +237,9 @@ namespace UnityEngine.ECS
     		return entities;
     	}
 
-		void CollectComponentDataTupleSet(int typeIndex, NativeArray<int> requiredComponentTypes, HashSet<TupleSystem> tuples)
+		void CollectComponentDataTupleSet(int typeIndex, NativeArray<int> requiredComponentTypes, HashSet<EntityGroup> tuples)
     	{
-			foreach (var tuple in m_TuplesForComponent[typeIndex])
+			foreach (var tuple in m_EntityGroupsForComponent[typeIndex])
     		{
 				if (tuple.tupleSystem.IsComponentDataTypesSupported(requiredComponentTypes))
     				tuples.Add (tuple.tupleSystem);
@@ -302,7 +302,7 @@ namespace UnityEngine.ECS
 		// * NOTE: Does not modify m_EntityToComponent
 		void RemoveEntityFromTuples (Entity entity, int componentTypeIndex)
 		{
-			foreach (var tuple in m_TuplesForComponent[componentTypeIndex])
+			foreach (var tuple in m_EntityGroupsForComponent[componentTypeIndex])
 				tuple.tupleSystem.RemoveSwapBackComponentData(entity);
 		}
 
@@ -329,23 +329,23 @@ namespace UnityEngine.ECS
 			// Remove Component Data
 			m_ComponentManagers[component.componentTypeIndex].RemoveElement(component.index);
 
-			foreach (var tuple in m_TuplesForComponent[component.componentTypeIndex])
+			foreach (var tuple in m_EntityGroupsForComponent[component.componentTypeIndex])
 				tuple.tupleSystem.RemoveSwapBackComponentData(entity);
 
 			while (m_EntityToComponent.TryGetNextValue(out component, ref iterator))
 			{
 				m_ComponentManagers[component.componentTypeIndex].RemoveElement(component.index);
 
-				foreach (var tuple in m_TuplesForComponent[component.componentTypeIndex])
+				foreach (var tuple in m_EntityGroupsForComponent[component.componentTypeIndex])
 					tuple.tupleSystem.RemoveSwapBackComponentData(entity);
 			}
 
 			m_EntityToComponent.Remove(entity.index);
     	}
 
-		internal void RegisterTuple(int componentTypeIndex, TupleSystem tuple, int tupleSystemIndex)
+		internal void RegisterTuple(int componentTypeIndex, EntityGroup tuple, int tupleSystemIndex)
 		{
-			m_TuplesForComponent [componentTypeIndex].Add (new TupleSystem.RegisteredTuple (tuple, tupleSystemIndex));
+			m_EntityGroupsForComponent [componentTypeIndex].Add (new EntityGroup.RegisteredTuple (tuple, tupleSystemIndex));
 		}
     }
 }

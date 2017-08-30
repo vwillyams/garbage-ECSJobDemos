@@ -7,7 +7,7 @@ Example scenes:
 **CrowdMoveTest**
 
 - showcases how to find paths between many source and destination points in parallel and time-sliced, and have entities move along simplified paths that go through the obtained polygons.
-- With ECS: Add the CrowdAgentComponent to game objects and they will start moving on paths controlled by the CrowdSystem.
+- With ECS: Add a CrowdAgentComponent and a CrowdAgentNavigatorComponent to game objects and they will start moving on paths controlled by the CrowdSystem. The destination for each agent can be specified through a call to CrowdAgentNavigator.MoveTo() . RandomDestinationSystem takes care of creating new target positions in this example.
 - Without ECS: _TheCrowd_ has _Crowd_ behaviour, written with the new API, where the number of entities can be specified.
     - It also hosts a disabled _Classic Crowd_ behaviour that can run an example of the old crowd simulation. The optional debug draw can show a red line above all agents that are waiting for the path to be computed or a short yellow line above the agents that have reached their destination and are currently waiting for new instructions.
 

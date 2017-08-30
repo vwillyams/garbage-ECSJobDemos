@@ -11,7 +11,7 @@ public partial class CrowdSystem
     public struct CheckPathNeededJob : IJobParallelFor
     {
         [ReadOnly]
-        public ComponentDataArray<CrowdAgent> agents;
+        public ComponentDataArray<CrowdAgentNavigator> agentNavigators;
         [ReadOnly]
         public AgentPaths.AllReadOnly paths;
         [ReadOnly]
@@ -21,16 +21,14 @@ public partial class CrowdSystem
 
         public void Execute(int index)
         {
-            var agent = agents[index];
-            var crowdId = agent.crowdId;
-            if (planPathForAgent[crowdId] || index >= agents.Length)
+            var agentNavigator = agentNavigators[index];
+            var crowdId = agentNavigator.crowdId;
+            if (planPathForAgent[crowdId] || index >= agentNavigators.Length)
                 return;
 
             if (pathRequestIdForAgent[crowdId] == PathQueryQueueEcs.RequestEcs.invalidId)
             {
-                // If there's no path - or close to destination: pick a new destination
-                var pathInfo = paths.GetPathInfo(crowdId);
-                planPathForAgent[crowdId] = pathInfo.size == 0 || agent.location.valid && math.distance(pathInfo.end.position, agent.location.position) < 0.05f;
+                planPathForAgent[crowdId] = agentNavigator.newDestinationRequested;
             }
         }
     }
@@ -39,6 +37,8 @@ public partial class CrowdSystem
     {
         [ReadOnly]
         public ComponentDataArray<CrowdAgent> agents;
+
+        public ComponentDataArray<CrowdAgentNavigator> agentNavigators;
 
         public NativeArray<bool> planPathForAgent;
         public NativeArray<uint> pathRequestIdForAgent;
@@ -62,16 +62,19 @@ public partial class CrowdSystem
                     break;
 
                 var index = (int)(i + firstAgent) % agents.Length;
-                var agent = agents[index];
-                var crowdId = agent.crowdId;
+                var agentNavigator = agentNavigators[index];
+                var crowdId = agentNavigator.crowdId;
                 if (planPathForAgent[crowdId])
                 {
-                    if (!agent.active)
+                    if (!agentNavigator.active)
                     {
                         planPathForAgent[crowdId] = false;
+                        agentNavigator.newDestinationRequested = false;
+                        agentNavigators[index] = agentNavigator;
                         continue;
                     }
 
+                    var agent = agents[index];
                     if (!agent.location.valid)
                         continue;
 
@@ -80,13 +83,6 @@ public partial class CrowdSystem
                         uniqueIdStore[0] = 1 + PathQueryQueueEcs.RequestEcs.invalidId;
                     }
 
-                    // TODO: move this to a CreateTargetsSystem [#adriant]
-                    //var agPos = agent.location.position;
-                    //var agVel = agent.velocity;
-                    //var randomAngle = ((agPos.x + agPos.y + agPos.z + agVel.x + agVel.y + agVel.z) * (1 + firstAgent + reqIndex) % 2f) * 360f;
-                    //var heading = Quaternion.Euler(0, randomAngle, 0) * Vector3.forward;
-                    //var dist = Mathf.Abs(randomAngle) % 10f;
-                    //var dest = agent.location.position + dist * heading;
                     pathRequests[reqIndex++] = new PathQueryQueueEcs.RequestEcs()
                     {
                         agentIndex = index,
@@ -94,11 +90,13 @@ public partial class CrowdSystem
                         mask = NavMesh.AllAreas,
                         uid = uniqueIdStore[0],
                         start = agent.location.position,
-                        end = agent.destination
+                        end = agentNavigator.requestedDestination
                     };
                     pathRequestIdForAgent[crowdId] = uniqueIdStore[0];
                     uniqueIdStore[0]++;
                     planPathForAgent[crowdId] = false;
+                    agentNavigator.newDestinationRequested = false;
+                    agentNavigators[index] = agentNavigator;
                 }
                 currentAgentIndex[0] = index;
             }
@@ -178,29 +176,55 @@ public partial class CrowdSystem
         [ReadOnly]
         public ComponentDataArray<CrowdAgent> agents;
 
+        public ComponentDataArray<CrowdAgentNavigator> agentNavigators;
         public AgentPaths.RangesWritable paths;
 
         public void Execute(int index)
         {
-            if (index >= agents.Length)
+            if (index >= agentNavigators.Length)
                 return;
 
-            var agent = agents[index];
-            if (!agent.active)
+            var agentNavigator = agentNavigators[index];
+            if (!agentNavigator.active)
                 return;
 
-            var crowdId = agent.crowdId;
+            var crowdId = agentNavigator.crowdId;
             var path = paths.GetPath(crowdId);
             var pathInfo = paths.GetPathInfo(crowdId);
 
+            var agLoc = agents[index].location;
             var i = 0;
             for (; i < pathInfo.size; ++i)
             {
-                if (path[i].polygon == agent.location.polygon)
+                if (path[i].polygon == agLoc.polygon)
                     break;
             }
-            if (i == 0)
+
+            var agentNotOnPath = i == pathInfo.size;
+            if (agentNotOnPath)
+            {
+                agentNavigator.goToDestination = false;
+                agentNavigator.destinationReached = true;
+                agentNavigators[index] = agentNavigator;
+            }
+            else if (agentNavigator.destinationInView)
+            {
+                var distToDest = math.distance(agLoc.position, pathInfo.end.position);
+                var stoppingDistance = 0.1f;
+                agentNavigator.destinationReached = distToDest < stoppingDistance;
+                agentNavigator.distanceToDestination = distToDest;
+                agentNavigator.goToDestination &= !agentNavigator.destinationReached;
+                agentNavigators[index] = agentNavigator;
+                if (agentNavigator.destinationReached)
+                {
+                    i = pathInfo.size;
+                }
+            }
+            if (i == 0 && !agentNavigator.destinationReached)
                 return;
+
+            var discardsPathWhenDestinationNotReached = (i == pathInfo.size) && !agentNavigator.destinationReached;
+            Debug.Assert(!discardsPathWhenDestinationNotReached);
 
             // Shorten the path
             paths.DiscardFirstNodes(crowdId, i);
@@ -212,6 +236,7 @@ public partial class CrowdSystem
         [ReadOnly]
         public AgentPaths.AllReadOnly paths;
 
+        public ComponentDataArray<CrowdAgentNavigator> agentNavigators;
         public ComponentDataArray<CrowdAgent> agents;
 
         public void Execute(int index)
@@ -220,12 +245,13 @@ public partial class CrowdSystem
                 return;
 
             var agent = agents[index];
-            if (!agent.active || !agent.location.valid)
+            var agentNavigator = agentNavigators[index];
+            if (!agentNavigator.active || !agent.location.valid)
                 return;
 
-            var crowdId = agents[index].crowdId;
+            var crowdId = agentNavigator.crowdId;
             var pathInfo = paths.GetPathInfo(crowdId);
-            if (pathInfo.size > 0)
+            if (pathInfo.size > 0 && agentNavigator.goToDestination)
             {
                 float3 currentPos = agent.location.position;
                 float3 endPos = pathInfo.end.position;
@@ -240,12 +266,19 @@ public partial class CrowdSystem
                     var pathStatus = PathUtils.FindStraightPath(currentPos, endPos, paths.GetPath(crowdId), pathInfo.size, ref straightPath, ref straightPathFlags, ref cornerCount, straightPath.Length);
                     if (pathStatus == PathQueryStatus.Success && cornerCount > 1)
                     {
-                        steeringTarget = straightPath[1].position;
+                        var nextCornerLoc = straightPath[1];
+                        steeringTarget = nextCornerLoc.position;
+                        agentNavigator.destinationInView = nextCornerLoc.polygon == pathInfo.end.polygon;
                     }
 
                     straightPath.Dispose();
                     straightPathFlags.Dispose();
                 }
+                else
+                {
+                    agentNavigator.destinationInView = true;
+                }
+                agentNavigators[index] = agentNavigator;
 
                 var velocity = steeringTarget - currentPos;
                 velocity.y = 0.0f;
@@ -273,14 +306,14 @@ public partial class CrowdSystem
                 return;
 
             var agent = agents[index];
-            if (!agent.active)
-                return;
-
             var wantedPos = agent.worldPosition + agent.velocity * dt;
 
             if (agent.location.valid)
             {
-                agent.location = NavMeshQuery.MoveLocation(agent.location, wantedPos);
+                if (math.any(agent.velocity))
+                {
+                    agent.location = NavMeshQuery.MoveLocation(agent.location, wantedPos);
+                }
             }
             else
             {

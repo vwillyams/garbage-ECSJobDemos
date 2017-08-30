@@ -5,7 +5,8 @@ using UnityEngine.Collections;
 using UnityEngine.Experimental.AI;
 using UnityEngine.ECS;
 
-//[UpdateAfter(typeof(TargetsSystem))]
+// TODO: Implement an UpdateBefore attribute that user systems can use so that CrowdSystem would not know about them
+[UpdateAfter(typeof(RandomDestinationSystem))]
 //[InjectTuples(1)]
 //ComponentDataArray<AgentTarget> m_Targets;
 public partial class CrowdSystem : JobComponentSystem
@@ -14,6 +15,8 @@ public partial class CrowdSystem : JobComponentSystem
 
     [InjectTuples]
     ComponentDataArray<CrowdAgent> m_Agents;
+    [InjectTuples]
+    ComponentDataArray<CrowdAgentNavigator> m_AgentNavigators;
 
     NativeList<bool> m_PlanPathForAgent;
     NativeList<uint> m_PathRequestIdForAgent;
@@ -100,7 +103,7 @@ public partial class CrowdSystem : JobComponentSystem
     {
         base.OnUpdate();
 
-        if (m_Agents.Length == 0)
+        if (m_AgentNavigators.Length == 0)
             return;
 
         //
@@ -108,28 +111,34 @@ public partial class CrowdSystem : JobComponentSystem
         //
         CompleteDependency();
 
-        var missingPaths = m_Agents.Length - m_AgentPaths.Count;
+        var missingPaths = m_AgentNavigators.Length - m_AgentPaths.Count;
         if (missingPaths > 0)
         {
             var idx = m_AgentPaths.Count;
             m_AgentPaths.AddAgents(missingPaths);
             AddAgents(missingPaths);
-            var endIdx = m_Agents.Length + idx;
+            var endIdx = m_AgentNavigators.Length + idx;
             for (var i = idx; i < endIdx; i++)
             {
-                var k = i % m_Agents.Length;
-                var agent = m_Agents[k];
-                if (agent.crowdId < 0)
+                var k = i % m_AgentNavigators.Length;
+                var agentNavigator = m_AgentNavigators[k];
+                if (agentNavigator.crowdId < 0)
                 {
-                    agent.crowdId = idx;
+                    agentNavigator.crowdId = idx;
                     idx++;
-                    m_Agents[k] = agent;
+                    m_AgentNavigators[k] = agentNavigator;
                 }
             }
             Debug.Assert(idx == m_PlanPathForAgent.Length);
         }
         Debug.Assert(m_Agents.Length <= m_AgentPaths.Count && m_Agents.Length <= m_PathRequestIdForAgent.Length && m_Agents.Length <= m_PlanPathForAgent.Length,
             "" + m_Agents.Length + " agents, " + m_AgentPaths.Count + " path slots, " + m_PathRequestIdForAgent.Length + " path request IDs, " + m_PlanPathForAgent.Length + " slots for WantsPath");
+
+        // TODO: allow indices of m_Agents and the other arrays to be different for the same agent [#adriant]
+        //for (int i = 0; i < m_AgentNavigators.Length; i++)
+        //{
+        //    Debug.Assert(m_AgentNavigators[i].crowdId == i, "It's not supported yet to have non-matching indices between m_Agents and the other data arrays");
+        //}
 
         //{
         //    var rangeEnd = m_PathRequestsRange[k_Start] + m_PathRequestsRange[k_Count];
@@ -175,9 +184,37 @@ public partial class CrowdSystem : JobComponentSystem
             }
         }
 
+        //{
+        //    afterQueriesCleanup.Complete();
+        //    for (var i = 0; i < m_PathRequestIdForAgent.Length; i++)
+        //    {
+        //        if (m_PathRequestIdForAgent[i] == PathQueryQueueEcs.RequestEcs.invalidId)
+        //            continue;
+
+        //        var existsInQ = false;
+        //        for (var r = m_PathRequestsRange[k_Start]; r < m_PathRequestsRange[k_Count]; r++)
+        //        {
+        //            var reqInQ = m_PathRequests[r];
+        //            existsInQ = reqInQ.uid == m_PathRequestIdForAgent[i];
+        //            if (existsInQ)
+        //                break;
+        //        }
+        //        if (!existsInQ)
+        //        {
+        //            foreach (var query in m_QueryQueues)
+        //            {
+        //                existsInQ = query.DbgRequestExistsInQueue(m_PathRequestIdForAgent[i]);
+        //                if (existsInQ)
+        //                    break;
+        //            }
+        //        }
+        //        Debug.Assert(existsInQ, "The request for agent " + i + "doesn't exist in any query queues anymore.");
+        //    }
+        //}
+
         var pathNeededJob = new CheckPathNeededJob
         {
-            agents = m_Agents,
+            agentNavigators = m_AgentNavigators,
             planPathForAgent = m_PlanPathForAgent,
             pathRequestIdForAgent = m_PathRequestIdForAgent,
             paths = m_AgentPaths.GetReadOnlyData()
@@ -187,6 +224,7 @@ public partial class CrowdSystem : JobComponentSystem
         var makeRequestsJob = new MakePathRequestsJob
         {
             agents = m_Agents,
+            agentNavigators = m_AgentNavigators,
             planPathForAgent = m_PlanPathForAgent,
             pathRequestIdForAgent = m_PathRequestIdForAgent,
             pathRequests = m_PathRequests,
@@ -237,10 +275,10 @@ public partial class CrowdSystem : JobComponentSystem
             afterPathsAdded = resultsJob.Schedule(afterPathsAdded);
         }
 
-        var advance = new AdvancePathJob { agents = m_Agents, paths = m_AgentPaths.GetRangesData() };
+        var advance = new AdvancePathJob { agents = m_Agents, agentNavigators = m_AgentNavigators, paths = m_AgentPaths.GetRangesData() };
         var afterPathsTrimmed = advance.Schedule(m_Agents.Length, 20, afterPathsAdded);
 
-        var vel = new UpdateVelocityJob { agents = m_Agents, paths = m_AgentPaths.GetReadOnlyData() };
+        var vel = new UpdateVelocityJob { agents = m_Agents, agentNavigators = m_AgentNavigators, paths = m_AgentPaths.GetReadOnlyData() };
         var afterVelocitiesUpdated = vel.Schedule(m_Agents.Length, 15, afterPathsTrimmed);
 
         var move = new MoveLocationsJob { agents = m_Agents, dt = Time.deltaTime };
@@ -278,6 +316,7 @@ public partial class CrowdSystem : JobComponentSystem
         for (var i = 0; i < m_Agents.Length; ++i)
         {
             var agent = m_Agents[i];
+            var agentNavigator = m_AgentNavigators[i];
             float3 offset = 0.5f * Vector3.up;
 
             //Debug.DrawRay(agent.worldPosition + offset, agent.velocity, Color.cyan);
@@ -294,6 +333,9 @@ public partial class CrowdSystem : JobComponentSystem
             offset = 0.9f * offset;
             float3 pathEndPos = pathInfo.end.position;
             Debug.DrawLine(agent.worldPosition + offset, pathEndPos, Color.black);
+
+            var colorToDest = agentNavigator.destinationInView ? Color.white : Color.gray;
+            Debug.DrawLine(agent.worldPosition + offset, agentNavigator.requestedDestination, colorToDest);
         }
     }
 }

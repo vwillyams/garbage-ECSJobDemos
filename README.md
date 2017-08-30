@@ -8,7 +8,8 @@ More info in confluence:
 https://confluence.hq.unity3d.com/display/~joe/ECS+-+High+performance+game+code
 
 # unity build
-Required build: http://beta.unity3d.com/download/910b358d9235/download.html `(2017-08-29 910b358d9235 scripting/jobsystem/unite-demo-2017)`
+Required build: http://beta.unity3d.com/download/df89356f6680/download.html
+ `(2017-08-29 df89356f6680 scripting/jobsystem/unite-demo-2017)`
 
 # ECSJobDemos
 Project folder for basic ECS dev & tests

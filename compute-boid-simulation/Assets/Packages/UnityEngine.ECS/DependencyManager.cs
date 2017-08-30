@@ -100,6 +100,17 @@ namespace UnityEngine.ECS
 			ms_BehaviourManagers.Clear();
 		}
 
+		ScriptBehaviourManager CreateAndRegisterManager (System.Type type, int capacity)
+		{
+			var manager = Activator.CreateInstance(type) as ScriptBehaviourManager;
+
+			ms_BehaviourManagers.Add (manager);
+
+			ScriptBehaviourManager.CreateInstance (manager, capacity);
+
+			return manager;
+		}
+
 
 		internal static DefaultUpdateManager CreateDefaultUpdateManager (System.Type type)
 		{
@@ -108,7 +119,7 @@ namespace UnityEngine.ECS
 			if (method.DeclaringType == typeof(ScriptBehaviour))
 				return null;
 			else
-				return ScriptBehaviourManager.CreateInstance(typeof(DefaultUpdateManager), GetCapacityForType(type)) as DefaultUpdateManager;
+				return AutoRoot.CreateAndRegisterManager(typeof(DefaultUpdateManager), GetCapacityForType(type)) as DefaultUpdateManager;
 		}
 
 		public static T GetBehaviourManager<T> () where T : ScriptBehaviourManager
@@ -126,9 +137,7 @@ namespace UnityEngine.ECS
 			}
 
 			//@TODO: Check that type inherit from ScriptBehaviourManager
-
-			var obj = ScriptBehaviourManager.CreateInstance(type, GetCapacityForType(type));
-			root.ms_BehaviourManagers.Add(obj);
+			var obj = root.CreateAndRegisterManager(type, GetCapacityForType(type));
 
 			return obj;
 		}

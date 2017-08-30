@@ -44,11 +44,9 @@ namespace UnityEngine.ECS
 		}
 		private static HashSet<ScriptBehaviourManager> s_ActiveManagers = new HashSet<ScriptBehaviourManager>();
 
-		internal static ScriptBehaviourManager CreateInstance(Type type, int capacity)
+		internal static void CreateInstance(ScriptBehaviourManager manager, int capacity)
 		{
-			var obj = Activator.CreateInstance(type) as ScriptBehaviourManager;
-			obj.OnCreateManager(capacity);
-			return obj;
+			manager.OnCreateManager(capacity);
 		}
 
 		internal static void DestroyInstance(ScriptBehaviourManager inst)

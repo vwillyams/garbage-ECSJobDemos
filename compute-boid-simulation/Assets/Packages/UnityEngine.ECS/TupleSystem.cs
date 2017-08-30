@@ -123,7 +123,7 @@ namespace UnityEngine.ECS
 			}
 		}
 	
-		public static void SplitComponents(Type[] anyComponents, out Type[] outComponentDataTypes, out Type[] outComponentTypes)
+		static void SplitComponents(Type[] anyComponents, out Type[] outComponentDataTypes, out Type[] outComponentTypes)
 		{
 			var componentDataTypes = new List<Type> (anyComponents.Length);
 			var componentTypes = new List<Type> (anyComponents.Length);

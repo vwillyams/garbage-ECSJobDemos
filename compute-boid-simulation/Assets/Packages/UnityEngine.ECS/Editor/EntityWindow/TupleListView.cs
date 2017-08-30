@@ -16,6 +16,18 @@ namespace UnityEngine.ECS
 
         EntityWindow window;
 
+        GUIStyle rightAlignedLabel {
+            get {
+                if (m_RightAlignedLabel == null)
+                {
+                    m_RightAlignedLabel = new GUIStyle("PR Label");
+                    m_RightAlignedLabel.alignment = TextAnchor.MiddleRight;
+                }
+                return m_RightAlignedLabel;
+            }
+        }
+        GUIStyle m_RightAlignedLabel;
+
         public TupleListView(TreeViewState state, EntityWindow window) : base(state)
         {
             this.window = window;
@@ -58,13 +70,19 @@ namespace UnityEngine.ECS
         override protected void RowGUI(RowGUIArgs args)
         {
             base.RowGUI(args);
-            GUI.skin.label.alignment = TextAnchor.MiddleRight;
-            GUI.Label(args.rowRect, tuplesById[args.item.id].GetEntityArray().Length.ToString());
+            GUI.Label(args.rowRect, tuplesById[args.item.id].GetEntityArray().Length.ToString(), rightAlignedLabel);
         }
 
         override protected void SelectionChanged(IList<int> selectedIds)
         {
-            
+            if (selectedIds.Count > 0 && tuplesById.ContainsKey(selectedIds[0]))
+            {
+                window.CurrentTupleSelection = tuplesById[selectedIds[0]];
+            }
+            else
+            {
+                window.CurrentTupleSelection = null;
+            }
         }
 
         override protected bool CanMultiSelect(TreeViewItem item)

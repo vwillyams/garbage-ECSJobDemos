@@ -63,11 +63,11 @@ namespace UnityEngine.ECS
         {
             if (selectedIds.Count > 0 && managersByID.ContainsKey(selectedIds[0]))
             {
-                window.CurrentSelection = managersByID[selectedIds[0]];
+                window.CurrentSystemSelection = managersByID[selectedIds[0]];
             }
             else
             {
-                window.CurrentSelection = null;
+                window.CurrentSystemSelection = null;
             }
         }
 

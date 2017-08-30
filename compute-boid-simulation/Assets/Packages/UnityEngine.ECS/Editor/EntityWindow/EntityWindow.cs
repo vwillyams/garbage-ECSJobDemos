@@ -12,7 +12,9 @@ namespace UnityEngine.ECS
         
         const float kSystemListWidth = 300f;
 
-        public ComponentSystem CurrentSelection { get; set; }
+        public ComponentSystem CurrentSystemSelection { get; set; }
+
+        public TupleSystem CurrentTupleSelection { get; set; }
 
         [SerializeField]
         TreeViewState m_SystemListState;
@@ -62,9 +64,9 @@ namespace UnityEngine.ECS
 
         void TupleList(Rect rect)
         {
-            if (CurrentSelection != null)
+            if (CurrentSystemSelection != null)
             {
-                m_TupleListView.SetSelection(CurrentSelection);
+                m_TupleListView.SetSelection(CurrentSystemSelection);
                 m_TupleListView.OnGUI(rect);
             }
         }

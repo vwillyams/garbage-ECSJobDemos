@@ -76,12 +76,29 @@ namespace UnityEngine.ECS
 		NativeHashMap<int, int>	 		m_EntityToTupleIndex;
 		NativeList<Entity>		 		m_TupleToEntityIndex;
 
-		public EntityGroup (EntityManager entities, params Type[] requiredComponents)
+		public EntityGroup (EntityManager entityManager, params Type[] requiredComponents)
 		{
-			throw new System.NotImplementedException ();
+			Type[] componentDataTypes;
+			Type[] componentTypes;
+			SplitComponents (requiredComponents, out componentDataTypes, out componentTypes);
+
+			var componentDataManagers = new ScriptBehaviourManager[componentDataTypes.Length];
+			for (int i = 0; i != componentDataManagers.Length; i++)
+			{
+				var managerType = typeof(ComponentDataManager<>).MakeGenericType (componentDataTypes [i]);
+				componentDataManagers[i] = DependencyManager.GetBehaviourManager (managerType);
+			}
+
+			Initialize (entityManager, componentDataTypes, componentDataManagers, componentTypes, new TransformAccessArray());
 		}
 
 		public EntityGroup (EntityManager entityManager, Type[] componentDataTypes, ScriptBehaviourManager[] componentDataManagers, Type[] componentTypes, TransformAccessArray transforms)
+		{
+			Initialize (entityManager, componentDataTypes, componentDataManagers, componentTypes, transforms);
+		}
+
+
+		void Initialize (EntityManager entityManager, Type[] componentDataTypes, ScriptBehaviourManager[] componentDataManagers, Type[] componentTypes, TransformAccessArray transforms)
 		{
 			int capacity = 0;
 
@@ -146,19 +163,16 @@ namespace UnityEngine.ECS
 			array.m_Array = m_TupleToEntityIndex;
 			return array;
 		}
-		/*
-		public ComponentDataArray<T> GetComponentDataArray()
-		{
-			
-		}
 
-*/
-
-		internal ComponentArray<T> GetComponentArray<T>(int index) where T : Component
+		public ComponentDataArray<T> GetComponentDataArray<T>(bool readOnly = false)where T : struct, IComponentData
 		{
-			ComponentArray<T> array;
-			array.m_List = (List<T>)m_ComponentLists[index];
-			return array;
+			for (int i = 0; i != m_ComponentDataTypes.Length; i++)
+			{
+				if (m_EntityManager.GetTypeFromIndex (m_ComponentDataTypes [i]) == typeof(T))
+					return GetComponentDataArray<T> (i, readOnly);
+			}
+
+			throw new System.ArgumentException (typeof(T) + " is not part of the EntityGroup");
 		}
 
 		internal ComponentDataArray<T> GetComponentDataArray<T>(int index, bool readOnly) where T : struct, IComponentData
@@ -168,6 +182,12 @@ namespace UnityEngine.ECS
 			return container;
 		}
 
+		internal ComponentArray<T> GetComponentArray<T>(int index) where T : Component
+		{
+			ComponentArray<T> array;
+			array.m_List = (List<T>)m_ComponentLists[index];
+			return array;
+		}
 
 		bool IsTupleSupported(GameObject go, Entity lightGameObject)
 		{

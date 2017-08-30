@@ -58,7 +58,7 @@ namespace UnityEngine.ECS
 		}
 
 
-		//IEntityGroupChange 		m_ChangeEvent;
+		IEntityGroupChange 				m_ChangeEvent;
 
 		// Transforms
 		TransformAccessArray	 		m_Transforms;
@@ -229,6 +229,9 @@ namespace UnityEngine.ECS
 
 		private void RemoveSwapBackTupleIndex(int tupleIndex)
 		{
+			if (m_ChangeEvent != null)
+				m_ChangeEvent.OnRemoveSwapBack (tupleIndex);
+
 			for (int i = 0; i != m_ComponentLists.Length; i++)
 				m_ComponentLists[i].RemoveAtSwapBackComponent (tupleIndex);
 
@@ -279,6 +282,9 @@ namespace UnityEngine.ECS
 			int tupleIndex = m_TupleToEntityIndex.Length;
 			m_EntityToTupleIndex.TryAdd (lightGameObject.index, tupleIndex);
 			m_TupleToEntityIndex.Add (lightGameObject);
+
+			if (m_ChangeEvent != null)
+				m_ChangeEvent.OnAddElements (1);
 		}
 
 		public void AddTuplesEntityIDPartial(NativeArray<Entity> entityIndices)
@@ -289,6 +295,9 @@ namespace UnityEngine.ECS
 				m_TupleToEntityIndex.Add (entityIndices[i]);
 				m_EntityToTupleIndex.TryAdd (entityIndices[i].index, baseIndex + i);
 			}
+
+			if (m_ChangeEvent != null)
+				m_ChangeEvent.OnAddElements (entityIndices.Length);
 		}
 
 		public void AddTuplesComponentDataPartial(int componentTypeIndex, NativeSlice<int> componentIndices)
@@ -334,5 +343,9 @@ namespace UnityEngine.ECS
 			}
 		}
 
+		public void AddChangeEventListener (IEntityGroupChange evt)
+		{
+			m_ChangeEvent = evt;
+		}
 	}
 }

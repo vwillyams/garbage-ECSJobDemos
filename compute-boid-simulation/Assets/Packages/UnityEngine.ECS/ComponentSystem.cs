@@ -30,6 +30,10 @@ namespace UnityEngine.ECS
     	{
     		base.OnCreateManager(capacity);
 			InjectTuples.CreateTuplesInjection (GetType(), this, out m_Tuples, out m_JobDependencyForReadingManagers, out m_JobDependencyForWritingManagers);
+
+			IEntityGroupChange evt = this as IEntityGroupChange;
+			if (Tuples.Length != 0 && evt != null)
+				Tuples[0].EntityGroup.AddChangeEventListener (evt);
     	}
 
     	override protected void OnDestroyManager()

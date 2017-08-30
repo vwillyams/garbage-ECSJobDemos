@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.Jobs;
 using UnityEngine.Collections;
-using System.Collections.Generic;
 using UnityEngine.ECS;
 
 [UpdateAfter(typeof(CrowdSystem))]
@@ -12,6 +11,9 @@ class CrowdAgentsToTransformSystem : JobComponentSystem
 
     [InjectTuples]
     TransformAccessArray m_CrowdAgentTransforms;
+
+    [InjectTuples]
+    ComponentDataArray<WriteToTransformMarker> m_WriteToTrasformFlag;
 
     struct WriteCrowdAgentsToTransformsJob : IJobParallelForTransform
     {

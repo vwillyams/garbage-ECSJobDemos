@@ -186,5 +186,18 @@ namespace UnityEngine.ECS.Tests
 
 			instances.Dispose ();
 		}
+
+		[Test]
+		public void ReadOnlyTuples()
+		{
+			var readOnlySystem = DependencyManager.GetBehaviourManager<PureReadOnlySystem> ();
+
+			var go = m_Manager.AllocateEntity ();
+			m_Manager.AddComponent (go, new EcsTestData(2));
+
+			readOnlySystem.OnUpdate ();
+			Assert.AreEqual (2, readOnlySystem.m_Data [0].value);
+			Assert.Throws<System.InvalidOperationException>(()=> { readOnlySystem.m_Data[0] = new EcsTestData(); });
+		}
 	}
 }

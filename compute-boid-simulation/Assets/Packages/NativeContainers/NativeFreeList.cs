@@ -70,7 +70,7 @@ namespace UnityEngine.Collections
 			set
 			{
 				#if ENABLE_NATIVE_ARRAY_CHECKS
-				AtomicSafetyHandle.CheckWriteAndBumpSecondaryVersion(m_Safety);
+				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 				#endif
 
 				if (value <= m_Capacity)
@@ -109,13 +109,14 @@ namespace UnityEngine.Collections
 
 			#if ENABLE_NATIVE_ARRAY_CHECKS
 			DisposeSentinel.Create(m_Buffer, i_label, out m_Safety, out m_DisposeSentinel, 0);
+			AtomicSafetyHandle.SetAllowSecondaryVersionWriting(m_Safety, false);
 			#endif
 		}
 
 		unsafe public int Add(T value)
 		{			
 			#if ENABLE_NATIVE_ARRAY_CHECKS
-			AtomicSafetyHandle.CheckWriteAndBumpSecondaryVersion(m_Safety);
+			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 			#endif
 
 			if (m_NextFree == kNullLinkId)
@@ -133,7 +134,7 @@ namespace UnityEngine.Collections
 		unsafe public void Remove(int index)
 		{			
 			#if ENABLE_NATIVE_ARRAY_CHECKS
-			AtomicSafetyHandle.CheckWriteAndBumpSecondaryVersion(m_Safety);
+			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 			#endif
 
 			//@TODO: Debugging system to track which indices are active or not...

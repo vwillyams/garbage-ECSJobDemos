@@ -4,6 +4,7 @@ using UnityEngine;
 using NUnit.Framework;
 using UnityEngine.Jobs;
 using UnityEngine.ECS;
+using UnityEngine.Collections;
 
 namespace UnityEngine.ECS.Tests
 {
@@ -25,6 +26,15 @@ namespace UnityEngine.ECS.Tests
 
 		[InjectTuples]
 		public TransformAccessArray m_Transforms;
+
+		public void OnUpdate() { base.OnUpdate (); }
+	}
+
+	public class PureReadOnlySystem : ComponentSystem
+	{
+		[InjectTuples]
+		[ReadOnlyAttribute]
+		public ComponentDataArray<EcsTestData> m_Data;
 
 		public void OnUpdate() { base.OnUpdate (); }
 	}

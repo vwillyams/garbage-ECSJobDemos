@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 
 //@TODO: ZERO TEST COVERAGE!!!
+// * Doesn't handle all cases of how a NativeFreeList can be reallocate / invalidated etc
 
 namespace UnityEngine.ECS
 {
@@ -17,7 +18,6 @@ namespace UnityEngine.ECS
 	{
 		unsafe int*                 m_Indices;
 		IntPtr                   	m_Data;
-		bool                        m_IsReadOnly;
 		int                      	m_Length;
 
 		#if ENABLE_NATIVE_ARRAY_CHECKS
@@ -31,12 +31,13 @@ namespace UnityEngine.ECS
 		{
 			m_Indices = (int*)indices.UnsafeReadOnlyPtr;
 			m_Length = indices.Length;
-			m_IsReadOnly = isReadOnly;
 
 			#if ENABLE_NATIVE_ARRAY_CHECKS
 			m_MinIndex = 0;
 			m_MaxIndex = m_Length - 1;
 			data.GetUnsafeBufferPointerWithoutChecksInternal(out m_Safety, out m_Data);
+			if (isReadOnly)
+				AtomicSafetyHandle.UseSecondaryVersion(ref m_Safety);
 			#else
 			m_Data = data.UnsafePtr;
 			#endif
@@ -60,8 +61,6 @@ namespace UnityEngine.ECS
 			}
 			set
 			{
-				if (m_IsReadOnly)
-					throw new InvalidOperationException("Cannot write to read-only component data.");
 				#if ENABLE_NATIVE_ARRAY_CHECKS
 				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 				if (index < m_MinIndex || index > m_MaxIndex)

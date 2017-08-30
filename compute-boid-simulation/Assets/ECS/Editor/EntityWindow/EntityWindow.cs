@@ -79,7 +79,7 @@ namespace UnityEngine.ECS
         {
             if (systems == null)
             {
-                GUILayout.Label("No ComponenySystems loaded. (Try pushing Play)");
+                GUILayout.Label("No ComponentSystems loaded. (Try pushing Play)");
                 return;
             }
             SystemList();

@@ -25,7 +25,7 @@ namespace UnityEngine.ECS
             foreach (var manager in managers)
             {
                 var ns = manager.GetType().Namespace;
-                if (!managersByNamespace.ContainsKey(ns))
+                if (!managersByNamespace.ContainsKey(ns ?? "global"))
                     managersByNamespace[ns] = new List<ComponentSystem>{manager};
                 else
                     managersByNamespace[ns].Add(manager);
@@ -54,6 +54,7 @@ namespace UnityEngine.ECS
                         nsItem.AddChild(managerItem);
                     }
                 }
+                SetupDepthsFromParentsAndChildren(root);
             }
             return root;
         }

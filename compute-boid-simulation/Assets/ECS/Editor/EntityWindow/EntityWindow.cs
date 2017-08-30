@@ -15,9 +15,18 @@ namespace UnityEngine.ECS
         public ComponentSystem CurrentSelection { get; set; }
 
         [SerializeField]
-        TreeViewState m_TreeViewState;
+        TreeViewState m_SystemListState;
 
-        SystemListView m_EntityListView;
+        SystemListView m_SystemListView;
+
+        [SerializeField]
+        TreeViewState m_TupleListState;
+
+        TupleListView m_TupleListView;
+
+        Rect systemListRect { get { return new Rect(0f, 0f, kSystemListWidth, position.height); } }
+        Rect verticalSplitterRect { get { return new Rect(kSystemListWidth, 0f, 1f, position.height); } }
+        Rect tupleListRect { get { return new Rect(kSystemListWidth, 0f, position.width - kSystemListWidth, position.height); } }
 
         [MenuItem ("Window/Entities", false, 2017)]
         static void Init ()
@@ -27,9 +36,12 @@ namespace UnityEngine.ECS
 
         void OnEnable()
         {
-            if (m_TreeViewState == null)
-                m_TreeViewState = new TreeViewState();
-            m_EntityListView = new SystemListView(m_TreeViewState, this);
+            if (m_SystemListState == null)
+                m_SystemListState = new TreeViewState();
+            m_SystemListView = new SystemListView(m_SystemListState, this);
+            if (m_TupleListState == null)
+                m_TupleListState = new TreeViewState();
+            m_TupleListView = new TupleListView(m_TupleListState, this);
         }
 
         ComponentSystem[] systems {
@@ -42,34 +54,19 @@ namespace UnityEngine.ECS
             }
         }
 
-        void SystemList()
+        void SystemList(Rect rect)
         {
-            m_EntityListView.SetManagers(systems);
-            m_EntityListView.OnGUI(new Rect(0f, 0f, kSystemListWidth, position.height));
+            m_SystemListView.SetManagers(systems);
+            m_SystemListView.OnGUI(rect);
         }
 
-        void TupleList()
+        void TupleList(Rect rect)
         {
-            GUILayout.BeginArea(new Rect(kSystemListWidth, 0f, position.width - kSystemListWidth, position.height), GUIContent.none, "OL box");
             if (CurrentSelection != null)
             {
-                var tupleIndex = 0;
-                foreach (var tupleSystem in CurrentSelection.Tuples)
-                {
-					var types = tupleSystem.EntityGroup.Types;
-
-					var tupleName = string.Join(", ", (from x in types select x.Name).ToArray());
-                    var components = tupleSystem.GetEntityArray();
-
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label(string.Format("({1}):", tupleIndex, tupleName));
-                    GUILayout.FlexibleSpace();
-                    GUILayout.Label(components.Length.ToString());
-                    GUILayout.EndHorizontal();
-                    ++tupleIndex;
-                }
+                m_TupleListView.SetSelection(CurrentSelection);
+                m_TupleListView.OnGUI(rect);
             }
-            GUILayout.EndArea();
         }
 
         void OnGUI ()
@@ -79,8 +76,23 @@ namespace UnityEngine.ECS
                 GUILayout.Label("No ComponentSystems loaded. (Try pushing Play)");
                 return;
             }
-            SystemList();
-            TupleList();
+            SystemList(systemListRect);
+            DrawHorizontalSplitter(verticalSplitterRect);
+            TupleList(tupleListRect);
+            
+        }
+
+        internal static void DrawHorizontalSplitter(Rect dragRect)
+        {
+            if (Event.current.type != EventType.repaint)
+                return;
+
+            Color orgColor = GUI.color;
+            Color tintColor = (EditorGUIUtility.isProSkin) ? new Color(0.12f, 0.12f, 0.12f, 1.333f) : new Color(0.6f, 0.6f, 0.6f, 1.333f);
+            GUI.color = GUI.color * tintColor;
+            Rect splitterRect = new Rect(dragRect.x - 1, dragRect.y, 1, dragRect.height);
+            GUI.DrawTexture(splitterRect, EditorGUIUtility.whiteTexture);
+            GUI.color = orgColor;
         }
     }
 }

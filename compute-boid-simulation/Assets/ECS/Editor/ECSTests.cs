@@ -199,5 +199,18 @@ namespace UnityEngine.ECS.Tests
 			Assert.AreEqual (2, readOnlySystem.m_Data [0].value);
 			Assert.Throws<System.InvalidOperationException>(()=> { readOnlySystem.m_Data[0] = new EcsTestData(); });
 		}
+
+		[Test]
+		public void GroupChangeSystem()
+		{
+			var changeSystem = DependencyManager.GetBehaviourManager<GroupChangeSystem> ();
+
+			var go = m_Manager.AllocateEntity ();
+
+			m_Manager.AddComponent (go, new EcsTestData(2));
+			changeSystem.ExpectDidAddElements (1);
+			m_Manager.Destroy (go);
+			changeSystem.ExpectDidRemoveSwapBack (0);
+		}
 	}
 }

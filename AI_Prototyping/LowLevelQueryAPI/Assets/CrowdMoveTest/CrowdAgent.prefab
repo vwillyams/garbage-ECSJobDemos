@@ -39,6 +39,7 @@ GameObject:
   - component: {fileID: 33847181902350386}
   - component: {fileID: 23444604131775088}
   - component: {fileID: 114965689952184466}
+  - component: {fileID: 114688373130806142}
   m_Layer: 0
   m_Name: CrowdAgent
   m_TagString: Untagged
@@ -155,6 +156,17 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1949256547243048}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &114688373130806142
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1949256547243048}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8a1621ecdf2264459ae5ee468321349, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &114965689952184466
 MonoBehaviour:
   m_ObjectHideFlags: 1

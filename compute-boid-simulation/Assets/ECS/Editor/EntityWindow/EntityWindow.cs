@@ -56,12 +56,9 @@ namespace UnityEngine.ECS
                 var tupleIndex = 0;
                 foreach (var tupleSystem in CurrentSelection.Tuples)
                 {
-                    var types = new List<Type>();
-                    types.AddRange(tupleSystem.ComponentTypes);
-                    types.AddRange(tupleSystem.ComponentDataTypes);
-                    if (tupleSystem.HasTransformAccess)
-                        types.Add(typeof(TransformAccess));
-                    var tupleName = string.Join(", ", (from x in types select x.Name).ToArray());
+					var types = tupleSystem.EntityGroup.Types;
+
+					var tupleName = string.Join(", ", (from x in types select x.Name).ToArray());
                     var components = tupleSystem.GetEntityArray();
 
                     GUILayout.BeginHorizontal();

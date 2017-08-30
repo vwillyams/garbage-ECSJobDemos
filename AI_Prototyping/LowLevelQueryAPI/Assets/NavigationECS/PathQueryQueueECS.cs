@@ -240,4 +240,18 @@ public struct PathQueryQueueEcs
             m_State[0] = state;
         }
     }
+
+    //public bool DbgRequestExistsInQueue(uint requestUid)
+    //{
+    //    var existsInQ = false;
+    //    var state = m_State[0];
+    //    for (var i = state.requestIndex; i < state.requestCount; ++i)
+    //    {
+    //        existsInQ = (m_Requests[i].uid == requestUid);
+    //        if (existsInQ)
+    //            break;
+    //    }
+
+    //    return existsInQ;
+    //}
 }

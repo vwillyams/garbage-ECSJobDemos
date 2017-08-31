@@ -29,9 +29,9 @@ namespace UnityEngine.ECS
         protected override TreeViewItem BuildRoot()
         {
             var root  = new TreeViewItem { id = -1, depth = -1, displayName = "Root" };
-            if (currentSystem == null)
+            if (currentSystem == null || currentSystem.GetEntityArray().Length == 0)
             {
-                root.AddChild(new TreeViewItem { id = 0, displayName = "No Tuple selected"});
+                root.AddChild(new TreeViewItem { id = 0 });
             }
             else
             {

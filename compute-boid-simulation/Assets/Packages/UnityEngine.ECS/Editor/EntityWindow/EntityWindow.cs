@@ -18,24 +18,24 @@ namespace UnityEngine.ECS
         public TupleSystem CurrentTupleSelection { get; set; }
 
         [SerializeField]
-        TreeViewState m_SystemListState;
+        TreeViewState systemListState;
 
-        SystemListView m_SystemListView;
-
-        [SerializeField]
-        TreeViewState m_TupleListState;
-
-        TupleListView m_TupleListView;
+        SystemListView systemListView;
 
         [SerializeField]
-        TreeViewState m_EntityListState;
+        TreeViewState tupleListState;
 
-        EntityListView m_EntityListView;
+        TupleListView tupleListView;
 
-        MultiColumnHeader m_EntityListHeader;
+        [SerializeField]
+        TreeViewState entityListState;
+
+        EntityListView entityListView;
+
+        MultiColumnHeader entityListHeader;
 
         [NonSerialized]
-        bool m_Initialized;
+        bool initialized;
 
         Rect systemListRect { get { return new Rect(0f, 0f, kSystemListWidth, kSystemListHeight); } }
         Rect verticalSplitterRect { get { return new Rect(kSystemListWidth, 0f, 1f, kSystemListHeight); } }
@@ -51,18 +51,18 @@ namespace UnityEngine.ECS
 
         void InitIfNeeded()
         {
-            if (!m_Initialized)
+            if (!initialized)
             {
-                if (m_SystemListState == null)
-                    m_SystemListState = new TreeViewState();
-                m_SystemListView = new SystemListView(m_SystemListState, this);
-                if (m_TupleListState == null)
-                    m_TupleListState = new TreeViewState();
-                m_TupleListView = new TupleListView(m_TupleListState, this);
-                if (m_EntityListState == null)
-                    m_EntityListState = new TreeViewState();
-                m_EntityListView = new EntityListView(m_EntityListState, this);
-                m_Initialized = true;
+                if (systemListState == null)
+                    systemListState = new TreeViewState();
+                systemListView = new SystemListView(systemListState, this);
+                if (tupleListState == null)
+                    tupleListState = new TreeViewState();
+                tupleListView = new TupleListView(tupleListState, this);
+                if (entityListState == null)
+                    entityListState = new TreeViewState();
+                entityListView = new EntityListView(entityListState, this);
+                initialized = true;
             }
         }
 
@@ -78,16 +78,16 @@ namespace UnityEngine.ECS
 
         void SystemList(Rect rect)
         {
-            m_SystemListView.SetManagers(systems);
-            m_SystemListView.OnGUI(rect);
+            systemListView.SetManagers(systems);
+            systemListView.OnGUI(rect);
         }
 
         void TupleList(Rect rect)
         {
             if (CurrentSystemSelection != null)
             {
-                m_TupleListView.SetSelection(CurrentSystemSelection);
-                m_TupleListView.OnGUI(rect);
+                tupleListView.SetSelection(CurrentSystemSelection);
+                tupleListView.OnGUI(rect);
             }
         }
 
@@ -95,8 +95,8 @@ namespace UnityEngine.ECS
         {
             if (CurrentTupleSelection != null)
             {
-                m_EntityListView.SetSelection(CurrentTupleSelection);
-                m_EntityListView.OnGUI(rect);
+                entityListView.SetSelection(CurrentTupleSelection);
+                entityListView.OnGUI(rect);
             }
         }
 

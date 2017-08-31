@@ -44,6 +44,7 @@ namespace UnityEngine.ECS
 			}
 		}
 		List<ScriptBehaviourManager> 	ms_BehaviourManagers = new List<ScriptBehaviourManager> ();
+		Dictionary<Type, ScriptBehaviourManager> 	ms_BehaviourManagerLookup = new Dictionary<Type, ScriptBehaviourManager> ();
 		Dictionary<Type, Dependencies> 	ms_InstanceDependencies = new Dictionary<Type, Dependencies>();
 
 		static DependencyManager m_Root = null;
@@ -98,6 +99,7 @@ namespace UnityEngine.ECS
 				ScriptBehaviourManager.DestroyInstance (behaviourManager);
 
 			ms_BehaviourManagers.Clear();
+			ms_BehaviourManagerLookup.Clear();
 		}
 
 		ScriptBehaviourManager CreateAndRegisterManager (System.Type type, int capacity)
@@ -105,6 +107,7 @@ namespace UnityEngine.ECS
 			var manager = Activator.CreateInstance(type) as ScriptBehaviourManager;
 
 			ms_BehaviourManagers.Add (manager);
+			ms_BehaviourManagerLookup.Add(type, manager);
 
 			ScriptBehaviourManager.CreateInstance (manager, capacity);
 
@@ -130,10 +133,17 @@ namespace UnityEngine.ECS
 		public static ScriptBehaviourManager GetBehaviourManager (System.Type type)
 		{
 			var root = AutoRoot;
+			ScriptBehaviourManager manager;
+			if (root.ms_BehaviourManagerLookup.TryGetValue(type, out manager))
+				return manager;
 			foreach(var behaviourManager in root.ms_BehaviourManagers)
 			{
 				if (behaviourManager.GetType() == type || behaviourManager.GetType().IsSubclassOf(type))
+				{
+					// We will never create a new or more specialized version of this since this is the only place creating managers
+					root.ms_BehaviourManagerLookup.Add(type, behaviourManager);
 					return behaviourManager;
+				}
 			}
 
 			//@TODO: Check that type inherit from ScriptBehaviourManager

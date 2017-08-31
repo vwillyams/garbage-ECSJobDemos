@@ -261,42 +261,23 @@ namespace UnityEngine.ECS
     		return light;
     	}
 
-		//@TODO: Add HashMap functionality to remove a single component
 		int RemoveComponentFromEntityTable(Entity entity, int typeIndex)
 		{
-			var components = new NativeList<LightWeightComponentInfo> (16, Allocator.Temp);
-			int removedComponentIndex = -1;
-
 			LightWeightComponentInfo component;
 			NativeMultiHashMapIterator<int> iterator;
-
 			if (!m_EntityToComponent.TryGetFirstValue (entity.index, out component, out iterator))
 			{
-				components.Dispose ();
 				throw new ArgumentException ("RemoveComponent may not be invoked on a game object that does not exist");
 			}
-
-			if (component.componentTypeIndex != typeIndex)
-				components.Add (component);
-			else
-				removedComponentIndex = component.index;
-			
-
-			while (m_EntityToComponent.TryGetNextValue(out component, ref iterator))
+			do
 			{
-				if (component.componentTypeIndex != typeIndex)
-					components.Add (component);
-				else
-					removedComponentIndex = component.index;
-			}
-
-			m_EntityToComponent.Remove (entity.index);
-			for (int i = 0; i != components.Length;i++)
-				m_EntityToComponent.Add (entity.index, components[i]);
-
-			components.Dispose ();
-
-			return removedComponentIndex;
+				if (component.componentTypeIndex == typeIndex)
+				{
+					m_EntityToComponent.Remove(iterator);
+					return component.index;
+				}
+			} while (m_EntityToComponent.TryGetNextValue(out component, ref iterator));
+			return -1;
 		}
 
 		// * NOTE: Does not modify m_EntityToComponent

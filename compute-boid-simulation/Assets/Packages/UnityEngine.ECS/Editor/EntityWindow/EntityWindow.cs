@@ -11,6 +11,7 @@ namespace UnityEngine.ECS
     public class EntityWindow : EditorWindow {
         
         const float kSystemListWidth = 300f;
+        const float kSystemListHeight = 200f;
 
         public ComponentSystem CurrentSystemSelection { get; set; }
 
@@ -26,9 +27,21 @@ namespace UnityEngine.ECS
 
         TupleListView m_TupleListView;
 
-        Rect systemListRect { get { return new Rect(0f, 0f, kSystemListWidth, position.height); } }
-        Rect verticalSplitterRect { get { return new Rect(kSystemListWidth, 0f, 1f, position.height); } }
-        Rect tupleListRect { get { return new Rect(kSystemListWidth, 0f, position.width - kSystemListWidth, position.height); } }
+        [SerializeField]
+        TreeViewState m_EntityListState;
+
+        EntityListView m_EntityListView;
+
+        MultiColumnHeader m_EntityListHeader;
+
+        [NonSerialized]
+        bool m_Initialized;
+
+        Rect systemListRect { get { return new Rect(0f, 0f, kSystemListWidth, kSystemListHeight); } }
+        Rect verticalSplitterRect { get { return new Rect(kSystemListWidth, 0f, 1f, kSystemListHeight); } }
+        Rect tupleListRect { get { return new Rect(kSystemListWidth, 0f, position.width - kSystemListWidth, kSystemListHeight); } }
+        // Rect horizontalSplitterRect { get { return new Rect(0f, kSystemListHeight, position.width, 1f); } }
+        Rect entityListRect { get { return new Rect(0f, kSystemListHeight, position.width, position.height - kSystemListHeight); } }
 
         [MenuItem ("Window/Entities", false, 2017)]
         static void Init ()
@@ -36,14 +49,21 @@ namespace UnityEngine.ECS
             EditorWindow.GetWindow<EntityWindow>("Entities");
         }
 
-        void OnEnable()
+        void InitIfNeeded()
         {
-            if (m_SystemListState == null)
-                m_SystemListState = new TreeViewState();
-            m_SystemListView = new SystemListView(m_SystemListState, this);
-            if (m_TupleListState == null)
-                m_TupleListState = new TreeViewState();
-            m_TupleListView = new TupleListView(m_TupleListState, this);
+            if (!m_Initialized)
+            {
+                if (m_SystemListState == null)
+                    m_SystemListState = new TreeViewState();
+                m_SystemListView = new SystemListView(m_SystemListState, this);
+                if (m_TupleListState == null)
+                    m_TupleListState = new TreeViewState();
+                m_TupleListView = new TupleListView(m_TupleListState, this);
+                if (m_EntityListState == null)
+                    m_EntityListState = new TreeViewState();
+                m_EntityListView = new EntityListView(m_EntityListState, this);
+                m_Initialized = true;
+            }
         }
 
         ComponentSystem[] systems {
@@ -71,8 +91,18 @@ namespace UnityEngine.ECS
             }
         }
 
+        void EntityList(Rect rect)
+        {
+            if (CurrentTupleSelection != null)
+            {
+                m_EntityListView.SetSelection(CurrentTupleSelection);
+                m_EntityListView.OnGUI(rect);
+            }
+        }
+
         void OnGUI ()
         {
+            InitIfNeeded();
             if (systems == null)
             {
                 GUILayout.Label("No ComponentSystems loaded. (Try pushing Play)");
@@ -81,7 +111,7 @@ namespace UnityEngine.ECS
             SystemList(systemListRect);
             DrawHorizontalSplitter(verticalSplitterRect);
             TupleList(tupleListRect);
-            
+            EntityList(entityListRect);
         }
 
         internal static void DrawHorizontalSplitter(Rect dragRect)

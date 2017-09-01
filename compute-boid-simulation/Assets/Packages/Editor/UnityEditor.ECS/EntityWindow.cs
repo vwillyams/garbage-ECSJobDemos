@@ -13,9 +13,46 @@ namespace UnityEngine.ECS
         const float kSystemListWidth = 300f;
         const float kSystemListHeight = 200f;
 
-        public ComponentSystem CurrentSystemSelection { get; set; }
+        public GameObject componentDataHolder { get { return entityWrapperHolder; } }
+        [SerializeField]
+        GameObject entityWrapperHolder;
 
-        public TupleSystem CurrentTupleSelection { get; set; }
+        public ComponentSystem CurrentSystemSelection {
+            get { return currentSystemSelection; }
+            set {
+                currentSystemSelection = value;
+                currentTupleSelection = null;
+                InitTupleList();
+                InitEntityList();
+            }
+        }
+        ComponentSystem currentSystemSelection;
+
+        void InitTupleList()
+        {
+            tupleListState = new TreeViewState();
+            tupleListView = new TupleListView(tupleListState, this);
+            tupleListView.SetSelection(currentSystemSelection);
+        }
+
+        public TupleSystem CurrentTupleSelection {
+            get { return currentTupleSelection; }
+            set {
+                currentTupleSelection = value;
+                InitEntityList();
+            }
+        }
+        TupleSystem currentTupleSelection;
+
+        void InitEntityList()
+        {
+            if (currentTupleSelection == null)
+                return;
+            entityListState = new TreeViewState();
+            var headerState = EntityListView.BuildHeaderState(currentTupleSelection);
+            var header = new MultiColumnHeader(headerState);
+            entityListView = new EntityListView(entityListState, header, currentTupleSelection, this);
+        }
 
         [SerializeField]
         TreeViewState systemListState;
@@ -32,7 +69,7 @@ namespace UnityEngine.ECS
 
         EntityListView entityListView;
 
-        MultiColumnHeader entityListHeader;
+        MultiColumnHeaderState entityListHeaderState;
 
         [NonSerialized]
         bool initialized;
@@ -49,6 +86,17 @@ namespace UnityEngine.ECS
             EditorWindow.GetWindow<EntityWindow>("Entities");
         }
 
+        void OnEnable()
+        {
+            entityWrapperHolder = EditorUtility.CreateGameObjectWithHideFlags("__EntityWindowWrapperHolder", HideFlags.HideAndDontSave);
+        }
+
+        void OnDisable()
+        {
+            if (entityWrapperHolder != null)
+                DestroyImmediate(entityWrapperHolder);
+        }
+
         void InitIfNeeded()
         {
             if (!initialized)
@@ -56,12 +104,6 @@ namespace UnityEngine.ECS
                 if (systemListState == null)
                     systemListState = new TreeViewState();
                 systemListView = new SystemListView(systemListState, this);
-                if (tupleListState == null)
-                    tupleListState = new TreeViewState();
-                tupleListView = new TupleListView(tupleListState, this);
-                if (entityListState == null)
-                    entityListState = new TreeViewState();
-                entityListView = new EntityListView(entityListState, this);
                 initialized = true;
             }
         }
@@ -86,7 +128,6 @@ namespace UnityEngine.ECS
         {
             if (CurrentSystemSelection != null)
             {
-                tupleListView.SetSelection(CurrentSystemSelection);
                 tupleListView.OnGUI(rect);
             }
         }
@@ -95,7 +136,7 @@ namespace UnityEngine.ECS
         {
             if (CurrentTupleSelection != null)
             {
-                entityListView.SetSelection(CurrentTupleSelection);
+                entityListView.PrepareData();
                 entityListView.OnGUI(rect);
             }
         }

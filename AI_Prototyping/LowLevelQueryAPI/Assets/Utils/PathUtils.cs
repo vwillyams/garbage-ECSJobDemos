@@ -56,7 +56,7 @@ public class PathUtils
     }
 
     public static PathQueryStatus FindStraightPath(
-        PolygonPath path
+        PolygonPathEcs path
         , ref NativeArray<NavMeshLocation> straightPath
         , ref NativeArray<NavMeshStraightPathFlags> straightPathFlags
         , ref int straightPathCount

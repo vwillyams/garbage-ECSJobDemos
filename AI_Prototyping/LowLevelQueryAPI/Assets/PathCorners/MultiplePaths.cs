@@ -26,7 +26,7 @@ public class MultiplePaths : MonoBehaviour
     List<NativeArray<NavMeshStraightPathFlags>> m_StraightPathCornersFlags;
 
     // Workaround for missing support for nested arrays
-    List<PolygonPath> m_Paths;
+    List<PolygonPathEcs> m_Paths;
     PathQueryQueue m_QueryQueue;
     NativeArray<PathQueryQueue.Handle> m_PathRequestHandles;
     NativeArray<JobHandle> m_CornersJobHandles;
@@ -44,7 +44,7 @@ public class MultiplePaths : MonoBehaviour
         m_StraightPathCorners = new List<NativeArray<NavMeshLocation>>();
         m_StraightPathCornersFlags = new List<NativeArray<NavMeshStraightPathFlags>>();
 
-        m_Paths = new List<PolygonPath>(targetsCount);
+        m_Paths = new List<PolygonPathEcs>(targetsCount);
         m_QueryQueue = new PathQueryQueue();
         m_PathRequestHandles = new NativeArray<PathQueryQueue.Handle>(targetsCount, Allocator.Persistent);
         m_CornersJobHandles = new NativeArray<JobHandle>(targetsCount, Allocator.Persistent);
@@ -202,7 +202,7 @@ public class MultiplePaths : MonoBehaviour
         }
         for (var i = diff; i < 0; i++)
         {
-            var path = new PolygonPath();
+            var path = new PolygonPathEcs();
             m_Paths.Add(path);
         }
     }
@@ -243,7 +243,8 @@ public class MultiplePaths : MonoBehaviour
                     m_PathRequestHandles[i] = new PathQueryQueue.Handle();
                     if (m_Paths[i].polygons.IsCreated)
                         m_Paths[i].polygons.Dispose();
-                    m_Paths[i] = res;
+                    var resEcs = new PolygonPathEcs { start = res.start, end = res.end, polygons = res.polygons, size = res.size };
+                    m_Paths[i] = resEcs;
                     break;
                 }
             }
@@ -292,7 +293,7 @@ public class MultiplePaths : MonoBehaviour
         static bool s_UseFunneling = true;
 
         [ReadOnly]
-        public PolygonPath path;
+        public PolygonPathEcs path;
         [ReadOnly]
         public Vector3 startPos;
 

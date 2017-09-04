@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
 using System.Linq;
-using System.Reflection;
 
 namespace UnityEngine.ECS
 {
@@ -24,67 +23,47 @@ namespace UnityEngine.ECS
     public class ComponentDataWrapper<T> : ComponentDataWrapperBase, UnityEngine.ISerializationCallbackReceiver where T : struct, IComponentData
     {
 		EntityManager   m_GameObjectManager;
+		Entity			m_Entity;
 
         [SerializeField]
         T m_SerializedData;
-
-		Entity GetLightWeightGameObject()
-		{
-			return new Entity(0, gameObject.GetInstanceID ());
-		}
 
     	public T Value
     	{
     		get
     		{ 
-				if (m_GameObjectManager != null)
+				if (m_GameObjectManager != null && m_GameObjectManager.HasComponent<T> (m_Entity))
     			{
-					var go = GetLightWeightGameObject();
-					if (m_GameObjectManager.HasComponent<T> (go))
-					{
-						return m_GameObjectManager.GetComponent<T> (go);
-					}
+					return m_GameObjectManager.GetComponent<T> (m_Entity);
     			}
     			
 				return m_SerializedData;
     		}
     		set
     		{
-				if (m_GameObjectManager != null)
+				m_SerializedData = value;
+				if (m_GameObjectManager != null && m_GameObjectManager.HasComponent<T> (m_Entity))
 				{
-					var go = GetLightWeightGameObject();
-					if (m_GameObjectManager.HasComponent<T> (go))
-					{
-						m_GameObjectManager.SetComponent<T> (go, value);
-						return;
-					}
+					m_GameObjectManager.SetComponent<T> (m_Entity, value);
+					return;
 				}
 
-    			m_SerializedData = value;
     		}
     	}
 
     	public void OnAfterDeserialize ()
     	{
-			if (m_GameObjectManager != null)
+			if (m_GameObjectManager != null && m_GameObjectManager.HasComponent<T> (m_Entity))
     		{
-				var go = GetLightWeightGameObject();
-				if (m_GameObjectManager.HasComponent<T> (go))
-				{
-					m_GameObjectManager.SetComponent<T> (go, m_SerializedData);
-				}
+				m_GameObjectManager.SetComponent<T> (m_Entity, m_SerializedData);
     		}
     	}
 
     	public void OnBeforeSerialize ()
     	{
-			if (m_GameObjectManager != null)
+			if (m_GameObjectManager != null && m_GameObjectManager.HasComponent<T> (m_Entity))
 			{			
-				var go = GetLightWeightGameObject();
-				if (m_GameObjectManager.HasComponent<T> (go))
-				{
-					m_SerializedData = m_GameObjectManager.GetComponent<T> (GetLightWeightGameObject ());
-				}
+				m_SerializedData = m_GameObjectManager.GetComponent<T> (m_Entity);
     		}
     	}
 
@@ -95,16 +74,19 @@ namespace UnityEngine.ECS
 
         override protected void OnEnable()
         {
-			if (m_GameObjectManager == null)
-				m_GameObjectManager = DependencyManager.GetBehaviourManager (typeof(EntityManager)) as EntityManager;
+			m_GameObjectManager = DependencyManager.GetBehaviourManager (typeof(EntityManager)) as EntityManager;
+			m_Entity = new Entity (0, gameObject.GetInstanceID ());
 
-			m_GameObjectManager.AddComponent(GetLightWeightGameObject(), m_SerializedData);
+			m_GameObjectManager.AddComponent(m_Entity, m_SerializedData);
         }
 
     	override protected void OnDisable()
     	{
-			m_GameObjectManager.RemoveComponent<T>(GetLightWeightGameObject());
+			if (m_GameObjectManager != null && m_GameObjectManager.HasComponent<T>(m_Entity))
+				m_GameObjectManager.RemoveComponent<T>(m_Entity);
+
 			m_GameObjectManager = null;
+			m_Entity = new Entity ();
     	}
     }
 }

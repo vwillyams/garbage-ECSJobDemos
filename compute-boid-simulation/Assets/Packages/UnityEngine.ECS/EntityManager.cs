@@ -40,7 +40,7 @@ namespace UnityEngine.ECS
 		static List<EntityManager> 						  ms_AllEntityManagers;
 
 		List<IComponentDataManager> 					  m_ComponentManagers;
-		List<List<EntityGroup.RegisteredTuple> > m_EntityGroupsForComponent;
+		List<List<EntityGroup.RegisteredTuple> > 		  m_EntityGroupsForComponent;
 
 		NativeMultiHashMap<int, LightWeightComponentInfo> m_EntityToComponent;
 
@@ -203,6 +203,7 @@ namespace UnityEngine.ECS
 		{
 			var go = new Entity(m_DebugManagerID, m_InstanceIDAllocator);
 			m_InstanceIDAllocator -= 2;
+
 			return go;
 		}
 
@@ -360,12 +361,10 @@ namespace UnityEngine.ECS
     			throw new System.ArgumentException ("Number of instances must be greater or equal to 1");
 
     		var components = gameObject.GetComponents<ComponentDataWrapperBase> ();
-			//@TODO: Temp alloc
 			var componentDataTypes = new NativeArray<int> (components.Length, Allocator.Temp);
     		for (int t = 0;t != components.Length;t++)
 				componentDataTypes[t] = GetTypeIndex(components[t].GetIComponentDataType());
 
-    		//@TODO: Temp alloc
 			var allComponentIndices = new NativeArray<int> (numberOfInstances * components.Length, Allocator.Temp);
 
 			m_AddComponentManagerElements.Begin ();

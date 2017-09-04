@@ -21,15 +21,17 @@ namespace UnityEngine.ECS
     	void AddReadDependency (JobHandle handle);
 
 		void AddElements (GameObject srcGameObject, NativeSlice<int> outComponentIndices);
-		void RemoveElements (NativeArray<int> elements);
+		void AddElements (int srcElementIndex, NativeSlice<int> outComponentIndices);
+		void RemoveElement (int componentIndex);
     }
 
     //@TODO: This should be fully implemented in C++ for efficiency
     public class ComponentDataManager<T> : ScriptBehaviourManager, IComponentDataManager where T : struct, IComponentData
     {
     	internal NativeFreeList<T>                          m_Data;
-    //	internal NativeList<JobHandle>                      m_Readers;
+        NativeList<JobHandle>                      	        m_Readers;
         JobHandle                                           m_Writer;
+		static readonly int MaxPendingReaders = 16;
 
         protected override void OnCreateManager(int capacity)
         {
@@ -37,6 +39,7 @@ namespace UnityEngine.ECS
 
             m_Data = new NativeFreeList<T>(Allocator.Persistent);
 			m_Data.Capacity = capacity;
+			m_Readers = new NativeList<JobHandle>(16, Allocator.Persistent);
         }
 
     	protected override void OnDestroyManager()
@@ -44,6 +47,7 @@ namespace UnityEngine.ECS
     		base.OnDestroyManager();
 
 			CompleteForWriting ();
+			m_Readers.Dispose();
     		m_Data.Dispose();
     	}
 
@@ -53,10 +57,18 @@ namespace UnityEngine.ECS
 
 			var value = sourceGameObject.GetComponent<ComponentDataWrapper<T> > ().Value;
 
-    		int baseIndex = m_Data.Length;
-			for (int i = 0; i != outComponentIndices.Length; i++)
-				outComponentIndices[i] = m_Data.Add (value);
+			m_Data.Add (value, outComponentIndices);
     	}
+
+		public void AddElements (int srcElementIndex, NativeSlice<int> outComponentIndices)
+		{
+			CompleteForWriting ();
+
+			var value = m_Data[srcElementIndex];
+
+			m_Data.Add (value, outComponentIndices);
+		}
+
 
 		public int AddElement(T value)
 		{
@@ -64,19 +76,23 @@ namespace UnityEngine.ECS
 			return m_Data.Add (value);
 		}
 
-		public void RemoveElements (NativeArray<int> elements)
+		public void RemoveElement (int componentIndex)
     	{
 			CompleteForWriting ();
-
-			for (int i = 0; i < elements.Length; i++)
-				m_Data.Remove (elements[i]);
+			m_Data.Remove (componentIndex);
     	}
-
-    	//@TODO: Proper support for read / write dependencies
 
     	public JobHandle GetReadDependency()
     	{
-    		return m_Writer;
+			if (m_Readers.Length == 0)
+				return new JobHandle();
+			if (m_Readers.Length > 1)
+			{
+				var combinedHandle = JobHandle.CombineDependencies(m_Readers);
+				m_Readers.Clear();
+				m_Readers.Add(combinedHandle);
+			}
+			return m_Readers[0];
     	}
 
     	public JobHandle GetWriteDependency()
@@ -91,7 +107,9 @@ namespace UnityEngine.ECS
 
     	public void CompleteReadDependency()
     	{
-    		m_Writer.Complete();
+			for (int i = 0; i < m_Readers.Length; ++i)
+				m_Readers[i].Complete();
+			m_Readers.Clear();
     	}
 
     	public void CompleteForWriting()
@@ -113,13 +131,18 @@ namespace UnityEngine.ECS
 				Debug.LogError("AddDependency is required to depend on any previous jobs (Use GetDependency())");
 			}
 			#endif
-
-    		m_Writer = handle;
+			m_Writer = handle;
     	}
 
     	public void AddReadDependency(JobHandle handle)
     	{
-			AddWriteDependency (handle);
+			if (m_Readers.Length >= MaxPendingReaders)
+			{
+				var combinedHandle = JobHandle.CombineDependencies(m_Readers);
+				m_Readers.Clear();
+				m_Readers.Add(combinedHandle);
+			}
+			m_Readers.Add(handle);
     	}
     }
 }

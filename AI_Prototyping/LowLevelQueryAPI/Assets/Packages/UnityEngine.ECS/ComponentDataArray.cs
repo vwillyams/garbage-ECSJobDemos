@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 
 //@TODO: ZERO TEST COVERAGE!!!
+// * Doesn't handle all cases of how a NativeFreeList can be reallocate / invalidated etc
 
 namespace UnityEngine.ECS
 {
@@ -26,7 +27,7 @@ namespace UnityEngine.ECS
 		//@TODO: need safety for both data and indices... This is not safe...
 		#endif
 
-		public unsafe ComponentDataArray(NativeFreeList<T> data, NativeArray<int> indices)
+		public unsafe ComponentDataArray(NativeFreeList<T> data, NativeArray<int> indices, bool isReadOnly)
 		{
 			m_Indices = (int*)indices.UnsafeReadOnlyPtr;
 			m_Length = indices.Length;
@@ -35,6 +36,8 @@ namespace UnityEngine.ECS
 			m_MinIndex = 0;
 			m_MaxIndex = m_Length - 1;
 			data.GetUnsafeBufferPointerWithoutChecksInternal(out m_Safety, out m_Data);
+			if (isReadOnly)
+				AtomicSafetyHandle.UseSecondaryVersion(ref m_Safety);
 			#else
 			m_Data = data.UnsafePtr;
 			#endif

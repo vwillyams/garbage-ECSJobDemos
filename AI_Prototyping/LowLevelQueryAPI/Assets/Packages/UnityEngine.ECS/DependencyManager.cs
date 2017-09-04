@@ -4,6 +4,7 @@ using UnityEngine.Collections;
 using UnityEngine;
 using System.Reflection;
 using System;
+using System.Collections.ObjectModel;
 using UnityEngine.Assertions;
 using UnityEngine.ECS;
 
@@ -36,8 +37,16 @@ namespace UnityEngine.ECS
 			public GetComponent[] getComponents;
 		}
 
+		public ReadOnlyCollection<ScriptBehaviourManager> BehaviourManagers
+		{
+			get {
+				return new ReadOnlyCollection<ScriptBehaviourManager>(ms_BehaviourManagers);
+			}
+		}
 		List<ScriptBehaviourManager> 	ms_BehaviourManagers = new List<ScriptBehaviourManager> ();
+		Dictionary<Type, ScriptBehaviourManager> 	ms_BehaviourManagerLookup = new Dictionary<Type, ScriptBehaviourManager> ();
 		Dictionary<Type, Dependencies> 	ms_InstanceDependencies = new Dictionary<Type, Dependencies>();
+		int 							ms_DefaultCapacity = 10;
 
 		static DependencyManager m_Root = null;
 		static bool 			 m_DidInitialize = false;
@@ -79,12 +88,16 @@ namespace UnityEngine.ECS
 			}
 		}
 
-
-		static int GetCapacityForType(Type type)
+		int GetCapacityForType(Type type)
 		{
-			//@TODO:
-			return 10000;
+			return ms_DefaultCapacity;
 		}
+
+		public static void SetDefaultCapacity(int value)
+		{
+			AutoRoot.ms_DefaultCapacity = value;
+		}
+
 
 		public void Dispose()
 		{
@@ -92,6 +105,19 @@ namespace UnityEngine.ECS
 				ScriptBehaviourManager.DestroyInstance (behaviourManager);
 
 			ms_BehaviourManagers.Clear();
+			ms_BehaviourManagerLookup.Clear();
+		}
+
+		ScriptBehaviourManager CreateAndRegisterManager (System.Type type, int capacity)
+		{
+			var manager = Activator.CreateInstance(type) as ScriptBehaviourManager;
+
+			ms_BehaviourManagers.Add (manager);
+			ms_BehaviourManagerLookup.Add(type, manager);
+
+			ScriptBehaviourManager.CreateInstance (manager, capacity);
+
+			return manager;
 		}
 
 
@@ -102,7 +128,10 @@ namespace UnityEngine.ECS
 			if (method.DeclaringType == typeof(ScriptBehaviour))
 				return null;
 			else
-				return ScriptBehaviourManager.CreateInstance(typeof(DefaultUpdateManager), GetCapacityForType(type)) as DefaultUpdateManager;
+			{
+				var root = AutoRoot;
+				return root.CreateAndRegisterManager (typeof(DefaultUpdateManager), root.GetCapacityForType (type)) as DefaultUpdateManager;
+			}
 		}
 
 		public static T GetBehaviourManager<T> () where T : ScriptBehaviourManager
@@ -113,16 +142,21 @@ namespace UnityEngine.ECS
 		public static ScriptBehaviourManager GetBehaviourManager (System.Type type)
 		{
 			var root = AutoRoot;
+			ScriptBehaviourManager manager;
+			if (root.ms_BehaviourManagerLookup.TryGetValue(type, out manager))
+				return manager;
 			foreach(var behaviourManager in root.ms_BehaviourManagers)
 			{
 				if (behaviourManager.GetType() == type || behaviourManager.GetType().IsSubclassOf(type))
+				{
+					// We will never create a new or more specialized version of this since this is the only place creating managers
+					root.ms_BehaviourManagerLookup.Add(type, behaviourManager);
 					return behaviourManager;
+				}
 			}
 
 			//@TODO: Check that type inherit from ScriptBehaviourManager
-
-			var obj = ScriptBehaviourManager.CreateInstance(type, GetCapacityForType(type));
-			root.ms_BehaviourManagers.Add(obj);
+			var obj = root.CreateAndRegisterManager(type, root.GetCapacityForType(type));
 
 			return obj;
 		}
@@ -139,7 +173,7 @@ namespace UnityEngine.ECS
 			}
 		}
 
-		static Dependencies CreateDependencyInjection(Type type)
+		static Dependencies CreateDependencyInjection(Type type, bool isComponent)
 		{
 			var managers = new List<Dependencies.Manager>();
 			var getComponents = new List<Dependencies.GetComponent>();
@@ -150,7 +184,7 @@ namespace UnityEngine.ECS
 				var hasInject = field.GetCustomAttributes (typeof(InjectDependencyAttribute), true).Length != 0;
 				if (hasInject)
 				{
-					if (field.FieldType.IsSubclassOf(typeof(Component)))
+					if (isComponent && field.FieldType.IsSubclassOf(typeof(Component)))
 					{
 						var com = new Dependencies.GetComponent();
 						com.type = field.FieldType;
@@ -171,7 +205,7 @@ namespace UnityEngine.ECS
 				}
 			}
 
-			var defaultManager = CreateDefaultUpdateManager (type);
+			var defaultManager = isComponent ? CreateDefaultUpdateManager (type) : null;
 
 			if (managers.Count != 0 || getComponents.Count != 0 || defaultManager != null)
 			{
@@ -188,20 +222,7 @@ namespace UnityEngine.ECS
 
 		internal static DefaultUpdateManager DependencyInject(ScriptBehaviour behaviour)
 		{
-			return AutoRoot.DependencyInjectInstance (behaviour);
-		}
-
-		DefaultUpdateManager DependencyInjectInstance(ScriptBehaviour behaviour)
-		{
-			var type = behaviour.GetType ();
-			Dependencies deps;
-			if (!ms_InstanceDependencies.TryGetValue (type, out deps))
-			{
-				deps = CreateDependencyInjection (type);
-				ms_InstanceDependencies.Add (type, deps);
-
-				PerformStaticDependencyInjection (type);
-			}
+			var deps = AutoRoot.PrepareDependendencyInjectionStatic (behaviour, true);
 
 			if (deps != null)
 			{
@@ -214,7 +235,33 @@ namespace UnityEngine.ECS
 				return deps.defaultManager;
 			}
 			else
-				return null;
+				return null;		
+		}
+
+		internal static void DependencyInject(ScriptBehaviourManager manager)
+		{
+			var deps = AutoRoot.PrepareDependendencyInjectionStatic (manager, false);
+		
+			if (deps != null)
+			{
+				for (int i = 0; i != deps.managers.Length; i++)
+					deps.managers[i].field.SetValue (manager, deps.managers[i].manager);
+			}
+		}
+
+		Dependencies PrepareDependendencyInjectionStatic(object behaviour, bool isComponent)
+		{
+			var type = behaviour.GetType ();
+			Dependencies deps;
+			if (!ms_InstanceDependencies.TryGetValue (type, out deps))
+			{
+				deps = CreateDependencyInjection (type, isComponent);
+				ms_InstanceDependencies.Add (type, deps);
+
+				PerformStaticDependencyInjection (type);
+			}
+
+			return deps;
 		}
 	}
 		

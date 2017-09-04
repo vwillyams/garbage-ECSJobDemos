@@ -1,0 +1,4 @@
+{
+	"name": "UnityEditor.ECS",
+	"references": [ "UnityEngine.ECS", "UnityEngine.math" ]
+}

@@ -348,6 +348,32 @@ namespace UnityEngine.Collections
 				}
 			}
 		}
+		static unsafe public void Remove(NativeHashMapData* data, NativeMultiHashMapIterator<TKey> it)
+		{
+			// First find the slot based on the hash
+			int* buckets = (int*)data->buckets;
+			int* nextPtrs = (int*)data->next;
+			int bucket = Math.Abs(it.key.GetHashCode()) % data->bucketCapacity;
+
+			int prevEntry = -1;
+			int entryIdx = buckets[bucket];
+			if (entryIdx == it.EntryIndex)
+			{
+				buckets[bucket] = nextPtrs[entryIdx];
+			}
+			else
+			{
+				while (entryIdx >= 0 && nextPtrs[entryIdx] != it.EntryIndex)
+					entryIdx = nextPtrs[entryIdx];
+				if (entryIdx < 0)
+					throw new InvalidOperationException("Invalid iterator passed to HashMap remove");
+				nextPtrs[entryIdx] = nextPtrs[it.EntryIndex];
+			}
+			// And free the index
+			++data->approximateFreeListSize;
+			nextPtrs[it.EntryIndex] = data->firstFree;
+			data->firstFree = it.EntryIndex;
+		}
 
 		static unsafe public bool TryGetFirstValueAtomic(NativeHashMapData* data, TKey key, out TValue item, out NativeMultiHashMapIterator<TKey> it)
 		{
@@ -641,6 +667,13 @@ namespace UnityEngine.Collections
 			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 			#endif
 			NativeHashMapBase<TKey, TValue>.Remove((NativeHashMapData*)m_Buffer, key, true);
+		}
+		unsafe public void Remove(NativeMultiHashMapIterator<TKey> it)
+		{
+			#if ENABLE_NATIVE_ARRAY_CHECKS
+			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
+			#endif
+			NativeHashMapBase<TKey, TValue>.Remove((NativeHashMapData*)m_Buffer, it);
 		}
 
 		unsafe public bool TryGetFirstValue(TKey key, out TValue item, out NativeMultiHashMapIterator<TKey> it)

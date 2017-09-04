@@ -59,7 +59,7 @@ namespace UnityEngine.Collections
 				return m_Length;
 			}
 		}
-
+			
 		unsafe public int Capacity
 		{
 			get
@@ -70,7 +70,7 @@ namespace UnityEngine.Collections
 			set
 			{
 				#if ENABLE_NATIVE_ARRAY_CHECKS
-				AtomicSafetyHandle.CheckWriteAndBumpSecondaryVersion(m_Safety);
+				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 				#endif
 
 				if (value <= m_Capacity)
@@ -109,13 +109,14 @@ namespace UnityEngine.Collections
 
 			#if ENABLE_NATIVE_ARRAY_CHECKS
 			DisposeSentinel.Create(m_Buffer, i_label, out m_Safety, out m_DisposeSentinel, 0);
+			AtomicSafetyHandle.SetAllowSecondaryVersionWriting(m_Safety, false);
 			#endif
 		}
 
 		unsafe public int Add(T value)
-		{
+		{			
 			#if ENABLE_NATIVE_ARRAY_CHECKS
-			AtomicSafetyHandle.CheckWriteAndBumpSecondaryVersion(m_Safety);
+			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 			#endif
 
 			if (m_NextFree == kNullLinkId)
@@ -130,10 +131,36 @@ namespace UnityEngine.Collections
 			return id;
 		}
 
-		unsafe public void Remove(int index)
-		{
+		unsafe public void Add(T value, NativeSlice<int> outputIndices)
+		{			
 			#if ENABLE_NATIVE_ARRAY_CHECKS
-			AtomicSafetyHandle.CheckWriteAndBumpSecondaryVersion(m_Safety);
+			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
+			#endif
+
+			int* outIndicesPtr = (int*)outputIndices.UnsafePtr;
+			int count = outputIndices.Length;
+
+			if (m_Length + count < m_Capacity)
+				Capacity = (count + outputIndices.Length) * 2;
+
+			int id = m_NextFree;
+			m_Length += count;
+
+			for (int i = 0; i != count; i++)
+			{
+				m_NextFree = UnsafeUtility.ReadArrayElementWithStride<int> (m_Buffer, id, m_SizeOf);
+
+				UnsafeUtility.WriteArrayElementWithStride (m_Buffer, id, m_SizeOf, value);
+
+				outIndicesPtr[i] = id;
+			}
+		}
+
+
+		unsafe public void Remove(int index)
+		{			
+			#if ENABLE_NATIVE_ARRAY_CHECKS
+			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 			#endif
 
 			//@TODO: Debugging system to track which indices are active or not...
@@ -152,7 +179,7 @@ namespace UnityEngine.Collections
 
 		unsafe public void Dispose()
 		{
-			#if ENABLE_NATIVE_ARRAY_CHECKS
+			#if ENABLE_NATIVE_ARRAY_CHECKS            
             DisposeSentinel.Dispose(m_Safety, ref m_DisposeSentinel);
 			#endif
 

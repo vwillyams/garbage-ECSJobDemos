@@ -44,11 +44,9 @@ namespace UnityEngine.ECS
 		}
 		private static HashSet<ScriptBehaviourManager> s_ActiveManagers = new HashSet<ScriptBehaviourManager>();
 
-		internal static ScriptBehaviourManager CreateInstance(Type type, int capacity)
+		internal static void CreateInstance(ScriptBehaviourManager manager, int capacity)
 		{
-			var obj = Activator.CreateInstance(type) as ScriptBehaviourManager;
-			obj.OnCreateManager(capacity);
-			return obj;
+			manager.OnCreateManager(capacity);
 		}
 
 		internal static void DestroyInstance(ScriptBehaviourManager inst)
@@ -70,6 +68,9 @@ namespace UnityEngine.ECS
 		protected virtual void OnCreateManager(int capacity)
 		{
 			s_ActiveManagers.Add(this);
+
+			DependencyManager.DependencyInject (this);
+
 			UpdatePlayerLoop();
 		}
 
@@ -91,8 +92,18 @@ namespace UnityEngine.ECS
 		{
 			
 		}
+		static private int GetFixedListIndex(List<UnityEngine.PlayerLoopSystem> defaultLoop)
+		{
+			for (int i = 0;i != defaultLoop.Count;i++)
+			{
+				if (defaultLoop[i].name == "FixedUpdate")
+					return i;
+			}
 
-		private int FindPlayerLoopInsertionPoint(string dependency, List<UnityEngine.PlayerLoopSystem> systemList)
+			throw new ArgumentException ("No fixed update loop found");
+		}
+
+		static private int FindPlayerLoopInsertionPoint(string dependency, List<UnityEngine.PlayerLoopSystem> systemList)
 		{
 			if (dependency == null || dependency == "")
 				return 0;
@@ -117,6 +128,9 @@ namespace UnityEngine.ECS
 			}
 			return insertIndex;
 		}
+
+
+
 		private UpdateAfter GetManagerDependency(Type managerType)
 		{
 			var attribs = managerType.GetCustomAttributes(typeof(UpdateAfter), true);
@@ -165,17 +179,25 @@ namespace UnityEngine.ECS
 				return;
 			}
 			var systemList = new List<UnityEngine.PlayerLoopSystem>(defaultLoop.subSystemList);
+			var fixedSystemList = new List<UnityEngine.PlayerLoopSystem>(defaultLoop.subSystemList[GetFixedListIndex(systemList)].subSystemList);
+
 			foreach(KeyValuePair<string, List<UnityEngine.PlayerLoopSystem>> entry in nativeDependencyBuckets)
 			{
 				int insertIndex = FindPlayerLoopInsertionPoint(entry.Key, systemList);
-				if (insertIndex < 0)
+				int fixedInsertIndex = FindPlayerLoopInsertionPoint(entry.Key, fixedSystemList);
+
+				if (insertIndex < 0 && fixedInsertIndex < 0)
 				{
-					//Debug.LogWarning(string.Format("Dependency on non-existing system {0}", entry.Key));
+					Debug.LogWarning(string.Format("{0} UpdateAfter on non-existing system {1}", entry.Value[0].name, entry.Key));
 					insertIndex = FindPlayerLoopInsertionPoint("PreUpdate", systemList);
 					if (insertIndex < 0)
 						insertIndex = 0;
 				}
-				systemList.InsertRange(insertIndex, entry.Value);
+
+				if (fixedInsertIndex >= 0)
+					fixedSystemList.InsertRange(fixedInsertIndex, entry.Value);
+				else
+					systemList.InsertRange(insertIndex, entry.Value);
 			}
 			bool addedMore = true;
 			while (managedDependencyBuckets.Count != 0 && addedMore)
@@ -191,55 +213,34 @@ namespace UnityEngine.ECS
 						addedMore = true;
 					}
 				}
+			
+				for (int i = 0; i < fixedSystemList.Count; ++i)
+				{
+					List<UnityEngine.PlayerLoopSystem> manList;
+					if (managedDependencyBuckets.TryGetValue(fixedSystemList[i].name, out manList))
+					{
+						fixedSystemList.InsertRange(i+1, manList);
+						managedDependencyBuckets.Remove(fixedSystemList[i].name);
+						addedMore = true;
+					}
+				}
+
 			}
 			if (managedDependencyBuckets.Count != 0)
 			{
 				foreach(KeyValuePair<string, List<UnityEngine.PlayerLoopSystem>> entry in managedDependencyBuckets)
 				{
-					//Debug.LogWarning(string.Format("Dependency on non-existing managed system {0}", entry.Key));
+					//Debug.LogWarning(string.Format("{0} UpdateAfter on non-existing system {1}", entry.Value[0].name, entry.Key));
 					systemList.InsertRange(0, entry.Value);
 				}
 				
 			}
-
+			
 			var ecsLoop = new UnityEngine.PlayerLoopSystem();
 			ecsLoop.name = "ECSPlayerLoop";
 			ecsLoop.subSystemList = systemList.ToArray();
+			ecsLoop.subSystemList[GetFixedListIndex (systemList)].subSystemList = fixedSystemList.ToArray ();
 			UnityEngine.PlayerLoop.SetPlayerLoop(ecsLoop);
 		}
 	}
-
-	///@TODO: Think about if it would make sense to have batch based OnCreate, OnActivate, OnEnable for better performance
-	/*
-	protected virtual void OnCreate(ScriptBehaviour[] behaviours)
-	{
-
-	}
-
-	protected virtual void OnActivate(ScriptBehaviour[] behaviours)
-	{
-
-	}
-
-	protected virtual void OnEnable(ScriptBehaviour[] behaviours)
-	{
-
-	}
-
-	protected virtual void OnDisable(ScriptBehaviour[] behaviours)
-	{
-
-	}
-
-	protected virtual void OnDeactivate(ScriptBehaviour[] behaviours)
-	{
-
-	}
-
-	protected virtual void OnDestroy(ScriptBehaviour[] behaviours)
-	{
-
-	}
-	*/
-
 }

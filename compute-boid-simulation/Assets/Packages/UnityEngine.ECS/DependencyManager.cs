@@ -46,6 +46,7 @@ namespace UnityEngine.ECS
 		List<ScriptBehaviourManager> 	ms_BehaviourManagers = new List<ScriptBehaviourManager> ();
 		Dictionary<Type, ScriptBehaviourManager> 	ms_BehaviourManagerLookup = new Dictionary<Type, ScriptBehaviourManager> ();
 		Dictionary<Type, Dependencies> 	ms_InstanceDependencies = new Dictionary<Type, Dependencies>();
+		int 							ms_DefaultCapacity = 10;
 
 		static DependencyManager m_Root = null;
 		static bool 			 m_DidInitialize = false;
@@ -87,11 +88,16 @@ namespace UnityEngine.ECS
 			}
 		}
 
-		static int GetCapacityForType(Type type)
+		int GetCapacityForType(Type type)
 		{
-			//@TODO:
-			return 10000;
+			return ms_DefaultCapacity;
 		}
+
+		public static void SetDefaultCapacity(int value)
+		{
+			AutoRoot.ms_DefaultCapacity = value;
+		}
+
 
 		public void Dispose()
 		{
@@ -122,7 +128,10 @@ namespace UnityEngine.ECS
 			if (method.DeclaringType == typeof(ScriptBehaviour))
 				return null;
 			else
-				return AutoRoot.CreateAndRegisterManager(typeof(DefaultUpdateManager), GetCapacityForType(type)) as DefaultUpdateManager;
+			{
+				var root = AutoRoot;
+				return root.CreateAndRegisterManager (typeof(DefaultUpdateManager), root.GetCapacityForType (type)) as DefaultUpdateManager;
+			}
 		}
 
 		public static T GetBehaviourManager<T> () where T : ScriptBehaviourManager
@@ -147,7 +156,7 @@ namespace UnityEngine.ECS
 			}
 
 			//@TODO: Check that type inherit from ScriptBehaviourManager
-			var obj = root.CreateAndRegisterManager(type, GetCapacityForType(type));
+			var obj = root.CreateAndRegisterManager(type, root.GetCapacityForType(type));
 
 			return obj;
 		}

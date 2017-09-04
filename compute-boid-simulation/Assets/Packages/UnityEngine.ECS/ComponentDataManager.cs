@@ -21,6 +21,7 @@ namespace UnityEngine.ECS
     	void AddReadDependency (JobHandle handle);
 
 		void AddElements (GameObject srcGameObject, NativeSlice<int> outComponentIndices);
+		void AddElements (int srcElementIndex, NativeSlice<int> outComponentIndices);
 		void RemoveElement (int componentIndex);
     }
 
@@ -56,10 +57,18 @@ namespace UnityEngine.ECS
 
 			var value = sourceGameObject.GetComponent<ComponentDataWrapper<T> > ().Value;
 
-    		int baseIndex = m_Data.Length;
-			for (int i = 0; i != outComponentIndices.Length; i++)
-				outComponentIndices[i] = m_Data.Add (value);
+			m_Data.Add (value, outComponentIndices);
     	}
+
+		public void AddElements (int srcElementIndex, NativeSlice<int> outComponentIndices)
+		{
+			CompleteForWriting ();
+
+			var value = m_Data[srcElementIndex];
+
+			m_Data.Add (value, outComponentIndices);
+		}
+
 
 		public int AddElement(T value)
 		{

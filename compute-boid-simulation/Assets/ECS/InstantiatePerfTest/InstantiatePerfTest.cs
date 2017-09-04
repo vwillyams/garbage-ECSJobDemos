@@ -4,25 +4,46 @@ using UnityEngine;
 using UnityEngine.ECS;
 using UnityEngine.Profiling;
 
-public class InstantiatePerfTest : ScriptBehaviour
+public class InstantiatePerfTest : MonoBehaviour
 {
-	public GameObject prefab;
+	CustomSampler instantiateSampler;
+	CustomSampler destroySampler;
 
-	[InjectDependency]
-	EntityManager m_EntityManager;
-
-	protected override void OnUpdate()
+	void Awake()
 	{
-		base.OnUpdate ();
+		instantiateSampler = CustomSampler.Create("InstantiateTest");
+		destroySampler = CustomSampler.Create("DestroyTest");
+	}
 
-//		Profiler.BeginSample ("Instantiate");
-		var instances = m_EntityManager.Instantiate (prefab, 100000);
-//		Profiler.EndSample ();
+	void Update()
+	{
+		UnityEngine.Collections.NativeLeakDetection.Mode = UnityEngine.Collections.NativeLeakDetectionMode.Disabled;
 
-//		Profiler.BeginSample ("Destroy");
+		var oldRoot = DependencyManager.Root;
+		DependencyManager.Root = new DependencyManager ();
+		DependencyManager.SetDefaultCapacity (100000 * 2);
+
+		var m_EntityManager = DependencyManager.GetBehaviourManager<EntityManager>();
+
+//		var group = new EntityGroup (m_EntityManager, typeof(BoidSimulations.BoidData));
+
+		var entity = m_EntityManager.AllocateEntity ();
+		m_EntityManager.AddComponent (entity, new BoidSimulations.BoidData());
+
+
+		instantiateSampler.Begin ();
+		var instances = m_EntityManager.Instantiate (entity, 100000);
+		instantiateSampler.End();
+
+		destroySampler.Begin ();
 		m_EntityManager.Destroy (instances);
-//		Profiler.EndSample ();
+		destroySampler.End ();
 
 		instances.Dispose ();
+
+		UnityEngine.Collections.NativeLeakDetection.Mode = UnityEngine.Collections.NativeLeakDetectionMode.Enabled;
+
+		DependencyManager.Root.Dispose ();
+		DependencyManager.Root = oldRoot;
 	}
 }

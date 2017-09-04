@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.ECS;
 using NUnit.Framework;
+using UnityEngine.Collections;
 
 namespace UnityEngine.ECS.Tests
 {
 	//@TODO: Tests for misconfiguring attributes...
 
-	public class ECS
+	public class ECSFixture
 	{
-		DependencyManager m_DependencyManager;
-		EntityManager m_Manager;
+		protected DependencyManager m_DependencyManager;
+		protected EntityManager m_Manager;
 
 		[SetUp]
 		public void Setup()
@@ -28,7 +29,10 @@ namespace UnityEngine.ECS.Tests
 			DependencyManager.Root.Dispose ();
 			DependencyManager.Root = m_DependencyManager;
 		}
+	}
 
+	public class ECS : ECSFixture
+	{
 		[Test]
 		public void ECSCreateAndDestroy()
 		{

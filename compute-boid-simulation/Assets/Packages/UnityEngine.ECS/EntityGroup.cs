@@ -166,9 +166,10 @@ namespace UnityEngine.ECS
 
 		public ComponentDataArray<T> GetComponentDataArray<T>(bool readOnly = false)where T : struct, IComponentData
 		{
+			int componentTypeIndex = m_EntityManager.GetTypeIndex<T> ();
 			for (int i = 0; i != m_ComponentDataTypes.Length; i++)
 			{
-				if (m_EntityManager.GetTypeFromIndex (m_ComponentDataTypes [i]) == typeof(T))
+				if (m_ComponentDataTypes[i] == componentTypeIndex)
 					return GetComponentDataArray<T> (i, readOnly);
 			}
 
@@ -331,8 +332,7 @@ namespace UnityEngine.ECS
 			int count = componentIndices.Length;
 			tuplesIndices.ResizeUninitialized (tuplesIndices.Length + count);
 			var indices = new NativeSlice<int> (tuplesIndices, tuplesIndices.Length - count);
-			for (int i = 0;i != count;i++)
-				indices[i] = componentIndices[i];
+			indices.CopyFrom (componentIndices);
 		}
 
 		public void Dispose()
@@ -356,7 +356,7 @@ namespace UnityEngine.ECS
 				if (m_Transforms.IsCreated)
 					types.Add (typeof(TransformAccessArray));
 				foreach(var typeIndex in m_ComponentDataTypes)
-					types.Add(m_EntityManager.GetTypeFromIndex (typeIndex));
+					types.Add(EntityManager.GetTypeFromIndex (typeIndex));
 				types.AddRange (m_ComponentTypes);
 
 				return types.ToArray ();

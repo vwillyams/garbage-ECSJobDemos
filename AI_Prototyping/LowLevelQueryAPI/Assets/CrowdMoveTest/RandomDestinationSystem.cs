@@ -71,6 +71,7 @@ public class RandomDestinationSystem : JobComponentSystem
             var dest = agent.location.position + dist * heading;
 
             agentNavigator.MoveTo(dest);
+            agentNavigator.speed = 3f;
             agentNavigators[index] = agentNavigator;
         }
     }

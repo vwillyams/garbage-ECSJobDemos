@@ -8,6 +8,7 @@ public struct CrowdAgentNavigator : IComponentData
     public float3 requestedDestination;
     public NavMeshLocation requestedDestinationLocation;
     public float distanceToDestination; // TODO: make sure this is the path distance, not euclidean distance [#adriant]
+    public float speed;
     public bool newDestinationRequested;
     public bool goToDestination;
     public bool destinationInView;

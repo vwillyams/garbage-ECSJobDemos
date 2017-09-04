@@ -282,7 +282,7 @@ public partial class CrowdSystem
 
                 var velocity = steeringTarget - currentPos;
                 velocity.y = 0.0f;
-                agent.velocity = math.any(velocity) ? math.normalize(velocity) : new float3(0);
+                agent.velocity = math.any(velocity) ? agentNavigator.speed * math.normalize(velocity) : new float3(0);
             }
             else
             {

@@ -4,6 +4,7 @@ using UnityEngine.Collections;
 using UnityEngine.ECS;
 using UnityEngine.Jobs;
 
+[UpdateAfter(typeof(CrowdSystem))]
 public class RandomDestinationSystem : JobComponentSystem
 {
     [InjectTuples]
@@ -20,8 +21,6 @@ public class RandomDestinationSystem : JobComponentSystem
 
     override protected void OnDestroyManager()
     {
-        CompleteDependency();
-
         base.OnDestroyManager();
     }
 

@@ -6,9 +6,6 @@ using UnityEngine.Experimental.AI;
 using UnityEngine.ECS;
 
 // TODO: Implement an UpdateBefore attribute that user systems can use so that CrowdSystem would not know about them
-[UpdateAfter(typeof(RandomDestinationSystem))]
-//[InjectTuples(1)]
-//ComponentDataArray<AgentTarget> m_Targets;
 public partial class CrowdSystem : JobComponentSystem
 {
     public bool drawDebug = false;
@@ -37,14 +34,29 @@ public partial class CrowdSystem : JobComponentSystem
 
     AgentPaths m_AgentPaths;
 
+    int m_InitialCapacity;
+
     const int k_Start = 0;
     const int k_Count = 1;
     const int k_DataSize = 2;
 
-    override protected void OnCreateManager(int capacity)
+    protected override void OnCreateManager(int capacity)
     {
         base.OnCreateManager(capacity);
 
+        m_InitialCapacity = capacity;
+        Initialize(capacity);
+    }
+
+    protected override void OnDestroyManager()
+    {
+        base.OnDestroyManager();
+
+        DisposeEverything();
+    }
+
+    void Initialize(int capacity)
+    {
         var world = NavMeshWorld.GetDefaultWorld();
         var queryCount = world.IsValid() ? k_QueryCount : 0;
 
@@ -78,12 +90,8 @@ public partial class CrowdSystem : JobComponentSystem
         }
     }
 
-    override protected void OnDestroyManager()
+    void DisposeEverything()
     {
-        CompleteDependency();
-
-        base.OnDestroyManager();
-
         for (var i = 0; i < m_QueryQueues.Length; i++)
         {
             m_QueryQueues[i].Dispose();
@@ -99,17 +107,27 @@ public partial class CrowdSystem : JobComponentSystem
         m_CurrentAgentIndex.Dispose();
     }
 
-    override protected void OnUpdate()
+    protected override void OnUpdate()
     {
         base.OnUpdate();
-
-        if (m_AgentNavigators.Length == 0)
-            return;
 
         //
         // Prepare data on the main thread
         //
         CompleteDependency();
+
+        if (m_QueryQueues.Length < k_QueryCount)
+        {
+            var world = NavMeshWorld.GetDefaultWorld();
+            if (world.IsValid())
+            {
+                DisposeEverything();
+                Initialize(m_InitialCapacity);
+            }
+        }
+
+        if (m_AgentNavigators.Length == 0)
+            return;
 
         var missingPaths = m_AgentNavigators.Length - m_AgentPaths.Count;
         if (missingPaths > 0)
@@ -303,7 +321,7 @@ public partial class CrowdSystem : JobComponentSystem
         m_PathRequestIdForAgent.ResizeUninitialized(m_PlanPathForAgent.Length);
         for (var i = oldLength; i < m_PlanPathForAgent.Length; i++)
         {
-            m_PlanPathForAgent[i] = true;
+            m_PlanPathForAgent[i] = false;
             m_PathRequestIdForAgent[i] = PathQueryQueueEcs.RequestEcs.invalidId;
         }
     }

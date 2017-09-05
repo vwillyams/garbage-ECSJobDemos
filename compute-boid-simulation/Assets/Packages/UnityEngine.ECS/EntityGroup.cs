@@ -16,6 +16,7 @@ namespace UnityEngine.ECS
 
 	public class EntityGroup
 	{
+		#if !ECS_ENTITY_CLASS
 		//@TODO: Renaming
 		internal class RegisteredTuple
 		{
@@ -28,6 +29,7 @@ namespace UnityEngine.ECS
 				this.tupleSystem = tupleSystem;
 			}
 		}
+		#endif
 
 		interface IGenericComponentList
 		{
@@ -160,6 +162,14 @@ namespace UnityEngine.ECS
 		public EntityArray GetEntityArray()
 		{
 			EntityArray array;
+			#if ECS_ENTITY_CLASS
+			m_TupleToEntityIndex.Clear();
+			for (int i = 0; i < m_MatchingClasses.Count; ++i)
+			{
+				for (int j = 0; j < m_MatchingClasses[i].entities.Count; ++j)
+					m_TupleToEntityIndex.Add(m_MatchingClasses[i].entities[j]);
+			}
+			#endif
 			array.m_Array = m_TupleToEntityIndex;
 			return array;
 		}
@@ -179,6 +189,36 @@ namespace UnityEngine.ECS
 		internal ComponentDataArray<T> GetComponentDataArray<T>(int index, bool readOnly) where T : struct, IComponentData
 		{
 			var manager = m_ComponentDataManagers[index] as ComponentDataManager<T>;
+
+			#if ECS_ENTITY_CLASS
+			// FIXME: only if dirty
+			if (m_Transforms.IsCreated)
+			{
+				while (m_Transforms.Length > 0)
+					m_Transforms.RemoveAtSwapBack(0);
+				for (int i = 0; i < m_MatchingClasses.Count; ++i)
+				{
+					for (int j = 0; j < m_MatchingClasses[i].entities.Count; ++j)
+					{
+						var fullGameObject = UnityEditor.EditorUtility.InstanceIDToObject (m_MatchingClasses[i].entities[j].index) as GameObject;
+						m_Transforms.Add(fullGameObject.transform);
+					}
+				}
+			}
+			m_ComponentDataIndices[index].Clear();
+			for (int i = 0; i < m_MatchingClasses.Count; ++i)
+			{
+				int typeOffset = 0;
+				for (int j = 0; j < m_MatchingClasses[i].componentTypes.Length; ++j)
+				{
+					if (m_MatchingClasses[i].componentTypes[j] == m_ComponentDataTypes[index])
+						typeOffset = j;
+				}
+				for (int j = 0; j < m_MatchingClasses[i].entities.Count; ++j)
+					m_ComponentDataIndices[index].Add(m_MatchingClasses[i].componentDataIndices[j*m_MatchingClasses[i].componentTypes.Length + typeOffset]);
+			}
+			#endif
+
 			var container = new ComponentDataArray<T> (manager.m_Data, m_ComponentDataIndices[index], readOnly);
 			return container;
 		}
@@ -356,7 +396,11 @@ namespace UnityEngine.ECS
 				if (m_Transforms.IsCreated)
 					types.Add (typeof(TransformAccessArray));
 				foreach(var typeIndex in m_ComponentDataTypes)
+					#if ECS_ENTITY_CLASS
+					types.Add(m_EntityManager.GetTypeFromIndex (typeIndex));
+					#else
 					types.Add(EntityManager.GetTypeFromIndex (typeIndex));
+					#endif
 				types.AddRange (m_ComponentTypes);
 
 				return types.ToArray ();
@@ -367,5 +411,27 @@ namespace UnityEngine.ECS
 		{
 			m_ChangeEvent = evt;
 		}
+		#if ECS_ENTITY_CLASS
+		List<EntityClass> m_MatchingClasses = new List<EntityClass>();
+		internal void AddClassIfMatching(EntityClass entityClass)
+		{
+			if (m_ComponentDataTypes.Length > entityClass.componentTypes.Length)
+				return;
+			if (m_Transforms.IsCreated && !entityClass.hasTransform)
+				return;
+			int matches = 0;
+			for (int i = 0; i < m_ComponentDataTypes.Length; ++i)
+			{
+				for (int j = 0; j < entityClass.componentTypes.Length; ++j)
+				{
+					if (m_ComponentDataTypes[i] == entityClass.componentTypes[j])
+						++matches;
+				}
+			}
+			int targetMatches = m_ComponentDataTypes.Length;
+			if (matches == targetMatches);
+				m_MatchingClasses.Add(entityClass);
+		}
+		#endif
 	}
 }

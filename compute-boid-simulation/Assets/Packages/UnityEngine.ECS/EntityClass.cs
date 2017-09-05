@@ -1,0 +1,96 @@
+using System.Collections.Generic;
+using UnityEngine.Collections;
+
+namespace UnityEngine.ECS
+{
+	#if ECS_ENTITY_CLASS
+	public class EntityClassEqualityComparer : IEqualityComparer<int[]>
+	{
+		public bool Equals(int[] a, int[] b)
+		{
+			if (a.Length != b.Length)
+				return false;
+			for (int i = 0; i < a.Length; i++)
+			{
+				if (a[i] != b[i])
+					return false;
+			}
+			return true;
+		}
+
+		public int GetHashCode(int[] a)
+		{
+			int hash = a.Length;
+			for (int i = 0; i < a.Length; i++)
+			{
+				hash = hash ^ a[i];
+			}
+			return hash;
+		}
+	}
+
+	internal struct EntityClass
+	{
+		public bool hasTransform;
+		public int[] componentTypes;
+		public List<Entity> entities;
+		public List<int> componentDataIndices;
+
+		public void Remove(NativeHashMap<int, EntityData> entityDataMap, int index)
+		{
+			int removedEnt = entities[index].index;
+			int offset = index * componentTypes.Length;
+			int lastOffset = componentDataIndices.Count - componentTypes.Length;
+			for (int i = componentTypes.Length-1; i >= 0; --i)
+			{
+				componentDataIndices[offset+i] = componentDataIndices[lastOffset+i];
+				componentDataIndices.RemoveAt(lastOffset+i);
+			}
+			int lastIndex = entities.Count-1;
+			entities[index] = entities[lastIndex];
+			entities.RemoveAt(lastIndex);
+
+			EntityData entityData;
+			if (entities.Count > 0 && index != lastIndex && entityDataMap.TryGetValue(entities[index].index, out entityData))
+			{
+				entityDataMap.Remove(entities[index].index);
+				entityData.entityIdxInClass = index;
+				entityDataMap.TryAdd(entities[index].index, entityData);
+			}
+			entityDataMap.Remove(removedEnt);
+		}
+		public int MoveTo(NativeHashMap<int, EntityData> entityDataMap, int targetClassIndex, EntityClass target, int index, int newType = -1, int newIndex = -1)
+		{
+			int sourceIdx = 0;
+			int targetIdx = 0;
+			int offset = index * componentTypes.Length;
+			while (targetIdx < target.componentTypes.Length)
+			{
+				if (sourceIdx < componentTypes.Length && target.componentTypes[targetIdx] == componentTypes[sourceIdx])
+				{
+					target.componentDataIndices.Add(componentDataIndices[offset+sourceIdx]);
+					++sourceIdx;
+					++targetIdx;
+				}
+				else if (target.componentTypes[targetIdx] == newType)
+				{
+					target.componentDataIndices.Add(newIndex);
+					++targetIdx;
+				}
+				else
+				{
+					++sourceIdx;
+				}
+			}
+			targetIdx = target.entities.Count;
+			target.entities.Add(entities[index]);
+			Remove(entityDataMap, index);
+			EntityData entityData;
+			entityData.classIdx = targetClassIndex;
+			entityData.entityIdxInClass = targetIdx;
+			entityDataMap.TryAdd(target.entities[targetIdx].index, entityData);
+			return targetIdx;
+		}
+	}
+	#endif // ECS_ENTITY_CLASS
+}

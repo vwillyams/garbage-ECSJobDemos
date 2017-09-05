@@ -10,6 +10,7 @@ using UnityEngine.Profiling;
 
 namespace UnityEngine.ECS
 {
+#if !ECS_ENTITY_CLASS
     public struct Entity
     {
     	internal int debugManagerIndex;
@@ -475,4 +476,5 @@ namespace UnityEngine.ECS
 			m_EntityGroupsForComponent [componentTypeIndex].Add (new EntityGroup.RegisteredTuple (tuple, tupleSystemIndex));
 		}
     }
+#endif // !ECS_ENTITY_CLASS
 }

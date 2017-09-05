@@ -151,7 +151,7 @@ namespace UnityEngine.ECS
 			m_TupleToEntityIndex.Clear();
 			for (int i = 0; i < m_MatchingClasses.Count; ++i)
 			{
-				for (int j = 0; j < m_MatchingClasses[i].entities.Count; ++j)
+				for (int j = 0; j < m_MatchingClasses[i].entities.Length; ++j)
 					m_TupleToEntityIndex.Add(m_MatchingClasses[i].entities[j]);
 			}
 			array.m_Array = m_TupleToEntityIndex;
@@ -181,7 +181,7 @@ namespace UnityEngine.ECS
 					m_Transforms.RemoveAtSwapBack(0);
 				for (int i = 0; i < m_MatchingClasses.Count; ++i)
 				{
-					for (int j = 0; j < m_MatchingClasses[i].entities.Count; ++j)
+					for (int j = 0; j < m_MatchingClasses[i].entities.Length; ++j)
 					{
 						var fullGameObject = UnityEditor.EditorUtility.InstanceIDToObject (m_MatchingClasses[i].entities[j].index) as GameObject;
 						m_Transforms.Add(fullGameObject.transform);
@@ -201,10 +201,10 @@ namespace UnityEngine.ECS
 				ComponentDataIndexSegment segment;
 				segment.indices = (int*)m_MatchingClasses[i].componentDataIndices.UnsafePtr;
 				segment.beginIndex = curLen;
-				segment.endIndex = curLen + m_MatchingClasses[i].entities.Count;
+				segment.endIndex = curLen + m_MatchingClasses[i].entities.Length;
 				segment.offset = typeOffset;
 				segment.stride = m_MatchingClasses[i].componentTypes.Length;
-				curLen += m_MatchingClasses[i].entities.Count;
+				curLen += m_MatchingClasses[i].entities.Length;
 
 				m_ComponentDataIndexSegments[index].Add(segment);
 			}

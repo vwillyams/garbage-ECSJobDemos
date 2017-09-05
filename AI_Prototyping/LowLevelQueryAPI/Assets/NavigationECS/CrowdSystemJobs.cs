@@ -223,8 +223,10 @@ public partial class CrowdSystem
             if (i == 0 && !agentNavigator.destinationReached)
                 return;
 
-            var discardsPathWhenDestinationNotReached = (i == pathInfo.size) && !agentNavigator.destinationReached;
-            Debug.Assert(!discardsPathWhenDestinationNotReached);
+            //if ((i == pathInfo.size) && !agentNavigator.destinationReached)
+            //{
+            //    Debug.LogWarning("Agent " + index + " discards path when destination not reached");
+            //}
 
             // Shorten the path
             paths.DiscardFirstNodes(crowdId, i);

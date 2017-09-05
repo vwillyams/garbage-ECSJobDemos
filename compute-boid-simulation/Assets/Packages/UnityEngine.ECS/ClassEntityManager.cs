@@ -43,10 +43,22 @@ namespace UnityEngine.ECS
 
 		HashSet<EntityGroup>  m_EntityGroups = new HashSet<EntityGroup>();
 
-		private int GetEntityClass(int[] componentTypes, bool hasTransform)
+		NativeList<int> m_ComponentTypesTemp;
+		private void InsertSort(NativeList<int> list, int val)
 		{
-			componentTypes = (int[])componentTypes.Clone();
-			Array.Sort(componentTypes);
+			int index = 0;
+			while (index < list.Length && list[index] < val)
+				++index;
+			list.Add(0);
+			for (int i = list.Length-1; i > index; --i)
+			{
+				list[i] = list[i-1];
+			}
+			list[index] = val;
+		}
+		private int GetEntityClass(NativeList<int> componentTypesNative, bool hasTransform)
+		{
+			var componentTypes = componentTypesNative.ToArray();
 			int[] temp = componentTypes;
 			if (hasTransform)
 			{
@@ -84,11 +96,13 @@ namespace UnityEngine.ECS
 
     		m_EntityIdToEntityData = new NativeHashMap<int, EntityData>(capacity, Allocator.Persistent);
 			m_DebugManagerID = 1;
+			m_ComponentTypesTemp = new NativeList<int>(128, Allocator.Persistent);
     	}
 
     	override protected void OnDestroyManager()
     	{
     		base.OnDestroyManager();
+			m_ComponentTypesTemp.Dispose();
 			m_EntityIdToEntityData.Dispose ();
 			for (int i = 0; i < m_EntityClasses.Count; ++i)
 				m_EntityClasses[i].componentDataIndices.Dispose();
@@ -195,7 +209,7 @@ namespace UnityEngine.ECS
 				entityData.classIdx = -1;
 				entityData.entityIdxInClass = -1;
 			}
-			List<int> newType = new List<int>();
+			m_ComponentTypesTemp.Clear();
 
 			int oldClassIdx = entityData.classIdx;
 			var fullGameObject = UnityEditor.EditorUtility.InstanceIDToObject (entity.index) as GameObject;
@@ -204,11 +218,11 @@ namespace UnityEngine.ECS
 				var oldEntityClass = m_EntityClasses[entityData.classIdx];
 				for (int i = 0; i < oldEntityClass.componentTypes.Length; ++i)
 				{
-					newType.Add(oldEntityClass.componentTypes[i]);
+					m_ComponentTypesTemp.Add(oldEntityClass.componentTypes[i]);
 				}
 			}
-			newType.Add(componentTypeIndex);
-			var entityClassIdx = GetEntityClass(newType.ToArray(), fullGameObject != null);
+			InsertSort(m_ComponentTypesTemp, componentTypeIndex);
+			var entityClassIdx = GetEntityClass(m_ComponentTypesTemp, fullGameObject != null);
 			var entityClass = m_EntityClasses[entityClassIdx];
 			if (oldClassIdx < 0)
 			{
@@ -308,13 +322,17 @@ namespace UnityEngine.ECS
     		var components = gameObject.GetComponents<ComponentDataWrapperBase> ();
 			//@TODO: Temp alloc
 			var componentDataTypes = new NativeArray<int> (components.Length, Allocator.Persistent);
+			m_ComponentTypesTemp.Clear();
     		for (int t = 0;t != components.Length;t++)
+			{
 				componentDataTypes[t] = GetTypeIndex(components[t].GetIComponentDataType());
+				InsertSort(m_ComponentTypesTemp, componentDataTypes[t]);
+			}
 
     		//@TODO: Temp alloc
 			var allComponentIndices = new NativeArray<int> (numberOfInstances * components.Length, Allocator.Persistent);
 
-			int entityClassIdx = GetEntityClass(componentDataTypes.ToArray(), false);
+			int entityClassIdx = GetEntityClass(m_ComponentTypesTemp, false);
 			var entityClass = m_EntityClasses[entityClassIdx];
     		for (int t = 0;t != components.Length;t++)
     		{
@@ -357,7 +375,7 @@ namespace UnityEngine.ECS
 			EntityData entityData;
 			if (!m_EntityIdToEntityData.TryGetValue(entity.index, out entityData))
 				throw new InvalidOperationException("Invalid entity id");
-			List<int> newType = new List<int>();
+			m_ComponentTypesTemp.Clear();
 			int oldClassIdx = entityData.classIdx;
 			var oldClass = m_EntityClasses[entityData.classIdx];
 			int componentIndex = -1;
@@ -366,7 +384,7 @@ namespace UnityEngine.ECS
 				if (oldClass.componentTypes[i] != componentTypeIndex)
 				{
 					for (int j = 0; j < oldClass.componentTypes.Length; ++j)
-					newType.Add(oldClass.componentTypes[j]);
+					m_ComponentTypesTemp.Add(oldClass.componentTypes[j]);
 				}
 				else
 					componentIndex = oldClass.componentDataIndices[entityData.entityIdxInClass * oldClass.componentTypes.Length + i];
@@ -374,7 +392,7 @@ namespace UnityEngine.ECS
 
 			m_ComponentManagers[componentTypeIndex].RemoveElement (componentIndex);
 
-			int entityClassIdx = GetEntityClass(newType.ToArray(), oldClass.hasTransform);
+			int entityClassIdx = GetEntityClass(m_ComponentTypesTemp, oldClass.hasTransform);
 			var entityClass = m_EntityClasses[entityClassIdx];
 			oldClass.MoveTo(m_EntityIdToEntityData, entityClassIdx, entityClass, entityData.entityIdxInClass);
 			// FIXME: mark class as changed

@@ -144,6 +144,23 @@ namespace UnityEngine.Collections
 			this[length] = element;
 		}
 
+        //@TODO: Test for AddRange
+        unsafe public void AddRange(NativeArray<T> elements)
+        {   
+            NativeListData* data = (NativeListData*)m_Buffer;
+            #if ENABLE_NATIVE_ARRAY_CHECKS
+            AtomicSafetyHandle.CheckWriteAndBumpSecondaryVersion(m_Safety);
+            #endif
+
+            if (data->length + elements.Length > data->capacity)
+                Capacity = data->length + elements.Length * 2;
+
+            int sizeOf = UnsafeUtility.SizeOf<T> ();
+            UnsafeUtility.MemCpy (data->list + data->length * sizeOf, elements.UnsafePtr, sizeOf * elements.Length);
+
+            data->length += elements.Length;
+        }
+
 		unsafe public void RemoveAtSwapBack(int index)
 		{			
 			NativeListData* data = (NativeListData*)m_Buffer;

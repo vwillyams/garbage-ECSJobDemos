@@ -29,6 +29,16 @@ namespace UnityEngine.ECS.Tests
 
 		public void OnUpdate() { base.OnUpdate (); }
 	}
+	public class EcsTestAndTransformComponentSystem : ComponentSystem
+	{
+		[InjectTuples]
+		public ComponentDataArray<EcsTestData> m_Data;
+
+		[InjectTuples]
+		public ComponentArray<Transform> m_Transforms;
+
+		public void OnUpdate() { base.OnUpdate (); }
+	}
 
 	public class PureReadOnlySystem : ComponentSystem
 	{

@@ -165,6 +165,27 @@ namespace UnityEngine.ECS.Tests
 		}
 
 		[Test]
+		public void GameObjectComponentArrayTupleTracking()
+		{
+			var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
+			var ecsAndComponent = DependencyManager.GetBehaviourManager<EcsTestAndTransformComponentSystem> ();
+
+			var go = new GameObject ();
+			var com = go.AddComponent<EcsTestComponent> ();
+			com.Value = new EcsTestData(9);
+
+			pureSystem.OnUpdate ();
+			Assert.AreEqual (1, pureSystem.m_Data.Length);
+			Assert.AreEqual (9, pureSystem.m_Data[0].value);
+
+			ecsAndComponent.OnUpdate ();
+			Assert.AreEqual (9, ecsAndComponent.m_Data[0].value);
+			Assert.AreEqual (go.transform, ecsAndComponent.m_Transforms[0]);
+
+			Object.DestroyImmediate (go);
+		}
+
+		[Test]
 		public void LightInstantiateTupleTracking()
 		{
 			var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();

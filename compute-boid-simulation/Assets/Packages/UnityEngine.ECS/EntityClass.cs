@@ -34,17 +34,17 @@ namespace UnityEngine.ECS
 		public bool hasTransform;
 		public int[] componentTypes;
 		public List<Entity> entities;
-		public List<int> componentDataIndices;
+		public NativeList<int> componentDataIndices;
 
 		public void Remove(NativeHashMap<int, EntityData> entityDataMap, int index)
 		{
 			int removedEnt = entities[index].index;
 			int offset = index * componentTypes.Length;
-			int lastOffset = componentDataIndices.Count - componentTypes.Length;
+			int lastOffset = componentDataIndices.Length - componentTypes.Length;
 			for (int i = componentTypes.Length-1; i >= 0; --i)
 			{
 				componentDataIndices[offset+i] = componentDataIndices[lastOffset+i];
-				componentDataIndices.RemoveAt(lastOffset+i);
+				componentDataIndices.RemoveAtSwapBack(lastOffset+i);
 			}
 			int lastIndex = entities.Count-1;
 			entities[index] = entities[lastIndex];

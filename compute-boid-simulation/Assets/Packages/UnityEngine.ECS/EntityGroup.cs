@@ -67,7 +67,11 @@ namespace UnityEngine.ECS
 
 		// ComponentData
 		int[]                    		m_ComponentDataTypes;
+		#if ECS_ENTITY_CLASS
+		NativeList<ComponentDataIndexSegment>[]       		m_ComponentDataIndexSegments;
+		#else
 		NativeList<int>[]       		m_ComponentDataIndices;
+		#endif
 		ScriptBehaviourManager[] 		m_ComponentDataManagers;
 		EntityManager 			 		m_EntityManager;
 
@@ -125,12 +129,20 @@ namespace UnityEngine.ECS
 			}
 
 			// Component data
+			#if ECS_ENTITY_CLASS
+			m_ComponentDataIndexSegments = new NativeList<ComponentDataIndexSegment>[componentDataTypes.Length];
+			#else
 			m_ComponentDataIndices = new NativeList<int>[componentDataTypes.Length];
+			#endif
 			m_ComponentDataManagers = componentDataManagers;
 			m_ComponentDataTypes = new int[componentDataTypes.Length];
 			for (int i = 0; i != m_ComponentDataTypes.Length; i++)
 			{
+				#if ECS_ENTITY_CLASS
+				m_ComponentDataIndexSegments[i] = new NativeList<ComponentDataIndexSegment>(0, Allocator.Persistent);
+				#else
 				m_ComponentDataIndices[i] = new NativeList<int>(0, Allocator.Persistent);
+				#endif
 				m_ComponentDataTypes[i] = entityManager.GetTypeIndex(componentDataTypes[i]);
 			}
 
@@ -186,7 +198,11 @@ namespace UnityEngine.ECS
 			throw new System.ArgumentException (typeof(T) + " is not part of the EntityGroup");
 		}
 
+		#if ECS_ENTITY_CLASS
+		internal unsafe ComponentDataArray<T> GetComponentDataArray<T>(int index, bool readOnly) where T : struct, IComponentData
+		#else
 		internal ComponentDataArray<T> GetComponentDataArray<T>(int index, bool readOnly) where T : struct, IComponentData
+		#endif
 		{
 			var manager = m_ComponentDataManagers[index] as ComponentDataManager<T>;
 
@@ -205,7 +221,8 @@ namespace UnityEngine.ECS
 					}
 				}
 			}
-			m_ComponentDataIndices[index].Clear();
+			m_ComponentDataIndexSegments[index].Clear();
+			int curLen = 0;
 			for (int i = 0; i < m_MatchingClasses.Count; ++i)
 			{
 				int typeOffset = 0;
@@ -214,12 +231,23 @@ namespace UnityEngine.ECS
 					if (m_MatchingClasses[i].componentTypes[j] == m_ComponentDataTypes[index])
 						typeOffset = j;
 				}
-				for (int j = 0; j < m_MatchingClasses[i].entities.Count; ++j)
-					m_ComponentDataIndices[index].Add(m_MatchingClasses[i].componentDataIndices[j*m_MatchingClasses[i].componentTypes.Length + typeOffset]);
+				ComponentDataIndexSegment segment;
+				segment.indices = (int*)m_MatchingClasses[i].componentDataIndices.UnsafePtr;
+				segment.beginIndex = curLen;
+				segment.endIndex = curLen + m_MatchingClasses[i].entities.Count;
+				segment.offset = typeOffset;
+				segment.stride = m_MatchingClasses[i].componentTypes.Length;
+				curLen += m_MatchingClasses[i].entities.Count;
+
+				m_ComponentDataIndexSegments[index].Add(segment);
 			}
 			#endif
 
+			#if ECS_ENTITY_CLASS
+			var container = new ComponentDataArray<T> (manager.m_Data, m_ComponentDataIndexSegments[index], readOnly);
+			#else
 			var container = new ComponentDataArray<T> (manager.m_Data, m_ComponentDataIndices[index], readOnly);
+			#endif
 			return container;
 		}
 
@@ -230,6 +258,7 @@ namespace UnityEngine.ECS
 			return array;
 		}
 
+		#if !ECS_ENTITY_CLASS
 		bool IsTupleSupported(GameObject go, Entity lightGameObject)
 		{
 			foreach (var componentType in m_ComponentTypes)
@@ -374,11 +403,18 @@ namespace UnityEngine.ECS
 			var indices = new NativeSlice<int> (tuplesIndices, tuplesIndices.Length - count);
 			indices.CopyFrom (componentIndices);
 		}
+		#endif // ECS_ENTITY_CLASS
 
 		public void Dispose()
 		{
+
+			#if ECS_ENTITY_CLASS
+			for (int i = 0; i != m_ComponentDataIndexSegments.Length; i++)
+				m_ComponentDataIndexSegments[i].Dispose();
+			#else
 			for (int i = 0; i != m_ComponentDataIndices.Length; i++)
 				m_ComponentDataIndices[i].Dispose();
+			#endif
 
 			//@TODO: Shouldn't dispose check this itself???
 			if (m_Transforms.IsCreated)

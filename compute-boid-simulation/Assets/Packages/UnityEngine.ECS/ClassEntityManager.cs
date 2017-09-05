@@ -61,7 +61,7 @@ namespace UnityEngine.ECS
 			newClass.hasTransform = hasTransform;
 			newClass.componentTypes = componentTypes;
 			newClass.entities = new List<Entity>();
-			newClass.componentDataIndices = new List<int>();
+			newClass.componentDataIndices = new NativeList<int>(Allocator.Persistent);
 			classIndex = m_EntityClasses.Count;
 			m_EntityClasses.Add(newClass);
 			m_EntityClassForComponentTypes.Add(temp, classIndex);
@@ -90,6 +90,8 @@ namespace UnityEngine.ECS
     	{
     		base.OnDestroyManager();
 			m_EntityIdToEntityData.Dispose ();
+			for (int i = 0; i < m_EntityClasses.Count; ++i)
+				m_EntityClasses[i].componentDataIndices.Dispose();
     	}
 
 		internal Type GetTypeFromIndex(int index)
@@ -132,7 +134,7 @@ namespace UnityEngine.ECS
 		internal int GetComponentIndex(Entity entity, int typeIndex)
 		{
 			EntityData entityData;
-			if (!m_EntityIdToEntityData.TryGetValue(entity.index, out entityData))
+			if (!m_EntityIdToEntityData.IsCreated || !m_EntityIdToEntityData.TryGetValue(entity.index, out entityData))
 				return -1;
 			if (entityData.classIdx < 0)
 				return -1;

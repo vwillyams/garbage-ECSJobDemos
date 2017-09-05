@@ -12,12 +12,22 @@ using System.Reflection;
 
 namespace UnityEngine.ECS
 {
-	#if !ECS_ENTITY_CLASS
+	#if ECS_ENTITY_CLASS
+	public struct ComponentDataIndexSegment
+	{
+		public unsafe int* indices;
+		public int beginIndex;
+		public int endIndex;
+		public int offset;
+		public int stride;
+	}
 	[NativeContainer]
 	[NativeContainerSupportsMinMaxWriteRestriction]
 	public struct ComponentDataArray<T> where T : struct, IComponentData
 	{
-		unsafe int*                 m_Indices;
+		unsafe ComponentDataIndexSegment* m_IndexSegments;
+		int m_NumIndexSegments;
+		int m_PreviousIndexSegment;
 		IntPtr                   	m_Data;
 		int                      	m_Length;
 
@@ -28,10 +38,12 @@ namespace UnityEngine.ECS
 		//@TODO: need safety for both data and indices... This is not safe...
 		#endif
 
-		public unsafe ComponentDataArray(NativeFreeList<T> data, NativeArray<int> indices, bool isReadOnly)
+		public unsafe ComponentDataArray(NativeFreeList<T> data, NativeArray<ComponentDataIndexSegment> indices, bool isReadOnly)
 		{
-			m_Indices = (int*)indices.UnsafeReadOnlyPtr;
-			m_Length = indices.Length;
+			m_IndexSegments = (ComponentDataIndexSegment*)indices.UnsafeReadOnlyPtr;
+			m_NumIndexSegments = indices.Length;
+			m_Length = m_IndexSegments[m_NumIndexSegments-1].endIndex;
+			m_PreviousIndexSegment = 0;
 
 			#if ENABLE_NATIVE_ARRAY_CHECKS
 			m_MinIndex = 0;
@@ -48,7 +60,8 @@ namespace UnityEngine.ECS
 		{
 			get
 			{
-				#if ENABLE_NATIVE_ARRAY_CHECKS
+
+				#if ENABLE_NATIVE_ARRAY_CHECKS_FOO
 				AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 				if (index < m_MinIndex || index > m_MaxIndex)
 					FailOutOfRangeError(index);
@@ -57,7 +70,18 @@ namespace UnityEngine.ECS
 					FailOutOfRangeError(index);
 				#endif
 
-				int remapped = m_Indices[index];
+				if (index >= m_IndexSegments[m_PreviousIndexSegment].endIndex || index < m_IndexSegments[m_PreviousIndexSegment].beginIndex)
+				{
+					for (int i = 0; i < m_NumIndexSegments; ++i)
+					{
+						if (index >= m_IndexSegments[i].beginIndex && index < m_IndexSegments[i].endIndex)
+						{
+							m_PreviousIndexSegment = i;
+							break;
+						}
+					}
+				}
+				int remapped = m_IndexSegments[m_PreviousIndexSegment].indices[m_IndexSegments[m_PreviousIndexSegment].offset + (index - m_IndexSegments[m_PreviousIndexSegment].beginIndex)*m_IndexSegments[m_PreviousIndexSegment].stride];
 				return UnsafeUtility.ReadArrayElement<T> (m_Data, remapped);
 			}
 			set
@@ -71,7 +95,18 @@ namespace UnityEngine.ECS
 					FailOutOfRangeError(index);
 				#endif
 
-				int remapped = m_Indices[index];
+				if (index >= m_IndexSegments[m_PreviousIndexSegment].endIndex || index < m_IndexSegments[m_PreviousIndexSegment].beginIndex)
+				{
+					for (int i = 0; i < m_NumIndexSegments; ++i)
+					{
+						if (index >= m_IndexSegments[i].beginIndex && index < m_IndexSegments[i].endIndex)
+						{
+							m_PreviousIndexSegment = i;
+							break;
+						}
+					}
+				}
+				int remapped = m_IndexSegments[m_PreviousIndexSegment].indices[m_IndexSegments[m_PreviousIndexSegment].offset + (index - m_IndexSegments[m_PreviousIndexSegment].beginIndex)*m_IndexSegments[m_PreviousIndexSegment].stride];
 				UnsafeUtility.WriteArrayElement (m_Data, remapped, value);
 			}
 		}
@@ -89,5 +124,5 @@ namespace UnityEngine.ECS
 
 		public int Length { get { return m_Length; } }
 	}
-	#endif // !ECS_ENTITY_CLASS
+	#endif // ECS_ENTITY_CLASS
 }

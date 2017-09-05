@@ -35,8 +35,10 @@ namespace UnityEngine.ECS
 			public static int index;
 		}
 
-		List<Type> 										  m_ComponentTypes = new List<Type>();
-		List<IComponentDataManager> 				      m_ComponentManagers = new List<IComponentDataManager>();
+        static List<Type>                                 ms_ComponentTypes;
+        static List<EntityManager>                        ms_AllEntityManagers;
+
+        List<IComponentDataManager>                       m_ComponentManagers;
 
 		List<EntityClass>								  m_EntityClasses = new List<EntityClass>();
 		Dictionary<NativeList<int>, int>							  m_EntityClassForComponentTypes = new Dictionary<NativeList<int>, int>(new EntityClassEqualityComparer());
@@ -106,6 +108,20 @@ namespace UnityEngine.ECS
     		m_EntityIdToEntityData = new NativeHashMap<int, EntityData>(capacity, Allocator.Persistent);
 			m_DebugManagerID = 1;
 			m_ComponentTypesTemp = new NativeList<int>(128, Allocator.Persistent);
+
+            if (ms_ComponentTypes == null)
+            {
+                ms_ComponentTypes = new List<Type> ();
+                ms_ComponentTypes.Add (null);
+
+                ms_AllEntityManagers = new List<EntityManager> ();
+            }
+
+            m_ComponentManagers = new List<IComponentDataManager>(ms_ComponentTypes.Count);
+            foreach (var type in ms_ComponentTypes)
+            {
+                m_ComponentManagers.Add (null);
+            }
     	}
 
     	override protected void OnDestroyManager()
@@ -121,11 +137,13 @@ namespace UnityEngine.ECS
 				m_EntityClasses[i].componentDataIndices.Dispose();
 				m_EntityClasses[i].entities.Dispose();
 			}
+
+            ms_AllEntityManagers.Remove (this);
     	}
 
 		internal Type GetTypeFromIndex(int index)
 		{
-			return m_ComponentTypes[index];
+			return ms_ComponentTypes[index];
 		}
 
 		internal int GetTypeIndex<T>()
@@ -142,22 +160,22 @@ namespace UnityEngine.ECS
     	internal int GetTypeIndex(Type type)
     	{
     		//@TODO: Initialize with all types on startup instead? why continously populate...
-    		for (int i = 0; i < m_ComponentTypes.Count; i++)
+    		for (int i = 0; i < ms_ComponentTypes.Count; i++)
     		{
-    			if (m_ComponentTypes [i] == type)
+    			if (ms_ComponentTypes [i] == type)
     				return i;
     		}
 
     		if (!typeof(IComponentData).IsAssignableFrom (type))
 				throw new ArgumentException (string.Format("{0} must be a IComponentData to be used when create a lightweight game object", type));
     		
-    		m_ComponentTypes.Add (type);
+    		ms_ComponentTypes.Add (type);
 
 			var managerType = typeof(ComponentDataManager<>).MakeGenericType(new Type[] { type });
 			var manager = DependencyManager.GetBehaviourManager (managerType) as IComponentDataManager;
 			m_ComponentManagers.Add (manager);
 
-    		return m_ComponentTypes.Count - 1;
+    		return ms_ComponentTypes.Count - 1;
     	}
 
 		internal int GetComponentIndex(Entity entity, int typeIndex)
@@ -215,7 +233,7 @@ namespace UnityEngine.ECS
 
 			// Add to manager
 			int componentTypeIndex = GetTypeIndex<T> ();
-			var manager = GetComponentManager<T>();
+            var manager = GetComponentManager<T>(componentTypeIndex);
 			int index = manager.AddElement (componentData);
 
 			EntityData entityData;
@@ -261,7 +279,7 @@ namespace UnityEngine.ECS
     		if (index == -1)
     			throw new InvalidOperationException (string.Format("{0} does not exist on the game object", typeof(T)));
 
-			var manager = GetComponentManager<T> ();
+            var manager = GetComponentManager<T> (GetTypeIndex<T>());
 			manager.CompleteForReading ();
 			return manager.m_Data[index];
     	}
@@ -272,15 +290,29 @@ namespace UnityEngine.ECS
     		if (index == -1)
     			throw new InvalidOperationException (string.Format("{0} does not exist on the game object", typeof(T)));
 
-			var manager = GetComponentManager<T> ();
+            var manager = GetComponentManager<T> (GetTypeIndex<T>());
 			manager.CompleteForWriting ();
     		manager.m_Data[index] = componentData;
     	}
 
-    	ComponentDataManager<T> GetComponentManager<T>() where T: struct, IComponentData
-    	{
-    		return DependencyManager.GetBehaviourManager (typeof(ComponentDataManager<T>)) as ComponentDataManager<T>;
-    	}
+        ComponentDataManager<T> GetComponentManager<T>(int typeIndex) where T: struct, IComponentData
+        {
+            if (m_ComponentManagers [typeIndex] == null)
+                GetComponentManager(typeIndex);
+
+            return (ComponentDataManager<T>)m_ComponentManagers[typeIndex];
+        }
+
+        IComponentDataManager GetComponentManager(int typeIndex)
+        {
+            if (m_ComponentManagers[typeIndex] == null)
+            {
+                var managerType = typeof(ComponentDataManager<>).MakeGenericType(new Type[] { ms_ComponentTypes[typeIndex] });
+                m_ComponentManagers[typeIndex] = DependencyManager.GetBehaviourManager (managerType) as IComponentDataManager;
+            }
+
+            return m_ComponentManagers[typeIndex];
+        }
 
 		NativeArray<Entity> InstantiateCompleteCreation (int entityClassIdx, EntityClass entityClass, NativeArray<int> allComponentIndices, int numberOfInstances)
 		{
@@ -314,7 +346,7 @@ namespace UnityEngine.ECS
 
 			for (int t = 0;t != entityClass.componentTypes.Length;t++)
 			{
-				var manager = m_ComponentManagers[entityClass.componentTypes[t]];
+                var manager = GetComponentManager(entityClass.componentTypes[t]);
 				manager.AddElements (GetComponentIndex(entity, entityClass.componentTypes[t]), new NativeSlice<int>(allComponentIndices, t * numberOfInstances, numberOfInstances));
 			}
 
@@ -350,7 +382,7 @@ namespace UnityEngine.ECS
 			var entityClass = m_EntityClasses[entityClassIdx];
     		for (int t = 0;t != components.Length;t++)
     		{
-				var manager = m_ComponentManagers[componentDataTypes[t]];
+                var manager = GetComponentManager(componentDataTypes[t]);
 				manager.AddElements (gameObject, new NativeSlice<int>(allComponentIndices, t * numberOfInstances, numberOfInstances));
     		}
 

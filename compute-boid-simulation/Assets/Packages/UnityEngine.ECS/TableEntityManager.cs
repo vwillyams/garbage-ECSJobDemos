@@ -86,6 +86,11 @@ namespace UnityEngine.ECS
 		CustomSampler m_AddToEntityGroup2;
 
 
+        CustomSampler m_1;
+        CustomSampler m_2;
+        CustomSampler m_3;
+
+
     	override protected void OnCreateManager(int capacity)
     	{
     		base.OnCreateManager(capacity);
@@ -128,7 +133,11 @@ namespace UnityEngine.ECS
 			m_AddComponentManagerElements = CustomSampler.Create ("AddComponentManagerElements"); 
 			m_AddToEntityGroup1 = CustomSampler.Create ("1"); 
 			m_AddToEntityGroup2 = CustomSampler.Create ("2"); 
-    	}
+
+            m_1 = CustomSampler.Create ("D.1"); 
+            m_2 = CustomSampler.Create ("D.2"); 
+            m_3 = CustomSampler.Create ("D.3"); 
+        }
 
     	override protected void OnDestroyManager()
     	{
@@ -270,8 +279,6 @@ namespace UnityEngine.ECS
 
 		void DeallocateEntity(Entity entity)
 		{
-			Assert.AreEqual(entity.version, m_Entities[entity.index].version);
-
 			m_Entities[entity.index].version++;
 			m_Entities[entity.index].groupCount = m_EntitiesFreeIndex;
             m_EntitiesFreeIndex = entity.index;
@@ -389,7 +396,7 @@ namespace UnityEngine.ECS
             {
                 if (groupData[i].groupIndex == groupIndex)
                 {
-                    groupData [i] = groupData[groupCount - 1];
+                    groupData[i] = groupData[groupCount - 1];
                     entityData->groupCount = groupCount - 1;
                     return;
                 }
@@ -589,7 +596,7 @@ namespace UnityEngine.ECS
 
     	public void Destroy (Entity entity)
     	{
-            Assert.IsTrue (Exists (entity));
+            //Assert.IsTrue (Exists(entity));
 
             EntityComponentData* componentData = m_Entities[entity.index].componentData;
             int componentCount = m_Entities[entity.index].componentCount;
@@ -602,7 +609,7 @@ namespace UnityEngine.ECS
             int groupCount = m_Entities[entity.index].groupCount;
 
             for (int i = 0; i != groupCount; i++)
-                m_EntityGroups [groupData [i].groupIndex].RemoveSwapBackTupleIndex (groupData [i].indexInGroup, false);
+                m_EntityGroups[groupData[i].groupIndex].RemoveSwapBackTupleIndex (groupData[i].indexInGroup);
 
             DeallocateEntity (entity);
     	}

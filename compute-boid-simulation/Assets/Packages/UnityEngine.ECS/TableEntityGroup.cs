@@ -239,7 +239,8 @@ namespace UnityEngine.ECS
 			if (tupleIndex == -1)
 				return;
 
-			RemoveSwapBackTupleIndex(tupleIndex, true);
+			RemoveSwapBackTupleIndex(tupleIndex);
+            m_EntityManager.RemoveGroupFromEntity (entity, m_GroupIndex);
 		}
 
 		public void RemoveSwapBackComponent(int tupleSystemIndex, Component component)
@@ -248,10 +249,11 @@ namespace UnityEngine.ECS
 			if (tupleIndex == -1)
 				return;
 
-			RemoveSwapBackTupleIndex(tupleIndex, true);
+            m_EntityManager.RemoveGroupFromEntity (m_TupleToEntityIndex[tupleIndex], m_GroupIndex);
+            RemoveSwapBackTupleIndex(tupleIndex);
 		}
 
-        internal void RemoveSwapBackTupleIndex(int tupleIndex, bool removeFromGroup)
+        internal void RemoveSwapBackTupleIndex(int tupleIndex)
 		{
 			if (m_ChangeEvent != null)
 				m_ChangeEvent.OnRemoveSwapBack (tupleIndex);
@@ -265,11 +267,7 @@ namespace UnityEngine.ECS
 			if (m_Transforms.IsCreated)
 				m_Transforms.RemoveAtSwapBack(tupleIndex);
 
-			var entity = m_TupleToEntityIndex[tupleIndex];
 			m_TupleToEntityIndex.RemoveAtSwapBack (tupleIndex);
-
-            if (removeFromGroup)
-                m_EntityManager.RemoveGroupFromEntity (entity, m_GroupIndex);
 
 			if (tupleIndex != m_TupleToEntityIndex.Length)
 			{

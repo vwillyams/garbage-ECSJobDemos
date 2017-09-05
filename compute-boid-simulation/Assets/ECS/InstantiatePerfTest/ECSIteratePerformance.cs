@@ -11,12 +11,16 @@ public struct IteratePerfData : IComponentData
 public class ECSIteratePerformance : MonoBehaviour
 {
 	CustomSampler iterateSampler;
-	CustomSampler getSampler;
+    CustomSampler getSampler;
+    CustomSampler instantiateSampler;
+    CustomSampler destroySampler;
 
 	void Awake()
 	{
 		iterateSampler = CustomSampler.Create("IterateTest");
-		getSampler = CustomSampler.Create("GetComponentDataTest");
+        getSampler = CustomSampler.Create("GetComponentDataTest");
+        instantiateSampler = CustomSampler.Create("Iterate.Instantiate");
+        destroySampler = CustomSampler.Create("Iterate.Destroy");
 	}
 
 	void Update()
@@ -36,12 +40,16 @@ public class ECSIteratePerformance : MonoBehaviour
 		m_EntityManager.AddComponent (entity, new BoidSimulations.BoidData());
 		m_EntityManager.AddComponent (entity, new IteratePerfData());
 
+        instantiateSampler.Begin ();
 		var instances = m_EntityManager.Instantiate (entity, 100000);
+        instantiateSampler.End ();
 
 		var entity2 = m_EntityManager.AllocateEntity ();
 		m_EntityManager.AddComponent (entity2, new IteratePerfData());
 
+        instantiateSampler.Begin ();
 		var instances2 = m_EntityManager.Instantiate (entity2, 100000);
+        instantiateSampler.End ();
 
 		int sum = 0;
 		getSampler.Begin ();
@@ -53,7 +61,9 @@ public class ECSIteratePerformance : MonoBehaviour
 			sum += components[i].random;
 		iterateSampler.End ();
 
+        destroySampler.Begin ();
 		m_EntityManager.Destroy (instances);
+        destroySampler.End ();
 
 		instances.Dispose ();
 		instances2.Dispose ();

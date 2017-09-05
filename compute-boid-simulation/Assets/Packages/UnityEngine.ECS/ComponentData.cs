@@ -74,19 +74,23 @@ namespace UnityEngine.ECS
 
         override protected void OnEnable()
         {
+#if !ECS_ENTITY_CLASS && !ECS_ENTITY_TABLE
 			m_GameObjectManager = DependencyManager.GetBehaviourManager (typeof(EntityManager)) as EntityManager;
 			m_Entity = new Entity (0, gameObject.GetInstanceID ());
 
 			m_GameObjectManager.AddComponent(m_Entity, m_SerializedData);
+#endif
         }
 
     	override protected void OnDisable()
     	{
+#if !ECS_ENTITY_CLASS && !ECS_ENTITY_TABLE
 			if (m_GameObjectManager != null && m_GameObjectManager.HasComponent<T>(m_Entity))
 				m_GameObjectManager.RemoveComponent<T>(m_Entity);
 
 			m_GameObjectManager = null;
 			m_Entity = new Entity ();
+#endif
     	}
     }
 }

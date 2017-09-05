@@ -10,20 +10,23 @@ using UnityEngine.Profiling;
 
 namespace UnityEngine.ECS
 {
-#if !ECS_ENTITY_CLASS && !ECS_ENTITY_TABLE
+#if ECS_ENTITY_TABLE
     public struct Entity
     {
     	internal int debugManagerIndex;
     	internal int index;
+    	internal int version;
 
-    	internal Entity(int debugManagerIndex, int index)
+    	internal Entity(int debugManagerIndex, int index, int version)
     	{
     		this.debugManagerIndex = debugManagerIndex;
     		this.index = index;
+    		this.version = version;
+
     	}
     }
 
-    public class EntityManager : ScriptBehaviourManager
+	unsafe public class EntityManager : ScriptBehaviourManager
     {
 		struct ComponentTypeCache<T>
 		{
@@ -36,14 +39,42 @@ namespace UnityEngine.ECS
 			// Index of the component in the LightWeightComponentManager
 			public int 	index;
 		}
+		
+		struct EntityData
+		{
+			public int 		 			version;
+
+            public int 	     			groupCount;
+            public EntityGroupData* 	groupData;
+
+            public int 		 			componentCount;
+            public EntityComponentData* componentData;
+		}
+
+		struct EntityComponentData
+		{
+            public int typeIndex;
+            public int componentIndex;
+		}
+
+		struct EntityGroupData
+		{
+            public int 			groupIndex;
+            public int 			indexInGroup;
+		}
+
+		EntityData* 		m_Entities;
+		int 				m_EntitiesCapacity;
+		int 				m_EntitiesFreeIndex;
+
+        NativePoolAllocator m_PoolAllocator;
 
 		static List<Type> 								  ms_ComponentTypes;
 		static List<EntityManager> 						  ms_AllEntityManagers;
 
 		List<IComponentDataManager> 					  m_ComponentManagers;
-		List<List<EntityGroup.RegisteredTuple> > 		  m_EntityGroupsForComponent;
-
-		NativeMultiHashMap<int, LightWeightComponentInfo> m_EntityToComponent;
+        List<List<EntityGroup.RegisteredTuple> >          m_EntityGroupsForComponent;
+        List<EntityGroup>                                 m_EntityGroups;
 
     	int 											  m_InstanceIDAllocator = -1;
     	int 										      m_DebugManagerID;
@@ -59,7 +90,6 @@ namespace UnityEngine.ECS
     	{
     		base.OnCreateManager(capacity);
 
-			m_EntityToComponent = new NativeMultiHashMap<int, LightWeightComponentInfo> (capacity, Allocator.Persistent);
     		m_DebugManagerID = 1;
 
 			if (ms_ComponentTypes == null)
@@ -74,12 +104,24 @@ namespace UnityEngine.ECS
 
 			m_ComponentManagers = new List<IComponentDataManager>(ms_ComponentTypes.Count);
 			m_EntityGroupsForComponent = new List<List<EntityGroup.RegisteredTuple> >(ms_ComponentTypes.Count);
+            m_EntityGroups = new List<EntityGroup> ();
 
 			foreach (var type in ms_ComponentTypes)
 			{
 				m_ComponentManagers.Add (null);
 				m_EntityGroupsForComponent.Add (new List<EntityGroup.RegisteredTuple>());
 			}
+
+			//@TODO: proper capacity management
+			m_EntitiesCapacity = 1000000;
+            m_Entities = (EntityData*)UnsafeUtility.Malloc(m_EntitiesCapacity * sizeof(EntityData), 64, Allocator.Persistent);
+			for (int i = 0;i != m_EntitiesCapacity-1;i++)
+				m_Entities[i].groupCount = i + 1;
+			m_Entities[m_EntitiesCapacity-1].groupCount = -1;
+			m_EntitiesFreeIndex = 0;
+
+            // @TODO: Dont crash when exceeding 10 component count...
+            m_PoolAllocator = new NativePoolAllocator (1000000, sizeof(EntityComponentData) * 10, 64, Allocator.Persistent);
 
 			m_AddToEntityComponentTable = CustomSampler.Create ("AddToEntityComponentTable"); ;
 			m_AddToEntityGroup = CustomSampler.Create ("AddToEntityGroup"); 
@@ -91,9 +133,14 @@ namespace UnityEngine.ECS
     	override protected void OnDestroyManager()
     	{
     		base.OnDestroyManager();
-    		m_EntityToComponent.Dispose ();
 			m_ComponentManagers = null;
 			m_EntityGroupsForComponent = null;
+
+            UnsafeUtility.Free ((IntPtr)m_Entities, Allocator.Persistent);
+            m_Entities = (EntityData*)IntPtr.Zero;
+            m_EntitiesCapacity = 0;
+
+            m_PoolAllocator.Dispose ();
 
 			ms_AllEntityManagers.Remove (this);
     	}
@@ -139,21 +186,17 @@ namespace UnityEngine.ECS
 
 		internal int GetComponentIndex(Entity entity, int typeIndex)
 		{
-			//@TODO: debugManagerIndex validation
-
-			LightWeightComponentInfo component;
-			NativeMultiHashMapIterator<int> iterator;
-			if (!m_EntityToComponent.TryGetFirstValue (entity.index, out component, out iterator))
+			EntityData* data = m_Entities + entity.index;
+			if (data->version != entity.version)
 				return -1;
 
-			if (component.componentTypeIndex == typeIndex)
-				return component.index;
+			EntityComponentData* componentData = data->componentData;
+			int componentCount = data->componentCount;
 
-			//@TODO: Why do i need if + while... very inconvenient...
-			while (m_EntityToComponent.TryGetNextValue(out component, ref iterator))
+            for (int i = 0;i != componentCount;i++)
 			{
-				if (component.componentTypeIndex == typeIndex)
-					return component.index;
+				if (componentData[i].typeIndex == typeIndex)
+					return componentData[i].componentIndex;
 			}
 
 			return -1;
@@ -186,44 +229,78 @@ namespace UnityEngine.ECS
 
 		void GetComponentTypes(Entity entity, NativeList<int> componentTypes)
 		{
-			LightWeightComponentInfo component;
-			NativeMultiHashMapIterator<int> iterator;
+			EntityData* data = m_Entities + entity.index;
+			if (data->version != entity.version)
+				return;
 
-			if (m_EntityToComponent.TryGetFirstValue (entity.index, out component, out iterator))
-			{
-				componentTypes.Add(component.componentTypeIndex);
+			EntityComponentData* componentData = data->componentData;
+			int componentCount = data->componentCount;
 
-				while (m_EntityToComponent.TryGetNextValue(out component, ref iterator))
-				{
-					componentTypes.Add(component.componentTypeIndex);
-				}
-			}
+            for (int i = 0;i != componentCount;i++)
+				componentTypes.Add(componentData[i].typeIndex);
 		}
+
+        void AllocateEntities(Entity* entities, int count)
+        {
+            int index = m_EntitiesFreeIndex;
+
+            for (int i = 0; i != count; i++)
+            {
+                EntityData* entity = m_Entities + index;
+
+                entities[i] = new Entity(0, index, entity->version);
+                index = entity->groupCount;
+
+                entity->componentData = (EntityComponentData*)m_PoolAllocator.Allocate ();
+                entity->groupData = (EntityGroupData*)m_PoolAllocator.Allocate ();
+                entity->componentCount = 0;
+                entity->groupCount = 0;
+            }
+
+            m_EntitiesFreeIndex = index;
+        }
+
 
 		public Entity AllocateEntity()
 		{
-			var go = new Entity(m_DebugManagerID, m_InstanceIDAllocator);
-			m_InstanceIDAllocator -= 2;
-
-			return go;
+            Entity entity;
+            AllocateEntities (&entity, 1);
+            return entity;
 		}
+
+		void DeallocateEntity(Entity entity)
+		{
+			Assert.AreEqual(entity.version, m_Entities[entity.index].version);
+
+			m_Entities[entity.index].version++;
+			m_Entities[entity.index].groupCount = m_EntitiesFreeIndex;
+            m_EntitiesFreeIndex = entity.index;
+		}
+
+        public bool Exists(Entity entity)
+        {
+            return m_Entities [entity.index].version == entity.version;
+        }
 
 		public void AddComponent<T>(Entity entity, T componentData) where T : struct, IComponentData
 		{
 			int typeIndex = GetTypeIndex<T>();
 			Assert.IsFalse (HasComponent(entity, typeIndex));
+            Assert.IsTrue (Exists(entity));
 
 			// Add to manager
 			var manager = GetComponentManager<T> (typeIndex);
 			int index = manager.AddElement (componentData);
 
-			// game object lookup table
-			LightWeightComponentInfo info;
-			info.componentTypeIndex = typeIndex;
-			info.index = index;
-			m_EntityToComponent.Add(entity.index, info);
+            EntityComponentData* componentInfo = m_Entities[entity.index].componentData;
+            componentInfo += m_Entities[entity.index].componentCount;
+            m_Entities[entity.index].componentCount++;
 
-			var fullGameObject = UnityEditor.EditorUtility.InstanceIDToObject (entity.index) as GameObject;
+            componentInfo->componentIndex = index;
+            componentInfo->typeIndex = typeIndex;
+
+			//var fullGameObject = UnityEditor.EditorUtility.InstanceIDToObject (entity.index) as GameObject;
+            GameObject fullGameObject = null;
 
 			// tuple management
 			foreach (var tuple in m_EntityGroupsForComponent[typeIndex])
@@ -275,32 +352,98 @@ namespace UnityEngine.ECS
 			return m_ComponentManagers[typeIndex];
 		}
 
+        internal int GetIndexInGroup(Entity entity, int groupIndex)
+        {
+            EntityData* entityData = m_Entities + entity.index;
+
+            EntityGroupData* groupData = entityData->groupData;
+            int groupCount = entityData->groupCount;
+            for (int i = 0; i != groupCount; i++)
+            {
+                if (groupData[i].groupIndex == groupIndex)
+                    return groupData[i].indexInGroup;
+            }
+
+            return -1;
+        }
+
+        internal void AddEntityToGroup(Entity* entity, int entityCount, int groupIndex, int baseIndexInGroup)
+        {
+            for (int i = 0; i != entityCount; i++)
+            {
+                EntityData* entityData = m_Entities + entity[i].index;
+                EntityGroupData* groupData = entityData->groupData + entityData->groupCount;
+                groupData->indexInGroup = baseIndexInGroup + i;
+                groupData->groupIndex = groupIndex;
+                entityData->groupCount++;
+            }
+        }
+
+        internal void RemoveGroupFromEntity(Entity entity, int groupIndex)
+        {
+            EntityData* entityData = m_Entities + entity.index;
+
+            EntityGroupData* groupData = entityData->groupData;
+            int groupCount = entityData->groupCount;
+            for (int i = 0; i != groupCount; i++)
+            {
+                if (groupData[i].groupIndex == groupIndex)
+                {
+                    groupData [i] = groupData[groupCount - 1];
+                    entityData->groupCount = groupCount - 1;
+                    return;
+                }
+            }
+
+            throw new System.InvalidOperationException ();
+        }
+
+        internal void UpdateIndexInGroup(Entity entity, int groupIndex, int indexInGroup)
+        {
+            EntityData* entityData = m_Entities + entity.index;
+
+            EntityGroupData* groupData = entityData->groupData;
+            int groupCount = entityData->groupCount;
+            for (int i = 0; i != groupCount; i++)
+            {
+                if (groupData[i].groupIndex == groupIndex)
+                {
+                    groupData[i].indexInGroup = indexInGroup;
+                    return;
+                }
+            }
+
+            throw new System.InvalidOperationException ();
+
+        }
+
+
 
 		NativeArray<Entity> InstantiateCompleteCreation (NativeArray<int> componentDataTypes, NativeArray<int> allComponentIndices, int numberOfInstances)
 		{
 			m_AddToEntityComponentTable.Begin ();
 
-			for (int t = 0; t != componentDataTypes.Length; t++)
-			{
-				//@TOOD: Batchable
-				LightWeightComponentInfo componentInfo;
-				componentInfo.componentTypeIndex = componentDataTypes[t];
+			var entitiesArray = new NativeArray<Entity> (numberOfInstances, Allocator.Temp);
 
-				for (int g = 0; g != numberOfInstances; g++)
-				{
-					componentInfo.index = allComponentIndices[g + t * numberOfInstances];
-					m_EntityToComponent.Add (m_InstanceIDAllocator - g * 2, componentInfo);
-				}
-			}
-			m_AddToEntityComponentTable.End ();
+            Entity* entitiesPtr = (Entity*)entitiesArray.UnsafePtr;
+            AllocateEntities (entitiesPtr, numberOfInstances);    
 
-			var entities = new NativeArray<Entity> (numberOfInstances, Allocator.Temp);
+            int* componentDataTypesPtr = (int*)componentDataTypes.UnsafePtr;
+            int componentDataTypesCount = componentDataTypes.Length;
+            int* allComponentIndicesPtr = (int*)allComponentIndices.UnsafePtr;
+            for (int i = 0; i < numberOfInstances; i++)
+            {
+                int entityIndex = entitiesPtr[i].index;
+                m_Entities[entityIndex].componentCount = componentDataTypes.Length;
 
-			for (int i = 0; i < entities.Length; i++)
-				entities[i] = new Entity (m_DebugManagerID, m_InstanceIDAllocator - i * 2);
-
-			m_InstanceIDAllocator -= numberOfInstances * 2;
-
+                EntityComponentData* componentData = m_Entities[entityIndex].componentData;
+                for (int t = 0; t != componentDataTypesCount; t++)
+                {
+                    componentData[t].componentIndex = allComponentIndicesPtr[i + t * numberOfInstances];
+                    componentData[t].typeIndex = componentDataTypesPtr[t];
+                }
+            }
+            m_AddToEntityComponentTable.End ();
 
 			m_AddToEntityGroup.Begin ();
 
@@ -317,13 +460,13 @@ namespace UnityEngine.ECS
 				m_AddToEntityGroup1.End ();
 
 				m_AddToEntityGroup2.Begin ();
-				tuple.AddTuplesEntityIDPartial (entities);
+				tuple.AddTuplesEntityIDPartial (entitiesArray);
 				m_AddToEntityGroup2.End ();
 			}
 
 			m_AddToEntityGroup.End ();
 				
-			return entities;
+			return entitiesArray;
 		}
 
 
@@ -401,30 +544,29 @@ namespace UnityEngine.ECS
 
     	public Entity GameObjectToEntity(GameObject go)
     	{
-    		Entity light;
-    		light.debugManagerIndex = m_DebugManagerID;
-			light.index = go.GetInstanceID();
+    		//Entity light;
+    		//light.debugManagerIndex = m_DebugManagerID;
+			//light.index = go.GetInstanceID();
 
-    		return light;
+            return new Entity();
     	}
 
 		int RemoveComponentFromEntityTable(Entity entity, int typeIndex)
 		{
-			LightWeightComponentInfo component;
-			NativeMultiHashMapIterator<int> iterator;
-			if (!m_EntityToComponent.TryGetFirstValue (entity.index, out component, out iterator))
-			{
-				throw new ArgumentException ("RemoveComponent may not be invoked on a game object that does not exist");
-			}
-			do
-			{
-				if (component.componentTypeIndex == typeIndex)
-				{
-					m_EntityToComponent.Remove(iterator);
-					return component.index;
-				}
-			} while (m_EntityToComponent.TryGetNextValue(out component, ref iterator));
-			return -1;
+            EntityComponentData* componentData = m_Entities[entity.index].componentData;
+            int componentCount = m_Entities[entity.index].componentCount;
+            for (int i = 0; i != componentCount; i++)
+            {
+                if (typeIndex == componentData[i].typeIndex)
+                {
+                    int componentIndex = componentData [i].componentIndex;
+                    componentData[i] = componentData[componentCount - 1];
+                    m_Entities [entity.index].componentCount = componentCount - 1;
+                    return componentIndex;
+                }
+            }
+
+            return -1;
 		}
 
 		// * NOTE: Does not modify m_EntityToComponent
@@ -447,34 +589,34 @@ namespace UnityEngine.ECS
 
     	public void Destroy (Entity entity)
     	{
-			//@TODO: Validate manager index...
+            Assert.IsTrue (Exists (entity));
 
-			LightWeightComponentInfo component;
-			NativeMultiHashMapIterator<int> iterator;
-			if (!m_EntityToComponent.TryGetFirstValue (entity.index, out component, out iterator))
-				throw new System.InvalidOperationException ("Entity does not exist");
+            EntityComponentData* componentData = m_Entities[entity.index].componentData;
+            int componentCount = m_Entities[entity.index].componentCount;
+            for (int i = 0; i != componentCount; i++)
+            {
+                m_ComponentManagers[componentData[i].typeIndex].RemoveElement(componentData[i].componentIndex);
+            }
 
-			// Remove Component Data
-			m_ComponentManagers[component.componentTypeIndex].RemoveElement(component.index);
+            EntityGroupData* groupData = m_Entities[entity.index].groupData;
+            int groupCount = m_Entities[entity.index].groupCount;
 
-			foreach (var tuple in m_EntityGroupsForComponent[component.componentTypeIndex])
-				tuple.tupleSystem.RemoveSwapBackComponentData(entity);
+            for (int i = 0; i != groupCount; i++)
+                m_EntityGroups [groupData [i].groupIndex].RemoveSwapBackTupleIndex (groupData [i].indexInGroup, false);
 
-			while (m_EntityToComponent.TryGetNextValue(out component, ref iterator))
-			{
-				m_ComponentManagers[component.componentTypeIndex].RemoveElement(component.index);
-
-				foreach (var tuple in m_EntityGroupsForComponent[component.componentTypeIndex])
-					tuple.tupleSystem.RemoveSwapBackComponentData(entity);
-			}
-
-			m_EntityToComponent.Remove(entity.index);
+            DeallocateEntity (entity);
     	}
 
 		internal void RegisterTuple(int componentTypeIndex, EntityGroup tuple, int tupleSystemIndex)
 		{
 			m_EntityGroupsForComponent [componentTypeIndex].Add (new EntityGroup.RegisteredTuple (tuple, tupleSystemIndex));
 		}
+
+        internal int AddEntityGroup(EntityGroup group)
+        {
+            m_EntityGroups.Add (group);
+            return m_EntityGroups.Count - 1;
+        }
     }
-#endif // !ECS_ENTITY_CLASS
+#endif // !ECS_ENTITY_TABLE
 }

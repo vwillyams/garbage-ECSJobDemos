@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,8 +8,7 @@ using UnityEngine.Assertions;
 
 namespace UnityEngine.ECS
 {
-	#if !ECS_ENTITY_CLASS && !ECS_ENTITY_TABLE
-
+	#if ECS_ENTITY_CLASS
 	public interface IEntityGroupChange
 	{
 		void OnAddElements (int numberOfEntitiesAddedToGroup);
@@ -18,19 +17,6 @@ namespace UnityEngine.ECS
 
 	public class EntityGroup
 	{
-		//@TODO: Renaming
-		internal class RegisteredTuple
-		{
-			public EntityGroup 	tupleSystem;
-			public int 			tupleSystemIndex;
-
-			public RegisteredTuple(EntityGroup tupleSystem, int tupleSystemIndex)
-			{
-				this.tupleSystemIndex = tupleSystemIndex;
-				this.tupleSystem = tupleSystem;
-			}
-		}
-
 		interface IGenericComponentList
 		{
 			void AddComponent (Component com);
@@ -67,7 +53,7 @@ namespace UnityEngine.ECS
 
 		// ComponentData
 		int[]                    		m_ComponentDataTypes;
-		NativeList<int>[]       		m_ComponentDataIndices;
+		NativeList<ComponentDataIndexSegment>[]       		m_ComponentDataIndexSegments;
 		ScriptBehaviourManager[] 		m_ComponentDataManagers;
 		EntityManager 			 		m_EntityManager;
 
@@ -125,12 +111,12 @@ namespace UnityEngine.ECS
 			}
 
 			// Component data
-			m_ComponentDataIndices = new NativeList<int>[componentDataTypes.Length];
+			m_ComponentDataIndexSegments = new NativeList<ComponentDataIndexSegment>[componentDataTypes.Length];
 			m_ComponentDataManagers = componentDataManagers;
 			m_ComponentDataTypes = new int[componentDataTypes.Length];
 			for (int i = 0; i != m_ComponentDataTypes.Length; i++)
 			{
-				m_ComponentDataIndices[i] = new NativeList<int>(0, Allocator.Persistent);
+				m_ComponentDataIndexSegments[i] = new NativeList<ComponentDataIndexSegment>(0, Allocator.Persistent);
 				m_ComponentDataTypes[i] = entityManager.GetTypeIndex(componentDataTypes[i]);
 			}
 
@@ -162,6 +148,12 @@ namespace UnityEngine.ECS
 		public EntityArray GetEntityArray()
 		{
 			EntityArray array;
+			m_TupleToEntityIndex.Clear();
+			for (int i = 0; i < m_MatchingClasses.Count; ++i)
+			{
+				for (int j = 0; j < m_MatchingClasses[i].entities.Count; ++j)
+					m_TupleToEntityIndex.Add(m_MatchingClasses[i].entities[j]);
+			}
 			array.m_Array = m_TupleToEntityIndex;
 			return array;
 		}
@@ -178,11 +170,46 @@ namespace UnityEngine.ECS
 			throw new System.ArgumentException (typeof(T) + " is not part of the EntityGroup");
 		}
 
-		internal ComponentDataArray<T> GetComponentDataArray<T>(int index, bool readOnly) where T : struct, IComponentData
+		internal unsafe ComponentDataArray<T> GetComponentDataArray<T>(int index, bool readOnly) where T : struct, IComponentData
 		{
 			var manager = m_ComponentDataManagers[index] as ComponentDataManager<T>;
 
-			var container = new ComponentDataArray<T> (manager.m_Data, m_ComponentDataIndices[index], readOnly);
+			// FIXME: only if dirty
+			if (m_Transforms.IsCreated)
+			{
+				while (m_Transforms.Length > 0)
+					m_Transforms.RemoveAtSwapBack(0);
+				for (int i = 0; i < m_MatchingClasses.Count; ++i)
+				{
+					for (int j = 0; j < m_MatchingClasses[i].entities.Count; ++j)
+					{
+						var fullGameObject = UnityEditor.EditorUtility.InstanceIDToObject (m_MatchingClasses[i].entities[j].index) as GameObject;
+						m_Transforms.Add(fullGameObject.transform);
+					}
+				}
+			}
+			m_ComponentDataIndexSegments[index].Clear();
+			int curLen = 0;
+			for (int i = 0; i < m_MatchingClasses.Count; ++i)
+			{
+				int typeOffset = 0;
+				for (int j = 0; j < m_MatchingClasses[i].componentTypes.Length; ++j)
+				{
+					if (m_MatchingClasses[i].componentTypes[j] == m_ComponentDataTypes[index])
+						typeOffset = j;
+				}
+				ComponentDataIndexSegment segment;
+				segment.indices = (int*)m_MatchingClasses[i].componentDataIndices.UnsafePtr;
+				segment.beginIndex = curLen;
+				segment.endIndex = curLen + m_MatchingClasses[i].entities.Count;
+				segment.offset = typeOffset;
+				segment.stride = m_MatchingClasses[i].componentTypes.Length;
+				curLen += m_MatchingClasses[i].entities.Count;
+
+				m_ComponentDataIndexSegments[index].Add(segment);
+			}
+
+			var container = new ComponentDataArray<T> (manager.m_Data, m_ComponentDataIndexSegments[index], readOnly);
 			return container;
 		}
 
@@ -193,155 +220,10 @@ namespace UnityEngine.ECS
 			return array;
 		}
 
-		bool IsTupleSupported(GameObject go, Entity lightGameObject)
-		{
-			foreach (var componentType in m_ComponentTypes)
-			{
-				var component = go.GetComponent (componentType);
-				if (component == null)
-					return false;
-			}
-
-			foreach (var componentType in m_ComponentDataTypes)
-			{
-				if (m_EntityManager.GetComponentIndex (lightGameObject, componentType) == -1)
-					return false;
-			}
-
-			if (m_Transforms.IsCreated && go == null)
-				return false;
-
-			return true;
-		}
-
-		public bool IsComponentDataTypesSupported(NativeArray<int> types)
-		{
-			if (m_Transforms.IsCreated)
-				return false;
-			if (m_ComponentTypes.Length != 0)
-				return false;
-
-			foreach (var componentType in m_ComponentDataTypes)
-			{
-				if (types.IndexOf(componentType) == -1)
-					return false;
-			}
-
-			return true;
-		}
-
-		public void RemoveSwapBackComponentData(Entity entity)
-		{
-			int tupleIndex;
-			if (!m_EntityToTupleIndex.TryGetValue (entity.index, out tupleIndex))
-				return;
-
-			if (tupleIndex == -1)
-				return;
-
-			RemoveSwapBackTupleIndex(tupleIndex);
-		}
-
-		public void RemoveSwapBackComponent(int tupleSystemIndex, Component component)
-		{
-			int tupleIndex = m_ComponentLists[tupleSystemIndex].GetIndex(component);
-			if (tupleIndex == -1)
-				return;
-
-			RemoveSwapBackTupleIndex(tupleIndex);
-		}
-
-		private void RemoveSwapBackTupleIndex(int tupleIndex)
-		{
-			if (m_ChangeEvent != null)
-				m_ChangeEvent.OnRemoveSwapBack (tupleIndex);
-
-			for (int i = 0; i != m_ComponentLists.Length; i++)
-				m_ComponentLists[i].RemoveAtSwapBackComponent (tupleIndex);
-
-			for (int i = 0; i != m_ComponentDataIndices.Length; i++)
-				m_ComponentDataIndices[i].RemoveAtSwapBack (tupleIndex);
-
-			if (m_Transforms.IsCreated)
-				m_Transforms.RemoveAtSwapBack(tupleIndex);
-
-			var entity = m_TupleToEntityIndex[tupleIndex];
-			m_EntityToTupleIndex.Remove (entity.index);
-			m_TupleToEntityIndex.RemoveAtSwapBack (tupleIndex);
-
-			if (tupleIndex != m_TupleToEntityIndex.Length)
-			{
-				var lastEntity = m_TupleToEntityIndex[tupleIndex];
-				m_EntityToTupleIndex.Remove(lastEntity.index);
-				m_EntityToTupleIndex.TryAdd (lastEntity.index, tupleIndex);
-			}
-		}
-
-		public void AddTupleIfSupported(GameObject go, Entity lightGameObject)
-		{
-			if (!IsTupleSupported (go, lightGameObject))
-				return;
-
-			// Component injections
-			for (int i = 0; i != m_ComponentTypes.Length; i++)
-			{
-				var component = go.GetComponent (m_ComponentTypes[i]);
-				m_ComponentLists[i].AddComponent (component);
-			}
-
-			// IComponentData injections
-			for (int i = 0; i != m_ComponentDataTypes.Length; i++)
-			{		
-				int componentIndex = m_EntityManager.GetComponentIndex(lightGameObject, m_ComponentDataTypes[i]);
-				Assert.AreNotEqual (-1, componentIndex);
-
-				m_ComponentDataIndices[i].Add(componentIndex);
-			}
-
-			// Transform component injections
-			if (m_Transforms.IsCreated)
-				m_Transforms.Add(go.transform);
-
-			// Tuple / Entity mapping
-			int tupleIndex = m_TupleToEntityIndex.Length;
-			m_EntityToTupleIndex.TryAdd (lightGameObject.index, tupleIndex);
-			m_TupleToEntityIndex.Add (lightGameObject);
-
-			if (m_ChangeEvent != null)
-				m_ChangeEvent.OnAddElements (1);
-		}
-
-		public void AddTuplesEntityIDPartial(NativeArray<Entity> entityIndices)
-		{
-			int baseIndex = m_TupleToEntityIndex.Length;
-			for (int i = 0;i<entityIndices.Length;i++)
-			{
-				m_TupleToEntityIndex.Add (entityIndices[i]);
-				m_EntityToTupleIndex.TryAdd (entityIndices[i].index, baseIndex + i);
-			}
-
-			if (m_ChangeEvent != null)
-				m_ChangeEvent.OnAddElements (entityIndices.Length);
-		}
-
-		public void AddTuplesComponentDataPartial(int componentTypeIndex, NativeSlice<int> componentIndices)
-		{
-			int tupleIndex = System.Array.IndexOf (m_ComponentDataTypes, componentTypeIndex);
-			if (tupleIndex == -1)
-				return;
-
-			var tuplesIndices = m_ComponentDataIndices[tupleIndex];
-
-			int count = componentIndices.Length;
-			tuplesIndices.ResizeUninitialized (tuplesIndices.Length + count);
-			var indices = new NativeSlice<int> (tuplesIndices, tuplesIndices.Length - count);
-			indices.CopyFrom (componentIndices);
-		}
-
 		public void Dispose()
 		{
-			for (int i = 0; i != m_ComponentDataIndices.Length; i++)
-				m_ComponentDataIndices[i].Dispose();
+			for (int i = 0; i != m_ComponentDataIndexSegments.Length; i++)
+				m_ComponentDataIndexSegments[i].Dispose();
 
 			//@TODO: Shouldn't dispose check this itself???
 			if (m_Transforms.IsCreated)
@@ -373,6 +255,27 @@ namespace UnityEngine.ECS
 		public void AddChangeEventListener (IEntityGroupChange evt)
 		{
 			m_ChangeEvent = evt;
+		}
+
+		List<EntityClass> m_MatchingClasses = new List<EntityClass>();
+		internal void AddClassIfMatching(EntityClass entityClass)
+		{
+			if (m_ComponentDataTypes.Length > entityClass.componentTypes.Length)
+				return;
+			if (m_Transforms.IsCreated && !entityClass.hasTransform)
+				return;
+			int matches = 0;
+			for (int i = 0; i < m_ComponentDataTypes.Length; ++i)
+			{
+				for (int j = 0; j < entityClass.componentTypes.Length; ++j)
+				{
+					if (m_ComponentDataTypes[i] == entityClass.componentTypes[j])
+						++matches;
+				}
+			}
+			int targetMatches = m_ComponentDataTypes.Length;
+			if (matches == targetMatches);
+				m_MatchingClasses.Add(entityClass);
 		}
 	}
 	#endif

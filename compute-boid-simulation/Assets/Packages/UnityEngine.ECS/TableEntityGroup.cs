@@ -8,7 +8,7 @@ using UnityEngine.Assertions;
 
 namespace UnityEngine.ECS
 {
-	#if !ECS_ENTITY_CLASS && !ECS_ENTITY_TABLE
+    #if ECS_ENTITY_TABLE
 
 	public interface IEntityGroupChange
 	{
@@ -59,6 +59,7 @@ namespace UnityEngine.ECS
 			}
 		}
 
+        int                             m_GroupIndex;
 
 		IEntityGroupChange 				m_ChangeEvent;
 
@@ -75,7 +76,6 @@ namespace UnityEngine.ECS
 		Type[]                   		m_ComponentTypes;
 		IGenericComponentList[] 		m_ComponentLists;
 
-		NativeHashMap<int, int>	 		m_EntityToTupleIndex;
 		NativeList<Entity>		 		m_TupleToEntityIndex;
 
 		public EntityGroup (EntityManager entityManager, params Type[] requiredComponents)
@@ -110,7 +110,6 @@ namespace UnityEngine.ECS
 			m_Transforms = transforms;
 
 			// entity
-			m_EntityToTupleIndex = new NativeHashMap<int, int> (capacity, Allocator.Persistent);
 			m_TupleToEntityIndex = new NativeList<Entity>(capacity, Allocator.Persistent);
 
 			// components
@@ -138,6 +137,8 @@ namespace UnityEngine.ECS
 			{
 				m_EntityManager.RegisterTuple (m_ComponentDataTypes[i], this, i);
 			}
+
+            m_GroupIndex = m_EntityManager.AddEntityGroup (this);
 		}
 
 		static void SplitComponents(Type[] anyComponents, out Type[] outComponentDataTypes, out Type[] outComponentTypes)
@@ -181,6 +182,7 @@ namespace UnityEngine.ECS
 		internal ComponentDataArray<T> GetComponentDataArray<T>(int index, bool readOnly) where T : struct, IComponentData
 		{
 			var manager = m_ComponentDataManagers[index] as ComponentDataManager<T>;
+
 
 			var container = new ComponentDataArray<T> (manager.m_Data, m_ComponentDataIndices[index], readOnly);
 			return container;
@@ -232,14 +234,12 @@ namespace UnityEngine.ECS
 
 		public void RemoveSwapBackComponentData(Entity entity)
 		{
-			int tupleIndex;
-			if (!m_EntityToTupleIndex.TryGetValue (entity.index, out tupleIndex))
-				return;
+            int tupleIndex = m_EntityManager.GetIndexInGroup (entity, m_GroupIndex);
 
 			if (tupleIndex == -1)
 				return;
 
-			RemoveSwapBackTupleIndex(tupleIndex);
+			RemoveSwapBackTupleIndex(tupleIndex, true);
 		}
 
 		public void RemoveSwapBackComponent(int tupleSystemIndex, Component component)
@@ -248,10 +248,10 @@ namespace UnityEngine.ECS
 			if (tupleIndex == -1)
 				return;
 
-			RemoveSwapBackTupleIndex(tupleIndex);
+			RemoveSwapBackTupleIndex(tupleIndex, true);
 		}
 
-		private void RemoveSwapBackTupleIndex(int tupleIndex)
+        internal void RemoveSwapBackTupleIndex(int tupleIndex, bool removeFromGroup)
 		{
 			if (m_ChangeEvent != null)
 				m_ChangeEvent.OnRemoveSwapBack (tupleIndex);
@@ -266,20 +266,21 @@ namespace UnityEngine.ECS
 				m_Transforms.RemoveAtSwapBack(tupleIndex);
 
 			var entity = m_TupleToEntityIndex[tupleIndex];
-			m_EntityToTupleIndex.Remove (entity.index);
 			m_TupleToEntityIndex.RemoveAtSwapBack (tupleIndex);
+
+            if (removeFromGroup)
+                m_EntityManager.RemoveGroupFromEntity (entity, m_GroupIndex);
 
 			if (tupleIndex != m_TupleToEntityIndex.Length)
 			{
 				var lastEntity = m_TupleToEntityIndex[tupleIndex];
-				m_EntityToTupleIndex.Remove(lastEntity.index);
-				m_EntityToTupleIndex.TryAdd (lastEntity.index, tupleIndex);
+                m_EntityManager.UpdateIndexInGroup (lastEntity, m_GroupIndex, tupleIndex);
 			}
 		}
 
-		public void AddTupleIfSupported(GameObject go, Entity lightGameObject)
+		public unsafe void AddTupleIfSupported(GameObject go, Entity entity)
 		{
-			if (!IsTupleSupported (go, lightGameObject))
+			if (!IsTupleSupported (go, entity))
 				return;
 
 			// Component injections
@@ -292,7 +293,7 @@ namespace UnityEngine.ECS
 			// IComponentData injections
 			for (int i = 0; i != m_ComponentDataTypes.Length; i++)
 			{		
-				int componentIndex = m_EntityManager.GetComponentIndex(lightGameObject, m_ComponentDataTypes[i]);
+				int componentIndex = m_EntityManager.GetComponentIndex(entity, m_ComponentDataTypes[i]);
 				Assert.AreNotEqual (-1, componentIndex);
 
 				m_ComponentDataIndices[i].Add(componentIndex);
@@ -304,21 +305,19 @@ namespace UnityEngine.ECS
 
 			// Tuple / Entity mapping
 			int tupleIndex = m_TupleToEntityIndex.Length;
-			m_EntityToTupleIndex.TryAdd (lightGameObject.index, tupleIndex);
-			m_TupleToEntityIndex.Add (lightGameObject);
+			m_TupleToEntityIndex.Add (entity);
+
+            m_EntityManager.AddEntityToGroup (&entity, 1, m_GroupIndex, tupleIndex);
 
 			if (m_ChangeEvent != null)
 				m_ChangeEvent.OnAddElements (1);
 		}
 
-		public void AddTuplesEntityIDPartial(NativeArray<Entity> entityIndices)
+		public unsafe void AddTuplesEntityIDPartial(NativeArray<Entity> entityIndices)
 		{
 			int baseIndex = m_TupleToEntityIndex.Length;
-			for (int i = 0;i<entityIndices.Length;i++)
-			{
-				m_TupleToEntityIndex.Add (entityIndices[i]);
-				m_EntityToTupleIndex.TryAdd (entityIndices[i].index, baseIndex + i);
-			}
+            m_TupleToEntityIndex.AddRange (entityIndices);
+            m_EntityManager.AddEntityToGroup ((Entity*)entityIndices.UnsafePtr, entityIndices.Length, m_GroupIndex, baseIndex);
 
 			if (m_ChangeEvent != null)
 				m_ChangeEvent.OnAddElements (entityIndices.Length);
@@ -347,7 +346,6 @@ namespace UnityEngine.ECS
 			if (m_Transforms.IsCreated)
 				m_Transforms.Dispose ();
 
-			m_EntityToTupleIndex.Dispose();
 			m_TupleToEntityIndex.Dispose();
 		}
 
@@ -359,11 +357,7 @@ namespace UnityEngine.ECS
 				if (m_Transforms.IsCreated)
 					types.Add (typeof(TransformAccessArray));
 				foreach(var typeIndex in m_ComponentDataTypes)
-					#if ECS_ENTITY_CLASS
-					types.Add(m_EntityManager.GetTypeFromIndex (typeIndex));
-					#else
 					types.Add(EntityManager.GetTypeFromIndex (typeIndex));
-					#endif
 				types.AddRange (m_ComponentTypes);
 
 				return types.ToArray ();
@@ -375,5 +369,5 @@ namespace UnityEngine.ECS
 			m_ChangeEvent = evt;
 		}
 	}
-	#endif
+    #endif
 }

@@ -12,7 +12,7 @@ using System.Reflection;
 
 namespace UnityEngine.ECS
 {
-	#if !ECS_ENTITY_CLASS
+    #if !ECS_ENTITY_CLASS
 	[NativeContainer]
 	[NativeContainerSupportsMinMaxWriteRestriction]
 	public struct ComponentDataArray<T> where T : struct, IComponentData

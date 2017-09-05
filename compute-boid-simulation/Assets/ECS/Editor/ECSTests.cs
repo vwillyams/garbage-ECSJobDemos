@@ -31,7 +31,7 @@ namespace UnityEngine.ECS.Tests
 		}
 	}
 
-	public class ECS : ECSFixture
+	public class ECS_Pure : ECSFixture
 	{
 		[Test]
 		public void ECSCreateAndDestroy()
@@ -86,7 +86,7 @@ namespace UnityEngine.ECS.Tests
 		}
 
 		[Test]
-		public void SetComponentDataOnDeletedGameObject()
+		public void SetComponentDataOnDeletedEntity()
 		{
 			var go = m_Manager.AllocateEntity ();
 			m_Manager.AddComponent (go, new EcsTestData(0));
@@ -97,7 +97,7 @@ namespace UnityEngine.ECS.Tests
 		}
 
 		[Test]
-		public void LightWeightGameObjectTupleTracking()
+		public void EntityTupleTracking()
 		{
 			var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
 			var ecsAndTransformArray = DependencyManager.GetBehaviourManager<EcsTestAndTransformArraySystem> ();
@@ -144,75 +144,6 @@ namespace UnityEngine.ECS.Tests
 
 
 		[Test]
-		public void GameObjectTupleTracking()
-		{
-			var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
-			var ecsAndTransformArray = DependencyManager.GetBehaviourManager<EcsTestAndTransformArraySystem> ();
-
-			var go = new GameObject ();
-			var com = go.AddComponent<EcsTestComponent> ();
-			com.Value = new EcsTestData(9);
-
-			pureSystem.OnUpdate ();
-			Assert.AreEqual (1, pureSystem.m_Data.Length);
-			Assert.AreEqual (9, pureSystem.m_Data[0].value);
-
-			ecsAndTransformArray.OnUpdate ();
-			Assert.AreEqual (9, ecsAndTransformArray.m_Data[0].value);
-			Assert.AreEqual (go.transform, ecsAndTransformArray.m_Transforms[0]);
-
-			Object.DestroyImmediate (go);
-		}
-
-		[Test]
-		public void GameObjectComponentArrayTupleTracking()
-		{
-			var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
-			var ecsAndComponent = DependencyManager.GetBehaviourManager<EcsTestAndTransformComponentSystem> ();
-
-			var go = new GameObject ();
-			var com = go.AddComponent<EcsTestComponent> ();
-			com.Value = new EcsTestData(9);
-
-			pureSystem.OnUpdate ();
-			Assert.AreEqual (1, pureSystem.m_Data.Length);
-			Assert.AreEqual (9, pureSystem.m_Data[0].value);
-
-			ecsAndComponent.OnUpdate ();
-			Assert.AreEqual (9, ecsAndComponent.m_Data[0].value);
-			Assert.AreEqual (go.transform, ecsAndComponent.m_Transforms[0]);
-
-			Object.DestroyImmediate (go);
-		}
-
-		[Test]
-		public void LightInstantiateTupleTracking()
-		{
-			var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
-
-			//@TODO: Try out instantiate game object activate / deactivate
-			var go = new GameObject ();
-			go.SetActive (false);
-			var com = go.AddComponent<EcsTestComponent> ();
-			com.Value = new EcsTestData(9);
-
-			pureSystem.OnUpdate ();
-			Assert.AreEqual (0, pureSystem.m_Data.Length);
-
-			var instances = m_Manager.Instantiate (go, 10);
-
-			pureSystem.OnUpdate ();
-			Assert.AreEqual (10, pureSystem.m_Data.Length);
-			for (int i = 0; i < 10; i++)
-			{
-				Assert.AreEqual (9, pureSystem.m_Data [i].value);
-				Assert.AreEqual (instances[i], pureSystem.m_Entities[i]);
-			}
-
-			instances.Dispose ();
-		}
-
-		[Test]
 		public void ReadOnlyTuples()
 		{
 			var readOnlySystem = DependencyManager.GetBehaviourManager<PureReadOnlySystem> ();
@@ -256,4 +187,76 @@ namespace UnityEngine.ECS.Tests
 			group.Dispose ();
 		}
 	}
+
+    public class ECS_GameObject : ECSFixture
+    {
+        [Test]
+        public void GameObjectTupleTracking()
+        {
+            var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
+            var ecsAndTransformArray = DependencyManager.GetBehaviourManager<EcsTestAndTransformArraySystem> ();
+
+            var go = new GameObject ();
+            var com = go.AddComponent<EcsTestComponent> ();
+            com.Value = new EcsTestData(9);
+
+            pureSystem.OnUpdate ();
+            Assert.AreEqual (1, pureSystem.m_Data.Length);
+            Assert.AreEqual (9, pureSystem.m_Data[0].value);
+
+            ecsAndTransformArray.OnUpdate ();
+            Assert.AreEqual (9, ecsAndTransformArray.m_Data[0].value);
+            Assert.AreEqual (go.transform, ecsAndTransformArray.m_Transforms[0]);
+
+            Object.DestroyImmediate (go);
+        }
+
+        [Test]
+        public void GameObjectComponentArrayTupleTracking()
+        {
+            var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
+            var ecsAndComponent = DependencyManager.GetBehaviourManager<EcsTestAndTransformComponentSystem> ();
+
+            var go = new GameObject ();
+            var com = go.AddComponent<EcsTestComponent> ();
+            com.Value = new EcsTestData(9);
+
+            pureSystem.OnUpdate ();
+            Assert.AreEqual (1, pureSystem.m_Data.Length);
+            Assert.AreEqual (9, pureSystem.m_Data[0].value);
+
+            ecsAndComponent.OnUpdate ();
+            Assert.AreEqual (9, ecsAndComponent.m_Data[0].value);
+            Assert.AreEqual (go.transform, ecsAndComponent.m_Transforms[0]);
+
+            Object.DestroyImmediate (go);
+        }
+
+        [Test]
+        public void LightInstantiateTupleTracking()
+        {
+            var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
+
+            //@TODO: Try out instantiate game object activate / deactivate
+            var go = new GameObject ();
+            go.SetActive (false);
+            var com = go.AddComponent<EcsTestComponent> ();
+            com.Value = new EcsTestData(9);
+
+            pureSystem.OnUpdate ();
+            Assert.AreEqual (0, pureSystem.m_Data.Length);
+
+            var instances = m_Manager.Instantiate (go, 10);
+
+            pureSystem.OnUpdate ();
+            Assert.AreEqual (10, pureSystem.m_Data.Length);
+            for (int i = 0; i < 10; i++)
+            {
+                Assert.AreEqual (9, pureSystem.m_Data [i].value);
+                Assert.AreEqual (instances[i], pureSystem.m_Entities[i]);
+            }
+
+            instances.Dispose ();
+        }
+    }
 }

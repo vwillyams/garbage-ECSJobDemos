@@ -34,7 +34,7 @@ namespace UnityEngine.ECS
 		public bool hasTransform;
 		public NativeList<int> componentTypes;
 		public NativeList<int> transformKeyHack;
-		public List<Entity> entities;
+		public NativeList<Entity> entities;
 		public NativeList<int> componentDataIndices;
 
 		public void Remove(NativeHashMap<int, EntityData> entityDataMap, int index)
@@ -47,12 +47,12 @@ namespace UnityEngine.ECS
 				componentDataIndices[offset+i] = componentDataIndices[lastOffset+i];
 				componentDataIndices.RemoveAtSwapBack(lastOffset+i);
 			}
-			int lastIndex = entities.Count-1;
+			int lastIndex = entities.Length-1;
 			entities[index] = entities[lastIndex];
-			entities.RemoveAt(lastIndex);
+			entities.RemoveAtSwapBack(lastIndex);
 
 			EntityData entityData;
-			if (entities.Count > 0 && index != lastIndex && entityDataMap.TryGetValue(entities[index].index, out entityData))
+			if (entities.Length > 0 && index != lastIndex && entityDataMap.TryGetValue(entities[index].index, out entityData))
 			{
 				entityDataMap.Remove(entities[index].index);
 				entityData.entityIdxInClass = index;
@@ -83,7 +83,7 @@ namespace UnityEngine.ECS
 					++sourceIdx;
 				}
 			}
-			targetIdx = target.entities.Count;
+			targetIdx = target.entities.Length;
 			target.entities.Add(entities[index]);
 			Remove(entityDataMap, index);
 			EntityData entityData;

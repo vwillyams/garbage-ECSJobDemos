@@ -182,7 +182,7 @@ namespace UnityEngine.ECS
 
     	public int GetComponentIndex<T>(Entity entity) where T : IComponentData
     	{
-    		return GetComponentIndex (entity, GetTypeIndex(typeof(T)));
+    		return GetComponentIndex (entity, GetTypeIndex<T>());
     	}
 
     	public int GetComponentIndex(Entity entity, Type type)
@@ -192,7 +192,7 @@ namespace UnityEngine.ECS
 
 		public bool HasComponent<T>(Entity entity) where T : IComponentData
 		{
-			return GetComponentIndex (entity, GetTypeIndex(typeof(T))) != -1;
+			return GetComponentIndex (entity, GetTypeIndex<T>()) != -1;
 		}
 
 		public bool HasComponent(Entity entity, Type type)
@@ -213,7 +213,7 @@ namespace UnityEngine.ECS
 			Assert.IsFalse (HasComponent<T>(entity));
 
 			// Add to manager
-			int componentTypeIndex = GetTypeIndex (typeof(T));
+			int componentTypeIndex = GetTypeIndex<T> ();
 			var manager = GetComponentManager<T>();
 			int index = manager.AddElement (componentData);
 
@@ -334,17 +334,16 @@ namespace UnityEngine.ECS
     			throw new System.ArgumentException ("Number of instances must be greater than 1");
 
     		var components = gameObject.GetComponents<ComponentDataWrapperBase> ();
-			//@TODO: Temp alloc
-			var componentDataTypes = new NativeArray<int> (components.Length, Allocator.Persistent);
+			var componentDataTypes = new NativeArray<int> (components.Length, Allocator.Temp);
 			m_ComponentTypesTemp.Clear();
-    		for (int t = 0;t != components.Length;t++)
+
+            for (int t = 0;t != components.Length;t++)
 			{
 				componentDataTypes[t] = GetTypeIndex(components[t].GetIComponentDataType());
 				InsertSort(m_ComponentTypesTemp, componentDataTypes[t]);
 			}
 
-    		//@TODO: Temp alloc
-			var allComponentIndices = new NativeArray<int> (numberOfInstances * components.Length, Allocator.Persistent);
+			var allComponentIndices = new NativeArray<int> (numberOfInstances * components.Length, Allocator.Temp);
 
 			int entityClassIdx = GetEntityClass(m_ComponentTypesTemp, false);
 			var entityClass = m_EntityClasses[entityClassIdx];
@@ -384,7 +383,7 @@ namespace UnityEngine.ECS
 		{
 			Assert.IsTrue (HasComponent<T>(entity));
 
-			int componentTypeIndex = GetTypeIndex (typeof(T));
+			int componentTypeIndex = GetTypeIndex<T> ();
 
 			EntityData entityData;
 			if (!m_EntityIdToEntityData.TryGetValue(entity.index, out entityData))

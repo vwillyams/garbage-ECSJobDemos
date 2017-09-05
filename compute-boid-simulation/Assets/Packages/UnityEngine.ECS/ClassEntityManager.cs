@@ -39,7 +39,7 @@ namespace UnityEngine.ECS
 		List<IComponentDataManager> 				      m_ComponentManagers = new List<IComponentDataManager>();
 
 		List<EntityClass>								  m_EntityClasses = new List<EntityClass>();
-		Dictionary<int[], int>							  m_EntityClassForComponentTypes = new Dictionary<int[], int>(new EntityClassEqualityComparer());
+		Dictionary<NativeList<int>, int>							  m_EntityClassForComponentTypes = new Dictionary<NativeList<int>, int>(new EntityClassEqualityComparer());
 
 		HashSet<EntityGroup>  m_EntityGroups = new HashSet<EntityGroup>();
 
@@ -56,27 +56,36 @@ namespace UnityEngine.ECS
 			}
 			list[index] = val;
 		}
-		private int GetEntityClass(NativeList<int> componentTypesNative, bool hasTransform)
+		private int GetEntityClass(NativeList<int> componentTypes, bool hasTransform)
 		{
-			var componentTypes = componentTypesNative.ToArray();
-			int[] temp = componentTypes;
 			if (hasTransform)
-			{
-				temp = new int[componentTypes.Length + 1];
-				temp[0] = -1;
-				componentTypes.CopyTo(temp, 1);
-			}
+				componentTypes.Add(-1);
 			int classIndex;
-			if (m_EntityClassForComponentTypes.TryGetValue(temp, out classIndex))
+			if (m_EntityClassForComponentTypes.TryGetValue(componentTypes, out classIndex))
 				return classIndex;
+			if (hasTransform)
+				componentTypes.RemoveAtSwapBack(componentTypes.Length-1);
 			var newClass = new EntityClass();
 			newClass.hasTransform = hasTransform;
-			newClass.componentTypes = componentTypes;
+			newClass.componentTypes = new NativeList<int>(componentTypes.Length, Allocator.Persistent);
+			for (int i = 0; i < componentTypes.Length; ++i)
+				newClass.componentTypes.Add(componentTypes[i]);
 			newClass.entities = new List<Entity>();
 			newClass.componentDataIndices = new NativeList<int>(Allocator.Persistent);
 			classIndex = m_EntityClasses.Count;
 			m_EntityClasses.Add(newClass);
-			m_EntityClassForComponentTypes.Add(temp, classIndex);
+			if (hasTransform)
+			{
+				newClass.transformKeyHack = new NativeList<int>(componentTypes.Length+1, Allocator.Persistent);
+				for (int i = 0; i < componentTypes.Length; ++i)
+					newClass.transformKeyHack.Add(componentTypes[i]);
+				newClass.transformKeyHack.Add(-1);
+				m_EntityClassForComponentTypes.Add(newClass.transformKeyHack, classIndex);				
+			}
+			else
+			{
+				m_EntityClassForComponentTypes.Add(newClass.componentTypes, classIndex);
+			}
 			// make sure all classes interested in this class are notified
 			foreach (var tuple in m_EntityGroups)
 			{
@@ -105,7 +114,12 @@ namespace UnityEngine.ECS
 			m_ComponentTypesTemp.Dispose();
 			m_EntityIdToEntityData.Dispose ();
 			for (int i = 0; i < m_EntityClasses.Count; ++i)
+			{
+				if (m_EntityClasses[i].transformKeyHack.IsCreated)
+					m_EntityClasses[i].transformKeyHack.Dispose();
+				m_EntityClasses[i].componentTypes.Dispose();
 				m_EntityClasses[i].componentDataIndices.Dispose();
+			}
     	}
 
 		internal Type GetTypeFromIndex(int index)

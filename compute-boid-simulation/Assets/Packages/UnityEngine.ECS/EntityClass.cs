@@ -4,9 +4,9 @@ using UnityEngine.Collections;
 namespace UnityEngine.ECS
 {
 	#if ECS_ENTITY_CLASS
-	public class EntityClassEqualityComparer : IEqualityComparer<int[]>
+	public class EntityClassEqualityComparer : IEqualityComparer<NativeList<int>>
 	{
-		public bool Equals(int[] a, int[] b)
+		public bool Equals(NativeList<int> a, NativeList<int> b)
 		{
 			if (a.Length != b.Length)
 				return false;
@@ -18,7 +18,7 @@ namespace UnityEngine.ECS
 			return true;
 		}
 
-		public int GetHashCode(int[] a)
+		public int GetHashCode(NativeList<int> a)
 		{
 			int hash = a.Length;
 			for (int i = 0; i < a.Length; i++)
@@ -32,7 +32,8 @@ namespace UnityEngine.ECS
 	internal struct EntityClass
 	{
 		public bool hasTransform;
-		public int[] componentTypes;
+		public NativeList<int> componentTypes;
+		public NativeList<int> transformKeyHack;
 		public List<Entity> entities;
 		public NativeList<int> componentDataIndices;
 

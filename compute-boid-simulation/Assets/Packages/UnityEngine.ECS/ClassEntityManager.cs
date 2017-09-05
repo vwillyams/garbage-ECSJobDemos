@@ -70,7 +70,7 @@ namespace UnityEngine.ECS
 			newClass.componentTypes = new NativeList<int>(componentTypes.Length, Allocator.Persistent);
 			for (int i = 0; i < componentTypes.Length; ++i)
 				newClass.componentTypes.Add(componentTypes[i]);
-			newClass.entities = new List<Entity>();
+			newClass.entities = new NativeList<Entity>(0, Allocator.Persistent);
 			newClass.componentDataIndices = new NativeList<int>(Allocator.Persistent);
 			classIndex = m_EntityClasses.Count;
 			m_EntityClasses.Add(newClass);
@@ -119,6 +119,7 @@ namespace UnityEngine.ECS
 					m_EntityClasses[i].transformKeyHack.Dispose();
 				m_EntityClasses[i].componentTypes.Dispose();
 				m_EntityClasses[i].componentDataIndices.Dispose();
+				m_EntityClasses[i].entities.Dispose();
 			}
     	}
 
@@ -241,7 +242,7 @@ namespace UnityEngine.ECS
 			if (oldClassIdx < 0)
 			{
 				entityData.classIdx = entityClassIdx;
-				entityData.entityIdxInClass = entityClass.entities.Count;
+				entityData.entityIdxInClass = entityClass.entities.Length;
 				m_EntityIdToEntityData.Remove(entity.index);
 				m_EntityIdToEntityData.TryAdd(entity.index, entityData);
 				entityClass.entities.Add(entity);
@@ -290,7 +291,7 @@ namespace UnityEngine.ECS
 			for (int i = 0; i < entities.Length; i++)
 			{
 				entities[i] = new Entity (m_DebugManagerID, m_InstanceIDAllocator - i * 2);
-				entityData.entityIdxInClass = entityClass.entities.Count;
+				entityData.entityIdxInClass = entityClass.entities.Length;
 				entityClass.entities.Add(entities[i]);
 				m_EntityIdToEntityData.TryAdd(entities[i].index, entityData);
 			}

@@ -132,27 +132,11 @@ namespace UnityEngine.Collections
 		}
 
 		unsafe public void Add(T value, NativeSlice<int> outputIndices)
-		{			
-			#if ENABLE_NATIVE_ARRAY_CHECKS
-			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
-			#endif
-
-			int* outIndicesPtr = (int*)outputIndices.UnsafePtr;
+		{
 			int count = outputIndices.Length;
-
-			if (m_Length + count > m_Capacity)
-				Capacity = (count + m_Length) * 2;
-
-			m_Length += count;
-
-			for (int i = 0; i != count; i++)
+			for (int i = 0; i < count; i++)
 			{
-				int id = m_NextFree;
-				m_NextFree = UnsafeUtility.ReadArrayElementWithStride<int> (m_Buffer, id, m_SizeOf);
-
-				UnsafeUtility.WriteArrayElementWithStride (m_Buffer, id, m_SizeOf, value);
-
-				outIndicesPtr[i] = id;
+				outputIndices[i] = Add(value);
 			}
 		}
 

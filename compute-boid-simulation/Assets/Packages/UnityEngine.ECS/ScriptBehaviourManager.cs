@@ -51,7 +51,14 @@ namespace UnityEngine.ECS
 
 		internal static void DestroyInstance(ScriptBehaviourManager inst)
 		{
-			inst.OnDestroyManager ();
+			try
+			{
+				inst.OnDestroyManager();
+			}
+			catch (Exception e)
+			{
+				Debug.LogException(e);
+			}
 		}
 
 		// NOTE: The comments for behaviour below are how it is supposed to work.

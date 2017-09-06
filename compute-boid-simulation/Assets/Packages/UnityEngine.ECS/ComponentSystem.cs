@@ -59,21 +59,26 @@ namespace UnityEngine.ECS
     	{
 			OnUpdateDontCompleteDependencies ();
 
-			foreach (var dep in m_JobDependencyForReadingManagers)
-				dep.CompleteWriteDependency ();
-			foreach (var dep in m_JobDependencyForWritingManagers)
-			{
-				dep.CompleteWriteDependency ();
-				dep.CompleteReadDependency ();
-			}
-    	}
+			CompleteDependencyInternal();
+		}
 
 		internal void OnUpdateDontCompleteDependencies()
 		{
 			base.OnUpdate ();
 			UpdateInjectedTuples ();
 		}
-    }
+
+		internal void CompleteDependencyInternal()
+		{
+			foreach (var dep in m_JobDependencyForReadingManagers)
+				dep.CompleteWriteDependency();
+			foreach (var dep in m_JobDependencyForWritingManagers)
+			{
+				dep.CompleteWriteDependency();
+				dep.CompleteReadDependency();
+			}
+		}
+	}
 
 	public abstract class JobComponentSystem : ComponentSystem
 	{
@@ -115,13 +120,7 @@ namespace UnityEngine.ECS
 
 		public void CompleteDependency ()
 		{
-			foreach (var dep in m_JobDependencyForReadingManagers)
-				dep.CompleteWriteDependency ();
-			foreach (var dep in m_JobDependencyForWritingManagers)
-			{
-				dep.CompleteWriteDependency ();
-				dep.CompleteReadDependency ();
-			}
+			CompleteDependencyInternal();
 		}
 
 		public void AddDependency (JobHandle handle)

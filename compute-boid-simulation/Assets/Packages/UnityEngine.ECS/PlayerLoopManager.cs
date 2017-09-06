@@ -16,7 +16,8 @@ namespace UnityEngine.ECS
 	        // TODO: this does not guarantee the order or destruction
 	        var go = new GameObject();
 	        go.AddComponent<PlayerLoopDisableManager>().isActive = true;
-	        go.hideFlags = HideFlags.HideAndDontSave;
+	        go.hideFlags = HideFlags.HideInHierarchy;
+	        GameObject.DontDestroyOnLoad(go);
 	    }
 
 	    public delegate void CallbackFunction();

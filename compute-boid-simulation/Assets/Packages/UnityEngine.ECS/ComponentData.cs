@@ -32,7 +32,7 @@ namespace UnityEngine.ECS
     	{
     		get
     		{ 
-				if (m_GameObjectManager != null && m_GameObjectManager.HasComponent<T> (m_Entity))
+				if (m_GameObjectManager != null && m_GameObjectManager.IsCreated && m_GameObjectManager.HasComponent<T> (m_Entity))
     			{
 					return m_GameObjectManager.GetComponent<T> (m_Entity);
     			}
@@ -42,7 +42,7 @@ namespace UnityEngine.ECS
     		set
     		{
 				m_SerializedData = value;
-				if (m_GameObjectManager != null && m_GameObjectManager.HasComponent<T> (m_Entity))
+				if (m_GameObjectManager != null && m_GameObjectManager.IsCreated && m_GameObjectManager.HasComponent<T> (m_Entity))
 				{
 					m_GameObjectManager.SetComponent<T> (m_Entity, value);
 					return;
@@ -53,7 +53,7 @@ namespace UnityEngine.ECS
 
     	public void OnAfterDeserialize ()
     	{
-			if (m_GameObjectManager != null && m_GameObjectManager.HasComponent<T> (m_Entity))
+			if (m_GameObjectManager != null && m_GameObjectManager.IsCreated && m_GameObjectManager.HasComponent<T> (m_Entity))
     		{
 				m_GameObjectManager.SetComponent<T> (m_Entity, m_SerializedData);
     		}
@@ -61,7 +61,7 @@ namespace UnityEngine.ECS
 
     	public void OnBeforeSerialize ()
     	{
-			if (m_GameObjectManager != null && m_GameObjectManager.HasComponent<T> (m_Entity))
+			if (m_GameObjectManager != null && m_GameObjectManager.IsCreated && m_GameObjectManager.HasComponent<T> (m_Entity))
 			{			
 				m_SerializedData = m_GameObjectManager.GetComponent<T> (m_Entity);
     		}
@@ -85,7 +85,7 @@ namespace UnityEngine.ECS
     	override protected void OnDisable()
     	{
 #if !ECS_ENTITY_CLASS && !ECS_ENTITY_TABLE
-			if (m_GameObjectManager != null && m_GameObjectManager.HasComponent<T>(m_Entity))
+			if (m_GameObjectManager != null && m_GameObjectManager.IsCreated && m_GameObjectManager.HasComponent<T>(m_Entity))
 				m_GameObjectManager.RemoveComponent<T>(m_Entity);
 
 			m_GameObjectManager = null;

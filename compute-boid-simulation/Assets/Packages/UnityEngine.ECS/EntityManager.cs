@@ -98,6 +98,8 @@ namespace UnityEngine.ECS
 			ms_AllEntityManagers.Remove (this);
     	}
 
+		public bool IsCreated {get{return m_ComponentManagers != null;}}
+
 		internal static Type GetTypeFromIndex(int index)
 		{
 			return ms_ComponentTypes[index];

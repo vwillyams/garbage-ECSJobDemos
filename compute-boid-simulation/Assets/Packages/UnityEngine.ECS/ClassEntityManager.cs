@@ -139,7 +139,11 @@ namespace UnityEngine.ECS
 			}
 
             ms_AllEntityManagers.Remove (this);
+
+            m_ComponentManagers = null;
     	}
+
+        public bool IsCreated { get { return m_ComponentManagers != null; } }
 
 		internal Type GetTypeFromIndex(int index)
 		{

@@ -167,7 +167,7 @@ namespace UnityEngine.ECS
 
         public static int AllocateIntoChunk (Chunk* chunk, int count, out int outIndex)
         {
-            int allocatedCount = math.min(chunk->capacity - chunk->count, count);
+            int allocatedCount = Math.Min(chunk->capacity - chunk->count, count);
             outIndex = chunk->count;
             chunk->count += allocatedCount;
 			chunk->archetype->entityCount += allocatedCount;

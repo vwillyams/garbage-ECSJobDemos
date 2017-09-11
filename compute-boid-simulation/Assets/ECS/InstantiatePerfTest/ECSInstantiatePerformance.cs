@@ -62,7 +62,8 @@ public class ECSInstantiatePerformance : MonoBehaviour
         var group2 = m_EntityManager.CreateEntityGroup(typeof(Component128Bytes));
 
 		instantiateSampler.Begin ();
-		var instances = m_EntityManager.Instantiate (archetype, 100000);
+		var instances = new NativeArray<Entity>(100000, Allocator.Temp);
+		m_EntityManager.Instantiate (archetype, instances);
 		instantiateSampler.End();
 
 		iterateSampler.Begin ();

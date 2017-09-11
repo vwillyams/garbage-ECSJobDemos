@@ -41,7 +41,8 @@ public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
         m_EntityManager.AddComponent<Component12Bytes>(archetype, new Component12Bytes());
         m_EntityManager.AddComponent<Component64Bytes>(archetype, new Component64Bytes());
 
-        var entities = m_EntityManager.Instantiate (archetype, 100000);
+        var entities = new NativeArray<Entity>(100000, Allocator.Temp);
+        m_EntityManager.Instantiate (archetype, entities);
 
 		instantiateSampler.End();
 

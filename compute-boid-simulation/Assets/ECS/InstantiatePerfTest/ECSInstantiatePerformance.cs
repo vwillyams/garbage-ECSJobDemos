@@ -51,7 +51,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 
 		var m_EntityManager = DependencyManager.GetBehaviourManager<EntityManager>();
 
-        var archetype = m_EntityManager.AllocateEntity();
+        var archetype = m_EntityManager.CreateEntity();
         m_EntityManager.AddComponent<Component128Bytes>(archetype, new Component128Bytes());
         m_EntityManager.AddComponent<Component12Bytes>(archetype, new Component12Bytes());
         m_EntityManager.AddComponent<Component64Bytes>(archetype, new Component64Bytes());

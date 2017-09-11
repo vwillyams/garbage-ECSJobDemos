@@ -12,11 +12,13 @@ namespace UnityEngine.ECS
     public abstract class ComponentSystem : ScriptBehaviourManager
     {
 		public TupleSystem[] Tuples { get { return m_Tuples; } }
-        TupleSystem[] 							m_Tuples;
-        internal IComponentDataManager[]		m_JobDependencyForReadingManagers;
-        internal IComponentDataManager[]		m_JobDependencyForWritingManagers;
+        TupleSystem[] 					m_Tuples;
 
-    	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        internal ComponentType[]		    m_JobDependencyForReadingManagers;
+        internal ComponentType[]		    m_JobDependencyForWritingManagers;
+        protected ComponentJobSafetyManager m_SafetyManager;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     	static void Initialize()
     	{
 			foreach (var ass in AppDomain.CurrentDomain.GetAssemblies ())
@@ -29,11 +31,9 @@ namespace UnityEngine.ECS
     	override protected void OnCreateManager(int capacity)
     	{
     		base.OnCreateManager(capacity);
-			InjectTuples.CreateTuplesInjection (GetType(), this, out m_Tuples, out m_JobDependencyForReadingManagers, out m_JobDependencyForWritingManagers);
 
-			IEntityGroupChange evt = this as IEntityGroupChange;
-			if (Tuples.Length != 0 && evt != null)
-				Tuples[0].EntityGroup.AddChangeEventListener (evt);
+            m_SafetyManager = DependencyManager.GetBehaviourManager<EntityManager>().ComponentJobSafetyManager;
+			InjectTuples.CreateTuplesInjection (GetType(), this, out m_Tuples, out m_JobDependencyForReadingManagers, out m_JobDependencyForWritingManagers);
     	}
 
     	override protected void OnDestroyManager()
@@ -55,34 +55,35 @@ namespace UnityEngine.ECS
     			InjectTuples.UpdateInjection (tuple, this);
     	}
 
-    	override protected void OnUpdate()
+    	override public void OnUpdate()
     	{
 			OnUpdateDontCompleteDependencies ();
 
-			CompleteDependencyInternal();
-		}
+            CompleteDependencyInternal();
+    	}
+
+        internal void CompleteDependencyInternal()
+        {
+            foreach (var dep in m_JobDependencyForReadingManagers)
+                m_SafetyManager.CompleteWriteDependency(dep.typeIndex);
+            foreach (var dep in m_JobDependencyForWritingManagers)
+            {
+                m_SafetyManager.CompleteWriteDependency(dep.typeIndex);
+                m_SafetyManager.CompleteReadDependency(dep.typeIndex);
+            }
+        }
 
 		internal void OnUpdateDontCompleteDependencies()
 		{
 			base.OnUpdate ();
 			UpdateInjectedTuples ();
 		}
-
-		internal void CompleteDependencyInternal()
-		{
-			foreach (var dep in m_JobDependencyForReadingManagers)
-				dep.CompleteWriteDependency();
-			foreach (var dep in m_JobDependencyForWritingManagers)
-			{
-				dep.CompleteWriteDependency();
-				dep.CompleteReadDependency();
-			}
-		}
-	}
+    }
 
 	public abstract class JobComponentSystem : ComponentSystem
 	{
 		NativeList<JobHandle>                   m_JobDependencyCombineList;
+
     	override protected void OnCreateManager(int capacity)
     	{
     		base.OnCreateManager(capacity);
@@ -95,7 +96,7 @@ namespace UnityEngine.ECS
 			m_JobDependencyCombineList.Dispose();
     	}
 		
-		override protected void OnUpdate()
+		override public void OnUpdate()
 		{
 			OnUpdateDontCompleteDependencies ();
 		}
@@ -108,27 +109,27 @@ namespace UnityEngine.ECS
 			m_JobDependencyCombineList.Clear();
 			foreach (var dep in m_JobDependencyForReadingManagers)
 			{
-				m_JobDependencyCombineList.Add(dep.GetWriteDependency ());
+				m_JobDependencyCombineList.Add(m_SafetyManager.GetWriteDependency (dep.typeIndex));
 			}
 			foreach (var dep in m_JobDependencyForWritingManagers)
 			{
-				m_JobDependencyCombineList.Add(dep.GetWriteDependency ());
-				m_JobDependencyCombineList.Add(dep.GetReadDependency ());
+				m_JobDependencyCombineList.Add(m_SafetyManager.GetWriteDependency (dep.typeIndex));
+				m_JobDependencyCombineList.Add(m_SafetyManager.GetReadDependency (dep.typeIndex));
 			}
 			return JobHandle.CombineDependencies(m_JobDependencyCombineList);
 		}
 
 		public void CompleteDependency ()
 		{
-			CompleteDependencyInternal();
+            CompleteDependencyInternal();
 		}
 
 		public void AddDependency (JobHandle handle)
 		{
 			foreach (var dep in m_JobDependencyForReadingManagers)
-				dep.AddReadDependency (handle);
+				m_SafetyManager.AddReadDependency (dep.typeIndex, handle);
 			foreach (var dep in m_JobDependencyForWritingManagers)
-				dep.AddWriteDependency (handle);
+				m_SafetyManager.AddWriteDependency (dep.typeIndex, handle);
 		}
 	}
 

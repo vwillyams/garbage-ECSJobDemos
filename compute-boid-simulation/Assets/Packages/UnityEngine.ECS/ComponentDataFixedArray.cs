@@ -15,36 +15,40 @@ namespace UnityEngine.ECS
 
 	[NativeContainer]
 	[NativeContainerSupportsMinMaxWriteRestriction]
-	public unsafe struct EntityArray
+	public unsafe struct ComponentDataFixedArray<T> where T : struct
 	{
         ComponentDataArrayCache m_Cache;
+        int                     m_FixedArrayLength;
         int                     m_Length;
 
-		#if ENABLE_NATIVE_ARRAY_CHECKS
-		int                      	m_MinIndex;
+
+        #if ENABLE_NATIVE_ARRAY_CHECKS
+        int                      	m_MinIndex;
 		int                      	m_MaxIndex;
 		AtomicSafetyHandle       	m_Safety;
-		#endif
+        #endif
 
 		#if ENABLE_NATIVE_ARRAY_CHECKS
-		public unsafe EntityArray(ComponentDataArchetypeSegment* data, int length, AtomicSafetyHandle safety)
+        public unsafe ComponentDataFixedArray(ComponentDataArchetypeSegment* data, int length, int fixedArrayLength, AtomicSafetyHandle safety, bool isReadOnly)
 		#else
-		public unsafe EntityArray(ComponentDataArchetypeSegment* data, int length)
+        public unsafe ComponentDataFixedArray(ComponentDataArchetypeSegment* data, int length, int fixedArrayLength)
 		#endif
 		{
             m_Length = length;
             m_Cache = new ComponentDataArrayCache(data, length);
+            m_FixedArrayLength = fixedArrayLength;
 
 			#if ENABLE_NATIVE_ARRAY_CHECKS
 			m_MinIndex = 0;
 			m_MaxIndex = length - 1;
 			m_Safety = safety;
-			AtomicSafetyHandle.UseSecondaryVersion(ref m_Safety);
+			if (isReadOnly)
+				AtomicSafetyHandle.UseSecondaryVersion(ref m_Safety);
 			#endif
 
 		}
 
-		public unsafe Entity this[int index]
+		public unsafe NativeArray<T> this[int index]
 		{
 			get
 			{
@@ -60,7 +64,8 @@ namespace UnityEngine.ECS
                 if (index < m_Cache.m_CachedBeginIndex || index >= m_Cache.m_CachedEndIndex)
                     m_Cache.UpdateCache(index);
 
-                return UnsafeUtility.ReadArrayElementWithStride<Entity>(m_Cache.m_CachedPtr, index, m_Cache.m_CachedStride);
+                IntPtr ptr = m_Cache.m_CachedPtr + (index * m_Cache.m_CachedStride);
+                return NativeArray<T>.ConvertExistingDataToNativeArrayInternal(ptr, m_FixedArrayLength, m_Safety, Allocator.Invalid);
 			}
 		}
 

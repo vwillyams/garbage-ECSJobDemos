@@ -36,7 +36,7 @@ public class RandomSpawner : ScriptBehaviour
 		Profiler.EndSample ();
 	}
 
-	protected override void OnUpdate ()
+	public override void OnUpdate ()
 	{
 		base.OnUpdate ();
 

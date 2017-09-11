@@ -19,7 +19,7 @@ namespace RotatorSamples
 			set { m_Speed = value; }
 		}
 
-		protected override void OnUpdate ()
+		public override void OnUpdate ()
 		{
 			base.OnUpdate ();
 

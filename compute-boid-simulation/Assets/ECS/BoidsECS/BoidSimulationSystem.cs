@@ -96,7 +96,7 @@ namespace BoidSimulations
 			}
 		}
 
-		override protected void OnUpdate()
+		override public void OnUpdate()
 		{
 			base.OnUpdate();
 

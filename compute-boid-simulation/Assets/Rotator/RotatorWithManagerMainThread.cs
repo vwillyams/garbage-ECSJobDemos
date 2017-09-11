@@ -30,7 +30,7 @@ namespace RotatorSamples
 			m_Speeds.Dispose();		
 		}
 
-		protected override void OnUpdate()
+		public override void OnUpdate()
 		{
 			base.OnUpdate ();
 

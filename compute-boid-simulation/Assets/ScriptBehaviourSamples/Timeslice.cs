@@ -47,7 +47,7 @@ class SetupRigidbody : ScriptBehaviour
 		m_Rigidbody.mass = 5;
 	}
 
-	override protected void OnUpdate()
+	override public void OnUpdate()
 	{
 		m_Rigidbody.AddForce(1, 2, 3);
 	}

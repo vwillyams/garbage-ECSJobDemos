@@ -19,7 +19,7 @@ namespace RotatorSamples
 		[InjectTuples]
 		public ComponentArray<RotationSpeedComponent>   m_Rotators;
 
-		override protected void OnUpdate()
+		override public void OnUpdate()
 		{
 			base.OnUpdate ();
 

@@ -88,21 +88,21 @@ namespace UnityEngine.ECS
 
 
 
-        unsafe public void Create(EntityArchetype archetype, NativeArray<Entity> entities)
+        unsafe public void CreateEntity(EntityArchetype archetype, NativeArray<Entity> entities)
         {
             CreateEntityInternal (archetype, (Entity*)entities.UnsafePtr, entities.Length);
         }
 
-        unsafe public Entity Create(EntityArchetype archetype)
+        unsafe public Entity CreateEntity(EntityArchetype archetype)
         {
             Entity entity;
             CreateEntityInternal (archetype, &entity, 1);
             return entity;
         }
 
-        unsafe public Entity Create(params ComponentType[] types)
+        unsafe public Entity CreateEntity(params ComponentType[] types)
         {
-            return Create(CreateArchetype(types));
+            return CreateEntity(CreateArchetype(types));
         }
 
         unsafe void CreateEntityInternal(EntityArchetype archetype, Entity* entities, int count)

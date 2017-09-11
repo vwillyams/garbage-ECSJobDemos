@@ -37,7 +37,7 @@ namespace UnityEngine.ECS
 
             m_EntityManager = DependencyManager.GetBehaviourManager(typeof(EntityManager)) as EntityManager;
             var archetype = m_EntityManager.CreateArchetype(types);
-            m_Entity = m_EntityManager.Create(archetype);
+            m_Entity = m_EntityManager.CreateEntity(archetype);
             t = 0;
             for (int i = 0; i != components.Length; i++)
             {

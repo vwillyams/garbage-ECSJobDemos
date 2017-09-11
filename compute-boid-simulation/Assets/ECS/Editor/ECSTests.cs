@@ -246,7 +246,8 @@ namespace UnityEngine.ECS.Tests
             pureSystem.OnUpdate ();
             Assert.AreEqual (0, pureSystem.m_Data.Length);
 
-            var instances = m_Manager.Instantiate (go, 10);
+            var instances = new NativeArray<Entity>(10, Allocator.Temp);
+			m_Manager.Instantiate (go, instances);
 
             pureSystem.OnUpdate ();
             Assert.AreEqual (10, pureSystem.m_Data.Length);

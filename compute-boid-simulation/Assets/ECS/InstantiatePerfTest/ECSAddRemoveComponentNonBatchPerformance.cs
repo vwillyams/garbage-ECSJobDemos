@@ -30,9 +30,9 @@ public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
 
 		var m_EntityManager = DependencyManager.GetBehaviourManager<EntityManager>();
 
-		var group0 = new EntityGroup (m_EntityManager, typeof(Component128Bytes));
-		var group1 = new EntityGroup (m_EntityManager, typeof(Component12Bytes));
-        var group2 = new EntityGroup(m_EntityManager, typeof(Component128Bytes));
+		var group0 = m_EntityManager.CreateEntityGroup (typeof(Component128Bytes));
+		var group1 = m_EntityManager.CreateEntityGroup (typeof(Component12Bytes));
+        var group2 = m_EntityManager.CreateEntityGroup (typeof(Component128Bytes));
 
 		instantiateSampler.Begin();
 
@@ -61,10 +61,6 @@ public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
         destroySampler.End();
 
         entities.Dispose ();
-
-        group0.Dispose();
-        group1.Dispose();
-        group2.Dispose();
 
 
         UnityEngine.Collections.NativeLeakDetection.Mode = UnityEngine.Collections.NativeLeakDetectionMode.Enabled;

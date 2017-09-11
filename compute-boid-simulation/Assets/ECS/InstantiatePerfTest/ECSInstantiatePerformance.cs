@@ -57,9 +57,9 @@ public class ECSInstantiatePerformance : MonoBehaviour
         m_EntityManager.AddComponent<Component64Bytes>(archetype, new Component64Bytes());
         m_EntityManager.AddComponent<Component16Bytes>(archetype, new Component16Bytes());
 
-		var group0 = new EntityGroup(m_EntityManager, typeof(Component128Bytes));
-        var group1 = new EntityGroup(m_EntityManager, typeof(Component12Bytes));
-        var group2 = new EntityGroup(m_EntityManager, typeof(Component128Bytes));
+		var group0 = m_EntityManager.CreateEntityGroup(typeof(Component128Bytes));
+        var group1 = m_EntityManager.CreateEntityGroup(typeof(Component12Bytes));
+        var group2 = m_EntityManager.CreateEntityGroup(typeof(Component128Bytes));
 
 		instantiateSampler.Begin ();
 		var instances = m_EntityManager.Instantiate (archetype, 100000);
@@ -77,10 +77,6 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		destroySampler.End ();
 
 		instances.Dispose ();
-
-        group0.Dispose();
-        group1.Dispose();
-        group2.Dispose();
 
         UnityEngine.Collections.NativeLeakDetection.Mode = UnityEngine.Collections.NativeLeakDetectionMode.Enabled;
 

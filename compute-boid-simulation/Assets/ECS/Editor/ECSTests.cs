@@ -173,7 +173,7 @@ namespace UnityEngine.ECS.Tests
 		[Ignore("Failing")]
 		public void EcsUnalignedBoolTest()
 		{
-			var group = new EntityGroup (m_Manager, typeof(EcsBoolTestData));
+			var group = m_Manager.CreateEntityGroup (typeof(EcsBoolTestData));
 
 			for (int i = 0; i != 1000; i++)
 				m_Manager.AddComponent (m_Manager.AllocateEntity (), new EcsBoolTestData (true));
@@ -183,8 +183,6 @@ namespace UnityEngine.ECS.Tests
 			{
 				Assert.AreEqual (true, bools[i].value);
 			}
-
-			group.Dispose ();
 		}
 	}
 

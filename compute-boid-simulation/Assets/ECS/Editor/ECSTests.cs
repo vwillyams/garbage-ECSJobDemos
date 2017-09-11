@@ -36,9 +36,9 @@ namespace UnityEngine.ECS.Tests
 		[Test]
 		public void ECSCreateAndDestroy()
 		{
-			var go0 = m_Manager.AllocateEntity ();
-			var go1 = m_Manager.AllocateEntity ();
-			var go2 = m_Manager.AllocateEntity ();
+			var go0 = m_Manager.CreateEntity ();
+			var go1 = m_Manager.CreateEntity ();
+			var go2 = m_Manager.CreateEntity ();
 
 			Assert.IsFalse (m_Manager.HasComponent<EcsTestData>(go0));
 			Assert.IsFalse (m_Manager.HasComponent<EcsTestData>(go1));
@@ -75,7 +75,7 @@ namespace UnityEngine.ECS.Tests
 		[Test]
 		public void SetComponentData()
 		{
-			var go = m_Manager.AllocateEntity ();
+			var go = m_Manager.CreateEntity ();
 
 			m_Manager.AddComponent (go, new EcsTestData(0));
 			m_Manager.SetComponent (go, new EcsTestData(1));
@@ -88,7 +88,7 @@ namespace UnityEngine.ECS.Tests
 		[Test]
 		public void SetComponentDataOnDeletedEntity()
 		{
-			var go = m_Manager.AllocateEntity ();
+			var go = m_Manager.CreateEntity ();
 			m_Manager.AddComponent (go, new EcsTestData(0));
 			m_Manager.Destroy (go);
 
@@ -102,7 +102,7 @@ namespace UnityEngine.ECS.Tests
 			var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
 			var ecsAndTransformArray = DependencyManager.GetBehaviourManager<EcsTestAndTransformArraySystem> ();
 
-			var go = m_Manager.AllocateEntity ();
+			var go = m_Manager.CreateEntity ();
 			m_Manager.AddComponent (go, new EcsTestData(2));
 
 			pureSystem.OnUpdate ();
@@ -120,10 +120,10 @@ namespace UnityEngine.ECS.Tests
 		{
 			var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
 
-			var go0 = m_Manager.AllocateEntity ();
+			var go0 = m_Manager.CreateEntity ();
 			m_Manager.AddComponent (go0, new EcsTestData(10));
 
-			var go1 = m_Manager.AllocateEntity ();
+			var go1 = m_Manager.CreateEntity ();
 			m_Manager.AddComponent (go1, new EcsTestData(20));
 
 			pureSystem.OnUpdate ();
@@ -148,7 +148,7 @@ namespace UnityEngine.ECS.Tests
 		{
 			var readOnlySystem = DependencyManager.GetBehaviourManager<PureReadOnlySystem> ();
 
-			var go = m_Manager.AllocateEntity ();
+			var go = m_Manager.CreateEntity ();
 			m_Manager.AddComponent (go, new EcsTestData(2));
 
 			readOnlySystem.OnUpdate ();
@@ -161,7 +161,7 @@ namespace UnityEngine.ECS.Tests
 		{
 			var changeSystem = DependencyManager.GetBehaviourManager<GroupChangeSystem> ();
 
-			var go = m_Manager.AllocateEntity ();
+			var go = m_Manager.CreateEntity ();
 
 			m_Manager.AddComponent (go, new EcsTestData(2));
 			changeSystem.ExpectDidAddElements (1);
@@ -176,7 +176,7 @@ namespace UnityEngine.ECS.Tests
 			var group = m_Manager.CreateEntityGroup (typeof(EcsBoolTestData));
 
 			for (int i = 0; i != 1000; i++)
-				m_Manager.AddComponent (m_Manager.AllocateEntity (), new EcsBoolTestData (true));
+				m_Manager.AddComponent (m_Manager.CreateEntity (), new EcsBoolTestData (true));
 
 			var bools = group.GetComponentDataArray<EcsBoolTestData> ();
 			for (int i = 0; i != 1000; i++)

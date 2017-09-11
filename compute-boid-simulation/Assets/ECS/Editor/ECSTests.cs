@@ -156,6 +156,7 @@ namespace UnityEngine.ECS.Tests
 			Assert.Throws<System.InvalidOperationException>(()=> { readOnlySystem.m_Data[0] = new EcsTestData(); });
 		}
 
+		#if false // TODO: IEntityGroupCahnge is no longer supported
 		[Test]
 		public void GroupChangeSystem()
 		{
@@ -168,6 +169,7 @@ namespace UnityEngine.ECS.Tests
 			m_Manager.Destroy (go);
 			changeSystem.ExpectDidRemoveSwapBack (0);
 		}
+		#endif
 
 		[Test]
 		[Ignore("Failing")]

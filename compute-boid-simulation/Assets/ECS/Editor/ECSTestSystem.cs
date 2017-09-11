@@ -49,6 +49,7 @@ namespace UnityEngine.ECS.Tests
 		public void OnUpdate() { base.OnUpdate (); }
 	}
 
+	#if false // TODO: IEntityGroupCahnge is no longer supported
 	public class GroupChangeSystem : ComponentSystem, IEntityGroupChange
 	{
 		[InjectTuples]
@@ -87,6 +88,7 @@ namespace UnityEngine.ECS.Tests
 			m_OnRemoveSwapBack.Clear ();
 		}
 	}
+	#endif
 
 
 }

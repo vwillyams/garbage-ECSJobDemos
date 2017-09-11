@@ -213,5 +213,17 @@ namespace UnityEngine.ECS
             ComponentDataArchetypeSegment* segment = GetSegmentData(RealTypeManager.GetTypeIndex<T>(), out length, out componentIndex);
 			return new ComponentArray<T>(segment, length);
 		}
+
+		public Type[] Types
+		{
+			get
+			{
+				var types = new List<Type> ();
+				for (int i = 0; i < m_GroupData->m_NumRequiredComponents; ++i)
+					types.Add(RealTypeManager.GetType(m_GroupData->m_RequiredComponents[i]));
+
+				return types.ToArray ();
+			}
+		}
 	}
 }

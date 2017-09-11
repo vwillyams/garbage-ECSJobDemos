@@ -158,6 +158,18 @@ namespace UnityEngine.ECS
             return entity;
         }
 
+        public unsafe void Instantiate(GameObject srcGameObject, NativeArray<Entity> outputEntities)
+        {
+            var components = srcGameObject.GetComponents<ComponentDataWrapperBase> ();
+            var componentTypes = new ComponentType[components.Length];
+            for (int t = 0; t != components.Length; ++t)
+                componentTypes[t] = new ComponentType(components[t].GetIComponentDataType());
+            var srcEntity = CreateEntity(componentTypes);
+            for (int t = 0; t != components.Length; ++t)
+                components[t].UpdateComponentData(this, srcEntity);
+            Instantiate(srcEntity, (Entity*)outputEntities.UnsafePtr, outputEntities.Length);
+            Destroy(srcEntity);
+        }
         public unsafe void Instantiate(Entity srcEntity, NativeArray<Entity> outputEntities)
         {
             Instantiate(srcEntity, (Entity*)outputEntities.UnsafePtr, outputEntities.Length);

@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Jobs;
 using UnityEngine.ECS;
+using UnityEngine.Collections;
 
 namespace BoidSimulations
 {
@@ -38,7 +39,8 @@ namespace BoidSimulations
 
 			if (lightweightInstantiate)
 			{
-				var gos = m_LightweightGameObjects.Instantiate (lightweightPrefab, count);
+				var gos = new NativeArray<Entity>(count, Allocator.Temp);
+				m_LightweightGameObjects.Instantiate (lightweightPrefab, gos);
 
 				for (int i = 0; i != gos.Length; i++)
 				{

@@ -53,6 +53,7 @@ namespace UnityEngine.ECS
 			UnsafeUtility.MemCpy((IntPtr)grp->m_RequiredComponents, (IntPtr)requiredTypeIndices, sizeof(int)*requiredCount);
 			grp->m_FirstMatchingArchetype = null;
 			grp->m_LastMatchingArchetype = null;
+			grp->m_Transforms = new TransformAccessArray();
 			for (Archetype* type = typeMan.m_LastArchetype; type != null; type = type->prevArchetype)
 				AddArchetypeIfMatching(type, grp);
 			m_GroupLookup.Add(hash, (IntPtr)grp);
@@ -61,7 +62,12 @@ namespace UnityEngine.ECS
 		public void Dispose()
 		{
 
-
+			while (m_LastGroupData != null)
+			{
+				if (m_LastGroupData->m_Transforms.IsCreated)
+					m_LastGroupData->m_Transforms.Dispose();
+				m_LastGroupData = m_LastGroupData->m_PrevGroup;
+			}
             //@TODO: Need to wait for all job handles to be completed..
 
 			m_GroupLookup.Dispose();
@@ -122,6 +128,8 @@ namespace UnityEngine.ECS
 		public MatchingArchetypes* m_FirstMatchingArchetype;
 		public MatchingArchetypes* m_LastMatchingArchetype;
 		public EntityGroupData* m_PrevGroup;
+
+		public TransformAccessArray m_Transforms;
 	}
 
     //@TODO: Make safe when entity manager is destroyed.
@@ -212,6 +220,20 @@ namespace UnityEngine.ECS
 
             ComponentDataArchetypeSegment* segment = GetSegmentData(RealTypeManager.GetTypeIndex<T>(), out length, out componentIndex);
 			return new ComponentArray<T>(segment, length);
+		}
+		public TransformAccessArray GetTransformAccessArray()
+		{
+			var trans = GetComponentArray<Transform>();
+			if (!m_GroupData->m_Transforms.IsCreated)
+				m_GroupData->m_Transforms = new TransformAccessArray(trans.Length);
+			else
+			{
+				while (m_GroupData->m_Transforms.Length > 0)
+					m_GroupData->m_Transforms.RemoveAtSwapBack(m_GroupData->m_Transforms.Length-1);
+			}
+			for (int i = 0; i < trans.Length; ++i)
+				m_GroupData->m_Transforms.Add(trans[i]);
+			return m_GroupData->m_Transforms;
 		}
 
 		public Type[] Types

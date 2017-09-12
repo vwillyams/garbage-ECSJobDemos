@@ -55,16 +55,14 @@ namespace UnityEngine.ECS
                 componentInjections[i].field.SetValue(targetObject, container);
             }
 
+            if (tuples.TransformAccessArrayInjection != null)
+				tuples.TransformAccessArrayInjection.SetValue (targetObject, tuples.GetTransformAccessArray());
             if (tuples.EntityArrayInjection != null)
 				tuples.EntityArrayInjection.SetValue (targetObject, tuples.GetEntityArray());
     	}
 
         static TupleSystem CreateTuplesInjection(FieldInfo entityArrayField, FieldInfo transformAccessArrayField, List<TupleInjectionData> injections, List<ComponentType> outReadJobDependencies, List<ComponentType> outWriteJobDependencies, object targetObject)
     	{
-    		TransformAccessArray transformAccessArray = new TransformAccessArray();
-    		if (transformAccessArrayField != null)
-    			transformAccessArray = new TransformAccessArray (0);
-
 			var componentInjections = new List<TupleInjectionData>();
 			var componentDataInjections = new List<TupleInjectionData>();
 
@@ -90,11 +88,9 @@ namespace UnityEngine.ECS
 				}
     		}
 
-            var tuples = new TupleSystem(DependencyManager.GetBehaviourManager<EntityManager>(), componentDataInjections.ToArray(), componentInjections.ToArray(), entityArrayField, transformAccessArray);
+            var tuples = new TupleSystem(DependencyManager.GetBehaviourManager<EntityManager>(), componentDataInjections.ToArray(), componentInjections.ToArray(), entityArrayField, transformAccessArrayField);
 
-    		if (transformAccessArrayField != null)
-    			transformAccessArrayField.SetValue (targetObject, transformAccessArray);
-
+			UpdateInjection(tuples, targetObject);
     		return tuples;
     	}
 

@@ -122,14 +122,14 @@ namespace UnityEngine.ECS
             }
         }
 
-        unsafe public void Destroy (NativeArray<Entity> entities)
+        unsafe public void DestroyEntity (NativeArray<Entity> entities)
         {
             m_JobSafetyManager.InvalidateAll();
 
             m_Entities.DeallocateEnties((Entity*)entities.UnsafeReadOnlyPtr, entities.Length);
         }
 
-        unsafe public void Destroy(Entity entity)
+        unsafe public void DestroyEntity(Entity entity)
         {
             m_JobSafetyManager.InvalidateAll();
 
@@ -168,7 +168,7 @@ namespace UnityEngine.ECS
             for (int t = 0; t != components.Length; ++t)
                 components[t].UpdateComponentData(this, srcEntity);
             Instantiate(srcEntity, (Entity*)outputEntities.UnsafePtr, outputEntities.Length);
-            Destroy(srcEntity);
+            DestroyEntity(srcEntity);
         }
         public unsafe void Instantiate(Entity srcEntity, NativeArray<Entity> outputEntities)
         {

@@ -132,7 +132,6 @@ namespace BoidcloudSimulation
 			AddBoids (m_InitialBoidsCount);
 
 			var lookat = FindObjectOfType<LookAt> ();
-			const int indicesPerJob = 200;
 
 			if (lookat != null)
 				lookat.target = m_TransformsArray[m_TransformsArray.Length - 1];

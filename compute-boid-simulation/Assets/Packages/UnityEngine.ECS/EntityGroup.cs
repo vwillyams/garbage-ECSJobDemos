@@ -216,7 +216,6 @@ namespace UnityEngine.ECS
 		{
             int length;
 			int componentIndex;
-            int typeIndex = RealTypeManager.GetTypeIndex<T>();
 
             ComponentDataArchetypeSegment* segment = GetSegmentData(RealTypeManager.GetTypeIndex<T>(), out length, out componentIndex);
 			return new ComponentArray<T>(segment, length);

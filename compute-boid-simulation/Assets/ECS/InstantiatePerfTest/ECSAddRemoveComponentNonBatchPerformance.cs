@@ -30,9 +30,9 @@ public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
 
 		var m_EntityManager = DependencyManager.GetBehaviourManager<EntityManager>();
 
-		var group0 = m_EntityManager.CreateEntityGroup (typeof(Component128Bytes));
-		var group1 = m_EntityManager.CreateEntityGroup (typeof(Component12Bytes));
-        var group2 = m_EntityManager.CreateEntityGroup (typeof(Component128Bytes));
+		m_EntityManager.CreateEntityGroup (typeof(Component128Bytes));
+		m_EntityManager.CreateEntityGroup (typeof(Component12Bytes));
+        m_EntityManager.CreateEntityGroup (typeof(Component128Bytes));
 
 		instantiateSampler.Begin();
 
@@ -58,7 +58,7 @@ public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
 
         destroySampler.Begin();
         for (int i = 0; i < entities.Length; i++)
-            m_EntityManager.Destroy(entities[i]);
+            m_EntityManager.DestroyEntity(entities[i]);
         destroySampler.End();
 
         entities.Dispose ();

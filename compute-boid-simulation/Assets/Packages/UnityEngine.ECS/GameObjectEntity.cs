@@ -63,7 +63,7 @@ namespace UnityEngine.ECS
         public void OnDisable()
         {
             if (m_EntityManager != null && m_EntityManager.IsCreated && m_EntityManager.Exists(m_Entity))
-                m_EntityManager.Destroy(m_Entity);
+                m_EntityManager.DestroyEntity(m_Entity);
 
             m_EntityManager = null;
             m_Entity = new Entity();

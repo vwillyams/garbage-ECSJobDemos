@@ -57,9 +57,9 @@ public class ECSInstantiatePerformance : MonoBehaviour
         m_EntityManager.AddComponent<Component64Bytes>(archetype, new Component64Bytes());
         m_EntityManager.AddComponent<Component16Bytes>(archetype, new Component16Bytes());
 
-		var group0 = m_EntityManager.CreateEntityGroup(typeof(Component128Bytes));
+		m_EntityManager.CreateEntityGroup(typeof(Component128Bytes));
         var group1 = m_EntityManager.CreateEntityGroup(typeof(Component12Bytes));
-        var group2 = m_EntityManager.CreateEntityGroup(typeof(Component128Bytes));
+        m_EntityManager.CreateEntityGroup(typeof(Component128Bytes));
 
 		instantiateSampler.Begin ();
 		var instances = new NativeArray<Entity>(100000, Allocator.Temp);
@@ -74,7 +74,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		iterateSampler.End ();
 
 		destroySampler.Begin ();
-		m_EntityManager.Destroy (instances);
+		m_EntityManager.DestroyEntity (instances);
 		destroySampler.End ();
 
 		instances.Dispose ();

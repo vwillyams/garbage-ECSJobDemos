@@ -66,7 +66,6 @@ namespace UnityEngine.ECS
 			var componentInjections = new List<TupleInjectionData>();
 			var componentDataInjections = new List<TupleInjectionData>();
 
-			var entityManager = DependencyManager.GetBehaviourManager<EntityManager>();
     		for (var i = 0; i != injections.Count; i++) 
     		{
 				if (injections[i].containerType == typeof(ComponentDataArray<>))

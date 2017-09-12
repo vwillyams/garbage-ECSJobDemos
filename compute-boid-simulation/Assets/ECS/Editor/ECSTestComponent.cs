@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using NUnit.Framework;
@@ -13,14 +13,5 @@ namespace UnityEngine.ECS.Tests
 		public EcsTestData(int inValue) { value = inValue; }
 	}
 
-	[ExecuteInEditMode]
 	public class EcsTestComponent : ComponentDataWrapper<EcsTestData> { }
-
-
-	public struct EcsBoolTestData : IComponentData
-	{
-		public bool value;
-		public EcsBoolTestData (bool input) { value = input; }
-	}
-
 }

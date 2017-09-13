@@ -42,7 +42,7 @@ namespace UnityEngine.ECS
 				{
 					grp = (EntityGroupData*)grpPtr;
 					if (CompareGroupComponents(grp->m_RequiredComponents, grp->m_NumRequiredComponents, requiredTypeIndices, requiredCount))
-						return new EntityGroup(grp, m_JobSafetyManager);
+						return new EntityGroup(grp, m_JobSafetyManager, typeMan);
 				} while (m_GroupLookup.TryGetNextValue(out grpPtr, ref it));
 			}
 			grp = (EntityGroupData*)m_GroupDataChunkAllocator.Allocate(sizeof(EntityGroupData), 8);
@@ -57,7 +57,7 @@ namespace UnityEngine.ECS
 			for (Archetype* type = typeMan.m_LastArchetype; type != null; type = type->prevArchetype)
 				AddArchetypeIfMatching(type, grp);
 			m_GroupLookup.Add(hash, (IntPtr)grp);
-            return new EntityGroup(grp, m_JobSafetyManager);
+            return new EntityGroup(grp, m_JobSafetyManager, typeMan);
 		}
 		public void Dispose()
 		{
@@ -110,6 +110,7 @@ namespace UnityEngine.ECS
 					++typeComponentIndex;
 				match->archetypeSegments[component].offset = type->offsets[typeComponentIndex];
 				match->archetypeSegments[component].stride = type->strides[typeComponentIndex];
+				match->archetypeSegments[component].typeIndex = typeComponentIndex;
 			}
 
 			group->m_LastMatchingArchetype = match;
@@ -138,11 +139,13 @@ namespace UnityEngine.ECS
 	{
 		EntityGroupData* m_GroupData;
         ComponentJobSafetyManager m_SafetyManager;
+		TypeManager m_TypeManager;
 
-        internal EntityGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager)
+        internal EntityGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager, TypeManager typeManager)
 		{
 			m_GroupData = groupData;
             m_SafetyManager = safetyManager;
+			m_TypeManager = typeManager;
 		}
 
         ComponentDataArchetypeSegment* GetSegmentData(int componentType, out int outLength, out int componentIndex)
@@ -218,7 +221,7 @@ namespace UnityEngine.ECS
 			int componentIndex;
 
             ComponentDataArchetypeSegment* segment = GetSegmentData(RealTypeManager.GetTypeIndex<T>(), out length, out componentIndex);
-			return new ComponentArray<T>(segment, length);
+			return new ComponentArray<T>(segment, length, m_TypeManager);
 		}
 		public TransformAccessArray GetTransformAccessArray()
 		{

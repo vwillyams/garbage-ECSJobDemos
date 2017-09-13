@@ -126,14 +126,14 @@ namespace UnityEngine.ECS
         {
             m_JobSafetyManager.InvalidateAll();
 
-            m_Entities.DeallocateEnties((Entity*)entities.UnsafeReadOnlyPtr, entities.Length);
+            m_Entities.DeallocateEnties(m_TypeManager, (Entity*)entities.UnsafeReadOnlyPtr, entities.Length);
         }
 
         unsafe public void DestroyEntity(Entity entity)
         {
             m_JobSafetyManager.InvalidateAll();
 
-            m_Entities.DeallocateEnties(&entity, 1);
+            m_Entities.DeallocateEnties(m_TypeManager, &entity, 1);
         }
 
         unsafe public bool Exists(Entity entity)
@@ -226,7 +226,7 @@ namespace UnityEngine.ECS
             Chunk* newChunk = m_TypeManager.GetChunkWithEmptySlots(newType);
 
             int newChunkIndex = TypeManager.AllocateIntoChunk(newChunk);
-            m_Entities.SetArchetype(entity, newType, newChunk, newChunkIndex);
+            m_Entities.SetArchetype(m_TypeManager, entity, newType, newChunk, newChunkIndex);
             SetComponent<T>(entity, componentData);
         }
 
@@ -249,7 +249,7 @@ namespace UnityEngine.ECS
             Archetype* newType = m_TypeManager.GetArchetype(m_CachedIntArray, type->typesCount - removedTypes, m_GroupManager);
             Chunk* newChunk = m_TypeManager.GetChunkWithEmptySlots(newType);
             int newChunkIndex = TypeManager.AllocateIntoChunk(newChunk);
-            m_Entities.SetArchetype(entity, newType, newChunk, newChunkIndex);
+            m_Entities.SetArchetype(m_TypeManager, entity, newType, newChunk, newChunkIndex);
         }
 
         public T GetComponent<T>(Entity entity) where T : struct, IComponentData
@@ -267,10 +267,12 @@ namespace UnityEngine.ECS
             UnsafeUtility.CopyStructureToPtr (ref componentData, ptr);
         }
 
-        internal void SetComponentInstanceID(Entity entity, ComponentType componentType, int componentInstanceID)
+        internal unsafe void SetComponentObject(Entity entity, ComponentType componentType, object componentObject)
         {
-            IntPtr ptr = m_Entities.GetComponentDataWithType(entity, componentType.typeIndex);
-            UnsafeUtility.CopyStructureToPtr(ref componentInstanceID, ptr);
+            Chunk* chunk;
+            int chunkIndex;
+            m_Entities.GetComponentChunk(entity, out chunk, out chunkIndex);
+            m_TypeManager.SetManagedObject(chunk, componentType, chunkIndex, componentObject);
         }
 
 

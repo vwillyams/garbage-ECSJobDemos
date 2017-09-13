@@ -10,7 +10,8 @@ namespace UnityEngine.ECS
 	{
 		public Archetype*   archetype;
         public IntPtr 		buffer;
-//        object[]            componentArray;
+
+		public int managedArrayIndex;
 
         public int 		    count;
         public int 		    capacity;
@@ -34,6 +35,9 @@ namespace UnityEngine.ECS
         public int*         sizeOfs;
 		public int          bytesPerInstance;
 
+		public int* managedArrayOffset;
+		public int numManagedArrays;
+
 		// TODO: preferred stride/stream layout
 		// TODO: Linkage to other archetype via Add/Remove Component
 		public Archetype* prevArchetype;
@@ -43,6 +47,14 @@ namespace UnityEngine.ECS
 		NativeMultiHashMap<uint, IntPtr>		m_TypeLookup;
 		ChunkAllocator m_ArchetypeChunkAllocator;
 		internal Archetype* m_LastArchetype;
+
+		unsafe struct ManagedArrayStorage
+		{
+			// For patching when we start releasing chunks
+			public Chunk* chunk;
+			public object[] managedArray;
+		}
+		List<ManagedArrayStorage> m_ManagedArrays = new List<ManagedArrayStorage>();
 
 		public TypeManager()
 		{
@@ -105,6 +117,8 @@ namespace UnityEngine.ECS
 			type->strides = (int*)m_ArchetypeChunkAllocator.Allocate (sizeof(int) * count, 4);
             type->sizeOfs = (int*)m_ArchetypeChunkAllocator.Allocate (sizeof(int) * count, 4);
 
+			type->numManagedArrays = 0;
+			type->managedArrayOffset = null;
             int bytesPerInstance = 0;
 			for (int i = 0; i < count; ++i)
 			{
@@ -116,7 +130,23 @@ namespace UnityEngine.ECS
                 type->sizeOfs[i] = sizeOf;
 
                 bytesPerInstance += sizeOf;
+
+				if (!(cType.type is IComponentData))
+					++type->numManagedArrays;
             }
+			if (type->numManagedArrays > 0)
+			{
+				type->managedArrayOffset = (int*)m_ArchetypeChunkAllocator.Allocate (sizeof(int) * count, 4);
+				int mi = 0;
+				for (int i = 0; i < count; ++i)
+				{
+               		RealTypeManager.ComponentType cType = RealTypeManager.GetComponentType(typeIndices[i]);
+					if (!(cType.type is IComponentData))
+						type->managedArrayOffset[i] = mi++;
+					else
+						type->managedArrayOffset[i] = -1;
+				}
+			}
 			for (int i = 0; i < count; ++i)
 				type->strides[i] = bytesPerInstance;
             type->bytesPerInstance = bytesPerInstance;
@@ -153,6 +183,16 @@ namespace UnityEngine.ECS
 			else
 				archetype->first = chunk;
 			archetype->last = chunk;
+			if (archetype->numManagedArrays > 0)
+			{
+				chunk->managedArrayIndex = m_ManagedArrays.Count;
+				var man = new ManagedArrayStorage();
+				man.chunk = chunk;
+				man.managedArray = new object[archetype->numManagedArrays * chunk->capacity];
+				m_ManagedArrays.Add(man);
+			}
+			else
+				chunk->managedArrayIndex = -1;
 			return chunk;
         }
 
@@ -186,6 +226,24 @@ namespace UnityEngine.ECS
         {
             
         }*/
+
+		public object GetManagedObject(Chunk* chunk, int type, int index)
+		{
+			int managedStart = chunk->archetype->managedArrayOffset[type] * chunk->capacity;
+			return m_ManagedArrays[chunk->managedArrayIndex].managedArray[index + managedStart];
+		}
+		public void SetManagedObject(Chunk* chunk, int type, int index, object val)
+		{
+			int managedStart = chunk->archetype->managedArrayOffset[type] * chunk->capacity;
+			m_ManagedArrays[chunk->managedArrayIndex].managedArray[index + managedStart] = val;			
+		}
+		public void SetManagedObject(Chunk* chunk, ComponentType type, int index, object val)
+		{
+			int typeOfs = ChunkDataUtility.GetIndexInTypeArray(chunk->archetype, type.typeIndex);
+			if (typeOfs < 0 || chunk->archetype->managedArrayOffset[typeOfs] < 0)
+				throw new InvalidOperationException("Trying to set managed object for non existing component");
+			SetManagedObject(chunk, typeOfs, index, val);
+		}
     }
 
 

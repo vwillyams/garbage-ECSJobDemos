@@ -127,5 +127,47 @@ namespace UnityEngine.ECS
                 }
             }
         }
+
+        public static void CopyManagedObjects(TypeManager typeMan, Chunk* srcChunk, int srcStartIndex, Chunk* dstChunk, int dstStartIndex, int count)
+        {
+            Archetype* srcArch = srcChunk->archetype;
+            Archetype* dstArch = dstChunk->archetype;
+
+            int srcI = 0;
+            int dstI = 0;
+            while (srcI < srcArch->typesCount && dstI < dstArch->typesCount)
+            {
+                if (srcArch->types[srcI] < dstArch->types[dstI])
+                    ++srcI;
+                else if (srcArch->types[srcI] > dstArch->types[dstI])
+                    ++dstI;
+                else
+                {
+                    if (srcArch->managedArrayOffset[srcI] >= 0)
+                    {
+                        for (int i = 0; i < count; ++i)
+                        {
+                            var obj = typeMan.GetManagedObject(srcChunk, srcI, srcStartIndex+i);
+                            typeMan.SetManagedObject(dstChunk, dstI, dstStartIndex+i, obj);
+                        }
+                    }
+                    ++srcI;
+                    ++dstI;
+                }
+            }
+        }
+        public static void ClearManagedObjects(TypeManager typeMan, Chunk* chunk, int index, int count)
+        {
+            Archetype* arch = chunk->archetype;
+
+            for (int type = 0; type < arch->typesCount; ++type)
+            {
+                if (arch->managedArrayOffset[type] >= 0)
+                {
+                    for (int i = 0; i < count; ++i)
+                        typeMan.SetManagedObject(chunk, type, index+i, null);
+                }
+            }
+        }
     }
 }

@@ -13,11 +13,13 @@ namespace UnityEngine.ECS
 	{
         ComponentDataArrayCache m_Cache;
         int                     m_Length;
+		TypeManager				m_TypeManager;
 
-		public unsafe ComponentArray(ComponentDataArchetypeSegment* data, int length)
+		public unsafe ComponentArray(ComponentDataArchetypeSegment* data, int length, TypeManager typeMan)
 		{
             m_Length = length;
             m_Cache = new ComponentDataArrayCache(data, length);
+			m_TypeManager = typeMan;
 		}
 
 		public unsafe T this[int index]
@@ -31,10 +33,7 @@ namespace UnityEngine.ECS
                 if (index < m_Cache.m_CachedBeginIndex || index >= m_Cache.m_CachedEndIndex)
                     m_Cache.UpdateCache(index);
 
-                int instanceId = UnsafeUtility.ReadArrayElementWithStride<int>(m_Cache.m_CachedPtr, index, m_Cache.m_CachedStride);
-
-                // Get component from entity
-				return UnityEditor.EditorUtility.InstanceIDToObject (instanceId) as T;
+				return (T)m_Cache.GetManagedObject(m_TypeManager, index);
 			}
 		}
 

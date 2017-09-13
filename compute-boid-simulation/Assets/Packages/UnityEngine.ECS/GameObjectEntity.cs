@@ -53,7 +53,7 @@ namespace UnityEngine.ECS
                     ;
                 else
                 {
-                    m_EntityManager.SetComponentInstanceID(m_Entity, types[t], com.GetInstanceID());
+                    m_EntityManager.SetComponentObject(m_Entity, types[t], com);
                     t++;
                 }
                     

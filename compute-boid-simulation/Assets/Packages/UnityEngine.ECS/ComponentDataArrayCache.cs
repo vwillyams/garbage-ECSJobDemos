@@ -13,6 +13,7 @@ namespace UnityEngine.ECS
         public Archetype* archetype;
         public int offset;
         public int stride;
+        public int typeIndex;
         public ComponentDataArchetypeSegment* nextSegment;
     }
 
@@ -44,6 +45,11 @@ namespace UnityEngine.ECS
             m_CachedStride = 0;
             m_CachedBeginIndex = 0;
             m_CachedEndIndex = 0;
+        }
+
+        public object GetManagedObject(TypeManager typeMan, int index)
+        {
+            return typeMan.GetManagedObject(m_CurrentChunk, m_CurrentArchetypeSegment->typeIndex, index - m_CachedBeginIndex);
         }
 
         public void UpdateCache(int index)

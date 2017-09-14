@@ -30,7 +30,7 @@ namespace UnityEngine.ECS
 			return true;
 		}
 
-		public EntityGroup CreateEntityGroup(TypeManager typeMan, int* requiredTypeIndices, int requiredCount)
+		public EntityGroup CreateEntityGroup(TypeManager typeMan, int* requiredTypeIndices, int requiredCount, TransformAccessArray trans)
 		{
 			uint hash = HashUtility.fletcher32((ushort*)requiredTypeIndices, requiredCount*2);
 			NativeMultiHashMapIterator<uint> it;
@@ -42,7 +42,7 @@ namespace UnityEngine.ECS
 				{
 					grp = (EntityGroupData*)grpPtr;
 					if (CompareGroupComponents(grp->m_RequiredComponents, grp->m_NumRequiredComponents, requiredTypeIndices, requiredCount))
-						return new EntityGroup(grp, m_JobSafetyManager, typeMan);
+						return new EntityGroup(grp, m_JobSafetyManager, typeMan, trans);
 				} while (m_GroupLookup.TryGetNextValue(out grpPtr, ref it));
 			}
 			grp = (EntityGroupData*)m_GroupDataChunkAllocator.Allocate(sizeof(EntityGroupData), 8);
@@ -56,7 +56,7 @@ namespace UnityEngine.ECS
 			for (Archetype* type = typeMan.m_LastArchetype; type != null; type = type->prevArchetype)
 				AddArchetypeIfMatching(type, grp);
 			m_GroupLookup.Add(hash, (IntPtr)grp);
-            return new EntityGroup(grp, m_JobSafetyManager, typeMan);
+            return new EntityGroup(grp, m_JobSafetyManager, typeMan, trans);
 		}
 		public void Dispose()
 		{
@@ -125,17 +125,25 @@ namespace UnityEngine.ECS
 
     //@TODO: Make safe when entity manager is destroyed.
 
-	public unsafe class EntityGroup
+	public unsafe class EntityGroup : IDisposable
 	{
 		EntityGroupData* m_GroupData;
         ComponentJobSafetyManager m_SafetyManager;
 		TypeManager m_TypeManager;
+		TransformAccessArray m_Transforms;
 
-        internal EntityGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager, TypeManager typeManager)
+        internal EntityGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager, TypeManager typeManager, TransformAccessArray trans)
 		{
 			m_GroupData = groupData;
             m_SafetyManager = safetyManager;
 			m_TypeManager = typeManager;
+			m_Transforms = trans;
+		}
+
+		public void Dispose()
+		{
+			if (m_Transforms.IsCreated)
+				m_Transforms.Dispose();
 		}
 
         ComponentDataArchetypeSegment* GetSegmentData(int componentType, out int outLength, out int componentIndex)
@@ -213,13 +221,15 @@ namespace UnityEngine.ECS
             ComponentDataArchetypeSegment* segment = GetSegmentData(RealTypeManager.GetTypeIndex<T>(), out length, out componentIndex);
 			return new ComponentArray<T>(segment, length, m_TypeManager);
 		}
-		public void UpdateTransformAccessArray(TransformAccessArray transforms)
+		public void UpdateTransformAccessArray()
 		{
+			if (!m_Transforms.IsCreated)
+				return;
 			var trans = GetComponentArray<Transform>();
-			while (transforms.Length > 0)
-				transforms.RemoveAtSwapBack(transforms.Length-1);
+			while (m_Transforms.Length > 0)
+				m_Transforms.RemoveAtSwapBack(m_Transforms.Length-1);
 			for (int i = 0; i < trans.Length; ++i)
-				transforms.Add(trans[i]);
+				m_Transforms.Add(trans[i]);
 		}
 
 		public Type[] Types

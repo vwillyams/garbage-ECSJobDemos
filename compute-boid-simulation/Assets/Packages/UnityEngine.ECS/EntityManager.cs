@@ -71,7 +71,30 @@ namespace UnityEngine.ECS
         {
             m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
 
-            return m_GroupManager.CreateEntityGroup(m_TypeManager, m_CachedIntArray, PopulatedCachedTypeArray(requiredComponents));
+            return m_GroupManager.CreateEntityGroup(m_TypeManager, m_CachedIntArray, PopulatedCachedTypeArray(requiredComponents), new UnityEngine.Jobs.TransformAccessArray());
+        }
+        unsafe public EntityGroup CreateEntityGroup(UnityEngine.Jobs.TransformAccessArray trans, params ComponentType[] requiredComponents)
+        {
+            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
+
+            int len = PopulatedCachedTypeArray(requiredComponents);
+            if (trans.IsCreated)
+            {
+                bool hasTransform = false;
+                int transformType = RealTypeManager.GetTypeIndex<Transform>();
+                for (int i = 0; i < len; ++i)
+                {
+                    if (m_CachedIntArray[i] == transformType)
+                        hasTransform = true;
+                }
+                if (!hasTransform)
+                {
+                    SortingUtilities.InsertSorted(m_CachedIntArray, len, transformType);
+                    ++len;
+                }
+            }
+
+            return m_GroupManager.CreateEntityGroup(m_TypeManager, m_CachedIntArray, len, trans);
         }
 
         unsafe public EntityArchetype CreateArchetype(params ComponentType[] types)

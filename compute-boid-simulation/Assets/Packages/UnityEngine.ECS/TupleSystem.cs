@@ -20,33 +20,16 @@ namespace UnityEngine.ECS
 
         EntityGroup 						m_EntityGroup;
 
-        TransformAccessArray                m_Transforms;
-
 		internal TupleSystem(EntityManager entityManager, InjectTuples.TupleInjectionData[] componentDataInjections, InjectTuples.TupleInjectionData[] componentInjections, FieldInfo entityArrayInjection, TransformAccessArray transforms)
         {
 			var requiredComponentTypes = new ComponentType[componentInjections.Length + componentDataInjections.Length];
-            bool hasTransform = false;
-            m_Transforms = transforms;
 
             for (int i = 0; i != componentDataInjections.Length; i++)
 				requiredComponentTypes[i] = componentDataInjections [i].genericType;
             for (int i = 0; i != componentInjections.Length; i++)
-            {
-                if (componentInjections[i].genericType == typeof(Transform))
-                    hasTransform = true;
                 requiredComponentTypes[i + componentDataInjections.Length] = componentInjections[i].genericType;
-            }
 
-            if (m_Transforms.IsCreated && !hasTransform)
-            {
-                var patchedRequiredComponentTypes = new ComponentType[componentInjections.Length + componentDataInjections.Length + 1];
-                patchedRequiredComponentTypes[0] = typeof(Transform);
-                for (int i = 0; i < componentInjections.Length + componentDataInjections.Length; ++i)
-                    patchedRequiredComponentTypes[i+1] = requiredComponentTypes[i];
-                requiredComponentTypes = patchedRequiredComponentTypes;
-            }
-
-            m_EntityGroup = entityManager.CreateEntityGroup(requiredComponentTypes);
+            m_EntityGroup = entityManager.CreateEntityGroup(transforms, requiredComponentTypes);
 
             m_ComponentDataInjections = componentDataInjections;
             m_ComponentInjections = componentInjections;
@@ -65,11 +48,8 @@ namespace UnityEngine.ECS
 
 		public void Dispose()
 		{
-            //@TODO:?
-			//m_EntityGroup.Dispose ();
-			//m_EntityGroup = null;
-            if (m_Transforms.IsCreated)
-                m_Transforms.Dispose();
+			m_EntityGroup.Dispose ();
+			m_EntityGroup = null;
 		}
 
         internal InjectTuples.TupleInjectionData[] ComponentDataInjections { get { return m_ComponentDataInjections; } }
@@ -79,8 +59,7 @@ namespace UnityEngine.ECS
         //@TODO:
         public void UpdateTransformAccessArray()
         {
-            if (m_Transforms.IsCreated)
-                m_EntityGroup.UpdateTransformAccessArray(m_Transforms);
+            m_EntityGroup.UpdateTransformAccessArray();
         }
         public EntityArray GetEntityArray() { return m_EntityGroup.GetEntityArray(); }
 		public EntityGroup EntityGroup          { get { return m_EntityGroup; } }

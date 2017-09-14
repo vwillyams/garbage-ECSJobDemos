@@ -125,12 +125,14 @@ namespace UnityEngine.ECS
 
     //@TODO: Make safe when entity manager is destroyed.
 
-	public unsafe class EntityGroup : IDisposable
+	public unsafe class EntityGroup : IDisposable, IManagedObjectModificationListener
 	{
 		EntityGroupData* m_GroupData;
         ComponentJobSafetyManager m_SafetyManager;
 		TypeManager m_TypeManager;
 		TransformAccessArray m_Transforms;
+		bool m_TransformsDirty;
+		MatchingArchetypes* m_LastRegisteredListenerArchetype;
 
         internal EntityGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager, TypeManager typeManager, TransformAccessArray trans)
 		{
@@ -138,12 +140,39 @@ namespace UnityEngine.ECS
             m_SafetyManager = safetyManager;
 			m_TypeManager = typeManager;
 			m_Transforms = trans;
+			m_TransformsDirty = true;
+
+			if (m_Transforms.IsCreated)
+			{
+    			int transformIdx = RealTypeManager.GetTypeIndex<Transform>();
+				for (MatchingArchetypes* type = m_GroupData->m_FirstMatchingArchetype; type != null; type = type->next)
+				{
+    				int idx = ChunkDataUtility.GetIndexInTypeArray(type->archetype, transformIdx);
+					m_TypeManager.AddManagedObjectModificationListener(type->archetype, idx, this);
+				}
+			}
+			m_LastRegisteredListenerArchetype = m_GroupData->m_LastMatchingArchetype;
 		}
 
 		public void Dispose()
 		{
 			if (m_Transforms.IsCreated)
+			{
+				if (m_LastRegisteredListenerArchetype != null)
+				{
+    				int transformIdx = RealTypeManager.GetTypeIndex<Transform>();
+					for (MatchingArchetypes* type = m_GroupData->m_FirstMatchingArchetype; type != m_LastRegisteredListenerArchetype->next; type = type->next)
+					{
+    					int idx = ChunkDataUtility.GetIndexInTypeArray(type->archetype, transformIdx);
+						m_TypeManager.RemoveManagedObjectModificationListener(type->archetype, idx, this);
+					}
+				}
 				m_Transforms.Dispose();
+			}
+		}
+		public void OnManagedObjectModified()
+		{
+			m_TransformsDirty = true;
 		}
 
         ComponentDataArchetypeSegment* GetSegmentData(int componentType, out int outLength, out int componentIndex)
@@ -225,6 +254,17 @@ namespace UnityEngine.ECS
 		{
 			if (!m_Transforms.IsCreated)
 				return;
+    		int transformIdx = RealTypeManager.GetTypeIndex<Transform>();
+			for (MatchingArchetypes* type = m_LastRegisteredListenerArchetype != null ? m_LastRegisteredListenerArchetype->next : m_GroupData->m_FirstMatchingArchetype; type != null; type = type->next)
+			{
+    			int idx = ChunkDataUtility.GetIndexInTypeArray(type->archetype, transformIdx);
+				m_TypeManager.AddManagedObjectModificationListener(type->archetype, idx, this);
+				m_TransformsDirty = true;
+			}
+			m_LastRegisteredListenerArchetype = m_GroupData->m_LastMatchingArchetype;
+			if (!m_TransformsDirty)
+				return;
+			m_TransformsDirty = false;
 			var trans = GetComponentArray<Transform>();
 			while (m_Transforms.Length > 0)
 				m_Transforms.RemoveAtSwapBack(m_Transforms.Length-1);

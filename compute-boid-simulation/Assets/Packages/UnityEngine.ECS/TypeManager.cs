@@ -6,6 +6,10 @@ using UnityEngine.Collections;
 
 namespace UnityEngine.ECS
 {
+	public interface IManagedObjectModificationListener
+	{
+		void OnManagedObjectModified();
+	}
 	public unsafe struct Chunk
 	{
 		public Archetype*   archetype;
@@ -38,6 +42,8 @@ namespace UnityEngine.ECS
 		public int* managedArrayOffset;
 		public int numManagedArrays;
 
+		public int managedObjectListenerIndex;
+
 		// TODO: preferred stride/stream layout
 		// TODO: Linkage to other archetype via Add/Remove Component
 		public Archetype* prevArchetype;
@@ -55,6 +61,12 @@ namespace UnityEngine.ECS
 			public object[] managedArray;
 		}
 		List<ManagedArrayStorage> m_ManagedArrays = new List<ManagedArrayStorage>();
+		struct ManagedArrayListeners
+		{
+			public Archetype* archetype;
+			public List<IManagedObjectModificationListener>[] managedObjectListeners;
+		}
+		List<ManagedArrayListeners> m_ManagedArrayListeners = new List<ManagedArrayListeners>();
 
 		public TypeManager()
 		{
@@ -76,6 +88,29 @@ namespace UnityEngine.ECS
 			}
 			m_TypeLookup.Dispose();
 			m_ArchetypeChunkAllocator.Dispose();
+		}
+
+		public unsafe void AddManagedObjectModificationListener(Archetype* archetype, int typeIdx, IManagedObjectModificationListener listener)
+		{
+			ManagedArrayListeners listeners;
+			if (archetype->managedObjectListenerIndex < 0)
+			{
+				// Allocate new listener
+				archetype->managedObjectListenerIndex = m_ManagedArrayListeners.Count;
+				listeners = new ManagedArrayListeners();
+				listeners.archetype = archetype;
+				listeners.managedObjectListeners = new List<IManagedObjectModificationListener>[archetype->typesCount];
+				m_ManagedArrayListeners.Add(listeners);
+			}
+			listeners = m_ManagedArrayListeners[archetype->managedObjectListenerIndex];
+			if (listeners.managedObjectListeners[typeIdx] == null)
+				listeners.managedObjectListeners[typeIdx] = new List<IManagedObjectModificationListener>();
+			listeners.managedObjectListeners[typeIdx].Add(listener);
+		}
+		public unsafe void RemoveManagedObjectModificationListener(Archetype* archetype, int typeIdx, IManagedObjectModificationListener listener)
+		{
+			var listeners = m_ManagedArrayListeners[archetype->managedObjectListenerIndex];
+			listeners.managedObjectListeners[typeIdx].Remove(listener);
 		}
 
 
@@ -117,6 +152,7 @@ namespace UnityEngine.ECS
 			type->strides = (int*)m_ArchetypeChunkAllocator.Allocate (sizeof(int) * count, 4);
             type->sizeOfs = (int*)m_ArchetypeChunkAllocator.Allocate (sizeof(int) * count, 4);
 
+			type->managedObjectListenerIndex = -1;
 			type->numManagedArrays = 0;
 			type->managedArrayOffset = null;
             int bytesPerInstance = 0;
@@ -236,6 +272,16 @@ namespace UnityEngine.ECS
 		{
 			int managedStart = chunk->archetype->managedArrayOffset[type] * chunk->capacity;
 			m_ManagedArrays[chunk->managedArrayIndex].managedArray[index + managedStart] = val;			
+
+			if (chunk->archetype->managedObjectListenerIndex >= 0)
+			{
+				var listeners = m_ManagedArrayListeners[chunk->archetype->managedObjectListenerIndex];
+				if (listeners.managedObjectListeners[type] != null)
+				{
+					foreach (var listener in listeners.managedObjectListeners[type])
+						listener.OnManagedObjectModified();
+				}
+			}
 		}
 		public void SetManagedObject(Chunk* chunk, ComponentType type, int index, object val)
 		{

@@ -55,8 +55,7 @@ namespace UnityEngine.ECS
                 componentInjections[i].field.SetValue(targetObject, container);
             }
 
-            if (tuples.TransformAccessArrayInjection != null)
-				tuples.TransformAccessArrayInjection.SetValue (targetObject, tuples.GetTransformAccessArray());
+			tuples.UpdateTransformAccessArray();
             if (tuples.EntityArrayInjection != null)
 				tuples.EntityArrayInjection.SetValue (targetObject, tuples.GetEntityArray());
     	}
@@ -87,7 +86,13 @@ namespace UnityEngine.ECS
 				}
     		}
 
-            var tuples = new TupleSystem(DependencyManager.GetBehaviourManager<EntityManager>(), componentDataInjections.ToArray(), componentInjections.ToArray(), entityArrayField, transformAccessArrayField);
+			var transforms = new TransformAccessArray();
+			if (transformAccessArrayField != null)
+			{
+				transforms = new TransformAccessArray(0);
+				transformAccessArrayField.SetValue (targetObject, transforms);
+			}
+            var tuples = new TupleSystem(DependencyManager.GetBehaviourManager<EntityManager>(), componentDataInjections.ToArray(), componentInjections.ToArray(), entityArrayField, transforms);
 
 			UpdateInjection(tuples, targetObject);
     		return tuples;

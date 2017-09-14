@@ -26,12 +26,6 @@ namespace BoidSimulations
 		{
 			base.OnEnable ();
 
-			// init position from transform
-			BoidData val;
-			val.position = transform.position;
-			val.forward = transform.forward;
-			Value = val;
-
 			// material randomization
 			var block = new MaterialPropertyBlock ();
 			block.SetFloat(kInstanceCycleOffsetProp, UnityEngine.Random.Range(0.0F, 2.0F));

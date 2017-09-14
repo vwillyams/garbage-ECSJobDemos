@@ -66,7 +66,14 @@ namespace BoidSimulations
 						roots.Add (root);
 					}
 
-					Instantiate (prefab, Random.insideUnitSphere + transform.position, Random.rotation, root.transform);
+					// @TODO this transform setting should be in an initialization system
+					BoidData val;
+					val.position = Random.insideUnitSphere + transform.position;
+					var randomRot = Random.rotation;
+					val.forward = randomRot*Vector3.forward;
+					var go = Instantiate (prefab, val.position, randomRot, root.transform) as GameObject;
+
+					m_LightweightGameObjects.SetComponent<BoidData>(go.GetComponent<GameObjectEntity>().Entity, val);
 				}
 			}	
 

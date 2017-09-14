@@ -44,14 +44,41 @@ namespace UnityEngine.ECS
         }
 
         //@TODO: Optimize as one function call to in batch bump version on every single handle...
-        public void InvalidateAll()
+        public void CompleteAllJobsAndInvalidateArrays()
         {
             int count = RealTypeManager.GetTypeCount();
+            for (int t = 0; t != count; t++)
+            {
+                m_ComponentSafetyHandles[t].writeFence.Complete();
+
+                int readFencesCount = m_ComponentSafetyHandles[t].numReadFences;
+                JobHandle* readFences = m_ReadJobFences + t * kMaxReadJobHandles;
+                for (int r = 0; r != readFencesCount; r++)
+                    readFences[r].Complete();
+                m_ComponentSafetyHandles[t].numReadFences = 0;
+            }
+
             for (int i = 0; i != count; i++)
             {
                 AtomicSafetyHandle.Release(m_ComponentSafetyHandles[i].safetyHandle);
                 m_ComponentSafetyHandles[i].safetyHandle = AtomicSafetyHandle.Create();
                 AtomicSafetyHandle.SetAllowSecondaryVersionWriting(m_ComponentSafetyHandles[i].safetyHandle, false);
+            }
+        }
+
+
+        public void CompleteJobsForType(int* types, int typeCount)
+        {
+            for (int i = 0; i != typeCount; i++)
+            {
+                int type = types[i];
+                m_ComponentSafetyHandles[type].writeFence.Complete();
+
+                int readFencesCount = m_ComponentSafetyHandles[type].numReadFences;
+                JobHandle* readFences = m_ReadJobFences + type * kMaxReadJobHandles;
+                for (int r = 0; r != readFencesCount; r++)
+                    readFences[r].Complete();
+                m_ComponentSafetyHandles[type].numReadFences = 0;
             }
         }
 

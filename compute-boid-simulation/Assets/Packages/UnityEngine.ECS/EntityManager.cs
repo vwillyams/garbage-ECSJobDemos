@@ -69,11 +69,15 @@ namespace UnityEngine.ECS
 
         unsafe public EntityGroup CreateEntityGroup(params ComponentType[] requiredComponents)
         {
+            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
+
             return m_GroupManager.CreateEntityGroup(m_TypeManager, m_CachedIntArray, PopulatedCachedTypeArray(requiredComponents));
         }
 
         unsafe public EntityArchetype CreateArchetype(params ComponentType[] types)
         {
+            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
+
             EntityArchetype type;
             type.archetype = m_TypeManager.GetArchetype(m_CachedIntArray, PopulatedCachedTypeArray(types), m_GroupManager);
             return type;
@@ -81,12 +85,12 @@ namespace UnityEngine.ECS
 
         unsafe public EntityArchetype CreateArchetype(ComponentType[] types, int[] strideGroup)
         {
+            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
+
             EntityArchetype type;
             type.archetype = m_TypeManager.GetArchetype(m_CachedIntArray, PopulatedCachedTypeArray(types), m_GroupManager);
             return type;
         }
-
-
 
         unsafe public void CreateEntity(EntityArchetype archetype, NativeArray<Entity> entities)
         {
@@ -107,7 +111,7 @@ namespace UnityEngine.ECS
 
         unsafe void CreateEntityInternal(EntityArchetype archetype, Entity* entities, int count)
         {
-            m_JobSafetyManager.InvalidateAll();
+            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
 
             while (count != 0)
             {
@@ -124,14 +128,14 @@ namespace UnityEngine.ECS
 
         unsafe public void DestroyEntity (NativeArray<Entity> entities)
         {
-            m_JobSafetyManager.InvalidateAll();
+            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
 
             m_Entities.DeallocateEnties(m_TypeManager, (Entity*)entities.UnsafeReadOnlyPtr, entities.Length);
         }
 
         unsafe public void DestroyEntity(Entity entity)
         {
-            m_JobSafetyManager.InvalidateAll();
+            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
 
             m_Entities.DeallocateEnties(m_TypeManager, &entity, 1);
         }
@@ -154,34 +158,47 @@ namespace UnityEngine.ECS
         public unsafe Entity Instantiate(Entity srcEntity)
         {
             Entity entity;
-            Instantiate(srcEntity, &entity, 1);
+            InstantiateInternal(srcEntity, &entity, 1);
             return entity;
         }
 
-        public unsafe void Instantiate(GameObject srcGameObject, NativeArray<Entity> outputEntities)
+        public unsafe Entity Instantiate(GameObject srcGameObject)
         {
             var components = srcGameObject.GetComponents<ComponentDataWrapperBase> ();
             var componentTypes = new ComponentType[components.Length];
             for (int t = 0; t != components.Length; ++t)
                 componentTypes[t] = new ComponentType(components[t].GetIComponentDataType());
+
             var srcEntity = CreateEntity(componentTypes);
             for (int t = 0; t != components.Length; ++t)
                 components[t].UpdateComponentData(this, srcEntity);
-            Instantiate(srcEntity, (Entity*)outputEntities.UnsafePtr, outputEntities.Length);
-            DestroyEntity(srcEntity);
-        }
-        public unsafe void Instantiate(Entity srcEntity, NativeArray<Entity> outputEntities)
-        {
-            Instantiate(srcEntity, (Entity*)outputEntities.UnsafePtr, outputEntities.Length);
+
+            return srcEntity;
         }
 
-        public unsafe void Instantiate(Entity srcEntity, Entity* outputEntities, int count)
+        public unsafe void Instantiate(GameObject srcGameObject, NativeArray<Entity> outputEntities)
         {
-            m_JobSafetyManager.InvalidateAll();
+            if (outputEntities.Length == 0)
+                return;
+
+            var entity = Instantiate(srcGameObject);
+            outputEntities[0] = entity;
+
+            Entity* entityPtr = (Entity*)outputEntities.UnsafePtr;
+            InstantiateInternal(entity, entityPtr + 1, outputEntities.Length - 1);
+        }
+
+        public unsafe void Instantiate(Entity srcEntity, NativeArray<Entity> outputEntities)
+        {
+            InstantiateInternal(srcEntity, (Entity*)outputEntities.UnsafePtr, outputEntities.Length);
+        }
+
+        unsafe void InstantiateInternal(Entity srcEntity, Entity* outputEntities, int count)
+        {
+            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
 
             if (!m_Entities.Exists(srcEntity))
                 throw new System.ArgumentException("srcEntity is not a valid entity");
-
 
             int srcIndex = m_Entities.m_Entities[srcEntity.index].index;
             Chunk* srcChunk = m_Entities.m_Entities[srcEntity.index].chunk;
@@ -204,7 +221,7 @@ namespace UnityEngine.ECS
 
         public unsafe void AddComponent<T>(Entity entity, T componentData) where T : struct, IComponentData
         {
-            m_JobSafetyManager.InvalidateAll();
+            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
 
             int typeIndex = RealTypeManager.GetTypeIndex<T>();
             Archetype* type = m_Entities.GetArchetype(entity);
@@ -232,7 +249,7 @@ namespace UnityEngine.ECS
 
         public unsafe void RemoveComponent<T>(Entity entity) where T : struct, IComponentData
         {
-            m_JobSafetyManager.InvalidateAll();
+            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
 
             int typeIndex = RealTypeManager.GetTypeIndex<T>();
             Archetype* type = m_Entities.GetArchetype(entity);
@@ -247,6 +264,7 @@ namespace UnityEngine.ECS
             if (removedTypes != 1)
                 throw new InvalidOperationException("Trying to remove a component from an entity which is not present");
             Archetype* newType = m_TypeManager.GetArchetype(m_CachedIntArray, type->typesCount - removedTypes, m_GroupManager);
+
             Chunk* newChunk = m_TypeManager.GetChunkWithEmptySlots(newType);
             int newChunkIndex = TypeManager.AllocateIntoChunk(newChunk);
             m_Entities.SetArchetype(m_TypeManager, entity, newType, newChunk, newChunkIndex);
@@ -254,7 +272,11 @@ namespace UnityEngine.ECS
 
         public T GetComponent<T>(Entity entity) where T : struct, IComponentData
         {
-            IntPtr ptr = m_Entities.GetComponentDataWithType (entity, RealTypeManager.GetTypeIndex<T>());
+            int typeIndex = RealTypeManager.GetTypeIndex<T>();
+
+            m_JobSafetyManager.CompleteWriteDependency(typeIndex);
+
+            IntPtr ptr = m_Entities.GetComponentDataWithType (entity, typeIndex);
 
             T value;
             UnsafeUtility.CopyPtrToStructure (ptr, out value);
@@ -263,7 +285,12 @@ namespace UnityEngine.ECS
 
         public void SetComponent<T>(Entity entity, T componentData) where T: struct, IComponentData
         {
-            IntPtr ptr = m_Entities.GetComponentDataWithType (entity, RealTypeManager.GetTypeIndex<T>());
+            int typeIndex = RealTypeManager.GetTypeIndex<T>();
+
+            m_JobSafetyManager.CompleteReadDependency(typeIndex);
+            m_JobSafetyManager.CompleteWriteDependency(typeIndex);
+
+            IntPtr ptr = m_Entities.GetComponentDataWithType (entity, typeIndex);
             UnsafeUtility.CopyStructureToPtr (ref componentData, ptr);
         }
 

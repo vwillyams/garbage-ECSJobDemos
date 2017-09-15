@@ -24,7 +24,7 @@ public class RandomDestinationSystem : JobComponentSystem
         base.OnDestroyManager();
     }
 
-    override protected void OnUpdate()
+    override public void OnUpdate()
     {
         base.OnUpdate();
 

@@ -20,11 +20,6 @@ public class CrowdSpawner : MonoBehaviour
             var go = GameObject.Instantiate(prefab, pos, Quaternion.identity, transform) as GameObject;
             go.name = "CrowdAgent_" + (totalAgentCount + i);
             var agent = new CrowdAgent { type = 0, worldPosition = pos };
-            if (entityManager == null)
-            {
-                Debug.Log("No ent man");
-                return;
-            }
             entityManager.SetComponent<CrowdAgent>(go.GetComponent<GameObjectEntity>().Entity, agent);
             var agentNavigator = new CrowdAgentNavigator
             {

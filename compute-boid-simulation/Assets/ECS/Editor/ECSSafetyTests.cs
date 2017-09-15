@@ -74,30 +74,19 @@ namespace UnityEngine.ECS.Tests
             Assert.Throws<InvalidOperationException>(() => { var value = arr[0]; });
         }
 
-        /*
-        struct MutateECSTestData : IJobParallelFor
+        [Test]
+        [Ignore("TODO")]
+        public void ForgetAddJobDependencyIsCaughtInComponentSystem()
         {
-            public ComponentDataArray<EcsTestData> data;
-
-            public void Execute(int index)
-            {
-                data[i] = new EcsTestData(index);
-            }
+            throw new System.NotImplementedException();
+            // * Give error immediately about missing AddDependency call?
+            // * Sync against other job even if it was forgotten.
         }
 
         [Test]
+        [Ignore("Figure out how we can get a stress test going, covering various functionality and testing that nothing gets corrupted")]
         public void DestroyEntityWhileJobIsRunning()
         {
-            var entity1 = CreateEntityWithDefaultData(0);
-
-            var group = m_Manager.CreateEntityGroup(typeof(EcsTestData));
-            var arr = group.GetComponentDataArray<EcsTestData>();
-
-            var entity2 = CreateEntityWithDefaultData(1);
-
-            Assert.Throws<InvalidOperationException>(() => { var value = arr[0]; });
         }
-        */
-
     }
 }

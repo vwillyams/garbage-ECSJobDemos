@@ -268,6 +268,12 @@ namespace UnityEngine.ECS
 			int managedStart = chunk->archetype->managedArrayOffset[type] * chunk->capacity;
 			return m_ManagedArrays[chunk->managedArrayIndex].managedArray[index + managedStart];
 		}
+		public object[] GetManagedObjectRange(Chunk* chunk, int type, out int rangeStart, out int rangeLength)
+		{
+			rangeStart = chunk->archetype->managedArrayOffset[type] * chunk->capacity;
+			rangeLength = chunk->count;
+			return m_ManagedArrays[chunk->managedArrayIndex].managedArray;
+		}
 		public void SetManagedObject(Chunk* chunk, int type, int index, object val)
 		{
 			int managedStart = chunk->archetype->managedArrayOffset[type] * chunk->capacity;

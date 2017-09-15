@@ -51,6 +51,13 @@ namespace UnityEngine.ECS
         {
             return typeMan.GetManagedObject(m_CurrentChunk, m_CurrentArchetypeSegment->typeIndex, index - m_CachedBeginIndex);
         }
+        public object[] GetManagedObjectRange(TypeManager typeMan, int index, out int rangeStart, out int rangeLength)
+        {
+            var objs = typeMan.GetManagedObjectRange(m_CurrentChunk, m_CurrentArchetypeSegment->typeIndex, out rangeStart, out rangeLength);
+            rangeStart += index - m_CachedBeginIndex;
+            rangeLength -= index - m_CachedBeginIndex;
+            return objs;
+        }
 
         public void UpdateCache(int index)
         {

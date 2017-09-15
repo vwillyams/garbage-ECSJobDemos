@@ -15,7 +15,5 @@ public class CrowdAgentComponent : ComponentDataWrapper<CrowdAgent>
     protected override void OnEnable()
     {
         base.OnEnable();
-        var agent = new CrowdAgent { type = 0, worldPosition = transform.position };
-        Value = agent;
     }
 }

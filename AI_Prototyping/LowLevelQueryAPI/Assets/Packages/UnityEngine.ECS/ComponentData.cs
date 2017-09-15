@@ -14,17 +14,16 @@ namespace UnityEngine.ECS
 
 
     //@TODO: This should be fully implemented in C++ for efficiency
+    [RequireComponent(typeof(GameObjectEntity))]
     public abstract class ComponentDataWrapperBase : ScriptBehaviour
-    { 
-		abstract internal Type GetIComponentDataType ();
+    {
+        abstract internal Type GetIComponentDataType();
+        abstract internal void UpdateComponentData(EntityManager manager, Entity entity);
     }
 
     //@TODO: This should be fully implemented in C++ for efficiency
-    public class ComponentDataWrapper<T> : ComponentDataWrapperBase, UnityEngine.ISerializationCallbackReceiver where T : struct, IComponentData
+    public class ComponentDataWrapper<T> : ComponentDataWrapperBase where T : struct, IComponentData
     {
-		EntityManager   m_GameObjectManager;
-		Entity			m_Entity;
-
         [SerializeField]
         T m_SerializedData;
 
@@ -32,61 +31,24 @@ namespace UnityEngine.ECS
     	{
     		get
     		{ 
-				if (m_GameObjectManager != null && m_GameObjectManager.HasComponent<T> (m_Entity))
-    			{
-					return m_GameObjectManager.GetComponent<T> (m_Entity);
-    			}
-    			
 				return m_SerializedData;
     		}
     		set
     		{
 				m_SerializedData = value;
-				if (m_GameObjectManager != null && m_GameObjectManager.HasComponent<T> (m_Entity))
-				{
-					m_GameObjectManager.SetComponent<T> (m_Entity, value);
-					return;
-				}
-
     		}
     	}
 
-    	public void OnAfterDeserialize ()
-    	{
-			if (m_GameObjectManager != null && m_GameObjectManager.HasComponent<T> (m_Entity))
-    		{
-				m_GameObjectManager.SetComponent<T> (m_Entity, m_SerializedData);
-    		}
-    	}
-
-    	public void OnBeforeSerialize ()
-    	{
-			if (m_GameObjectManager != null && m_GameObjectManager.HasComponent<T> (m_Entity))
-			{			
-				m_SerializedData = m_GameObjectManager.GetComponent<T> (m_Entity);
-    		}
-    	}
 
 		internal override Type GetIComponentDataType()
 		{
 			return typeof(T);
 		}
 
-        override protected void OnEnable()
+        internal override void UpdateComponentData(EntityManager manager, Entity entity)
         {
-			m_GameObjectManager = DependencyManager.GetBehaviourManager (typeof(EntityManager)) as EntityManager;
-			m_Entity = new Entity (0, gameObject.GetInstanceID ());
-
-			m_GameObjectManager.AddComponent(m_Entity, m_SerializedData);
+            manager.SetComponent(entity, m_SerializedData);
         }
 
-    	override protected void OnDisable()
-    	{
-			if (m_GameObjectManager != null && m_GameObjectManager.HasComponent<T>(m_Entity))
-				m_GameObjectManager.RemoveComponent<T>(m_Entity);
-
-			m_GameObjectManager = null;
-			m_Entity = new Entity ();
-    	}
     }
 }

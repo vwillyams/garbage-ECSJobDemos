@@ -52,7 +52,7 @@ namespace UnityEngine.ECS
     	protected void UpdateInjectedTuples()
     	{
     		foreach (var tuple in m_Tuples)
-    			InjectTuples.UpdateInjection (tuple, this);
+    			tuple.UpdateInjection (this);
     	}
 
     	override public void OnUpdate()

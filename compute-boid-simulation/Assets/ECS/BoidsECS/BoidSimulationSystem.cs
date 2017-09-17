@@ -6,7 +6,6 @@ using UnityEngine.ECS;
 
 namespace BoidSimulations
 {
-	[UpdateAfter(typeof(BoidSimulationCopyPreviousFrame))]
 	public class BoidSimulationSystem : JobComponentSystem
 	{
 		[InjectTuples(0)]

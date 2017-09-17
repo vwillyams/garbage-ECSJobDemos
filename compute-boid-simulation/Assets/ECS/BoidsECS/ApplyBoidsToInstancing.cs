@@ -56,7 +56,8 @@ namespace BoidSimulations
 		}
 	}
 
-	public class ApplyBoidsToInstancing : JobComponentSystem
+    [UpdateAfter(typeof(BoidSimulationSystem))]
+    public class ApplyBoidsToInstancing : JobComponentSystem
 	{
 		ComputeBuffer 	m_MatrixBuffer0;
 		ComputeBuffer 	m_ArgsBuffer;

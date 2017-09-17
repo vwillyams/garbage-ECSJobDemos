@@ -21,9 +21,8 @@ GameObject:
   - component: {fileID: 4163776392049388}
   - component: {fileID: 33910230164897580}
   - component: {fileID: 23155321134386538}
-  - component: {fileID: 114157945289734378}
-  - component: {fileID: 114323376412216682}
-  - component: {fileID: 114844422648903662}
+  - component: {fileID: 114247179260647064}
+  - component: {fileID: 114456146112668908}
   m_Layer: 0
   m_Name: Fish
   m_TagString: Untagged
@@ -69,7 +68,7 @@ MeshRenderer:
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchLightmapSeams: 0
+  m_StitchSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -85,29 +84,7 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1155337235024534}
   m_Mesh: {fileID: 4300000, guid: 49a87e3402ce60f4eba9b0498164bdd5, type: 3}
---- !u!114 &114157945289734378
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1155337235024534}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dbe10bd02aeae45e49b9aaceb092a742, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &114323376412216682
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1155337235024534}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 608479272b0f547ca9aa934fe8a9640d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &114844422648903662
+--- !u!114 &114247179260647064
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -116,5 +93,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5bf10cdea1344482e91a4f2b58506b77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &114456146112668908
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1155337235024534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbe10bd02aeae45e49b9aaceb092a742, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

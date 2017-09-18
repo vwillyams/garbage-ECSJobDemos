@@ -18,10 +18,13 @@ namespace UnityEngine.ECS
                 this.type = type;
                 this.size = size;
                 this.arrayElements = arrayElements;
+                this.isBlittableData = typeof(IComponentData).IsAssignableFrom(type) || type == typeof(Entity);
             }
-            public Type type;
-            public int size;
-            public int arrayElements;
+
+            public Type     type;
+            public int      size;
+            public int      arrayElements;
+            public bool     isBlittableData;
         }
 
         static List<ComponentType> m_Types;

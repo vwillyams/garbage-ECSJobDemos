@@ -30,7 +30,9 @@ struct Component128Bytes : IComponentData
 
 public class ECSInstantiatePerformance : MonoBehaviour
 {
-	CustomSampler instantiateSampler;
+    const int kInstanceCount = 100 * 1000;
+
+    CustomSampler instantiateSampler;
 	CustomSampler destroySampler;
 	CustomSampler iterateSampler;
 
@@ -47,7 +49,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 
 		var oldRoot = DependencyManager.Root;
 		DependencyManager.Root = new DependencyManager ();
-		DependencyManager.SetDefaultCapacity (100000 * 2);
+		DependencyManager.SetDefaultCapacity (kInstanceCount * 2);
 
 		var m_EntityManager = DependencyManager.GetBehaviourManager<EntityManager>();
 
@@ -62,7 +64,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
         m_EntityManager.CreateEntityGroup(typeof(Component128Bytes));
 
 		instantiateSampler.Begin ();
-		var instances = new NativeArray<Entity>(100000, Allocator.Temp);
+		var instances = new NativeArray<Entity>(kInstanceCount, Allocator.Temp);
 		m_EntityManager.Instantiate (archetype, instances);
 		instantiateSampler.End();
 

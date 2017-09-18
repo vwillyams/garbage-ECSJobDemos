@@ -7,6 +7,8 @@ using UnityEngine.Collections;
 
 public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
 {
+    const int kInstanceCount = 100 * 1000;
+
     CustomSampler addSampler;
     CustomSampler instantiateSampler;
     CustomSampler destroySampler;
@@ -26,7 +28,7 @@ public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
 
 		var oldRoot = DependencyManager.Root;
 		DependencyManager.Root = new DependencyManager ();
-		DependencyManager.SetDefaultCapacity (100000);
+		DependencyManager.SetDefaultCapacity (kInstanceCount);
 
 		var m_EntityManager = DependencyManager.GetBehaviourManager<EntityManager>();
 
@@ -41,7 +43,7 @@ public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
         m_EntityManager.AddComponent<Component12Bytes>(archetype, new Component12Bytes());
         m_EntityManager.AddComponent<Component64Bytes>(archetype, new Component64Bytes());
 
-        var entities = new NativeArray<Entity>(100000, Allocator.Temp);
+        var entities = new NativeArray<Entity>(kInstanceCount, Allocator.Temp);
         m_EntityManager.Instantiate (archetype, entities);
 
 		instantiateSampler.End();

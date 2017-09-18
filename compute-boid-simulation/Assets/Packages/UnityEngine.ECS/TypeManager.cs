@@ -167,7 +167,7 @@ namespace UnityEngine.ECS
 
                 bytesPerInstance += sizeOf;
 
-				if (!(cType.type is IComponentData))
+				if (!cType.isBlittableData)
 					++type->numManagedArrays;
             }
 			if (type->numManagedArrays > 0)
@@ -177,7 +177,7 @@ namespace UnityEngine.ECS
 				for (int i = 0; i < count; ++i)
 				{
                		RealTypeManager.ComponentType cType = RealTypeManager.GetComponentType(typeIndices[i]);
-					if (!(cType.type is IComponentData))
+					if (!cType.isBlittableData)
 						type->managedArrayOffset[i] = mi++;
 					else
 						type->managedArrayOffset[i] = -1;

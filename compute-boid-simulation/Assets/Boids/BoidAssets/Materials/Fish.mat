@@ -7,7 +7,7 @@ Material:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_Name: Fish
-  m_Shader: {fileID: 4800000, guid: 68b039294c2a248dda47e92af24ab2d6, type: 3}
+  m_Shader: {fileID: 4800000, guid: 050cd2ec4cc25ac4aa4842eb72394f5c, type: 3}
   m_ShaderKeywords: _EMISSION _METALLICGLOSSMAP _SPECGLOSSMAP
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 1

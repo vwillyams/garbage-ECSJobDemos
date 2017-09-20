@@ -64,7 +64,13 @@ namespace BoidSimulations
 						roots.Add (root);
 					}
 
-					Instantiate (prefab, Random.insideUnitSphere + transform.position, Random.rotation, root.transform);
+					var instance = Instantiate (prefab, Random.insideUnitSphere + transform.position, Random.rotation, root.transform);
+
+                    var boid = new BoidData();
+                    boid.position = Random.insideUnitSphere + transform.position;
+                    boid.forward = Random.onUnitSphere;
+
+                    instance.GetComponent<BoidDataComponent>().Value = boid;
 				}
 			}	
 

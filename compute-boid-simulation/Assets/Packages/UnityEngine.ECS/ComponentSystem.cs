@@ -1,11 +1,5 @@
-using UnityEngine;
 using UnityEngine.Collections;
 using UnityEngine.Jobs;
-using System;
-using System.Collections.Generic;
-using UnityEngine.Assertions;
-using System.Linq;
-using System.Reflection;
 
 namespace UnityEngine.ECS
 {
@@ -17,22 +11,18 @@ namespace UnityEngine.ECS
         internal ComponentType[]		    m_JobDependencyForReadingManagers;
         internal ComponentType[]		    m_JobDependencyForWritingManagers;
         protected ComponentJobSafetyManager m_SafetyManager;
+        EntityManager                       m_EntityManager;
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    	static void Initialize()
-    	{
-			foreach (var ass in AppDomain.CurrentDomain.GetAssemblies ())
-			{
-				var types = ass.GetTypes().Where(t => t.IsSubclassOf(typeof(ComponentSystem)) && !t.IsAbstract);
-				foreach (var type in types)
-					DependencyManager.GetBehaviourManager (type);	
-			}
-    	}
+        protected ComponentSystem()
+        {
+            m_EntityManager = DependencyManager.GetBehaviourManager<EntityManager>();
+        }
+
     	override protected void OnCreateManager(int capacity)
     	{
     		base.OnCreateManager(capacity);
 
-            m_SafetyManager = DependencyManager.GetBehaviourManager<EntityManager>().ComponentJobSafetyManager;
+            m_SafetyManager = m_EntityManager.ComponentJobSafetyManager;
 			InjectTuples.CreateTuplesInjection (GetType(), this, out m_Tuples, out m_JobDependencyForReadingManagers, out m_JobDependencyForWritingManagers);
     	}
 
@@ -48,6 +38,8 @@ namespace UnityEngine.ECS
 			m_JobDependencyForReadingManagers = null;
 			m_JobDependencyForWritingManagers = null;
     	}
+
+        protected EntityManager EntityManager { get { return m_EntityManager; }  }
 
     	protected void UpdateInjectedTuples()
     	{

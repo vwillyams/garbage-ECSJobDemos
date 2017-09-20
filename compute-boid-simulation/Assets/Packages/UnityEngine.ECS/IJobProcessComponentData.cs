@@ -17,6 +17,11 @@ namespace UnityEngine.ECS.Experimental
         void Execute(ref T0 data);
     }
 
+    public interface IAutoComponentSystemJob
+    {
+        void Prepare();
+    }
+
     public static class ProcessEntityJobExtension1
     {
         static public JobHandle Schedule<T, U0>(this T jobData, ComponentDataArray<U0> componentDataArray, int minIndicesPerJob, JobHandle dependsOn = new JobHandle())
@@ -124,4 +129,55 @@ namespace UnityEngine.ECS.Experimental
             }
         }
     }
+
+    public class GenericProcessComponentSystem<TJob, TComponentData0> : JobComponentSystem 
+        where TJob : struct, IAutoComponentSystemJob, IJobProcessComponentData<TComponentData0>
+        where TComponentData0 : struct, IComponentData
+    {
+        //@TODO: Use CreateEntityGroup
+        [InjectTuples]
+        ComponentDataArray<TComponentData0> m_Component0;
+
+        public override void OnUpdate()
+        {
+            base.OnUpdate();
+
+            int batchSize = 512;
+
+            TJob jobData = new TJob();
+            jobData.Prepare();
+
+            //var group = CreateEntityGroup(typeof(TComponentData0));
+            //var componentData0 = group.GetComponentDataArray<TComponentData0>();
+            AddDependency(jobData.Schedule(m_Component0, batchSize, GetDependency()));
+        }
+    }
+
+    public class GenericProcessComponentSystem<TJob, TComponentData0, TComponentData1> : JobComponentSystem
+    where TJob : struct, IAutoComponentSystemJob, IJobProcessComponentData<TComponentData0, TComponentData1>
+    where TComponentData0 : struct, IComponentData
+    where TComponentData1 : struct, IComponentData
+    {
+        //@TODO: Use CreateEntityGroup
+        [InjectTuples]
+        ComponentDataArray<TComponentData0> m_Component0;
+
+        [InjectTuples]
+        ComponentDataArray<TComponentData1> m_Component1;
+
+        public override void OnUpdate()
+        {
+            base.OnUpdate();
+
+            int batchSize = 512;
+
+            TJob jobData = new TJob();
+            jobData.Prepare();
+
+            //var group = CreateEntityGroup(typeof(TComponentData0));
+            //var componentData0 = group.GetComponentDataArray<TComponentData0>();
+            AddDependency(jobData.Schedule(m_Component0, m_Component1, batchSize, GetDependency()));
+        }
+    }
+
 }

@@ -106,15 +106,6 @@ namespace UnityEngine.ECS
             return type;
         }
 
-        unsafe public EntityArchetype CreateArchetype(ComponentType[] types, int[] strideGroup)
-        {
-            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
-
-            EntityArchetype type;
-            type.archetype = m_TypeManager.GetArchetype(m_CachedIntArray, PopulatedCachedTypeArray(types), m_GroupManager);
-            return type;
-        }
-
         unsafe public void CreateEntity(EntityArchetype archetype, NativeArray<Entity> entities)
         {
             CreateEntityInternal (archetype, (Entity*)entities.UnsafePtr, entities.Length);

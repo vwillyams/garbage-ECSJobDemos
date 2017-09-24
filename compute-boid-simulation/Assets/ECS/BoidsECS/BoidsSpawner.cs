@@ -67,22 +67,12 @@ namespace BoidSimulations
 						roots.Add (root);
 					}
 
-<<<<<<< HEAD
-					var instance = Instantiate (prefab, Random.insideUnitSphere + transform.position, Random.rotation, root.transform);
-
-                    var boid = new BoidData();
-                    boid.position = Random.insideUnitSphere + transform.position;
-                    boid.forward = Random.onUnitSphere;
-
-                    instance.GetComponent<BoidDataComponent>().Value = boid;
-=======
-					BoidData val;
-					val.position = Random.insideUnitSphere * radius+ transform.position;
+                    BoidData val;
+					val.position = Random.insideUnitSphere * radius + transform.position;
 					val.forward = Random.onUnitSphere;
-					var go = Instantiate (prefab, val.position, randomRot, root.transform) as GameObject;
+                    var go = Instantiate (prefab, val.position, Quaternion.identity, root.transform) as GameObject;
 
 					m_LightweightGameObjects.SetComponent<BoidData>(go.GetComponent<GameObjectEntity>().Entity, val);
->>>>>>> ecschunks
 				}
 			}	
 

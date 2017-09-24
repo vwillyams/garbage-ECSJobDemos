@@ -5,7 +5,7 @@ using UnityEngine.Jobs;
 
 namespace UnityEngine.ECS
 {
-    public unsafe class EntityGroupManager : IDisposable
+    internal unsafe class EntityGroupManager : IDisposable
     {
         NativeMultiHashMap<uint, IntPtr>    m_GroupLookup;
         ChunkAllocator                      m_GroupDataChunkAllocator;

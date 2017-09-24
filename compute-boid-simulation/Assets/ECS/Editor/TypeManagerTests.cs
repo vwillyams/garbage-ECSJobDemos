@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace UnityEngine.ECS.Tests
 {
-	public class TypeManagerTests
+    public class TypeManagerTests : ECSFixture
 	{
 		struct TestType1
 		{
@@ -16,24 +16,15 @@ namespace UnityEngine.ECS.Tests
 		[Test]
 		unsafe public void CreateArchetypes()
 		{
-			RealTypeManager.Initialize();
-			EntityGroupManager groupMan = new EntityGroupManager(null);
-            ComponentType[] typeSet = { ComponentType.Create<TestType1>(), ComponentType.Create<TestType2>() };
-			TypeManager typeMan = new TypeManager();
-			fixed(ComponentType* p = &typeSet[0])
-			{				
-				Archetype* type1 = typeMan.GetArchetype(p, 1, groupMan);
-				Archetype* cachedType1 = typeMan.GetArchetype(p, 1, groupMan);
-				Assert.IsFalse(type1 == null);
-				Assert.IsTrue(type1 == cachedType1);
-				Archetype* type2 = typeMan.GetArchetype(p, 2, groupMan);
-				Archetype* cachedType2 = typeMan.GetArchetype(p, 2, groupMan);
-				Assert.IsFalse(type2 == null);
-				Assert.IsTrue(type2 == cachedType2);
-				Assert.IsFalse(type1 == type2);
-			}
-			typeMan.Dispose();
-			groupMan.Dispose();
+            var archetype1 = m_Manager.CreateArchetype(ComponentType.Create<TestType1>(), ComponentType.Create<TestType2>());
+            var archetype1Same = m_Manager.CreateArchetype(ComponentType.Create<TestType1>(), ComponentType.Create<TestType2>());
+            Assert.AreEqual(archetype1, archetype1Same);
+
+            var archetype2 = m_Manager.CreateArchetype(ComponentType.Create<TestType1>());
+            var archetype2Same = m_Manager.CreateArchetype(ComponentType.Create<TestType1>());
+            Assert.AreEqual(archetype2Same, archetype2Same);
+
+            Assert.AreNotEqual(archetype1, archetype2);
 		}
 
         [Test]

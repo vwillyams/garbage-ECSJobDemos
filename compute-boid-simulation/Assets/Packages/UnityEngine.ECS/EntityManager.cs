@@ -10,12 +10,21 @@ namespace UnityEngine.ECS
     public unsafe struct EntityArchetype
     {
         public Archetype* archetype;
+
+        public static bool operator == (EntityArchetype lhs, EntityArchetype rhs)   { return lhs.archetype == rhs.archetype; }
+        public static bool operator != (EntityArchetype lhs, EntityArchetype rhs)   { return lhs.archetype != rhs.archetype; }
+        public override bool Equals(object compare)                                 { return this == (EntityArchetype)compare; }
     }
+
 
     public struct Entity
     {
         public int index;
         public int version;
+
+        public static bool operator ==(Entity lhs, Entity rhs) { return lhs.index == rhs.index && lhs.version == rhs.version; }
+        public static bool operator !=(Entity lhs, Entity rhs) { return lhs.index != rhs.index || lhs.version != rhs.version; }
+        public override bool Equals(object compare)            { return this == (Entity)compare; }
 
         //@TODO: Manager index for debugging?
     }
@@ -105,7 +114,7 @@ namespace UnityEngine.ECS
             m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
 
             EntityArchetype type;
-            type.archetype = m_TypeManager.GetArchetype(m_CachedIntArray, PopulatedCachedTypeArray(types), m_GroupManager);
+            type.archetype = m_TypeManager.GetArchetype(m_CachedIntArray, PopulatedCachedTypeArray(types), m_GroupManager, m_SharedComponentManager);
             return type;
         }
 
@@ -258,7 +267,7 @@ namespace UnityEngine.ECS
                 m_CachedIntArray[t+1] = type->types[t];
                 ++t;
             }
-            Archetype* newType = m_TypeManager.GetArchetype(m_CachedIntArray, type->typesCount + 1, m_GroupManager);
+            Archetype* newType = m_TypeManager.GetArchetype(m_CachedIntArray, type->typesCount + 1, m_GroupManager, m_SharedComponentManager);
             Chunk* newChunk = m_TypeManager.GetChunkWithEmptySlots(newType);
 
             int newChunkIndex = TypeManager.AllocateIntoChunk(newChunk);
@@ -282,7 +291,7 @@ namespace UnityEngine.ECS
             }
             if (removedTypes != 1)
                 throw new InvalidOperationException("Trying to remove a component from an entity which is not present");
-            Archetype* newType = m_TypeManager.GetArchetype(m_CachedIntArray, type->typesCount - removedTypes, m_GroupManager);
+            Archetype* newType = m_TypeManager.GetArchetype(m_CachedIntArray, type->typesCount - removedTypes, m_GroupManager, m_SharedComponentManager);
 
             Chunk* newChunk = m_TypeManager.GetChunkWithEmptySlots(newType);
             int newChunkIndex = TypeManager.AllocateIntoChunk(newChunk);
@@ -323,8 +332,10 @@ namespace UnityEngine.ECS
             m_TypeManager.SetManagedObject(chunk, componentType, chunkIndex, componentObject);
         }
 
-
-        //@TODO: How should we handle refcounting here??
+        /// Shared component data
+        //@TODO: Shared component data
+        //@TODO: * Need to handle refcounting / destruction of archetypes, right now we just leak shared component types
+        //@TODO: * Integrate into add component / remove component (Should be generalized to build on top of general purpose SetArchetype(Entity entity); API)
         public ComponentType CreateSharedComponentType<T>(T data) where T : struct, ISharedComponentData
         {
             return m_SharedComponentManager.InsertSharedComponent<T>(data);
@@ -355,8 +366,6 @@ namespace UnityEngine.ECS
 
             return m_SharedComponentManager.GetSharedComponentData<T>(archetype->types[indexInTypeArray].sharedComponentIndex);
         }
-
-
 
 
         internal ComponentJobSafetyManager ComponentJobSafetyManager { get { return m_JobSafetyManager; } }

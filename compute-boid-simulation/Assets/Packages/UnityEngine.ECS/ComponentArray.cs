@@ -15,7 +15,7 @@ namespace UnityEngine.ECS
         int                     m_Length;
 		TypeManager				m_TypeManager;
 
-		public unsafe ComponentArray(ComponentDataArchetypeSegment* data, int length, TypeManager typeMan)
+		internal unsafe ComponentArray(ComponentDataArchetypeSegment* data, int length, TypeManager typeMan)
 		{
             m_Length = length;
             m_Cache = new ComponentDataArrayCache(data, length);

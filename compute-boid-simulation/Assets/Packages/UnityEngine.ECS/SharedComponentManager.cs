@@ -28,6 +28,15 @@ namespace UnityEngine.ECS
             }
         }
 
+        unsafe public void OnArchetypeAdded(ComponentType* types, int count)
+        {
+            for (int i = 0; i != count;i++)
+            {
+                if (types[i].sharedComponentIndex != -1)
+                    m_SharedComponentRefCount[types[i].sharedComponentIndex]++;
+            }
+        }
+
         public ComponentType InsertSharedComponent<T>(T newData) where T : struct
         {
             for (int i = 0; i != m_SharedComponentData.Count; i++)

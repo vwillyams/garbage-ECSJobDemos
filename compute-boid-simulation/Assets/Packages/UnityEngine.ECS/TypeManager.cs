@@ -48,7 +48,7 @@ namespace UnityEngine.ECS
 		// TODO: Linkage to other archetype via Add/Remove Component
 		public Archetype*       prevArchetype;
 	}
-	public unsafe class TypeManager : IDisposable
+	internal unsafe class TypeManager : IDisposable
 	{
 		NativeMultiHashMap<uint, IntPtr>		m_TypeLookup;
 		ChunkAllocator m_ArchetypeChunkAllocator;
@@ -115,7 +115,7 @@ namespace UnityEngine.ECS
 
 
 
-        public Archetype* GetArchetype(ComponentType* types, int count, EntityGroupManager groupManager)
+        public Archetype* GetArchetype(ComponentType* types, int count, EntityGroupManager groupManager, SharedComponentDataManager sharedComponentManager)
 		{
 			uint hash = HashUtility.fletcher32((ushort*)types, count * sizeof(ComponentType) / sizeof(ushort));
 			IntPtr typePtr;
@@ -186,6 +186,7 @@ namespace UnityEngine.ECS
 			m_TypeLookup.Add(hash, (IntPtr)type);
 
 			groupManager.OnArchetypeAdded(type);
+            sharedComponentManager.OnArchetypeAdded(type->types, type->typesCount);
 
 			return type;
 		}

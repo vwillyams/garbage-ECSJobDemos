@@ -50,7 +50,7 @@ namespace UnityEngine.ECS.Tests
             var archetype30 = m_Manager.CreateArchetype(typeof(EcsTestData), sharedType30);
             var archetype20 = m_Manager.CreateArchetype(typeof(EcsTestData), sharedType20);
 
-            Assert.AreNotEqual(archetype30, archetype30);
+            Assert.AreNotEqual(archetype20, archetype30);
 
             var entity = m_Manager.CreateEntity(archetype20);
 

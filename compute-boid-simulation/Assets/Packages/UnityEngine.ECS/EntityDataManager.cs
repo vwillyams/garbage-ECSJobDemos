@@ -50,7 +50,7 @@ namespace UnityEngine.ECS
             return m_Entities[entity.index].version == entity.version;
         }
 
-        public void DeallocateEnties(TypeManager typeMan, Entity* entities, int count)
+        public void DeallocateEnties(ArchetypeManager typeMan, Entity* entities, int count)
         {
             for (int i = 0; i != count;i++)
             {
@@ -116,7 +116,7 @@ namespace UnityEngine.ECS
         void CheckInternalConsistency()
         {
             int aliveEntities = 0;
-            int entityType = RealTypeManager.GetTypeIndex<Entity>();
+            int entityType = TypeManager.GetTypeIndex<Entity>();
 
             for (int i = 0; i != m_EntitiesCapacity; i++)
             {
@@ -205,7 +205,7 @@ namespace UnityEngine.ECS
             return m_Entities[entity.index].archetype;
         }
 
-        public void SetArchetype(TypeManager typeMan, Entity entity, Archetype* archetype, Chunk* chunk, int chunkIndex)
+        public void SetArchetype(ArchetypeManager typeMan, Entity entity, Archetype* archetype, Chunk* chunk, int chunkIndex)
         {
             Archetype* oldArchetype = m_Entities[entity.index].archetype;
             Chunk* oldChunk = m_Entities[entity.index].chunk;

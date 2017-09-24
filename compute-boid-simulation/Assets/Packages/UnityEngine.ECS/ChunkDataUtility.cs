@@ -128,7 +128,7 @@ namespace UnityEngine.ECS
             }
         }
 
-        public static void CopyManagedObjects(TypeManager typeMan, Chunk* srcChunk, int srcStartIndex, Chunk* dstChunk, int dstStartIndex, int count)
+        public static void CopyManagedObjects(ArchetypeManager typeMan, Chunk* srcChunk, int srcStartIndex, Chunk* dstChunk, int dstStartIndex, int count)
         {
             Archetype* srcArch = srcChunk->archetype;
             Archetype* dstArch = dstChunk->archetype;
@@ -156,7 +156,7 @@ namespace UnityEngine.ECS
                 }
             }
         }
-        public static void ClearManagedObjects(TypeManager typeMan, Chunk* chunk, int index, int count)
+        public static void ClearManagedObjects(ArchetypeManager typeMan, Chunk* chunk, int index, int count)
         {
             Archetype* arch = chunk->archetype;
 

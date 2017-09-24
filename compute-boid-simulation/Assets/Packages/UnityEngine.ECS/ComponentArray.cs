@@ -13,13 +13,13 @@ namespace UnityEngine.ECS
 	{
         ComponentDataArrayCache m_Cache;
         int                     m_Length;
-		TypeManager				m_TypeManager;
+        ArchetypeManager		m_ArchetypeManager;
 
-		internal unsafe ComponentArray(ComponentDataArchetypeSegment* data, int length, TypeManager typeMan)
+		internal unsafe ComponentArray(ComponentDataArchetypeSegment* data, int length, ArchetypeManager typeMan)
 		{
             m_Length = length;
             m_Cache = new ComponentDataArrayCache(data, length);
-			m_TypeManager = typeMan;
+			m_ArchetypeManager = typeMan;
 		}
 
 		public unsafe T this[int index]
@@ -33,7 +33,7 @@ namespace UnityEngine.ECS
                 if (index < m_Cache.m_CachedBeginIndex || index >= m_Cache.m_CachedEndIndex)
                     m_Cache.UpdateCache(index);
 
-				return (T)m_Cache.GetManagedObject(m_TypeManager, index);
+				return (T)m_Cache.GetManagedObject(m_ArchetypeManager, index);
 			}
 		}
 
@@ -45,7 +45,7 @@ namespace UnityEngine.ECS
 			{
 				m_Cache.UpdateCache(i);
 				int start, length;
-				var objs = m_Cache.GetManagedObjectRange(m_TypeManager, i, out start, out length);
+				var objs = m_Cache.GetManagedObjectRange(m_ArchetypeManager, i, out start, out length);
 				for (int obj = 0; obj < length; ++obj)
 					arr[i+obj] = (T)objs[start+obj];
 				i += length;

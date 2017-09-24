@@ -46,7 +46,7 @@ namespace UnityEngine.ECS
         //@TODO: Optimize as one function call to in batch bump version on every single handle...
         public void CompleteAllJobsAndInvalidateArrays()
         {
-            int count = RealTypeManager.GetTypeCount();
+            int count = TypeManager.GetTypeCount();
             for (int t = 0; t != count; t++)
             {
                 m_ComponentSafetyHandles[t].writeFence.Complete();

@@ -18,7 +18,7 @@ namespace UnityEngine.ECS
             m_JobSafetyManager = safetyManager;
         }
 
-        public EntityGroup CreateEntityGroup(TypeManager typeMan, ComponentType* requiredTypes, int requiredCount, TransformAccessArray trans)
+        public EntityGroup CreateEntityGroup(ArchetypeManager typeMan, ComponentType* requiredTypes, int requiredCount, TransformAccessArray trans)
         {
             uint hash = HashUtility.fletcher32((ushort*)requiredTypes, requiredCount * sizeof(ComponentType) / sizeof(short));
             NativeMultiHashMapIterator<uint> it;
@@ -128,12 +128,12 @@ namespace UnityEngine.ECS
     {
         EntityGroupData*                m_GroupData;
         ComponentJobSafetyManager       m_SafetyManager;
-        TypeManager                     m_TypeManager;
+        ArchetypeManager                     m_TypeManager;
         TransformAccessArray            m_Transforms;
         bool                            m_TransformsDirty;
         MatchingArchetypes*             m_LastRegisteredListenerArchetype;
 
-        internal EntityGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager, TypeManager typeManager, TransformAccessArray trans)
+        internal EntityGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager, ArchetypeManager typeManager, TransformAccessArray trans)
         {
             m_GroupData = groupData;
             m_SafetyManager = safetyManager;
@@ -143,7 +143,7 @@ namespace UnityEngine.ECS
 
             if (m_Transforms.IsCreated)
             {
-                var transformType = RealTypeManager.GetTypeIndex<Transform>();
+                var transformType = TypeManager.GetTypeIndex<Transform>();
                 for (MatchingArchetypes* type = m_GroupData->firstMatchingArchetype; type != null; type = type->next)
                 {
                     int idx = ChunkDataUtility.GetIndexInTypeArray(type->archetype, transformType);
@@ -159,7 +159,7 @@ namespace UnityEngine.ECS
             {
                 if (m_LastRegisteredListenerArchetype != null)
                 {
-                    var transformType = RealTypeManager.GetTypeIndex<Transform>();
+                    var transformType = TypeManager.GetTypeIndex<Transform>();
                     for (MatchingArchetypes* type = m_GroupData->firstMatchingArchetype; type != m_LastRegisteredListenerArchetype->next; type = type->next)
                     {
                         int idx = ChunkDataUtility.GetIndexInTypeArray(type->archetype, transformType);
@@ -181,7 +181,7 @@ namespace UnityEngine.ECS
                 ++componentIndex;
             if (componentIndex >= m_GroupData->numRequiredComponents)
             {
-                throw new InvalidOperationException(string.Format("Trying to get ComponentDataArray for {0} but the required component type was not declared in the EntityGroup.", RealTypeManager.GetType(componentType)));
+                throw new InvalidOperationException(string.Format("Trying to get ComponentDataArray for {0} but the required component type was not declared in the EntityGroup.", TypeManager.GetType(componentType)));
             }
 
             // Update the archetype segments
@@ -207,9 +207,9 @@ namespace UnityEngine.ECS
         {
             int length;
             int componentIndex;
-            int typeIndex = RealTypeManager.GetTypeIndex<T>();
+            int typeIndex = TypeManager.GetTypeIndex<T>();
 
-            ComponentDataArchetypeSegment* segment = GetSegmentData(RealTypeManager.GetTypeIndex<T>(), out length, out componentIndex);
+            ComponentDataArchetypeSegment* segment = GetSegmentData(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
 #if ENABLE_NATIVE_ARRAY_CHECKS
             return new ComponentDataArray<T>(segment, length, m_SafetyManager.GetSafetyHandle(typeIndex), readOnly);
 #else
@@ -233,7 +233,7 @@ namespace UnityEngine.ECS
         {
             int length;
             int componentIndex;
-            int typeIndex = RealTypeManager.GetTypeIndex<Entity>();
+            int typeIndex = TypeManager.GetTypeIndex<Entity>();
             ComponentDataArchetypeSegment* segment = GetSegmentData(typeIndex, out length, out componentIndex);
 #if ENABLE_NATIVE_ARRAY_CHECKS
             return new EntityArray(segment, length, m_SafetyManager.GetSafetyHandle(typeIndex));
@@ -246,7 +246,7 @@ namespace UnityEngine.ECS
             int length;
             int componentIndex;
 
-            ComponentDataArchetypeSegment* segment = GetSegmentData(RealTypeManager.GetTypeIndex<T>(), out length, out componentIndex);
+            ComponentDataArchetypeSegment* segment = GetSegmentData(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
             return new ComponentArray<T>(segment, length, m_TypeManager);
         }
 
@@ -256,7 +256,7 @@ namespace UnityEngine.ECS
             {
                 int length;
                 int componentIndex;
-                GetSegmentData(RealTypeManager.GetTypeIndex<Entity>(), out length, out componentIndex);
+                GetSegmentData(TypeManager.GetTypeIndex<Entity>(), out length, out componentIndex);
                 return length;
             }
         }
@@ -265,7 +265,7 @@ namespace UnityEngine.ECS
         {
             if (!m_Transforms.IsCreated)
                 return;
-            int transformIdx = RealTypeManager.GetTypeIndex<Transform>();
+            int transformIdx = TypeManager.GetTypeIndex<Transform>();
             for (MatchingArchetypes* type = m_LastRegisteredListenerArchetype != null ? m_LastRegisteredListenerArchetype->next : m_GroupData->firstMatchingArchetype; type != null; type = type->next)
             {
                 int idx = ChunkDataUtility.GetIndexInTypeArray(type->archetype, transformIdx);
@@ -300,7 +300,7 @@ namespace UnityEngine.ECS
 			{
 				var types = new List<Type> ();
 				for (int i = 0; i < m_GroupData->numRequiredComponents; ++i)
-					types.Add(RealTypeManager.GetType(m_GroupData->requiredComponents[i].typeIndex));
+					types.Add(TypeManager.GetType(m_GroupData->requiredComponents[i].typeIndex));
 
 				return types.ToArray ();
 			}

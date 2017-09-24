@@ -10,7 +10,8 @@ namespace UnityEngine.ECS
 		int m_LastChunkUsedSize;
 		const int ms_ChunkSize = 64 * 1024;
 		const int ms_ChunkAlignment = 64;
-		public void Dispose()
+		
+        public void Dispose()
 		{
 			while (m_FirstChunk != null)
 			{

@@ -11,20 +11,26 @@ namespace UnityEngine.ECS
         public static ComponentType Create<T>()
         {
             ComponentType type;
-            type.typeIndex = RealTypeManager.GetTypeIndex<T>();
+            type.typeIndex = TypeManager.GetTypeIndex<T>();
             type.sharedComponentIndex = -1;
             return type;
         }
 
         public ComponentType(Type type)
         {
-            typeIndex = RealTypeManager.GetTypeIndex(type);
+            typeIndex = TypeManager.GetTypeIndex(type);
             sharedComponentIndex = -1;
         }
+
         public ComponentType(Type type, int numElements)
         {
-            typeIndex = RealTypeManager.CreateArrayType(type, numElements);
+            typeIndex = TypeManager.CreateArrayType(type, numElements);
             sharedComponentIndex = -1;
+        }
+
+        public Type GetManagedType()
+        {
+            return TypeManager.GetType(typeIndex);
         }
 
         public static implicit operator ComponentType(Type type)

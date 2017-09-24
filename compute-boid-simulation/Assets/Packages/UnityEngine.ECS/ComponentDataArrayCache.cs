@@ -47,11 +47,11 @@ namespace UnityEngine.ECS
             m_CachedEndIndex = 0;
         }
 
-        public object GetManagedObject(TypeManager typeMan, int index)
+        public object GetManagedObject(ArchetypeManager typeMan, int index)
         {
             return typeMan.GetManagedObject(m_CurrentChunk, m_CurrentArchetypeSegment->typeIndex, index - m_CachedBeginIndex);
         }
-        public object[] GetManagedObjectRange(TypeManager typeMan, int index, out int rangeStart, out int rangeLength)
+        public object[] GetManagedObjectRange(ArchetypeManager typeMan, int index, out int rangeStart, out int rangeLength)
         {
             var objs = typeMan.GetManagedObjectRange(m_CurrentChunk, m_CurrentArchetypeSegment->typeIndex, out rangeStart, out rangeLength);
             rangeStart += index - m_CachedBeginIndex;

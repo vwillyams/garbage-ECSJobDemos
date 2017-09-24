@@ -19,7 +19,7 @@ namespace UnityEngine.ECS
 
         public void GetAllUniqueSharedComponents(System.Type componentType, NativeList<ComponentType> uniqueComponents)
         {
-            int typeIndex = RealTypeManager.GetTypeIndex(componentType);
+            int typeIndex = TypeManager.GetTypeIndex(componentType);
             for (int i = 0; i != m_SharedComponentData.Count; i++)
             {
                 object data = m_SharedComponentData[i];
@@ -47,7 +47,7 @@ namespace UnityEngine.ECS
                     if (newData.Equals(data))
                     {
                         m_SharedComponentRefCount[i]++;
-                        return GetComponentType(RealTypeManager.GetTypeIndex<T>(), i);
+                        return GetComponentType(TypeManager.GetTypeIndex<T>(), i);
                     }
                 }
             }
@@ -55,7 +55,7 @@ namespace UnityEngine.ECS
             m_SharedComponentData.Add(newData);
             m_SharedComponentRefCount.Add(1);
 
-            return GetComponentType(RealTypeManager.GetTypeIndex<T>(), m_SharedComponentData.Count - 1);
+            return GetComponentType(TypeManager.GetTypeIndex<T>(), m_SharedComponentData.Count - 1);
         }
 
         public T GetSharedComponentData<T>(int index)

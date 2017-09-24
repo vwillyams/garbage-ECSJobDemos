@@ -30,17 +30,15 @@ namespace UnityEngine.ECS.Tests
         [Test]
         unsafe public void TestTypeManager()
         {
-            RealTypeManager.Initialize();
+            var entity = ComponentType.Create<Entity>();
+            var testData = ComponentType.Create<EcsTestData>();
 
-            int entity = RealTypeManager.GetTypeIndex<Entity>();
-            int testData = RealTypeManager.GetTypeIndex<EcsTestData>();
+            Assert.AreEqual(entity, ComponentType.Create<Entity>());
+            Assert.AreEqual(testData, ComponentType.Create<EcsTestData>());
+            Assert.AreEqual(testData, new ComponentType(typeof(EcsTestData)));
+            Assert.AreNotEqual(ComponentType.Create<Entity>(), ComponentType.Create<EcsTestData>());
 
-            Assert.AreEqual(entity, RealTypeManager.GetTypeIndex<Entity>());
-            Assert.AreEqual(testData, RealTypeManager.GetTypeIndex<EcsTestData>());
-            Assert.AreNotEqual(RealTypeManager.GetTypeIndex<Entity>(), RealTypeManager.GetTypeIndex<EcsTestData>());
-
-            Assert.AreEqual(typeof(Entity), RealTypeManager.GetComponentType(RealTypeManager.GetTypeIndex<Entity>()).type);
-            Assert.AreEqual(sizeof(Entity), RealTypeManager.GetComponentType(RealTypeManager.GetTypeIndex<Entity>()).sizeInChunk);
+            Assert.AreEqual(typeof(Entity), entity.GetManagedType());
         }
     }
 }

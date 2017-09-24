@@ -22,20 +22,22 @@ namespace UnityEngine.ECS
             var components = GetComponents<Component>();
             ComponentType[] types = new ComponentType[components.Length - 1];
 
+            m_EntityManager = DependencyManager.GetBehaviourManager(typeof(EntityManager)) as EntityManager;
+
             t = 0;
             for (int i = 0; i != components.Length;i++)
             {
                 var com = components[i];
-                var wrapper = com as ComponentDataWrapperBase;
-                if (wrapper != null)
-                    types[t++] = wrapper.GetIComponentDataType();
+                var componentData = com as ComponentDataWrapperBase;
+
+                if (componentData != null)
+                    types[t++] = componentData.GetComponentType(m_EntityManager);
                 else if (com is GameObjectEntity)
                     ;
                 else
                     types[t++] = com.GetType();
             }
 
-            m_EntityManager = DependencyManager.GetBehaviourManager(typeof(EntityManager)) as EntityManager;
             var archetype = m_EntityManager.CreateArchetype(types);
             m_Entity = m_EntityManager.CreateEntity(archetype);
             t = 0;

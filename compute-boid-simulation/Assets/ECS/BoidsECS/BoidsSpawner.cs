@@ -11,7 +11,7 @@ namespace BoidSimulations
 	public class BoidsSpawner : ScriptBehaviour
 	{
 		public GameObject prefab;
-		public GameObject lightweightPrefab;
+		public GameObject[] lightweightPrefabs;
 
 		public float radius = 4.0F;
 		public int transformsPerHierarchy = 500;
@@ -39,20 +39,21 @@ namespace BoidSimulations
 
 			if (lightweightInstantiate)
 			{
-				var gos = new NativeArray<Entity>(count, Allocator.Temp);
-				m_LightweightGameObjects.Instantiate (lightweightPrefab, gos);
+				var gos = new NativeArray<Entity>(count / lightweightPrefabs.Length, Allocator.Temp);
+                for (int p = 0; p < lightweightPrefabs.Length;p++)
+                {
+                    m_LightweightGameObjects.Instantiate(lightweightPrefabs[p], gos);
 
-				for (int i = 0; i != gos.Length; i++)
-				{
-					var boid = new BoidData ();
-					boid.position = Random.insideUnitSphere + transform.position;
-					boid.forward = Random.onUnitSphere;
-					m_LightweightGameObjects.SetComponent(gos[i], boid);
-				}
+                    for (int i = 0; i != gos.Length; i++)
+                    {
+                        var boid = new BoidData();
+                        boid.position = Random.insideUnitSphere + transform.position;
+                        boid.forward = Random.onUnitSphere;
+                        m_LightweightGameObjects.SetComponent(gos[i], boid);
+                    }
+                }
 
 				gos.Dispose ();
-
-				DependencyManager.GetBehaviourManager<ApplyBoidsToInstancing> ().InitializeInstanceRenderer (lightweightPrefab);
 			}
 			else
 			{

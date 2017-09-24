@@ -5,9 +5,12 @@ using UnityEngine.ECS;
 
 namespace BoidSimulations
 {
-	public struct BoidInstanceRenderer : IComponentData
+    [System.Serializable]
+	public struct BoidInstanceRenderer : ISharedComponentData
 	{
+        public Material material;
+        public Mesh     mesh;
 	}
 
-	public class BoidInstanceRendererComponent : ComponentDataWrapper<BoidInstanceRenderer> { }
+	public class BoidInstanceRendererComponent : SharedComponentDataWrapper<BoidInstanceRenderer> { }
 }

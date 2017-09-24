@@ -41,6 +41,14 @@ namespace UnityEngine.ECS
 			byte* ptr = m_LastChunk + alignedChunkSize;
 			m_LastChunkUsedSize = alignedChunkSize+size;
 			return (IntPtr)ptr;
-		} 
-	}
+		}
+
+        public IntPtr Construct(int size, int alignment, void* src)
+        {
+            IntPtr res = Allocate(size, alignment);
+            UnsafeUtility.MemCpy(res, (IntPtr)src, size);
+            return res;
+        }
+
+    }
 }

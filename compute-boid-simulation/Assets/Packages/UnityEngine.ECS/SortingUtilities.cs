@@ -2,7 +2,7 @@ namespace UnityEngine.ECS
 {
 	struct SortingUtilities
 	{
-        public static unsafe void InsertSorted(int* data, int length, int newValue)
+        public static unsafe void InsertSorted(ComponentType* data, int length, ComponentType newValue)
         {
             while (length > 0 && data[length-1] > newValue)
             {

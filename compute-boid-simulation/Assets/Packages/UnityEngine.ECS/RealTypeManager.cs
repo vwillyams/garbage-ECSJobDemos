@@ -13,18 +13,18 @@ namespace UnityEngine.ECS
 
         public struct ComponentType
         {
-            public ComponentType(Type type, int size, int arrayElements=0)
+            public ComponentType(Type type, int size, bool requireManagedClass, int arrayElements=0)
             {
                 this.type = type;
-                this.size = size;
+                this.sizeInChunk = size;
                 this.arrayElements = arrayElements;
-                this.isBlittableData = typeof(IComponentData).IsAssignableFrom(type) || type == typeof(Entity);
+                this.requireManagedClass = requireManagedClass;
             }
 
             public Type     type;
-            public int      size;
+            public int      sizeInChunk;
             public int      arrayElements;
-            public bool     isBlittableData;
+            public bool     requireManagedClass;
         }
 
         static List<ComponentType> m_Types;
@@ -34,9 +34,9 @@ namespace UnityEngine.ECS
             if (m_Types == null)
             {
                 m_Types = new List<ComponentType> ();
-                m_Types.Add (new ComponentType(null, 0));
+                m_Types.Add (new ComponentType(null, 0, false));
                 // This must always be first so that Entity is always index 0 in the archetype
-                m_Types.Add(new ComponentType(typeof(Entity), sizeof(Entity)));
+                m_Types.Add(new ComponentType(typeof(Entity), sizeof(Entity), false));
             }
         }
 
@@ -63,18 +63,25 @@ namespace UnityEngine.ECS
             else
             {
                 int componentSize = 4;
-                if (!type.IsClass)
+                if (!type.IsClass && typeof(IComponentData).IsAssignableFrom(type))
                 {
                     componentSize = UnsafeUtility.SizeOfStruct(type);
                 }
-                m_Types.Add (new ComponentType(type, componentSize));
+
+                if (typeof(IComponentData).IsAssignableFrom(type) && typeof(ISharedComponentData).IsAssignableFrom(type))
+                    throw new System.ArgumentException("A component can not be both IComponentData & ISharedComponentData");
+
+                m_Types.Add (new ComponentType(type, componentSize, type.IsClass));
                 return m_Types.Count - 1;
             }
         }
 
         public static int CreateArrayType(Type type, int numElements)
         {
-            m_Types.Add(new ComponentType(type, UnsafeUtility.SizeOfStruct(type) * numElements, numElements));
+            if (type.IsClass)
+                throw new System.ArgumentException("Array type must be a blittable struct");
+
+            m_Types.Add(new ComponentType(type, UnsafeUtility.SizeOfStruct(type) * numElements, false, numElements));
             return m_Types.Count - 1;
         }
 

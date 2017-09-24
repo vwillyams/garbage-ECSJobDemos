@@ -12,12 +12,16 @@ namespace UnityEngine.ECS
     { 
     }
 
+    public interface ISharedComponentData
+    {
+
+    }
 
     //@TODO: This should be fully implemented in C++ for efficiency
     [RequireComponent(typeof(GameObjectEntity))]
     public abstract class ComponentDataWrapperBase : ScriptBehaviour
     {
-        abstract internal Type GetIComponentDataType();
+        abstract internal ComponentType GetComponentType(EntityManager manager);
         abstract internal void UpdateComponentData(EntityManager manager, Entity entity);
     }
 
@@ -40,15 +44,43 @@ namespace UnityEngine.ECS
     	}
 
 
-		internal override Type GetIComponentDataType()
+		internal override ComponentType GetComponentType(EntityManager manager)
 		{
-			return typeof(T);
+			return ComponentType.Create<T>();
 		}
 
         internal override void UpdateComponentData(EntityManager manager, Entity entity)
         {
             manager.SetComponent(entity, m_SerializedData);
         }
+    }
 
+    //@TODO: This should be fully implemented in C++ for efficiency
+    public class SharedComponentDataWrapper<T> : ComponentDataWrapperBase where T : struct, ISharedComponentData
+    {
+        [SerializeField]
+        T m_SerializedData;
+
+        public T Value
+        {
+            get
+            {
+                return m_SerializedData;
+            }
+            set
+            {
+                m_SerializedData = value;
+            }
+        }
+
+
+        internal override ComponentType GetComponentType(EntityManager manager)
+        {
+            return manager.CreateSharedComponentType(m_SerializedData);
+        }
+
+        internal override void UpdateComponentData(EntityManager manager, Entity entity)
+        {
+        }
     }
 }

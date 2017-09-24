@@ -456,8 +456,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefab: {fileID: 1155337235024534, guid: 5226a48ae1c35427e8cadad23b1745a8, type: 2}
-  lightweightPrefab: {fileID: 1155337235024534, guid: d86de80f341fd483da4c1bb17ab41e86,
-    type: 2}
+  lightweightPrefabs:
+  - {fileID: 1155337235024534, guid: d86de80f341fd483da4c1bb17ab41e86, type: 2}
+  - {fileID: 1155337235024534, guid: 7e4b5e133b0c84ad5a48129e36d97de7, type: 2}
   radius: 100
   transformsPerHierarchy: 500
   lightweightInstantiate: 1

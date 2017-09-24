@@ -15,38 +15,38 @@ namespace UnityEngine.ECS
 		public Archetype*   archetype;
         public IntPtr 		buffer;
 
-		public int managedArrayIndex;
+		public int          managedArrayIndex;
 
         public int 		    count;
         public int 		    capacity;
 
-		public Chunk*  	next;
+		public Chunk*  	    next;
 	}
 
 	public unsafe struct Archetype
 	{
-		public Chunk*  first;
-		public Chunk*  last;
+		public Chunk*           first;
+		public Chunk*           last;
 
-		public int entityCount;
+		public int              entityCount;
 
-		public int*    types;
-		public int     typesCount;
+        public ComponentType*   types;
+        public int              typesCount;
 
 		// Index matches archetype types
-        public int*   		offsets;
-        public int*         strides;
-        public int*         sizeOfs;
-		public int          bytesPerInstance;
+        public int*   	        offsets;
+        public int*             strides;
+        public int*             sizeOfs;
+		public int              bytesPerInstance;
 
-		public int* managedArrayOffset;
-		public int numManagedArrays;
+		public int*             managedArrayOffset;
+		public int              numManagedArrays;
 
-		public int managedObjectListenerIndex;
+		public int              managedObjectListenerIndex;
 
 		// TODO: preferred stride/stream layout
 		// TODO: Linkage to other archetype via Add/Remove Component
-		public Archetype* prevArchetype;
+		public Archetype*       prevArchetype;
 	}
 	public unsafe class TypeManager : IDisposable
 	{
@@ -114,20 +114,10 @@ namespace UnityEngine.ECS
 		}
 
 
-		bool CompareArchetypeType(int* type1, int typeCount1, int* type2, int typeCount2)
+
+        public Archetype* GetArchetype(ComponentType* types, int count, EntityGroupManager groupManager)
 		{
-			if (typeCount1 != typeCount2)
-				return false;
-			for (int i = 0; i < typeCount1; ++i)
-			{
-				if (type1[i] != type2[i])
-					return false;
-			}
-			return true;
-		}
-		public Archetype* GetArchetype(int* typeIndices, int count, EntityGroupManager groupManager)
-		{
-			uint hash = HashUtility.fletcher32((ushort*)typeIndices, count*2);
+			uint hash = HashUtility.fletcher32((ushort*)types, count * sizeof(ComponentType) / sizeof(ushort));
 			IntPtr typePtr;
 			Archetype* type;
 			NativeMultiHashMapIterator<uint> it;
@@ -136,14 +126,14 @@ namespace UnityEngine.ECS
 				do
 				{
 					type = (Archetype*)typePtr;
-					if (CompareArchetypeType(type->types, type->typesCount, typeIndices, count))
+					if (ComponentType.CompareArray(type->types, type->typesCount, types, count))
 						return type;
 				} while (m_TypeLookup.TryGetNextValue(out typePtr, ref it));
 			}
 			// This is a new archetype, allocate it and add it to the hash map
             type = (Archetype*)m_ArchetypeChunkAllocator.Allocate(sizeof(Archetype), 8);
 			type->typesCount = count;
-            type->types = (int*)m_ArchetypeChunkAllocator.Allocate (sizeof(int) * count, 4);
+            type->types = (ComponentType*)m_ArchetypeChunkAllocator.Construct(sizeof(ComponentType) * count, 4, types);
 
 			type->entityCount = 0;
 
@@ -158,16 +148,15 @@ namespace UnityEngine.ECS
             int bytesPerInstance = 0;
 			for (int i = 0; i < count; ++i)
 			{
-                RealTypeManager.ComponentType cType = RealTypeManager.GetComponentType(typeIndices[i]);
-                int sizeOf = cType.size;
+                RealTypeManager.ComponentType cType = RealTypeManager.GetComponentType(types[i].typeIndex);
+                int sizeOf = cType.sizeInChunk;
 
-                type->types[i] = typeIndices [i];
                 type->offsets[i] = bytesPerInstance;
                 type->sizeOfs[i] = sizeOf;
 
                 bytesPerInstance += sizeOf;
 
-				if (!cType.isBlittableData)
+				if (cType.requireManagedClass)
 					++type->numManagedArrays;
             }
 			if (type->numManagedArrays > 0)
@@ -176,8 +165,8 @@ namespace UnityEngine.ECS
 				int mi = 0;
 				for (int i = 0; i < count; ++i)
 				{
-               		RealTypeManager.ComponentType cType = RealTypeManager.GetComponentType(typeIndices[i]);
-					if (!cType.isBlittableData)
+               		RealTypeManager.ComponentType cType = RealTypeManager.GetComponentType(types[i].typeIndex);
+					if (cType.requireManagedClass)
 						type->managedArrayOffset[i] = mi++;
 					else
 						type->managedArrayOffset[i] = -1;

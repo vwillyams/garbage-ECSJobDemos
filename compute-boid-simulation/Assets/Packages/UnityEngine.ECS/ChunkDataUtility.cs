@@ -9,11 +9,11 @@ namespace UnityEngine.ECS
     {
         static public int GetIndexInTypeArray(Archetype* archetype, int typeIndex)
         {
-            int* types = archetype->types;
+            ComponentType* types = archetype->types;
             int typeCount = archetype->typesCount;
             for (int i = 0; i != typeCount; i++)
             {
-                if (typeIndex == types[i])
+                if (typeIndex == types[i].typeIndex)
                     return i;
             }
 

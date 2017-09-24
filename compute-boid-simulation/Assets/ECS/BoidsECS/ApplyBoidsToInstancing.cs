@@ -2,6 +2,7 @@
 using UnityEngine.Collections;
 using UnityEngine.Jobs;
 using UnityEngine.ECS;
+using System.Collections.Generic;
 
 namespace BoidSimulations
 {
@@ -59,20 +60,80 @@ namespace BoidSimulations
     [UpdateAfter(typeof(BoidSimulationSystem))]
     public class ApplyBoidsToInstancing : JobComponentSystem
 	{
-		ComputeBuffer 	m_MatrixBuffer0;
-		ComputeBuffer 	m_ArgsBuffer;
-		float4x4[] 				m_MatricesArray;
-		NativeArray<float4x4> 	m_Matrices;
+        class Batch
+        {
+            EntityGroup             m_Group;
+            ComputeBuffer           m_MatrixBuffer;
+            ComputeBuffer           m_ArgsBuffer;
+            float4x4[]              m_MatricesArray;
+            NativeArray<float4x4>   m_Matrices;
+            Material                m_MaterialCopy;
+            Mesh                    m_Mesh;
 
-		Material 		m_InstanceMaterial;
-		Mesh 			m_InstanceMesh;
-		Bounds 			m_Bounds = new Bounds(new Vector3(0.0F, 0.0F, 0.0F), new Vector3(10000.0F, 10000.0F, 10000.0F));
+            public Batch (BoidInstanceRenderer renderer, EntityGroup group)
+            {
+                m_Group = group;
+
+                int length = group.Length;
+
+                m_MatricesArray = new float4x4[length];
+                m_Matrices = new NativeArray<float4x4>(length, Allocator.Persistent);
+
+                m_MatrixBuffer = new ComputeBuffer(length, 64);
+
+                var args = new uint[5] { 0, 0, 0, 0, 0 };
+
+                uint numIndices = (renderer.mesh != null) ? (uint)renderer.mesh.GetIndexCount(0) : 0;
+                args[0] = numIndices;
+                args[1] = (uint)length;
+
+                m_ArgsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
+                m_ArgsBuffer.SetData(args);
+
+                m_MaterialCopy = Object.Instantiate(renderer.material);
+                m_MaterialCopy.hideFlags = HideFlags.HideAndDontSave;
+                m_MaterialCopy.SetBuffer("matrixBuffer", m_MatrixBuffer);
+
+                m_Mesh = renderer.mesh;
+            }
+
+            public bool IsValid()
+            {
+                return m_Group.Length == m_Matrices.Length;
+            }
+
+            public void Render(JobHandle dependency)
+            {
+                var job = new BoidToMatricesJob()
+                {
+                    boids = m_Group.GetComponentDataArray<BoidData>(),
+                    matrices = m_Matrices
+                };
+
+                var jobFence = job.Schedule(m_Matrices.Length, 512, dependency);
+                jobFence.Complete();
+
+                m_Matrices.CopyTo(m_MatricesArray);
+                m_MatrixBuffer.SetData(m_MatricesArray);
+
+                var bounds = new Bounds(new Vector3(0.0F, 0.0F, 0.0F), new Vector3(10000.0F, 10000.0F, 10000.0F));
+
+                Graphics.DrawMeshInstancedIndirect(m_Mesh, 0, m_MaterialCopy, bounds, m_ArgsBuffer);
+            }
+
+            public void Dispose()
+            {
+                m_MatrixBuffer.Release();
+                m_ArgsBuffer.Release();
+                m_Matrices.Dispose();
+                Object.DestroyImmediate(m_MaterialCopy);
+            }
+        }
+
+        Dictionary<ComponentType, Batch> m_ComponentToBatch = new Dictionary<ComponentType, Batch>();
 
 		[InjectTuples]
 		ComponentDataArray<BoidData> m_Boids;
-
-		[InjectTuples]
-		ComponentDataArray<BoidInstanceRenderer> m_Instancing;
 
 		[ComputeJobOptimizationAttribute(Accuracy.Med, Support.Relaxed)]
 		struct BoidToMatricesJob : IJobParallelFor 
@@ -94,85 +155,37 @@ namespace BoidSimulations
 			if (m_Boids.Length == 0)
 				return;
 
-			if (m_InstanceMesh == null)
-			{
-				Debug.LogError ("Boid instance renderer system has not been configured");
-				return;
-			}
+            var uniqueRendererTypes = new NativeList<ComponentType>(10, Allocator.TempJob);
+            EntityManager.GetAllUniqueSharedComponents(typeof(BoidInstanceRenderer), uniqueRendererTypes);
 
-			if (m_MatricesArray == null || m_Boids.Length != m_MatricesArray.Length)
-				InitializeBatch (m_Boids.Length);
+            //@TODO: Do cleanup when renderer type is no longer being used...
 
-			var job = new BoidToMatricesJob ()
-			{
-				boids = m_Boids,
-				matrices = m_Matrices
-			};
+            for (int i = 0;i != uniqueRendererTypes.Length;i++)
+            {
+                var uniqueType = uniqueRendererTypes[i];
+                Batch batch;
+                if (m_ComponentToBatch.TryGetValue(uniqueType, out batch))
+                {
+                    if (batch.IsValid())
+                    {
+                        batch.Render(GetDependency());
+                        continue;
+                    }
+                    else
+                    {
+                        batch.Dispose();
+                        m_ComponentToBatch.Remove(uniqueType);
+                    }
+                }
 
-			var jobFence = job.Schedule (m_Boids.Length, 512, GetDependency());
-			jobFence.Complete ();
+                var group = EntityManager.CreateEntityGroup(uniqueType, ComponentType.Create<BoidData>());
+                batch = new Batch(EntityManager.GetSharedComponentData<BoidInstanceRenderer>(uniqueType), group);
+                batch.Render(GetDependency());
+                m_ComponentToBatch.Add(uniqueType, batch);
+            }
 
-			m_Matrices.CopyTo (m_MatricesArray);
-			m_MatrixBuffer0.SetData (m_MatricesArray);
-			m_InstanceMaterial.SetBuffer ("matrixBuffer", m_MatrixBuffer0);
-				
-			Graphics.DrawMeshInstancedIndirect(m_InstanceMesh, 0, m_InstanceMaterial, m_Bounds, m_ArgsBuffer);
+            uniqueRendererTypes.Dispose();
 		}
-
-		void CleanupBatch()
-		{
-			if (m_MatrixBuffer0 != null)
-				m_MatrixBuffer0.Release ();
-			m_MatrixBuffer0 = null;
-
-			if (m_ArgsBuffer != null)
-				m_ArgsBuffer.Release ();
-			m_ArgsBuffer = null;
-
-			if (m_Matrices.IsCreated)
-				m_Matrices.Dispose ();
-		}
-
-		public void InitializeInstanceRenderer (GameObject prefab)
-		{
-			CleanupInstanceRenderer ();
-			CleanupBatch ();
-
-			m_InstanceMaterial = Object.Instantiate(prefab.GetComponent<MeshRenderer> ().sharedMaterial);
-			m_InstanceMaterial.hideFlags = HideFlags.HideAndDontSave;
-
-			m_InstanceMesh = prefab.GetComponent<MeshFilter> ().sharedMesh;
-		}
-
-		public void CleanupInstanceRenderer ()
-		{
-			Object.DestroyImmediate (m_InstanceMaterial);
-			m_InstanceMaterial = null;
-
-			m_InstanceMesh = null;
-
-			CleanupBatch ();
-		}
-
-		void InitializeBatch (int instanceCount)
-		{
-			CleanupBatch ();
-
-			m_MatricesArray = new float4x4[instanceCount];
-			m_Matrices = new NativeArray<float4x4> (instanceCount, Allocator.Persistent);
-
-			m_MatrixBuffer0 = new ComputeBuffer(instanceCount, 64);
-
-			var args = new uint[5] { 0, 0, 0, 0, 0 };
-
-			uint numIndices = (m_InstanceMesh != null) ? (uint)m_InstanceMesh.GetIndexCount(0) : 0;
-			args[0] = numIndices;
-			args[1] = (uint)m_MatricesArray.Length;
-
-			m_ArgsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
-			m_ArgsBuffer.SetData(args);
-		}
-
 		protected override void OnCreateManager (int capacity)
 		{
 			base.OnCreateManager (capacity);
@@ -182,7 +195,9 @@ namespace BoidSimulations
 		{
 			base.OnDestroyManager ();
 
-			CleanupInstanceRenderer ();
+            foreach(var batch in m_ComponentToBatch)
+                batch.Value.Dispose();
+            m_ComponentToBatch.Clear();
 		}
 	}
 }

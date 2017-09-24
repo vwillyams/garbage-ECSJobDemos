@@ -101,8 +101,10 @@ namespace UnityEngine.ECS
                     if (chunk->managedArrayIndex >= 0)
                         ChunkDataUtility.CopyManagedObjects(typeMan, chunk, chunk->count - batchCount, chunk, indexInChunk, batchCount);
                 }
+
                 if (chunk->managedArrayIndex >= 0)
                     ChunkDataUtility.ClearManagedObjects(typeMan, chunk, chunk->count - batchCount, batchCount);
+
                 chunk->count -= batchCount;
                 chunk->archetype->entityCount -= batchCount;
 
@@ -156,12 +158,23 @@ namespace UnityEngine.ECS
             }
         }
 
-        public bool HasComponent(Entity entity, int typeIndex)
+        public bool HasComponent(Entity entity, ComponentType type)
         {
             if (!Exists (entity))
                 return false;
 
-            return ChunkDataUtility.GetIndexInTypeArray(m_Entities[entity.index].archetype, typeIndex) != -1;
+            Archetype* archetype = m_Entities[entity.index].archetype;
+
+            if (type.sharedComponentIndex != -1)
+            {
+                int idx = ChunkDataUtility.GetIndexInTypeArray(archetype, type.typeIndex);
+                if (idx == -1)
+                    return false;
+
+                return archetype->types[idx].sharedComponentIndex == type.sharedComponentIndex;
+            }
+            else
+                return ChunkDataUtility.GetIndexInTypeArray(archetype, type.typeIndex) != -1;
         }
 
         public IntPtr GetComponentDataWithType(Entity entity, int typeIndex)
@@ -171,6 +184,7 @@ namespace UnityEngine.ECS
 
             return ChunkDataUtility.GetComponentDataWithType(m_Entities[entity.index].chunk, m_Entities[entity.index].index, typeIndex);
         }
+
         public void GetComponentChunk(Entity entity,out Chunk* chunk, out int chunkIndex)
         {
             if (!Exists (entity))

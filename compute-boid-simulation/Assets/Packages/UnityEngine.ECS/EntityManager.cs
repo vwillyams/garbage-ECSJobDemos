@@ -28,7 +28,9 @@ namespace UnityEngine.ECS
         EntityGroupManager          m_GroupManager;
         ComponentJobSafetyManager   m_JobSafetyManager;
 
-        unsafe int*                 m_CachedIntArray;
+        SharedComponentDataManager m_SharedComponentManager;
+
+        unsafe ComponentType*      m_CachedIntArray;
 
         unsafe protected override void OnCreateManager (int capacity)
         {
@@ -38,9 +40,10 @@ namespace UnityEngine.ECS
             m_TypeManager = new TypeManager();
             m_JobSafetyManager = new ComponentJobSafetyManager();
             m_GroupManager = new EntityGroupManager(m_JobSafetyManager);
+            m_SharedComponentManager = new SharedComponentDataManager();
             RealTypeManager.Initialize ();
 
-            m_CachedIntArray = (int*)UnsafeUtility.Malloc (sizeof(int) * 32 * 1024, 16, Allocator.Persistent);
+            m_CachedIntArray = (ComponentType*)UnsafeUtility.Malloc (sizeof(int) * 32 * 1024, 16, Allocator.Persistent);
         }
 
         unsafe protected override void OnDestroyManager ()
@@ -48,22 +51,22 @@ namespace UnityEngine.ECS
             base.OnDestroyManager ();
 
             m_JobSafetyManager.Dispose(); m_JobSafetyManager = null;
-
+            m_SharedComponentManager.Dispose(); m_SharedComponentManager = null;
             m_Entities.OnDestroy ();
             m_TypeManager.Dispose (); m_TypeManager = null;
             m_GroupManager.Dispose (); m_GroupManager = null;
 
             UnsafeUtility.Free ((IntPtr)m_CachedIntArray, Allocator.Persistent);
-            m_CachedIntArray = (int*)IntPtr.Zero;
+            m_CachedIntArray = null;
         }
 
         unsafe public bool IsCreated {get{return (m_CachedIntArray != null);}}
 
         unsafe public int PopulatedCachedTypeArray(ComponentType[] requiredComponents)
         {
-            m_CachedIntArray[0] = RealTypeManager.GetTypeIndex<Entity>();
+            m_CachedIntArray[0] = ComponentType.Create<Entity>();
             for (int i = 0; i < requiredComponents.Length; ++i)
-                SortingUtilities.InsertSorted(m_CachedIntArray, i + 1, requiredComponents[i].typeIndex);
+                SortingUtilities.InsertSorted(m_CachedIntArray, i + 1, requiredComponents[i]);
             return requiredComponents.Length + 1;
         }
 
@@ -81,7 +84,7 @@ namespace UnityEngine.ECS
             if (trans.IsCreated)
             {
                 bool hasTransform = false;
-                int transformType = RealTypeManager.GetTypeIndex<Transform>();
+                var transformType = ComponentType.Create<Transform>();
                 for (int i = 0; i < len; ++i)
                 {
                     if (m_CachedIntArray[i] == transformType)
@@ -159,14 +162,14 @@ namespace UnityEngine.ECS
             return m_Entities.Exists (entity);
         }
 
-        public bool HasComponent<T>(Entity entity) where T : IComponentData
+        public bool HasComponent<T>(Entity entity)
         {
-            return m_Entities.HasComponent (entity, RealTypeManager.GetTypeIndex<T>());
+            return m_Entities.HasComponent (entity, ComponentType.Create<T>());
         }
 
         public bool HasComponent(Entity entity, ComponentType type)
         {
-            return m_Entities.HasComponent (entity, type.typeIndex);
+            return m_Entities.HasComponent (entity, type);
         }
 
         public unsafe Entity Instantiate(Entity srcEntity)
@@ -181,7 +184,7 @@ namespace UnityEngine.ECS
             var components = srcGameObject.GetComponents<ComponentDataWrapperBase> ();
             var componentTypes = new ComponentType[components.Length];
             for (int t = 0; t != components.Length; ++t)
-                componentTypes[t] = new ComponentType(components[t].GetIComponentDataType());
+                componentTypes[t] = components[t].GetComponentType(this);
 
             var srcEntity = CreateEntity(componentTypes);
             for (int t = 0; t != components.Length; ++t)
@@ -237,17 +240,19 @@ namespace UnityEngine.ECS
         {
             m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
 
-            int typeIndex = RealTypeManager.GetTypeIndex<T>();
+            //@TODO: Handle ISharedComponentData
+
+            var componentType = ComponentType.Create<T>();
             Archetype* type = m_Entities.GetArchetype(entity);
             int t = 0;
-            while (t < type->typesCount && type->types[t] < typeIndex)
+            while (t < type->typesCount && type->types[t] < componentType)
             {
                 m_CachedIntArray[t] = type->types[t];
                 ++t;
             }
-            if (t < type->typesCount && type->types[t] == typeIndex)
+            if (t < type->typesCount && type->types[t] == componentType)
                 throw new InvalidOperationException("Trying to add a component to an entity which is already present");
-            m_CachedIntArray[t] = typeIndex;
+            m_CachedIntArray[t] = componentType;
             while (t < type->typesCount)
             {
                 m_CachedIntArray[t+1] = type->types[t];
@@ -265,12 +270,12 @@ namespace UnityEngine.ECS
         {
             m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
 
-            int typeIndex = RealTypeManager.GetTypeIndex<T>();
+            ComponentType componentType = ComponentType.Create<T>();
             Archetype* type = m_Entities.GetArchetype(entity);
             int removedTypes = 0;
             for (int t = 0; t < type->typesCount; ++t)
             {
-                if (type->types[t] == typeIndex)
+                if (type->types[t] == componentType)
                     ++removedTypes;
                 else
                     m_CachedIntArray[t-removedTypes] = type->types[t];
@@ -283,6 +288,8 @@ namespace UnityEngine.ECS
             int newChunkIndex = TypeManager.AllocateIntoChunk(newChunk);
             m_Entities.SetArchetype(m_TypeManager, entity, newType, newChunk, newChunkIndex);
         }
+
+
 
         public T GetComponent<T>(Entity entity) where T : struct, IComponentData
         {
@@ -315,6 +322,41 @@ namespace UnityEngine.ECS
             m_Entities.GetComponentChunk(entity, out chunk, out chunkIndex);
             m_TypeManager.SetManagedObject(chunk, componentType, chunkIndex, componentObject);
         }
+
+
+        //@TODO: How should we handle refcounting here??
+        public ComponentType CreateSharedComponentType<T>(T data) where T : struct, ISharedComponentData
+        {
+            return m_SharedComponentManager.InsertSharedComponent<T>(data);
+        }
+
+        public void GetAllUniqueSharedComponents(Type type, NativeList<ComponentType> types)
+        {
+            m_SharedComponentManager.GetAllUniqueSharedComponents(type, types);
+        }
+
+        public T GetSharedComponentData<T>(ComponentType componentType) where T : struct, ISharedComponentData
+        {
+            //@TODO: This really needs validation on if the compeont 
+            return m_SharedComponentManager.GetSharedComponentData<T>(componentType);
+        }
+
+        unsafe public T GetSharedComponentData<T>(Entity entity) where T : struct, ISharedComponentData
+        {
+            int typeIndex = RealTypeManager.GetTypeIndex<T>();
+
+            Archetype* archetype = m_Entities.GetArchetype(entity);
+            if (archetype == null)
+                throw new System.ArgumentException("Entity does not exist");
+
+            int indexInTypeArray = ChunkDataUtility.GetIndexInTypeArray(archetype, typeIndex);
+            if (indexInTypeArray == -1)
+                throw new System.ArgumentException(string.Format("Component {0} does not exist on the Entity", typeof(T)));
+
+            return m_SharedComponentManager.GetSharedComponentData<T>(archetype->types[indexInTypeArray].sharedComponentIndex);
+        }
+
+
 
 
         internal ComponentJobSafetyManager ComponentJobSafetyManager { get { return m_JobSafetyManager; } }

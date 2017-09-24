@@ -18,11 +18,9 @@ namespace UnityEngine.ECS.Tests
 		{
 			RealTypeManager.Initialize();
 			EntityGroupManager groupMan = new EntityGroupManager(null);
-			int[] typeSet = new int[2];
-			typeSet[0] = RealTypeManager.GetTypeIndex<TestType1>();
-			typeSet[1] = RealTypeManager.GetTypeIndex<TestType2>();
+            ComponentType[] typeSet = { ComponentType.Create<TestType1>(), ComponentType.Create<TestType2>() };
 			TypeManager typeMan = new TypeManager();
-			fixed(int* p = &typeSet[0])
+			fixed(ComponentType* p = &typeSet[0])
 			{				
 				Archetype* type1 = typeMan.GetArchetype(p, 1, groupMan);
 				Archetype* cachedType1 = typeMan.GetArchetype(p, 1, groupMan);
@@ -51,7 +49,7 @@ namespace UnityEngine.ECS.Tests
             Assert.AreNotEqual(RealTypeManager.GetTypeIndex<Entity>(), RealTypeManager.GetTypeIndex<EcsTestData>());
 
             Assert.AreEqual(typeof(Entity), RealTypeManager.GetComponentType(RealTypeManager.GetTypeIndex<Entity>()).type);
-            Assert.AreEqual(sizeof(Entity), RealTypeManager.GetComponentType(RealTypeManager.GetTypeIndex<Entity>()).size);
+            Assert.AreEqual(sizeof(Entity), RealTypeManager.GetComponentType(RealTypeManager.GetTypeIndex<Entity>()).sizeInChunk);
         }
     }
 }

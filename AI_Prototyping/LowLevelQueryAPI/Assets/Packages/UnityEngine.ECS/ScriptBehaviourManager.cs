@@ -88,7 +88,7 @@ namespace UnityEngine.ECS
 		/// <summary>
 		/// Called once per frame
 		/// </summary>
-		protected virtual void OnUpdate()
+		public virtual void OnUpdate()
 		{
 			
 		}

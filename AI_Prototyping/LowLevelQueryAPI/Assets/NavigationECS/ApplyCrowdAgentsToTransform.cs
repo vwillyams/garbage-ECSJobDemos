@@ -29,7 +29,7 @@ class CrowdAgentsToTransformSystem : JobComponentSystem
         }
     }
 
-    override protected void OnUpdate()
+    override public void OnUpdate()
     {
         base.OnUpdate();
 

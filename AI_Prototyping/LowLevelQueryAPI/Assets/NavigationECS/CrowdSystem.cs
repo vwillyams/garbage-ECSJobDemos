@@ -107,7 +107,7 @@ public partial class CrowdSystem : JobComponentSystem
         m_CurrentAgentIndex.Dispose();
     }
 
-    protected override void OnUpdate()
+    public override void OnUpdate()
     {
         base.OnUpdate();
 

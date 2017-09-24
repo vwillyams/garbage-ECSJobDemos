@@ -30,7 +30,9 @@ struct Component128Bytes : IComponentData
 
 public class ECSInstantiatePerformance : MonoBehaviour
 {
-	CustomSampler instantiateSampler;
+    const int kInstanceCount = 100 * 1000;
+
+    CustomSampler instantiateSampler;
 	CustomSampler destroySampler;
 	CustomSampler iterateSampler;
 
@@ -47,22 +49,23 @@ public class ECSInstantiatePerformance : MonoBehaviour
 
 		var oldRoot = DependencyManager.Root;
 		DependencyManager.Root = new DependencyManager ();
-		DependencyManager.SetDefaultCapacity (100000 * 2);
+		DependencyManager.SetDefaultCapacity (kInstanceCount * 2);
 
 		var m_EntityManager = DependencyManager.GetBehaviourManager<EntityManager>();
 
-        var archetype = m_EntityManager.AllocateEntity();
+        var archetype = m_EntityManager.CreateEntity();
         m_EntityManager.AddComponent<Component128Bytes>(archetype, new Component128Bytes());
         m_EntityManager.AddComponent<Component12Bytes>(archetype, new Component12Bytes());
         m_EntityManager.AddComponent<Component64Bytes>(archetype, new Component64Bytes());
         m_EntityManager.AddComponent<Component16Bytes>(archetype, new Component16Bytes());
 
-		var group0 = new EntityGroup(m_EntityManager, typeof(Component128Bytes));
-        var group1 = new EntityGroup(m_EntityManager, typeof(Component12Bytes));
-        var group2 = new EntityGroup(m_EntityManager, typeof(Component128Bytes));
+		m_EntityManager.CreateEntityGroup(typeof(Component128Bytes));
+        var group1 = m_EntityManager.CreateEntityGroup(typeof(Component12Bytes));
+        m_EntityManager.CreateEntityGroup(typeof(Component128Bytes));
 
 		instantiateSampler.Begin ();
-		var instances = m_EntityManager.Instantiate (archetype, 100000);
+		var instances = new NativeArray<Entity>(kInstanceCount, Allocator.Temp);
+		m_EntityManager.Instantiate (archetype, instances);
 		instantiateSampler.End();
 
 		iterateSampler.Begin ();
@@ -73,14 +76,10 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		iterateSampler.End ();
 
 		destroySampler.Begin ();
-		m_EntityManager.Destroy (instances);
+		m_EntityManager.DestroyEntity (instances);
 		destroySampler.End ();
 
 		instances.Dispose ();
-
-        group0.Dispose();
-        group1.Dispose();
-        group2.Dispose();
 
         UnityEngine.Collections.NativeLeakDetection.Mode = UnityEngine.Collections.NativeLeakDetectionMode.Enabled;
 

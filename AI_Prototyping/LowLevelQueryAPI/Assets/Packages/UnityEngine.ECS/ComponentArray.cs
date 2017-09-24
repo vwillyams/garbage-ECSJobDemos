@@ -1,22 +1,63 @@
 ﻿using UnityEngine;
+using UnityEngine.Collections;
+using UnityEngine.Jobs;
+using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
-#pragma warning disable 0649
+using System.Linq;
+using System.Reflection;
 
 namespace UnityEngine.ECS
 {
-    public struct ComponentArray<T> where T : Component
-    {
-        public List<T> m_List;
+	public unsafe struct ComponentArray<T> where T: Component
+	{
+        ComponentDataArrayCache m_Cache;
+        int                     m_Length;
+		TypeManager				m_TypeManager;
 
-		public int Length { get { return m_List.Count; } }
+		public unsafe ComponentArray(ComponentDataArchetypeSegment* data, int length, TypeManager typeMan)
+		{
+            m_Length = length;
+            m_Cache = new ComponentDataArrayCache(data, length);
+			m_TypeManager = typeMan;
+		}
 
-        public unsafe T this[int index]
-        {
-            get
-            {
-				return m_List[index];
-            }
-        }
-    }
+		public unsafe T this[int index]
+		{
+			get
+			{
+                //@TODO: Unnecessary.. integrate into cache instead...
+				if ((uint)index >= (uint)m_Length)
+					FailOutOfRangeError(index);
+
+                if (index < m_Cache.m_CachedBeginIndex || index >= m_Cache.m_CachedEndIndex)
+                    m_Cache.UpdateCache(index);
+
+				return (T)m_Cache.GetManagedObject(m_TypeManager, index);
+			}
+		}
+
+		public T[] ToArray()
+		{
+			T[] arr = new T[m_Length];
+			int i = 0;
+			while (i < m_Length)
+			{
+				m_Cache.UpdateCache(i);
+				int start, length;
+				var objs = m_Cache.GetManagedObjectRange(m_TypeManager, i, out start, out length);
+				for (int obj = 0; obj < length; ++obj)
+					arr[i+obj] = (T)objs[start+obj];
+				i += length;
+			}
+			return arr;
+		}
+
+		void FailOutOfRangeError(int index)
+		{
+			throw new IndexOutOfRangeException(string.Format("Index {0} is out of range of '{1}' Length.", index, Length));
+		}
+
+		public int Length { get { return m_Length; } }
+	}
 }

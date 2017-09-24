@@ -31,15 +31,5 @@ public class CrowdAgentNavigatorComponent : ComponentDataWrapper<CrowdAgentNavig
     protected override void OnEnable()
     {
         base.OnEnable();
-        var agentNavigator = new CrowdAgentNavigator
-        {
-            active = true,
-            crowdId = -1,
-            newDestinationRequested = false,
-            goToDestination = false,
-            destinationInView = false,
-            destinationReached = true
-        };
-        Value = agentNavigator;
     }
 }

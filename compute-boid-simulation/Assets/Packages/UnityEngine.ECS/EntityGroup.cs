@@ -1,379 +1,309 @@
-﻿using System;
-using System.Collections;
+using System;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Jobs;
 using UnityEngine.Collections;
-using UnityEngine.Assertions;
+using UnityEngine.Jobs;
 
 namespace UnityEngine.ECS
 {
-	#if !ECS_ENTITY_CLASS && !ECS_ENTITY_TABLE
-
-	public interface IEntityGroupChange
-	{
-		void OnAddElements (int numberOfEntitiesAddedToGroup);
-		void OnRemoveSwapBack (int indexOfEntityToBeRemoved);
-	}
-
-	public class EntityGroup
-	{
-		//@TODO: Renaming
-		internal class RegisteredTuple
-		{
-			public EntityGroup 	tupleSystem;
-			public int 			tupleSystemIndex;
-
-			public RegisteredTuple(EntityGroup tupleSystem, int tupleSystemIndex)
-			{
-				this.tupleSystemIndex = tupleSystemIndex;
-				this.tupleSystem = tupleSystem;
-			}
-		}
-
-		interface IGenericComponentList
-		{
-			void AddComponent (Component com);
-			void RemoveAtSwapBackComponent (int index);
-			int GetIndex (Component com);
-		}
-
-		class GenericComponentList<T> : List<T>, IGenericComponentList where T : Component
-		{
-			public void AddComponent (Component com)
-			{
-				Add ((T)com);
-			}
-			public void RemoveAtSwapBackComponent (int index)
-			{
-				this.RemoveAtSwapBack (index);
-			}
-			public int GetIndex (Component com)
-			{
-				for (int i = 0; i != Count; i++)
-				{
-					if (com == this [i])
-						return 1;
-				}
-				return -1;
-			}
-		}
-
-
-		IEntityGroupChange 				m_ChangeEvent;
-
-		// Transforms
-		TransformAccessArray	 		m_Transforms;
-
-		// ComponentData
-		int[]                    		m_ComponentDataTypes;
-		NativeList<int>[]       		m_ComponentDataIndices;
-		ScriptBehaviourManager[] 		m_ComponentDataManagers;
-		EntityManager 			 		m_EntityManager;
-
-		// ComponentType
-		Type[]                   		m_ComponentTypes;
-		IGenericComponentList[] 		m_ComponentLists;
-
-		NativeHashMap<int, int>	 		m_EntityToTupleIndex;
-		NativeList<Entity>		 		m_TupleToEntityIndex;
-
-		public EntityGroup (EntityManager entityManager, params Type[] requiredComponents)
-		{
-			Type[] componentDataTypes;
-			Type[] componentTypes;
-			SplitComponents (requiredComponents, out componentDataTypes, out componentTypes);
-
-			var componentDataManagers = new ScriptBehaviourManager[componentDataTypes.Length];
-			for (int i = 0; i != componentDataManagers.Length; i++)
-			{
-				var managerType = typeof(ComponentDataManager<>).MakeGenericType (componentDataTypes [i]);
-				componentDataManagers[i] = DependencyManager.GetBehaviourManager (managerType);
-			}
-
-			Initialize (entityManager, componentDataTypes, componentDataManagers, componentTypes, new TransformAccessArray());
-		}
-
-		public EntityGroup (EntityManager entityManager, Type[] componentDataTypes, ScriptBehaviourManager[] componentDataManagers, Type[] componentTypes, TransformAccessArray transforms)
-		{
-			Initialize (entityManager, componentDataTypes, componentDataManagers, componentTypes, transforms);
-		}
-
-
-		void Initialize (EntityManager entityManager, Type[] componentDataTypes, ScriptBehaviourManager[] componentDataManagers, Type[] componentTypes, TransformAccessArray transforms)
-		{
-			int capacity = 0;
-
-			m_EntityManager = entityManager;
-
-			// transforms
-			m_Transforms = transforms;
-
-			// entity
-			m_EntityToTupleIndex = new NativeHashMap<int, int> (capacity, Allocator.Persistent);
-			m_TupleToEntityIndex = new NativeList<Entity>(capacity, Allocator.Persistent);
-
-			// components
-			m_ComponentLists = new IGenericComponentList[componentTypes.Length];
-			m_ComponentTypes = componentTypes;
-			for (int i = 0; i != componentTypes.Length; i++)
-			{
-				var componentType = componentTypes[i];
-
-				var listType = typeof(GenericComponentList<>).MakeGenericType (new Type[] { componentType });
-				m_ComponentLists [i] = (IGenericComponentList)Activator.CreateInstance (listType);
-			}
-
-			// Component data
-			m_ComponentDataIndices = new NativeList<int>[componentDataTypes.Length];
-			m_ComponentDataManagers = componentDataManagers;
-			m_ComponentDataTypes = new int[componentDataTypes.Length];
-			for (int i = 0; i != m_ComponentDataTypes.Length; i++)
-			{
-				m_ComponentDataIndices[i] = new NativeList<int>(0, Allocator.Persistent);
-				m_ComponentDataTypes[i] = entityManager.GetTypeIndex(componentDataTypes[i]);
-			}
-
-			for (int i = 0; i != m_ComponentDataTypes.Length; i++)
-			{
-				m_EntityManager.RegisterTuple (m_ComponentDataTypes[i], this, i);
-			}
-		}
-
-		static void SplitComponents(Type[] anyComponents, out Type[] outComponentDataTypes, out Type[] outComponentTypes)
-		{
-			var componentDataTypes = new List<Type> (anyComponents.Length);
-			var componentTypes = new List<Type> (anyComponents.Length);
-
-			foreach (var com in anyComponents)
-			{
-				if (com.IsSubclassOf (typeof(Component)))
-					componentTypes.Add (com);
-				else if (com.IsValueType && typeof(IComponentData).IsAssignableFrom (com))
-					componentDataTypes.Add (com);
-				else
-					throw new System.ArgumentException (com + " is not a valid Component or IComponentData");					
-			}
-
-			outComponentDataTypes = componentDataTypes.ToArray ();
-			outComponentTypes = componentTypes.ToArray ();
-		}
-
-		public EntityArray GetEntityArray()
-		{
-			EntityArray array;
-			array.m_Array = m_TupleToEntityIndex;
-			return array;
-		}
-
-		public ComponentDataArray<T> GetComponentDataArray<T>(bool readOnly = false)where T : struct, IComponentData
-		{
-			int componentTypeIndex = m_EntityManager.GetTypeIndex<T> ();
-			for (int i = 0; i != m_ComponentDataTypes.Length; i++)
-			{
-				if (m_ComponentDataTypes[i] == componentTypeIndex)
-					return GetComponentDataArray<T> (i, readOnly);
-			}
-
-			throw new System.ArgumentException (typeof(T) + " is not part of the EntityGroup");
-		}
-
-		internal ComponentDataArray<T> GetComponentDataArray<T>(int index, bool readOnly) where T : struct, IComponentData
-		{
-			var manager = m_ComponentDataManagers[index] as ComponentDataManager<T>;
-
-			var container = new ComponentDataArray<T> (manager.m_Data, m_ComponentDataIndices[index], readOnly);
-			return container;
-		}
-
-		internal ComponentArray<T> GetComponentArray<T>(int index) where T : Component
-		{
-			ComponentArray<T> array;
-			array.m_List = (List<T>)m_ComponentLists[index];
-			return array;
-		}
-
-		bool IsTupleSupported(GameObject go, Entity lightGameObject)
-		{
-			foreach (var componentType in m_ComponentTypes)
-			{
-				var component = go.GetComponent (componentType);
-				if (component == null)
-					return false;
-			}
-
-			foreach (var componentType in m_ComponentDataTypes)
-			{
-				if (m_EntityManager.GetComponentIndex (lightGameObject, componentType) == -1)
-					return false;
-			}
-
-			if (m_Transforms.IsCreated && go == null)
-				return false;
-
-			return true;
-		}
-
-		public bool IsComponentDataTypesSupported(NativeArray<int> types)
-		{
-			if (m_Transforms.IsCreated)
-				return false;
-			if (m_ComponentTypes.Length != 0)
-				return false;
-
-			foreach (var componentType in m_ComponentDataTypes)
-			{
-				if (types.IndexOf(componentType) == -1)
-					return false;
-			}
-
-			return true;
-		}
-
-		public void RemoveSwapBackComponentData(Entity entity)
-		{
-			int tupleIndex;
-			if (!m_EntityToTupleIndex.TryGetValue (entity.index, out tupleIndex))
-				return;
-
-			if (tupleIndex == -1)
-				return;
-
-			RemoveSwapBackTupleIndex(tupleIndex);
-		}
-
-		public void RemoveSwapBackComponent(int tupleSystemIndex, Component component)
-		{
-			int tupleIndex = m_ComponentLists[tupleSystemIndex].GetIndex(component);
-			if (tupleIndex == -1)
-				return;
-
-			RemoveSwapBackTupleIndex(tupleIndex);
-		}
-
-		private void RemoveSwapBackTupleIndex(int tupleIndex)
-		{
-			if (m_ChangeEvent != null)
-				m_ChangeEvent.OnRemoveSwapBack (tupleIndex);
-
-			for (int i = 0; i != m_ComponentLists.Length; i++)
-				m_ComponentLists[i].RemoveAtSwapBackComponent (tupleIndex);
-
-			for (int i = 0; i != m_ComponentDataIndices.Length; i++)
-				m_ComponentDataIndices[i].RemoveAtSwapBack (tupleIndex);
-
-			if (m_Transforms.IsCreated)
-				m_Transforms.RemoveAtSwapBack(tupleIndex);
-
-			var entity = m_TupleToEntityIndex[tupleIndex];
-			m_EntityToTupleIndex.Remove (entity.index);
-			m_TupleToEntityIndex.RemoveAtSwapBack (tupleIndex);
-
-			if (tupleIndex != m_TupleToEntityIndex.Length)
-			{
-				var lastEntity = m_TupleToEntityIndex[tupleIndex];
-				m_EntityToTupleIndex.Remove(lastEntity.index);
-				m_EntityToTupleIndex.TryAdd (lastEntity.index, tupleIndex);
-			}
-		}
-
-		public void AddTupleIfSupported(GameObject go, Entity lightGameObject)
-		{
-			if (!IsTupleSupported (go, lightGameObject))
-				return;
-
-			// Component injections
-			for (int i = 0; i != m_ComponentTypes.Length; i++)
-			{
-				var component = go.GetComponent (m_ComponentTypes[i]);
-				m_ComponentLists[i].AddComponent (component);
-			}
-
-			// IComponentData injections
-			for (int i = 0; i != m_ComponentDataTypes.Length; i++)
-			{		
-				int componentIndex = m_EntityManager.GetComponentIndex(lightGameObject, m_ComponentDataTypes[i]);
-				Assert.AreNotEqual (-1, componentIndex);
-
-				m_ComponentDataIndices[i].Add(componentIndex);
-			}
-
-			// Transform component injections
-			if (m_Transforms.IsCreated)
-				m_Transforms.Add(go.transform);
-
-			// Tuple / Entity mapping
-			int tupleIndex = m_TupleToEntityIndex.Length;
-			m_EntityToTupleIndex.TryAdd (lightGameObject.index, tupleIndex);
-			m_TupleToEntityIndex.Add (lightGameObject);
-
-			if (m_ChangeEvent != null)
-				m_ChangeEvent.OnAddElements (1);
-		}
-
-		public void AddTuplesEntityIDPartial(NativeArray<Entity> entityIndices)
-		{
-			int baseIndex = m_TupleToEntityIndex.Length;
-			for (int i = 0;i<entityIndices.Length;i++)
-			{
-				m_TupleToEntityIndex.Add (entityIndices[i]);
-				m_EntityToTupleIndex.TryAdd (entityIndices[i].index, baseIndex + i);
-			}
-
-			if (m_ChangeEvent != null)
-				m_ChangeEvent.OnAddElements (entityIndices.Length);
-		}
-
-		public void AddTuplesComponentDataPartial(int componentTypeIndex, NativeSlice<int> componentIndices)
-		{
-			int tupleIndex = System.Array.IndexOf (m_ComponentDataTypes, componentTypeIndex);
-			if (tupleIndex == -1)
-				return;
-
-			var tuplesIndices = m_ComponentDataIndices[tupleIndex];
-
-			int count = componentIndices.Length;
-			tuplesIndices.ResizeUninitialized (tuplesIndices.Length + count);
-			var indices = new NativeSlice<int> (tuplesIndices, tuplesIndices.Length - count);
-			indices.CopyFrom (componentIndices);
-		}
-
-		public void Dispose()
-		{
-			for (int i = 0; i != m_ComponentDataIndices.Length; i++)
-				m_ComponentDataIndices[i].Dispose();
-
-			//@TODO: Shouldn't dispose check this itself???
-			if (m_Transforms.IsCreated)
-				m_Transforms.Dispose ();
-
-			m_EntityToTupleIndex.Dispose();
-			m_TupleToEntityIndex.Dispose();
-		}
+    internal unsafe class EntityGroupManager : IDisposable
+    {
+        NativeMultiHashMap<uint, IntPtr>    m_GroupLookup;
+        ChunkAllocator                      m_GroupDataChunkAllocator;
+        EntityGroupData*                    m_LastGroupData;
+        ComponentJobSafetyManager           m_JobSafetyManager;
+
+        public EntityGroupManager(ComponentJobSafetyManager safetyManager)
+        {
+            m_GroupLookup = new NativeMultiHashMap<uint, IntPtr>(256, Allocator.Persistent);
+            m_JobSafetyManager = safetyManager;
+        }
+
+        public EntityGroup CreateEntityGroup(ArchetypeManager typeMan, ComponentType* requiredTypes, int requiredCount, TransformAccessArray trans)
+        {
+            uint hash = HashUtility.fletcher32((ushort*)requiredTypes, requiredCount * sizeof(ComponentType) / sizeof(short));
+            NativeMultiHashMapIterator<uint> it;
+            IntPtr grpPtr;
+            EntityGroupData* grp;
+            if (m_GroupLookup.TryGetFirstValue(hash, out grpPtr, out it))
+            {
+                do
+                {
+                    grp = (EntityGroupData*)grpPtr;
+                    if (ComponentType.CompareArray(grp->requiredComponents, grp->numRequiredComponents, requiredTypes, requiredCount))
+                        return new EntityGroup(grp, m_JobSafetyManager, typeMan, trans);
+                } while (m_GroupLookup.TryGetNextValue(out grpPtr, ref it));
+            }
+            grp = (EntityGroupData*)m_GroupDataChunkAllocator.Allocate(sizeof(EntityGroupData), 8);
+            grp->prevGroup = m_LastGroupData;
+            m_LastGroupData = grp;
+            grp->numRequiredComponents = requiredCount;
+            grp->requiredComponents = (ComponentType*)m_GroupDataChunkAllocator.Construct(sizeof(ComponentType) * requiredCount, 4, requiredTypes);
+
+            grp->firstMatchingArchetype = null;
+            grp->lastMatchingArchetype = null;
+            for (Archetype* type = typeMan.m_LastArchetype; type != null; type = type->prevArchetype)
+                AddArchetypeIfMatching(type, grp);
+            m_GroupLookup.Add(hash, (IntPtr)grp);
+            return new EntityGroup(grp, m_JobSafetyManager, typeMan, trans);
+        }
+        public void Dispose()
+        {
+            //@TODO: Need to wait for all job handles to be completed..
+
+            m_GroupLookup.Dispose();
+            m_GroupDataChunkAllocator.Dispose();
+        }
+        internal void OnArchetypeAdded(Archetype* type)
+        {
+            for (EntityGroupData* grp = m_LastGroupData; grp != null; grp = grp->prevGroup)
+                AddArchetypeIfMatching(type, grp);
+        }
+
+        void AddArchetypeIfMatching(Archetype* archetype, EntityGroupData* group)
+        {
+            if (group->numRequiredComponents > archetype->typesCount)
+                return;
+            int typeI = 0;
+            for (int i = 0; i < group->numRequiredComponents; ++i, ++typeI)
+            {
+                while (archetype->types[typeI].typeIndex < group->requiredComponents[i].typeIndex && typeI < archetype->typesCount)
+                    ++typeI;
+                
+                if (typeI >= archetype->typesCount)
+                    return;
+
+                // Type mismatch
+                if (archetype->types[typeI].typeIndex != group->requiredComponents[i].typeIndex)
+                    return;
+
+                // We are looking for a specific shared type index and it doesn't match
+                if (group->requiredComponents[i].sharedComponentIndex != -1 && archetype->types[typeI].sharedComponentIndex != group->requiredComponents[i].sharedComponentIndex)
+                    return;
+            }
+            MatchingArchetypes* match = (MatchingArchetypes*)m_GroupDataChunkAllocator.Allocate(sizeof(MatchingArchetypes), 8);
+            match->archetype = archetype;
+            match->archetypeSegments = (ComponentDataArchetypeSegment*)m_GroupDataChunkAllocator.Allocate(group->numRequiredComponents * sizeof(ComponentDataArchetypeSegment), 8);
+            match->next = null;
+            if (group->lastMatchingArchetype != null)
+                group->lastMatchingArchetype->next = match;
+            else
+                group->firstMatchingArchetype = match;
+
+            for (int component = 0; component < group->numRequiredComponents; ++component)
+            {
+                match->archetypeSegments[component].archetype = archetype;
+                match->archetypeSegments[component].nextSegment = null;
+                if (group->lastMatchingArchetype != null)
+                    match->archetypeSegments[component].nextSegment = group->lastMatchingArchetype->archetypeSegments + component;
+
+                int typeComponentIndex = ChunkDataUtility.GetIndexInTypeArray(archetype, group->requiredComponents[component].typeIndex);
+                Assertions.Assert.AreNotEqual(-1, typeComponentIndex);
+
+                match->archetypeSegments[component].offset = archetype->offsets[typeComponentIndex];
+                match->archetypeSegments[component].stride = archetype->strides[typeComponentIndex];
+                match->archetypeSegments[component].typeIndex = typeComponentIndex;
+            }
+
+            group->lastMatchingArchetype = match;
+        }
+    }
+    unsafe struct MatchingArchetypes
+    {
+        public Archetype*                       archetype;
+        public ComponentDataArchetypeSegment*   archetypeSegments;
+        public MatchingArchetypes*              next;
+    }
+    unsafe struct EntityGroupData
+    {
+        public ComponentType*       requiredComponents;
+        public int                  numRequiredComponents;
+        public MatchingArchetypes*  firstMatchingArchetype;
+        public MatchingArchetypes*  lastMatchingArchetype;
+        public EntityGroupData*     prevGroup;
+    }
+
+    //@TODO: Make safe when entity manager is destroyed.
+
+    public unsafe class EntityGroup : IDisposable, IManagedObjectModificationListener
+    {
+        EntityGroupData*                m_GroupData;
+        ComponentJobSafetyManager       m_SafetyManager;
+        ArchetypeManager                     m_TypeManager;
+        TransformAccessArray            m_Transforms;
+        bool                            m_TransformsDirty;
+        MatchingArchetypes*             m_LastRegisteredListenerArchetype;
+
+        internal EntityGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager, ArchetypeManager typeManager, TransformAccessArray trans)
+        {
+            m_GroupData = groupData;
+            m_SafetyManager = safetyManager;
+            m_TypeManager = typeManager;
+            m_Transforms = trans;
+            m_TransformsDirty = true;
+
+            if (m_Transforms.IsCreated)
+            {
+                var transformType = TypeManager.GetTypeIndex<Transform>();
+                for (MatchingArchetypes* type = m_GroupData->firstMatchingArchetype; type != null; type = type->next)
+                {
+                    int idx = ChunkDataUtility.GetIndexInTypeArray(type->archetype, transformType);
+                    m_TypeManager.AddManagedObjectModificationListener(type->archetype, idx, this);
+                }
+            }
+            m_LastRegisteredListenerArchetype = m_GroupData->lastMatchingArchetype;
+        }
+
+        public void Dispose()
+        {
+            if (m_Transforms.IsCreated)
+            {
+                if (m_LastRegisteredListenerArchetype != null)
+                {
+                    var transformType = TypeManager.GetTypeIndex<Transform>();
+                    for (MatchingArchetypes* type = m_GroupData->firstMatchingArchetype; type != m_LastRegisteredListenerArchetype->next; type = type->next)
+                    {
+                        int idx = ChunkDataUtility.GetIndexInTypeArray(type->archetype, transformType);
+                        m_TypeManager.RemoveManagedObjectModificationListener(type->archetype, idx, this);
+                    }
+                }
+                m_Transforms.Dispose();
+            }
+        }
+        public void OnManagedObjectModified()
+        {
+            m_TransformsDirty = true;
+        }
+
+        ComponentDataArchetypeSegment* GetSegmentData(int componentType, out int outLength, out int componentIndex)
+        {
+            componentIndex = 0;
+            while (componentIndex < m_GroupData->numRequiredComponents && m_GroupData->requiredComponents[componentIndex].typeIndex != componentType)
+                ++componentIndex;
+            if (componentIndex >= m_GroupData->numRequiredComponents)
+            {
+                throw new InvalidOperationException(string.Format("Trying to get ComponentDataArray for {0} but the required component type was not declared in the EntityGroup.", TypeManager.GetType(componentType)));
+            }
+
+            // Update the archetype segments
+            int length = 0;
+            MatchingArchetypes* last = null;
+            for (var match = m_GroupData->firstMatchingArchetype; match != null; match = match->next)
+            {
+                if (match->archetype->entityCount > 0)
+                {
+                    length += match->archetype->entityCount;
+                    last = match;
+                }
+            }
+            outLength = length;
+
+            if (last == null)
+                return null;
+            return last->archetypeSegments + componentIndex;
+        }
+
+
+        public ComponentDataArray<T> GetComponentDataArray<T>(bool readOnly = false) where T : struct, IComponentData
+        {
+            int length;
+            int componentIndex;
+            int typeIndex = TypeManager.GetTypeIndex<T>();
+
+            ComponentDataArchetypeSegment* segment = GetSegmentData(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
+#if ENABLE_NATIVE_ARRAY_CHECKS
+            return new ComponentDataArray<T>(segment, length, m_SafetyManager.GetSafetyHandle(typeIndex), readOnly);
+#else
+			return new ComponentDataArray<T>(segment, length);
+#endif
+        }
+
+        public ComponentDataFixedArray<T> GetComponentDataFixedArray<T>(ComponentType type, bool readOnly = false) where T : struct
+        {
+            int length;
+            int componentIndex;
+            ComponentDataArchetypeSegment* segment = GetSegmentData(type.typeIndex, out length, out componentIndex);
+#if ENABLE_NATIVE_ARRAY_CHECKS
+            return new ComponentDataFixedArray<T>(segment, length, 64, m_SafetyManager.GetSafetyHandle(type.typeIndex), readOnly);
+#else
+			return new ComponentDataFixedArray<T>(segment, length, 64);
+#endif
+        }
+
+        public EntityArray GetEntityArray()
+        {
+            int length;
+            int componentIndex;
+            int typeIndex = TypeManager.GetTypeIndex<Entity>();
+            ComponentDataArchetypeSegment* segment = GetSegmentData(typeIndex, out length, out componentIndex);
+#if ENABLE_NATIVE_ARRAY_CHECKS
+            return new EntityArray(segment, length, m_SafetyManager.GetSafetyHandle(typeIndex));
+#else
+			return new EntityArray(segment, length);
+#endif
+        }
+        public ComponentArray<T> GetComponentArray<T>() where T : Component
+        {
+            int length;
+            int componentIndex;
+
+            ComponentDataArchetypeSegment* segment = GetSegmentData(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
+            return new ComponentArray<T>(segment, length, m_TypeManager);
+        }
+
+        public int Length
+        {
+            get
+            {
+                int length;
+                int componentIndex;
+                GetSegmentData(TypeManager.GetTypeIndex<Entity>(), out length, out componentIndex);
+                return length;
+            }
+        }
+
+        internal void UpdateTransformAccessArray()
+        {
+            if (!m_Transforms.IsCreated)
+                return;
+            int transformIdx = TypeManager.GetTypeIndex<Transform>();
+            for (MatchingArchetypes* type = m_LastRegisteredListenerArchetype != null ? m_LastRegisteredListenerArchetype->next : m_GroupData->firstMatchingArchetype; type != null; type = type->next)
+            {
+                int idx = ChunkDataUtility.GetIndexInTypeArray(type->archetype, transformIdx);
+                m_TypeManager.AddManagedObjectModificationListener(type->archetype, idx, this);
+                m_TransformsDirty = true;
+            }
+            m_LastRegisteredListenerArchetype = m_GroupData->lastMatchingArchetype;
+            if (!m_TransformsDirty)
+                return;
+            m_TransformsDirty = false;
+            var trans = GetComponentArray<Transform>();
+
+#if true
+		    m_Transforms.SetTransforms(trans.ToArray());
+#else
+
+            // Deprecated codepath
+            while (trans.Length > m_Transforms.Length)
+                m_Transforms.Add(null);
+            while (trans.Length > m_Transforms.Length)
+                m_Transforms.RemoveAtSwapBack(0);
+
+            for (int i = 0; i < trans.Length; i++)
+                m_Transforms[i] = trans[i];
+
+#endif
+        }
 
 		public Type[] Types
 		{
 			get
 			{
 				var types = new List<Type> ();
-				if (m_Transforms.IsCreated)
-					types.Add (typeof(TransformAccessArray));
-				foreach(var typeIndex in m_ComponentDataTypes)
-					#if ECS_ENTITY_CLASS
-					types.Add(m_EntityManager.GetTypeFromIndex (typeIndex));
-					#else
-					types.Add(EntityManager.GetTypeFromIndex (typeIndex));
-					#endif
-				types.AddRange (m_ComponentTypes);
+				for (int i = 0; i < m_GroupData->numRequiredComponents; ++i)
+					types.Add(TypeManager.GetType(m_GroupData->requiredComponents[i].typeIndex));
 
 				return types.ToArray ();
 			}
 		}
-
-		public void AddChangeEventListener (IEntityGroupChange evt)
-		{
-			m_ChangeEvent = evt;
-		}
 	}
-	#endif
 }

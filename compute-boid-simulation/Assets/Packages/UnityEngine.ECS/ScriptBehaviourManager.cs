@@ -51,14 +51,7 @@ namespace UnityEngine.ECS
 
 		internal static void DestroyInstance(ScriptBehaviourManager inst)
 		{
-			try
-			{
-				inst.OnDestroyManager();
-			}
-			catch (Exception e)
-			{
-				Debug.LogException(e);
-			}
+			inst.OnDestroyManager ();
 		}
 
 		// NOTE: The comments for behaviour below are how it is supposed to work.
@@ -95,7 +88,7 @@ namespace UnityEngine.ECS
 		/// <summary>
 		/// Called once per frame
 		/// </summary>
-		protected virtual void OnUpdate()
+		public virtual void OnUpdate()
 		{
 			
 		}

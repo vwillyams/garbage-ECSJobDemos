@@ -157,7 +157,7 @@ namespace UnityEngine.ECS
 
         internal static void DrawHorizontalSplitter(Rect dragRect)
         {
-            if (Event.current.type != EventType.repaint)
+            if (Event.current.type != EventType.Repaint)
                 return;
 
             Color orgColor = GUI.color;

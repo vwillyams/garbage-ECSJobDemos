@@ -13,37 +13,54 @@ namespace UnityEngine.ECS
 	//@TODO: Public ness etc
 	public class TupleSystem
     {
-		FieldInfo 							m_EntityArrayInjection;
-
-		InjectTuples.TupleInjectionData[]	m_ComponentDataInjections;
-
-		EntityGroup 						m_EntityGroup;
-
-		internal TupleSystem(EntityManager entityManager, InjectTuples.TupleInjectionData[] componentDataInjections, ScriptBehaviourManager[] componentDataManagers, InjectTuples.TupleInjectionData[] componentInjections, FieldInfo entityArrayInjection, TransformAccessArray transforms)
+        internal struct TupleInjectionData
         {
-			var componentTypes = new Type[componentInjections.Length];
-			var componentDataTypes = new Type[componentDataInjections.Length];
-			for (int i = 0; i != componentInjections.Length; i++)
-				componentTypes[i] = componentInjections[i].genericType;
-			for (int i = 0; i != componentDataInjections.Length; i++)
-				componentDataTypes[i] = componentDataInjections [i].genericType;
-			
-			m_EntityGroup = new EntityGroup (entityManager, componentDataTypes, componentDataManagers, componentTypes, transforms);
+            public FieldInfo field;
+            public Type containerType;
+            public Type genericType;
+            public bool isReadOnly;
 
-			m_ComponentDataInjections = componentDataInjections;
-			m_EntityArrayInjection = entityArrayInjection;
+            public TupleInjectionData(FieldInfo field, Type containerType, Type genericType, bool isReadOnly)
+            {
+                this.field = field;
+                this.containerType = containerType;
+                this.genericType = genericType;
+                this.isReadOnly = isReadOnly;
+            }
         }
 
-		public ComponentDataArray<T> GetComponentDataArray<T>(int index, bool readOnly) where T : struct, IComponentData
+		FieldInfo 							m_EntityArrayInjection;
+
+        TupleInjectionData[]                m_ComponentDataInjections;
+        TupleInjectionData[]    m_ComponentInjections;
+
+        EntityGroup 						m_EntityGroup;
+
+		internal TupleSystem(EntityManager entityManager, TupleSystem.TupleInjectionData[] componentDataInjections, TupleSystem.TupleInjectionData[] componentInjections, FieldInfo entityArrayInjection, TransformAccessArray transforms)
+        {
+			var requiredComponentTypes = new ComponentType[componentInjections.Length + componentDataInjections.Length];
+
+            for (int i = 0; i != componentDataInjections.Length; i++)
+				requiredComponentTypes[i] = componentDataInjections [i].genericType;
+            for (int i = 0; i != componentInjections.Length; i++)
+                requiredComponentTypes[i + componentDataInjections.Length] = componentInjections[i].genericType;
+
+            m_EntityGroup = entityManager.CreateEntityGroup(transforms, requiredComponentTypes);
+
+            m_ComponentDataInjections = componentDataInjections;
+            m_ComponentInjections = componentInjections;
+            m_EntityArrayInjection = entityArrayInjection;
+        }
+
+		public ComponentDataArray<T> GetComponentDataArray<T>(bool readOnly) where T : struct, IComponentData
 		{
-			return m_EntityGroup.GetComponentDataArray<T>(index, readOnly);
-		}
-			
-		public ComponentArray<T> GetComponentArray<T>(int index) where T : Component
-		{
-			return m_EntityGroup.GetComponentArray<T> (index);
+			return m_EntityGroup.GetComponentDataArray<T>(readOnly);
 		}
 
+		public ComponentArray<T> GetComponentArray<T>() where T : Component
+		{
+            return m_EntityGroup.GetComponentArray<T>();
+        }
 
 		public void Dispose()
 		{
@@ -51,11 +68,46 @@ namespace UnityEngine.ECS
 			m_EntityGroup = null;
 		}
 
-		internal InjectTuples.TupleInjectionData[] ComponentDataInjections { get { return m_ComponentDataInjections; } }
-		internal FieldInfo EntityArrayInjection { get { return m_EntityArrayInjection; } }
-
-		public EntityArray GetEntityArray()     { return m_EntityGroup.GetEntityArray (); }
+        //@TODO:
+        public void UpdateTransformAccessArray()
+        {
+            m_EntityGroup.UpdateTransformAccessArray();
+        }
+        public EntityArray GetEntityArray() { return m_EntityGroup.GetEntityArray(); }
 		public EntityGroup EntityGroup          { get { return m_EntityGroup; } }
+
+
+        object GetComponentDataArray(Type type, bool readOnly)
+        {
+            object[] args = { readOnly };
+            return GetType().GetMethod("GetComponentDataArray").MakeGenericMethod(type).Invoke(this, args);
+        }
+
+        object GetComponentArray(Type type)
+        {
+            return GetType().GetMethod("GetComponentArray").MakeGenericMethod(type).Invoke(this, null);
+        }
+
+        public void UpdateInjection(object targetObject)
+        {
+            for (var i = 0; i != m_ComponentDataInjections.Length; i++)
+            {
+                object container;
+                container = GetComponentDataArray(m_ComponentDataInjections[i].genericType, m_ComponentDataInjections[i].isReadOnly);
+                m_ComponentDataInjections[i].field.SetValue(targetObject, container);
+            }
+
+            for (var i = 0; i != m_ComponentInjections.Length; i++)
+            {
+                object container;
+                container = GetComponentArray(m_ComponentInjections[i].genericType);
+                m_ComponentInjections[i].field.SetValue(targetObject, container);
+            }
+
+            UpdateTransformAccessArray();
+            if (m_EntityArrayInjection != null)
+                m_EntityArrayInjection.SetValue(targetObject, GetEntityArray());
+        }
 
     }
 }

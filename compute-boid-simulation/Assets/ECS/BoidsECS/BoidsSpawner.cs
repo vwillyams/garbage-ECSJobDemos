@@ -4,13 +4,14 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Jobs;
 using UnityEngine.ECS;
+using UnityEngine.Collections;
 
 namespace BoidSimulations
 {
 	public class BoidsSpawner : ScriptBehaviour
 	{
 		public GameObject prefab;
-		public GameObject lightweightPrefab;
+		public GameObject[] lightweightPrefabs;
 
 		public float radius = 4.0F;
 		public int transformsPerHierarchy = 500;
@@ -38,19 +39,21 @@ namespace BoidSimulations
 
 			if (lightweightInstantiate)
 			{
-				var gos = m_LightweightGameObjects.Instantiate (lightweightPrefab, count);
+				var gos = new NativeArray<Entity>(count / lightweightPrefabs.Length, Allocator.Temp);
+                for (int p = 0; p < lightweightPrefabs.Length;p++)
+                {
+                    m_LightweightGameObjects.Instantiate(lightweightPrefabs[p], gos);
 
-				for (int i = 0; i != gos.Length; i++)
-				{
-					var boid = new BoidData ();
-					boid.position = Random.insideUnitSphere + transform.position;
-					boid.forward = Random.onUnitSphere;
-					m_LightweightGameObjects.SetComponent(gos[i], boid);
-				}
+                    for (int i = 0; i != gos.Length; i++)
+                    {
+                        var boid = new BoidData();
+                        boid.position = Random.insideUnitSphere * radius + transform.position;
+                        boid.forward = Random.onUnitSphere;
+                        m_LightweightGameObjects.SetComponent(gos[i], boid);
+                    }
+                }
 
 				gos.Dispose ();
-
-				DependencyManager.GetBehaviourManager<ApplyBoidsToInstancing> ().InitializeInstanceRenderer (lightweightPrefab);
 			}
 			else
 			{
@@ -64,6 +67,7 @@ namespace BoidSimulations
 						roots.Add (root);
 					}
 
+<<<<<<< HEAD
 					var instance = Instantiate (prefab, Random.insideUnitSphere + transform.position, Random.rotation, root.transform);
 
                     var boid = new BoidData();
@@ -71,6 +75,14 @@ namespace BoidSimulations
                     boid.forward = Random.onUnitSphere;
 
                     instance.GetComponent<BoidDataComponent>().Value = boid;
+=======
+					BoidData val;
+					val.position = Random.insideUnitSphere * radius+ transform.position;
+					val.forward = Random.onUnitSphere;
+					var go = Instantiate (prefab, val.position, randomRot, root.transform) as GameObject;
+
+					m_LightweightGameObjects.SetComponent<BoidData>(go.GetComponent<GameObjectEntity>().Entity, val);
+>>>>>>> ecschunks
 				}
 			}	
 
@@ -99,7 +111,7 @@ namespace BoidSimulations
 		}
 
 
-		protected override void OnUpdate ()
+		public override void OnUpdate ()
 		{
 			base.OnUpdate ();
 

@@ -77,7 +77,7 @@ namespace UnityEngine.ECS
 		/// * Execution order is per type
 		/// * Not called in EditMode unless marked [ExecuteInEditMode]
 		/// </summary>
-		protected virtual void OnUpdate() { }
+		public virtual void OnUpdate() { }
 
 		protected virtual void OnDisable()
 		{

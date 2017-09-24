@@ -32,7 +32,7 @@ namespace RotatorSamples
 		[InjectTuples(1)]
 		public TransformAccessArray  				m_RotationSpeedTransforms;
 
-		protected override void OnUpdate()
+		public override void OnUpdate()
 		{
 			base.OnUpdate ();
 

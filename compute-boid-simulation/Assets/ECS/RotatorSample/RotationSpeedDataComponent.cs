@@ -48,7 +48,7 @@ namespace RotatorSamples
 		public ComponentDataArray<RotationSpeed>        m_Rotators;
 
 
-		override protected void OnUpdate()
+		override public void OnUpdate()
 		{
 			base.OnUpdate ();
 
@@ -75,7 +75,7 @@ namespace RotatorSamples
 		// @TODO: support some way of expressing read only for manager data...
 		public ComponentDataArray<RotationSpeed>    m_Rotators;
 
-		protected override void OnUpdate()
+		public override void OnUpdate()
 		{
 			base.OnUpdate ();
 

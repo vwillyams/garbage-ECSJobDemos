@@ -39,7 +39,8 @@ namespace UnityEngine.ECS
 
 		public ReadOnlyCollection<ScriptBehaviourManager> BehaviourManagers
 		{
-			get {
+			get
+            {
 				return new ReadOnlyCollection<ScriptBehaviourManager>(ms_BehaviourManagers);
 			}
 		}
@@ -98,9 +99,16 @@ namespace UnityEngine.ECS
 			AutoRoot.ms_DefaultCapacity = value;
 		}
 
+        public DependencyManager()
+        {
+//          Debug.Log("Create DependencyManager");
+        }
+
 
 		public void Dispose()
 		{
+//          Debug.Log("Dispose DependencyManager");
+
 			foreach (var behaviourManager in ms_BehaviourManagers)
 				ScriptBehaviourManager.DestroyInstance (behaviourManager);
 
@@ -276,7 +284,7 @@ namespace UnityEngine.ECS
 			m_Behaviours = new List<ScriptBehaviour>();
 		}
 
-		protected override void OnUpdate()
+		override public void OnUpdate()
 		{
 			ScriptBehaviour.Execute (m_Behaviours);
 		}

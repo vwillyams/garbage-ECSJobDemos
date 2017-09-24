@@ -21,55 +21,19 @@ namespace UnityEngine.ECS
 
     	//@TODO: Capacity defaulting mechanism...
 
-    	internal struct TupleInjectionData
+        static TupleSystem CreateTuplesInjection(FieldInfo entityArrayField, FieldInfo transformAccessArrayField, List<TupleSystem.TupleInjectionData> injections, List<ComponentType> outReadJobDependencies, List<ComponentType> outWriteJobDependencies, object targetObject)
     	{
-			public FieldInfo 	field;
-    		public Type 		containerType;
-    		public Type 		genericType;
-			public bool 		isReadOnly;
-
-			public TupleInjectionData(FieldInfo field, Type containerType, Type genericType, bool isReadOnly)
-    		{
-    			this.field = field;
-    			this.containerType = containerType;
-    			this.genericType = genericType;
-				this.isReadOnly = isReadOnly;
-    		}
-    	}
-    		
-    	internal static void UpdateInjection(TupleSystem tuples, object targetObject)
-    	{
-    		var dataInjections = tuples.ComponentDataInjections;
-			for (var i = 0; i != dataInjections.Length; i++) 
-    		{
-    			object container;
-				container = GetComponentDataArray (tuples, dataInjections[i].genericType, i, dataInjections[i].isReadOnly);
-				dataInjections[i].field.SetValue (targetObject, container);
-    		}
-
-			if (tuples.EntityArrayInjection != null)
-				tuples.EntityArrayInjection.SetValue (targetObject, tuples.GetEntityArray());
-    	}
-
-		static TupleSystem CreateTuplesInjection(FieldInfo entityArray, FieldInfo transformAccessArrayField, List<TupleInjectionData> injections, List<IComponentDataManager> outReadJobDependencies, List<IComponentDataManager> outWriteJobDependencies, object targetObject)
-    	{
-    		var managers = new ScriptBehaviourManager[injections.Count];
-    		TransformAccessArray transformAccessArray = new TransformAccessArray();
-    		if (transformAccessArrayField != null)
-    			transformAccessArray = new TransformAccessArray (0);
-
-			var componentInjections = new List<TupleInjectionData>();
-			var componentDataInjections = new List<TupleInjectionData>();
+			var componentInjections = new List<TupleSystem.TupleInjectionData>();
+			var componentDataInjections = new List<TupleSystem.TupleInjectionData>();
 
     		for (var i = 0; i != injections.Count; i++) 
     		{
 				if (injections[i].containerType == typeof(ComponentDataArray<>))
 				{
-					managers[i] = DependencyManager.GetBehaviourManager (typeof(ComponentDataManager<>).MakeGenericType (injections [i].genericType));
 					if (injections[i].isReadOnly)
-						outReadJobDependencies.Add (managers[i] as IComponentDataManager);
+                        outReadJobDependencies.Add (new ComponentType(injections[i].genericType));
 					else
-						outWriteJobDependencies.Add (managers[i] as IComponentDataManager);
+                        outWriteJobDependencies.Add (new ComponentType(injections[i].genericType));
 
 					componentDataInjections.Add (injections [i]);
 				}
@@ -83,27 +47,19 @@ namespace UnityEngine.ECS
 				}
     		}
 
-			var tuples = new TupleSystem(DependencyManager.GetBehaviourManager<EntityManager>(), componentDataInjections.ToArray(), managers, componentInjections.ToArray(), entityArray, transformAccessArray);
-
-			for (var i = 0; i != componentDataInjections.Count; i++) 
-    		{
-				object container = GetComponentDataArray (tuples, componentDataInjections[i].genericType, i, componentDataInjections[i].isReadOnly);
-				componentDataInjections[i].field.SetValue (targetObject, container);
-			}
-
-			for (var i = 0; i != componentInjections.Count; i++) 
+			var transforms = new TransformAccessArray();
+			if (transformAccessArrayField != null)
 			{
-				object container = GetComponentArray (tuples, componentInjections[i].genericType, i);
-				componentInjections[i].field.SetValue (targetObject, container);
+				transforms = new TransformAccessArray(0);
+				transformAccessArrayField.SetValue (targetObject, transforms);
 			}
+            var tuples = new TupleSystem(DependencyManager.GetBehaviourManager<EntityManager>(), componentDataInjections.ToArray(), componentInjections.ToArray(), entityArrayField, transforms);
 
-    		if (transformAccessArrayField != null)
-    			transformAccessArrayField.SetValue (targetObject, transformAccessArray);
-
+			tuples.UpdateInjection(targetObject);
     		return tuples;
     	}
 
-		internal static bool CollectTuples(FieldInfo[] fields, ref int i, ref int activeTupleSet, out FieldInfo entityArrayField, out FieldInfo transformAccessArrayField, List<TupleInjectionData> injections)
+		internal static bool CollectTuples(FieldInfo[] fields, ref int i, ref int activeTupleSet, out FieldInfo entityArrayField, out FieldInfo transformAccessArrayField, List<TupleSystem.TupleInjectionData> injections)
     	{
     		transformAccessArrayField = null;
 			entityArrayField = null;
@@ -129,13 +85,13 @@ namespace UnityEngine.ECS
 
 					if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(ComponentDataArray<>))
 					{
-						injections.Add (new TupleInjectionData (field, typeof(ComponentDataArray<>), field.FieldType.GetGenericArguments () [0], isReadOnly));
+						injections.Add (new TupleSystem.TupleInjectionData (field, typeof(ComponentDataArray<>), field.FieldType.GetGenericArguments () [0], isReadOnly));
 					}
 					else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(ComponentArray<>))
 					{
 						if (isReadOnly)
 							Debug.LogError ("[ReadOnly] may only be used with [InjectTuples] on ComponentDataArray<>");
-						injections.Add (new TupleInjectionData (field, typeof(ComponentArray<>), field.FieldType.GetGenericArguments () [0], false));
+						injections.Add (new TupleSystem.TupleInjectionData (field, typeof(ComponentArray<>), field.FieldType.GetGenericArguments () [0], false));
 					}
 					else if (field.FieldType == typeof(TransformAccessArray))
 					{
@@ -165,7 +121,7 @@ namespace UnityEngine.ECS
     		return true;
     	}
 
-		static void CreateTuplesInjection(Type type, object targetObject, List<TupleSystem> outTupleSystem, List<IComponentDataManager> outReadJobDependencies, List<IComponentDataManager> outWriteJobDependencies)
+		static void CreateTuplesInjection(Type type, object targetObject, List<TupleSystem> outTupleSystem, List<ComponentType> outReadJobDependencies, List<ComponentType> outWriteJobDependencies)
     	{
     		var fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
@@ -174,7 +130,7 @@ namespace UnityEngine.ECS
 
 			FieldInfo transformAccessArrayField;
 			FieldInfo entityArrayField;
-    		var	injections = new List<TupleInjectionData>();
+    		var	injections = new List<TupleSystem.TupleInjectionData>();
 
     		while (fieldIndex != fields.Length)
     		{
@@ -189,30 +145,17 @@ namespace UnityEngine.ECS
     		}
     	}
 
-		internal static void CreateTuplesInjection(Type type, object targetObject, out TupleSystem[] outTupleSystem, out IComponentDataManager[] outReadJobDependencies, out IComponentDataManager[] outWriteJobDependencies)
+        internal static void CreateTuplesInjection(Type type, object targetObject, out TupleSystem[] outTupleSystem, out ComponentType[] outReadJobDependencies, out ComponentType[] outWriteJobDependencies)
     	{
     		var tuples = new List<TupleSystem> ();
-			var readDependencies = new List<IComponentDataManager> ();
-			var writeDependencies = new List<IComponentDataManager> ();
+            var readDependencies = new List<ComponentType> ();
+			var writeDependencies = new List<ComponentType> ();
 			CreateTuplesInjection(type, targetObject, tuples, readDependencies, writeDependencies);
 
 
 			outTupleSystem = tuples.ToArray ();
 			outReadJobDependencies = readDependencies.ToArray ();
 			outWriteJobDependencies = writeDependencies.ToArray ();
-    	}
-
-
-		static object GetComponentDataArray(TupleSystem tuple, Type type, int index, bool readOnly)
-		{
-			object[] args = { index, readOnly };
-			return tuple.GetType ().GetMethod ("GetComponentDataArray").MakeGenericMethod (type).Invoke(tuple, args);
-		}
-
-    	static object GetComponentArray(TupleSystem tuple, Type type, int index)
-    	{
-    		object[] args = { index };
-    		return tuple.GetType ().GetMethod ("GetComponentArray").MakeGenericMethod (type).Invoke(tuple, args);
     	}
     }
 }

@@ -12,6 +12,11 @@ AI_Prototyping/LowLevelQueryAPI/Temp
 AI_Prototyping/LowLevelQueryAPI/obj
 AI_Prototyping/LowLevelQueryAPI/.editorconfig
 
+BlobificationPrototype/Library
+BlobificationPrototype/Temp
+BlobificationPrototype/obj
+
+
 *.csproj
 *.sln
 *.suo

@@ -47,7 +47,7 @@ namespace BoidSimulations
                     for (int i = 0; i != gos.Length; i++)
                     {
                         var boid = new BoidData();
-                        boid.position = Random.insideUnitSphere + transform.position;
+                        boid.position = Random.insideUnitSphere * radius + transform.position;
                         boid.forward = Random.onUnitSphere;
                         m_LightweightGameObjects.SetComponent(gos[i], boid);
                     }
@@ -67,11 +67,9 @@ namespace BoidSimulations
 						roots.Add (root);
 					}
 
-					// @TODO this transform setting should be in an initialization system
 					BoidData val;
-					val.position = Random.insideUnitSphere + transform.position;
-					var randomRot = Random.rotation;
-					val.forward = randomRot*Vector3.forward;
+					val.position = Random.insideUnitSphere * radius+ transform.position;
+					val.forward = Random.onUnitSphere;
 					var go = Instantiate (prefab, val.position, randomRot, root.transform) as GameObject;
 
 					m_LightweightGameObjects.SetComponent<BoidData>(go.GetComponent<GameObjectEntity>().Entity, val);

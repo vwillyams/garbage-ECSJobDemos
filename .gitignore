@@ -3,6 +3,10 @@ compute-boid-simulation/Library
 compute-boid-simulation/Temp
 compute-boid-simulation/obj
 
+BlobificationPrototype/Library
+BlobificationPrototype/Temp
+BlobificationPrototype/obj
+
 AI_Prototyping/LowLevelQueryAPI/Library
 AI_Prototyping/LowLevelQueryAPI/Temp
 AI_Prototyping/LowLevelQueryAPI/obj

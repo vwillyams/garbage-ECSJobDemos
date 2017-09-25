@@ -27,7 +27,7 @@ namespace UnityEngine.ECS.Tests
 
             entityMan.SetComponent(go.GetComponent<GameObjectEntity>().Entity, new EcsTestData(5));
 
-			var grp = entityMan.CreateEntityGroup(typeof(Transform), typeof(EcsTestData));
+			var grp = entityMan.CreateComponentGroup(typeof(Transform), typeof(EcsTestData));
 
 			var arr = grp.GetComponentArray<Transform>();
 			Assert.AreEqual(1, arr.Length);
@@ -47,7 +47,7 @@ namespace UnityEngine.ECS.Tests
             // Execute in edit mode is not enabled so this has to be called manually right now
             go.AddComponent<GameObjectEntity>().OnEnable();
 
-            var grp = entityMan.CreateEntityGroup(typeof(Rigidbody));
+            var grp = entityMan.CreateComponentGroup(typeof(Rigidbody));
 
             var arr = grp.GetComponentArray<Rigidbody>();
             Assert.AreEqual(1, arr.Length);

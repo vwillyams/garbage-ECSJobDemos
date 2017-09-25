@@ -71,7 +71,7 @@ namespace UnityEngine.ECS
 
         unsafe public bool IsCreated {get{return (m_CachedComponentTypeArray != null);}}
 
-        unsafe public int PopulatedCachedTypeArray(ComponentType[] requiredComponents)
+        unsafe int PopulatedCachedTypeArray(ComponentType[] requiredComponents)
         {
             m_CachedComponentTypeArray[0] = ComponentType.Create<Entity>();
             for (int i = 0; i < requiredComponents.Length; ++i)
@@ -79,13 +79,13 @@ namespace UnityEngine.ECS
             return requiredComponents.Length + 1;
         }
 
-        unsafe public EntityGroup CreateEntityGroup(params ComponentType[] requiredComponents)
+        unsafe public ComponentGroup CreateComponentGroup(params ComponentType[] requiredComponents)
         {
             m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
 
             return m_GroupManager.CreateEntityGroup(m_ArchetypeManager, m_CachedComponentTypeArray, PopulatedCachedTypeArray(requiredComponents), new UnityEngine.Jobs.TransformAccessArray());
         }
-        unsafe public EntityGroup CreateEntityGroup(UnityEngine.Jobs.TransformAccessArray trans, params ComponentType[] requiredComponents)
+        unsafe public ComponentGroup CreateComponentGroup(UnityEngine.Jobs.TransformAccessArray trans, params ComponentType[] requiredComponents)
         {
             m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
 

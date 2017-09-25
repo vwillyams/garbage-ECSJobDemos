@@ -60,13 +60,13 @@ namespace UnityEngine.ECS.Tests
 
             Assert.AreEqual(20, m_Manager.GetSharedComponentData<SharedData>(entity).value);
 
-            var groupExists = m_Manager.CreateEntityGroup(typeof(EcsTestData), sharedType20);
+            var groupExists = m_Manager.CreateComponentGroup(typeof(EcsTestData), sharedType20);
             Assert.AreEqual(1, groupExists.GetComponentDataArray<EcsTestData>().Length);
 
-            var groupNotExists = m_Manager.CreateEntityGroup(typeof(EcsTestData), sharedType30);
+            var groupNotExists = m_Manager.CreateComponentGroup(typeof(EcsTestData), sharedType30);
             Assert.AreEqual(0, groupNotExists.GetComponentDataArray<EcsTestData>().Length);
 
-            var groupAll = m_Manager.CreateEntityGroup(typeof(EcsTestData), ComponentType.Create<SharedData>());
+            var groupAll = m_Manager.CreateComponentGroup(typeof(EcsTestData), ComponentType.Create<SharedData>());
             Assert.AreEqual(1, groupAll.GetComponentDataArray<EcsTestData>().Length);
         }
     }  

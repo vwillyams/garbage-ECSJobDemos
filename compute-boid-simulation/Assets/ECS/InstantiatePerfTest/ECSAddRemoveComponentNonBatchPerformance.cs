@@ -32,9 +32,9 @@ public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
 
 		var m_EntityManager = DependencyManager.GetBehaviourManager<EntityManager>();
 
-		m_EntityManager.CreateEntityGroup (typeof(Component128Bytes));
-		m_EntityManager.CreateEntityGroup (typeof(Component12Bytes));
-        m_EntityManager.CreateEntityGroup (typeof(Component128Bytes));
+		m_EntityManager.CreateComponentGroup (typeof(Component128Bytes));
+		m_EntityManager.CreateComponentGroup (typeof(Component12Bytes));
+        m_EntityManager.CreateComponentGroup (typeof(Component128Bytes));
 
         var archetype = m_EntityManager.CreateArchetype(typeof(Component128Bytes), typeof(Component12Bytes), typeof(Component64Bytes));
         var entities = new NativeArray<Entity>(kInstanceCount, Allocator.Temp);

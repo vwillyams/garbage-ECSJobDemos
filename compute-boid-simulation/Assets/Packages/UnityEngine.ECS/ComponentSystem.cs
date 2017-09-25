@@ -5,8 +5,10 @@ namespace UnityEngine.ECS
 {
     public abstract class ComponentSystem : ScriptBehaviourManager
     {
-		public TupleSystem[] Tuples { get { return m_Tuples; } }
         TupleSystem[] 					m_Tuples;
+
+        //@TODO:
+        public ComponentGroup[]              ComponentGroups { get { return new ComponentGroup[0]; } }
 
         internal ComponentType[]		    m_JobDependencyForReadingManagers;
         internal ComponentType[]		    m_JobDependencyForWritingManagers;

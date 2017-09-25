@@ -18,7 +18,7 @@ namespace UnityEngine.ECS
             m_JobSafetyManager = safetyManager;
         }
 
-        public EntityGroup CreateEntityGroup(ArchetypeManager typeMan, ComponentType* requiredTypes, int requiredCount, TransformAccessArray trans)
+        public ComponentGroup CreateEntityGroup(ArchetypeManager typeMan, ComponentType* requiredTypes, int requiredCount, TransformAccessArray trans)
         {
             uint hash = HashUtility.fletcher32((ushort*)requiredTypes, requiredCount * sizeof(ComponentType) / sizeof(short));
             NativeMultiHashMapIterator<uint> it;
@@ -30,7 +30,7 @@ namespace UnityEngine.ECS
                 {
                     grp = (EntityGroupData*)grpPtr;
                     if (ComponentType.CompareArray(grp->requiredComponents, grp->numRequiredComponents, requiredTypes, requiredCount))
-                        return new EntityGroup(grp, m_JobSafetyManager, typeMan, trans);
+                        return new ComponentGroup(grp, m_JobSafetyManager, typeMan, trans);
                 } while (m_GroupLookup.TryGetNextValue(out grpPtr, ref it));
             }
             grp = (EntityGroupData*)m_GroupDataChunkAllocator.Allocate(sizeof(EntityGroupData), 8);
@@ -44,7 +44,7 @@ namespace UnityEngine.ECS
             for (Archetype* type = typeMan.m_LastArchetype; type != null; type = type->prevArchetype)
                 AddArchetypeIfMatching(type, grp);
             m_GroupLookup.Add(hash, (IntPtr)grp);
-            return new EntityGroup(grp, m_JobSafetyManager, typeMan, trans);
+            return new ComponentGroup(grp, m_JobSafetyManager, typeMan, trans);
         }
         public void Dispose()
         {
@@ -124,7 +124,7 @@ namespace UnityEngine.ECS
 
     //@TODO: Make safe when entity manager is destroyed.
 
-    public unsafe class EntityGroup : IDisposable, IManagedObjectModificationListener
+    public unsafe class ComponentGroup : IDisposable, IManagedObjectModificationListener
     {
         EntityGroupData*                m_GroupData;
         ComponentJobSafetyManager       m_SafetyManager;
@@ -133,7 +133,7 @@ namespace UnityEngine.ECS
         bool                            m_TransformsDirty;
         MatchingArchetypes*             m_LastRegisteredListenerArchetype;
 
-        internal EntityGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager, ArchetypeManager typeManager, TransformAccessArray trans)
+        internal ComponentGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager, ArchetypeManager typeManager, TransformAccessArray trans)
         {
             m_GroupData = groupData;
             m_SafetyManager = safetyManager;

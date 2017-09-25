@@ -10,8 +10,7 @@ using System.Collections.ObjectModel;
 
 namespace UnityEngine.ECS
 {
-	//@TODO: Public ness etc
-	public class TupleSystem
+	internal class TupleSystem
     {
         internal struct TupleInjectionData
         {
@@ -34,7 +33,7 @@ namespace UnityEngine.ECS
         TupleInjectionData[]                m_ComponentDataInjections;
         TupleInjectionData[]    m_ComponentInjections;
 
-        EntityGroup 						m_EntityGroup;
+        ComponentGroup 						m_EntityGroup;
 
 		internal TupleSystem(EntityManager entityManager, TupleSystem.TupleInjectionData[] componentDataInjections, TupleSystem.TupleInjectionData[] componentInjections, FieldInfo entityArrayInjection, TransformAccessArray transforms)
         {
@@ -45,7 +44,7 @@ namespace UnityEngine.ECS
             for (int i = 0; i != componentInjections.Length; i++)
                 requiredComponentTypes[i + componentDataInjections.Length] = componentInjections[i].genericType;
 
-            m_EntityGroup = entityManager.CreateEntityGroup(transforms, requiredComponentTypes);
+            m_EntityGroup = entityManager.CreateComponentGroup(transforms, requiredComponentTypes);
 
             m_ComponentDataInjections = componentDataInjections;
             m_ComponentInjections = componentInjections;
@@ -74,7 +73,7 @@ namespace UnityEngine.ECS
             m_EntityGroup.UpdateTransformAccessArray();
         }
         public EntityArray GetEntityArray() { return m_EntityGroup.GetEntityArray(); }
-		public EntityGroup EntityGroup          { get { return m_EntityGroup; } }
+		public ComponentGroup EntityGroup          { get { return m_EntityGroup; } }
 
 
         object GetComponentDataArray(Type type, bool readOnly)

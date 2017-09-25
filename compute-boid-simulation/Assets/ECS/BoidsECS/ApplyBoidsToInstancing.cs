@@ -62,7 +62,7 @@ namespace BoidSimulations
 	{
         class Batch
         {
-            EntityGroup             m_Group;
+            ComponentGroup             m_Group;
             ComputeBuffer           m_MatrixBuffer;
             ComputeBuffer           m_ArgsBuffer;
             float4x4[]              m_MatricesArray;
@@ -70,7 +70,7 @@ namespace BoidSimulations
             Material                m_MaterialCopy;
             Mesh                    m_Mesh;
 
-            public Batch (BoidInstanceRenderer renderer, EntityGroup group)
+            public Batch (BoidInstanceRenderer renderer, ComponentGroup group)
             {
                 m_Group = group;
 
@@ -178,7 +178,8 @@ namespace BoidSimulations
                     }
                 }
 
-                var group = EntityManager.CreateEntityGroup(uniqueType, ComponentType.Create<BoidData>());
+                var group = EntityManager.CreateComponentGroup(uniqueType, ComponentType.Create<BoidData>());
+
                 batch = new Batch(EntityManager.GetSharedComponentData<BoidInstanceRenderer>(uniqueType), group);
                 batch.Render(GetDependency());
                 m_ComponentToBatch.Add(uniqueType, batch);

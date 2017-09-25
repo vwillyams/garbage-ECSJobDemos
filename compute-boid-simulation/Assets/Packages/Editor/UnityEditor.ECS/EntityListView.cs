@@ -12,7 +12,7 @@ namespace UnityEngine.ECS
 {
     public class EntityListView : TreeView {
 
-        TupleSystem currentSystem;
+        ComponentGroup currentSystem;
 
         List<object> nativeArrays;
 
@@ -20,7 +20,7 @@ namespace UnityEngine.ECS
 
         EntityWindow window;
 
-        public EntityListView(TreeViewState state, MultiColumnHeader header, TupleSystem system, EntityWindow window) : base(state, header)
+        public EntityListView(TreeViewState state, MultiColumnHeader header, ComponentGroup system, EntityWindow window) : base(state, header)
         {
             this.window = window;
             this.currentSystem = system;
@@ -28,9 +28,9 @@ namespace UnityEngine.ECS
             Reload();
         }
 
-        public static MultiColumnHeaderState BuildHeaderState(TupleSystem system)
+        public static MultiColumnHeaderState BuildHeaderState(ComponentGroup system)
         {
-            var types = system.EntityGroup.Types;
+            var types = system.Types;
             var columns = new List<MultiColumnHeaderState.Column>(types.Length + 1);
 
             columns.Add(new MultiColumnHeaderState.Column
@@ -75,15 +75,15 @@ namespace UnityEngine.ECS
                 nativeArrays = new List<object>();
                 typeIndexToNativeIndex = new List<int>();
                 var columnIndex = 0;
-                foreach (var type in currentSystem.EntityGroup.Types)
+                foreach (var type in currentSystem.Types)
                 {
                     if (type.GetInterfaces().Contains(typeof(IComponentData)))
                     {
                         var attr = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
-                        var method = typeof(EntityGroup).GetMethod("GetComponentDataArray", attr);
+                        var method = typeof(ComponentGroup).GetMethod("GetComponentDataArray", attr);
                         method = method.MakeGenericMethod(type);
                         var args = new object[] {false};
-                        var array = method.Invoke(currentSystem.EntityGroup, args);
+                        var array = method.Invoke(currentSystem, args);
                         nativeArrays.Add(array);
                         typeIndexToNativeIndex.Add(columnIndex);
                     }
@@ -137,7 +137,7 @@ namespace UnityEngine.ECS
             }
             else
             {
-                var type = currentSystem.EntityGroup.Types[column - 1];
+                var type = currentSystem.Types[column - 1];
                 var nativeIndex = typeIndexToNativeIndex[column - 1];
                 if (nativeIndex < 0)
                     return;

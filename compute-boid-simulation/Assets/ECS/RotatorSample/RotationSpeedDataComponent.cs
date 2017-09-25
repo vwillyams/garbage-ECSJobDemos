@@ -27,13 +27,12 @@ namespace RotatorSamples
 	// A new GameObject light weight component integration would make the inspector look like it is a full component
 	// while the data is actually stored in a LightWeightComponentManager<>.
 	// Effectively the game object simply stores an index to the LightWeightComponentManager<>.
-	[UnityEngine.ExecuteInEditMode]
 	public class RotationSpeedDataComponent : ComponentDataWrapper<RotationSpeed> { }
 
 
-	//@TODO: struct with Length returning itself infinite recursion crashes editor instead of exception...
+    //@TODO: struct with Length returning itself infinite recursion crashes editor instead of exception...
 
-	#if false
+#if false
 
 	// Single thread
 	[UpdateAfter(typeof(DamageSystem))]
@@ -60,9 +59,10 @@ namespace RotatorSamples
 		}
 	}
 		
-	#else
-	// Multithread
-	[UpdateAfter(typeof(DamageSystem))]
+#else
+
+    // Multithread
+    [UpdateAfter(typeof(DamageSystem))]
 	public class SystemRotator : JobComponentSystem
 	{
 		// NOTE: InjectTuples scans all [InjectTuples] in the class
@@ -72,7 +72,7 @@ namespace RotatorSamples
 		public TransformAccessArray                m_Transforms;
 
 		[InjectTuples]
-		// @TODO: support some way of expressing read only for manager data...
+        [ReadOnly]
 		public ComponentDataArray<RotationSpeed>    m_Rotators;
 
 		public override void OnUpdate()
@@ -83,13 +83,13 @@ namespace RotatorSamples
 			job.dt = Time.deltaTime;
 			job.rotators = m_Rotators;
 
-			AddDependency(job.Schedule(m_Transforms, GetDependency ()));
+            AddDependency(job.Schedule(m_Transforms, GetDependency()));
 		}
 
 		struct Job : IJobParallelForTransform
 		{
 			public float dt;
-			[ReadOnly]
+            [ReadOnly]
 			public ComponentDataArray<RotationSpeed>      rotators;
 
 			public void Execute(int i, TransformAccess transform)

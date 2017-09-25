@@ -21,7 +21,7 @@ namespace UnityEngine.ECS
             get { return currentSystemSelection; }
             set {
                 currentSystemSelection = value;
-                currentTupleSelection = null;
+                currentComponentGroupSelection = null;
                 InitTupleList();
                 InitEntityList();
             }
@@ -35,23 +35,23 @@ namespace UnityEngine.ECS
             tupleListView.SetSelection(currentSystemSelection);
         }
 
-        public TupleSystem CurrentTupleSelection {
-            get { return currentTupleSelection; }
+        public ComponentGroup CurrentComponentGroupSelection {
+            get { return currentComponentGroupSelection; }
             set {
-                currentTupleSelection = value;
+                currentComponentGroupSelection = value;
                 InitEntityList();
             }
         }
-        TupleSystem currentTupleSelection;
+        ComponentGroup currentComponentGroupSelection;
 
         void InitEntityList()
         {
-            if (currentTupleSelection == null)
+            if (currentComponentGroupSelection == null)
                 return;
             entityListState = new TreeViewState();
-            var headerState = EntityListView.BuildHeaderState(currentTupleSelection);
+            var headerState = EntityListView.BuildHeaderState(currentComponentGroupSelection);
             var header = new MultiColumnHeader(headerState);
-            entityListView = new EntityListView(entityListState, header, currentTupleSelection, this);
+            entityListView = new EntityListView(entityListState, header, currentComponentGroupSelection, this);
         }
 
         [SerializeField]
@@ -134,7 +134,7 @@ namespace UnityEngine.ECS
 
         void EntityList(Rect rect)
         {
-            if (CurrentTupleSelection != null)
+            if (currentComponentGroupSelection != null)
             {
                 entityListView.PrepareData();
                 entityListView.OnGUI(rect);

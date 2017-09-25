@@ -14,7 +14,7 @@ namespace UnityEngine.ECS.Tests
         {
             var archetype = m_Manager.CreateArchetype(typeof(EcsTestData), typeof(EcsTestData2));
 
-            var group = m_Manager.CreateEntityGroup(typeof(EcsTestData), typeof(EcsTestData2));
+            var group = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(EcsTestData2));
             var arr = group.GetComponentDataArray<EcsTestData>();
             Assert.AreEqual(0, arr.Length);
 
@@ -45,7 +45,7 @@ namespace UnityEngine.ECS.Tests
         {
             var archetype = m_Manager.CreateArchetype(typeof(EcsTestData), typeof(EcsTestData2));
 
-            var group = m_Manager.CreateEntityGroup(typeof(EcsTestData), typeof(EcsTestData2));
+            var group = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(EcsTestData2));
             var entity = m_Manager.CreateEntity(archetype);
             var arr = group.GetComponentDataArray<EcsTestData>();
             m_Manager.SetComponent(entity, new EcsTestData(42));
@@ -66,7 +66,7 @@ namespace UnityEngine.ECS.Tests
         {
             CreateEntityWithDefaultData(0);
 
-            var group = m_Manager.CreateEntityGroup(typeof(EcsTestData));
+            var group = m_Manager.CreateComponentGroup(typeof(EcsTestData));
             var arr = group.GetComponentDataArray<EcsTestData>();
 
             CreateEntityWithDefaultData(1);

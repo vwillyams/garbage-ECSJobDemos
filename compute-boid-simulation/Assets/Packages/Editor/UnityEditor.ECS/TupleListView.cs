@@ -10,7 +10,7 @@ namespace UnityEngine.ECS
 {
     public class TupleListView : TreeView {
         
-        Dictionary<int, TupleSystem> tuplesById;
+        Dictionary<int, ComponentGroup> componentGroupsById;
 
         ComponentSystem currentSystem;
 
@@ -25,7 +25,7 @@ namespace UnityEngine.ECS
         public void SetSelection(ComponentSystem system)
         {
             currentSystem = system;
-            tuplesById = new Dictionary<int, TupleSystem>();
+            componentGroupsById = new Dictionary<int, ComponentGroup>();
             Reload();
         }
 
@@ -40,10 +40,10 @@ namespace UnityEngine.ECS
             else
             {
                 var tupleIndex = 0;
-                foreach (var tupleSystem in currentSystem.Tuples)
+                foreach (var group in currentSystem.ComponentGroups)
                 {
-                    tuplesById.Add(currentID, tupleSystem);
-                    var types = tupleSystem.EntityGroup.Types;
+                    componentGroupsById.Add(currentID, group);
+                    var types = group.Types;
                     var tupleName = string.Join(", ", (from x in types select x.Name).ToArray());
 
                     var tupleItem = new TreeViewItem { id = currentID++, displayName = string.Format("({1}):", tupleIndex, tupleName) };
@@ -58,19 +58,19 @@ namespace UnityEngine.ECS
         override protected void RowGUI(RowGUIArgs args)
         {
             base.RowGUI(args);
-            var countString = tuplesById[args.item.id].GetEntityArray().Length.ToString();
+            var countString = componentGroupsById[args.item.id].GetEntityArray().Length.ToString();
             DefaultGUI.LabelRightAligned(args.rowRect, countString, args.selected, args.focused);
         }
 
         override protected void SelectionChanged(IList<int> selectedIds)
         {
-            if (selectedIds.Count > 0 && tuplesById.ContainsKey(selectedIds[0]))
+            if (selectedIds.Count > 0 && componentGroupsById.ContainsKey(selectedIds[0]))
             {
-                window.CurrentTupleSelection = tuplesById[selectedIds[0]];
+                window.CurrentComponentGroupSelection = componentGroupsById[selectedIds[0]];
             }
             else
             {
-                window.CurrentTupleSelection = null;
+                window.CurrentComponentGroupSelection = null;
             }
         }
 

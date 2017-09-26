@@ -54,7 +54,7 @@ namespace UnityEngine.ECS
                 return typeIndex;
             }
         }
-           
+
         public static int GetTypeIndex(Type type)
         {
             int typeIndex = m_Types.FindIndex(c => (c.arrayElements == 0 && c.type == type));
@@ -63,7 +63,16 @@ namespace UnityEngine.ECS
             else
             {
                 int componentSize = 4;
-                if (!type.IsClass && typeof(IComponentData).IsAssignableFrom(type))
+
+                if (typeof(IComponentData).IsAssignableFrom(type))
+                {
+                    if (type.IsClass)
+                        throw new System.ArgumentException(string.Format("{0} is an IComponentData, and thus must be a struct.", type));
+                    if (!UnsafeUtility.IsBlittable(type))
+                        throw new System.ArgumentException(string.Format("{0} is an IComponentData, and thus must be blittable (No managed object is allowed on the struct).", type));
+                }
+
+                if (typeof(IComponentData).IsAssignableFrom(type))
                 {
                     componentSize = UnsafeUtility.SizeOfStruct(type);
                 }

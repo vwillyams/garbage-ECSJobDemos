@@ -85,6 +85,13 @@ namespace UnityEngine.Collections
 			where TKey : struct
 			where TValue : struct
 		{
+#if ENABLE_NATIVE_ARRAY_CHECKS
+            if (!UnsafeUtility.IsBlittable<TKey>())
+                throw new ArgumentException(string.Format("{0} used in NativeHashMap<{0},{1}> must be blittable", typeof(TKey), typeof(TValue)));
+            if (!UnsafeUtility.IsBlittable<TKey>())
+                throw new ArgumentException(string.Format("{1} used in NativeHashMap<{0},{1}> must be blittable", typeof(TKey), typeof(TValue)));
+#endif
+
 			outBuf = UnsafeUtility.Malloc (sizeof(NativeHashMapData), UnsafeUtility.AlignOf<NativeHashMapData>(), label);
 
 			NativeHashMapData* data = (NativeHashMapData*)outBuf;

@@ -110,7 +110,12 @@ namespace UnityEngine.Collections
 
 		unsafe private NativeList(int capacity, Allocator i_label, int stackDepth)
 		{
-			m_Buffer = UnsafeUtility.Malloc (sizeof(NativeListData), UnsafeUtility.AlignOf<NativeListData>(), i_label);
+#if ENABLE_NATIVE_ARRAY_CHECKS
+            if (!UnsafeUtility.IsBlittable<T>())
+                throw new ArgumentException(string.Format("{0} used in NativeList<{0}> must be blittable", typeof(T)));
+#endif
+
+            m_Buffer = UnsafeUtility.Malloc (sizeof(NativeListData), UnsafeUtility.AlignOf<NativeListData>(), i_label);
 			NativeListData* data = (NativeListData*)m_Buffer;
 
 			int elementSize = UnsafeUtility.SizeOf<T> ();
@@ -124,9 +129,10 @@ namespace UnityEngine.Collections
 
 			m_AllocatorLabel = i_label;
 
-			#if ENABLE_NATIVE_ARRAY_CHECKS
-			DisposeSentinel.Create(m_Buffer, i_label, out m_Safety, out m_DisposeSentinel, stackDepth, NativeListData.DeallocateList);
-			#endif
+#if ENABLE_NATIVE_ARRAY_CHECKS
+
+            DisposeSentinel.Create(m_Buffer, i_label, out m_Safety, out m_DisposeSentinel, stackDepth, NativeListData.DeallocateList);
+#endif
 		}
 
 		unsafe public void Add(T element)

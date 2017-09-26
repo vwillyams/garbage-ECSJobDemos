@@ -13,7 +13,8 @@ namespace UnityEngine.ECS
 
         public static bool operator == (EntityArchetype lhs, EntityArchetype rhs)   { return lhs.archetype == rhs.archetype; }
         public static bool operator != (EntityArchetype lhs, EntityArchetype rhs)   { return lhs.archetype != rhs.archetype; }
-        public override bool Equals(object compare)                                 { return this == (EntityArchetype)compare; }
+        public override bool Equals(object compare) { return this == (EntityArchetype)compare; }
+        public override int GetHashCode() { return (int)archetype; }
     }
 
 
@@ -24,7 +25,8 @@ namespace UnityEngine.ECS
 
         public static bool operator ==(Entity lhs, Entity rhs) { return lhs.index == rhs.index && lhs.version == rhs.version; }
         public static bool operator !=(Entity lhs, Entity rhs) { return lhs.index != rhs.index || lhs.version != rhs.version; }
-        public override bool Equals(object compare)            { return this == (Entity)compare; }
+        public override bool Equals(object compare) { return this == (Entity)compare; }
+        public override int GetHashCode() { return index; }
 
         //@TODO: Manager index for debugging?
     }

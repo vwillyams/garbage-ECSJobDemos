@@ -38,6 +38,17 @@ namespace UnityEngine.ECS
             return new ComponentType(type);
         }
 
+        public override bool Equals(object other)
+        {
+            return this == (ComponentType)other;
+        }
+
+        public override int GetHashCode()
+        {
+            return (typeIndex * 397) ^ sharedComponentIndex;
+        }
+
+
         static public bool operator ==(ComponentType lhs, ComponentType rhs)
         {
             return lhs.typeIndex == rhs.typeIndex && lhs.sharedComponentIndex == rhs.sharedComponentIndex;

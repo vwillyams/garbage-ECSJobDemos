@@ -5,7 +5,13 @@ namespace UnityEngine.ECS.Tests
 {
     public class TypeManagerTests : ECSFixture
 	{
-		struct TestType1
+        struct NonBlittableComponentData : IComponentData
+        {
+            string empty;
+        }
+
+
+        struct TestType1
 		{
 			int empty;
 		}
@@ -39,6 +45,12 @@ namespace UnityEngine.ECS.Tests
             Assert.AreNotEqual(ComponentType.Create<Entity>(), ComponentType.Create<EcsTestData>());
 
             Assert.AreEqual(typeof(Entity), entity.GetManagedType());
+        }
+
+        [Test]
+        unsafe public void NonBlittableComponentDataThrows()
+        {
+            Assert.Throws<System.ArgumentException>(() => { ComponentType.Create<NonBlittableComponentData>(); });
         }
     }
 }

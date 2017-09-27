@@ -35,15 +35,17 @@ public class ECSInstantiatePerformance : MonoBehaviour
     CustomSampler instantiateSampler;
 	CustomSampler destroySampler;
 	CustomSampler iterateSampler;
+    CustomSampler memcpySampler;
 
 	void Awake()
 	{
 		instantiateSampler = CustomSampler.Create("InstantiateTest");
 		destroySampler = CustomSampler.Create("DestroyTest");
-		iterateSampler = CustomSampler.Create("IterateTest");
-	}
+        iterateSampler = CustomSampler.Create("IterateTest");
+        memcpySampler = CustomSampler.Create("Memcpy - All component size");
+    }
 
-	void Update()
+    unsafe void Update()
 	{
 		UnityEngine.Collections.NativeLeakDetection.Mode = UnityEngine.Collections.NativeLeakDetectionMode.Disabled;
 
@@ -52,6 +54,20 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		DependencyManager.SetDefaultCapacity (kInstanceCount * 2);
 
 		var m_EntityManager = DependencyManager.GetBehaviourManager<EntityManager>();
+
+        int size = sizeof(Component128Bytes) + sizeof(Component12Bytes) + sizeof(Component64Bytes) + sizeof(Component64Bytes) + sizeof(Component16Bytes);
+        size *= kInstanceCount;
+        var src = UnsafeUtility.Malloc(size, 64, Allocator.Persistent);
+        var dst = UnsafeUtility.Malloc(size, 64, Allocator.Persistent);
+
+        memcpySampler.Begin();
+        UnsafeUtility.MemCpy(dst, src, size);
+        memcpySampler.End();
+
+        UnsafeUtility.Free(src, Allocator.Persistent);
+        UnsafeUtility.Free(dst, Allocator.Persistent);
+
+
 
         var archetype = m_EntityManager.CreateEntity();
         m_EntityManager.AddComponent<Component128Bytes>(archetype, new Component128Bytes());

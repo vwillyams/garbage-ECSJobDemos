@@ -21,6 +21,8 @@ namespace UnityEngine.ECS
         const int kMaxReadJobHandles = 17;
         const int kMaxTypes = 5000;
 
+        bool                    m_HasCleanHandles;
+
         JobHandle*              m_ReadJobFences;
         ComponentSafetyHandle*  m_ComponentSafetyHandles;
         AtomicSafetyHandle      m_TempSafety;
@@ -41,11 +43,18 @@ namespace UnityEngine.ECS
                 m_ComponentSafetyHandles[i].safetyHandle = AtomicSafetyHandle.Create();
                 AtomicSafetyHandle.SetAllowSecondaryVersionWriting(m_ComponentSafetyHandles[i].safetyHandle, false);
             }
+
+            m_HasCleanHandles = true;
         }
 
         //@TODO: Optimize as one function call to in batch bump version on every single handle...
         public void CompleteAllJobsAndInvalidateArrays()
         {
+            if (m_HasCleanHandles)
+                return;
+
+            Profiling.Profiler.BeginSample("CompleteAllJobsAndInvalidateArrays");
+
             int count = TypeManager.GetTypeCount();
             for (int t = 0; t != count; t++)
             {
@@ -64,6 +73,10 @@ namespace UnityEngine.ECS
                 m_ComponentSafetyHandles[i].safetyHandle = AtomicSafetyHandle.Create();
                 AtomicSafetyHandle.SetAllowSecondaryVersionWriting(m_ComponentSafetyHandles[i].safetyHandle, false);
             }
+
+            m_HasCleanHandles = true;
+
+            Profiling.Profiler.EndSample();
         }
 
 
@@ -136,12 +149,15 @@ namespace UnityEngine.ECS
 
         public void AddWriteDependency(int type, JobHandle fence)
         {
+            m_HasCleanHandles = false;
             //@TODO: Check that it depends on all previous dependencies...
             m_ComponentSafetyHandles[type].writeFence = fence;
         }
 
         public void AddReadDependency(int type, JobHandle fence)
         {
+            m_HasCleanHandles = false;
+
             m_ReadJobFences[type * kMaxReadJobHandles + m_ComponentSafetyHandles[type].numReadFences] = fence;
             m_ComponentSafetyHandles[type].numReadFences++;
 
@@ -151,6 +167,7 @@ namespace UnityEngine.ECS
 
         public AtomicSafetyHandle GetSafetyHandle(int type)
         {
+            m_HasCleanHandles = false;
             return m_ComponentSafetyHandles[type].safetyHandle;
         }
 
@@ -161,7 +178,5 @@ namespace UnityEngine.ECS
             m_ReadJobFences[type * kMaxReadJobHandles] = JobHandle.CombineDependencies(readFencesSlice);
             m_ComponentSafetyHandles[type].numReadFences = 1;
         }
-
-
-}
+    }
 }

@@ -40,6 +40,7 @@ namespace UnityEngine.ECS.Tests
             public void Execute()
             { }
         }
+
         [Test]
         public void ComponentDataArrayJobSafety()
         {
@@ -72,6 +73,26 @@ namespace UnityEngine.ECS.Tests
             CreateEntityWithDefaultData(1);
 
             Assert.Throws<InvalidOperationException>(() => { var value = arr[0]; });
+        }
+
+        [Test]
+        public void GetComponentDataArrayFromEntitySafety()
+        {
+            var archetype = m_Manager.CreateArchetype(typeof(EcsTestData));
+            var entity = m_Manager.CreateEntity(archetype);
+            m_Manager.SetComponent(entity, new EcsTestData(42));
+
+            var data = m_Manager.GetComponentDataArrayFromEntity<EcsTestData>();
+
+            Assert.IsTrue(data.Exists(entity));
+            Assert.AreEqual(42, data[entity].value);
+
+            data[entity] = new EcsTestData(13);
+
+            m_Manager.DestroyEntity(entity);
+
+            Assert.Throws<InvalidOperationException>(() => { data.Exists(entity); });
+            Assert.Throws<InvalidOperationException>(() => { data[entity] = new EcsTestData(); });
         }
 
         [Test]

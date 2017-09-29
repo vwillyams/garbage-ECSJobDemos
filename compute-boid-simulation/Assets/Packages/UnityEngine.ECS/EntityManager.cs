@@ -300,7 +300,11 @@ namespace UnityEngine.ECS
             m_Entities.SetArchetype(m_ArchetypeManager, entity, newType, newChunk, newChunkIndex);
         }
 
-
+        public unsafe ComponentDataArrayFromEntity<T> GetComponentDataArrayFromEntity<T>() where T : struct, IComponentData
+        {
+            int typeIndex = TypeManager.GetTypeIndex<T>();
+            return new ComponentDataArrayFromEntity<T>(m_JobSafetyManager.GetSafetyHandle(typeIndex), typeIndex, m_Entities.m_Entities);
+        }
 
         public T GetComponent<T>(Entity entity) where T : struct, IComponentData
         {

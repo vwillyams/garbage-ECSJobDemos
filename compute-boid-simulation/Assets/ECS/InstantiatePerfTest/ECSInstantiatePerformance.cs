@@ -36,13 +36,15 @@ public class ECSInstantiatePerformance : MonoBehaviour
 	CustomSampler destroySampler;
 	CustomSampler iterateSampler;
     CustomSampler memcpySampler;
+    CustomSampler memcpy12Sampler;
 
-	void Awake()
+    void Awake()
 	{
 		instantiateSampler = CustomSampler.Create("InstantiateTest");
 		destroySampler = CustomSampler.Create("DestroyTest");
         iterateSampler = CustomSampler.Create("IterateTest");
         memcpySampler = CustomSampler.Create("Memcpy - All component size");
+        memcpy12Sampler = CustomSampler.Create("Memcpy - Component 12 bytes");
     }
 
     unsafe void Update()
@@ -55,7 +57,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 
 		var m_EntityManager = DependencyManager.GetBehaviourManager<EntityManager>();
 
-        int size = sizeof(Component128Bytes) + sizeof(Component12Bytes) + sizeof(Component64Bytes) + sizeof(Component64Bytes) + sizeof(Component16Bytes);
+        int size = sizeof(Component128Bytes) + sizeof(Component12Bytes) + sizeof(Component64Bytes) + sizeof(Component64Bytes) + sizeof(Component16Bytes) + sizeof(Entity);
         size *= kInstanceCount;
         var src = UnsafeUtility.Malloc(size, 64, Allocator.Persistent);
         var dst = UnsafeUtility.Malloc(size, 64, Allocator.Persistent);
@@ -63,6 +65,11 @@ public class ECSInstantiatePerformance : MonoBehaviour
         memcpySampler.Begin();
         UnsafeUtility.MemCpy(dst, src, size);
         memcpySampler.End();
+
+
+        memcpy12Sampler.Begin();
+        UnsafeUtility.MemCpy(dst, src, sizeof(Component12Bytes) * kInstanceCount);
+        memcpy12Sampler.End();
 
         UnsafeUtility.Free(src, Allocator.Persistent);
         UnsafeUtility.Free(dst, Allocator.Persistent);

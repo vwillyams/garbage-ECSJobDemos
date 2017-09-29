@@ -29,6 +29,7 @@ namespace UnityEngine.ECS
 		public Chunk*           last;
 
 		public int              entityCount;
+		public int              chunkCapacity;
 
         public ComponentType*   types;
         public int              typesCount;
@@ -37,9 +38,11 @@ namespace UnityEngine.ECS
         public int*   	        offsets;
         public int*             strides;
         public int*             sizeOfs;
-		public int              bytesPerInstance;
+		public int              stridedBytesPerInstance;
 
-		public int*             managedArrayOffset;
+        public bool             isStridedLayout;
+
+        public int*             managedArrayOffset;
 		public int              numManagedArrays;
 
 		public int              managedObjectListenerIndex;
@@ -137,29 +140,75 @@ namespace UnityEngine.ECS
 
 			type->entityCount = 0;
 
-			// FIXME: proper alignment
-			type->offsets = (int*)m_ArchetypeChunkAllocator.Allocate (sizeof(int) * count, 4);
+            int chunkDataSize = GetChunkBufferSize();
+
+
+            // FIXME: proper alignment
+            type->offsets = (int*)m_ArchetypeChunkAllocator.Allocate (sizeof(int) * count, 4);
 			type->strides = (int*)m_ArchetypeChunkAllocator.Allocate (sizeof(int) * count, 4);
-            type->sizeOfs = (int*)m_ArchetypeChunkAllocator.Allocate (sizeof(int) * count, 4);
+            type->sizeOfs = (int*)m_ArchetypeChunkAllocator.Allocate(sizeof(int) * count, 4);
 
-			type->managedObjectListenerIndex = -1;
-			type->numManagedArrays = 0;
-			type->managedArrayOffset = null;
-            int bytesPerInstance = 0;
-			for (int i = 0; i < count; ++i)
-			{
-                TypeManager.ComponentType cType = TypeManager.GetComponentType(types[i].typeIndex);
-                int sizeOf = cType.sizeInChunk;
+            // strided
+            if (false)
+            {
+                int bytesPerInstance = 0;
+                for (int i = 0; i < count; ++i)
+                {
+                    TypeManager.ComponentType cType = TypeManager.GetComponentType(types[i].typeIndex);
+                    int sizeOf = cType.sizeInChunk;
 
-                type->offsets[i] = bytesPerInstance;
-                type->sizeOfs[i] = sizeOf;
+                    type->offsets[i] = bytesPerInstance;
+                    type->sizeOfs[i] = sizeOf;
 
-                bytesPerInstance += sizeOf;
-
-				if (cType.requireManagedClass)
-					++type->numManagedArrays;
+                    bytesPerInstance += sizeOf;
+                }
+                for (int i = 0; i < count; ++i)
+                    type->strides[i] = bytesPerInstance;
+                type->stridedBytesPerInstance = bytesPerInstance;
+                type->chunkCapacity = chunkDataSize / bytesPerInstance;
+                type->isStridedLayout = true;
             }
-			if (type->numManagedArrays > 0)
+            // streams
+            else
+            {
+                int bytesPerInstance = 0;
+
+                for (int i = 0; i < count; ++i)
+                {
+                    TypeManager.ComponentType cType = TypeManager.GetComponentType(types[i].typeIndex);
+                    int sizeOf = cType.sizeInChunk;
+                    type->sizeOfs[i] = sizeOf;
+
+                    bytesPerInstance += sizeOf;
+                }
+
+                type->chunkCapacity = chunkDataSize / bytesPerInstance;
+
+                int usedBytes = 0;
+                for (int i = 0; i < count; ++i)
+                {
+                    int sizeOf = type->sizeOfs[i];
+
+                    type->offsets[i] = usedBytes;
+                    type->strides[i] = sizeOf;
+
+                    usedBytes += sizeOf * type->chunkCapacity;
+                }
+                type->stridedBytesPerInstance = -1;
+                type->isStridedLayout = false;
+            }
+
+            type->managedObjectListenerIndex = -1;
+            type->numManagedArrays = 0;
+            type->managedArrayOffset = null;
+
+            for (int i = 0; i < count; ++i)
+            {
+                if (TypeManager.GetComponentType(types[i].typeIndex).requireManagedClass)
+                    ++type->numManagedArrays;
+            }
+
+            if (type->numManagedArrays > 0)
 			{
 				type->managedArrayOffset = (int*)m_ArchetypeChunkAllocator.Allocate (sizeof(int) * count, 4);
 				int mi = 0;
@@ -172,9 +221,6 @@ namespace UnityEngine.ECS
 						type->managedArrayOffset[i] = -1;
 				}
 			}
-			for (int i = 0; i < count; ++i)
-				type->strides[i] = bytesPerInstance;
-            type->bytesPerInstance = bytesPerInstance;
 
 			// Update the list of all created archetypes
 			type->prevArchetype = m_LastArchetype;
@@ -191,18 +237,28 @@ namespace UnityEngine.ECS
 			return type;
 		}
 
+        const int kChunkSize = 16 * 1024;
+
+        static int GetChunkBufferSize()
+        {
+            int bufferOffset = (sizeof(Chunk) + 63) & ~63;
+            int bufferSize = kChunkSize - bufferOffset;
+
+            return bufferSize;
+        }
+
         public Chunk* AllocateChunk(Archetype* archetype)
         {
-			const int chunkSize = 16 * 1024;
-            IntPtr buffer = UnsafeUtility.Malloc(chunkSize, 64, Allocator.Persistent);
+            IntPtr buffer = UnsafeUtility.Malloc(kChunkSize, 64, Allocator.Persistent);
+
+            int bufferOffset = (sizeof(Chunk) + 63) & ~63;
 
             var chunk = (Chunk*)buffer;
             chunk->archetype = archetype;
-			int bufferOffset = (sizeof(Chunk) + 63) & ~63;
-			chunk->buffer = (IntPtr)(((byte*)chunk) + bufferOffset);
-			chunk->count = 0;
-			int bufferSize = chunkSize - bufferOffset;
-			chunk->capacity = bufferSize / archetype->bytesPerInstance;
+
+            chunk->buffer = (IntPtr)(((byte*)chunk) + bufferOffset);
+            chunk->count = 0;
+            chunk->capacity = archetype->chunkCapacity;
 			chunk->next = null;
 			if (archetype->last != null)
 				archetype->last->next = chunk;

@@ -98,10 +98,24 @@ namespace UnityEngine.ECS
         public static void ReplicateComponents(Chunk* srcChunk, int srcIndex, Chunk* dstChunk, int dstBaseIndex, int count)
         {
             Archetype* arch = srcChunk->archetype;
-            // assumes fully strided data
-            IntPtr src = GetComponentData(srcChunk, srcIndex, 0);
-            IntPtr dst = GetComponentData(dstChunk, dstBaseIndex, 0);
-            MemCpyReplicate(dst, src, arch->bytesPerInstance, count);
+            if (arch->isStridedLayout)
+            {
+                // assumes fully strided data
+                IntPtr src = GetComponentData(srcChunk, srcIndex, 0);
+                IntPtr dst = GetComponentData(dstChunk, dstBaseIndex, 0);
+                MemCpyReplicate(dst, src, arch->stridedBytesPerInstance, count);
+            }
+            else
+            {
+                // type[0] is always Entity, and will be patched up later, so just skip
+
+                for (int t = 1; t != arch->typesCount; t++)
+                {
+                    IntPtr dst = GetComponentData(dstChunk, dstBaseIndex, t);
+                    IntPtr src = GetComponentData(srcChunk, srcIndex, t);
+                    MemCpyReplicate(dst, src, arch->sizeOfs[t], count);
+                }
+            }
         }
 
         public static void Convert(Chunk* srcChunk, int srcIndex, Chunk* dstChunk, int dstIndex)

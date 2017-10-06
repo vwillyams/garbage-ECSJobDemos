@@ -1,6 +1,4 @@
-﻿//#define ENABLE_HLVM_COMPILER
-
-#if ENABLE_HLVM_COMPILER
+﻿#if ENABLE_HLVM_COMPILER
 
 using System;
 using System.Collections.Generic;
@@ -77,6 +75,8 @@ namespace UnityEngine.Jobs
 #if ENABLE_HLVM_COMPILER
 
 
+namespace UnityEngine.Jobs
+{
 [UnityEditor.InitializeOnLoad]
 class HLVMCompilationEngine
 {
@@ -123,7 +123,6 @@ class HLVMCompilationEngine
 
     static System.IntPtr Compile(System.Type jobType, System.Object function)
     {
-        string fullStructName = jobType.FullName;
         // Debug.Log("Compiling " + assemblyPath + " -> " + fullStructName);
 
         p2gc.JitOptions options = null;
@@ -138,27 +137,77 @@ class HLVMCompilationEngine
             options = attrib.m_Options;
         }
 
+        string fullStructName = jobType.FullName;
+
+        string key = jobType.FullName + "_" + ((System.Delegate)function).Method.Name;
+        System.IntPtr cache = UnityEngineInternal.Jobs.JobCompiler.GetCachedJobFunction(key);
+        if (cache != IntPtr.Zero)
+        {
+            return cache;
+        }
+
         string unityEngineDLLSearchDir = Path.GetDirectoryName(typeof(UnityEngine.Object).Assembly.Location);
         string[] searchPaths = { unityEngineDLLSearchDir };
 
         System.Delegate callbackFunction = (System.Delegate)function;
 
+        var stopwatch = new System.Diagnostics.Stopwatch();
+        stopwatch.Start();
+        
         p2gc.JitCompiler compiler = new p2gc.JitCompiler (searchPaths);
+        options.DumpFlags = options.DumpFlags | JitDumpFlags.LLVM;
         var result = compiler.CompileMethod(callbackFunction.Method, options, GenerateExternalCalls());
+        
+        stopwatch.Stop();
 
         if (result.FunctionPointer != System.IntPtr.Zero)
-            Debug.Log("Compiled : " + fullStructName);
+        {
+            UnityEngineInternal.Jobs.JobCompiler.SetCachedJobFunction(key, result.FunctionPointer);
+            Debug.Log(string.Format("Compiled : {0} in {1} seconds", fullStructName, stopwatch.Elapsed.Seconds));
+        }
         else
             Debug.Log("Failed Compilation: " + fullStructName);
+
 
         return result.FunctionPointer;
     }
 
     static HLVMCompilationEngine()
     {
-        // Debug.Log("Initialize Compilation Engine");
-        UnityEngineInternal.Jobs.JobCompiler.JitCompile += Compile;
+        if (UnityEditor.EditorPrefs.GetBool("ENABLE_BURST_COMPILER"))
+        {
+             Debug.Log("Initialize Burst Compiler");
+             UnityEngineInternal.Jobs.JobCompiler.JitCompile += Compile;
+        }
     }
 }
 
+
+class InvalidateBurstJobCache : UnityEditor.AssetPostprocessor
+{
+    public static void Invalidate(string[] importedAssets)
+    {
+        const string ext = ".cs";
+
+        foreach (string str in importedAssets)
+        {
+            if (str.EndsWith(ext))
+            {
+                UnityEngineInternal.Jobs.JobCompiler.ClearCachedJobFunctions();
+                return;
+            }
+        }
+
+    }
+    
+    static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+    {
+        Invalidate(importedAssets);
+        Invalidate(movedAssets);
+        Invalidate(deletedAssets);
+    }
+}
+
+
 #endif
+

@@ -9,6 +9,12 @@ namespace UnityEngine.ECS.Tests
 {
     public class ECSSafetyTests : ECSFixture
 	{
+        public ECSSafetyTests()
+        {
+            Assert.IsTrue(JobsUtility.GetJobDebuggerEnabled(), "JobDebugger must be enabled for these tests");
+        }
+
+
         [Test]
         public void ReadOnlyComponentDataArray()
         {
@@ -44,20 +50,20 @@ namespace UnityEngine.ECS.Tests
         [Test]
         public void ComponentDataArrayJobSafety()
         {
-            var archetype = m_Manager.CreateArchetype(typeof(EcsTestData), typeof(EcsTestData2));
-
-            var group = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(EcsTestData2));
-            var entity = m_Manager.CreateEntity(archetype);
-            var arr = group.GetComponentDataArray<EcsTestData>();
+            var group = m_Manager.CreateComponentGroup(typeof(EcsTestData));
+            var entity = m_Manager.CreateEntity(typeof(EcsTestData));
             m_Manager.SetComponent(entity, new EcsTestData(42));
 
             var job = new TestComponentWriteJob();
-            job.data = arr;
-            Assert.AreEqual(42, arr[0].value);
+            job.data = group.GetComponentDataArray<EcsTestData>();
+            Assert.AreEqual(42, job.data[0].value);
+
             var fence = job.Schedule();
-            Assert.Throws<System.InvalidOperationException>(() => { var f = arr[0].value; });
+            //Assert.Throws<System.InvalidOperationException>(() => { var f = job.data[0].value; });
+            Assert.AreEqual(42, job.data[0].value);
+
             fence.Complete();
-            Assert.AreEqual(42, arr[0].value);
+            Assert.AreEqual(42, job.data[0].value);
 
             m_Manager.DestroyEntity(entity);
         }

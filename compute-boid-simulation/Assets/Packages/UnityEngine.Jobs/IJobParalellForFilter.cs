@@ -31,12 +31,11 @@ namespace UnityEngine.Jobs
 
                 return jobReflectionData;
             }
-
-            public delegate void ExecuteJobFunction(ref JobDataWithFiltering data, System.IntPtr additionalPtr, System.IntPtr bufferRangePatchData, int beginIndex, int count);
+            public delegate void ExecuteJobFunction(ref JobDataWithFiltering data, System.IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
             // @TODO: Use parallel for job... (Need to expose combine jobs)
 
-            public unsafe static void Execute(ref JobDataWithFiltering jobData, System.IntPtr additionalPtr, System.IntPtr bufferRangePatchData, int startIndex, int count)
+            public unsafe static void Execute(ref JobDataWithFiltering jobData, System.IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
                 if (jobData.appendCount == -1)
                     ExecuteFilter(ref jobData, bufferRangePatchData);

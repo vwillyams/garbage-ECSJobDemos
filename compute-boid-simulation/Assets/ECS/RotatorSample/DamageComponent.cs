@@ -17,7 +17,7 @@ namespace RotatorSamples
 	public class DamageComponent : ComponentDataWrapper<Damage> { }
 
 	// Apply damage in radius by slowing down speed of all rotators
-	[UpdateAfter("PreLateUpdate.ParticleSystemBeginUpdateAll")]
+	[UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.PreLateUpdate.ParticleSystemBeginUpdateAll))]
 	public class DamageSystem : JobComponentSystem
 	{
 		// Damage components and transforms are in first tuple set (both arrays are in sync and required)

@@ -12,18 +12,11 @@ namespace UnityEngine.ECS
 	[AttributeUsage(AttributeTargets.Class)]
 	public class UpdateAfter : System.Attribute
 	{
-		public string NativeSystem { get; set; }
-		public Type  ManagedSystem { get; set; }
+		public Type  SystemType { get; set; }
 
-		public UpdateAfter(string nativeSystem)
+		public UpdateAfter(Type systemType)
 		{
-		    NativeSystem = nativeSystem;
-			ManagedSystem = null;
-		}
-		public UpdateAfter(Type managedSystem)
-		{
-			NativeSystem = null;
-		    ManagedSystem = managedSystem;
+		    SystemType = systemType;
 		}
 	}
 
@@ -92,39 +85,16 @@ namespace UnityEngine.ECS
 		{
 			
 		}
-		static private int GetFixedListIndex(List<UnityEngine.PlayerLoopSystem> defaultLoop)
+		static private int FindPlayerLoopInsertionPoint(Type dependency, List<UnityEngine.Experimental.LowLevel.PlayerLoopSystem> systemList)
 		{
-			for (int i = 0;i != defaultLoop.Count;i++)
-			{
-				if (defaultLoop[i].name == "FixedUpdate")
-					return i;
-			}
-
-			throw new ArgumentException ("No fixed update loop found");
-		}
-
-		static private int FindPlayerLoopInsertionPoint(string dependency, List<UnityEngine.PlayerLoopSystem> systemList)
-		{
-			if (dependency == null || dependency == "")
+			if (dependency == null)
 				return 0;
 			int insertIndex = -1;
-			if (dependency.IndexOf('.') < 0)
+			// Run after an update phase
+			for (int i = 0; i < systemList.Count; ++i)
 			{
-				// Run after an update phase
-				for (int i = 0; i < systemList.Count; ++i)
-				{
-					if (systemList[i].name.StartsWith(dependency))
-						insertIndex = i+1;
-				}
-			}
-			else
-			{
-				// Run after a specific step
-				for (int i = 0; i < systemList.Count; ++i)
-				{
-					if (systemList[i].name == dependency)
-						insertIndex = i+1;
-				}
+				if (systemList[i].type == dependency)
+					insertIndex = i+1;
 			}
 			return insertIndex;
 		}
@@ -135,112 +105,95 @@ namespace UnityEngine.ECS
 		{
 			var attribs = managerType.GetCustomAttributes(typeof(UpdateAfter), true);
 			if (attribs.Length == 0)
-				return new UpdateAfter("PreUpdate");
+				return new UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.PreUpdate));
 			return attribs[0] as UpdateAfter;
 		}
 		private void UpdatePlayerLoop()
 		{
 			// Create buckets for all s_ActiveManagers with same dependency
-			var nativeDependencyBuckets = new Dictionary<string, List<UnityEngine.PlayerLoopSystem>>();
-			var managedDependencyBuckets = new Dictionary<string, List<UnityEngine.PlayerLoopSystem>>();
+			var dependencyBuckets = new Dictionary<Type, List<UnityEngine.Experimental.LowLevel.PlayerLoopSystem>>();
+			var dummyBuckets = new List<UnityEngine.Experimental.LowLevel.PlayerLoopSystem>();
 			foreach (var manager in s_ActiveManagers)
 			{
 				// TODO: get dependency from attribute, with default value
 				var dependency = GetManagerDependency(manager.GetType());
-				List<UnityEngine.PlayerLoopSystem> managerList;
-				if (dependency.ManagedSystem != null)
+				List<UnityEngine.Experimental.LowLevel.PlayerLoopSystem> managerList = dummyBuckets;
+				if (dependency.SystemType != null)
 				{
-					if (!managedDependencyBuckets.TryGetValue("ECS."+dependency.ManagedSystem, out managerList))
+					if (!dependencyBuckets.TryGetValue(dependency.SystemType, out managerList))
 					{
-						managerList = new List<UnityEngine.PlayerLoopSystem>();
-						managedDependencyBuckets.Add("ECS."+dependency.ManagedSystem, managerList);
+						managerList = new List<UnityEngine.Experimental.LowLevel.PlayerLoopSystem>();
+						dependencyBuckets.Add(dependency.SystemType, managerList);
 					}
 				}
-				else
-				{
-					if (!nativeDependencyBuckets.TryGetValue(dependency.NativeSystem, out managerList))
-					{
-						managerList = new List<UnityEngine.PlayerLoopSystem>();
-						nativeDependencyBuckets.Add(dependency.NativeSystem, managerList);
-					}
-				}
-				var system = new UnityEngine.PlayerLoopSystem();
-				system.name = "ECS." + manager.GetType();
+				var system = new UnityEngine.Experimental.LowLevel.PlayerLoopSystem();
+				system.type = manager.GetType();
 				var tmp = new DummyDelagateWrapper(manager);
 				system.updateDelegate = tmp.TriggerUpdate;
 				//system.updateDelegate = manager.OnUpdate;
 				managerList.Add(system);
 			}
+			if (dummyBuckets.Count > 0)
+				dependencyBuckets.Add(null, dummyBuckets);
 			// Insert the buckets at the appropriate place in the player loop
-			var defaultLoop = UnityEngine.PlayerLoop.GetDefaultPlayerLoop();
-			if (nativeDependencyBuckets.Count == 0)
+			var defaultLoop = UnityEngine.Experimental.LowLevel.PlayerLoop.GetDefaultPlayerLoop();
+			if (dependencyBuckets.Count == 0)
 			{
-				UnityEngine.PlayerLoop.SetPlayerLoop(defaultLoop);
+				UnityEngine.Experimental.LowLevel.PlayerLoop.SetPlayerLoop(defaultLoop);
 				return;
 			}
-			var systemList = new List<UnityEngine.PlayerLoopSystem>(defaultLoop.subSystemList);
-			var fixedSystemList = new List<UnityEngine.PlayerLoopSystem>(defaultLoop.subSystemList[GetFixedListIndex(systemList)].subSystemList);
-
-			foreach(KeyValuePair<string, List<UnityEngine.PlayerLoopSystem>> entry in nativeDependencyBuckets)
+			var systemList = new List<UnityEngine.Experimental.LowLevel.PlayerLoopSystem>(defaultLoop.subSystemList);
+			var subSystemLists = new List<List<UnityEngine.Experimental.LowLevel.PlayerLoopSystem>>(defaultLoop.subSystemList.Length);
+			for (int i = 0; i < systemList.Count; ++i)
 			{
-				int insertIndex = FindPlayerLoopInsertionPoint(entry.Key, systemList);
-				int fixedInsertIndex = FindPlayerLoopInsertionPoint(entry.Key, fixedSystemList);
-
-				if (insertIndex < 0 && fixedInsertIndex < 0)
-				{
-					Debug.LogWarning(string.Format("{0} UpdateAfter on non-existing system {1}", entry.Value[0].name, entry.Key));
-					insertIndex = FindPlayerLoopInsertionPoint("PreUpdate", systemList);
-					if (insertIndex < 0)
-						insertIndex = 0;
-				}
-
-				if (fixedInsertIndex >= 0)
-					fixedSystemList.InsertRange(fixedInsertIndex, entry.Value);
-				else
-					systemList.InsertRange(insertIndex, entry.Value);
+				subSystemLists.Add(new List<UnityEngine.Experimental.LowLevel.PlayerLoopSystem>(defaultLoop.subSystemList[i].subSystemList));
 			}
+
 			bool addedMore = true;
-			while (managedDependencyBuckets.Count != 0 && addedMore)
+			while (dependencyBuckets.Count != 0 && addedMore)
 			{
 				addedMore = false;
 				for (int i = 0; i < systemList.Count; ++i)
 				{
-					List<UnityEngine.PlayerLoopSystem> manList;
-					if (managedDependencyBuckets.TryGetValue(systemList[i].name, out manList))
+					List<UnityEngine.Experimental.LowLevel.PlayerLoopSystem> manList;
+					if (dependencyBuckets.TryGetValue(systemList[i].type, out manList))
 					{
 						systemList.InsertRange(i+1, manList);
-						managedDependencyBuckets.Remove(systemList[i].name);
+						dependencyBuckets.Remove(systemList[i].type);
+						for (int sl = 0; sl < manList.Count; ++sl)
+							subSystemLists.Insert(i+1, new List<UnityEngine.Experimental.LowLevel.PlayerLoopSystem>());
 						addedMore = true;
 					}
-				}
-			
-				for (int i = 0; i < fixedSystemList.Count; ++i)
-				{
-					List<UnityEngine.PlayerLoopSystem> manList;
-					if (managedDependencyBuckets.TryGetValue(fixedSystemList[i].name, out manList))
+					var subSystemList = subSystemLists[i];
+					for (int subsys = 0; subsys < subSystemList.Count; ++subsys)
 					{
-						fixedSystemList.InsertRange(i+1, manList);
-						managedDependencyBuckets.Remove(fixedSystemList[i].name);
-						addedMore = true;
+						if (dependencyBuckets.TryGetValue(subSystemList[subsys].type, out manList))
+						{
+							subSystemList.InsertRange(subsys+1, manList);
+							dependencyBuckets.Remove(subSystemList[subsys].type);
+							addedMore = true;
+						}						
 					}
 				}
-
 			}
-			if (managedDependencyBuckets.Count != 0)
+			foreach(KeyValuePair<Type, List<UnityEngine.Experimental.LowLevel.PlayerLoopSystem>> entry in dependencyBuckets)
 			{
-				foreach(KeyValuePair<string, List<UnityEngine.PlayerLoopSystem>> entry in managedDependencyBuckets)
-				{
-					//Debug.LogWarning(string.Format("{0} UpdateAfter on non-existing system {1}", entry.Value[0].name, entry.Key));
-					systemList.InsertRange(0, entry.Value);
-				}
-				
+				// FIXME: print warning?
+				int insertIndex = FindPlayerLoopInsertionPoint(typeof(UnityEngine.Experimental.PlayerLoop.PreUpdate), systemList);
+				if (insertIndex < 0)
+					insertIndex = 0;
+
+				systemList.InsertRange(insertIndex, entry.Value);
+				for (int sl = 0; sl < entry.Value.Count; ++sl)
+					subSystemLists.Insert(insertIndex, new List<UnityEngine.Experimental.LowLevel.PlayerLoopSystem>());
 			}
 			
-			var ecsLoop = new UnityEngine.PlayerLoopSystem();
-			ecsLoop.name = "ECSPlayerLoop";
+			var ecsLoop = new UnityEngine.Experimental.LowLevel.PlayerLoopSystem();
+			ecsLoop.type = null;
 			ecsLoop.subSystemList = systemList.ToArray();
-			ecsLoop.subSystemList[GetFixedListIndex (systemList)].subSystemList = fixedSystemList.ToArray ();
-			UnityEngine.PlayerLoop.SetPlayerLoop(ecsLoop);
+			for (int i = 0; i < systemList.Count; ++i)
+				ecsLoop.subSystemList[i].subSystemList = subSystemLists[i].ToArray();
+			UnityEngine.Experimental.LowLevel.PlayerLoop.SetPlayerLoop(ecsLoop);
 		}
 	}
 }

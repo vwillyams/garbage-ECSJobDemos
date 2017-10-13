@@ -59,8 +59,7 @@ namespace UnityEngine.ECS.Tests
             Assert.AreEqual(42, job.data[0].value);
 
             var fence = job.Schedule();
-            //Assert.Throws<System.InvalidOperationException>(() => { var f = job.data[0].value; });
-            Assert.AreEqual(42, job.data[0].value);
+            Assert.Throws<System.InvalidOperationException>(() => { var f = job.data[0].value; });
 
             fence.Complete();
             Assert.AreEqual(42, job.data[0].value);

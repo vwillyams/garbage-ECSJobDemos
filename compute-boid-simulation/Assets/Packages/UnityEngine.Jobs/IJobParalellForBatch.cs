@@ -23,10 +23,23 @@ namespace UnityEngine.Jobs
                 return jobReflectionData;
             }
 
-            public delegate void ExecuteJobFunction(ref T data, System.IntPtr additionalPtr, System.IntPtr bufferRangePatchData, int beginIndex, int count);
-            public static void Execute(ref T jobData, System.IntPtr additionalPtr, System.IntPtr bufferRangePatchData, int startIndex, int count)
+            public delegate void ExecuteJobFunction(ref T data, System.IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
+
+            public unsafe static void Execute(ref T jobData, System.IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
-                jobData.Execute(startIndex, count);
+                while (true)
+                {
+                    int begin;
+                    int end;
+                    if (!JobsUtility.GetJobRangeWorksteal(ref ranges, jobIndex, out begin, out end))
+                        return;
+
+                    #if ENABLE_NATIVE_ARRAY_CHECKS
+                    JobsUtility.PatchBufferMinMaxRanges(bufferRangePatchData, UnsafeUtility.AddressOf(ref jobData), begin, end - begin);
+                    #endif
+
+                    jobData.Execute(begin, end - begin);
+                }
             }
         }
 
@@ -43,4 +56,5 @@ namespace UnityEngine.Jobs
         }
     }
 }
+
 #endif // ENABLE_MANAGED_JOBS

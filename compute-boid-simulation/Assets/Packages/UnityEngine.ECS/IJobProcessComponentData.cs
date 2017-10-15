@@ -40,8 +40,8 @@ namespace UnityEngine.ECS.Experimental
             where T : struct, IJobProcessComponentData<U0>
             where U0 : struct, IComponentData
         {
-            public ComponentDataArray<U0> componentDataArray;
-            public T data;
+            public ComponentDataArray<U0>  componentDataArray;
+            public T                       data;
 
             static public IntPtr jobReflectionData;
 
@@ -53,21 +53,23 @@ namespace UnityEngine.ECS.Experimental
                 return jobReflectionData;
             }
 
-            public delegate void ExecuteJobFunction(ref JobStruct<T, U0> data, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, int beginIndex, int count);
+            public delegate void ExecuteJobFunction(ref JobStruct<T, U0> data, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
-            // @TODO: Use parallel for job... (Need to expose combine jobs)
-
-            public unsafe static void Execute(ref JobStruct<T, U0> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, int startIndex, int count)
+            public unsafe static void Execute(ref JobStruct<T, U0> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
-                int endIndex = startIndex + count;
-                for (int i = startIndex; i != endIndex; i++)
+                int begin;
+                int end;
+                while (JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
                 {
-                    //@TODO: Optimize into two loops to avoid branches inside indexer...
-                    //@TODO: use ref returns to pass by ref instead of double copy
+                    for (int i = begin; i != end; i++)
+                    {
+                        //@TODO: Optimize into two loops to avoid branches inside indexer...
+                        //@TODO: use ref returns to pass by ref instead of double copy
 
-                    U0 value = jobData.componentDataArray[i];
-                    jobData.data.Execute(ref value);
-                    jobData.componentDataArray[i] = value;
+                        U0 value = jobData.componentDataArray[i];
+                        jobData.data.Execute(ref value);
+                        jobData.componentDataArray[i] = value;
+                    }
                 }
             }
         }
@@ -94,9 +96,9 @@ namespace UnityEngine.ECS.Experimental
             where U0 : struct, IComponentData
             where U1 : struct, IComponentData
         {
-            public ComponentDataArray<U0> componentDataArray0;
-            public ComponentDataArray<U1> componentDataArray1;
-            public T data;
+            public ComponentDataArray<U0>  componentDataArray0;
+            public ComponentDataArray<U1>  componentDataArray1;
+            public T                       data;
 
             static public IntPtr jobReflectionData;
 
@@ -108,23 +110,25 @@ namespace UnityEngine.ECS.Experimental
                 return jobReflectionData;
             }
 
-            public delegate void ExecuteJobFunction(ref JobStruct<T, U0, U1> data, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, int beginIndex, int count);
+            public delegate void ExecuteJobFunction(ref JobStruct<T, U0, U1> data, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
-            // @TODO: Use parallel for job... (Need to expose combine jobs)
-
-            public unsafe static void Execute(ref JobStruct<T, U0, U1> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, int startIndex, int count)
+            public unsafe static void Execute(ref JobStruct<T, U0, U1> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
-                int endIndex = startIndex + count;
-                for (int i = startIndex; i != endIndex; i++)
+                int begin;
+                int end;
+                while (JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
                 {
-                    //@TODO: Optimize into two loops to avoid branches inside indexer...
-                    //@TODO: use ref returns to pass by ref instead of double copy
+                    for (int i = begin; i != end; i++)
+                    {
+                        //@TODO: Optimize into two loops to avoid branches inside indexer...
+                        //@TODO: use ref returns to pass by ref instead of double copy
 
-                    U0 value0 = jobData.componentDataArray0[i];
-                    U1 value1 = jobData.componentDataArray1[i];
-                    jobData.data.Execute(ref value0, ref value1);
-                    jobData.componentDataArray0[i] = value0;
-                    jobData.componentDataArray1[i] = value1;
+                        U0 value0 = jobData.componentDataArray0[i];
+                        U1 value1 = jobData.componentDataArray1[i];
+                        jobData.data.Execute(ref value0, ref value1);
+                        jobData.componentDataArray0[i] = value0;
+                        jobData.componentDataArray1[i] = value1;
+                    }
                 }
             }
         }
@@ -142,7 +146,7 @@ namespace UnityEngine.ECS.Experimental
         {
             base.OnUpdate();
 
-            int batchSize = 512;
+            int batchSize = 32;
 
             TJob jobData = new TJob();
             jobData.Prepare();
@@ -173,7 +177,6 @@ namespace UnityEngine.ECS.Experimental
 
             TJob jobData = new TJob();
             jobData.Prepare();
-
             //var group = CreateEntityGroup(typeof(TComponentData0));
             //var componentData0 = group.GetComponentDataArray<TComponentData0>();
             AddDependency(jobData.Schedule(m_Component0, m_Component1, batchSize, GetDependency()));

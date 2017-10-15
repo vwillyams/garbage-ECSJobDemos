@@ -3,14 +3,14 @@ using UnityEngine;
 using UnityEngine.Collections;
 using UnityEngine.ECS;
 
-namespace BoidSimulations
+namespace UnityEngine.ECS.Rendering
 {
     [System.Serializable]
-	public struct BoidInstanceRenderer : ISharedComponentData
+	public struct InstanceRenderer : ISharedComponentData
 	{
         public Material material;
         public Mesh     mesh;
 	}
 
-	public class BoidInstanceRendererComponent : SharedComponentDataWrapper<BoidInstanceRenderer> { }
+	public class InstanceRendererComponent : SharedComponentDataWrapper<InstanceRenderer> { }
 }

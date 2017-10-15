@@ -6,6 +6,7 @@ using UnityEngine.ECS.Experimental;
 
 namespace BoidSimulations
 {
+    /*
     struct BoidSystemJob : IJobProcessComponentData<BoidData>, IAutoComponentSystemJob
     {
         float dt;
@@ -16,7 +17,8 @@ namespace BoidSimulations
 
         public void Execute(ref BoidData boid)
         {
-//            boid.position.y -= 30 * dt;
+            boid.position.y -= 30 * dt;
         }
     }
+    */
 }

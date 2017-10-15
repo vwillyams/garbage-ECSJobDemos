@@ -45,6 +45,16 @@ namespace UnityEngine.ECS
 
         }
 
+        public void CopyTo(NativeSlice<T> dst, int startIndex = 0)
+        {
+            //@TODO Memcpy fast path if stride matches...
+            for (int i = 0; i != dst.Length; i++)
+            {
+                dst[i + startIndex] = this[i];
+            }
+        }
+
+
         public unsafe T this[int index]
         {
             get

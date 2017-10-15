@@ -373,6 +373,10 @@ namespace UnityEngine.ECS
             return m_SharedComponentManager.GetSharedComponentData<T>(archetype->types[indexInTypeArray].sharedComponentIndex);
         }
 
+        public void CompleteAllJobs()
+        {
+            ComponentJobSafetyManager.CompleteAllJobsAndInvalidateArrays();
+        }
 
         internal ComponentJobSafetyManager ComponentJobSafetyManager { get { return m_JobSafetyManager; } }
     }

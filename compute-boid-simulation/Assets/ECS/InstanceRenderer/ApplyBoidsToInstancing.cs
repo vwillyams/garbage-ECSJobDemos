@@ -23,19 +23,14 @@ namespace UnityEngine.ECS.Rendering
         {
             ComponentGroup          m_Group;
             Matrix4x4[]             m_MatricesArray;
-            Material                m_Material;
-            Mesh                    m_Mesh;
 
-            public Batch (InstanceRenderer renderer, ComponentGroup group)
+            public Batch (ComponentGroup group)
             {
                 m_Group = group;
 
                 int length = group.Length;
 
                 m_MatricesArray = new Matrix4x4[length];
-
-                m_Mesh = renderer.mesh;
-                m_Material = renderer.material;
             }
 
             public bool IsValid()
@@ -43,17 +38,20 @@ namespace UnityEngine.ECS.Rendering
                 return m_Group.Length == m_MatricesArray.Length;
             }
 
-            public unsafe void Render(JobHandle dependency)
+            public unsafe void Render(JobHandle dependency, InstanceRenderer renderer)
             {
                 var transforms = m_Group.GetComponentDataArray<InstanceRendererTransform>();
                 fixed (Matrix4x4* matricesPtr = m_MatricesArray)
                 {
                     UnityEngine.Assertions.Assert.AreEqual(sizeof(Matrix4x4), sizeof(InstanceRendererTransform));
                     var matricesSlice = new NativeSlice<InstanceRendererTransform>(matricesPtr, m_MatricesArray.Length);
+
+                    //@TODO: This seems like a race condition...
+
                     transforms.CopyTo(matricesSlice);
                 }
 
-                Graphics.DrawMeshInstanced(m_Mesh, 0, m_Material, m_MatricesArray);
+                Graphics.DrawMeshInstanced(renderer.mesh, 0, renderer.material, m_MatricesArray, m_MatricesArray.Length, null, renderer.castShadows, renderer.receiveShadows);
             }
 
             public void Dispose()
@@ -81,12 +79,13 @@ namespace UnityEngine.ECS.Rendering
             for (int i = 0;i != uniqueRendererTypes.Length;i++)
             {
                 var uniqueType = uniqueRendererTypes[i];
+                var instanceRenderer = EntityManager.GetSharedComponentData<InstanceRenderer>(uniqueType);
                 Batch batch;
                 if (m_ComponentToBatch.TryGetValue(uniqueType, out batch))
                 {
                     if (batch.IsValid())
                     {
-                        batch.Render(GetDependency());
+                        batch.Render(GetDependency(), instanceRenderer);
                         continue;
                     }
                     else
@@ -98,8 +97,8 @@ namespace UnityEngine.ECS.Rendering
 
                 var group = EntityManager.CreateComponentGroup(uniqueType, ComponentType.Create<InstanceRendererTransform>());
 
-                batch = new Batch(EntityManager.GetSharedComponentData<InstanceRenderer>(uniqueType), group);
-                batch.Render(GetDependency());
+                batch = new Batch(group);
+                batch.Render(GetDependency(), instanceRenderer);
                 m_ComponentToBatch.Add(uniqueType, batch);
             }
 

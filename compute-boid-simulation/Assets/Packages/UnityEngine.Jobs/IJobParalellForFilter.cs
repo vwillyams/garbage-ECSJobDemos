@@ -98,7 +98,7 @@ namespace UnityEngine.Jobs
 
             var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStructProduce<T>.Initialize(), dependsOn, ScheduleMode.Batched);
 
-            return JobsUtility.Schedule(ref scheduleParams, IntPtr.Zero);
+            return JobsUtility.Schedule(ref scheduleParams);
         }
 
         static public JobHandle ScheduleFilter<T>(this T jobData, NativeList<int> indices, int minIndicesPerJobCount, JobHandle dependsOn = new JobHandle()) where T : struct, IJobParallelForFilter
@@ -110,7 +110,7 @@ namespace UnityEngine.Jobs
 
             var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStructProduce<T>.Initialize(), dependsOn, ScheduleMode.Batched);
 
-            return JobsUtility.Schedule(ref scheduleParams, IntPtr.Zero);
+            return JobsUtility.Schedule(ref scheduleParams);
         }
 
         //@TODO: RUN

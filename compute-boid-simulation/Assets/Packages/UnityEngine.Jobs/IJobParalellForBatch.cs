@@ -31,7 +31,7 @@ namespace UnityEngine.Jobs
                 {
                     int begin;
                     int end;
-                    if (!JobsUtility.GetJobRangeWorksteal(ref ranges, jobIndex, out begin, out end))
+                    if (!JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
                         return;
 
                     #if ENABLE_NATIVE_ARRAY_CHECKS

@@ -50,10 +50,9 @@ namespace UnityEngine.ECS
             //@TODO Memcpy fast path if stride matches...
             for (int i = 0; i != dst.Length; i++)
             {
-                dst[i + startIndex] = this[i];
+                dst[i] = this[i + startIndex];
             }
         }
-
 
         public unsafe T this[int index]
         {

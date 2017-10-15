@@ -55,8 +55,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SerializedData:
-    material: {fileID: 2100000, guid: 8114f916ba1b94d9288397f89fcb29bb, type: 2}
     mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+    material: {fileID: 2100000, guid: 32bf30f90a6a049be8fb2aca13ddebb6, type: 2}
+    castShadows: 1
+    receiveShadows: 1
 --- !u!114 &114157945289734378
 MonoBehaviour:
   m_ObjectHideFlags: 1

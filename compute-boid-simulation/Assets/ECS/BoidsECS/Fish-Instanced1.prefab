@@ -21,8 +21,8 @@ GameObject:
   - component: {fileID: 4163776392049388}
   - component: {fileID: 114157945289734378}
   - component: {fileID: 114018236511926658}
-  - component: {fileID: 114354742378774248}
   - component: {fileID: 114789884207705002}
+  - component: {fileID: 114354742378774248}
   m_Layer: 0
   m_Name: Fish-Instanced1
   m_TagString: Untagged
@@ -55,8 +55,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SerializedData:
-    material: {fileID: 2100000, guid: 592a06d36878c4e6fb7281a5cd688d59, type: 2}
     mesh: {fileID: 4300000, guid: 49a87e3402ce60f4eba9b0498164bdd5, type: 3}
+    material: {fileID: 2100000, guid: a775bbb190ee2594d99a10542e99e940, type: 2}
+    castShadows: 1
+    receiveShadows: 1
 --- !u!114 &114157945289734378
 MonoBehaviour:
   m_ObjectHideFlags: 1

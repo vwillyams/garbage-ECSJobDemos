@@ -1,6 +1,6 @@
 ﻿namespace UnityEngine
 {
-    public struct float4x4
+    public partial struct float4x4
     {
         public float4 m0;
         public float4 m1;
@@ -16,7 +16,7 @@
         }
     }
 
-    public struct float2x2
+    public partial struct float2x2
     {
         public float2 m0;
         public float2 m1;
@@ -28,7 +28,7 @@
         }
     }
 
-    public struct float3x3
+    public partial struct float3x3
     {
         public float3 m0;
         public float3 m1;

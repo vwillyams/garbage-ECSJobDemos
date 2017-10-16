@@ -190,7 +190,11 @@ public class HLVMTests
 	[Test]
 	public void ThrowException()
 	{
-		LogAssert.Expect(LogType.Error, "C# Compute: newobj:InvalidOperationException(InvalidOperationException::.ctor, call:string(string::Format, ldstr:string(\"Boing {0}\"), box:object([mscorlib]System.Int32, ldfld:int32(ThrowExceptionJob::valuel, ldloc:valuetype P2GCTests/ThrowExceptionJob&(this)))))! Please disable P2GC on the job for a more accurate error.");
+        if (UnityEngineInternal.Jobs.JobCompiler.JitCompile != null && JobsUtility.GetAllowUsingJobCompiler())
+            LogAssert.Expect(LogType.Error, "C# Compute: newobj:InvalidOperationException(InvalidOperationException::.ctor, call:string(string::Format, ldstr:string(\"Boing {0}\"), box:object([mscorlib]System.Int32, ldfld:int32(ThrowExceptionJob::valuel, ldloc:valuetype P2GCTests/ThrowExceptionJob&(this)))))! Please disable P2GC on the job for a more accurate error.");
+        else
+            LogAssert.Expect(LogType.Exception, "InvalidOperationException: Boing 0");
+
         var jobData = new ThrowExceptionJob();
         jobData.Run();
 	}

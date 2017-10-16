@@ -24,7 +24,7 @@ namespace UnityEngine.ECS.Experimental
 
     public static class ProcessEntityJobExtension1
     {
-        static public JobHandle Schedule<T, U0>(this T jobData, ComponentDataArray<U0> componentDataArray, int minIndicesPerJob, JobHandle dependsOn = new JobHandle())
+        static public JobHandle Schedule<T, U0>(this T jobData, ComponentDataArray<U0> componentDataArray, int innerloopBatchCount, JobHandle dependsOn = new JobHandle())
             where T : struct, IJobProcessComponentData<U0>
             where U0 : struct, IComponentData
         {
@@ -33,7 +33,7 @@ namespace UnityEngine.ECS.Experimental
             fullData.componentDataArray = componentDataArray;
 
             var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct<T, U0>.Initialize(), dependsOn, ScheduleMode.Batched);
-            return JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray.Length, minIndicesPerJob);
+            return JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray.Length, innerloopBatchCount);
         }
 
         struct JobStruct<T, U0>
@@ -77,7 +77,7 @@ namespace UnityEngine.ECS.Experimental
 
     public static class ProcessEntityJobExtension2
     {
-        static public JobHandle Schedule<T, U0, U1>(this T jobData, ComponentDataArray<U0> componentDataArray0, ComponentDataArray<U1> componentDataArray1, int minIndicesPerJob, JobHandle dependsOn = new JobHandle())
+        static public JobHandle Schedule<T, U0, U1>(this T jobData, ComponentDataArray<U0> componentDataArray0, ComponentDataArray<U1> componentDataArray1, int innerloopBatchCount, JobHandle dependsOn = new JobHandle())
             where T : struct, IJobProcessComponentData<U0, U1>
             where U0 : struct, IComponentData
             where U1 : struct, IComponentData
@@ -88,7 +88,7 @@ namespace UnityEngine.ECS.Experimental
             fullData.componentDataArray1 = componentDataArray1;
 
             var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct<T, U0, U1>.Initialize(), dependsOn, ScheduleMode.Batched);
-            return JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray0.Length, minIndicesPerJob);
+            return JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray0.Length, innerloopBatchCount);
         }
 
         struct JobStruct<T, U0, U1>
@@ -173,7 +173,7 @@ namespace UnityEngine.ECS.Experimental
         {
             base.OnUpdate();
 
-            int batchSize = 512;
+            int batchSize = 32;
 
             TJob jobData = new TJob();
             jobData.Prepare();

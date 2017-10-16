@@ -286,12 +286,11 @@ namespace UnityEngine.Collections
 #endif
 
 			NativeQueueData* data = (NativeQueueData*)m_Buffer;
-#if ENABLE_NATIVE_ARRAY_CHECKS
 			if (data->m_CurrentCount >= data->m_Capacity)
 				Capacity = GrowCapacity(Capacity);
 			++data->m_CurrentCount;
-#endif
-			int* blockLengths = NativeQueueData.GetBlockLengths<T>(data);
+
+            int* blockLengths = NativeQueueData.GetBlockLengths<T>(data);
 			if (data->m_CurrentWriteBlockST < 0)
 			{
 				while (data->m_NextFreeBlock == data->m_FirstUsedBlock && blockLengths[data->m_FirstUsedBlock*NativeQueueData.IntsPerCacheLine] > 0)
@@ -337,10 +336,9 @@ namespace UnityEngine.Collections
 			if (blockLengths[data->m_FirstUsedBlock*NativeQueueData.IntsPerCacheLine] == 0)
 				throw new InvalidOperationException("Trying to dequeue from an empty queue");
 
-#if ENABLE_NATIVE_ARRAY_CHECKS
 			--data->m_CurrentCount;
-#endif
-			int idx = data->m_FirstUsedBlock * data->m_BlockSize + data->m_CurrentReadIndexInBlock;
+
+            int idx = data->m_FirstUsedBlock * data->m_BlockSize + data->m_CurrentReadIndexInBlock;
 			data->m_CurrentReadIndexInBlock++;
 			return UnsafeUtility.ReadArrayElement<T>(data->m_Data, idx);
 		}
@@ -355,10 +353,9 @@ namespace UnityEngine.Collections
 			data->m_FirstUsedBlock = 0;
 			data->m_CurrentWriteBlockST = -1;
 			data->m_CurrentReadIndexInBlock = 0;
-#if ENABLE_NATIVE_ARRAY_CHECKS
 			data->m_CurrentCount = 0;
-#endif
-			int* blockLengths = NativeQueueData.GetBlockLengths<T>(data);
+
+            int* blockLengths = NativeQueueData.GetBlockLengths<T>(data);
 			for (int i = 0 ; i < data->m_NumBlocks; ++i)
 				blockLengths[i*NativeQueueData.IntsPerCacheLine] = 0;
 		}
@@ -418,6 +415,7 @@ namespace UnityEngine.Collections
 				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
 				NativeQueueData* data = (NativeQueueData*)m_Buffer;
+
 #if ENABLE_NATIVE_ARRAY_CHECKS
 				if (data->m_CurrentCount >= data->m_Capacity || Interlocked.Increment(ref data->m_CurrentCount) > data->m_Capacity)
 					throw new InvalidOperationException("Queue full");

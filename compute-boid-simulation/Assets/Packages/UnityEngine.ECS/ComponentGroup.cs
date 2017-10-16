@@ -282,20 +282,7 @@ namespace UnityEngine.ECS
             m_TransformsDirty = false;
             var trans = GetComponentArray<Transform>();
 
-#if true
 		    m_Transforms.SetTransforms(trans.ToArray());
-#else
-
-            // Deprecated codepath
-            while (trans.Length > m_Transforms.Length)
-                m_Transforms.Add(null);
-            while (trans.Length > m_Transforms.Length)
-                m_Transforms.RemoveAtSwapBack(0);
-
-            for (int i = 0; i < trans.Length; i++)
-                m_Transforms[i] = trans[i];
-
-#endif
         }
 
 		public Type[] Types

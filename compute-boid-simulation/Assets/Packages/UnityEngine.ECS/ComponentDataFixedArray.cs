@@ -7,9 +7,6 @@ using UnityEngine.Assertions;
 using System.Linq;
 using System.Reflection;
 
-//@TODO: ZERO TEST COVERAGE!!!
-// * Doesn't handle all cases of how a NativeFreeList can be reallocate / invalidated etc
-
 namespace UnityEngine.ECS
 {
 
@@ -52,12 +49,9 @@ namespace UnityEngine.ECS
 		{
 			get
 			{
-				#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_NATIVE_ARRAY_CHECKS
 				AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 				if (index < m_MinIndex || index > m_MaxIndex)
-					FailOutOfRangeError(index);
-#else
-				if ((uint)index >= (uint)m_Cache.m_Length)
 					FailOutOfRangeError(index);
 #endif
 
@@ -69,17 +63,17 @@ namespace UnityEngine.ECS
 			}
 		}
 
-		void FailOutOfRangeError(int index)
+#if ENABLE_NATIVE_ARRAY_CHECKS
+        void FailOutOfRangeError(int index)
 		{
 			//@TODO: Make error message utility and share with NativeArray...
-			#if ENABLE_NATIVE_ARRAY_CHECKS
 			if (index < Length && (m_MinIndex != 0 || m_MaxIndex != Length - 1))
 				throw new IndexOutOfRangeException(string.Format("Index {0} is out of restricted IJobParallelFor range [{1}...{2}] in ReadWriteBuffer.\nReadWriteBuffers are restricted to only read & write the element at the job index. You can use double buffering strategies to avoid race conditions due to reading & writing in parallel to the same elements from a job.", index, m_MinIndex, m_MaxIndex));
-			#endif
-
+		
 			throw new IndexOutOfRangeException(string.Format("Index {0} is out of range of '{1}' Length.", index, Length));
 		}
+#endif
 
-		public int Length { get { return m_Length; } }
+        public int Length { get { return m_Length; } }
 	}
 }

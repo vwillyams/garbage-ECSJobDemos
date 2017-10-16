@@ -36,29 +36,28 @@ namespace UnityEngine.Collections
 		{
 			get
 			{
-				#if ENABLE_NATIVE_ARRAY_CHECKS
-				AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
-				#endif
+                NativeListData* data = (NativeListData*)m_Buffer;
 
-				NativeListData* data = (NativeListData*)m_Buffer;
-				if ((uint)index >= (uint)data->length)
-					throw new System.IndexOutOfRangeException(string.Format("Index {0} is out of range in NativeList of '{1}' Length.", index, data->length));
+#if ENABLE_NATIVE_ARRAY_CHECKS
+                AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
+                if ((uint)index >= (uint)data->length)
+                    throw new System.IndexOutOfRangeException(string.Format("Index {0} is out of range in NativeList of '{1}' Length.", index, data->length));
+#endif
 
-				return UnsafeUtility.ReadArrayElement<T>(data->list, index);
+                return UnsafeUtility.ReadArrayElement<T>(data->list, index);
 			}
 
 			set
 			{
+                NativeListData* data = (NativeListData*)m_Buffer;
 
-				#if ENABLE_NATIVE_ARRAY_CHECKS
-				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
-				#endif
+#if ENABLE_NATIVE_ARRAY_CHECKS
+                AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
+                if ((uint)index >= (uint)data->length)
+                    throw new System.IndexOutOfRangeException(string.Format("Index {0} is out of range in NativeList of '{1}' Length.", index, data->length));
+#endif
 
-				NativeListData* data = (NativeListData*)m_Buffer;
-				if ((uint)index >= (uint)data->length)
-					throw new System.IndexOutOfRangeException(string.Format("Index {0} is out of range in NativeList of '{1}' Length.", index, data->length));
-
-				UnsafeUtility.WriteArrayElement<T>(data->list, index, value);
+                UnsafeUtility.WriteArrayElement<T>(data->list, index, value);
 			}
 		}
 

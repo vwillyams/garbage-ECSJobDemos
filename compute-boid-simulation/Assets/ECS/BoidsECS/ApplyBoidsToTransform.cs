@@ -11,10 +11,11 @@ namespace BoidSimulations
 	class BoidsToTransformSystem : JobComponentSystem
 	{
 		[InjectTuples]
-		ComponentDataArray<BoidData> 	m_BoidData;
+        [ReadOnly]
+        ComponentDataArray<BoidData> 	m_BoidData;
 
 		[InjectTuples]
-		TransformAccessArray 						m_BoidTransforms;
+		TransformAccessArray 		    m_BoidTransforms;
 
 		struct WriteBoidsToTransformsJob : IJobParallelForTransform
 		{

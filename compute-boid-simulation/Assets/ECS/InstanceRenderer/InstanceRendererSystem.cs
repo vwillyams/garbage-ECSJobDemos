@@ -8,16 +8,17 @@ namespace UnityEngine.ECS.Rendering
 {
 
 
-/*
-    public struct SimpleTransform : IComponentData
-    {
-        public float3   position;
-        public float    scale;
-        public float4   rotation;
-    }
-*/    
+    /*
+        public struct SimpleTransform : IComponentData
+        {
+            public float3   position;
+            public float    scale;
+            public float4   rotation;
+        }
+    */
 
-    public class InstanceRendererSystem : JobComponentSystem
+    [UpdateAfter("PreLateUpdate.ParticleSystemBeginUpdateAll")]
+    public class InstanceRendererSystem : ComponentSystem
 	{
 		[InjectTuples]
 		ComponentDataArray<InstanceRendererTransform> m_InstanceRenderers;
@@ -31,9 +32,6 @@ namespace UnityEngine.ECS.Rendering
             {
                 UnityEngine.Assertions.Assert.AreEqual(sizeof(Matrix4x4), sizeof(InstanceRendererTransform));
                 var matricesSlice = new NativeSlice<InstanceRendererTransform>(matricesPtr, length);
-
-                //@TODO: This seems like a race condition...
-
                 transforms.CopyTo(matricesSlice, beginIndex);
             }
         }
@@ -58,8 +56,6 @@ namespace UnityEngine.ECS.Rendering
 
                 var group = EntityManager.CreateComponentGroup(uniqueType, ComponentType.Create<InstanceRendererTransform>());
                 var transforms = group.GetComponentDataArray<InstanceRendererTransform>();
-
-                //@TODO: Why is access allowed without sync fence?
 
                 int beginIndex = 0;
                 while (beginIndex < transforms.Length)

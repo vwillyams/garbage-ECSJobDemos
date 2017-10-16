@@ -46,14 +46,14 @@ namespace UnityEngine.Jobs
             public unsafe static void ExecuteAppend(ref JobDataWithFiltering jobData, System.IntPtr bufferRangePatchData)
             {
                 int oldLength = jobData.outputIndices.Length;
-                jobData.outputIndices.Capacity = math.max (jobData.appendCount + oldLength, jobData.outputIndices.Capacity);
+                jobData.outputIndices.Capacity = math.max(jobData.appendCount + oldLength, jobData.outputIndices.Capacity);
 
                 int* outputPtr = (int*)jobData.outputIndices.UnsafePtr;
                 int outputIndex = oldLength;
 
-				//@TODO: Doesn't work in p2gc yet...
-                //JobsUtility.PatchBufferMinMaxRanges (bufferRangePatchData, UnsafeUtility.AddressOf (ref jobData), 0, jobData.appendCount);
-
+#if ENABLE_NATIVE_ARRAY_CHECKS
+                JobsUtility.PatchBufferMinMaxRanges (bufferRangePatchData, UnsafeUtility.AddressOf (ref jobData), 0, jobData.appendCount);
+#endif
                 for (int i = 0;i != jobData.appendCount;i++)
                 {
 					if (jobData.data.Execute (i))
@@ -75,8 +75,10 @@ namespace UnityEngine.Jobs
                 for (int i = 0;i != inputLength;i++)
                 {
                     int inputIndex = outputPtr[i];
-					//@TODO: Doesn't work in p2gc yet...
-					//JobsUtility.PatchBufferMinMaxRanges (bufferRangePatchData, UnsafeUtility.AddressOf (ref jobData), inputIndex, 1);
+
+#if ENABLE_NATIVE_ARRAY_CHECKS
+                    JobsUtility.PatchBufferMinMaxRanges (bufferRangePatchData, UnsafeUtility.AddressOf (ref jobData), inputIndex, 1);
+#endif
 
                     if (jobData.data.Execute(inputIndex))
                     {
@@ -89,7 +91,7 @@ namespace UnityEngine.Jobs
             }
         }
 
-        static public JobHandle ScheduleAppend<T>(this T jobData, NativeList<int> indices, int arrayLength, int minIndicesPerJobCount, JobHandle dependsOn = new JobHandle()) where T : struct, IJobParallelForFilter
+        static public JobHandle ScheduleAppend<T>(this T jobData, NativeList<int> indices, int arrayLength, int innerloopBatchCount, JobHandle dependsOn = new JobHandle()) where T : struct, IJobParallelForFilter
         {
             JobStructProduce<T>.JobDataWithFiltering fullData;
             fullData.data = jobData;
@@ -101,7 +103,7 @@ namespace UnityEngine.Jobs
             return JobsUtility.Schedule(ref scheduleParams);
         }
 
-        static public JobHandle ScheduleFilter<T>(this T jobData, NativeList<int> indices, int minIndicesPerJobCount, JobHandle dependsOn = new JobHandle()) where T : struct, IJobParallelForFilter
+        static public JobHandle ScheduleFilter<T>(this T jobData, NativeList<int> indices, int innerloopBatchCount, JobHandle dependsOn = new JobHandle()) where T : struct, IJobParallelForFilter
         {
             JobStructProduce<T>.JobDataWithFiltering fullData;
             fullData.data = jobData;

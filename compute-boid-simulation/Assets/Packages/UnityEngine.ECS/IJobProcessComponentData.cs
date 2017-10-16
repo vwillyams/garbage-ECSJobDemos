@@ -2,7 +2,7 @@ using System;
 using UnityEngine.Collections;
 using UnityEngine.Jobs;
 
-namespace UnityEngine.ECS.Experimental
+namespace UnityEngine.ECS
 {
     public interface IJobProcessComponentData<T0, T1>
         where T0 : struct, IComponentData
@@ -138,7 +138,6 @@ namespace UnityEngine.ECS.Experimental
         where TJob : struct, IAutoComponentSystemJob, IJobProcessComponentData<TComponentData0>
         where TComponentData0 : struct, IComponentData
     {
-        //@TODO: Use CreateEntityGroup
         [InjectTuples]
         ComponentDataArray<TComponentData0> m_Component0;
 
@@ -151,8 +150,6 @@ namespace UnityEngine.ECS.Experimental
             TJob jobData = new TJob();
             jobData.Prepare();
 
-            //var group = CreateEntityGroup(typeof(TComponentData0));
-            //var componentData0 = group.GetComponentDataArray<TComponentData0>();
             AddDependency(jobData.Schedule(m_Component0, batchSize, GetDependency()));
         }
     }
@@ -162,7 +159,6 @@ namespace UnityEngine.ECS.Experimental
     where TComponentData0 : struct, IComponentData
     where TComponentData1 : struct, IComponentData
     {
-        //@TODO: Use CreateEntityGroup
         [InjectTuples]
         ComponentDataArray<TComponentData0> m_Component0;
 
@@ -177,8 +173,7 @@ namespace UnityEngine.ECS.Experimental
 
             TJob jobData = new TJob();
             jobData.Prepare();
-            //var group = CreateEntityGroup(typeof(TComponentData0));
-            //var componentData0 = group.GetComponentDataArray<TComponentData0>();
+
             AddDependency(jobData.Schedule(m_Component0, m_Component1, batchSize, GetDependency()));
         }
     }

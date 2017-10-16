@@ -47,10 +47,39 @@ namespace UnityEngine.ECS
 
         public void CopyTo(NativeSlice<T> dst, int startIndex = 0)
         {
-            //@TODO Memcpy fast path if stride matches...
-            for (int i = 0; i != dst.Length; i++)
+#if ENABLE_NATIVE_ARRAY_CHECKS
+            if (dst.Length == 0)
+                return;
+            
+            AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
+            //@TODO: Logic is weird. think about switching MaxIndex to end index???
+            if (startIndex < m_MinIndex || startIndex + dst.Length > m_MaxIndex + 1)
+                // @TODO: message is not accurate
+                FailOutOfRangeError(startIndex + (dst.Length - 1));
+#endif
+
+            int elementSize = UnsafeUtility.SizeOf<T>();
+            int copiedCount = 0; 
+            while (copiedCount < dst.Length)
             {
-                dst[i] = this[i + startIndex];
+                int index = copiedCount + startIndex;
+                m_Cache.UpdateCache(index);
+
+                int copyCount = Math.Min(m_Cache.m_CachedEndIndex - index, dst.Length - copiedCount);
+
+                if (m_Cache.m_CachedStride == elementSize && dst.Stride == elementSize)
+                {
+                    IntPtr srcPtr = m_Cache.m_CachedPtr + (index * elementSize);
+                    IntPtr dstPtr = dst.UnsafePtr + (index * elementSize);
+                    UnsafeUtility.MemCpy(dstPtr, srcPtr, elementSize * copyCount);
+                }
+                else
+                {
+                    for (int i = 0; i != dst.Length; i++)
+                        dst[i + copiedCount] = UnsafeUtility.ReadArrayElementWithStride<T>(m_Cache.m_CachedPtr, i + index, m_Cache.m_CachedStride);
+                }
+
+                copiedCount += copyCount;
             }
         }
 

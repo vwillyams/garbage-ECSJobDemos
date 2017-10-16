@@ -83,8 +83,6 @@ namespace UnityEngine.ECS
 
         unsafe public ComponentGroup CreateComponentGroup(params ComponentType[] requiredComponents)
         {
-            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
-
             return m_GroupManager.CreateEntityGroup(m_ArchetypeManager, m_CachedComponentTypeArray, PopulatedCachedTypeArray(requiredComponents), new UnityEngine.Jobs.TransformAccessArray());
         }
         unsafe public ComponentGroup CreateComponentGroup(UnityEngine.Jobs.TransformAccessArray trans, params ComponentType[] requiredComponents)

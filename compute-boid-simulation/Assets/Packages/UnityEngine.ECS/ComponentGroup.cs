@@ -18,6 +18,7 @@ namespace UnityEngine.ECS
             m_JobSafetyManager = safetyManager;
         }
 
+
         public ComponentGroup CreateEntityGroup(ArchetypeManager typeMan, ComponentType* requiredTypes, int requiredCount, TransformAccessArray trans)
         {
             uint hash = HashUtility.fletcher32((ushort*)requiredTypes, requiredCount * sizeof(ComponentType) / sizeof(short));
@@ -33,6 +34,9 @@ namespace UnityEngine.ECS
                         return new ComponentGroup(grp, m_JobSafetyManager, typeMan, trans);
                 } while (m_GroupLookup.TryGetNextValue(out grpPtr, ref it));
             }
+
+            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
+
             grp = (EntityGroupData*)m_GroupDataChunkAllocator.Allocate(sizeof(EntityGroupData), 8);
             grp->prevGroup = m_LastGroupData;
             m_LastGroupData = grp;

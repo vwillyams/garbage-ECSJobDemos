@@ -461,12 +461,9 @@ MonoBehaviour:
   - {fileID: 1155337235024534, guid: 7e4b5e133b0c84ad5a48129e36d97de7, type: 2}
   radius: 100
   transformsPerHierarchy: 500
-  lightweightInstantiate: 0
-  performanceDemoMode: 0
+  lightweightInstantiate: 1
   initialCount: 2000
-  step1Count: 8000
-  step2Count: 190000
-  normalInstantiateCount: 2000
+  additionalCount: 5000
 --- !u!1001 &225929383
 Prefab:
   m_ObjectHideFlags: 0

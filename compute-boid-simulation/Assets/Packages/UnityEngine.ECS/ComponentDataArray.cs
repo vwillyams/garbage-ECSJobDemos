@@ -46,7 +46,7 @@ namespace UnityEngine.ECS
 #if ENABLE_NATIVE_ARRAY_CHECKS
             if (dst.Length == 0)
                 return;
-            
+
             AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
             //@TODO: Logic is weird. think about switching MaxIndex to end index???
             if (startIndex < m_MinIndex || startIndex + dst.Length > m_MaxIndex + 1)
@@ -55,7 +55,7 @@ namespace UnityEngine.ECS
 #endif
 
             int elementSize = UnsafeUtility.SizeOf<T>();
-            int copiedCount = 0; 
+            int copiedCount = 0;
             while (copiedCount < dst.Length)
             {
                 int index = copiedCount + startIndex;
@@ -66,12 +66,12 @@ namespace UnityEngine.ECS
                 if (m_Cache.m_CachedStride == elementSize && dst.Stride == elementSize)
                 {
                     IntPtr srcPtr = m_Cache.m_CachedPtr + (index * elementSize);
-                    IntPtr dstPtr = dst.UnsafePtr + (index * elementSize);
+                    IntPtr dstPtr = dst.UnsafePtr + (copiedCount * elementSize);
                     UnsafeUtility.MemCpy(dstPtr, srcPtr, elementSize * copyCount);
                 }
                 else
                 {
-                    for (int i = 0; i != dst.Length; i++)
+                    for (int i = 0; i != copyCount; i++)
                         dst[i + copiedCount] = UnsafeUtility.ReadArrayElementWithStride<T>(m_Cache.m_CachedPtr, i + index, m_Cache.m_CachedStride);
                 }
 

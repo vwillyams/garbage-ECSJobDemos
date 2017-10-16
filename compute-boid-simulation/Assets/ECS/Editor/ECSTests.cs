@@ -424,5 +424,31 @@ namespace UnityEngine.ECS.Tests
             for (int i = 0; i < entities.Length;i++)
 				m_Manager.DestroyEntity(entities[i]);
 		}
+
+        [Test]
+        public void ComponentDataArrayCopy()
+        {
+            var entity = m_Manager.CreateEntity(typeof(EcsTestData));
+
+            var entities = new NativeArray<Entity>(20000, Allocator.Persistent);
+            m_Manager.Instantiate(entity, entities);
+
+            var ecsArray = m_Manager.CreateComponentGroup(typeof(EcsTestData)).GetComponentDataArray<EcsTestData>();
+
+            for (int i = 0; i < ecsArray.Length; i++)
+                ecsArray[i] = new EcsTestData(i);
+
+            var copied = new NativeArray<EcsTestData>(entities.Length - 11 + 1, Allocator.Persistent);
+            ecsArray.CopyTo(copied, 11);
+
+            for (int i = 0; i < copied.Length; i++)
+            {
+                if (copied[i].value != i)
+                    Assert.AreEqual(i + 11, copied[i].value);
+            }
+
+            copied.Dispose();
+            entities.Dispose();
+        }
 	}
 }

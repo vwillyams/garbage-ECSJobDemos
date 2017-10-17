@@ -37,6 +37,10 @@ namespace UnityEngine.ECS
             {
                 root.AddChild(new TreeViewItem { id = currentID++, displayName = "No Manager selected"});
             }
+            else if (currentSystem.ComponentGroups.Length == 0)
+            {
+                root.AddChild(new TreeViewItem { id = currentID++, displayName = "No Component Groups in Manager"});
+            }
             else
             {
                 var tupleIndex = 0;
@@ -58,6 +62,8 @@ namespace UnityEngine.ECS
         override protected void RowGUI(RowGUIArgs args)
         {
             base.RowGUI(args);
+            if (!componentGroupsById.ContainsKey(args.item.id))
+                return;
             var countString = componentGroupsById[args.item.id].GetEntityArray().Length.ToString();
             DefaultGUI.LabelRightAligned(args.rowRect, countString, args.selected, args.focused);
         }

@@ -7,9 +7,8 @@ https://youtu.be/tGmnZdY5Y-E
 Required build: http://beta.unity3d.com/download/84ad1b91b91b/download.html
 unity source code branch: scripting/jobsystem/unite-demo-2017
 
-If you are using latest master, use this unity/unity branch:
-scripting/jobsystem/unite-demo-2017/work-stealing
-
+# active development against master
+unity source code branch: scripting/jobsystem/unite-demo-2017/work-stealing
 
 # ECSJobDemos
 Project folder for basic ECS dev & tests

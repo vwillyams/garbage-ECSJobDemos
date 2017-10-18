@@ -17,7 +17,7 @@ namespace UnityEngine.ECS.Rendering
         }
     */
 
-    [UpdateAfter("PreLateUpdate.ParticleSystemBeginUpdateAll")]
+    [UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.PreLateUpdate.ParticleSystemBeginUpdateAll))]
     public class InstanceRendererSystem : ComponentSystem
 	{
 		[InjectTuples]

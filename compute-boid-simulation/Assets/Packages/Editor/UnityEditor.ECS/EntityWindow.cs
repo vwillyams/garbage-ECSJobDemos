@@ -10,7 +10,10 @@ namespace UnityEngine.ECS
 {
     public class EntityWindow : EditorWindow {
         
-        const float kSystemListWidth = 300f;
+        const float kResizerWidth = 5f;
+        [SerializeField]
+        float systemListWidth = 300f;
+        const float kMinListWidth = 200f;
         const float kSystemListHeight = 200f;
 
         public GameObject componentDataHolder { get { return entityWrapperHolder; } }
@@ -74,9 +77,10 @@ namespace UnityEngine.ECS
         [NonSerialized]
         bool initialized;
 
-        Rect systemListRect { get { return new Rect(0f, 0f, kSystemListWidth, kSystemListHeight); } }
-        Rect verticalSplitterRect { get { return new Rect(kSystemListWidth, 0f, 1f, kSystemListHeight); } }
-        Rect tupleListRect { get { return new Rect(kSystemListWidth, 0f, position.width - kSystemListWidth, kSystemListHeight); } }
+        Rect systemListRect { get { return new Rect(0f, 0f, systemListWidth, kSystemListHeight); } }
+        [SerializeField]
+        Rect verticalSplitterRect = new Rect(kMinListWidth, 0f, 1f, kSystemListHeight);
+        Rect tupleListRect { get { return new Rect(systemListWidth, 0f, position.width - systemListWidth, kSystemListHeight); } }
         // Rect horizontalSplitterRect { get { return new Rect(0f, kSystemListHeight, position.width, 1f); } }
         Rect entityListRect { get { return new Rect(0f, kSystemListHeight, position.width, position.height - kSystemListHeight); } }
 
@@ -149,23 +153,15 @@ namespace UnityEngine.ECS
                 GUILayout.Label("No ComponentSystems loaded. (Try pushing Play)");
                 return;
             }
+
+            Rect dragRect = new Rect(systemListWidth, 0f, kResizerWidth, kSystemListHeight);
+            dragRect = EditorGUIUtility.HandleHorizontalSplitter(dragRect, position.width, kMinListWidth, kMinListWidth);
+            systemListWidth = dragRect.x;
+
             SystemList(systemListRect);
-            DrawHorizontalSplitter(verticalSplitterRect);
+            EditorGUIUtility.DrawHorizontalSplitter(dragRect);
             TupleList(tupleListRect);
             EntityList(entityListRect);
-        }
-
-        internal static void DrawHorizontalSplitter(Rect dragRect)
-        {
-            if (Event.current.type != EventType.Repaint)
-                return;
-
-            Color orgColor = GUI.color;
-            Color tintColor = (EditorGUIUtility.isProSkin) ? new Color(0.12f, 0.12f, 0.12f, 1.333f) : new Color(0.6f, 0.6f, 0.6f, 1.333f);
-            GUI.color = GUI.color * tintColor;
-            Rect splitterRect = new Rect(dragRect.x - 1, dragRect.y, 1, dragRect.height);
-            GUI.DrawTexture(splitterRect, EditorGUIUtility.whiteTexture);
-            GUI.color = orgColor;
         }
     }
 }

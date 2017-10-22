@@ -57,7 +57,17 @@ namespace UnityEngine.ECS
 
         public static int GetTypeIndex(Type type)
         {
-            int typeIndex = m_Types.FindIndex(c => (c.arrayElements == 0 && c.type == type));
+            int typeIndex = -1;
+            for (int i = 0; i != m_Types.Count;i++)
+            {
+                var c = m_Types[i];
+                if (c.arrayElements == 0 && c.type == type)
+                {
+                    typeIndex = i;
+                    break;
+                }
+            }
+
             if (typeIndex != -1)
                 return typeIndex;
             else

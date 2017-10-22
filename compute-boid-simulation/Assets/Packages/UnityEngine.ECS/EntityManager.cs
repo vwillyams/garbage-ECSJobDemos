@@ -87,8 +87,6 @@ namespace UnityEngine.ECS
         }
         unsafe public ComponentGroup CreateComponentGroup(UnityEngine.Jobs.TransformAccessArray trans, params ComponentType[] requiredComponents)
         {
-            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
-
             int len = PopulatedCachedTypeArray(requiredComponents);
             if (trans.IsCreated)
             {

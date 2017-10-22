@@ -32,7 +32,8 @@ namespace UnityEngine.ECS
                     grp = (EntityGroupData*)grpPtr;
                     if (ComponentType.CompareArray(grp->requiredComponents, grp->numRequiredComponents, requiredTypes, requiredCount))
                         return new ComponentGroup(grp, m_JobSafetyManager, typeMan, trans);
-                } while (m_GroupLookup.TryGetNextValue(out grpPtr, ref it));
+                }
+                while (m_GroupLookup.TryGetNextValue(out grpPtr, ref it));
             }
 
             m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
@@ -127,6 +128,7 @@ namespace UnityEngine.ECS
     }
 
     //@TODO: Make safe when entity manager is destroyed.
+    //@TODO: This needs to become a struct
 
     public unsafe class ComponentGroup : IDisposable, IManagedObjectModificationListener
     {

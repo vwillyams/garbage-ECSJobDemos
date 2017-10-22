@@ -20,9 +20,6 @@ namespace UnityEngine.ECS.Rendering
     [UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.PreLateUpdate.ParticleSystemBeginUpdateAll))]
     public class InstanceRendererSystem : ComponentSystem
 	{
-		[InjectTuples]
-		ComponentDataArray<InstanceRendererTransform> m_InstanceRenderers;
-
         // Instance renderer takes only batches of 1024
         Matrix4x4[] m_MatricesArray = new Matrix4x4[1023];
 
@@ -41,9 +38,6 @@ namespace UnityEngine.ECS.Rendering
 		{
 			base.OnUpdate();
 
-			if (m_InstanceRenderers.Length == 0)
-				return;
-
             var uniqueRendererTypes = new NativeList<ComponentType>(10, Allocator.TempJob);
             EntityManager.GetAllUniqueSharedComponents(typeof(InstanceRenderer), uniqueRendererTypes);
 
@@ -55,6 +49,10 @@ namespace UnityEngine.ECS.Rendering
                 var renderer = EntityManager.GetSharedComponentData<InstanceRenderer>(uniqueType);
 
                 var group = EntityManager.CreateComponentGroup(uniqueType, ComponentType.Create<InstanceRendererTransform>());
+
+                //@TODO: Support for dependency management against group API
+                EntityManager.CompleteAllJobs();
+
                 var transforms = group.GetComponentDataArray<InstanceRendererTransform>();
 
                 int beginIndex = 0;
@@ -66,6 +64,8 @@ namespace UnityEngine.ECS.Rendering
 
                     beginIndex += length;
                 }
+
+                group.Dispose();
             }
 
             uniqueRendererTypes.Dispose();

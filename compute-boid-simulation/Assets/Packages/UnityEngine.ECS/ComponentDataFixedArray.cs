@@ -26,13 +26,13 @@ namespace UnityEngine.ECS
         #endif
 
 		#if ENABLE_NATIVE_ARRAY_CHECKS
-        public unsafe ComponentDataFixedArray(ComponentDataArchetypeSegment* data, int length, int fixedArrayLength, AtomicSafetyHandle safety, bool isReadOnly)
+        internal unsafe ComponentDataFixedArray(ComponentDataArrayCache cache, int length, int fixedArrayLength, AtomicSafetyHandle safety, bool isReadOnly)
 		#else
-        public unsafe ComponentDataFixedArray(ComponentDataArchetypeSegment* data, int length, int fixedArrayLength)
+        internal unsafe ComponentDataFixedArray(ComponentDataArrayCache cache, int length, int fixedArrayLength)
 		#endif
 		{
             m_Length = length;
-            m_Cache = new ComponentDataArrayCache(data, length);
+            m_Cache = cache;
             m_FixedArrayLength = fixedArrayLength;
 
 			#if ENABLE_NATIVE_ARRAY_CHECKS

@@ -27,13 +27,13 @@ namespace UnityEngine.ECS
 		#endif
 
 		#if ENABLE_NATIVE_ARRAY_CHECKS
-		public unsafe EntityArray(ComponentDataArchetypeSegment* data, int length, AtomicSafetyHandle safety)
+        internal unsafe EntityArray(ComponentDataArrayCache cache, int length, AtomicSafetyHandle safety)
 		#else
-		public unsafe EntityArray(ComponentDataArchetypeSegment* data, int length)
+        internal unsafe EntityArray(ComponentDataArrayCache cache, int length)
 		#endif
 		{
             m_Length = length;
-            m_Cache = new ComponentDataArrayCache(data, length);
+            m_Cache = cache;
 
 			#if ENABLE_NATIVE_ARRAY_CHECKS
 			m_MinIndex = 0;

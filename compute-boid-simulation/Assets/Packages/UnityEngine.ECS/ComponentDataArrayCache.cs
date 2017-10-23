@@ -8,7 +8,7 @@ using System.Linq;
 using System.Reflection;
 namespace UnityEngine.ECS
 {
-    public unsafe struct ComponentDataArchetypeSegment
+    unsafe struct ComponentDataArchetypeSegment
     {
         public Archetype* archetype;
         public int offset;

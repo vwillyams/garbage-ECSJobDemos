@@ -180,7 +180,7 @@ namespace UnityEngine.ECS
             m_TransformsDirty = true;
         }
 
-        ComponentDataArchetypeSegment* GetSegmentData(int componentType, out int outLength, out int componentIndex)
+        ComponentDataArrayCache GetComponentDataArrayCache(int componentType, out int outLength, out int componentIndex)
         {
             componentIndex = 0;
             while (componentIndex < m_GroupData->numRequiredComponents && m_GroupData->requiredComponents[componentIndex].typeIndex != componentType)
@@ -204,8 +204,8 @@ namespace UnityEngine.ECS
             outLength = length;
 
             if (last == null)
-                return null;
-            return last->archetypeSegments + componentIndex;
+                return new ComponentDataArrayCache(null, 0);
+            return new ComponentDataArrayCache(last->archetypeSegments + componentIndex, length);
         }
 
 
@@ -215,11 +215,11 @@ namespace UnityEngine.ECS
             int componentIndex;
             int typeIndex = TypeManager.GetTypeIndex<T>();
 
-            ComponentDataArchetypeSegment* segment = GetSegmentData(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
+            var cache = GetComponentDataArrayCache(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
 #if ENABLE_NATIVE_ARRAY_CHECKS
-            return new ComponentDataArray<T>(segment, length, m_SafetyManager.GetSafetyHandle(typeIndex), readOnly);
+            return new ComponentDataArray<T>(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex), readOnly);
 #else
-			return new ComponentDataArray<T>(segment, length);
+			return new ComponentDataArray<T>(cache, length);
 #endif
         }
 
@@ -227,11 +227,11 @@ namespace UnityEngine.ECS
         {
             int length;
             int componentIndex;
-            ComponentDataArchetypeSegment* segment = GetSegmentData(type.typeIndex, out length, out componentIndex);
+            var cache = GetComponentDataArrayCache(type.typeIndex, out length, out componentIndex);
 #if ENABLE_NATIVE_ARRAY_CHECKS
-            return new ComponentDataFixedArray<T>(segment, length, 64, m_SafetyManager.GetSafetyHandle(type.typeIndex), readOnly);
+            return new ComponentDataFixedArray<T>(cache, length, 64, m_SafetyManager.GetSafetyHandle(type.typeIndex), readOnly);
 #else
-			return new ComponentDataFixedArray<T>(segment, length, 64);
+			return new ComponentDataFixedArray<T>(cache, length, 64);
 #endif
         }
 
@@ -240,11 +240,11 @@ namespace UnityEngine.ECS
             int length;
             int componentIndex;
             int typeIndex = TypeManager.GetTypeIndex<Entity>();
-            ComponentDataArchetypeSegment* segment = GetSegmentData(typeIndex, out length, out componentIndex);
+            var cache = GetComponentDataArrayCache(typeIndex, out length, out componentIndex);
 #if ENABLE_NATIVE_ARRAY_CHECKS
-            return new EntityArray(segment, length, m_SafetyManager.GetSafetyHandle(typeIndex));
+            return new EntityArray(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex));
 #else
-			return new EntityArray(segment, length);
+			return new EntityArray(cache, length);
 #endif
         }
         public ComponentArray<T> GetComponentArray<T>() where T : Component
@@ -252,8 +252,8 @@ namespace UnityEngine.ECS
             int length;
             int componentIndex;
 
-            ComponentDataArchetypeSegment* segment = GetSegmentData(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
-            return new ComponentArray<T>(segment, length, m_TypeManager);
+            var cache = GetComponentDataArrayCache(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
+            return new ComponentArray<T>(cache, length, m_TypeManager);
         }
 
         public int Length
@@ -262,7 +262,7 @@ namespace UnityEngine.ECS
             {
                 int length;
                 int componentIndex;
-                GetSegmentData(TypeManager.GetTypeIndex<Entity>(), out length, out componentIndex);
+                GetComponentDataArrayCache(TypeManager.GetTypeIndex<Entity>(), out length, out componentIndex);
                 return length;
             }
         }

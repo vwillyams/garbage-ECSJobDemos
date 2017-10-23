@@ -15,10 +15,10 @@ namespace UnityEngine.ECS
         int                     m_Length;
         ArchetypeManager		m_ArchetypeManager;
 
-		internal unsafe ComponentArray(ComponentDataArchetypeSegment* data, int length, ArchetypeManager typeMan)
+        internal unsafe ComponentArray(ComponentDataArrayCache cache, int length, ArchetypeManager typeMan)
 		{
             m_Length = length;
-            m_Cache = new ComponentDataArrayCache(data, length);
+            m_Cache = cache;
 			m_ArchetypeManager = typeMan;
 		}
 

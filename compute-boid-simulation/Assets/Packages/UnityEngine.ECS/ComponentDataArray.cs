@@ -24,12 +24,12 @@ namespace UnityEngine.ECS
 #endif
 
 #if ENABLE_NATIVE_ARRAY_CHECKS
-        public unsafe ComponentDataArray(ComponentDataArchetypeSegment* data, int length, AtomicSafetyHandle safety, bool isReadOnly)
+        internal unsafe ComponentDataArray(ComponentDataArrayCache cache, int length, AtomicSafetyHandle safety, bool isReadOnly)
 #else
-		public unsafe ComponentDataArray(ComponentDataArchetypeSegment* data, int length)
+        internal unsafe ComponentDataArray(ComponentDataArrayCache cache, int length)
 #endif
         {
-            m_Cache = new ComponentDataArrayCache(data, length);
+            m_Cache = cache;
 
 #if ENABLE_NATIVE_ARRAY_CHECKS
             m_MinIndex = 0;

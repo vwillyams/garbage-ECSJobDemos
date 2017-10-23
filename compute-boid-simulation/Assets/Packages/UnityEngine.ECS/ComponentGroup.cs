@@ -104,9 +104,7 @@ namespace UnityEngine.ECS
                 int typeComponentIndex = ChunkDataUtility.GetIndexInTypeArray(archetype, group->requiredComponents[component].typeIndex);
                 Assertions.Assert.AreNotEqual(-1, typeComponentIndex);
 
-                match->archetypeSegments[component].offset = archetype->offsets[typeComponentIndex];
-                match->archetypeSegments[component].stride = archetype->strides[typeComponentIndex];
-                match->archetypeSegments[component].typeIndex = typeComponentIndex;
+                match->archetypeSegments[component].typeIndexInArchetype = typeComponentIndex;
             }
 
             group->lastMatchingArchetype = match;

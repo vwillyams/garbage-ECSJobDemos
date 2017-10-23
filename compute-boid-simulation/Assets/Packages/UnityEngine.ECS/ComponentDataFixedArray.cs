@@ -55,10 +55,10 @@ namespace UnityEngine.ECS
 					FailOutOfRangeError(index);
 #endif
 
-                if (index < m_Cache.m_CachedBeginIndex || index >= m_Cache.m_CachedEndIndex)
+                if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
                     m_Cache.UpdateCache(index);
 
-                IntPtr ptr = m_Cache.m_CachedPtr + (index * m_Cache.m_CachedStride);
+                IntPtr ptr = m_Cache.CachedPtr + (index * m_Cache.CachedStride);
                 return NativeArray<T>.ConvertExistingDataToNativeArrayInternal(ptr, m_FixedArrayLength, m_Safety, Allocator.Invalid);
 			}
 		}

@@ -54,10 +54,10 @@ namespace UnityEngine.ECS
 					FailOutOfRangeError(index);
 #endif
 
-                if (index < m_Cache.m_CachedBeginIndex || index >= m_Cache.m_CachedEndIndex)
+                if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
                     m_Cache.UpdateCache(index);
 
-                return UnsafeUtility.ReadArrayElementWithStride<Entity>(m_Cache.m_CachedPtr, index, m_Cache.m_CachedStride);
+                return UnsafeUtility.ReadArrayElementWithStride<Entity>(m_Cache.CachedPtr, index, m_Cache.CachedStride);
 			}
 		}
 

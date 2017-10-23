@@ -61,18 +61,18 @@ namespace UnityEngine.ECS
                 int index = copiedCount + startIndex;
                 m_Cache.UpdateCache(index);
 
-                int copyCount = Math.Min(m_Cache.m_CachedEndIndex - index, dst.Length - copiedCount);
+                int copyCount = Math.Min(m_Cache.CachedEndIndex - index, dst.Length - copiedCount);
 
-                if (m_Cache.m_CachedStride == elementSize && dst.Stride == elementSize)
+                if (m_Cache.CachedStride == elementSize && dst.Stride == elementSize)
                 {
-                    IntPtr srcPtr = m_Cache.m_CachedPtr + (index * elementSize);
+                    IntPtr srcPtr = m_Cache.CachedPtr + (index * elementSize);
                     IntPtr dstPtr = dst.UnsafePtr + (copiedCount * elementSize);
                     UnsafeUtility.MemCpy(dstPtr, srcPtr, elementSize * copyCount);
                 }
                 else
                 {
                     for (int i = 0; i != copyCount; i++)
-                        dst[i + copiedCount] = UnsafeUtility.ReadArrayElementWithStride<T>(m_Cache.m_CachedPtr, i + index, m_Cache.m_CachedStride);
+                        dst[i + copiedCount] = UnsafeUtility.ReadArrayElementWithStride<T>(m_Cache.CachedPtr, i + index, m_Cache.CachedStride);
                 }
 
                 copiedCount += copyCount;
@@ -89,10 +89,10 @@ namespace UnityEngine.ECS
                     FailOutOfRangeError(index);
 #endif
 
-                if (index < m_Cache.m_CachedBeginIndex || index >= m_Cache.m_CachedEndIndex)
+                if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
                     m_Cache.UpdateCache(index);
 
-                return UnsafeUtility.ReadArrayElementWithStride<T>(m_Cache.m_CachedPtr, index, m_Cache.m_CachedStride);
+                return UnsafeUtility.ReadArrayElementWithStride<T>(m_Cache.CachedPtr, index, m_Cache.CachedStride);
             }
 
 			set
@@ -103,10 +103,10 @@ namespace UnityEngine.ECS
 					FailOutOfRangeError(index);
 #endif
 
-                if (index < m_Cache.m_CachedBeginIndex || index >= m_Cache.m_CachedEndIndex)
+                if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
                     m_Cache.UpdateCache(index);
 
-				UnsafeUtility.WriteArrayElementWithStride (m_Cache.m_CachedPtr, index, m_Cache.m_CachedStride, value);
+				UnsafeUtility.WriteArrayElementWithStride (m_Cache.CachedPtr, index, m_Cache.CachedStride, value);
 			}
 		}
 

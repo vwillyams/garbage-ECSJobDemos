@@ -30,7 +30,7 @@ namespace UnityEngine.ECS
 				if ((uint)index >= (uint)m_Length)
 					FailOutOfRangeError(index);
 
-                if (index < m_Cache.m_CachedBeginIndex || index >= m_Cache.m_CachedEndIndex)
+                if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
                     m_Cache.UpdateCache(index);
 
 				return (T)m_Cache.GetManagedObject(m_ArchetypeManager, index);

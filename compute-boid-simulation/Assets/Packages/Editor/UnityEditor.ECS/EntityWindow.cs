@@ -16,10 +16,6 @@ namespace UnityEngine.ECS
         const float kMinListWidth = 200f;
         const float kSystemListHeight = 200f;
 
-        public GameObject componentDataHolder { get { return entityWrapperHolder; } }
-        [SerializeField]
-        GameObject entityWrapperHolder;
-
         public ComponentSystem CurrentSystemSelection {
             get { return currentSystemSelection; }
             set {
@@ -92,13 +88,10 @@ namespace UnityEngine.ECS
 
         void OnEnable()
         {
-            entityWrapperHolder = EditorUtility.CreateGameObjectWithHideFlags("__EntityWindowWrapperHolder", HideFlags.HideAndDontSave);
         }
 
         void OnDisable()
         {
-            if (entityWrapperHolder != null)
-                DestroyImmediate(entityWrapperHolder);
         }
 
         void InitIfNeeded()

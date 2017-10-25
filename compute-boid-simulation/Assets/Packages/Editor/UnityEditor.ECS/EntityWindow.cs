@@ -147,7 +147,7 @@ namespace UnityEngine.ECS
                 return;
             }
 
-            SplitterGUILayout.BeginHorizontalSplit(systemTupleSplitter, GUI.skin.box);
+            SplitterGUILayout.BeginHorizontalSplit(systemTupleSplitter);
             GUILayout.BeginVertical();
             SystemList();
             GUILayout.EndVertical();

@@ -12,9 +12,12 @@ namespace UnityEngine.ECS
         
         const float kResizerWidth = 5f;
         [SerializeField]
-        float systemListWidth = 300f;
+        const int kDefaultSystemListWidth = 300;
         const float kMinListWidth = 200f;
         const float kSystemListHeight = 200f;
+
+        [SerializeField]
+        SplitterState systemTupleSplitter = new SplitterState(new float[] { 1, 1 }, new int[] { 100, 100 }, null);
 
         public ComponentSystem CurrentSystemSelection {
             get { return currentSystemSelection; }
@@ -73,10 +76,10 @@ namespace UnityEngine.ECS
         [NonSerialized]
         bool initialized;
 
-        Rect systemListRect { get { return new Rect(0f, 0f, systemListWidth, kSystemListHeight); } }
+        // Rect systemListRect { get { return new Rect(0f, 0f, systemListWidth, kSystemListHeight); } }
         [SerializeField]
         Rect verticalSplitterRect = new Rect(kMinListWidth, 0f, 1f, kSystemListHeight);
-        Rect tupleListRect { get { return new Rect(systemListWidth, 0f, position.width - systemListWidth, kSystemListHeight); } }
+        // Rect tupleListRect { get { return new Rect(systemListWidth, 0f, position.width - systemListWidth, kSystemListHeight); } }
         // Rect horizontalSplitterRect { get { return new Rect(0f, kSystemListHeight, position.width, 1f); } }
         Rect entityListRect { get { return new Rect(0f, kSystemListHeight, position.width, position.height - kSystemListHeight); } }
 
@@ -84,14 +87,6 @@ namespace UnityEngine.ECS
         static void Init ()
         {
             EditorWindow.GetWindow<EntityWindow>("Entities");
-        }
-
-        void OnEnable()
-        {
-        }
-
-        void OnDisable()
-        {
         }
 
         void InitIfNeeded()
@@ -115,26 +110,31 @@ namespace UnityEngine.ECS
             }
         }
 
-        void SystemList(Rect rect)
+        Rect GetExpandingRect()
         {
-            systemListView.SetManagers(systems);
-            systemListView.OnGUI(rect);
+            return GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
         }
 
-        void TupleList(Rect rect)
+        void SystemList()
+        {
+            systemListView.SetManagers(systems);
+            systemListView.OnGUI(GetExpandingRect());
+        }
+
+        void TupleList()
         {
             if (CurrentSystemSelection != null)
             {
-                tupleListView.OnGUI(rect);
+                tupleListView.OnGUI(GetExpandingRect());
             }
         }
 
-        void EntityList(Rect rect)
+        void EntityList()
         {
             if (currentComponentGroupSelection != null)
             {
                 entityListView.PrepareData();
-                entityListView.OnGUI(rect);
+                entityListView.OnGUI(GetExpandingRect());
             }
         }
 
@@ -147,14 +147,14 @@ namespace UnityEngine.ECS
                 return;
             }
 
-            Rect dragRect = new Rect(systemListWidth, 0f, kResizerWidth, kSystemListHeight);
-            dragRect = EditorGUIUtility.HandleHorizontalSplitter(dragRect, position.width, kMinListWidth, kMinListWidth);
-            systemListWidth = dragRect.x;
-
-            SystemList(systemListRect);
-            EditorGUIUtility.DrawHorizontalSplitter(dragRect);
-            TupleList(tupleListRect);
-            EntityList(entityListRect);
+            SplitterGUILayout.BeginHorizontalSplit(systemTupleSplitter, GUI.skin.box);
+            GUILayout.BeginVertical();
+            SystemList();
+            GUILayout.EndVertical();
+            GUILayout.BeginVertical();
+            TupleList();
+            GUILayout.EndVertical();
+            SplitterGUILayout.EndHorizontalSplit();
         }
     }
 }

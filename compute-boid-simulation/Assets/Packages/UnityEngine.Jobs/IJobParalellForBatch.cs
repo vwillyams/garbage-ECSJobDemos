@@ -23,11 +23,9 @@ namespace Unity.Jobs
                 return jobReflectionData;
             }
 
-            public delegate void ExecuteJobFunction(int workerThreadIndex, ref T data, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
-
-            public unsafe static void Execute(int workerThreadIndex, ref T jobData, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
+            public delegate void ExecuteJobFunction(ref T data, System.IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
+            public unsafe static void Execute(ref T jobData, System.IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
-                JobsUtility.PrepareJobExecution(workerThreadIndex);
                 while (true)
                 {
                     int begin;
@@ -41,7 +39,6 @@ namespace Unity.Jobs
 
                     jobData.Execute(begin, end - begin);
                 }
-                JobsUtility.CleanupJobExecution();
             }
         }
 

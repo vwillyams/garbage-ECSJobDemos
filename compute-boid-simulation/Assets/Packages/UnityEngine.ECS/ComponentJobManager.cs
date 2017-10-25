@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Collections;
-using UnityEngine.Jobs;
+using Unity.Collections.LowLevel.Unsafe;
+using Unity.Jobs;
+using Unity.Collections;
 
 namespace UnityEngine.ECS
 {

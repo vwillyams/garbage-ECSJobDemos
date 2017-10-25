@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental;
 using UnityEngine.Serialization;
-using UnityEngine.Jobs;
-using UnityEngine.Collections;
+using Unity.Jobs;
+using Unity.Collections;
 
 namespace BoidcloudSimulation
 {

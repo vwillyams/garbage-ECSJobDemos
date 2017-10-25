@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.Collections;
+using Unity.Collections;
 using UnityEngine;
 using System.Reflection;
 using System;
@@ -33,7 +33,7 @@ namespace UnityEngine.ECS
 			public void TriggerUpdate()
 			{
 				manager.OnUpdate();
-				UnityEngine.Jobs.JobHandle.ScheduleBatchedJobs();
+				Unity.Jobs.JobHandle.ScheduleBatchedJobs();
 			}
 		}
 		private static HashSet<ScriptBehaviourManager> s_ActiveManagers = new HashSet<ScriptBehaviourManager>();

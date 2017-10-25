@@ -1,11 +1,6 @@
-using UnityEngine;
-using UnityEngine.Collections;
-using UnityEngine.Jobs;
+﻿using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using System;
-using System.Collections.Generic;
-using UnityEngine.Assertions;
-using System.Linq;
-using System.Reflection;
 
 namespace UnityEngine.ECS
 {

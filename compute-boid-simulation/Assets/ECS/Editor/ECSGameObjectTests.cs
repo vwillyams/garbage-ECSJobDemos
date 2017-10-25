@@ -1,8 +1,8 @@
-    using UnityEngine.ECS;
+﻿    using UnityEngine.ECS;
 using NUnit.Framework;
-using UnityEngine.Collections;
+using Unity.Collections;
 using System.Collections.Generic;
-using UnityEngine.Jobs;
+using Unity.Jobs;
 
 namespace UnityEngine.ECS.Tests
 {

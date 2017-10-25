@@ -1,8 +1,8 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 using NUnit.Framework;
 using UnityEngine.ECS;
-using UnityEngine.Collections;
+using Unity.Collections;
 
 namespace UnityEngine.ECS.Tests
 {

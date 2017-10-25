@@ -3,8 +3,8 @@ using UnityEditor;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using UnityEngine.Jobs;
-using UnityEngine.Collections;
+using Unity.Jobs;
+using Unity.Collections;
 
 public class NativeListTests
 {

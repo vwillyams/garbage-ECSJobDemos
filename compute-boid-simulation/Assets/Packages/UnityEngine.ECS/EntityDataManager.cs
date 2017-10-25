@@ -1,9 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Collections;
+﻿using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using System;
-//using UnityEngine.Assertions;
 using NUnit.Framework;
 
 namespace UnityEngine.ECS

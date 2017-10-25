@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 using System;
-using UnityEngine.Jobs;
+using Unity.Jobs.LowLevel.Unsafe;
 using UnityEngine.Collections;
 
-namespace UnityEngine.Jobs
+namespace Unity.Jobs
 {
     public interface IJobParallelForFilter
     {

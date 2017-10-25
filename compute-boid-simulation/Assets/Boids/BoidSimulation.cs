@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental;
 using UnityEngine.Serialization;
-using UnityEngine.Jobs;
+using Unity.Jobs;
 using UnityEngine.Collections;
 
 namespace BoidcloudSimulation

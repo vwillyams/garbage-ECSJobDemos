@@ -1,5 +1,5 @@
-using UnityEngine.Collections;
-using UnityEngine.Jobs;
+﻿using UnityEngine.Collections;
+using Unity.Jobs;
 
 namespace UnityEngine.ECS
 {

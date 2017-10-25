@@ -1,6 +1,6 @@
-using System;
-using UnityEngine.Collections;
-using UnityEngine.Jobs;
+﻿using System;
+using Unity.Jobs;
+using Unity.Jobs.LowLevel.Unsafe;
 
 namespace UnityEngine.ECS
 {

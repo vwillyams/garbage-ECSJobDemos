@@ -11,5 +11,4 @@ namespace UnityEngine.ECS.Rendering
     }
 
     public class InstanceRendererTransformComponent : ComponentDataWrapper<InstanceRendererTransform> { }
-
 }

@@ -3,7 +3,7 @@ using UnityEditor;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using UnityEngine.Jobs;
+using Unity.Jobs;
 using UnityEngine.Collections;
 
 #pragma warning disable 0219

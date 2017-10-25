@@ -1,9 +1,10 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Collections;
 using System.Collections.Generic;
-using UnityEngine.Jobs;
+using Unity.Jobs;
 using System;
 using UnityEngine.ECS;
+using UnityEngine.Jobs;
 
 
 namespace RotatorSamples

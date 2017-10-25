@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Profiling;
-using UnityEngine.Jobs;
+using Unity.Jobs;
 using UnityEngine.ECS;
 using UnityEngine.Collections;
 

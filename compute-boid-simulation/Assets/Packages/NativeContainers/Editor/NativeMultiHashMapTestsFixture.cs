@@ -1,9 +1,9 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using UnityEngine.Jobs;
+using Unity.Jobs;
 using UnityEngine.Collections;
 
 public class NativeMultiHashMapTestsFixture

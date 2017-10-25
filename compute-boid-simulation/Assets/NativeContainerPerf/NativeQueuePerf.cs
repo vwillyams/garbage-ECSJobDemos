@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Collections;
-using UnityEngine.Jobs;
+using Unity.Jobs;
 
 public class NativeQueuePerf : MonoBehaviour
 {

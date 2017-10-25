@@ -33,7 +33,7 @@ namespace UnityEngine.ECS
 			public void TriggerUpdate()
 			{
 				manager.OnUpdate();
-				UnityEngine.Jobs.JobHandle.ScheduleBatchedJobs();
+				Unity.Jobs.JobHandle.ScheduleBatchedJobs();
 			}
 		}
 		private static HashSet<ScriptBehaviourManager> s_ActiveManagers = new HashSet<ScriptBehaviourManager>();

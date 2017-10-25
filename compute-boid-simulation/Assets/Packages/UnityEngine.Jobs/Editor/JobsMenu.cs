@@ -1,9 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor;
-using UnityEngine.Jobs;
+﻿using UnityEditor;
 using UnityEngine.Collections;
+using Unity.Jobs.LowLevel.Unsafe;
 
 class JobsMenu
 {

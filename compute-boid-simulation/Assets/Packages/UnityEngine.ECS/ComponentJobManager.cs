@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Collections;
-using UnityEngine.Jobs;
+using Unity.Jobs;
 
 namespace UnityEngine.ECS
 {

@@ -1,9 +1,9 @@
-#if ENABLE_MANAGED_JOBS
-using UnityEngine;
+﻿#if ENABLE_MANAGED_JOBS
 using System;
-using UnityEngine.Jobs;
+using UnityEngine;
+using Unity.Jobs.LowLevel.Unsafe;
 
-namespace UnityEngine.Jobs
+namespace Unity.Jobs
 {
     public interface IJobParallelForBatch
     {
@@ -23,9 +23,9 @@ namespace UnityEngine.Jobs
                 return jobReflectionData;
             }
 
-            public delegate void ExecuteJobFunction(int workerThreadIndex, ref T data, System.IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
+            public delegate void ExecuteJobFunction(int workerThreadIndex, ref T data, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
-            public unsafe static void Execute(int workerThreadIndex, ref T jobData, System.IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
+            public unsafe static void Execute(int workerThreadIndex, ref T jobData, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
                 JobsUtility.PrepareJobExecution(workerThreadIndex);
                 while (true)

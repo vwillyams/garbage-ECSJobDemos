@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using UnityEngine.Jobs;
+using Unity.Jobs;
 using UnityEditor;
 using NUnit.Framework;
 using System;
@@ -29,7 +29,6 @@ public class NativeContainerTests_ValidateTypes : NativeContainerTests_ValidateT
 		[ReadOnly]
 		public NativeArray<float> 	nativeArrayRO;
 		
-		[WriteOnly]
 		public NativeArray<float> 	nativeArrayRW;
 
 		GenericStruct<float>	value;	

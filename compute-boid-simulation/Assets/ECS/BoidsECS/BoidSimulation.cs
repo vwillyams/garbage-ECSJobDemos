@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Experimental;
 using Unity.Jobs;
-using UnityEngine.Collections;
+using Unity.Collections;
 using UnityEngine.ECS;
 using System.Collections.Generic;
 

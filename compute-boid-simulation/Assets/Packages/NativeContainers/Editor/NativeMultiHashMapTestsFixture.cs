@@ -4,7 +4,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using Unity.Jobs;
-using UnityEngine.Collections;
+using Unity.Collections;
 
 public class NativeMultiHashMapTestsFixture
 {

@@ -3,7 +3,7 @@ using Unity.Jobs;
 using UnityEditor;
 using NUnit.Framework;
 using System;
-using UnityEngine.Collections;
+using Unity.Collections;
 
 public class NativeContainerTests_ValidateTypesFixture
 {

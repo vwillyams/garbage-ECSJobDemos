@@ -1,4 +1,4 @@
-﻿using UnityEngine.Collections;
+﻿using Unity.Collections;
 using Unity.Jobs;
 
 namespace UnityEngine.ECS

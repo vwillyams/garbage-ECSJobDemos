@@ -1,9 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Collections;
+﻿using UnityEngine;
+using Unity.Collections;
 using UnityEngine.ECS;
 using UnityEngine.Profiling;
+using Unity.Collections.LowLevel.Unsafe;
 
 // 64 + 16 + 12 + 128 = 220 bytes
 
@@ -49,7 +48,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 
     unsafe void Update()
 	{
-		UnityEngine.Collections.NativeLeakDetection.Mode = UnityEngine.Collections.NativeLeakDetectionMode.Disabled;
+		Unity.Collections.NativeLeakDetection.Mode = Unity.Collections.NativeLeakDetectionMode.Disabled;
 
 		var oldRoot = DependencyManager.Root;
 		DependencyManager.Root = new DependencyManager ();
@@ -104,7 +103,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 
 		instances.Dispose ();
 
-        UnityEngine.Collections.NativeLeakDetection.Mode = UnityEngine.Collections.NativeLeakDetectionMode.Enabled;
+        Unity.Collections.NativeLeakDetection.Mode = Unity.Collections.NativeLeakDetectionMode.Enabled;
 
 		DependencyManager.Root.Dispose ();
 		DependencyManager.Root = oldRoot;

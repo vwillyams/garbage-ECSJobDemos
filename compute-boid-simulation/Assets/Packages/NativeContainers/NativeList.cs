@@ -1,10 +1,12 @@
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
+
 #if ENABLE_NATIVE_ARRAY_CHECKS
 using System.Diagnostics;
 #endif
-namespace UnityEngine.Collections
+namespace Unity.Collections
 {
 	struct NativeListData
 	{
@@ -119,8 +121,8 @@ namespace UnityEngine.Collections
 
 			int elementSize = UnsafeUtility.SizeOf<T> ();
 
-			//@TODO: Find out why this is needed?
-			capacity = Mathf.Max(capacity, 1);
+            //@TODO: Find out why this is needed?
+            capacity = Math.Max(1, capacity);
 			data->list = UnsafeUtility.Malloc (capacity * elementSize, UnsafeUtility.AlignOf<T>(), i_label);
 
 			data->length = 0;

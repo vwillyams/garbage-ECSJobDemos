@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Experimental;
 using UnityEngine.Serialization;
 using Unity.Jobs;
-using UnityEngine.Collections;
+using Unity.Collections;
 
 namespace BoidcloudSimulation
 {

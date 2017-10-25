@@ -1,5 +1,5 @@
 ﻿using UnityEditor;
-using UnityEngine.Collections;
+using Unity.Collections;
 using Unity.Jobs.LowLevel.Unsafe;
 
 class JobsMenu

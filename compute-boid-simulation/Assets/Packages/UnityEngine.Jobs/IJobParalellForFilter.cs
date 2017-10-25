@@ -1,7 +1,8 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
+using UnityEngine;
 using Unity.Jobs.LowLevel.Unsafe;
-using UnityEngine.Collections;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace Unity.Jobs
 {

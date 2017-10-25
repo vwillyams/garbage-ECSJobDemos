@@ -1,6 +1,7 @@
 ﻿using System;
 using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.ECS
 {

@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
-using UnityEngine.Collections;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using UnityEngine.TestTools;
 using NUnit.Framework;
-using System.Collections;
 
 public class HLVMTests
 {

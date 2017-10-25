@@ -1,7 +1,7 @@
 ﻿#if ENABLE_MANAGED_JOBS
 using System;
-using UnityEngine;
 using Unity.Jobs.LowLevel.Unsafe;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace Unity.Jobs
 {

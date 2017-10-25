@@ -3,7 +3,7 @@ using Unity.Jobs;
 using UnityEditor;
 using NUnit.Framework;
 using System;
-using UnityEngine.Collections;
+using Unity.Collections;
 
 #if ENABLE_NATIVE_ARRAY_CHECKS
 public class NativeContainderTests_ValidateTypes_JobDebugger : NativeContainerTests_ValidateTypesFixture

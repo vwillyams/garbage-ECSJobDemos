@@ -1,13 +1,10 @@
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
-using UnityEngine;
-#if ENABLE_NATIVE_ARRAY_CHECKS
-using System.Diagnostics;
-#endif
-using System.Threading;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs.LowLevel.Unsafe;
+using System.Threading;
 
-namespace UnityEngine.Collections
+namespace Unity.Collections
 {
     [StructLayout(LayoutKind.Sequential)]
     internal unsafe struct NativeQueueData

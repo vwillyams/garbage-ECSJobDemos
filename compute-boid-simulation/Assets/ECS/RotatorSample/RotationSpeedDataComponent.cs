@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using UnityEngine.Collections;
+using Unity.Collections;
 using System.Collections.Generic;
 using Unity.Jobs;
 using System;

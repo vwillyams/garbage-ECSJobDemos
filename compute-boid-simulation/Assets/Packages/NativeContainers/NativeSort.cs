@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine.Collections;
+using Unity.Collections;
 
 namespace AssemblyCSharp
 {

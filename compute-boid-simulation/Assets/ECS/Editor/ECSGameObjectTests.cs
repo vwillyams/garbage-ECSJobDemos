@@ -1,6 +1,6 @@
 ﻿    using UnityEngine.ECS;
 using NUnit.Framework;
-using UnityEngine.Collections;
+using Unity.Collections;
 using System.Collections.Generic;
 using Unity.Jobs;
 

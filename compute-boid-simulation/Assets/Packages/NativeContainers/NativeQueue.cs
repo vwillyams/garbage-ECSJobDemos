@@ -35,9 +35,9 @@ namespace UnityEngine.Collections
             return (int*)(((Byte*)data->m_Data) + data->m_BlockSize * UnsafeUtility.SizeOf<T>() * data->m_NumBlocks);
         }
 
-        public static int AllocateWriteBlockMT<T>(NativeQueueData* data) where T : struct
+        public static int AllocateWriteBlockMT<T>(NativeQueueData* data, int threadIndex) where T : struct
         {
-            int tlsIdx = UnityEngine.Jobs.JobsUtility.JobThreadIndex;
+            int tlsIdx = threadIndex;
 
             int* blockLengths = GetBlockLengths<T>(data);
             int currentWriteBlock = data->m_CurrentWriteBlockTLS[tlsIdx * IntsPerCacheLine];
@@ -366,6 +366,7 @@ namespace UnityEngine.Collections
 		}
 		[NativeContainer]
 		[NativeContainerIsAtomicWriteOnly]
+		[NativeContainerNeedsThreadIndex]
 		public struct Concurrent
 		{
 			IntPtr 	m_Buffer;
@@ -373,6 +374,8 @@ namespace UnityEngine.Collections
 #if ENABLE_NATIVE_ARRAY_CHECKS
 			AtomicSafetyHandle m_Safety;
 #endif
+
+			int m_ThreadIndex;
 
 			unsafe public static implicit operator NativeQueue<T>.Concurrent (NativeQueue<T> queue)
 			{
@@ -384,6 +387,7 @@ namespace UnityEngine.Collections
 #endif
 
 				concurrent.m_Buffer = queue.m_Buffer;
+				concurrent.m_ThreadIndex = 0;
 				return concurrent;
 			}
 
@@ -411,7 +415,7 @@ namespace UnityEngine.Collections
 					throw new InvalidOperationException("Queue full");
 #endif
 				int* blockLengths = NativeQueueData.GetBlockLengths<T>(data);
-				int writeBlock = NativeQueueData.AllocateWriteBlockMT<T>(data);
+				int writeBlock = NativeQueueData.AllocateWriteBlockMT<T>(data, m_ThreadIndex);
 				int idx = writeBlock * data->m_BlockSize + blockLengths[writeBlock*NativeQueueData.IntsPerCacheLine];
 				UnsafeUtility.WriteArrayElement(data->m_Data, idx, entry);
 				++blockLengths[writeBlock*NativeQueueData.IntsPerCacheLine];

@@ -53,11 +53,10 @@ namespace UnityEngine.ECS
                 return jobReflectionData;
             }
 
-            public delegate void ExecuteJobFunction(int workerThreadIndex, ref JobStruct<T, U0> data, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
+            public delegate void ExecuteJobFunction(ref JobStruct<T, U0> data, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
-            public unsafe static void Execute(int workerThreadIndex, ref JobStruct<T, U0> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
+            public unsafe static void Execute(ref JobStruct<T, U0> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
-                JobsUtility.PrepareJobExecution(workerThreadIndex);
                 int begin;
                 int end;
                 while (JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
@@ -72,7 +71,6 @@ namespace UnityEngine.ECS
                         jobData.componentDataArray[i] = value;
                     }
                 }
-                JobsUtility.CleanupJobExecution();
             }
         }
     }
@@ -112,11 +110,10 @@ namespace UnityEngine.ECS
                 return jobReflectionData;
             }
 
-            public delegate void ExecuteJobFunction(int workerThreadIndex, ref JobStruct<T, U0, U1> data, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
+            public delegate void ExecuteJobFunction(ref JobStruct<T, U0, U1> data, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
-            public unsafe static void Execute(int workerThreadIndex, ref JobStruct<T, U0, U1> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
+            public unsafe static void Execute(ref JobStruct<T, U0, U1> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
-                JobsUtility.PrepareJobExecution(workerThreadIndex);
                 int begin;
                 int end;
                 while (JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
@@ -133,7 +130,6 @@ namespace UnityEngine.ECS
                         jobData.componentDataArray1[i] = value1;
                     }
                 }
-                JobsUtility.CleanupJobExecution();
             }
         }
     }

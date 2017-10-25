@@ -7,8 +7,15 @@ namespace UnityEngine.ECS
     {
         TupleSystem[] 					m_Tuples;
 
-        //@TODO:
-        public ComponentGroup[]              ComponentGroups { get { return new ComponentGroup[0]; } }
+        //@TODO: properly
+        public ComponentGroup[] ComponentGroups {
+			get {
+				var groupArray = new ComponentGroup[m_Tuples.Length];
+				for (var i = 0; i < groupArray.Length; ++i)
+					groupArray[i] = m_Tuples[i].EntityGroup;
+				return groupArray;
+			}
+		}
 
         internal ComponentType[]		    m_JobDependencyForReadingManagers;
         internal ComponentType[]		    m_JobDependencyForWritingManagers;

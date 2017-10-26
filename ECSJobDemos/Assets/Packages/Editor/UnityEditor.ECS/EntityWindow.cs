@@ -18,6 +18,8 @@ namespace UnityEngine.ECS
 
         [SerializeField]
         SplitterState systemTupleSplitter = new SplitterState(new float[] { 1, 1 }, new int[] { 100, 100 }, null);
+        [SerializeField]
+        SplitterState entityListSplitter = new SplitterState(new float[] { 1, 1 }, new int[] { 100, 100 }, null);
 
         public ComponentSystem CurrentSystemSelection {
             get { return currentSystemSelection; }
@@ -147,6 +149,8 @@ namespace UnityEngine.ECS
                 return;
             }
 
+            SplitterGUILayout.BeginVerticalSplit(entityListSplitter);
+
             SplitterGUILayout.BeginHorizontalSplit(systemTupleSplitter);
             GUILayout.BeginVertical();
             SystemList();
@@ -155,6 +159,13 @@ namespace UnityEngine.ECS
             TupleList();
             GUILayout.EndVertical();
             SplitterGUILayout.EndHorizontalSplit();
+
+            GUILayout.BeginVertical();
+            EntityList();
+            GUILayout.EndVertical();
+
+            SplitterGUILayout.EndVerticalSplit();
+
         }
     }
 }

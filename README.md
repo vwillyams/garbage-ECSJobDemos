@@ -18,5 +18,5 @@ Project folder for basic ECS dev & tests
 * Culling demo
 * NativeList, Nativehashmap and tests
 
-# AI Navigation
+# AI Navigation & Batched raycasts (API Not yet in the linked build...)
 Sandbox project for pathfinding: [LowLevelQueryAPI](AI_Prototyping/LowLevelQueryAPI).\

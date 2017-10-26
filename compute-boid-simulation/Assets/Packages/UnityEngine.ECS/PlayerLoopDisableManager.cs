@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEngine.ECS
 {
 	[ExecuteInEditMode]
-	internal class PlayerLoopDisableManager : MonoBehaviour
+	class PlayerLoopDisableManager : MonoBehaviour
 	{
 		public void OnEnable()
 		{

@@ -5,7 +5,7 @@ using Unity.Collections;
 
 namespace UnityEngine.ECS
 {
-    public unsafe class ComponentJobSafetyManager
+    unsafe class ComponentJobSafetyManager
     {
         public unsafe struct ComponentSafetyHandle
         {

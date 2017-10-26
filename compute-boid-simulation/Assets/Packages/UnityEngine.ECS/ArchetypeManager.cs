@@ -5,11 +5,12 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.ECS
 {
-	public interface IManagedObjectModificationListener
+	interface IManagedObjectModificationListener
 	{
 		void OnManagedObjectModified();
 	}
-	public unsafe struct Chunk
+	
+    unsafe struct Chunk
 	{
 		public Archetype*   archetype;
         public IntPtr 		buffer;
@@ -22,7 +23,7 @@ namespace UnityEngine.ECS
 		public Chunk*  	    next;
 	}
 
-	public unsafe struct Archetype
+	unsafe struct Archetype
 	{
 		public Chunk*           first;
 		public Chunk*           last;
@@ -50,7 +51,8 @@ namespace UnityEngine.ECS
 		// TODO: Linkage to other archetype via Add/Remove Component
 		public Archetype*       prevArchetype;
 	}
-	internal unsafe class ArchetypeManager : IDisposable
+	
+    unsafe class ArchetypeManager : IDisposable
 	{
 		NativeMultiHashMap<uint, IntPtr>		m_TypeLookup;
 		ChunkAllocator m_ArchetypeChunkAllocator;

@@ -1,21 +1,16 @@
 
-compute-boid-simulation/Library
-compute-boid-simulation/Temp
-compute-boid-simulation/obj
+ECSJobDemos/Library
+ECSJobDemos/Temp
+ECSJobDemos/obj
 
-BlobificationPrototype/Library
-BlobificationPrototype/Temp
-BlobificationPrototype/obj
+UnstablePrototypes/BlobificationPrototype/Library
+UnstablePrototypes/BlobificationPrototype/Temp
+UnstablePrototypes/BlobificationPrototype/obj
 
-AI_Prototyping/LowLevelQueryAPI/Library
-AI_Prototyping/LowLevelQueryAPI/Temp
-AI_Prototyping/LowLevelQueryAPI/obj
-AI_Prototyping/LowLevelQueryAPI/.editorconfig
-
-BlobificationPrototype/Library
-BlobificationPrototype/Temp
-BlobificationPrototype/obj
-
+UnstablePrototypes/LowLevelQueryAPI/Library
+UnstablePrototypes/LowLevelQueryAPI/Temp
+UnstablePrototypes/LowLevelQueryAPI/obj
+UnstablePrototypes/LowLevelQueryAPI/.editorconfig
 
 *.csproj
 *.sln

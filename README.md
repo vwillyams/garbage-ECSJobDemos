@@ -13,8 +13,9 @@ NOTE: (Navmesh & Raycast job API's is not included on this branch, code is going
 
 # ECSJobDemos
 Project folder for basic ECS dev & tests
-* ECS
-* Boid demo
+* Entity Component System implementation
+* Boid demo using ECS
+* InstanceRenderer using Entities
 * Culling demo
 * NativeList, Nativehashmap and tests
 

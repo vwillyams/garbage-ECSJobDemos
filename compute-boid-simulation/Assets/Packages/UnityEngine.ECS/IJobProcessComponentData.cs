@@ -1,8 +1,9 @@
-using System;
-using UnityEngine.Collections;
-using UnityEngine.Jobs;
+﻿using System;
+using Unity.Jobs;
+using Unity.Jobs.LowLevel.Unsafe;
+using Unity.Collections.LowLevel.Unsafe;
 
-namespace UnityEngine.ECS.Experimental
+namespace UnityEngine.ECS
 {
     public interface IJobProcessComponentData<T0, T1>
         where T0 : struct, IComponentData
@@ -24,7 +25,7 @@ namespace UnityEngine.ECS.Experimental
 
     public static class ProcessEntityJobExtension1
     {
-        static public JobHandle Schedule<T, U0>(this T jobData, ComponentDataArray<U0> componentDataArray, int minIndicesPerJob, JobHandle dependsOn = new JobHandle())
+        static public JobHandle Schedule<T, U0>(this T jobData, ComponentDataArray<U0> componentDataArray, int innerloopBatchCount, JobHandle dependsOn = new JobHandle())
             where T : struct, IJobProcessComponentData<U0>
             where U0 : struct, IComponentData
         {
@@ -33,15 +34,15 @@ namespace UnityEngine.ECS.Experimental
             fullData.componentDataArray = componentDataArray;
 
             var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct<T, U0>.Initialize(), dependsOn, ScheduleMode.Batched);
-            return JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray.Length, minIndicesPerJob);
+            return JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray.Length, innerloopBatchCount);
         }
 
         struct JobStruct<T, U0>
             where T : struct, IJobProcessComponentData<U0>
             where U0 : struct, IComponentData
         {
-            public ComponentDataArray<U0> componentDataArray;
-            public T data;
+            public ComponentDataArray<U0>  componentDataArray;
+            public T                       data;
 
             static public IntPtr jobReflectionData;
 
@@ -53,21 +54,23 @@ namespace UnityEngine.ECS.Experimental
                 return jobReflectionData;
             }
 
-            public delegate void ExecuteJobFunction(ref JobStruct<T, U0> data, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, int beginIndex, int count);
+            public delegate void ExecuteJobFunction(ref JobStruct<T, U0> data, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
-            // @TODO: Use parallel for job... (Need to expose combine jobs)
-
-            public unsafe static void Execute(ref JobStruct<T, U0> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, int startIndex, int count)
+            public unsafe static void Execute(ref JobStruct<T, U0> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
-                int endIndex = startIndex + count;
-                for (int i = startIndex; i != endIndex; i++)
+                int begin;
+                int end;
+                while (JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
                 {
-                    //@TODO: Optimize into two loops to avoid branches inside indexer...
-                    //@TODO: use ref returns to pass by ref instead of double copy
+                    for (int i = begin; i != end; i++)
+                    {
+                        //@TODO: Optimize into two loops to avoid branches inside indexer...
+                        //@TODO: use ref returns to pass by ref instead of double copy
 
-                    U0 value = jobData.componentDataArray[i];
-                    jobData.data.Execute(ref value);
-                    jobData.componentDataArray[i] = value;
+                        U0 value = jobData.componentDataArray[i];
+                        jobData.data.Execute(ref value);
+                        jobData.componentDataArray[i] = value;
+                    }
                 }
             }
         }
@@ -75,7 +78,7 @@ namespace UnityEngine.ECS.Experimental
 
     public static class ProcessEntityJobExtension2
     {
-        static public JobHandle Schedule<T, U0, U1>(this T jobData, ComponentDataArray<U0> componentDataArray0, ComponentDataArray<U1> componentDataArray1, int minIndicesPerJob, JobHandle dependsOn = new JobHandle())
+        static public JobHandle Schedule<T, U0, U1>(this T jobData, ComponentDataArray<U0> componentDataArray0, ComponentDataArray<U1> componentDataArray1, int innerloopBatchCount, JobHandle dependsOn = new JobHandle())
             where T : struct, IJobProcessComponentData<U0, U1>
             where U0 : struct, IComponentData
             where U1 : struct, IComponentData
@@ -86,7 +89,7 @@ namespace UnityEngine.ECS.Experimental
             fullData.componentDataArray1 = componentDataArray1;
 
             var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct<T, U0, U1>.Initialize(), dependsOn, ScheduleMode.Batched);
-            return JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray0.Length, minIndicesPerJob);
+            return JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray0.Length, innerloopBatchCount);
         }
 
         struct JobStruct<T, U0, U1>
@@ -94,9 +97,9 @@ namespace UnityEngine.ECS.Experimental
             where U0 : struct, IComponentData
             where U1 : struct, IComponentData
         {
-            public ComponentDataArray<U0> componentDataArray0;
-            public ComponentDataArray<U1> componentDataArray1;
-            public T data;
+            public ComponentDataArray<U0>  componentDataArray0;
+            public ComponentDataArray<U1>  componentDataArray1;
+            public T                       data;
 
             static public IntPtr jobReflectionData;
 
@@ -108,23 +111,25 @@ namespace UnityEngine.ECS.Experimental
                 return jobReflectionData;
             }
 
-            public delegate void ExecuteJobFunction(ref JobStruct<T, U0, U1> data, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, int beginIndex, int count);
+            public delegate void ExecuteJobFunction(ref JobStruct<T, U0, U1> data, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
-            // @TODO: Use parallel for job... (Need to expose combine jobs)
-
-            public unsafe static void Execute(ref JobStruct<T, U0, U1> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, int startIndex, int count)
+            public unsafe static void Execute(ref JobStruct<T, U0, U1> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
-                int endIndex = startIndex + count;
-                for (int i = startIndex; i != endIndex; i++)
+                int begin;
+                int end;
+                while (JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
                 {
-                    //@TODO: Optimize into two loops to avoid branches inside indexer...
-                    //@TODO: use ref returns to pass by ref instead of double copy
+                    for (int i = begin; i != end; i++)
+                    {
+                        //@TODO: Optimize into two loops to avoid branches inside indexer...
+                        //@TODO: use ref returns to pass by ref instead of double copy
 
-                    U0 value0 = jobData.componentDataArray0[i];
-                    U1 value1 = jobData.componentDataArray1[i];
-                    jobData.data.Execute(ref value0, ref value1);
-                    jobData.componentDataArray0[i] = value0;
-                    jobData.componentDataArray1[i] = value1;
+                        U0 value0 = jobData.componentDataArray0[i];
+                        U1 value1 = jobData.componentDataArray1[i];
+                        jobData.data.Execute(ref value0, ref value1);
+                        jobData.componentDataArray0[i] = value0;
+                        jobData.componentDataArray1[i] = value1;
+                    }
                 }
             }
         }
@@ -134,7 +139,6 @@ namespace UnityEngine.ECS.Experimental
         where TJob : struct, IAutoComponentSystemJob, IJobProcessComponentData<TComponentData0>
         where TComponentData0 : struct, IComponentData
     {
-        //@TODO: Use CreateEntityGroup
         [InjectTuples]
         ComponentDataArray<TComponentData0> m_Component0;
 
@@ -142,13 +146,11 @@ namespace UnityEngine.ECS.Experimental
         {
             base.OnUpdate();
 
-            int batchSize = 512;
+            int batchSize = 32;
 
             TJob jobData = new TJob();
             jobData.Prepare();
 
-            //var group = CreateEntityGroup(typeof(TComponentData0));
-            //var componentData0 = group.GetComponentDataArray<TComponentData0>();
             AddDependency(jobData.Schedule(m_Component0, batchSize, GetDependency()));
         }
     }
@@ -158,7 +160,6 @@ namespace UnityEngine.ECS.Experimental
     where TComponentData0 : struct, IComponentData
     where TComponentData1 : struct, IComponentData
     {
-        //@TODO: Use CreateEntityGroup
         [InjectTuples]
         ComponentDataArray<TComponentData0> m_Component0;
 
@@ -169,13 +170,11 @@ namespace UnityEngine.ECS.Experimental
         {
             base.OnUpdate();
 
-            int batchSize = 512;
+            int batchSize = 32;
 
             TJob jobData = new TJob();
             jobData.Prepare();
 
-            //var group = CreateEntityGroup(typeof(TComponentData0));
-            //var componentData0 = group.GetComponentDataArray<TComponentData0>();
             AddDependency(jobData.Schedule(m_Component0, m_Component1, batchSize, GetDependency()));
         }
     }

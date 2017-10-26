@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
-using UnityEngine.Collections;
-using UnityEngine.Jobs;
+using Unity.Collections;
+using Unity.Jobs;
 using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
@@ -15,10 +15,10 @@ namespace UnityEngine.ECS
         int                     m_Length;
         ArchetypeManager		m_ArchetypeManager;
 
-		internal unsafe ComponentArray(ComponentDataArchetypeSegment* data, int length, ArchetypeManager typeMan)
+        internal unsafe ComponentArray(ComponentDataArrayCache cache, int length, ArchetypeManager typeMan)
 		{
             m_Length = length;
-            m_Cache = new ComponentDataArrayCache(data, length);
+            m_Cache = cache;
 			m_ArchetypeManager = typeMan;
 		}
 
@@ -30,7 +30,7 @@ namespace UnityEngine.ECS
 				if ((uint)index >= (uint)m_Length)
 					FailOutOfRangeError(index);
 
-                if (index < m_Cache.m_CachedBeginIndex || index >= m_Cache.m_CachedEndIndex)
+                if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
                     m_Cache.UpdateCache(index);
 
 				return (T)m_Cache.GetManagedObject(m_ArchetypeManager, index);

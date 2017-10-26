@@ -1,7 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Collections;
+﻿using UnityEngine.Jobs;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using System;
 
 namespace UnityEngine.ECS
@@ -9,7 +8,7 @@ namespace UnityEngine.ECS
     //@TODO: safety?
     public unsafe struct EntityArchetype
     {
-        public Archetype* archetype;
+        internal Archetype* archetype;
 
         public static bool operator == (EntityArchetype lhs, EntityArchetype rhs)   { return lhs.archetype == rhs.archetype; }
         public static bool operator != (EntityArchetype lhs, EntityArchetype rhs)   { return lhs.archetype != rhs.archetype; }
@@ -83,14 +82,10 @@ namespace UnityEngine.ECS
 
         unsafe public ComponentGroup CreateComponentGroup(params ComponentType[] requiredComponents)
         {
-            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
-
-            return m_GroupManager.CreateEntityGroup(m_ArchetypeManager, m_CachedComponentTypeArray, PopulatedCachedTypeArray(requiredComponents), new UnityEngine.Jobs.TransformAccessArray());
+            return m_GroupManager.CreateEntityGroup(m_ArchetypeManager, m_CachedComponentTypeArray, PopulatedCachedTypeArray(requiredComponents), new TransformAccessArray());
         }
         unsafe public ComponentGroup CreateComponentGroup(UnityEngine.Jobs.TransformAccessArray trans, params ComponentType[] requiredComponents)
         {
-            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
-
             int len = PopulatedCachedTypeArray(requiredComponents);
             if (trans.IsCreated)
             {
@@ -373,6 +368,10 @@ namespace UnityEngine.ECS
             return m_SharedComponentManager.GetSharedComponentData<T>(archetype->types[indexInTypeArray].sharedComponentIndex);
         }
 
+        public void CompleteAllJobs()
+        {
+            ComponentJobSafetyManager.CompleteAllJobsAndInvalidateArrays();
+        }
 
         internal ComponentJobSafetyManager ComponentJobSafetyManager { get { return m_JobSafetyManager; } }
     }

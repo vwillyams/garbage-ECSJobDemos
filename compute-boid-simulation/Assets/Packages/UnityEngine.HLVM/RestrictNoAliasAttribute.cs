@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace UnityEngine.Jobs
+namespace Unity.Jobs
 {
     /// <summary>
     /// Indicates that a symbol is not aliased in the current scope.

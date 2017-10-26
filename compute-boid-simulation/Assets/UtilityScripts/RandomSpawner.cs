@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.ECS;
 
-public class RandomSpawner : ScriptBehaviour
+public class RandomSpawner : MonoBehaviour
 {
 	public GameObject prefab;
 	public int count = 10000;
@@ -15,9 +15,8 @@ public class RandomSpawner : ScriptBehaviour
 
 	private List<GameObject> roots = new List<GameObject>();
 
-	protected override void OnEnable()
+	void OnEnable()
 	{
-		base.OnEnable ();
 		Profiler.BeginSample ("Spawn '" + prefab.name + "'");
 		GameObject root = null;
 
@@ -36,10 +35,8 @@ public class RandomSpawner : ScriptBehaviour
 		Profiler.EndSample ();
 	}
 
-	public override void OnUpdate ()
+	void Update ()
 	{
-		base.OnUpdate ();
-
 		if (activateMode == ActivateMode.ActivateDeactivateAll)
 		{
 			foreach (var go in roots)

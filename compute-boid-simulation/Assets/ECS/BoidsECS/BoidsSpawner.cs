@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Profiling;
-using UnityEngine.Jobs;
+using Unity.Jobs;
 using UnityEngine.ECS;
-using UnityEngine.Collections;
+using Unity.Collections;
 
 namespace BoidSimulations
 {
-	public class BoidsSpawner : ScriptBehaviour
+	public class BoidsSpawner : MonoBehaviour
 	{
 		public GameObject prefab;
 		public GameObject[] lightweightPrefabs;
@@ -19,19 +19,10 @@ namespace BoidSimulations
 
 		private List<GameObject> roots = new List<GameObject>();
 
-		[InjectDependency]
-		EntityManager m_LightweightGameObjects;
-
-		public bool performanceDemoMode = false;
+        EntityManager m_EntityManager;
 
 		public int initialCount = 2000;
-		public int step1Count = 8000;
-		public int step2Count = 190000;
-
-		public int normalInstantiateCount = 50000;
-
-
-		int stateIndex = 0;
+		public int additionalCount = 5000;
 
 		void Instantiate(int count)
 		{
@@ -42,14 +33,14 @@ namespace BoidSimulations
 				var gos = new NativeArray<Entity>(count / lightweightPrefabs.Length, Allocator.Temp);
                 for (int p = 0; p < lightweightPrefabs.Length;p++)
                 {
-                    m_LightweightGameObjects.Instantiate(lightweightPrefabs[p], gos);
+                    m_EntityManager.Instantiate(lightweightPrefabs[p], gos);
 
                     for (int i = 0; i != gos.Length; i++)
                     {
                         var boid = new BoidData();
                         boid.position = Random.insideUnitSphere * radius + transform.position;
                         boid.forward = Random.onUnitSphere;
-                        m_LightweightGameObjects.SetComponent(gos[i], boid);
+                        m_EntityManager.SetComponent(gos[i], boid);
                     }
                 }
 
@@ -72,60 +63,23 @@ namespace BoidSimulations
 					val.forward = Random.onUnitSphere;
                     var go = Instantiate (prefab, val.position, Quaternion.identity, root.transform) as GameObject;
 
-					m_LightweightGameObjects.SetComponent<BoidData>(go.GetComponent<GameObjectEntity>().Entity, val);
+					m_EntityManager.SetComponent<BoidData>(go.GetComponent<GameObjectEntity>().Entity, val);
 				}
 			}	
 
 			Profiler.EndSample ();
 		}
 
-		protected override void OnEnable()
+		void OnEnable()
 		{
-			base.OnEnable ();
-
-			if (performanceDemoMode)
-			{
-				JobsUtility.SetAllowUsingJobCompiler(false);
-				Instantiate (initialCount);
-			}
-			else
-			{
-				Instantiate (normalInstantiateCount);
-			}
+            m_EntityManager = DependencyManager.GetBehaviourManager<EntityManager>();
+			Instantiate (initialCount);
 		}
 
-		protected override void OnDisable()
+		void Update()
 		{
-			base.OnDisable ();
-			JobsUtility.SetAllowUsingJobCompiler(true);
-		}
-
-
-		public override void OnUpdate ()
-		{
-			base.OnUpdate ();
-
-			if (!Input.GetKeyDown("space"))
-				return;
-			if (!performanceDemoMode)
-				return;
-				
-			// 10k with no jobs and no compiler
-			if (stateIndex == 0)
-			{
-				Instantiate (step1Count);
-			}
-			// 200k with jobs and no compiler
-			else if (stateIndex == 1)
-			{
-				Instantiate (step2Count);
-			}
-			// 200k with jobs and compiler
-			else if (stateIndex == 2)
-			{
-				JobsUtility.SetAllowUsingJobCompiler(true);
-			}
-			stateIndex++;
+			if (Input.GetKeyDown("space"))
+    			Instantiate (additionalCount);
 		}
 	}
 }

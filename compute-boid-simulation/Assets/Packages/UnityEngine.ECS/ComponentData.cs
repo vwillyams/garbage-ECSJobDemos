@@ -1,6 +1,6 @@
-using UnityEngine;
-using UnityEngine.Collections;
-using UnityEngine.Jobs;
+﻿using UnityEngine;
+using Unity.Collections;
+using Unity.Jobs;
 using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
@@ -19,7 +19,7 @@ namespace UnityEngine.ECS
 
     //@TODO: This should be fully implemented in C++ for efficiency
     [RequireComponent(typeof(GameObjectEntity))]
-    public abstract class ComponentDataWrapperBase : ScriptBehaviour
+    public abstract class ComponentDataWrapperBase : MonoBehaviour
     {
         abstract internal ComponentType GetComponentType(EntityManager manager);
         abstract internal void UpdateComponentData(EntityManager manager, Entity entity);

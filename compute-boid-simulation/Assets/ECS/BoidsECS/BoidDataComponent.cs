@@ -1,6 +1,6 @@
-using System;
+﻿using System;
 using UnityEngine;
-using UnityEngine.Collections;
+using Unity.Collections;
 using UnityEngine.ECS;
 
 namespace BoidSimulations
@@ -22,10 +22,8 @@ namespace BoidSimulations
 		//@TODO: This should really be possible from anywhere?
 		static int kInstanceCycleOffsetProp = Shader.PropertyToID ("_InstanceCycleOffset");
 
-		protected override void OnEnable()
+		void OnEnable()
 		{
-			base.OnEnable ();
-
 			// material randomization
 			var block = new MaterialPropertyBlock ();
 			block.SetFloat(kInstanceCycleOffsetProp, UnityEngine.Random.Range(0.0F, 2.0F));

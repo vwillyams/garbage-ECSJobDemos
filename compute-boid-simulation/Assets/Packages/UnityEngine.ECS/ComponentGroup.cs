@@ -1,11 +1,12 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using UnityEngine.Collections;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine.Jobs;
 
 namespace UnityEngine.ECS
 {
-    internal unsafe class EntityGroupManager : IDisposable
+    unsafe class EntityGroupManager : IDisposable
     {
         NativeMultiHashMap<uint, IntPtr>    m_GroupLookup;
         ChunkAllocator                      m_GroupDataChunkAllocator;
@@ -17,6 +18,7 @@ namespace UnityEngine.ECS
             m_GroupLookup = new NativeMultiHashMap<uint, IntPtr>(256, Allocator.Persistent);
             m_JobSafetyManager = safetyManager;
         }
+
 
         public ComponentGroup CreateEntityGroup(ArchetypeManager typeMan, ComponentType* requiredTypes, int requiredCount, TransformAccessArray trans)
         {
@@ -31,8 +33,12 @@ namespace UnityEngine.ECS
                     grp = (EntityGroupData*)grpPtr;
                     if (ComponentType.CompareArray(grp->requiredComponents, grp->numRequiredComponents, requiredTypes, requiredCount))
                         return new ComponentGroup(grp, m_JobSafetyManager, typeMan, trans);
-                } while (m_GroupLookup.TryGetNextValue(out grpPtr, ref it));
+                }
+                while (m_GroupLookup.TryGetNextValue(out grpPtr, ref it));
             }
+
+            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
+
             grp = (EntityGroupData*)m_GroupDataChunkAllocator.Allocate(sizeof(EntityGroupData), 8);
             grp->prevGroup = m_LastGroupData;
             m_LastGroupData = grp;
@@ -99,9 +105,7 @@ namespace UnityEngine.ECS
                 int typeComponentIndex = ChunkDataUtility.GetIndexInTypeArray(archetype, group->requiredComponents[component].typeIndex);
                 Assertions.Assert.AreNotEqual(-1, typeComponentIndex);
 
-                match->archetypeSegments[component].offset = archetype->offsets[typeComponentIndex];
-                match->archetypeSegments[component].stride = archetype->strides[typeComponentIndex];
-                match->archetypeSegments[component].typeIndex = typeComponentIndex;
+                match->archetypeSegments[component].typeIndexInArchetype = typeComponentIndex;
             }
 
             group->lastMatchingArchetype = match;
@@ -123,15 +127,16 @@ namespace UnityEngine.ECS
     }
 
     //@TODO: Make safe when entity manager is destroyed.
+    //@TODO: This needs to become a struct
 
     public unsafe class ComponentGroup : IDisposable, IManagedObjectModificationListener
     {
-        EntityGroupData*                m_GroupData;
-        ComponentJobSafetyManager       m_SafetyManager;
-        ArchetypeManager                     m_TypeManager;
-        TransformAccessArray            m_Transforms;
-        bool                            m_TransformsDirty;
-        MatchingArchetypes*             m_LastRegisteredListenerArchetype;
+        EntityGroupData*                      m_GroupData;
+        ComponentJobSafetyManager             m_SafetyManager;
+        ArchetypeManager                      m_TypeManager;
+        TransformAccessArray m_Transforms;
+        bool                                  m_TransformsDirty;
+        MatchingArchetypes*                   m_LastRegisteredListenerArchetype;
 
         internal ComponentGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager, ArchetypeManager typeManager, TransformAccessArray trans)
         {
@@ -174,7 +179,7 @@ namespace UnityEngine.ECS
             m_TransformsDirty = true;
         }
 
-        ComponentDataArchetypeSegment* GetSegmentData(int componentType, out int outLength, out int componentIndex)
+        ComponentDataArrayCache GetComponentDataArrayCache(int componentType, out int outLength, out int componentIndex)
         {
             componentIndex = 0;
             while (componentIndex < m_GroupData->numRequiredComponents && m_GroupData->requiredComponents[componentIndex].typeIndex != componentType)
@@ -198,8 +203,8 @@ namespace UnityEngine.ECS
             outLength = length;
 
             if (last == null)
-                return null;
-            return last->archetypeSegments + componentIndex;
+                return new ComponentDataArrayCache(null, 0);
+            return new ComponentDataArrayCache(last->archetypeSegments + componentIndex, length);
         }
 
 
@@ -209,11 +214,11 @@ namespace UnityEngine.ECS
             int componentIndex;
             int typeIndex = TypeManager.GetTypeIndex<T>();
 
-            ComponentDataArchetypeSegment* segment = GetSegmentData(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
+            var cache = GetComponentDataArrayCache(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
 #if ENABLE_NATIVE_ARRAY_CHECKS
-            return new ComponentDataArray<T>(segment, length, m_SafetyManager.GetSafetyHandle(typeIndex), readOnly);
+            return new ComponentDataArray<T>(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex), readOnly);
 #else
-			return new ComponentDataArray<T>(segment, length);
+			return new ComponentDataArray<T>(cache, length);
 #endif
         }
 
@@ -221,11 +226,11 @@ namespace UnityEngine.ECS
         {
             int length;
             int componentIndex;
-            ComponentDataArchetypeSegment* segment = GetSegmentData(type.typeIndex, out length, out componentIndex);
+            var cache = GetComponentDataArrayCache(type.typeIndex, out length, out componentIndex);
 #if ENABLE_NATIVE_ARRAY_CHECKS
-            return new ComponentDataFixedArray<T>(segment, length, 64, m_SafetyManager.GetSafetyHandle(type.typeIndex), readOnly);
+            return new ComponentDataFixedArray<T>(cache, length, 64, m_SafetyManager.GetSafetyHandle(type.typeIndex), readOnly);
 #else
-			return new ComponentDataFixedArray<T>(segment, length, 64);
+			return new ComponentDataFixedArray<T>(cache, length, 64);
 #endif
         }
 
@@ -234,11 +239,11 @@ namespace UnityEngine.ECS
             int length;
             int componentIndex;
             int typeIndex = TypeManager.GetTypeIndex<Entity>();
-            ComponentDataArchetypeSegment* segment = GetSegmentData(typeIndex, out length, out componentIndex);
+            var cache = GetComponentDataArrayCache(typeIndex, out length, out componentIndex);
 #if ENABLE_NATIVE_ARRAY_CHECKS
-            return new EntityArray(segment, length, m_SafetyManager.GetSafetyHandle(typeIndex));
+            return new EntityArray(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex));
 #else
-			return new EntityArray(segment, length);
+			return new EntityArray(cache, length);
 #endif
         }
         public ComponentArray<T> GetComponentArray<T>() where T : Component
@@ -246,8 +251,8 @@ namespace UnityEngine.ECS
             int length;
             int componentIndex;
 
-            ComponentDataArchetypeSegment* segment = GetSegmentData(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
-            return new ComponentArray<T>(segment, length, m_TypeManager);
+            var cache = GetComponentDataArrayCache(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
+            return new ComponentArray<T>(cache, length, m_TypeManager);
         }
 
         public int Length
@@ -256,7 +261,7 @@ namespace UnityEngine.ECS
             {
                 int length;
                 int componentIndex;
-                GetSegmentData(TypeManager.GetTypeIndex<Entity>(), out length, out componentIndex);
+                GetComponentDataArrayCache(TypeManager.GetTypeIndex<Entity>(), out length, out componentIndex);
                 return length;
             }
         }
@@ -278,20 +283,7 @@ namespace UnityEngine.ECS
             m_TransformsDirty = false;
             var trans = GetComponentArray<Transform>();
 
-#if true
 		    m_Transforms.SetTransforms(trans.ToArray());
-#else
-
-            // Deprecated codepath
-            while (trans.Length > m_Transforms.Length)
-                m_Transforms.Add(null);
-            while (trans.Length > m_Transforms.Length)
-                m_Transforms.RemoveAtSwapBack(0);
-
-            for (int i = 0; i < trans.Length; i++)
-                m_Transforms[i] = trans[i];
-
-#endif
         }
 
 		public Type[] Types

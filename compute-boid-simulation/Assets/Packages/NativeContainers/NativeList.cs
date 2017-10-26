@@ -1,10 +1,12 @@
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
+
 #if ENABLE_NATIVE_ARRAY_CHECKS
 using System.Diagnostics;
 #endif
-namespace UnityEngine.Collections
+namespace Unity.Collections
 {
 	struct NativeListData
 	{
@@ -36,29 +38,28 @@ namespace UnityEngine.Collections
 		{
 			get
 			{
-				#if ENABLE_NATIVE_ARRAY_CHECKS
-				AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
-				#endif
+                NativeListData* data = (NativeListData*)m_Buffer;
 
-				NativeListData* data = (NativeListData*)m_Buffer;
-				if ((uint)index >= (uint)data->length)
-					throw new System.IndexOutOfRangeException(string.Format("Index {0} is out of range in NativeList of '{1}' Length.", index, data->length));
+#if ENABLE_NATIVE_ARRAY_CHECKS
+                AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
+                if ((uint)index >= (uint)data->length)
+                    throw new System.IndexOutOfRangeException(string.Format("Index {0} is out of range in NativeList of '{1}' Length.", index, data->length));
+#endif
 
-				return UnsafeUtility.ReadArrayElement<T>(data->list, index);
+                return UnsafeUtility.ReadArrayElement<T>(data->list, index);
 			}
 
 			set
 			{
+                NativeListData* data = (NativeListData*)m_Buffer;
 
-				#if ENABLE_NATIVE_ARRAY_CHECKS
-				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
-				#endif
+#if ENABLE_NATIVE_ARRAY_CHECKS
+                AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
+                if ((uint)index >= (uint)data->length)
+                    throw new System.IndexOutOfRangeException(string.Format("Index {0} is out of range in NativeList of '{1}' Length.", index, data->length));
+#endif
 
-				NativeListData* data = (NativeListData*)m_Buffer;
-				if ((uint)index >= (uint)data->length)
-					throw new System.IndexOutOfRangeException(string.Format("Index {0} is out of range in NativeList of '{1}' Length.", index, data->length));
-
-				UnsafeUtility.WriteArrayElement<T>(data->list, index, value);
+                UnsafeUtility.WriteArrayElement<T>(data->list, index, value);
 			}
 		}
 
@@ -120,8 +121,8 @@ namespace UnityEngine.Collections
 
 			int elementSize = UnsafeUtility.SizeOf<T> ();
 
-			//@TODO: Find out why this is needed?
-			capacity = Mathf.Max(capacity, 1);
+            //@TODO: Find out why this is needed?
+            capacity = Math.Max(1, capacity);
 			data->list = UnsafeUtility.Malloc (capacity * elementSize, UnsafeUtility.AlignOf<T>(), i_label);
 
 			data->length = 0;

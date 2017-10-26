@@ -3,8 +3,8 @@ using UnityEditor;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using UnityEngine.Jobs;
-using UnityEngine.Collections;
+using Unity.Jobs;
+using Unity.Collections;
 #pragma warning disable 0219
 
 public class ParallelFilterJobTests
@@ -158,7 +158,7 @@ public class ParallelFilterJobTests
 		var jobHandle = new MinMaxRestrictionJob (array).ScheduleAppend (list, 50, 3);
 		new MinMaxRestrictionJob (array).ScheduleFilter (list, 3, jobHandle).Complete();
 
-		Assert.AreEqual (list.Length, 50);
+		Assert.AreEqual (50, list.Length);
 
 		list.Dispose ();
 		array.Dispose ();

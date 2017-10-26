@@ -1,8 +1,6 @@
-using UnityEngine.ECS;
+﻿using UnityEngine.ECS;
 using NUnit.Framework;
-using UnityEngine.Collections;
-using System.Collections.Generic;
-using UnityEngine.Jobs;
+using Unity.Jobs;
 using System;
 
 namespace UnityEngine.ECS.Tests
@@ -11,9 +9,8 @@ namespace UnityEngine.ECS.Tests
 	{
         public ECSSafetyTests()
         {
-            Assert.IsTrue(JobsUtility.GetJobDebuggerEnabled(), "JobDebugger must be enabled for these tests");
+            Assert.IsTrue(Unity.Jobs.LowLevel.Unsafe.JobsUtility.GetJobDebuggerEnabled(), "JobDebugger must be enabled for these tests");
         }
-
 
         [Test]
         public void ReadOnlyComponentDataArray()

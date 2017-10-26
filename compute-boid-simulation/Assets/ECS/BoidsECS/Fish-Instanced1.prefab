@@ -20,8 +20,8 @@ GameObject:
   m_Component:
   - component: {fileID: 4163776392049388}
   - component: {fileID: 114157945289734378}
-  - component: {fileID: 114018236511926658}
   - component: {fileID: 114789884207705002}
+  - component: {fileID: 114018236511926658}
   - component: {fileID: 114354742378774248}
   m_Layer: 0
   m_Name: Fish-Instanced1

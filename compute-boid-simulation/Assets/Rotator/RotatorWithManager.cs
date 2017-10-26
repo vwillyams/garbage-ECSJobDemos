@@ -87,15 +87,9 @@ namespace RotatorSamples
 	}
 
 	[DisallowMultipleComponent]
-	public class RotatorWithManager : ScriptBehaviour
+	public class RotatorWithManager : MonoBehaviour
 	{
-		// Both static & instance value dependency injection works.
-		// (m_Manager can be marked static, this would result in
-		// + less memory consumption on each instance
-		// - unclear how we can release the manager when the last instance is released?
-		// - no per instance control over the manager from the dependency manager)
-		[InjectDependency]
-		RotatorManager 	m_Manager;
+		RotatorManager 	        m_Manager;
 
 		[SerializeField]
 		float 					m_Speed;
@@ -113,15 +107,14 @@ namespace RotatorSamples
 			}
 		}
 
-		protected override void OnEnable()
+		void OnEnable()
 		{
-			base.OnEnable ();
+            m_Manager = DependencyManager.GetBehaviourManager<RotatorManager>();
 			m_Index = m_Manager.Add(transform, m_Speed);
 		}
 
-		protected override void OnDisable()
+		void OnDisable()
 		{
-			base.OnDisable ();
 			m_Manager.Remove(this);
 		}
 	}

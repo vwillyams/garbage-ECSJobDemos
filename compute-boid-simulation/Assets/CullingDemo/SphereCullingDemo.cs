@@ -38,26 +38,26 @@ struct SphereCullingDemoJob: IJobParallelForFilter
 struct IndexListToBitSet : IJob
 {
     public NativeList<int> visibleList;
-    public NativeArray<bool> visibleBits;
+    public NativeArray<byte> visibleBits;
 
     public void Execute()
     {
         for (int i = 0;i != visibleBits.Length;i++)
-        	visibleBits[i] = false;
+        	visibleBits[i] = 0;
         for (int i = 0;i != visibleList.Length;i++)
-        	visibleBits[visibleList[i]] = true;
+        	visibleBits[visibleList[i]] = 1;
     }
 }
 
 struct MoveTransforms : IJobParallelForTransform
 {
     [ReadOnly]
-    public NativeArray<bool> visibleBits;
+    public NativeArray<byte> visibleBits;
     public float deltaTime;
 
     public void Execute(int index, TransformAccess transform)
     {
-    	if (visibleBits[index])
+    	if (visibleBits[index] == 1)
     		transform.rotation *= Quaternion.Euler(0, deltaTime * 270, 0);
     }
 }
@@ -75,12 +75,12 @@ public class SphereCullingDemo : MonoBehaviour
     NativeArray<float4>    			m_BoundingSpheres;
     NativeArray<float4>             m_CullingPlanes;
     NativeList<int>                m_Visible;
-    NativeArray<bool>              m_VisibleBits;
+    NativeArray<byte>              m_VisibleBits;
     TransformAccessArray           m_TransformAccesses;
     private JobHandle              m_JobFence;
 	void OnEnable()
 	{
-	    m_VisibleBits = new NativeArray<bool>(instanceCount, Allocator.Persistent);
+	    m_VisibleBits = new NativeArray<byte>(instanceCount, Allocator.Persistent);
 		m_Visible = new NativeList<int>(instanceCount, Allocator.Persistent);
 		m_BoundingSpheres = new NativeArray<float4>(instanceCount, Allocator.Persistent);
 	    m_CullingPlanes = new NativeArray<float4>(6, Allocator.Persistent);

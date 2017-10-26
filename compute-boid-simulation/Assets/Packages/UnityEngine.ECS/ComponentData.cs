@@ -19,7 +19,7 @@ namespace UnityEngine.ECS
 
     //@TODO: This should be fully implemented in C++ for efficiency
     [RequireComponent(typeof(GameObjectEntity))]
-    public abstract class ComponentDataWrapperBase : ScriptBehaviour
+    public abstract class ComponentDataWrapperBase : MonoBehaviour
     {
         abstract internal ComponentType GetComponentType(EntityManager manager);
         abstract internal void UpdateComponentData(EntityManager manager, Entity entity);

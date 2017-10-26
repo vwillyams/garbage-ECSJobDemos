@@ -8,7 +8,7 @@ using Unity.Collections;
 
 namespace BoidSimulations
 {
-	public class BoidsSpawner : ScriptBehaviour
+	public class BoidsSpawner : MonoBehaviour
 	{
 		public GameObject prefab;
 		public GameObject[] lightweightPrefabs;
@@ -19,7 +19,6 @@ namespace BoidSimulations
 
 		private List<GameObject> roots = new List<GameObject>();
 
-		[InjectDependency]
         EntityManager m_EntityManager;
 
 		public int initialCount = 2000;
@@ -71,23 +70,14 @@ namespace BoidSimulations
 			Profiler.EndSample ();
 		}
 
-		protected override void OnEnable()
+		void OnEnable()
 		{
-			base.OnEnable ();
-
+            m_EntityManager = DependencyManager.GetBehaviourManager<EntityManager>();
 			Instantiate (initialCount);
 		}
 
-		protected override void OnDisable()
+		void Update()
 		{
-			base.OnDisable ();
-		}
-
-
-		public override void OnUpdate ()
-		{
-			base.OnUpdate ();
-
 			if (Input.GetKeyDown("space"))
     			Instantiate (additionalCount);
 		}

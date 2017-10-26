@@ -4,7 +4,7 @@ Talk about C# job system & Entity Component System at Unite Austin
 https://youtu.be/tGmnZdY5Y-E
 
 # unity build (compatible with "stable" branch)
-Required build: http://beta.unity3d.com/download/84ad1b91b91b/download.html
+Required build: http://beta.unity3d.com/download/c50162e906fd/public_download.html
 unity source code branch: scripting/jobsystem/unite-demo-2017
 
 # active development against master

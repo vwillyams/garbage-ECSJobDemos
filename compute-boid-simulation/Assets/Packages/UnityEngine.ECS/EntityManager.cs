@@ -8,7 +8,7 @@ namespace UnityEngine.ECS
     //@TODO: safety?
     public unsafe struct EntityArchetype
     {
-        public Archetype* archetype;
+        internal Archetype* archetype;
 
         public static bool operator == (EntityArchetype lhs, EntityArchetype rhs)   { return lhs.archetype == rhs.archetype; }
         public static bool operator != (EntityArchetype lhs, EntityArchetype rhs)   { return lhs.archetype != rhs.archetype; }

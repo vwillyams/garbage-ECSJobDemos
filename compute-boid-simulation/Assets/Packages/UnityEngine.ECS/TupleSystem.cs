@@ -4,7 +4,7 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.ECS
 {
-	internal class TupleSystem
+	class TupleSystem
     {
         internal struct TupleInjectionData
         {

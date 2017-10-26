@@ -19,7 +19,7 @@ namespace UnityEngine.ECS
 
         internal ComponentType[]		    m_JobDependencyForReadingManagers;
         internal ComponentType[]		    m_JobDependencyForWritingManagers;
-        protected ComponentJobSafetyManager m_SafetyManager;
+        internal ComponentJobSafetyManager  m_SafetyManager;
         EntityManager                       m_EntityManager;
 
         protected ComponentSystem()

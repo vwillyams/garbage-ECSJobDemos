@@ -1,8 +1,9 @@
-using UnityEngine;
-using UnityEngine.Jobs;
-using UnityEngine.Collections;
+﻿using UnityEngine;
+using Unity.Jobs;
+using Unity.Collections;
 using System.Collections.Generic;
 using UnityEngine.ECS;
+using UnityEngine.Jobs;
 
 
 namespace BoidSimulations

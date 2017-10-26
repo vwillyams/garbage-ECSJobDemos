@@ -1,6 +1,6 @@
-using System;
+﻿using System;
 using UnityEngine;
-using UnityEngine.Collections;
+using Unity.Collections;
 using UnityEngine.ECS;
 
 namespace UnityEngine.ECS.Rendering
@@ -11,5 +11,4 @@ namespace UnityEngine.ECS.Rendering
     }
 
     public class InstanceRendererTransformComponent : ComponentDataWrapper<InstanceRendererTransform> { }
-
 }

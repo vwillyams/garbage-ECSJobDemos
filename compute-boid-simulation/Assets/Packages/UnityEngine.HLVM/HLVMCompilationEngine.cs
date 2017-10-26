@@ -3,12 +3,12 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Jobs;
+using Unity.Jobs;
 using System.IO;
 using p2gc;
 #endif
 
-namespace UnityEngine.Jobs
+namespace Unity.Jobs
 {
     public enum Support
     {
@@ -75,7 +75,7 @@ namespace UnityEngine.Jobs
 #if ENABLE_HLVM_COMPILER
 
 
-namespace UnityEngine.Jobs
+namespace Unity.Jobs
 {
 [UnityEditor.InitializeOnLoad]
 class HLVMCompilationEngine

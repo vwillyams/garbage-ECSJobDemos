@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.ECS;
 using UnityEngine.Profiling;
-using UnityEngine.Collections;
+using Unity.Collections;
 
 public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
 {
@@ -24,7 +24,7 @@ public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
 
 	void Update()
 	{
-		UnityEngine.Collections.NativeLeakDetection.Mode = UnityEngine.Collections.NativeLeakDetectionMode.Disabled;
+		Unity.Collections.NativeLeakDetection.Mode = Unity.Collections.NativeLeakDetectionMode.Disabled;
 
 		var oldRoot = DependencyManager.Root;
 		DependencyManager.Root = new DependencyManager ();
@@ -63,7 +63,7 @@ public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
         entities.Dispose ();
 
 
-        UnityEngine.Collections.NativeLeakDetection.Mode = UnityEngine.Collections.NativeLeakDetectionMode.Enabled;
+        Unity.Collections.NativeLeakDetection.Mode = Unity.Collections.NativeLeakDetectionMode.Enabled;
 
 		DependencyManager.Root.Dispose ();
 		DependencyManager.Root = oldRoot;

@@ -1,11 +1,12 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Unity.Collections.LowLevel.Unsafe;
 
-namespace UnityEngine.Collections
+namespace Unity.Collections
 {
 	public struct NativeMultiHashMapIterator<TKey>
 		where TKey: struct

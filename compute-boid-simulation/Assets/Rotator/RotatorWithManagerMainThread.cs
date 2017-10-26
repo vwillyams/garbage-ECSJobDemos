@@ -1,8 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Collections;
-using UnityEngine.Jobs;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine.Assertions;
 using UnityEngine.ECS;
 
@@ -68,12 +68,8 @@ namespace RotatorSamples
 	}
 
 	[DisallowMultipleComponent]
-	public class RotatorWithManagerMainThread : ScriptBehaviour
+	public class RotatorWithManagerMainThread : MonoBehaviour
 	{
-		// Both static & instance value dependency injection works.
-		// (m_Manager can be marked static, this would result in less memory consumption,
-		// but no per instance control over the manager from the dependency manager)
-		[InjectDependency]
 		RotatorManagerMainThread 	m_Manager;
 
 		[SerializeField]
@@ -92,15 +88,14 @@ namespace RotatorSamples
 			}
 		}
 
-		protected override void OnEnable()
+		void OnEnable()
 		{
-			base.OnEnable ();
+            m_Manager = DependencyManager.GetBehaviourManager<RotatorManagerMainThread>();
 			m_Index = m_Manager.Add(transform, m_Speed);
 		}
 
-		protected override void OnDisable()
+		void OnDisable()
 		{
-			base.OnDisable ();
 			m_Manager.Remove(this);
 		}
 	}

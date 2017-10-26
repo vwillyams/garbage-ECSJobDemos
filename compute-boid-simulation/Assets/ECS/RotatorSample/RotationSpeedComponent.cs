@@ -4,7 +4,7 @@ using UnityEngine.ECS;
 
 namespace RotatorSamples
 {
-	public class RotationSpeedComponent : ScriptBehaviour
+	public class RotationSpeedComponent : MonoBehaviour
 	{
 		public float speed;
 	}

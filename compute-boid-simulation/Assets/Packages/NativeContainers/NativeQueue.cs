@@ -1,12 +1,10 @@
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
-using UnityEngine;
-#if ENABLE_NATIVE_ARRAY_CHECKS
-using System.Diagnostics;
-#endif
+using Unity.Collections.LowLevel.Unsafe;
+using Unity.Jobs.LowLevel.Unsafe;
 using System.Threading;
 
-namespace UnityEngine.Collections
+namespace Unity.Collections
 {
     [StructLayout(LayoutKind.Sequential)]
     internal unsafe struct NativeQueueData
@@ -26,18 +24,18 @@ namespace UnityEngine.Collections
         public int m_CurrentWriteBlockST;
         public int m_CurrentReadIndexInBlock;
 
-        public const int IntsPerCacheLine = UnityEngine.Jobs.JobsUtility.CacheLineSize / sizeof(int);
+        public const int IntsPerCacheLine = JobsUtility.CacheLineSize / sizeof(int);
 
-        public fixed int m_CurrentWriteBlockTLS[UnityEngine.Jobs.JobsUtility.MaxJobThreadCount * IntsPerCacheLine];
+        public fixed int m_CurrentWriteBlockTLS[JobsUtility.MaxJobThreadCount * IntsPerCacheLine];
 
         public static int* GetBlockLengths<T>(NativeQueueData* data) where T : struct
         {
             return (int*)(((Byte*)data->m_Data) + data->m_BlockSize * UnsafeUtility.SizeOf<T>() * data->m_NumBlocks);
         }
 
-        public static int AllocateWriteBlockMT<T>(NativeQueueData* data) where T : struct
+        public static int AllocateWriteBlockMT<T>(NativeQueueData* data, int threadIndex) where T : struct
         {
-            int tlsIdx = UnityEngine.Jobs.JobsUtility.JobThreadIndex;
+            int tlsIdx = threadIndex;
 
             int* blockLengths = GetBlockLengths<T>(data);
             int currentWriteBlock = data->m_CurrentWriteBlockTLS[tlsIdx * IntsPerCacheLine];
@@ -67,12 +65,12 @@ namespace UnityEngine.Collections
             data->m_FirstUsedBlock = 0;
             data->m_CurrentWriteBlockST = -1;
             data->m_CurrentReadIndexInBlock = 0;
-            for (int tls = 0; tls < UnityEngine.Jobs.JobsUtility.MaxJobThreadCount; ++tls)
+            for (int tls = 0; tls < JobsUtility.MaxJobThreadCount; ++tls)
                 data->m_CurrentWriteBlockTLS[tls * IntsPerCacheLine] = -1;
 
-            data->m_BlockSize = (UnityEngine.Jobs.JobsUtility.CacheLineSize + UnsafeUtility.SizeOf<T>() - 1) / UnsafeUtility.SizeOf<T>();
+            data->m_BlockSize = (JobsUtility.CacheLineSize + UnsafeUtility.SizeOf<T>() - 1) / UnsafeUtility.SizeOf<T>();
             // Round up the capacity to be an even number of blocks, add the number of threads as extra overhead since threads can allocate only one item from the block
-            data->m_NumBlocks = (capacity + data->m_BlockSize - 1) / data->m_BlockSize + UnityEngine.Jobs.JobsUtility.MaxJobThreadCount;
+            data->m_NumBlocks = (capacity + data->m_BlockSize - 1) / data->m_BlockSize + JobsUtility.MaxJobThreadCount;
             // The circular buffer requires at least 2 blocks to work
             if (data->m_NumBlocks < 2)
                 data->m_NumBlocks = 2;
@@ -84,7 +82,7 @@ namespace UnityEngine.Collections
 
             int totalSizeInBytes = (64 + data->m_BlockSize * UnsafeUtility.SizeOf<T>()) * data->m_NumBlocks;
 
-            data->m_Data = UnsafeUtility.Malloc(totalSizeInBytes, UnityEngine.Jobs.JobsUtility.CacheLineSize, label);
+            data->m_Data = UnsafeUtility.Malloc(totalSizeInBytes, JobsUtility.CacheLineSize, label);
             int* blockLengths = GetBlockLengths<T>(data);
             for (int i = 0; i < data->m_NumBlocks; ++i)
                 blockLengths[i * IntsPerCacheLine] = 0;
@@ -97,8 +95,8 @@ namespace UnityEngine.Collections
             if (data->m_Capacity > newCapacity)
                 throw new System.Exception("Shrinking a queue is not supported");
 
-            int newBlockSize = (UnityEngine.Jobs.JobsUtility.CacheLineSize + UnsafeUtility.SizeOf<T>() - 1) / UnsafeUtility.SizeOf<T>();
-            int newNumBlocks = (newCapacity + newBlockSize - 1) / newBlockSize + UnityEngine.Jobs.JobsUtility.MaxJobThreadCount;
+            int newBlockSize = (JobsUtility.CacheLineSize + UnsafeUtility.SizeOf<T>() - 1) / UnsafeUtility.SizeOf<T>();
+            int newNumBlocks = (newCapacity + newBlockSize - 1) / newBlockSize + JobsUtility.MaxJobThreadCount;
             if (newNumBlocks < 2)
                 newNumBlocks = 2;
 
@@ -109,7 +107,7 @@ namespace UnityEngine.Collections
             }
 
             int totalSizeInBytes = (64 + newBlockSize * UnsafeUtility.SizeOf<T>()) * newNumBlocks;
-            IntPtr newData = UnsafeUtility.Malloc(totalSizeInBytes, UnityEngine.Jobs.JobsUtility.CacheLineSize, label);
+            IntPtr newData = UnsafeUtility.Malloc(totalSizeInBytes, JobsUtility.CacheLineSize, label);
 
             // Copy the data from the old buffer to the new while compacting it and tracking the size
             int count = 0;
@@ -131,7 +129,7 @@ namespace UnityEngine.Collections
                 }
             }
             data->m_CurrentWriteBlockST = -1;
-            for (int tls = 0; tls < UnityEngine.Jobs.JobsUtility.MaxJobThreadCount; ++tls)
+            for (int tls = 0; tls < JobsUtility.MaxJobThreadCount; ++tls)
                 data->m_CurrentWriteBlockTLS[tls * IntsPerCacheLine] = -1;
 
             UnsafeUtility.Free(data->m_Data, label);
@@ -313,7 +311,7 @@ namespace UnityEngine.Collections
 				if (blockLengths[nextUsedBlock*NativeQueueData.IntsPerCacheLine] == 0 && blockLengths[data->m_FirstUsedBlock*NativeQueueData.IntsPerCacheLine] != data->m_BlockSize)
 					throw new InvalidOperationException("Trying to dequeue from an empty queue");
 				blockLengths[data->m_FirstUsedBlock*NativeQueueData.IntsPerCacheLine] = 0;
-				for (int tls = 0; tls < UnityEngine.Jobs.JobsUtility.MaxJobThreadCount; ++tls)
+				for (int tls = 0; tls < JobsUtility.MaxJobThreadCount; ++tls)
 				{
 					if (data->m_CurrentWriteBlockTLS[tls*NativeQueueData.IntsPerCacheLine] == data->m_FirstUsedBlock)
 						data->m_CurrentWriteBlockTLS[tls*NativeQueueData.IntsPerCacheLine] = -1;
@@ -366,6 +364,7 @@ namespace UnityEngine.Collections
 		}
 		[NativeContainer]
 		[NativeContainerIsAtomicWriteOnly]
+		[NativeContainerNeedsThreadIndex]
 		public struct Concurrent
 		{
 			IntPtr 	m_Buffer;
@@ -373,6 +372,8 @@ namespace UnityEngine.Collections
 #if ENABLE_NATIVE_ARRAY_CHECKS
 			AtomicSafetyHandle m_Safety;
 #endif
+
+			int m_ThreadIndex;
 
 			unsafe public static implicit operator NativeQueue<T>.Concurrent (NativeQueue<T> queue)
 			{
@@ -384,6 +385,7 @@ namespace UnityEngine.Collections
 #endif
 
 				concurrent.m_Buffer = queue.m_Buffer;
+				concurrent.m_ThreadIndex = 0;
 				return concurrent;
 			}
 
@@ -411,7 +413,7 @@ namespace UnityEngine.Collections
 					throw new InvalidOperationException("Queue full");
 #endif
 				int* blockLengths = NativeQueueData.GetBlockLengths<T>(data);
-				int writeBlock = NativeQueueData.AllocateWriteBlockMT<T>(data);
+				int writeBlock = NativeQueueData.AllocateWriteBlockMT<T>(data, m_ThreadIndex);
 				int idx = writeBlock * data->m_BlockSize + blockLengths[writeBlock*NativeQueueData.IntsPerCacheLine];
 				UnsafeUtility.WriteArrayElement(data->m_Data, idx, entry);
 				++blockLengths[writeBlock*NativeQueueData.IntsPerCacheLine];

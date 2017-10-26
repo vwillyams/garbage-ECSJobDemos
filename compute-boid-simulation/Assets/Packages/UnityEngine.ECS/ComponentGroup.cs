@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using UnityEngine.Collections;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine.Jobs;
 
 namespace UnityEngine.ECS
@@ -130,12 +131,12 @@ namespace UnityEngine.ECS
 
     public unsafe class ComponentGroup : IDisposable, IManagedObjectModificationListener
     {
-        EntityGroupData*                m_GroupData;
-        ComponentJobSafetyManager       m_SafetyManager;
-        ArchetypeManager                     m_TypeManager;
-        TransformAccessArray            m_Transforms;
-        bool                            m_TransformsDirty;
-        MatchingArchetypes*             m_LastRegisteredListenerArchetype;
+        EntityGroupData*                      m_GroupData;
+        ComponentJobSafetyManager             m_SafetyManager;
+        ArchetypeManager                      m_TypeManager;
+        TransformAccessArray m_Transforms;
+        bool                                  m_TransformsDirty;
+        MatchingArchetypes*                   m_LastRegisteredListenerArchetype;
 
         internal ComponentGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager, ArchetypeManager typeManager, TransformAccessArray trans)
         {

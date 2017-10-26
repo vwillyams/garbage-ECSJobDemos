@@ -1,6 +1,8 @@
 ﻿using System;
 
-namespace UnityEngine.Collections
+using Unity.Collections.LowLevel.Unsafe;
+
+namespace Unity.Collections
 {
     public static class NativeSortExtension
     {

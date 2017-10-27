@@ -1,6 +1,6 @@
-using UnityEngine;
-using UnityEngine.Collections;
-using UnityEngine.Jobs;
+﻿using UnityEngine;
+using Unity.Collections;
+using Unity.Jobs;
 using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
@@ -8,21 +8,19 @@ using System.Linq;
 using System.Reflection;
 namespace UnityEngine.ECS
 {
-    public unsafe struct ComponentDataArchetypeSegment
+    unsafe struct ComponentDataArchetypeSegment
     {
-        public Archetype* archetype;
-        public int offset;
-        public int stride;
-        public int typeIndex;
+        public Archetype*                     archetype;
+        public int                            typeIndexInArchetype;
         public ComponentDataArchetypeSegment* nextSegment;
     }
 
     unsafe struct ComponentDataArrayCache
     {
-        public IntPtr                          m_CachedPtr;
-        public int                             m_CachedStride;
-        public int                             m_CachedBeginIndex;
-        public int                             m_CachedEndIndex;
+        public IntPtr                          CachedPtr;
+        public int                             CachedStride;
+        public int                             CachedBeginIndex;
+        public int                             CachedEndIndex;
 
         ComponentDataArchetypeSegment*  m_FirstArchetypeSegment;
         ComponentDataArchetypeSegment*  m_CurrentArchetypeSegment;
@@ -41,21 +39,21 @@ namespace UnityEngine.ECS
                 m_CurrentChunk = null;
             m_CurrentChunkIndex = 0;
 
-            m_CachedPtr = IntPtr.Zero;
-            m_CachedStride = 0;
-            m_CachedBeginIndex = 0;
-            m_CachedEndIndex = 0;
+            CachedPtr = IntPtr.Zero;
+            CachedStride = 0;
+            CachedBeginIndex = 0;
+            CachedEndIndex = 0;
         }
 
-        public object GetManagedObject(TypeManager typeMan, int index)
+        public object GetManagedObject(ArchetypeManager typeMan, int index)
         {
-            return typeMan.GetManagedObject(m_CurrentChunk, m_CurrentArchetypeSegment->typeIndex, index - m_CachedBeginIndex);
+            return typeMan.GetManagedObject(m_CurrentChunk, m_CurrentArchetypeSegment->typeIndexInArchetype, index - CachedBeginIndex);
         }
-        public object[] GetManagedObjectRange(TypeManager typeMan, int index, out int rangeStart, out int rangeLength)
+        public object[] GetManagedObjectRange(ArchetypeManager typeMan, int index, out int rangeStart, out int rangeLength)
         {
-            var objs = typeMan.GetManagedObjectRange(m_CurrentChunk, m_CurrentArchetypeSegment->typeIndex, out rangeStart, out rangeLength);
-            rangeStart += index - m_CachedBeginIndex;
-            rangeLength -= index - m_CachedBeginIndex;
+            var objs = typeMan.GetManagedObjectRange(m_CurrentChunk, m_CurrentArchetypeSegment->typeIndexInArchetype, out rangeStart, out rangeLength);
+            rangeStart += index - CachedBeginIndex;
+            rangeLength -= index - CachedBeginIndex;
             return objs;
         }
 
@@ -89,10 +87,13 @@ namespace UnityEngine.ECS
                 m_CurrentChunk = m_CurrentChunk->next;
             }
 
-            m_CachedPtr = m_CurrentChunk->buffer + m_CurrentArchetypeSegment->offset - (m_CurrentArchetypeIndex + m_CurrentChunkIndex) * m_CurrentArchetypeSegment->stride;
-            m_CachedStride = m_CurrentArchetypeSegment->stride;
-            m_CachedBeginIndex = m_CurrentChunkIndex;
-            m_CachedEndIndex = m_CurrentChunkIndex + m_CurrentChunk->count;
+            var archetype = m_CurrentArchetypeSegment->archetype;
+            var typeIndexInArchetype = m_CurrentArchetypeSegment->typeIndexInArchetype;
+
+            CachedPtr = m_CurrentChunk->buffer + archetype->offsets[typeIndexInArchetype] - (m_CurrentArchetypeIndex + m_CurrentChunkIndex) * archetype->strides[typeIndexInArchetype];
+            CachedStride = archetype->strides[typeIndexInArchetype];
+            CachedBeginIndex = m_CurrentChunkIndex;
+            CachedEndIndex = m_CurrentChunkIndex + m_CurrentChunk->count;
         }
     }
 }

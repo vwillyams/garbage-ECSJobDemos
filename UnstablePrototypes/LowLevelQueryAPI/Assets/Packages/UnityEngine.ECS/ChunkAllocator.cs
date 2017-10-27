@@ -1,5 +1,6 @@
-using System;
-using UnityEngine.Collections;
+﻿using System;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.ECS
 {
@@ -10,7 +11,8 @@ namespace UnityEngine.ECS
 		int m_LastChunkUsedSize;
 		const int ms_ChunkSize = 64 * 1024;
 		const int ms_ChunkAlignment = 64;
-		public void Dispose()
+		
+        public void Dispose()
 		{
 			while (m_FirstChunk != null)
 			{
@@ -41,6 +43,14 @@ namespace UnityEngine.ECS
 			byte* ptr = m_LastChunk + alignedChunkSize;
 			m_LastChunkUsedSize = alignedChunkSize+size;
 			return (IntPtr)ptr;
-		} 
-	}
+		}
+
+        public IntPtr Construct(int size, int alignment, void* src)
+        {
+            IntPtr res = Allocate(size, alignment);
+            UnsafeUtility.MemCpy(res, (IntPtr)src, size);
+            return res;
+        }
+
+    }
 }

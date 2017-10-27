@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.ECS
 {
@@ -9,11 +7,11 @@ namespace UnityEngine.ECS
     {
         static public int GetIndexInTypeArray(Archetype* archetype, int typeIndex)
         {
-            int* types = archetype->types;
+            ComponentType* types = archetype->types;
             int typeCount = archetype->typesCount;
             for (int i = 0; i != typeCount; i++)
             {
-                if (typeIndex == types[i])
+                if (typeIndex == types[i].typeIndex)
                     return i;
             }
 
@@ -98,10 +96,24 @@ namespace UnityEngine.ECS
         public static void ReplicateComponents(Chunk* srcChunk, int srcIndex, Chunk* dstChunk, int dstBaseIndex, int count)
         {
             Archetype* arch = srcChunk->archetype;
-            // assumes fully strided data
-            IntPtr src = GetComponentData(srcChunk, srcIndex, 0);
-            IntPtr dst = GetComponentData(dstChunk, dstBaseIndex, 0);
-            MemCpyReplicate(dst, src, arch->bytesPerInstance, count);
+            if (arch->isStridedLayout)
+            {
+                // assumes fully strided data
+                IntPtr src = GetComponentData(srcChunk, srcIndex, 0);
+                IntPtr dst = GetComponentData(dstChunk, dstBaseIndex, 0);
+                MemCpyReplicate(dst, src, arch->stridedBytesPerInstance, count);
+            }
+            else
+            {
+                // type[0] is always Entity, and will be patched up later, so just skip
+
+                for (int t = 1; t != arch->typesCount; t++)
+                {
+                    IntPtr dst = GetComponentData(dstChunk, dstBaseIndex, t);
+                    IntPtr src = GetComponentData(srcChunk, srcIndex, t);
+                    MemCpyReplicate(dst, src, arch->sizeOfs[t], count);
+                }
+            }
         }
 
         public static void Convert(Chunk* srcChunk, int srcIndex, Chunk* dstChunk, int dstIndex)
@@ -128,7 +140,7 @@ namespace UnityEngine.ECS
             }
         }
 
-        public static void CopyManagedObjects(TypeManager typeMan, Chunk* srcChunk, int srcStartIndex, Chunk* dstChunk, int dstStartIndex, int count)
+        public static void CopyManagedObjects(ArchetypeManager typeMan, Chunk* srcChunk, int srcStartIndex, Chunk* dstChunk, int dstStartIndex, int count)
         {
             Archetype* srcArch = srcChunk->archetype;
             Archetype* dstArch = dstChunk->archetype;
@@ -156,7 +168,7 @@ namespace UnityEngine.ECS
                 }
             }
         }
-        public static void ClearManagedObjects(TypeManager typeMan, Chunk* chunk, int index, int count)
+        public static void ClearManagedObjects(ArchetypeManager typeMan, Chunk* chunk, int index, int count)
         {
             Archetype* arch = chunk->archetype;
 

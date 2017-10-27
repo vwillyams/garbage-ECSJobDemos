@@ -1,10 +1,10 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using UnityEngine.Jobs;
-using UnityEngine.Collections;
+using Unity.Jobs;
+using Unity.Collections;
 
 #if ENABLE_NATIVE_ARRAY_CHECKS
 public class NativeMultiHashMapTests_JobDebugger : NativeMultiHashMapTestsFixture

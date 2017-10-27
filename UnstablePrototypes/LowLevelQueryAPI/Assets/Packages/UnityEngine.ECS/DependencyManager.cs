@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.Collections;
+using Unity.Collections;
 using UnityEngine;
 using System.Reflection;
 using System;
@@ -32,7 +32,6 @@ namespace UnityEngine.ECS
 				public FieldInfo 				field;
 			}
 
-			public DefaultUpdateManager	defaultManager;
 			public Manager[] 				managers;
 			public GetComponent[] getComponents;
 		}
@@ -128,20 +127,6 @@ namespace UnityEngine.ECS
 			return manager;
 		}
 
-
-		internal static DefaultUpdateManager CreateDefaultUpdateManager (System.Type type)
-		{
-			var method = type.GetMethod ("OnUpdate", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-
-			if (method.DeclaringType == typeof(ScriptBehaviour))
-				return null;
-			else
-			{
-				var root = AutoRoot;
-				return root.CreateAndRegisterManager (typeof(DefaultUpdateManager), root.GetCapacityForType (type)) as DefaultUpdateManager;
-			}
-		}
-
 		public static T GetBehaviourManager<T> () where T : ScriptBehaviourManager
 		{
 			return (T)GetBehaviourManager (typeof(T));
@@ -169,19 +154,21 @@ namespace UnityEngine.ECS
 			return obj;
 		}
 
-		void PerformStaticDependencyInjection(Type type)
-		{
-			var fields = type.GetFields (BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic);
+        static void ValidateNoStaticInjectDependency(Type type)
+        {
+#if UNITY_EDITOR
+            var fields = type.GetFields(BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic);
 
-			foreach (var field in fields)
-			{
-				var hasInject = field.GetCustomAttributes (typeof(InjectDependencyAttribute), true).Length != 0;
-				if (hasInject && field.GetValue(null) == null)
-					field.SetValue (null, GetBehaviourManager(field.FieldType));
-			}
-		}
+            foreach (var field in fields)
+            {
+                var hasInject = field.GetCustomAttributes(typeof(InjectDependencyAttribute), true).Length != 0;
+                if (hasInject && field.GetValue(null) == null)
+                    Debug.LogError(string.Format("{0}.{1} InjectDependency may not be used on static variables", type, field.Name));
+            }
+#endif
+        }
 
-		static Dependencies CreateDependencyInjection(Type type, bool isComponent)
+		static Dependencies CreateDependencyInjection(Type type)
 		{
 			var managers = new List<Dependencies.Manager>();
 			var getComponents = new List<Dependencies.GetComponent>();
@@ -192,14 +179,7 @@ namespace UnityEngine.ECS
 				var hasInject = field.GetCustomAttributes (typeof(InjectDependencyAttribute), true).Length != 0;
 				if (hasInject)
 				{
-					if (isComponent && field.FieldType.IsSubclassOf(typeof(Component)))
-					{
-						var com = new Dependencies.GetComponent();
-						com.type = field.FieldType;
-						com.field = field;
-						getComponents.Add(com);
-					}
-					else if (field.FieldType.IsSubclassOf(typeof(ScriptBehaviourManager)))
+					if (field.FieldType.IsSubclassOf(typeof(ScriptBehaviourManager)))
 					{
 						var manager = new Dependencies.Manager();
 						manager.manager = GetBehaviourManager(field.FieldType);
@@ -213,12 +193,11 @@ namespace UnityEngine.ECS
 				}
 			}
 
-			var defaultManager = isComponent ? CreateDefaultUpdateManager (type) : null;
+            ValidateNoStaticInjectDependency(type);
 
-			if (managers.Count != 0 || getComponents.Count != 0 || defaultManager != null)
+			if (managers.Count != 0 || getComponents.Count != 0)
 			{
 				var deps = new Dependencies ();
-				deps.defaultManager = defaultManager;
 				deps.getComponents = getComponents.ToArray ();
 				deps.managers = managers.ToArray ();
 				return deps;
@@ -227,28 +206,9 @@ namespace UnityEngine.ECS
 				return null;
 		}
 
-
-		internal static DefaultUpdateManager DependencyInject(ScriptBehaviour behaviour)
-		{
-			var deps = AutoRoot.PrepareDependendencyInjectionStatic (behaviour, true);
-
-			if (deps != null)
-			{
-				for (int i = 0; i != deps.getComponents.Length; i++)
-					deps.getComponents[i].field.SetValue (behaviour, behaviour.GetComponent(deps.getComponents[i].type));
-
-				for (int i = 0; i != deps.managers.Length; i++)
-					deps.managers[i].field.SetValue (behaviour, deps.managers[i].manager);
-
-				return deps.defaultManager;
-			}
-			else
-				return null;		
-		}
-
 		internal static void DependencyInject(ScriptBehaviourManager manager)
 		{
-			var deps = AutoRoot.PrepareDependendencyInjectionStatic (manager, false);
+			var deps = AutoRoot.PrepareDependendencyInjectionStatic (manager);
 		
 			if (deps != null)
 			{
@@ -257,36 +217,17 @@ namespace UnityEngine.ECS
 			}
 		}
 
-		Dependencies PrepareDependendencyInjectionStatic(object behaviour, bool isComponent)
+		Dependencies PrepareDependendencyInjectionStatic(object behaviour)
 		{
 			var type = behaviour.GetType ();
 			Dependencies deps;
 			if (!ms_InstanceDependencies.TryGetValue (type, out deps))
 			{
-				deps = CreateDependencyInjection (type, isComponent);
+				deps = CreateDependencyInjection (type);
 				ms_InstanceDependencies.Add (type, deps);
-
-				PerformStaticDependencyInjection (type);
 			}
 
 			return deps;
-		}
-	}
-		
-	class DefaultUpdateManager : ScriptBehaviourManager
-	{
-		internal List<ScriptBehaviour> m_Behaviours;
-
-		protected override void OnCreateManager(int capacity)
-		{
-			base.OnCreateManager (capacity);
-
-			m_Behaviours = new List<ScriptBehaviour>();
-		}
-
-		override public void OnUpdate()
-		{
-			ScriptBehaviour.Execute (m_Behaviours);
 		}
 	}
 }

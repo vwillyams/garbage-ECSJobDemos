@@ -1,14 +1,6 @@
-using UnityEngine;
-using UnityEngine.Collections;
-using UnityEngine.Jobs;
+﻿using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using System;
-using System.Collections.Generic;
-using UnityEngine.Assertions;
-using System.Linq;
-using System.Reflection;
-
-//@TODO: ZERO TEST COVERAGE!!!
-// * Doesn't handle all cases of how a NativeFreeList can be reallocate / invalidated etc
 
 namespace UnityEngine.ECS
 {
@@ -29,13 +21,13 @@ namespace UnityEngine.ECS
         #endif
 
 		#if ENABLE_NATIVE_ARRAY_CHECKS
-        public unsafe ComponentDataFixedArray(ComponentDataArchetypeSegment* data, int length, int fixedArrayLength, AtomicSafetyHandle safety, bool isReadOnly)
+        internal unsafe ComponentDataFixedArray(ComponentDataArrayCache cache, int length, int fixedArrayLength, AtomicSafetyHandle safety, bool isReadOnly)
 		#else
-        public unsafe ComponentDataFixedArray(ComponentDataArchetypeSegment* data, int length, int fixedArrayLength)
+        internal unsafe ComponentDataFixedArray(ComponentDataArrayCache cache, int length, int fixedArrayLength)
 		#endif
 		{
             m_Length = length;
-            m_Cache = new ComponentDataArrayCache(data, length);
+            m_Cache = cache;
             m_FixedArrayLength = fixedArrayLength;
 
 			#if ENABLE_NATIVE_ARRAY_CHECKS
@@ -52,34 +44,34 @@ namespace UnityEngine.ECS
 		{
 			get
 			{
-				#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_NATIVE_ARRAY_CHECKS
 				AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 				if (index < m_MinIndex || index > m_MaxIndex)
 					FailOutOfRangeError(index);
+				AtomicSafetyHandle safety = m_Safety;
 #else
-				if ((uint)index >= (uint)m_Cache.m_Length)
-					FailOutOfRangeError(index);
+				AtomicSafetyHandle safety = new AtomicSafetyHandle();
 #endif
 
-                if (index < m_Cache.m_CachedBeginIndex || index >= m_Cache.m_CachedEndIndex)
+                if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
                     m_Cache.UpdateCache(index);
 
-                IntPtr ptr = m_Cache.m_CachedPtr + (index * m_Cache.m_CachedStride);
-                return NativeArray<T>.ConvertExistingDataToNativeArrayInternal(ptr, m_FixedArrayLength, m_Safety, Allocator.Invalid);
+                IntPtr ptr = m_Cache.CachedPtr + (index * m_Cache.CachedStride);
+                return NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(ptr, m_FixedArrayLength, safety, Allocator.Invalid);
 			}
 		}
 
-		void FailOutOfRangeError(int index)
+#if ENABLE_NATIVE_ARRAY_CHECKS
+        void FailOutOfRangeError(int index)
 		{
 			//@TODO: Make error message utility and share with NativeArray...
-			#if ENABLE_NATIVE_ARRAY_CHECKS
 			if (index < Length && (m_MinIndex != 0 || m_MaxIndex != Length - 1))
 				throw new IndexOutOfRangeException(string.Format("Index {0} is out of restricted IJobParallelFor range [{1}...{2}] in ReadWriteBuffer.\nReadWriteBuffers are restricted to only read & write the element at the job index. You can use double buffering strategies to avoid race conditions due to reading & writing in parallel to the same elements from a job.", index, m_MinIndex, m_MaxIndex));
-			#endif
-
+		
 			throw new IndexOutOfRangeException(string.Format("Index {0} is out of range of '{1}' Length.", index, Length));
 		}
+#endif
 
-		public int Length { get { return m_Length; } }
+        public int Length { get { return m_Length; } }
 	}
 }

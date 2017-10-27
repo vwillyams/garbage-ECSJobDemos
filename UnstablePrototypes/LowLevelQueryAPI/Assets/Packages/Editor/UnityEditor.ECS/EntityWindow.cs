@@ -2,26 +2,29 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Jobs;
+using Unity.Jobs;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 
+#if false
 namespace UnityEngine.ECS
 {
     public class EntityWindow : EditorWindow {
         
-        const float kSystemListWidth = 300f;
+        const float kResizerWidth = 5f;
+        [SerializeField]
+        const int kDefaultSystemListWidth = 300;
+        const float kMinListWidth = 200f;
         const float kSystemListHeight = 200f;
 
-        public GameObject componentDataHolder { get { return entityWrapperHolder; } }
         [SerializeField]
-        GameObject entityWrapperHolder;
+        SplitterState systemTupleSplitter = new SplitterState(new float[] { 1, 1 }, new int[] { 100, 100 }, null);
 
         public ComponentSystem CurrentSystemSelection {
             get { return currentSystemSelection; }
             set {
                 currentSystemSelection = value;
-                currentTupleSelection = null;
+                currentComponentGroupSelection = null;
                 InitTupleList();
                 InitEntityList();
             }
@@ -35,23 +38,23 @@ namespace UnityEngine.ECS
             tupleListView.SetSelection(currentSystemSelection);
         }
 
-        public TupleSystem CurrentTupleSelection {
-            get { return currentTupleSelection; }
+        public ComponentGroup CurrentComponentGroupSelection {
+            get { return currentComponentGroupSelection; }
             set {
-                currentTupleSelection = value;
+                currentComponentGroupSelection = value;
                 InitEntityList();
             }
         }
-        TupleSystem currentTupleSelection;
+        ComponentGroup currentComponentGroupSelection;
 
         void InitEntityList()
         {
-            if (currentTupleSelection == null)
+            if (currentComponentGroupSelection == null)
                 return;
             entityListState = new TreeViewState();
-            var headerState = EntityListView.BuildHeaderState(currentTupleSelection);
+            var headerState = EntityListView.BuildHeaderState(currentComponentGroupSelection);
             var header = new MultiColumnHeader(headerState);
-            entityListView = new EntityListView(entityListState, header, currentTupleSelection, this);
+            entityListView = new EntityListView(entityListState, header, currentComponentGroupSelection, this);
         }
 
         [SerializeField]
@@ -74,9 +77,10 @@ namespace UnityEngine.ECS
         [NonSerialized]
         bool initialized;
 
-        Rect systemListRect { get { return new Rect(0f, 0f, kSystemListWidth, kSystemListHeight); } }
-        Rect verticalSplitterRect { get { return new Rect(kSystemListWidth, 0f, 1f, kSystemListHeight); } }
-        Rect tupleListRect { get { return new Rect(kSystemListWidth, 0f, position.width - kSystemListWidth, kSystemListHeight); } }
+        // Rect systemListRect { get { return new Rect(0f, 0f, systemListWidth, kSystemListHeight); } }
+        [SerializeField]
+        Rect verticalSplitterRect = new Rect(kMinListWidth, 0f, 1f, kSystemListHeight);
+        // Rect tupleListRect { get { return new Rect(systemListWidth, 0f, position.width - systemListWidth, kSystemListHeight); } }
         // Rect horizontalSplitterRect { get { return new Rect(0f, kSystemListHeight, position.width, 1f); } }
         Rect entityListRect { get { return new Rect(0f, kSystemListHeight, position.width, position.height - kSystemListHeight); } }
 
@@ -84,17 +88,6 @@ namespace UnityEngine.ECS
         static void Init ()
         {
             EditorWindow.GetWindow<EntityWindow>("Entities");
-        }
-
-        void OnEnable()
-        {
-            entityWrapperHolder = EditorUtility.CreateGameObjectWithHideFlags("__EntityWindowWrapperHolder", HideFlags.HideAndDontSave);
-        }
-
-        void OnDisable()
-        {
-            if (entityWrapperHolder != null)
-                DestroyImmediate(entityWrapperHolder);
         }
 
         void InitIfNeeded()
@@ -118,26 +111,31 @@ namespace UnityEngine.ECS
             }
         }
 
-        void SystemList(Rect rect)
+        Rect GetExpandingRect()
         {
-            systemListView.SetManagers(systems);
-            systemListView.OnGUI(rect);
+            return GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
         }
 
-        void TupleList(Rect rect)
+        void SystemList()
+        {
+            systemListView.SetManagers(systems);
+            systemListView.OnGUI(GetExpandingRect());
+        }
+
+        void TupleList()
         {
             if (CurrentSystemSelection != null)
             {
-                tupleListView.OnGUI(rect);
+                tupleListView.OnGUI(GetExpandingRect());
             }
         }
 
-        void EntityList(Rect rect)
+        void EntityList()
         {
-            if (CurrentTupleSelection != null)
+            if (currentComponentGroupSelection != null)
             {
                 entityListView.PrepareData();
-                entityListView.OnGUI(rect);
+                entityListView.OnGUI(GetExpandingRect());
             }
         }
 
@@ -149,23 +147,16 @@ namespace UnityEngine.ECS
                 GUILayout.Label("No ComponentSystems loaded. (Try pushing Play)");
                 return;
             }
-            SystemList(systemListRect);
-            DrawHorizontalSplitter(verticalSplitterRect);
-            TupleList(tupleListRect);
-            EntityList(entityListRect);
-        }
 
-        internal static void DrawHorizontalSplitter(Rect dragRect)
-        {
-            if (Event.current.type != EventType.Repaint)
-                return;
-
-            Color orgColor = GUI.color;
-            Color tintColor = (EditorGUIUtility.isProSkin) ? new Color(0.12f, 0.12f, 0.12f, 1.333f) : new Color(0.6f, 0.6f, 0.6f, 1.333f);
-            GUI.color = GUI.color * tintColor;
-            Rect splitterRect = new Rect(dragRect.x - 1, dragRect.y, 1, dragRect.height);
-            GUI.DrawTexture(splitterRect, EditorGUIUtility.whiteTexture);
-            GUI.color = orgColor;
+            SplitterGUILayout.BeginHorizontalSplit(systemTupleSplitter);
+            GUILayout.BeginVertical();
+            SystemList();
+            GUILayout.EndVertical();
+            GUILayout.BeginVertical();
+            TupleList();
+            GUILayout.EndVertical();
+            SplitterGUILayout.EndHorizontalSplit();
         }
     }
 }
+#endif

@@ -1,8 +1,5 @@
-﻿using System.Collections.Generic;
-using JetBrains.Annotations;
+﻿using Unity.Collections;
 using UnityEngine;
-using UnityEngine.Assertions;
-using UnityEngine.Collections;
 using UnityEngine.Experimental.AI;
 
 public class PathUtils
@@ -26,8 +23,10 @@ public class PathUtils
         , ref NativeArray<NavMeshStraightPathFlags> straightPathFlags
         , int maxStraightPath)
     {
+#if DEBUG_CROWDSYSTEM_ASSERTS
         Assert.IsTrue(n < maxStraightPath);
         Assert.IsTrue(startIndex <= endIndex);
+#endif
 
         for (int k = startIndex; k < endIndex - 1; ++k)
         {
@@ -37,11 +36,15 @@ public class PathUtils
             {
                 Vector3 l, r;
                 var status = NavMeshQuery.GetPortalPoints(path[k], path[k + 1], out l, out r);
+
+#if DEBUG_CROWDSYSTEM_ASSERTS
                 Assert.IsTrue(status); // Expect path elements k, k+1 to be verified
+#endif
 
                 float3 cpa1, cpa2;
                 GeometryUtils.SegmentSegmentCPA(out cpa1, out cpa2, l, r, straightPath[n - 1].position, termPos);
                 straightPath[n] = new NavMeshLocation() { polygon = path[k + 1].polygon, position = cpa1 };
+
                 // TODO maybe the flag should be additive with |=
                 straightPathFlags[n] = (type2 == NavMeshPolyTypes.kPolyTypeOffMeshConnection) ? NavMeshStraightPathFlags.kStraightPathOffMeshConnection : 0;
                 if (++n == maxStraightPath)
@@ -59,39 +62,43 @@ public class PathUtils
         PolygonPathEcs path
         , ref NativeArray<NavMeshLocation> straightPath
         , ref NativeArray<NavMeshStraightPathFlags> straightPathFlags
+        , ref NativeArray<float> vertexSide
         , ref int straightPathCount
         , int maxStraightPath
-        )
+    )
     {
-        return FindStraightPath(path.start.position, path.end.position, new NativeSlice<PolygonID>(path.polygons), path.size, ref straightPath, ref straightPathFlags, ref straightPathCount, maxStraightPath);
+        return FindStraightPath(path.start.position, path.end.position, new NativeSlice<PolygonID>(path.polygons), path.size, ref straightPath, ref straightPathFlags, ref vertexSide, ref straightPathCount, maxStraightPath);
     }
 
     public static PathQueryStatus FindStraightPath(Vector3 startPos, Vector3 endPos
         , NativeSlice<PolygonID> path, int pathSize
         , ref NativeArray<NavMeshLocation> straightPath
         , ref NativeArray<NavMeshStraightPathFlags> straightPathFlags
+        , ref NativeArray<float> vertexSide
         , ref int straightPathCount
         , int maxStraightPath)
     {
+#if DEBUG_CROWDSYSTEM_ASSERTS
         Assert.IsTrue(pathSize > 0, "FindStraightPath: The path cannot be empty");
         Assert.IsTrue(path.Length >= pathSize, "FindStraightPath: The array of path polygons must fit at least the size specified");
         Assert.IsTrue(maxStraightPath > 1, "FindStraightPath: At least two corners need to be returned, the start and end");
         Assert.IsTrue(straightPath.Length >= maxStraightPath, "FindStraightPath: The array of returned corners cannot be smaller than the desired maximum corner count");
         Assert.IsTrue(straightPathFlags.Length >= straightPath.Length, "FindStraightPath: The array of returned flags must not be smaller than the array of returned corners");
+#endif
 
-        // TODO Assert.IsTrue(startPos is in the polygon of path[0].polygonId);
+        // TODO // Assert.IsTrue(startPos is in the polygon of path[0].polygonId);
 
         // TODO make PolygonID.valid to be ThreadSafe and use if (!path[0].valid)
         if (path[0].polygon == 0)
         {
-            straightPath[0] = new NavMeshLocation();    // empty terminator
+            straightPath[0] = new NavMeshLocation(); // empty terminator
             return PathQueryStatus.Failure; // | kNavMeshInvalidParam;
         }
 
         straightPath[0] = new NavMeshLocation
         {
             position = startPos, // TODO make sure the start position is in this polygon?
-            polygon = path[0].polygon   // TODO search the polygon on the path where the start position is
+            polygon = path[0].polygon // TODO search the polygon on the path where the start position is
         };
 
         straightPathFlags[0] = NavMeshStraightPathFlags.kStraightPathStart;
@@ -126,11 +133,13 @@ public class PathUtils
                         return PathQueryStatus.Failure; // | kNavMeshInvalidParam;
                     }
 
+#if DEBUG_CROWDSYSTEM_ASSERTS
                     //- TODO make PolygonID.valid to be ThreadSafe
                     Assert.IsTrue(path[i - 1].valid);
                     //- Assert.IsTrue(path[i].valid);
                     Assert.IsTrue(path[i - 1].polygon != 0);
                     Assert.IsTrue(path[i].polygon != 0);
+#endif
 
                     vl = polyWorldToLocal.MultiplyPoint(vl);
                     vr = polyWorldToLocal.MultiplyPoint(vr);
@@ -150,6 +159,13 @@ public class PathUtils
                     var termPos = polyLocalToWorld.MultiplyPoint(apex + left);
 
                     n = RetracePortals(apexIndex, leftIndex, path, n, termPos, ref straightPath, ref straightPathFlags, maxStraightPath);
+                    if (vertexSide.Length > 0)
+                    {
+                        vertexSide[n - 1] = -1;
+                    }
+
+                    //Debug.Log("LEFT");
+
                     if (n == maxStraightPath)
                     {
                         straightPathCount = n;
@@ -166,7 +182,15 @@ public class PathUtils
                 {
                     var polyLocalToWorld = NavMeshQuery.PolygonLocalToWorldMatrix(path[apexIndex]);
                     var termPos = polyLocalToWorld.MultiplyPoint(apex + right);
+
                     n = RetracePortals(apexIndex, rightIndex, path, n, termPos, ref straightPath, ref straightPathFlags, maxStraightPath);
+                    if (vertexSide.Length > 0)
+                    {
+                        vertexSide[n - 1] = 1;
+                    }
+
+                    //Debug.Log("RIGHT");
+
                     if (n == maxStraightPath)
                     {
                         straightPathCount = n;
@@ -202,6 +226,11 @@ public class PathUtils
             n--;
 
         n = RetracePortals(apexIndex, pathSize - 1, path, n, endPos, ref straightPath, ref straightPathFlags, maxStraightPath);
+        if (vertexSide.Length > 0)
+        {
+            vertexSide[n - 1] = 0;
+        }
+
         if (n == maxStraightPath)
         {
             straightPathCount = n;

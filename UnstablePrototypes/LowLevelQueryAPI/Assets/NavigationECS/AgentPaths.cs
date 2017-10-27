@@ -1,6 +1,7 @@
 using System;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
-using UnityEngine.Collections;
 using UnityEngine.Experimental.AI;
 
 public struct AgentPaths
@@ -145,6 +146,23 @@ public struct AgentPaths
         {
             InitializePath(i, 0);
         }
+        m_PathNodes.ResizeUninitialized(m_MaxPathSize * m_PathRanges.Length);
+    }
+
+    public unsafe void OnRemoveSwapBack(int index)
+    {
+        var backIndex = m_PathRanges.Length - 1;
+        if (index != backIndex)
+        {
+            var removedPath = m_PathRanges[index];
+            var backPath = m_PathRanges[backIndex];
+            InitializePath(index, backPath.size);
+            var src = (PolygonID*)m_PathNodes.GetUnsafePtr() + backPath.begin;
+            var dst = (PolygonID*)m_PathNodes.GetUnsafePtr() + removedPath.begin;
+            UnsafeUtility.MemCpy((IntPtr)dst, (IntPtr)src, backPath.size * UnsafeUtility.SizeOf<PolygonID>());
+        }
+
+        m_PathRanges.ResizeUninitialized(m_PathRanges.Length - 1);
         m_PathNodes.ResizeUninitialized(m_MaxPathSize * m_PathRanges.Length);
     }
 

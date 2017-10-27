@@ -19,4 +19,4 @@ Project folder for basic ECS dev & tests
 * NativeList, Nativehashmap and tests
 
 # AI Navigation
-Sandbox project for pathfinding: [LowLevelQueryAPI](AI_Prototyping/LowLevelQueryAPI).\
+Sandbox project for pathfinding: [LowLevelQueryAPI](UnstablePrototypes/LowLevelQueryAPI). (requires its own special build)

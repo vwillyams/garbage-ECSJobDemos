@@ -13,7 +13,7 @@ public class CrowdSpawner : MonoBehaviour
 
     void Update()
     {
-		var entityManager = DependencyManager.GetBehaviourManager<EntityManager>();
+        var entityManager = DependencyManager.GetBehaviourManager<EntityManager>();
         for (int i = 0; i < newAgents; ++i)
         {
             var pos = new Vector3(Random.Range(-range, range), 0, Random.Range(-range, range));
@@ -24,7 +24,6 @@ public class CrowdSpawner : MonoBehaviour
             var agentNavigator = new CrowdAgentNavigator
             {
                 active = true,
-                crowdId = -1,
                 newDestinationRequested = false,
                 goToDestination = false,
                 destinationInView = false,

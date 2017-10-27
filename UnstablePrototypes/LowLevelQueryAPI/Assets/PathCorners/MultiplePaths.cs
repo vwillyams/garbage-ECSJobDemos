@@ -1,12 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Assertions;
-using UnityEngine.Collections;
 using UnityEngine.Experimental.AI;
-using UnityEngine.Jobs;
 using Random = UnityEngine.Random;
 
 public class MultiplePaths : MonoBehaviour
@@ -123,7 +122,8 @@ public class MultiplePaths : MonoBehaviour
                     path = m_Paths[i],
                     startPos = m_Paths[i].start.position + Random.insideUnitSphere,
                     straightPath = m_StraightPathCorners[i],
-                    straightPathFlags = m_StraightPathCornersFlags[i]
+                    straightPathFlags = m_StraightPathCornersFlags[i],
+                    vertexSide = new NativeArray<float>()
                 };
                 m_CornersJobHandles[i] = findCorners.Schedule(mapTargetsFence);
             }
@@ -299,6 +299,7 @@ public class MultiplePaths : MonoBehaviour
 
         public NativeArray<NavMeshLocation> straightPath;
         public NativeArray<NavMeshStraightPathFlags> straightPathFlags;
+        public NativeArray<float> vertexSide;
         public int maxStraightPath;
 
         public void Execute()
@@ -309,10 +310,10 @@ public class MultiplePaths : MonoBehaviour
                 {
                     var cornerCount = 0;
                     var maxCount = maxStraightPath > 1 ? maxStraightPath : straightPath.Length;
-                    PathUtils.FindStraightPath(path, ref straightPath, ref straightPathFlags, ref cornerCount, maxCount);
+                    PathUtils.FindStraightPath(path, ref straightPath, ref straightPathFlags, ref vertexSide, ref cornerCount, maxCount);
                     if (cornerCount < straightPath.Length)
                     {
-                        straightPath[cornerCount] = new NavMeshLocation();  //empty terminator
+                        straightPath[cornerCount] = new NavMeshLocation(); //empty terminator
                     }
                 }
                 else
@@ -328,7 +329,7 @@ public class MultiplePaths : MonoBehaviour
                         const int cornerCount = 1;
                         if (cornerCount < straightPath.Length)
                         {
-                            straightPath[cornerCount] = new NavMeshLocation();  //empty terminator
+                            straightPath[cornerCount] = new NavMeshLocation(); //empty terminator
                         }
                     }
                 }

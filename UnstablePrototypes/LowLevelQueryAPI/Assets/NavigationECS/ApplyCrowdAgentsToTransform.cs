@@ -1,6 +1,6 @@
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Jobs;
-using UnityEngine.Collections;
 using UnityEngine.ECS;
 
 [UpdateAfter(typeof(CrowdSystem))]
@@ -29,7 +29,7 @@ class CrowdAgentsToTransformSystem : JobComponentSystem
         }
     }
 
-    override public void OnUpdate()
+    public override void OnUpdate()
     {
         base.OnUpdate();
 

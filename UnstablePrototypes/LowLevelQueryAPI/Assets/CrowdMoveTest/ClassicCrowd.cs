@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Assertions;
-using UnityEngine.Collections;
 using Random = UnityEngine.Random;
 
 public class ClassicCrowd : MonoBehaviour
@@ -89,7 +89,7 @@ public class ClassicCrowd : MonoBehaviour
         while (countTop > 0)
         {
             var maxIdx = Math.Min(countTop, m_Count);
-            for ( ; m_AgentIdx < maxIdx; ++ m_AgentIdx)
+            for (; m_AgentIdx < maxIdx; ++m_AgentIdx)
             {
                 var agent = m_NavMeshAgents[m_AgentIdx];
 

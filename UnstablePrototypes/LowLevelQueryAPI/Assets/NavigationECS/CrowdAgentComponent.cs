@@ -10,10 +10,4 @@ public struct CrowdAgent : IComponentData
     public NavMeshLocation location;
 }
 
-public class CrowdAgentComponent : ComponentDataWrapper<CrowdAgent>
-{
-    protected override void OnEnable()
-    {
-        base.OnEnable();
-    }
-}
+public class CrowdAgentComponent : ComponentDataWrapper<CrowdAgent> {}

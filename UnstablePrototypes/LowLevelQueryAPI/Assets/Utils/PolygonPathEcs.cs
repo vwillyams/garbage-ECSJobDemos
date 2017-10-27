@@ -1,4 +1,4 @@
-﻿using UnityEngine.Collections;
+﻿using Unity.Collections;
 using UnityEngine.Experimental.AI;
 
 public struct PolygonPathEcs

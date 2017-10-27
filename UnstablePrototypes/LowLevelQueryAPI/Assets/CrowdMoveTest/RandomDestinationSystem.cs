@@ -1,8 +1,8 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.Collections;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine.ECS;
-using UnityEngine.Jobs;
 
 [UpdateAfter(typeof(CrowdSystem))]
 public class RandomDestinationSystem : JobComponentSystem
@@ -14,17 +14,17 @@ public class RandomDestinationSystem : JobComponentSystem
 
     const int k_AgentsPerBatch = 100;
 
-    override protected void OnCreateManager(int capacity)
+    protected override void OnCreateManager(int capacity)
     {
         base.OnCreateManager(capacity);
     }
 
-    override protected void OnDestroyManager()
+    protected override void OnDestroyManager()
     {
         base.OnDestroyManager();
     }
 
-    override public void OnUpdate()
+    public override void OnUpdate()
     {
         base.OnUpdate();
 

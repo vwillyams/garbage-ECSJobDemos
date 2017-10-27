@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using System.Collections.Generic;
 
+#if false
 namespace UnityEngine.ECS
 {
     public class SystemListView : TreeView {
@@ -78,3 +79,4 @@ namespace UnityEngine.ECS
 
     }
 }
+#endif

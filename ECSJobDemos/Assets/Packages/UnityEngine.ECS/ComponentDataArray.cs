@@ -11,8 +11,8 @@ namespace UnityEngine.ECS
     {
         ComponentDataArrayCache m_Cache;
 
-#if ENABLE_NATIVE_ARRAY_CHECKS
         int m_Length;
+#if ENABLE_NATIVE_ARRAY_CHECKS
         int m_MinIndex;
         int m_MaxIndex;
         AtomicSafetyHandle m_Safety;
@@ -26,10 +26,10 @@ namespace UnityEngine.ECS
         {
             m_Cache = cache;
 
+            m_Length = length;
 #if ENABLE_NATIVE_ARRAY_CHECKS
             m_MinIndex = 0;
             m_MaxIndex = length - 1;
-            m_Length = length;
             m_Safety = safety;
             if (isReadOnly)
                 AtomicSafetyHandle.UseSecondaryVersion(ref m_Safety);
@@ -61,7 +61,7 @@ namespace UnityEngine.ECS
                 if (m_Cache.CachedStride == elementSize && dst.Stride == elementSize)
                 {
                     IntPtr srcPtr = m_Cache.CachedPtr + (index * elementSize);
-                    IntPtr dstPtr = dst.UnsafePtr + (copiedCount * elementSize);
+                    IntPtr dstPtr = dst.GetUnsafePtr() + (copiedCount * elementSize);
                     UnsafeUtility.MemCpy(dstPtr, srcPtr, elementSize * copyCount);
                 }
                 else

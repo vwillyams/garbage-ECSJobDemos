@@ -8,7 +8,7 @@ namespace Unity.Collections
     {
         public static void Sort<T>(this NativeArray<T> array) where T : struct, IComparable<T>
         {
-            IntroSort<T>(array.UnsafePtr, 0, array.Length - 1, (int)(2 * Math.Floor(Math.Log(array.Length, 2))));
+            IntroSort<T>(array.GetUnsafePtr(), 0, array.Length - 1, (int)(2 * Math.Floor(Math.Log(array.Length, 2))));
         }
 
         private const int k_IntrosortSizeThreshold = 16;

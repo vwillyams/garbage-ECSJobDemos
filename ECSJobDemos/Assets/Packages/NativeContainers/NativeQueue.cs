@@ -274,9 +274,12 @@ namespace Unity.Collections
 #endif
 
 			NativeQueueData* data = (NativeQueueData*)m_Buffer;
+#if ENABLE_NATIVE_ARRAY_CHECKS
+			// FIXME: current count needs to be fixed to be availble in player builds
 			if (data->m_CurrentCount >= data->m_Capacity)
 				Capacity = GrowCapacity(Capacity);
 			++data->m_CurrentCount;
+#endif
 
             int* blockLengths = NativeQueueData.GetBlockLengths<T>(data);
 			if (data->m_CurrentWriteBlockST < 0)
@@ -324,7 +327,9 @@ namespace Unity.Collections
 			if (blockLengths[data->m_FirstUsedBlock*NativeQueueData.IntsPerCacheLine] == 0)
 				throw new InvalidOperationException("Trying to dequeue from an empty queue");
 
+			#if ENABLE_NATIVE_ARRAY_CHECKS
 			--data->m_CurrentCount;
+			#endif
 
             int idx = data->m_FirstUsedBlock * data->m_BlockSize + data->m_CurrentReadIndexInBlock;
 			data->m_CurrentReadIndexInBlock++;
@@ -341,7 +346,9 @@ namespace Unity.Collections
 			data->m_FirstUsedBlock = 0;
 			data->m_CurrentWriteBlockST = -1;
 			data->m_CurrentReadIndexInBlock = 0;
+#if ENABLE_NATIVE_ARRAY_CHECKS
 			data->m_CurrentCount = 0;
+#endif
 
             int* blockLengths = NativeQueueData.GetBlockLengths<T>(data);
 			for (int i = 0 ; i < data->m_NumBlocks; ++i)

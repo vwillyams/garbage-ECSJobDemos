@@ -25,22 +25,28 @@ namespace UnityEngine.ECS
         ComponentSafetyHandle*  m_ComponentSafetyHandles;
         AtomicSafetyHandle      m_TempSafety;
 
-        //@TODO: Check agaisnt too many types created...
+        //@TODO: Check against too many types created...
 
         public ComponentJobSafetyManager()
         {
+#if ENABLE_NATIVE_ARRAY_CHECKS
             m_TempSafety = AtomicSafetyHandle.Create();
+#else
+            m_TempSafety = new AtomicSafetyHandle();
+#endif
             m_ReadJobFences = (JobHandle*)UnsafeUtility.Malloc(sizeof(JobHandle) * kMaxReadJobHandles * kMaxTypes, 16, Allocator.Persistent);
             UnsafeUtility.MemClear((IntPtr)m_ReadJobFences, sizeof(JobHandle) * kMaxReadJobHandles * kMaxTypes);
 
             m_ComponentSafetyHandles = (ComponentSafetyHandle*)UnsafeUtility.Malloc(sizeof(ComponentSafetyHandle) * kMaxTypes, 16, Allocator.Persistent);
             UnsafeUtility.MemClear((IntPtr)m_ComponentSafetyHandles, sizeof(ComponentSafetyHandle) * kMaxTypes);
 
+#if ENABLE_NATIVE_ARRAY_CHECKS
             for (int i = 0; i != kMaxTypes;i++)
             {
                 m_ComponentSafetyHandles[i].safetyHandle = AtomicSafetyHandle.Create();
                 AtomicSafetyHandle.SetAllowSecondaryVersionWriting(m_ComponentSafetyHandles[i].safetyHandle, false);
             }
+#endif
 
             m_HasCleanHandles = true;
         }
@@ -65,12 +71,14 @@ namespace UnityEngine.ECS
                 m_ComponentSafetyHandles[t].numReadFences = 0;
             }
 
+#if ENABLE_NATIVE_ARRAY_CHECKS
             for (int i = 0; i != count; i++)
             {
                 AtomicSafetyHandle.Release(m_ComponentSafetyHandles[i].safetyHandle);
                 m_ComponentSafetyHandles[i].safetyHandle = AtomicSafetyHandle.Create();
                 AtomicSafetyHandle.SetAllowSecondaryVersionWriting(m_ComponentSafetyHandles[i].safetyHandle, false);
             }
+#endif
 
             m_HasCleanHandles = true;
 
@@ -96,23 +104,29 @@ namespace UnityEngine.ECS
         public void Dispose()
         {
             for (int i = 0; i < kMaxTypes;i++)
-            {
-    #if ENABLE_NATIVE_ARRAY_CHECKS
-                AtomicSafetyHandle.Release(m_ComponentSafetyHandles[i].safetyHandle);
-    #endif
                 m_ComponentSafetyHandles[i].writeFence.Complete();
-            }
 
             for (int i = 0; i < kMaxTypes * kMaxReadJobHandles; i++)
-            {
                 m_ReadJobFences[i].Complete();
+
+#if ENABLE_NATIVE_ARRAY_CHECKS
+            for (int i = 0; i < kMaxTypes; i++)
+            {
+                var res = AtomicSafetyHandle.EnforceAllBufferJobsHaveCompletedAndRelease(m_ComponentSafetyHandles[i].safetyHandle);
+                if (res == EnforceJobResult.DidSyncRunningJobs)
+                {
+                    //@TODO: EnforceAllBufferJobsHaveCompletedAndRelease should probably print the error message and locate the exact job...
+                    Debug.LogError("Disposing EntityManager but a job is still running against the ComponentData. It appears the job has not been registered with JobComponentSystem.AddDependency.");
+                }
             }
+
+            AtomicSafetyHandle.Release(m_TempSafety);
+#endif
+            UnsafeUtility.Free((IntPtr)m_ComponentSafetyHandles, Allocator.Persistent);
+            m_ComponentSafetyHandles = null;
 
             UnsafeUtility.Free((IntPtr)m_ReadJobFences, Allocator.Persistent);
             m_ReadJobFences = null;
-
-            UnsafeUtility.Free((IntPtr)m_ComponentSafetyHandles, Allocator.Persistent);
-            m_ComponentSafetyHandles = null;
         }
 
         public void CompleteWriteDependency(int type)
@@ -166,13 +180,17 @@ namespace UnityEngine.ECS
         public AtomicSafetyHandle GetSafetyHandle(int type)
         {
             m_HasCleanHandles = false;
+#if ENABLE_NATIVE_ARRAY_CHECKS
             return m_ComponentSafetyHandles[type].safetyHandle;
+#else
+            return new AtomicSafetyHandle();
+#endif
         }
 
         void CombineReadDependencies(int type)
         {
             //@TODO: blah...
-            var readFencesSlice = NativeArray<JobHandle>.ConvertExistingDataToNativeArrayInternal((IntPtr)(m_ReadJobFences + type * kMaxReadJobHandles), m_ComponentSafetyHandles[type].numReadFences, m_TempSafety, Allocator.Invalid);
+            var readFencesSlice = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<JobHandle>((IntPtr)(m_ReadJobFences + type * kMaxReadJobHandles), m_ComponentSafetyHandles[type].numReadFences, m_TempSafety, Allocator.Invalid);
             m_ReadJobFences[type * kMaxReadJobHandles] = JobHandle.CombineDependencies(readFencesSlice);
             m_ComponentSafetyHandles[type].numReadFences = 1;
         }

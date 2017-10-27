@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using Unity.Jobs;
 using System;
+using UnityEngine.TestTools;
 
 namespace UnityEngine.ECS.Tests
 {
@@ -96,6 +97,22 @@ namespace UnityEngine.ECS.Tests
             Assert.Throws<InvalidOperationException>(() => { data.Exists(entity); });
             Assert.Throws<InvalidOperationException>(() => { data[entity] = new EcsTestData(); });
         }
+
+        [Test]
+        public void JobEntityManagerDestructionDetectsUnregisteredJob()
+        {
+            LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("job is still running"));
+
+            var entity = m_Manager.CreateEntity(typeof(EcsTestData));
+            var group = m_Manager.CreateComponentGroup(typeof(EcsTestData));
+
+            var job = new TestComponentWriteJob();
+            job.data = group.GetComponentDataArray<EcsTestData>();
+            job.Schedule();
+
+            TearDown();
+        }
+
 
         [Test]
         [Ignore("TODO")]

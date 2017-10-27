@@ -6,6 +6,7 @@ using Unity.Jobs;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 
+#if false
 namespace UnityEngine.ECS
 {
     public class EntityWindow : EditorWindow {
@@ -169,3 +170,4 @@ namespace UnityEngine.ECS
         }
     }
 }
+#endif

@@ -117,7 +117,7 @@ namespace UnityEngine.ECS
 
         unsafe public void CreateEntity(EntityArchetype archetype, NativeArray<Entity> entities)
         {
-            CreateEntityInternal (archetype, (Entity*)entities.UnsafePtr, entities.Length);
+            CreateEntityInternal (archetype, (Entity*)entities.GetUnsafePtr(), entities.Length);
         }
 
         unsafe public Entity CreateEntity(EntityArchetype archetype)
@@ -153,7 +153,7 @@ namespace UnityEngine.ECS
         {
             m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
 
-            m_Entities.DeallocateEnties(m_ArchetypeManager, (Entity*)entities.UnsafeReadOnlyPtr, entities.Length);
+            m_Entities.DeallocateEnties(m_ArchetypeManager, (Entity*)entities.GetUnsafeReadOnlyPtr(), entities.Length);
         }
 
         unsafe public void DestroyEntity(Entity entity)
@@ -207,13 +207,13 @@ namespace UnityEngine.ECS
             var entity = Instantiate(srcGameObject);
             outputEntities[0] = entity;
 
-            Entity* entityPtr = (Entity*)outputEntities.UnsafePtr;
+            Entity* entityPtr = (Entity*)outputEntities.GetUnsafePtr();
             InstantiateInternal(entity, entityPtr + 1, outputEntities.Length - 1);
         }
 
         public unsafe void Instantiate(Entity srcEntity, NativeArray<Entity> outputEntities)
         {
-            InstantiateInternal(srcEntity, (Entity*)outputEntities.UnsafePtr, outputEntities.Length);
+            InstantiateInternal(srcEntity, (Entity*)outputEntities.GetUnsafePtr(), outputEntities.Length);
         }
 
         unsafe void InstantiateInternal(Entity srcEntity, Entity* outputEntities, int count)

@@ -6,6 +6,7 @@ using System;
 using Unity.Jobs;
 using System.Linq;
 
+#if false
 namespace UnityEngine.ECS
 {
     public class TupleListView : TreeView {
@@ -87,3 +88,4 @@ namespace UnityEngine.ECS
 
     }
 }
+#endif

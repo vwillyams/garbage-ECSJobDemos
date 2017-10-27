@@ -172,7 +172,7 @@ namespace UnityEngine.ECS
         void CombineReadDependencies(int type)
         {
             //@TODO: blah...
-            var readFencesSlice = NativeArray<JobHandle>.ConvertExistingDataToNativeArrayInternal((IntPtr)(m_ReadJobFences + type * kMaxReadJobHandles), m_ComponentSafetyHandles[type].numReadFences, m_TempSafety, Allocator.Invalid);
+            var readFencesSlice = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<JobHandle>((IntPtr)(m_ReadJobFences + type * kMaxReadJobHandles), m_ComponentSafetyHandles[type].numReadFences, m_TempSafety, Allocator.Invalid);
             m_ReadJobFences[type * kMaxReadJobHandles] = JobHandle.CombineDependencies(readFencesSlice);
             m_ComponentSafetyHandles[type].numReadFences = 1;
         }

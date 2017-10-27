@@ -54,7 +54,7 @@ namespace UnityEngine.ECS
                     m_Cache.UpdateCache(index);
 
                 IntPtr ptr = m_Cache.CachedPtr + (index * m_Cache.CachedStride);
-                return NativeArray<T>.ConvertExistingDataToNativeArrayInternal(ptr, m_FixedArrayLength, m_Safety, Allocator.Invalid);
+                return NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(ptr, m_FixedArrayLength, m_Safety, Allocator.Invalid);
 			}
 		}
 

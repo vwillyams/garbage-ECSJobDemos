@@ -49,7 +49,7 @@ namespace Unity.Jobs
                 int oldLength = jobData.outputIndices.Length;
                 jobData.outputIndices.Capacity = math.max(jobData.appendCount + oldLength, jobData.outputIndices.Capacity);
 
-                int* outputPtr = (int*)jobData.outputIndices.UnsafePtr;
+                int* outputPtr = (int*)jobData.outputIndices.GetUnsafePtr();
                 int outputIndex = oldLength;
 
 #if ENABLE_NATIVE_ARRAY_CHECKS
@@ -69,7 +69,7 @@ namespace Unity.Jobs
 
             public unsafe static void ExecuteFilter(ref JobDataWithFiltering jobData, System.IntPtr bufferRangePatchData)
             {
-                int* outputPtr = (int*)jobData.outputIndices.UnsafePtr;
+                int* outputPtr = (int*)jobData.outputIndices.GetUnsafePtr();
                 int inputLength = jobData.outputIndices.Length;
 
                 int outputCount = 0;

@@ -104,23 +104,29 @@ namespace UnityEngine.ECS
         public void Dispose()
         {
             for (int i = 0; i < kMaxTypes;i++)
-            {
-    #if ENABLE_NATIVE_ARRAY_CHECKS
-                AtomicSafetyHandle.Release(m_ComponentSafetyHandles[i].safetyHandle);
-    #endif
                 m_ComponentSafetyHandles[i].writeFence.Complete();
-            }
 
             for (int i = 0; i < kMaxTypes * kMaxReadJobHandles; i++)
-            {
                 m_ReadJobFences[i].Complete();
+
+#if ENABLE_NATIVE_ARRAY_CHECKS
+            for (int i = 0; i < kMaxTypes; i++)
+            {
+                var res = AtomicSafetyHandle.EnforceAllBufferJobsHaveCompletedAndRelease(m_ComponentSafetyHandles[i].safetyHandle);
+                if (res == EnforceJobResult.DidSyncRunningJobs)
+                {
+                    //@TODO: EnforceAllBufferJobsHaveCompletedAndRelease should probably print the error message and locate the exact job...
+                    Debug.LogError("Disposing EntityManager but a job is still running against the ComponentData. It appears the job has not been registered with JobComponentSystem.AddDependency.");
+                }
             }
+
+            AtomicSafetyHandle.Release(m_TempSafety);
+#endif
+            UnsafeUtility.Free((IntPtr)m_ComponentSafetyHandles, Allocator.Persistent);
+            m_ComponentSafetyHandles = null;
 
             UnsafeUtility.Free((IntPtr)m_ReadJobFences, Allocator.Persistent);
             m_ReadJobFences = null;
-
-            UnsafeUtility.Free((IntPtr)m_ComponentSafetyHandles, Allocator.Persistent);
-            m_ComponentSafetyHandles = null;
         }
 
         public void CompleteWriteDependency(int type)

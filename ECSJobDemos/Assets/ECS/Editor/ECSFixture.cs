@@ -5,13 +5,13 @@ namespace UnityEngine.ECS.Tests
 {
 	public class ECSFixture
 	{
-		protected DependencyManager m_DependencyManager;
-		protected EntityManager m_Manager;
+        protected DependencyManager m_PreviousDependencyManager;
+		protected EntityManager     m_Manager;
 
         [SetUp]
 		public void Setup()
 		{
-			m_DependencyManager = DependencyManager.Root;
+			m_PreviousDependencyManager = DependencyManager.Root;
 			DependencyManager.Root = new DependencyManager ();
 
 			m_Manager = DependencyManager.GetBehaviourManager<EntityManager> ();
@@ -20,8 +20,13 @@ namespace UnityEngine.ECS.Tests
 		[TearDown]
 		public void TearDown()
 		{
-			DependencyManager.Root.Dispose ();
-			DependencyManager.Root = m_DependencyManager;
+            if (m_Manager != null)
+            {
+                DependencyManager.Root.Dispose();
+                DependencyManager.Root = m_PreviousDependencyManager;
+                m_PreviousDependencyManager = null;
+                m_Manager = null;
+            }
 		}
 
         public void AssertDoesNotExist(Entity entity)

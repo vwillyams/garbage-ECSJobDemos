@@ -1,7 +1,9 @@
 ﻿using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using System;
+#if ENABLE_NATIVE_ARRAY_CHECKS
 using NUnit.Framework;
+#endif
 
 namespace UnityEngine.ECS
 {
@@ -110,6 +112,7 @@ namespace UnityEngine.ECS
             }
         }
 
+        #if ENABLE_NATIVE_ARRAY_CHECKS
         void CheckInternalConsistency()
         {
             int aliveEntities = 0;
@@ -132,6 +135,7 @@ namespace UnityEngine.ECS
 
             //@TODO: Validate from perspective of chunks...
         }
+        #endif
 
 
         public void AllocateEntities(Archetype* arch, Chunk* chunk, int baseIndex, int count, Entity* outputEntities)

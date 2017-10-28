@@ -50,8 +50,7 @@ namespace UnityEngine.ECS.Rendering
 
                 var group = EntityManager.CreateComponentGroup(uniqueType, ComponentType.Create<InstanceRendererTransform>());
 
-                //@TODO: Support for dependency management against group API
-                EntityManager.CompleteAllJobs();
+                group.CompleteDependency();
 
                 var transforms = group.GetComponentDataArray<InstanceRendererTransform>();
 

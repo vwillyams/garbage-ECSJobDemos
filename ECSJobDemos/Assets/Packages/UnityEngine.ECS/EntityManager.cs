@@ -318,8 +318,7 @@ namespace UnityEngine.ECS
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
 
-            m_JobSafetyManager.CompleteReadDependency(typeIndex);
-            m_JobSafetyManager.CompleteWriteDependency(typeIndex);
+            m_JobSafetyManager.CompleteReadAndWriteDependency(typeIndex);
 
             IntPtr ptr = m_Entities.GetComponentDataWithType (entity, typeIndex);
             UnsafeUtility.CopyStructureToPtr (ref componentData, ptr);

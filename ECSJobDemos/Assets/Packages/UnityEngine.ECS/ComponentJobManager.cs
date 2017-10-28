@@ -73,6 +73,9 @@ namespace UnityEngine.ECS
 
 #if ENABLE_NATIVE_ARRAY_CHECKS
             for (int i = 0; i != count; i++)
+                AtomicSafetyHandle.CheckDeallocateAndThrow(m_ComponentSafetyHandles[i].safetyHandle);
+
+            for (int i = 0; i != count; i++)
             {
                 AtomicSafetyHandle.Release(m_ComponentSafetyHandles[i].safetyHandle);
                 m_ComponentSafetyHandles[i].safetyHandle = AtomicSafetyHandle.Create();
@@ -83,22 +86,6 @@ namespace UnityEngine.ECS
             m_HasCleanHandles = true;
 
             Profiling.Profiler.EndSample();
-        }
-
-
-        public void CompleteJobsForType(int* types, int typeCount)
-        {
-            for (int i = 0; i != typeCount; i++)
-            {
-                int type = types[i];
-                m_ComponentSafetyHandles[type].writeFence.Complete();
-
-                int readFencesCount = m_ComponentSafetyHandles[type].numReadFences;
-                JobHandle* readFences = m_ReadJobFences + type * kMaxReadJobHandles;
-                for (int r = 0; r != readFencesCount; r++)
-                    readFences[r].Complete();
-                m_ComponentSafetyHandles[type].numReadFences = 0;
-            }
         }
 
         public void Dispose()
@@ -129,19 +116,52 @@ namespace UnityEngine.ECS
             m_ReadJobFences = null;
         }
 
+        public void CompleteDependencies(int* readerTypes, int readerTypesCount, int* writerTypes, int writerTypesCount)
+        {
+            for (int i = 0; i != writerTypesCount; i++)
+                CompleteReadAndWriteDependency(writerTypes[i]);
+
+            for (int i = 0; i != readerTypesCount; i++)
+                CompleteWriteDependency(readerTypes[i]);
+        }
+
+        /*
+         @TODO:
+        public JobHandle GetDependency(int* writerTypes, int writerTypesCount, int* readerTypes, int readerTypesCount)
+        {
+            
+        }
+        */
+        public void AddDependency(int* readerTypes, int readerTypesCount, int* writerTypes, int writerTypesCount, JobHandle job)
+        {
+            for (int i = 0; i != writerTypesCount; i++)
+                AddWriteDependency(writerTypes[i], job);
+
+            for (int i = 0; i != readerTypesCount; i++)
+                AddReadDependency(readerTypes[i], job);
+        }
+
         public void CompleteWriteDependency(int type)
         {
             m_ComponentSafetyHandles[type].writeFence.Complete();
+#if ENABLE_NATIVE_ARRAY_CHECKS
+            AtomicSafetyHandle.CheckReadAndThrow(m_ComponentSafetyHandles[type].safetyHandle);
+#endif
         }
 
-        public void CompleteReadDependency(int type)
+        public void CompleteReadAndWriteDependency(int type)
         {
             for (int i = 0; i < m_ComponentSafetyHandles[type].numReadFences; ++i)
                 m_ReadJobFences[type * kMaxReadJobHandles + i].Complete();
             m_ComponentSafetyHandles[type].numReadFences = 0;
 
+            m_ComponentSafetyHandles[type].writeFence.Complete();
+#if ENABLE_NATIVE_ARRAY_CHECKS
+            AtomicSafetyHandle.CheckWriteAndThrow(m_ComponentSafetyHandles[type].safetyHandle);
+#endif
         }
 
+        //@TODO: Use new batched api instead and remove...
         public JobHandle GetWriteDependency(int type)
         {
             return m_ComponentSafetyHandles[type].writeFence;

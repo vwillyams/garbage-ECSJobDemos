@@ -301,10 +301,22 @@ namespace UnityEngine.ECS
             return new ComponentDataArrayFromEntity<T>(m_JobSafetyManager.GetSafetyHandle(typeIndex), typeIndex, m_Entities.m_Entities);
         }
 
+        [System.Diagnostics.Conditional("ENABLE_NATIVE_ARRAY_CHECKS")]
+        void EnsureEntityHasComponent(Entity entity, int typeIndex)
+        {
+            if (!m_Entities.HasComponent(entity, typeIndex))
+            {
+                if (m_Entities.Exists(entity))
+                    throw new System.ArgumentException("entity does not exist");
+                else
+                    throw new System.ArgumentException("{0} component has not been added to the entity.");
+            }
+        }
+
         public T GetComponent<T>(Entity entity) where T : struct, IComponentData
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
-
+            EnsureEntityHasComponent(entity, typeIndex);
             m_JobSafetyManager.CompleteWriteDependency(typeIndex);
 
             IntPtr ptr = m_Entities.GetComponentDataWithType (entity, typeIndex);
@@ -317,6 +329,7 @@ namespace UnityEngine.ECS
         public void SetComponent<T>(Entity entity, T componentData) where T: struct, IComponentData
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
+            EnsureEntityHasComponent(entity, typeIndex);
 
             m_JobSafetyManager.CompleteReadAndWriteDependency(typeIndex);
 
@@ -326,6 +339,8 @@ namespace UnityEngine.ECS
 
         internal unsafe void SetComponentObject(Entity entity, ComponentType componentType, object componentObject)
         {
+            EnsureEntityHasComponent(entity, componentType.typeIndex);
+
             Chunk* chunk;
             int chunkIndex;
             m_Entities.GetComponentChunk(entity, out chunk, out chunkIndex);
@@ -356,14 +371,10 @@ namespace UnityEngine.ECS
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
 
+            EnsureEntityHasComponent(entity, typeIndex);
+
             Archetype* archetype = m_Entities.GetArchetype(entity);
-            if (archetype == null)
-                throw new System.ArgumentException("Entity does not exist");
-
             int indexInTypeArray = ChunkDataUtility.GetIndexInTypeArray(archetype, typeIndex);
-            if (indexInTypeArray == -1)
-                throw new System.ArgumentException(string.Format("Component {0} does not exist on the Entity", typeof(T)));
-
             return m_SharedComponentManager.GetSharedComponentData<T>(archetype->types[indexInTypeArray].sharedComponentIndex);
         }
 

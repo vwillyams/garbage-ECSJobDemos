@@ -205,6 +205,22 @@ namespace UnityEngine.ECS.Tests
         }
 
         [Test]
+        public void GetSetComponentThrowsIfNotExist()
+        {
+            var entity = m_Manager.CreateEntity(typeof(EcsTestData));
+            var destroyedEntity = m_Manager.CreateEntity(typeof(EcsTestData));
+            m_Manager.DestroyEntity(destroyedEntity);
+
+            Assert.Throws<System.ArgumentException>(() => { m_Manager.SetComponent(entity, new EcsTestData2()); });
+            Assert.Throws<System.ArgumentException>(() => { m_Manager.SetComponent(destroyedEntity, new EcsTestData2()); });
+
+            Assert.Throws<System.ArgumentException>(() => { m_Manager.GetComponent<EcsTestData2>(entity); });
+            Assert.Throws<System.ArgumentException>(() => { m_Manager.GetComponent<EcsTestData2>(destroyedEntity); });
+        }
+
+        //@TODO: AddComponent(Double add), RemoveComponent
+
+        [Test]
         [Ignore("TODO")]
         public void ForgetAddJobDependencyIsCaughtInComponentSystem()
         {

@@ -159,6 +159,15 @@ namespace UnityEngine.ECS
             }
         }
 
+        public bool HasComponent(Entity entity, int type)
+        {
+            if (!Exists (entity))
+                return false;
+
+            Archetype* archetype = m_Entities[entity.index].archetype;
+            return ChunkDataUtility.GetIndexInTypeArray(archetype, type) != -1;
+        }
+
         public bool HasComponent(Entity entity, ComponentType type)
         {
             if (!Exists (entity))
@@ -180,13 +189,10 @@ namespace UnityEngine.ECS
 
         public IntPtr GetComponentDataWithType(Entity entity, int typeIndex)
         {
-            if (!Exists (entity))
-                return IntPtr.Zero;
-
             return ChunkDataUtility.GetComponentDataWithType(m_Entities[entity.index].chunk, m_Entities[entity.index].index, typeIndex);
         }
 
-        public void GetComponentChunk(Entity entity,out Chunk* chunk, out int chunkIndex)
+        public void GetComponentChunk(Entity entity, out Chunk* chunk, out int chunkIndex)
         {
             if (!Exists (entity))
             {

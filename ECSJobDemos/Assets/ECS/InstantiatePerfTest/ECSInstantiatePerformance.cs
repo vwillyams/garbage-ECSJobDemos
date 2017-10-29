@@ -3,6 +3,7 @@ using Unity.Collections;
 using UnityEngine.ECS;
 using UnityEngine.Profiling;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Mathematics;
 
 // 64 + 16 + 12 + 128 = 220 bytes
 

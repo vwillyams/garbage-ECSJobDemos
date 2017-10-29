@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Reflection;
-using UnityEngine;
+﻿using UnityEngine;
 using Unity.Collections;
+using Unity.Mathematics;
 using Unity.Jobs;
 using UnityEngine.Jobs;
 using Random = UnityEngine.Random;

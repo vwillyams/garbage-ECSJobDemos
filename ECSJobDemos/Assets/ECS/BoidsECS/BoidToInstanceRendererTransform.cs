@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.ECS;
 using UnityEngine.ECS.Rendering;
+using Unity.Mathematics;
 
 namespace BoidSimulations
 {

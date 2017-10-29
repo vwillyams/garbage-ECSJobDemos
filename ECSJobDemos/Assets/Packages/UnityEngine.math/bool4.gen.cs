@@ -3,2895 +3,2853 @@ using System.Runtime.CompilerServices;
 #pragma warning disable 0660, 0661
 namespace Unity.Mathematics
 {
-    public partial struct float4
+    public partial struct bool4
     {
 
-        // mul
-        [MethodImpl(0x100)]
-        public static float4 operator * (float4 lhs, float4 rhs) { return new float4 (lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z, lhs.w * rhs.w); }
-        [MethodImpl(0x100)]
-        public static float4 operator * (float4 lhs, float rhs) { return new float4 (lhs.x * rhs, lhs.y * rhs, lhs.z * rhs, lhs.w * rhs); }
-        [MethodImpl(0x100)]
-        public static float4 operator * (float lhs, float4 rhs) { return new float4 (lhs * rhs.x, lhs * rhs.y, lhs * rhs.z, lhs * rhs.w); }
-
-        // add
-        [MethodImpl(0x100)]
-        public static float4 operator + (float4 lhs, float4 rhs) { return new float4 (lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z, lhs.w + rhs.w); }
-        [MethodImpl(0x100)]
-        public static float4 operator + (float4 lhs, float rhs) { return new float4 (lhs.x + rhs, lhs.y + rhs, lhs.z + rhs, lhs.w + rhs); }
-        [MethodImpl(0x100)]
-        public static float4 operator + (float lhs, float4 rhs) { return new float4 (lhs + rhs.x, lhs + rhs.y, lhs + rhs.z, lhs + rhs.w); }
-
-        // sub
-        [MethodImpl(0x100)]
-        public static float4 operator - (float4 lhs, float4 rhs) { return new float4 (lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z, lhs.w - rhs.w); }
-        [MethodImpl(0x100)]
-        public static float4 operator - (float4 lhs, float rhs) { return new float4 (lhs.x - rhs, lhs.y - rhs, lhs.z - rhs, lhs.w - rhs); }
-        [MethodImpl(0x100)]
-        public static float4 operator - (float lhs, float4 rhs) { return new float4 (lhs - rhs.x, lhs - rhs.y, lhs - rhs.z, lhs - rhs.w); }
-
-        // div
-        [MethodImpl(0x100)]
-        public static float4 operator / (float4 lhs, float4 rhs) { return new float4 (lhs.x / rhs.x, lhs.y / rhs.y, lhs.z / rhs.z, lhs.w / rhs.w); }
-        [MethodImpl(0x100)]
-        public static float4 operator / (float4 lhs, float rhs) { return new float4 (lhs.x / rhs, lhs.y / rhs, lhs.z / rhs, lhs.w / rhs); }
-        [MethodImpl(0x100)]
-        public static float4 operator / (float lhs, float4 rhs) { return new float4 (lhs / rhs.x, lhs / rhs.y, lhs / rhs.z, lhs / rhs.w); }
-
-        // smaller 
-        [MethodImpl(0x100)]
-        public static bool4 operator < (float4 lhs, float4 rhs) { return new bool4 (lhs.x < rhs.x, lhs.y < rhs.y, lhs.z < rhs.z, lhs.w < rhs.w); }
-        [MethodImpl(0x100)]
-        public static bool4 operator < (float4 lhs, float rhs) { return new bool4 (lhs.x < rhs, lhs.y < rhs, lhs.z < rhs, lhs.w < rhs); }
-        [MethodImpl(0x100)]
-        public static bool4 operator < (float lhs, float4 rhs) { return new bool4 (lhs < rhs.x, lhs < rhs.y, lhs < rhs.z, lhs < rhs.w); }
-        [MethodImpl(0x100)]
-        public static bool4 operator <= (float4 lhs, float4 rhs) { return new bool4 (lhs.x <= rhs.x, lhs.y <= rhs.y, lhs.z <= rhs.z, lhs.w <= rhs.w); }
-        [MethodImpl(0x100)]
-        public static bool4 operator <= (float4 lhs, float rhs) { return new bool4 (lhs.x <= rhs, lhs.y <= rhs, lhs.z <= rhs, lhs.w <= rhs); }
-        [MethodImpl(0x100)]
-        public static bool4 operator <= (float lhs, float4 rhs) { return new bool4 (lhs <= rhs.x, lhs <= rhs.y, lhs <= rhs.z, lhs <= rhs.w); }
-
-        // greater 
-        [MethodImpl(0x100)]
-        public static bool4 operator > (float4 lhs, float4 rhs) { return new bool4 (lhs.x > rhs.x, lhs.y > rhs.y, lhs.z > rhs.z, lhs.w > rhs.w); }
-        [MethodImpl(0x100)]
-        public static bool4 operator > (float4 lhs, float rhs) { return new bool4 (lhs.x > rhs, lhs.y > rhs, lhs.z > rhs, lhs.w > rhs); }
-        [MethodImpl(0x100)]
-        public static bool4 operator > (float lhs, float4 rhs) { return new bool4 (lhs > rhs.x, lhs > rhs.y, lhs > rhs.z, lhs > rhs.w); }
-        [MethodImpl(0x100)]
-        public static bool4 operator >= (float4 lhs, float4 rhs) { return new bool4 (lhs.x >= rhs.x, lhs.y >= rhs.y, lhs.z >= rhs.z, lhs.w >= rhs.w); }
-        [MethodImpl(0x100)]
-        public static bool4 operator >= (float4 lhs, float rhs) { return new bool4 (lhs.x >= rhs, lhs.y >= rhs, lhs.z >= rhs, lhs.w >= rhs); }
-        [MethodImpl(0x100)]
-        public static bool4 operator >= (float lhs, float4 rhs) { return new bool4 (lhs >= rhs.x, lhs >= rhs.y, lhs >= rhs.z, lhs >= rhs.w); }
-
-        // neg 
-        [MethodImpl(0x100)]
-        public static float4 operator - (float4 val) { return new float4 (-val.x, -val.y, -val.z, -val.w); }
-        // plus 
-        [MethodImpl(0x100)]
-        public static float4 operator + (float4 val) { return new float4 (+val.x, +val.y, +val.z, +val.w); }
         // equal 
         [MethodImpl(0x100)]
-        public static bool4 operator == (float4 lhs, float4 rhs) { return new bool4 (lhs.x == rhs.x, lhs.y == rhs.y, lhs.z == rhs.z, lhs.w == rhs.w); }
+        public static bool4 operator == (bool4 lhs, bool4 rhs) { return new bool4 (lhs.x == rhs.x, lhs.y == rhs.y, lhs.z == rhs.z, lhs.w == rhs.w); }
         [MethodImpl(0x100)]
-        public static bool4 operator == (float4 lhs, float rhs) { return new bool4 (lhs.x == rhs, lhs.y == rhs, lhs.z == rhs, lhs.w == rhs); }
+        public static bool4 operator == (bool4 lhs, bool rhs) { return new bool4 (lhs.x == rhs, lhs.y == rhs, lhs.z == rhs, lhs.w == rhs); }
         [MethodImpl(0x100)]
-        public static bool4 operator == (float lhs, float4 rhs) { return new bool4 (lhs == rhs.x, lhs == rhs.y, lhs == rhs.z, lhs == rhs.w); }
+        public static bool4 operator == (bool lhs, bool4 rhs) { return new bool4 (lhs == rhs.x, lhs == rhs.y, lhs == rhs.z, lhs == rhs.w); }
 
         // not equal 
         [MethodImpl(0x100)]
-        public static bool4 operator != (float4 lhs, float4 rhs) { return new bool4 (lhs.x != rhs.x, lhs.y != rhs.y, lhs.z != rhs.z, lhs.w != rhs.w); }
+        public static bool4 operator != (bool4 lhs, bool4 rhs) { return new bool4 (lhs.x != rhs.x, lhs.y != rhs.y, lhs.z != rhs.z, lhs.w != rhs.w); }
         [MethodImpl(0x100)]
-        public static bool4 operator != (float4 lhs, float rhs) { return new bool4 (lhs.x != rhs, lhs.y != rhs, lhs.z != rhs, lhs.w != rhs); }
+        public static bool4 operator != (bool4 lhs, bool rhs) { return new bool4 (lhs.x != rhs, lhs.y != rhs, lhs.z != rhs, lhs.w != rhs); }
         [MethodImpl(0x100)]
-        public static bool4 operator != (float lhs, float4 rhs) { return new bool4 (lhs != rhs.x, lhs != rhs.y, lhs != rhs.z, lhs != rhs.w); }
+        public static bool4 operator != (bool lhs, bool4 rhs) { return new bool4 (lhs != rhs.x, lhs != rhs.y, lhs != rhs.z, lhs != rhs.w); }
+
+        // operator &
+        [MethodImpl(0x100)]
+        public static bool4 operator & (bool4 lhs, bool4 rhs) { return new bool4 (lhs.x & rhs.x, lhs.y & rhs.y, lhs.z & rhs.z, lhs.w & rhs.w); }
+        [MethodImpl(0x100)]
+        public static bool4 operator & (bool4 lhs, bool rhs) { return new bool4 (lhs.x & rhs, lhs.y & rhs, lhs.z & rhs, lhs.w & rhs); }
+        [MethodImpl(0x100)]
+        public static bool4 operator & (bool lhs, bool4 rhs) { return new bool4 (lhs & rhs.x, lhs & rhs.y, lhs & rhs.z, lhs & rhs.w); }
+
+        // operator |
+        [MethodImpl(0x100)]
+        public static bool4 operator | (bool4 lhs, bool4 rhs) { return new bool4 (lhs.x | rhs.x, lhs.y | rhs.y, lhs.z | rhs.z, lhs.w | rhs.w); }
+        [MethodImpl(0x100)]
+        public static bool4 operator | (bool4 lhs, bool rhs) { return new bool4 (lhs.x | rhs, lhs.y | rhs, lhs.z | rhs, lhs.w | rhs); }
+        [MethodImpl(0x100)]
+        public static bool4 operator | (bool lhs, bool4 rhs) { return new bool4 (lhs | rhs.x, lhs | rhs.y, lhs | rhs.z, lhs | rhs.w); }
+
+        // operator ^
+        [MethodImpl(0x100)]
+        public static bool4 operator ^ (bool4 lhs, bool4 rhs) { return new bool4 (lhs.x ^ rhs.x, lhs.y ^ rhs.y, lhs.z ^ rhs.z, lhs.w ^ rhs.w); }
+        [MethodImpl(0x100)]
+        public static bool4 operator ^ (bool4 lhs, bool rhs) { return new bool4 (lhs.x ^ rhs, lhs.y ^ rhs, lhs.z ^ rhs, lhs.w ^ rhs); }
+        [MethodImpl(0x100)]
+        public static bool4 operator ^ (bool lhs, bool4 rhs) { return new bool4 (lhs ^ rhs.x, lhs ^ rhs.y, lhs ^ rhs.z, lhs ^ rhs.w); }
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxxx
+        public bool4 xxxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, x, x); }
+            get { return new bool4(x, x, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxxy
+        public bool4 xxxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, x, y); }
+            get { return new bool4(x, x, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxxz
+        public bool4 xxxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, x, z); }
+            get { return new bool4(x, x, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxxw
+        public bool4 xxxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, x, w); }
+            get { return new bool4(x, x, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxyx
+        public bool4 xxyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, y, x); }
+            get { return new bool4(x, x, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxyy
+        public bool4 xxyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, y, y); }
+            get { return new bool4(x, x, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxyz
+        public bool4 xxyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, y, z); }
+            get { return new bool4(x, x, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxyw
+        public bool4 xxyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, y, w); }
+            get { return new bool4(x, x, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxzx
+        public bool4 xxzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, z, x); }
+            get { return new bool4(x, x, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxzy
+        public bool4 xxzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, z, y); }
+            get { return new bool4(x, x, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxzz
+        public bool4 xxzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, z, z); }
+            get { return new bool4(x, x, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxzw
+        public bool4 xxzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, z, w); }
+            get { return new bool4(x, x, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxwx
+        public bool4 xxwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, w, x); }
+            get { return new bool4(x, x, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxwy
+        public bool4 xxwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, w, y); }
+            get { return new bool4(x, x, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxwz
+        public bool4 xxwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, w, z); }
+            get { return new bool4(x, x, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxww
+        public bool4 xxww
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, w, w); }
+            get { return new bool4(x, x, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyxx
+        public bool4 xyxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, x, x); }
+            get { return new bool4(x, y, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyxy
+        public bool4 xyxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, x, y); }
+            get { return new bool4(x, y, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyxz
+        public bool4 xyxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, x, z); }
+            get { return new bool4(x, y, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyxw
+        public bool4 xyxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, x, w); }
+            get { return new bool4(x, y, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyyx
+        public bool4 xyyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, y, x); }
+            get { return new bool4(x, y, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyyy
+        public bool4 xyyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, y, y); }
+            get { return new bool4(x, y, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyyz
+        public bool4 xyyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, y, z); }
+            get { return new bool4(x, y, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyyw
+        public bool4 xyyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, y, w); }
+            get { return new bool4(x, y, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyzx
+        public bool4 xyzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, z, x); }
+            get { return new bool4(x, y, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyzy
+        public bool4 xyzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, z, y); }
+            get { return new bool4(x, y, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyzz
+        public bool4 xyzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, z, z); }
+            get { return new bool4(x, y, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyzw
+        public bool4 xyzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, z, w); }
+            get { return new bool4(x, y, z, w); }
             [MethodImpl(0x100)]
             set { x = value.x; y = value.y; z = value.z; w = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xywx
+        public bool4 xywx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, w, x); }
+            get { return new bool4(x, y, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xywy
+        public bool4 xywy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, w, y); }
+            get { return new bool4(x, y, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xywz
+        public bool4 xywz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, w, z); }
+            get { return new bool4(x, y, w, z); }
             [MethodImpl(0x100)]
             set { x = value.x; y = value.y; w = value.z; z = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyww
+        public bool4 xyww
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, w, w); }
+            get { return new bool4(x, y, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzxx
+        public bool4 xzxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, x, x); }
+            get { return new bool4(x, z, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzxy
+        public bool4 xzxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, x, y); }
+            get { return new bool4(x, z, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzxz
+        public bool4 xzxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, x, z); }
+            get { return new bool4(x, z, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzxw
+        public bool4 xzxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, x, w); }
+            get { return new bool4(x, z, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzyx
+        public bool4 xzyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, y, x); }
+            get { return new bool4(x, z, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzyy
+        public bool4 xzyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, y, y); }
+            get { return new bool4(x, z, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzyz
+        public bool4 xzyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, y, z); }
+            get { return new bool4(x, z, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzyw
+        public bool4 xzyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, y, w); }
+            get { return new bool4(x, z, y, w); }
             [MethodImpl(0x100)]
             set { x = value.x; z = value.y; y = value.z; w = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzzx
+        public bool4 xzzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, z, x); }
+            get { return new bool4(x, z, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzzy
+        public bool4 xzzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, z, y); }
+            get { return new bool4(x, z, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzzz
+        public bool4 xzzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, z, z); }
+            get { return new bool4(x, z, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzzw
+        public bool4 xzzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, z, w); }
+            get { return new bool4(x, z, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzwx
+        public bool4 xzwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, w, x); }
+            get { return new bool4(x, z, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzwy
+        public bool4 xzwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, w, y); }
+            get { return new bool4(x, z, w, y); }
             [MethodImpl(0x100)]
             set { x = value.x; z = value.y; w = value.z; y = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzwz
+        public bool4 xzwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, w, z); }
+            get { return new bool4(x, z, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzww
+        public bool4 xzww
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, w, w); }
+            get { return new bool4(x, z, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwxx
+        public bool4 xwxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, x, x); }
+            get { return new bool4(x, w, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwxy
+        public bool4 xwxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, x, y); }
+            get { return new bool4(x, w, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwxz
+        public bool4 xwxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, x, z); }
+            get { return new bool4(x, w, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwxw
+        public bool4 xwxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, x, w); }
+            get { return new bool4(x, w, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwyx
+        public bool4 xwyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, y, x); }
+            get { return new bool4(x, w, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwyy
+        public bool4 xwyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, y, y); }
+            get { return new bool4(x, w, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwyz
+        public bool4 xwyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, y, z); }
+            get { return new bool4(x, w, y, z); }
             [MethodImpl(0x100)]
             set { x = value.x; w = value.y; y = value.z; z = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwyw
+        public bool4 xwyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, y, w); }
+            get { return new bool4(x, w, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwzx
+        public bool4 xwzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, z, x); }
+            get { return new bool4(x, w, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwzy
+        public bool4 xwzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, z, y); }
+            get { return new bool4(x, w, z, y); }
             [MethodImpl(0x100)]
             set { x = value.x; w = value.y; z = value.z; y = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwzz
+        public bool4 xwzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, z, z); }
+            get { return new bool4(x, w, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwzw
+        public bool4 xwzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, z, w); }
+            get { return new bool4(x, w, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwwx
+        public bool4 xwwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, w, x); }
+            get { return new bool4(x, w, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwwy
+        public bool4 xwwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, w, y); }
+            get { return new bool4(x, w, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwwz
+        public bool4 xwwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, w, z); }
+            get { return new bool4(x, w, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwww
+        public bool4 xwww
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, w, w); }
+            get { return new bool4(x, w, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxxx
+        public bool4 yxxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, x, x); }
+            get { return new bool4(y, x, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxxy
+        public bool4 yxxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, x, y); }
+            get { return new bool4(y, x, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxxz
+        public bool4 yxxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, x, z); }
+            get { return new bool4(y, x, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxxw
+        public bool4 yxxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, x, w); }
+            get { return new bool4(y, x, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxyx
+        public bool4 yxyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, y, x); }
+            get { return new bool4(y, x, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxyy
+        public bool4 yxyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, y, y); }
+            get { return new bool4(y, x, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxyz
+        public bool4 yxyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, y, z); }
+            get { return new bool4(y, x, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxyw
+        public bool4 yxyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, y, w); }
+            get { return new bool4(y, x, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxzx
+        public bool4 yxzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, z, x); }
+            get { return new bool4(y, x, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxzy
+        public bool4 yxzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, z, y); }
+            get { return new bool4(y, x, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxzz
+        public bool4 yxzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, z, z); }
+            get { return new bool4(y, x, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxzw
+        public bool4 yxzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, z, w); }
+            get { return new bool4(y, x, z, w); }
             [MethodImpl(0x100)]
             set { y = value.x; x = value.y; z = value.z; w = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxwx
+        public bool4 yxwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, w, x); }
+            get { return new bool4(y, x, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxwy
+        public bool4 yxwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, w, y); }
+            get { return new bool4(y, x, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxwz
+        public bool4 yxwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, w, z); }
+            get { return new bool4(y, x, w, z); }
             [MethodImpl(0x100)]
             set { y = value.x; x = value.y; w = value.z; z = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxww
+        public bool4 yxww
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, w, w); }
+            get { return new bool4(y, x, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyxx
+        public bool4 yyxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, x, x); }
+            get { return new bool4(y, y, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyxy
+        public bool4 yyxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, x, y); }
+            get { return new bool4(y, y, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyxz
+        public bool4 yyxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, x, z); }
+            get { return new bool4(y, y, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyxw
+        public bool4 yyxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, x, w); }
+            get { return new bool4(y, y, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyyx
+        public bool4 yyyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, y, x); }
+            get { return new bool4(y, y, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyyy
+        public bool4 yyyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, y, y); }
+            get { return new bool4(y, y, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyyz
+        public bool4 yyyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, y, z); }
+            get { return new bool4(y, y, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyyw
+        public bool4 yyyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, y, w); }
+            get { return new bool4(y, y, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyzx
+        public bool4 yyzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, z, x); }
+            get { return new bool4(y, y, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyzy
+        public bool4 yyzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, z, y); }
+            get { return new bool4(y, y, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyzz
+        public bool4 yyzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, z, z); }
+            get { return new bool4(y, y, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyzw
+        public bool4 yyzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, z, w); }
+            get { return new bool4(y, y, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yywx
+        public bool4 yywx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, w, x); }
+            get { return new bool4(y, y, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yywy
+        public bool4 yywy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, w, y); }
+            get { return new bool4(y, y, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yywz
+        public bool4 yywz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, w, z); }
+            get { return new bool4(y, y, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyww
+        public bool4 yyww
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, w, w); }
+            get { return new bool4(y, y, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzxx
+        public bool4 yzxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, x, x); }
+            get { return new bool4(y, z, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzxy
+        public bool4 yzxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, x, y); }
+            get { return new bool4(y, z, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzxz
+        public bool4 yzxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, x, z); }
+            get { return new bool4(y, z, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzxw
+        public bool4 yzxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, x, w); }
+            get { return new bool4(y, z, x, w); }
             [MethodImpl(0x100)]
             set { y = value.x; z = value.y; x = value.z; w = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzyx
+        public bool4 yzyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, y, x); }
+            get { return new bool4(y, z, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzyy
+        public bool4 yzyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, y, y); }
+            get { return new bool4(y, z, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzyz
+        public bool4 yzyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, y, z); }
+            get { return new bool4(y, z, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzyw
+        public bool4 yzyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, y, w); }
+            get { return new bool4(y, z, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzzx
+        public bool4 yzzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, z, x); }
+            get { return new bool4(y, z, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzzy
+        public bool4 yzzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, z, y); }
+            get { return new bool4(y, z, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzzz
+        public bool4 yzzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, z, z); }
+            get { return new bool4(y, z, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzzw
+        public bool4 yzzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, z, w); }
+            get { return new bool4(y, z, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzwx
+        public bool4 yzwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, w, x); }
+            get { return new bool4(y, z, w, x); }
             [MethodImpl(0x100)]
             set { y = value.x; z = value.y; w = value.z; x = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzwy
+        public bool4 yzwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, w, y); }
+            get { return new bool4(y, z, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzwz
+        public bool4 yzwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, w, z); }
+            get { return new bool4(y, z, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzww
+        public bool4 yzww
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, w, w); }
+            get { return new bool4(y, z, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywxx
+        public bool4 ywxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, x, x); }
+            get { return new bool4(y, w, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywxy
+        public bool4 ywxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, x, y); }
+            get { return new bool4(y, w, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywxz
+        public bool4 ywxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, x, z); }
+            get { return new bool4(y, w, x, z); }
             [MethodImpl(0x100)]
             set { y = value.x; w = value.y; x = value.z; z = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywxw
+        public bool4 ywxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, x, w); }
+            get { return new bool4(y, w, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywyx
+        public bool4 ywyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, y, x); }
+            get { return new bool4(y, w, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywyy
+        public bool4 ywyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, y, y); }
+            get { return new bool4(y, w, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywyz
+        public bool4 ywyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, y, z); }
+            get { return new bool4(y, w, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywyw
+        public bool4 ywyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, y, w); }
+            get { return new bool4(y, w, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywzx
+        public bool4 ywzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, z, x); }
+            get { return new bool4(y, w, z, x); }
             [MethodImpl(0x100)]
             set { y = value.x; w = value.y; z = value.z; x = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywzy
+        public bool4 ywzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, z, y); }
+            get { return new bool4(y, w, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywzz
+        public bool4 ywzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, z, z); }
+            get { return new bool4(y, w, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywzw
+        public bool4 ywzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, z, w); }
+            get { return new bool4(y, w, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywwx
+        public bool4 ywwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, w, x); }
+            get { return new bool4(y, w, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywwy
+        public bool4 ywwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, w, y); }
+            get { return new bool4(y, w, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywwz
+        public bool4 ywwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, w, z); }
+            get { return new bool4(y, w, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywww
+        public bool4 ywww
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, w, w); }
+            get { return new bool4(y, w, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxxx
+        public bool4 zxxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, x, x); }
+            get { return new bool4(z, x, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxxy
+        public bool4 zxxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, x, y); }
+            get { return new bool4(z, x, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxxz
+        public bool4 zxxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, x, z); }
+            get { return new bool4(z, x, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxxw
+        public bool4 zxxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, x, w); }
+            get { return new bool4(z, x, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxyx
+        public bool4 zxyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, y, x); }
+            get { return new bool4(z, x, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxyy
+        public bool4 zxyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, y, y); }
+            get { return new bool4(z, x, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxyz
+        public bool4 zxyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, y, z); }
+            get { return new bool4(z, x, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxyw
+        public bool4 zxyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, y, w); }
+            get { return new bool4(z, x, y, w); }
             [MethodImpl(0x100)]
             set { z = value.x; x = value.y; y = value.z; w = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxzx
+        public bool4 zxzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, z, x); }
+            get { return new bool4(z, x, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxzy
+        public bool4 zxzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, z, y); }
+            get { return new bool4(z, x, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxzz
+        public bool4 zxzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, z, z); }
+            get { return new bool4(z, x, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxzw
+        public bool4 zxzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, z, w); }
+            get { return new bool4(z, x, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxwx
+        public bool4 zxwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, w, x); }
+            get { return new bool4(z, x, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxwy
+        public bool4 zxwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, w, y); }
+            get { return new bool4(z, x, w, y); }
             [MethodImpl(0x100)]
             set { z = value.x; x = value.y; w = value.z; y = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxwz
+        public bool4 zxwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, w, z); }
+            get { return new bool4(z, x, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxww
+        public bool4 zxww
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, w, w); }
+            get { return new bool4(z, x, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyxx
+        public bool4 zyxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, x, x); }
+            get { return new bool4(z, y, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyxy
+        public bool4 zyxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, x, y); }
+            get { return new bool4(z, y, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyxz
+        public bool4 zyxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, x, z); }
+            get { return new bool4(z, y, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyxw
+        public bool4 zyxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, x, w); }
+            get { return new bool4(z, y, x, w); }
             [MethodImpl(0x100)]
             set { z = value.x; y = value.y; x = value.z; w = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyyx
+        public bool4 zyyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, y, x); }
+            get { return new bool4(z, y, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyyy
+        public bool4 zyyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, y, y); }
+            get { return new bool4(z, y, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyyz
+        public bool4 zyyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, y, z); }
+            get { return new bool4(z, y, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyyw
+        public bool4 zyyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, y, w); }
+            get { return new bool4(z, y, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyzx
+        public bool4 zyzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, z, x); }
+            get { return new bool4(z, y, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyzy
+        public bool4 zyzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, z, y); }
+            get { return new bool4(z, y, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyzz
+        public bool4 zyzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, z, z); }
+            get { return new bool4(z, y, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyzw
+        public bool4 zyzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, z, w); }
+            get { return new bool4(z, y, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zywx
+        public bool4 zywx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, w, x); }
+            get { return new bool4(z, y, w, x); }
             [MethodImpl(0x100)]
             set { z = value.x; y = value.y; w = value.z; x = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zywy
+        public bool4 zywy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, w, y); }
+            get { return new bool4(z, y, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zywz
+        public bool4 zywz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, w, z); }
+            get { return new bool4(z, y, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyww
+        public bool4 zyww
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, w, w); }
+            get { return new bool4(z, y, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzxx
+        public bool4 zzxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, x, x); }
+            get { return new bool4(z, z, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzxy
+        public bool4 zzxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, x, y); }
+            get { return new bool4(z, z, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzxz
+        public bool4 zzxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, x, z); }
+            get { return new bool4(z, z, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzxw
+        public bool4 zzxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, x, w); }
+            get { return new bool4(z, z, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzyx
+        public bool4 zzyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, y, x); }
+            get { return new bool4(z, z, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzyy
+        public bool4 zzyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, y, y); }
+            get { return new bool4(z, z, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzyz
+        public bool4 zzyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, y, z); }
+            get { return new bool4(z, z, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzyw
+        public bool4 zzyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, y, w); }
+            get { return new bool4(z, z, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzzx
+        public bool4 zzzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, z, x); }
+            get { return new bool4(z, z, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzzy
+        public bool4 zzzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, z, y); }
+            get { return new bool4(z, z, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzzz
+        public bool4 zzzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, z, z); }
+            get { return new bool4(z, z, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzzw
+        public bool4 zzzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, z, w); }
+            get { return new bool4(z, z, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzwx
+        public bool4 zzwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, w, x); }
+            get { return new bool4(z, z, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzwy
+        public bool4 zzwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, w, y); }
+            get { return new bool4(z, z, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzwz
+        public bool4 zzwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, w, z); }
+            get { return new bool4(z, z, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzww
+        public bool4 zzww
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, w, w); }
+            get { return new bool4(z, z, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwxx
+        public bool4 zwxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, x, x); }
+            get { return new bool4(z, w, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwxy
+        public bool4 zwxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, x, y); }
+            get { return new bool4(z, w, x, y); }
             [MethodImpl(0x100)]
             set { z = value.x; w = value.y; x = value.z; y = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwxz
+        public bool4 zwxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, x, z); }
+            get { return new bool4(z, w, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwxw
+        public bool4 zwxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, x, w); }
+            get { return new bool4(z, w, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwyx
+        public bool4 zwyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, y, x); }
+            get { return new bool4(z, w, y, x); }
             [MethodImpl(0x100)]
             set { z = value.x; w = value.y; y = value.z; x = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwyy
+        public bool4 zwyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, y, y); }
+            get { return new bool4(z, w, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwyz
+        public bool4 zwyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, y, z); }
+            get { return new bool4(z, w, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwyw
+        public bool4 zwyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, y, w); }
+            get { return new bool4(z, w, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwzx
+        public bool4 zwzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, z, x); }
+            get { return new bool4(z, w, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwzy
+        public bool4 zwzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, z, y); }
+            get { return new bool4(z, w, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwzz
+        public bool4 zwzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, z, z); }
+            get { return new bool4(z, w, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwzw
+        public bool4 zwzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, z, w); }
+            get { return new bool4(z, w, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwwx
+        public bool4 zwwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, w, x); }
+            get { return new bool4(z, w, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwwy
+        public bool4 zwwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, w, y); }
+            get { return new bool4(z, w, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwwz
+        public bool4 zwwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, w, z); }
+            get { return new bool4(z, w, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwww
+        public bool4 zwww
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, w, w); }
+            get { return new bool4(z, w, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxxx
+        public bool4 wxxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, x, x); }
+            get { return new bool4(w, x, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxxy
+        public bool4 wxxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, x, y); }
+            get { return new bool4(w, x, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxxz
+        public bool4 wxxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, x, z); }
+            get { return new bool4(w, x, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxxw
+        public bool4 wxxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, x, w); }
+            get { return new bool4(w, x, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxyx
+        public bool4 wxyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, y, x); }
+            get { return new bool4(w, x, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxyy
+        public bool4 wxyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, y, y); }
+            get { return new bool4(w, x, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxyz
+        public bool4 wxyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, y, z); }
+            get { return new bool4(w, x, y, z); }
             [MethodImpl(0x100)]
             set { w = value.x; x = value.y; y = value.z; z = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxyw
+        public bool4 wxyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, y, w); }
+            get { return new bool4(w, x, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxzx
+        public bool4 wxzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, z, x); }
+            get { return new bool4(w, x, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxzy
+        public bool4 wxzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, z, y); }
+            get { return new bool4(w, x, z, y); }
             [MethodImpl(0x100)]
             set { w = value.x; x = value.y; z = value.z; y = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxzz
+        public bool4 wxzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, z, z); }
+            get { return new bool4(w, x, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxzw
+        public bool4 wxzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, z, w); }
+            get { return new bool4(w, x, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxwx
+        public bool4 wxwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, w, x); }
+            get { return new bool4(w, x, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxwy
+        public bool4 wxwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, w, y); }
+            get { return new bool4(w, x, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxwz
+        public bool4 wxwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, w, z); }
+            get { return new bool4(w, x, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxww
+        public bool4 wxww
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, w, w); }
+            get { return new bool4(w, x, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyxx
+        public bool4 wyxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, x, x); }
+            get { return new bool4(w, y, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyxy
+        public bool4 wyxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, x, y); }
+            get { return new bool4(w, y, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyxz
+        public bool4 wyxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, x, z); }
+            get { return new bool4(w, y, x, z); }
             [MethodImpl(0x100)]
             set { w = value.x; y = value.y; x = value.z; z = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyxw
+        public bool4 wyxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, x, w); }
+            get { return new bool4(w, y, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyyx
+        public bool4 wyyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, y, x); }
+            get { return new bool4(w, y, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyyy
+        public bool4 wyyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, y, y); }
+            get { return new bool4(w, y, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyyz
+        public bool4 wyyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, y, z); }
+            get { return new bool4(w, y, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyyw
+        public bool4 wyyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, y, w); }
+            get { return new bool4(w, y, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyzx
+        public bool4 wyzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, z, x); }
+            get { return new bool4(w, y, z, x); }
             [MethodImpl(0x100)]
             set { w = value.x; y = value.y; z = value.z; x = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyzy
+        public bool4 wyzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, z, y); }
+            get { return new bool4(w, y, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyzz
+        public bool4 wyzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, z, z); }
+            get { return new bool4(w, y, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyzw
+        public bool4 wyzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, z, w); }
+            get { return new bool4(w, y, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wywx
+        public bool4 wywx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, w, x); }
+            get { return new bool4(w, y, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wywy
+        public bool4 wywy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, w, y); }
+            get { return new bool4(w, y, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wywz
+        public bool4 wywz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, w, z); }
+            get { return new bool4(w, y, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyww
+        public bool4 wyww
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, w, w); }
+            get { return new bool4(w, y, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzxx
+        public bool4 wzxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, x, x); }
+            get { return new bool4(w, z, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzxy
+        public bool4 wzxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, x, y); }
+            get { return new bool4(w, z, x, y); }
             [MethodImpl(0x100)]
             set { w = value.x; z = value.y; x = value.z; y = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzxz
+        public bool4 wzxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, x, z); }
+            get { return new bool4(w, z, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzxw
+        public bool4 wzxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, x, w); }
+            get { return new bool4(w, z, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzyx
+        public bool4 wzyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, y, x); }
+            get { return new bool4(w, z, y, x); }
             [MethodImpl(0x100)]
             set { w = value.x; z = value.y; y = value.z; x = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzyy
+        public bool4 wzyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, y, y); }
+            get { return new bool4(w, z, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzyz
+        public bool4 wzyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, y, z); }
+            get { return new bool4(w, z, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzyw
+        public bool4 wzyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, y, w); }
+            get { return new bool4(w, z, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzzx
+        public bool4 wzzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, z, x); }
+            get { return new bool4(w, z, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzzy
+        public bool4 wzzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, z, y); }
+            get { return new bool4(w, z, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzzz
+        public bool4 wzzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, z, z); }
+            get { return new bool4(w, z, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzzw
+        public bool4 wzzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, z, w); }
+            get { return new bool4(w, z, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzwx
+        public bool4 wzwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, w, x); }
+            get { return new bool4(w, z, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzwy
+        public bool4 wzwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, w, y); }
+            get { return new bool4(w, z, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzwz
+        public bool4 wzwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, w, z); }
+            get { return new bool4(w, z, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzww
+        public bool4 wzww
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, w, w); }
+            get { return new bool4(w, z, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwxx
+        public bool4 wwxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, x, x); }
+            get { return new bool4(w, w, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwxy
+        public bool4 wwxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, x, y); }
+            get { return new bool4(w, w, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwxz
+        public bool4 wwxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, x, z); }
+            get { return new bool4(w, w, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwxw
+        public bool4 wwxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, x, w); }
+            get { return new bool4(w, w, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwyx
+        public bool4 wwyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, y, x); }
+            get { return new bool4(w, w, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwyy
+        public bool4 wwyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, y, y); }
+            get { return new bool4(w, w, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwyz
+        public bool4 wwyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, y, z); }
+            get { return new bool4(w, w, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwyw
+        public bool4 wwyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, y, w); }
+            get { return new bool4(w, w, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwzx
+        public bool4 wwzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, z, x); }
+            get { return new bool4(w, w, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwzy
+        public bool4 wwzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, z, y); }
+            get { return new bool4(w, w, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwzz
+        public bool4 wwzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, z, z); }
+            get { return new bool4(w, w, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwzw
+        public bool4 wwzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, z, w); }
+            get { return new bool4(w, w, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwwx
+        public bool4 wwwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, w, x); }
+            get { return new bool4(w, w, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwwy
+        public bool4 wwwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, w, y); }
+            get { return new bool4(w, w, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwwz
+        public bool4 wwwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, w, z); }
+            get { return new bool4(w, w, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwww
+        public bool4 wwww
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, w, w); }
+            get { return new bool4(w, w, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xxx
+        public bool3 xxx
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, x, x); }
+            get { return new bool3(x, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xxy
+        public bool3 xxy
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, x, y); }
+            get { return new bool3(x, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xxz
+        public bool3 xxz
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, x, z); }
+            get { return new bool3(x, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xxw
+        public bool3 xxw
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, x, w); }
+            get { return new bool3(x, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xyx
+        public bool3 xyx
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, y, x); }
+            get { return new bool3(x, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xyy
+        public bool3 xyy
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, y, y); }
+            get { return new bool3(x, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xyz
+        public bool3 xyz
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, y, z); }
+            get { return new bool3(x, y, z); }
             [MethodImpl(0x100)]
             set { x = value.x; y = value.y; z = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xyw
+        public bool3 xyw
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, y, w); }
+            get { return new bool3(x, y, w); }
             [MethodImpl(0x100)]
             set { x = value.x; y = value.y; w = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xzx
+        public bool3 xzx
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, z, x); }
+            get { return new bool3(x, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xzy
+        public bool3 xzy
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, z, y); }
+            get { return new bool3(x, z, y); }
             [MethodImpl(0x100)]
             set { x = value.x; z = value.y; y = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xzz
+        public bool3 xzz
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, z, z); }
+            get { return new bool3(x, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xzw
+        public bool3 xzw
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, z, w); }
+            get { return new bool3(x, z, w); }
             [MethodImpl(0x100)]
             set { x = value.x; z = value.y; w = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xwx
+        public bool3 xwx
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, w, x); }
+            get { return new bool3(x, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xwy
+        public bool3 xwy
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, w, y); }
+            get { return new bool3(x, w, y); }
             [MethodImpl(0x100)]
             set { x = value.x; w = value.y; y = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xwz
+        public bool3 xwz
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, w, z); }
+            get { return new bool3(x, w, z); }
             [MethodImpl(0x100)]
             set { x = value.x; w = value.y; z = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xww
+        public bool3 xww
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, w, w); }
+            get { return new bool3(x, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yxx
+        public bool3 yxx
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, x, x); }
+            get { return new bool3(y, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yxy
+        public bool3 yxy
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, x, y); }
+            get { return new bool3(y, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yxz
+        public bool3 yxz
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, x, z); }
+            get { return new bool3(y, x, z); }
             [MethodImpl(0x100)]
             set { y = value.x; x = value.y; z = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yxw
+        public bool3 yxw
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, x, w); }
+            get { return new bool3(y, x, w); }
             [MethodImpl(0x100)]
             set { y = value.x; x = value.y; w = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yyx
+        public bool3 yyx
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, y, x); }
+            get { return new bool3(y, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yyy
+        public bool3 yyy
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, y, y); }
+            get { return new bool3(y, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yyz
+        public bool3 yyz
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, y, z); }
+            get { return new bool3(y, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yyw
+        public bool3 yyw
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, y, w); }
+            get { return new bool3(y, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yzx
+        public bool3 yzx
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, z, x); }
+            get { return new bool3(y, z, x); }
             [MethodImpl(0x100)]
             set { y = value.x; z = value.y; x = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yzy
+        public bool3 yzy
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, z, y); }
+            get { return new bool3(y, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yzz
+        public bool3 yzz
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, z, z); }
+            get { return new bool3(y, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yzw
+        public bool3 yzw
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, z, w); }
+            get { return new bool3(y, z, w); }
             [MethodImpl(0x100)]
             set { y = value.x; z = value.y; w = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 ywx
+        public bool3 ywx
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, w, x); }
+            get { return new bool3(y, w, x); }
             [MethodImpl(0x100)]
             set { y = value.x; w = value.y; x = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 ywy
+        public bool3 ywy
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, w, y); }
+            get { return new bool3(y, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 ywz
+        public bool3 ywz
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, w, z); }
+            get { return new bool3(y, w, z); }
             [MethodImpl(0x100)]
             set { y = value.x; w = value.y; z = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yww
+        public bool3 yww
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, w, w); }
+            get { return new bool3(y, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zxx
+        public bool3 zxx
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, x, x); }
+            get { return new bool3(z, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zxy
+        public bool3 zxy
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, x, y); }
+            get { return new bool3(z, x, y); }
             [MethodImpl(0x100)]
             set { z = value.x; x = value.y; y = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zxz
+        public bool3 zxz
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, x, z); }
+            get { return new bool3(z, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zxw
+        public bool3 zxw
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, x, w); }
+            get { return new bool3(z, x, w); }
             [MethodImpl(0x100)]
             set { z = value.x; x = value.y; w = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zyx
+        public bool3 zyx
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, y, x); }
+            get { return new bool3(z, y, x); }
             [MethodImpl(0x100)]
             set { z = value.x; y = value.y; x = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zyy
+        public bool3 zyy
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, y, y); }
+            get { return new bool3(z, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zyz
+        public bool3 zyz
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, y, z); }
+            get { return new bool3(z, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zyw
+        public bool3 zyw
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, y, w); }
+            get { return new bool3(z, y, w); }
             [MethodImpl(0x100)]
             set { z = value.x; y = value.y; w = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zzx
+        public bool3 zzx
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, z, x); }
+            get { return new bool3(z, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zzy
+        public bool3 zzy
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, z, y); }
+            get { return new bool3(z, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zzz
+        public bool3 zzz
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, z, z); }
+            get { return new bool3(z, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zzw
+        public bool3 zzw
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, z, w); }
+            get { return new bool3(z, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zwx
+        public bool3 zwx
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, w, x); }
+            get { return new bool3(z, w, x); }
             [MethodImpl(0x100)]
             set { z = value.x; w = value.y; x = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zwy
+        public bool3 zwy
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, w, y); }
+            get { return new bool3(z, w, y); }
             [MethodImpl(0x100)]
             set { z = value.x; w = value.y; y = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zwz
+        public bool3 zwz
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, w, z); }
+            get { return new bool3(z, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zww
+        public bool3 zww
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, w, w); }
+            get { return new bool3(z, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wxx
+        public bool3 wxx
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, x, x); }
+            get { return new bool3(w, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wxy
+        public bool3 wxy
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, x, y); }
+            get { return new bool3(w, x, y); }
             [MethodImpl(0x100)]
             set { w = value.x; x = value.y; y = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wxz
+        public bool3 wxz
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, x, z); }
+            get { return new bool3(w, x, z); }
             [MethodImpl(0x100)]
             set { w = value.x; x = value.y; z = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wxw
+        public bool3 wxw
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, x, w); }
+            get { return new bool3(w, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wyx
+        public bool3 wyx
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, y, x); }
+            get { return new bool3(w, y, x); }
             [MethodImpl(0x100)]
             set { w = value.x; y = value.y; x = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wyy
+        public bool3 wyy
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, y, y); }
+            get { return new bool3(w, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wyz
+        public bool3 wyz
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, y, z); }
+            get { return new bool3(w, y, z); }
             [MethodImpl(0x100)]
             set { w = value.x; y = value.y; z = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wyw
+        public bool3 wyw
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, y, w); }
+            get { return new bool3(w, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wzx
+        public bool3 wzx
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, z, x); }
+            get { return new bool3(w, z, x); }
             [MethodImpl(0x100)]
             set { w = value.x; z = value.y; x = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wzy
+        public bool3 wzy
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, z, y); }
+            get { return new bool3(w, z, y); }
             [MethodImpl(0x100)]
             set { w = value.x; z = value.y; y = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wzz
+        public bool3 wzz
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, z, z); }
+            get { return new bool3(w, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wzw
+        public bool3 wzw
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, z, w); }
+            get { return new bool3(w, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wwx
+        public bool3 wwx
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, w, x); }
+            get { return new bool3(w, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wwy
+        public bool3 wwy
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, w, y); }
+            get { return new bool3(w, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wwz
+        public bool3 wwz
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, w, z); }
+            get { return new bool3(w, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 www
+        public bool3 www
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, w, w); }
+            get { return new bool3(w, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 xx
+        public bool2 xx
         {
             [MethodImpl(0x100)]
-            get { return new float2(x, x); }
+            get { return new bool2(x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 xy
+        public bool2 xy
         {
             [MethodImpl(0x100)]
-            get { return new float2(x, y); }
+            get { return new bool2(x, y); }
             [MethodImpl(0x100)]
             set { x = value.x; y = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 xz
+        public bool2 xz
         {
             [MethodImpl(0x100)]
-            get { return new float2(x, z); }
+            get { return new bool2(x, z); }
             [MethodImpl(0x100)]
             set { x = value.x; z = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 xw
+        public bool2 xw
         {
             [MethodImpl(0x100)]
-            get { return new float2(x, w); }
+            get { return new bool2(x, w); }
             [MethodImpl(0x100)]
             set { x = value.x; w = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 yx
+        public bool2 yx
         {
             [MethodImpl(0x100)]
-            get { return new float2(y, x); }
+            get { return new bool2(y, x); }
             [MethodImpl(0x100)]
             set { y = value.x; x = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 yy
+        public bool2 yy
         {
             [MethodImpl(0x100)]
-            get { return new float2(y, y); }
+            get { return new bool2(y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 yz
+        public bool2 yz
         {
             [MethodImpl(0x100)]
-            get { return new float2(y, z); }
+            get { return new bool2(y, z); }
             [MethodImpl(0x100)]
             set { y = value.x; z = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 yw
+        public bool2 yw
         {
             [MethodImpl(0x100)]
-            get { return new float2(y, w); }
+            get { return new bool2(y, w); }
             [MethodImpl(0x100)]
             set { y = value.x; w = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 zx
+        public bool2 zx
         {
             [MethodImpl(0x100)]
-            get { return new float2(z, x); }
+            get { return new bool2(z, x); }
             [MethodImpl(0x100)]
             set { z = value.x; x = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 zy
+        public bool2 zy
         {
             [MethodImpl(0x100)]
-            get { return new float2(z, y); }
+            get { return new bool2(z, y); }
             [MethodImpl(0x100)]
             set { z = value.x; y = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 zz
+        public bool2 zz
         {
             [MethodImpl(0x100)]
-            get { return new float2(z, z); }
+            get { return new bool2(z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 zw
+        public bool2 zw
         {
             [MethodImpl(0x100)]
-            get { return new float2(z, w); }
+            get { return new bool2(z, w); }
             [MethodImpl(0x100)]
             set { z = value.x; w = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 wx
+        public bool2 wx
         {
             [MethodImpl(0x100)]
-            get { return new float2(w, x); }
+            get { return new bool2(w, x); }
             [MethodImpl(0x100)]
             set { w = value.x; x = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 wy
+        public bool2 wy
         {
             [MethodImpl(0x100)]
-            get { return new float2(w, y); }
+            get { return new bool2(w, y); }
             [MethodImpl(0x100)]
             set { w = value.x; y = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 wz
+        public bool2 wz
         {
             [MethodImpl(0x100)]
-            get { return new float2(w, z); }
+            get { return new bool2(w, z); }
             [MethodImpl(0x100)]
             set { w = value.x; z = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 ww
+        public bool2 ww
         {
             [MethodImpl(0x100)]
-            get { return new float2(w, w); }
+            get { return new bool2(w, w); }
         }
 
 

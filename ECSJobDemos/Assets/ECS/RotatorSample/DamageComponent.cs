@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 using Unity.Collections;
-using System.Collections.Generic;
 using Unity.Jobs;
 using System;
 using UnityEngine.ECS;
 using UnityEngine.Jobs;
+using Unity.Mathematics;
 
 namespace RotatorSamples
 {

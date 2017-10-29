@@ -1,7 +1,6 @@
-﻿using System;
-using UnityEngine;
-using Unity.Collections;
+﻿using UnityEngine;
 using UnityEngine.ECS;
+using Unity.Mathematics;
 
 namespace BoidSimulations
 {

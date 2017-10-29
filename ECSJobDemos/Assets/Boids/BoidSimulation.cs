@@ -1,10 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Experimental;
-using UnityEngine.Serialization;
-using Unity.Jobs;
+﻿using UnityEngine;
 using Unity.Collections;
+using Unity.Mathematics;
+using Unity.Mathematics.Experimental;
 
 namespace BoidcloudSimulation
 {

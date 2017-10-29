@@ -1,8 +1,9 @@
 ﻿using System;
+using UnityEngine;
 
 #pragma warning disable 0660, 0661
 
-namespace UnityEngine
+namespace Unity.Mathematics
 {
     public partial struct float3
     {

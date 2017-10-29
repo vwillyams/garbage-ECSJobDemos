@@ -1,15 +1,16 @@
-﻿using UnityEngine;
+﻿using Unity.Mathematics;
 using System.Runtime.CompilerServices;
 
-namespace UnityEngine.Experimental
+namespace Unity.Mathematics.Experimental
 {
-    public static class math_experimental
+    public static partial class math_experimental
     {
         //@TODO hack
         static float4 epsilon4f { get { return new float4(0.00001f); } }
         static float3 epsilon3f { get { return new float3(0.00001f); } }
         static float2 epsilon2f { get { return new float2(0.00001f); } }
-        static float epsilon    { get { return 0.00001f; } }
+
+        public const float epsilon = 0.00001f;
 
         //@TODO: Test len > epsilon4f... it is weird. compare to hlsl beahviour...
         // discuss if we want this function at all???

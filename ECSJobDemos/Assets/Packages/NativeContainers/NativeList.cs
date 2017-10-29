@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine;
+using Unity.Mathematics;
 
 #if ENABLE_NATIVE_ARRAY_CHECKS
 using System.Diagnostics;

@@ -1,12 +1,12 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace UnityEngine
+namespace Unity.Mathematics
 {
     public struct half
     {
         private short value;
 
-        public static float MaxValue { get { return  65536.0F; } }
+        public static float MaxValue { get { return 65536.0F; } }
         public static float MinValue { get { return -65536.0F; } }
 
         public static implicit operator half(float v)

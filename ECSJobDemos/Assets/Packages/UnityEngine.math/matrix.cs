@@ -1,4 +1,4 @@
-﻿namespace UnityEngine
+﻿namespace Unity.Mathematics
 {
     public partial struct float4x4
     {
@@ -14,6 +14,22 @@
             this.m2 = m2;
             this.m3 = m3;
         }
+
+        public float4x4(float m00, float m01, float m02, float m03,
+                        float m10, float m11, float m12, float m13,
+                        float m20, float m21, float m22, float m23,
+                        float m30, float m31, float m32, float m33)
+        {
+            this.m0 = new float4(m00, m01, m02, m03);
+            this.m1 = new float4(m10, m11, m12, m13);
+            this.m2 = new float4(m20, m21, m22, m23);
+            this.m3 = new float4(m30, m31, m32, m33);
+        }
+
+        public static float4x4 operator *(float4x4 mat, float s)
+        {
+            return new float4x4(mat.m0 * s, mat.m1 * s, mat.m2 * s, mat.m3 * s);
+        }
     }
 
     public partial struct float2x2
@@ -25,6 +41,18 @@
         {
             this.m0 = m0;
             this.m1 = m1;
+        }
+
+        public float2x2(float m00, float m01,
+                        float m10, float m11)
+        {
+            this.m0 = new float2(m00, m01);
+            this.m1 = new float2(m10, m11);
+        }
+
+        public static float2x2 operator *(float2x2 mat, float s)
+        {
+            return new float2x2(mat.m0 * s, mat.m1 * s);
         }
     }
 
@@ -40,6 +68,20 @@
             this.m1 = m1;
             this.m2 = m2;
         }
+
+        public float3x3(float m00, float m01, float m02,
+                        float m10, float m11, float m12,
+                        float m20, float m21, float m22)
+        {
+            this.m0 = new float3(m00, m01, m02);
+            this.m1 = new float3(m10, m11, m12);
+            this.m2 = new float3(m20, m21, m22);
+        }
+
+        public static float3x3 operator *(float3x3 mat, float s)
+        {
+            return new float3x3(mat.m0 * s, mat.m1 * s, mat.m2 * s);
+        }
     }
 
     partial class math
@@ -51,7 +93,7 @@
 
         public static float4x4 mul(float4x4 a, float4x4 b)
         {
-            return new float4x4(mul(a,b.m0), mul(a,b.m1), mul(a,b.m2), mul(a,b.m3));
+            return new float4x4(mul(a, b.m0), mul(a, b.m1), mul(a, b.m2), mul(a, b.m3));
         }
 
         public static float2 mul(float2x2 x, float2 v)
@@ -71,15 +113,39 @@
 
         public static float3x3 mul(float3x3 a, float3x3 b)
         {
-            return new float3x3(mul(a,b.m0), mul(a,b.m1), mul(a,b.m2));
+            return new float3x3(mul(a, b.m0), mul(a, b.m1), mul(a, b.m2));
         }
 
-        static public float3x3 transpose(float3x3 x)
+        public static float3x3 orthogonalize(float3x3 i)
         {
-            return new float3x3(
-                new float3(x.m0.x, x.m1.x, x.m2.x),
-                new float3(x.m0.y, x.m1.y, x.m2.y),
-                new float3(x.m0.z, x.m1.z, x.m2.z));
+            float3x3 o;
+
+            float3 u = i.m0;
+            float3 v = i.m1 - i.m0 * math.dot(i.m1, i.m0);
+
+            float lenU = math.length(u);
+            float lenV = math.length(v);
+
+            bool c = lenU > epsilon_normal && lenV > epsilon_normal;
+
+            o.m0 = math.select(new float3(1, 0, 0), u / lenU, c);
+            o.m1 = math.select(new float3(0, 1, 0), v / lenV, c);
+            o.m2 = math.cross(o.m0, o.m1);
+
+            return o;
         }
+
+        public static float2x2 transpose(float2x2 i) { return new float2x2(i.m0.x, i.m1.x, i.m0.y, i.m1.y); }
+        public static float3x3 transpose(float3x3 i) { return new float3x3(i.m0.x, i.m1.x, i.m2.x, i.m0.y, i.m1.y, i.m2.y, i.m0.z, i.m1.z, i.m2.z); }
+        public static float4x4 transpose(float4x4 i) { return new float4x4(i.m0.x, i.m1.x, i.m2.x, i.m3.x, i.m0.y, i.m1.y, i.m2.y, i.m3.y, i.m0.z, i.m1.z, i.m2.z, i.m3.z, i.m0.w, i.m1.w, i.m2.w, i.m3.w); }
+
+        /* @TODO:
+        [MethodImpl((MethodImplOptions)0x100)] // agressive inline
+        public static float determinant(float2x2 x) { throw new System.NotImplementedException(); }
+        [MethodImpl((MethodImplOptions)0x100)] // agressive inline
+        public static float determinant(float3x3 x) { throw new System.NotImplementedException(); }
+        [MethodImpl((MethodImplOptions)0x100)] // agressive inline
+        public static float determinant(float4x4 x) { throw new System.NotImplementedException(); }
+        */
     }
 }

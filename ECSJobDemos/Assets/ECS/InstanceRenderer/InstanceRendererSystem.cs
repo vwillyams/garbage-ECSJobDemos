@@ -1,9 +1,5 @@
-﻿using UnityEngine;
-using Unity.Collections;
-using Unity.Jobs;
-using UnityEngine.ECS;
-using System.Collections.Generic;
-
+﻿using Unity.Collections;
+using Unity.Mathematics;
 namespace UnityEngine.ECS.Rendering
 {
 

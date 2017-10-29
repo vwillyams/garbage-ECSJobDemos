@@ -32,6 +32,18 @@ namespace BoidSimulations
 			}
 		}
 
+        struct TestJob : IJob
+        {
+            public ComponentDataArray<Blah> boidData;
+
+            public void Execute()
+            {
+
+            }
+        }
+
+        JobHandle handle;
+
 		override public void OnUpdate()
 		{
 			base.OnUpdate ();
@@ -40,6 +52,18 @@ namespace BoidSimulations
 			writeJob.boidData = m_BoidData;
 
 			AddDependency(writeJob.Schedule (m_BoidTransforms, GetDependency()));
+            /*
+            EntityManager.CreateEntity(typeof(Blah));
+
+            TestJob job = new TestJob();
+            job.boidData = EntityManager.CreateComponentGroup(typeof(Blah)).GetComponentDataArray<Blah>();
+            job.Schedule();
+            */
 		}
 	}
+}
+
+struct Blah : IComponentData
+{
+    
 }

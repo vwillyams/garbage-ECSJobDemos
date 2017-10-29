@@ -30,7 +30,7 @@ struct Component128Bytes : IComponentData
 
 public class ECSInstantiatePerformance : MonoBehaviour
 {
-    const int kInstanceCount = 100 * 1000;
+    const int kInstanceCount = 10 * 1000;
 
     CustomSampler instantiateSampler;
 	CustomSampler destroySampler;
@@ -49,11 +49,13 @@ public class ECSInstantiatePerformance : MonoBehaviour
 
     unsafe void Update()
 	{
-		Unity.Collections.NativeLeakDetection.Mode = Unity.Collections.NativeLeakDetectionMode.Disabled;
-
-		var oldRoot = DependencyManager.Root;
-		DependencyManager.Root = new DependencyManager ();
-		DependencyManager.SetDefaultCapacity (kInstanceCount * 2);
+        DependencyManager oldRoot = null;
+        if (PerformanceTestConfiguration.CleanManagers)
+        {
+            oldRoot = DependencyManager.Root;
+            DependencyManager.Root = new DependencyManager();
+            DependencyManager.SetDefaultCapacity(PerformanceTestConfiguration.InstanceCount * 2);
+        }
 
 		var m_EntityManager = DependencyManager.GetBehaviourManager<EntityManager>();
 
@@ -68,15 +70,14 @@ public class ECSInstantiatePerformance : MonoBehaviour
 
 
         memcpy12Sampler.Begin();
-        UnsafeUtility.MemCpy(dst, src, sizeof(Component12Bytes) * kInstanceCount);
+        UnsafeUtility.MemCpy(dst, src, sizeof(Component12Bytes) * PerformanceTestConfiguration.InstanceCount);
         memcpy12Sampler.End();
 
         UnsafeUtility.Free(src, Allocator.Persistent);
         UnsafeUtility.Free(dst, Allocator.Persistent);
 
 
-
-        var archetype = m_EntityManager.CreateEntity();
+       var archetype = m_EntityManager.CreateEntity();
         m_EntityManager.AddComponent<Component128Bytes>(archetype, new Component128Bytes());
         m_EntityManager.AddComponent<Component12Bytes>(archetype, new Component12Bytes());
         m_EntityManager.AddComponent<Component64Bytes>(archetype, new Component64Bytes());
@@ -87,7 +88,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
         m_EntityManager.CreateComponentGroup(typeof(Component128Bytes));
 
 		instantiateSampler.Begin ();
-		var instances = new NativeArray<Entity>(kInstanceCount, Allocator.Temp);
+        var instances = new NativeArray<Entity>(PerformanceTestConfiguration.InstanceCount, Allocator.Temp);
 		m_EntityManager.Instantiate (archetype, instances);
 		instantiateSampler.End();
 
@@ -104,9 +105,10 @@ public class ECSInstantiatePerformance : MonoBehaviour
 
 		instances.Dispose ();
 
-        Unity.Collections.NativeLeakDetection.Mode = Unity.Collections.NativeLeakDetectionMode.Enabled;
-
-		DependencyManager.Root.Dispose ();
-		DependencyManager.Root = oldRoot;
+        if (oldRoot != null)
+        {
+            DependencyManager.Root.Dispose();
+            DependencyManager.Root = oldRoot;
+        }
 	}
 }

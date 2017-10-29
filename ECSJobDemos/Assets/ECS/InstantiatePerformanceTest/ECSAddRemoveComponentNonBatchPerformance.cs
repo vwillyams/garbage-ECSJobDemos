@@ -7,8 +7,6 @@ using Unity.Collections;
 
 public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
 {
-    const int kInstanceCount = 100 * 1000;
-
     CustomSampler addSampler;
     CustomSampler instantiateSampler;
     CustomSampler destroySampler;
@@ -24,11 +22,13 @@ public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
 
 	void Update()
 	{
-		Unity.Collections.NativeLeakDetection.Mode = Unity.Collections.NativeLeakDetectionMode.Disabled;
-
-		var oldRoot = DependencyManager.Root;
-		DependencyManager.Root = new DependencyManager ();
-		DependencyManager.SetDefaultCapacity (kInstanceCount);
+        DependencyManager oldRoot = null;
+        if (PerformanceTestConfiguration.CleanManagers)
+        {
+            oldRoot = DependencyManager.Root;
+            DependencyManager.Root = new DependencyManager();
+            DependencyManager.SetDefaultCapacity(PerformanceTestConfiguration.InstanceCount);
+        }
 
 		var m_EntityManager = DependencyManager.GetBehaviourManager<EntityManager>();
 
@@ -37,7 +37,7 @@ public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
         m_EntityManager.CreateComponentGroup (typeof(Component128Bytes));
 
         var archetype = m_EntityManager.CreateArchetype(typeof(Component128Bytes), typeof(Component12Bytes), typeof(Component64Bytes));
-        var entities = new NativeArray<Entity>(kInstanceCount, Allocator.Temp);
+        var entities = new NativeArray<Entity>(PerformanceTestConfiguration.InstanceCount, Allocator.Temp);
 
         instantiateSampler.Begin();
         for (int i = 0; i < entities.Length; i++)
@@ -62,10 +62,10 @@ public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
 
         entities.Dispose ();
 
-
-        Unity.Collections.NativeLeakDetection.Mode = Unity.Collections.NativeLeakDetectionMode.Enabled;
-
-		DependencyManager.Root.Dispose ();
-		DependencyManager.Root = oldRoot;
+        if (oldRoot != null)
+        {
+            DependencyManager.Root.Dispose();
+            DependencyManager.Root = oldRoot;
+        }
 	}
 }

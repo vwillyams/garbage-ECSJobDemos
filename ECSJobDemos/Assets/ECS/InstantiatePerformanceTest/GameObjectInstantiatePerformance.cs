@@ -17,9 +17,12 @@ public class GameObjectInstantiatePerformance : MonoBehaviour
 
 	void Update()
 	{
-		var temp = new GameObject ("", typeof(EmptyMonoBehaviour));
+        var temp = new GameObject ("");
+        temp.AddComponent(typeof(MonoBehaviour64Bytes));
+        temp.AddComponent(typeof(MonoBehaviour64Bytes));
+        temp.AddComponent(typeof(MonoBehaviour64Bytes));
 
-		GameObject[] array = new GameObject[1000];
+        GameObject[] array = new GameObject[PerformanceTestConfiguration.InstanceCount];
 
 		createSampler.Begin ();
 		for (int i = 0; i != array.Length; i++)

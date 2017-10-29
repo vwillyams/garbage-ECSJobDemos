@@ -17,11 +17,11 @@ public class GameObjectNewPerformance : MonoBehaviour
 
 	void Update()
 	{
-		GameObject[] array = new GameObject[1000];
+        GameObject[] array = new GameObject[PerformanceTestConfiguration.InstanceCount];
 
 		createSampler.Begin ();
 		for (int i = 0; i != array.Length; i++)
-			array [i] = new GameObject ("", typeof(EmptyMonoBehaviour));
+            array [i] = new GameObject ("", typeof(MonoBehaviour64Bytes), typeof(MonoBehaviour64Bytes), typeof(MonoBehaviour64Bytes));
 		createSampler.End ();
 
 		destroySampler.Begin ();

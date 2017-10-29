@@ -1,4 +1,4 @@
 {
 	"name": "UnityEditor.ECS",
-	"references": [ "UnityEngine.ECS", "UnityEngine.math" ]
+	"references": [ "UnityEngine.ECS", "Unity.Mathematics" ]
 }

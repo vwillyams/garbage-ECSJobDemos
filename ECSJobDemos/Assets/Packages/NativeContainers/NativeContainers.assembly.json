@@ -1,4 +1,4 @@
 {
 	"name": "NativeContainers",
-	"references": [ "UnityEngine.math" ]
+	"references": [ "Unity.Mathematics" ]
 }

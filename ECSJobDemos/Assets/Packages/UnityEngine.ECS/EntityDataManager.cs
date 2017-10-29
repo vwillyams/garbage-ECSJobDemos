@@ -10,53 +10,69 @@ namespace UnityEngine.ECS
 
     unsafe struct EntityData
     {
-        public int          version;
-        public Archetype*   archetype;
-        public Chunk*       chunk;
-        public int          index;
+        public int version;
+        public Archetype* archetype;
+        public Chunk* chunk;
+        public int index;
     }
 
     unsafe struct EntityDataManager
     {
         internal EntityData* m_Entities;
-        int                  m_EntitiesCapacity;
-        int                  m_EntitiesFreeIndex;
+        int m_EntitiesCapacity;
+        int m_EntitiesFreeIndex;
 
         public void OnCreate()
         {
             m_EntitiesCapacity = 1000000;
             m_Entities = (EntityData*)UnsafeUtility.Malloc(m_EntitiesCapacity * sizeof(EntityData), 64, Allocator.Persistent);
-            for (int i = 0;i != m_EntitiesCapacity-1;i++)
+            for (int i = 0; i != m_EntitiesCapacity - 1; i++)
             {
                 m_Entities[i].index = i + 1;
                 m_Entities[i].version = 1;
                 m_Entities[i].chunk = null;
             }
-                
-            m_Entities[m_EntitiesCapacity-1].index = -1;
+
+            m_Entities[m_EntitiesCapacity - 1].index = -1;
             m_EntitiesFreeIndex = 0;
         }
 
         public void OnDestroy()
         {
-            UnsafeUtility.Free ((IntPtr)m_Entities, Allocator.Persistent);
+            UnsafeUtility.Free((IntPtr)m_Entities, Allocator.Persistent);
             m_Entities = (EntityData*)IntPtr.Zero;
             m_EntitiesCapacity = 0;
         }
 
-        public bool Exists (Entity entity)
+        public bool Exists(Entity entity)
         {
             return m_Entities[entity.index].version == entity.version;
         }
 
-        public void DeallocateEnties(ArchetypeManager typeMan, Entity* entities, int count)
+        [System.Diagnostics.Conditional("ENABLE_NATIVE_ARRAY_CHECKS")]
+        public void AssertEntitiesExist(Entity* entities, int count)
         {
             for (int i = 0; i != count;i++)
             {
                 if (!Exists(entities[i]))
                     throw new System.ArgumentException("All entities passed to EntityManager.Destroy must exist. One of the entities was already destroyed or never created.");
             }
+        }
 
+        [System.Diagnostics.Conditional("ENABLE_NATIVE_ARRAY_CHECKS")]
+        public void AssertEntityHasComponent(Entity entity, int typeIndex)
+        {
+            if (!HasComponent(entity, typeIndex))
+            {
+                if (Exists(entity))
+                    throw new System.ArgumentException("entity does not exist");
+                else
+                    throw new System.ArgumentException("{0} component has not been added to the entity.");
+            }
+        }
+
+        public void DeallocateEnties(ArchetypeManager typeMan, Entity* entities, int count)
+        {
             while (count != 0)
             {
                 /// This is optimized for the case where the array of entities are allocated contigously in the chunk
@@ -112,8 +128,8 @@ namespace UnityEngine.ECS
             }
         }
 
-        #if ENABLE_NATIVE_ARRAY_CHECKS
-        void CheckInternalConsistency()
+#if ENABLE_NATIVE_ARRAY_CHECKS
+        void AssertInternalConsistency()
         {
             int aliveEntities = 0;
             int entityType = TypeManager.GetTypeIndex<Entity>();
@@ -135,7 +151,7 @@ namespace UnityEngine.ECS
 
             //@TODO: Validate from perspective of chunks...
         }
-        #endif
+#endif
 
 
         public void AllocateEntities(Archetype* arch, Chunk* chunk, int baseIndex, int count, Entity* outputEntities)
@@ -194,21 +210,12 @@ namespace UnityEngine.ECS
 
         public void GetComponentChunk(Entity entity, out Chunk* chunk, out int chunkIndex)
         {
-            if (!Exists (entity))
-            {
-                chunk = null;
-                chunkIndex = 0;
-                return;
-            }
             chunk = m_Entities[entity.index].chunk;
             chunkIndex = m_Entities[entity.index].index;
         }
 
         public Archetype* GetArchetype(Entity entity)
         {
-            if (!Exists (entity))
-                return null;
-
             return m_Entities[entity.index].archetype;
         }
 

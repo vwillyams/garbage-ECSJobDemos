@@ -138,7 +138,6 @@ namespace UnityEngine.ECS.Tests
             Assert.AreEqual(1, group.GetComponentDataArray<EcsTestData>()[0].value);
         }
 
-
         [Test]
         public void GetComponentDataArrayFromEntitySafety()
         {
@@ -203,6 +202,7 @@ namespace UnityEngine.ECS.Tests
 
             jobHandle.Complete();
         }
+        //@TODO: Similar Add/Remove component checks...
 
         [Test]
         public void GetSetComponentThrowsIfNotExist()
@@ -216,6 +216,23 @@ namespace UnityEngine.ECS.Tests
 
             Assert.Throws<System.ArgumentException>(() => { m_Manager.GetComponent<EcsTestData2>(entity); });
             Assert.Throws<System.ArgumentException>(() => { m_Manager.GetComponent<EcsTestData2>(destroyedEntity); });
+        }
+
+
+        [Test]
+        public void ComponentDataArrayFromEntityThrowsIfNotExist()
+        {
+            var entity = m_Manager.CreateEntity(typeof(EcsTestData));
+            var destroyedEntity = m_Manager.CreateEntity(typeof(EcsTestData));
+            m_Manager.DestroyEntity(destroyedEntity);
+
+            var data = m_Manager.GetComponentDataArrayFromEntity<EcsTestData2>();
+
+            Assert.Throws<System.ArgumentException>(() => { data[entity] = new EcsTestData2(); });
+            Assert.Throws<System.ArgumentException>(() => { data[destroyedEntity] = new EcsTestData2(); });
+
+            Assert.Throws<System.ArgumentException>(() => { var p = data[entity]; });
+            Assert.Throws<System.ArgumentException>(() => { var p = data[destroyedEntity]; });
         }
 
         //@TODO: AddComponent(Double add), RemoveComponent

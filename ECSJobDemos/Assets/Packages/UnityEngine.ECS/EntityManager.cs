@@ -249,10 +249,9 @@ namespace UnityEngine.ECS
         {
             m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
 
-            //@TODO: Not handling Entity existance... Stop mixing checks in the middle of code, seperate checks & runtime code
+            m_Entities.AssertEntitiesExist(&entity, 1);
 
             //@TODO: Handle ISharedComponentData
-
             var componentType = ComponentType.Create<T>();
             Archetype* type = m_Entities.GetArchetype(entity);
             int t = 0;
@@ -283,9 +282,10 @@ namespace UnityEngine.ECS
         {
             m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
 
-            //@TODO: Not handling Entity existance... Stop mixing checks in the middle of code, seperate checks & runtime code
-
             ComponentType componentType = ComponentType.Create<T>();
+
+            m_Entities.AssertEntityHasComponent(entity, componentType.typeIndex);
+
             Archetype* type = m_Entities.GetArchetype(entity);
             int removedTypes = 0;
             for (int t = 0; t < type->typesCount; ++t)
@@ -295,10 +295,8 @@ namespace UnityEngine.ECS
                 else
                     m_CachedComponentTypeArray[t - removedTypes] = type->types[t];
             }
-#if ENABLE_NATIVE_ARRAY_CHECKS
-            if (removedTypes != 1)
-                throw new InvalidOperationException("Trying to remove a component from an entity which is not present");
-#endif
+
+            Assertions.Assert.AreNotEqual(1, removedTypes);
 
             Archetype* newType = m_ArchetypeManager.GetArchetype(m_CachedComponentTypeArray, type->typesCount - removedTypes, m_GroupManager, m_SharedComponentManager);
 

@@ -97,5 +97,39 @@ namespace UnityEngine.ECS.Tests
             Assert.Throws<System.ArgumentException>(() => { var p = data[destroyedEntity]; });
         }
 
+        [Test]
+        public void AddComponentTwiceThrows()
+        {
+            var entity = m_Manager.CreateEntity();
+
+            m_Manager.AddComponent(entity, new EcsTestData(1));
+            Assert.Throws<System.InvalidOperationException>(() => { m_Manager.AddComponent(entity, new EcsTestData(1)); });
+        }
+
+        [Test]
+        public void AddRemoveComponentOnDestroyedEntityThrows()
+        {
+            var destroyedEntity = m_Manager.CreateEntity();
+            m_Manager.DestroyEntity(destroyedEntity);
+
+            Assert.Throws<System.ArgumentException>(() => { m_Manager.AddComponent(destroyedEntity, new EcsTestData(1)); });
+            Assert.Throws<System.ArgumentException>(() => { m_Manager.RemoveComponent<EcsTestData>(destroyedEntity); });
+        }
+
+        [Test]
+        public void RemoveComponentOnEntityWithoutComponent()
+        {
+            var entity = m_Manager.CreateEntity();
+            Assert.Throws<System.ArgumentException>(() => { m_Manager.RemoveComponent<EcsTestData>(entity); });
+        }
+
+        [Test]
+        public void CreateDestroyEmptyEntity()
+        {
+            var entity = m_Manager.CreateEntity();
+            Assert.IsTrue(m_Manager.Exists(entity));
+            m_Manager.DestroyEntity(entity);
+            Assert.IsFalse(m_Manager.Exists(entity));
+        }
     }
 }

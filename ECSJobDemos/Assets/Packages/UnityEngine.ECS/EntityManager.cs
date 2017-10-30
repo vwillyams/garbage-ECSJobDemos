@@ -296,7 +296,7 @@ namespace UnityEngine.ECS
                     m_CachedComponentTypeArray[t - removedTypes] = type->types[t];
             }
 
-            Assertions.Assert.AreNotEqual(1, removedTypes);
+            Assertions.Assert.AreNotEqual(-1, removedTypes);
 
             Archetype* newType = m_ArchetypeManager.GetArchetype(m_CachedComponentTypeArray, type->typesCount - removedTypes, m_GroupManager, m_SharedComponentManager);
 

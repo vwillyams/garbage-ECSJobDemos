@@ -240,7 +240,7 @@ namespace UnityEngine.ECS
 
         const int kChunkSize = 16 * 1024;
 
-        static int GetChunkBufferSize()
+        public static int GetChunkBufferSize()
         {
             int bufferOffset = (sizeof(Chunk) + 63) & ~63;
             int bufferSize = kChunkSize - bufferOffset;

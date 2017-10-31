@@ -236,7 +236,7 @@ namespace UnityEngine.ECS
             int typeIndex = TypeManager.GetTypeIndex<T>();
 
             var cache = GetComponentDataArrayCache(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             return new ComponentDataArray<T>(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex), readOnly);
 #else
 			return new ComponentDataArray<T>(cache, length);
@@ -248,7 +248,7 @@ namespace UnityEngine.ECS
             int length;
             int componentIndex;
             var cache = GetComponentDataArrayCache(type.typeIndex, out length, out componentIndex);
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             return new ComponentDataFixedArray<T>(cache, length, 64, m_SafetyManager.GetSafetyHandle(type.typeIndex), readOnly);
 #else
 			return new ComponentDataFixedArray<T>(cache, length, 64);
@@ -261,7 +261,7 @@ namespace UnityEngine.ECS
             int componentIndex;
             int typeIndex = TypeManager.GetTypeIndex<Entity>();
             var cache = GetComponentDataArrayCache(typeIndex, out length, out componentIndex);
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             return new EntityArray(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex));
 #else
 			return new EntityArray(cache, length);

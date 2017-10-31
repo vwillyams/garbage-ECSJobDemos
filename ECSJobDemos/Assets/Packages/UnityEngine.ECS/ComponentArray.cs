@@ -18,6 +18,7 @@ namespace UnityEngine.ECS
         internal unsafe ComponentArray(ComponentDataArrayCache cache, int length, ArchetypeManager typeMan)
 		{
             m_Length = length;
+            Debug.Log(m_Length);
             m_Cache = cache;
 			m_ArchetypeManager = typeMan;
 		}

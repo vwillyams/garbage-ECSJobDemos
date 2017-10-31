@@ -33,7 +33,7 @@ namespace Unity.Jobs
                     if (!JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
                         return;
 
-                    #if ENABLE_NATIVE_ARRAY_CHECKS
+                    #if ENABLE_UNITY_COLLECTIONS_CHECKS
                     JobsUtility.PatchBufferMinMaxRanges(bufferRangePatchData, UnsafeUtility.AddressOf(ref jobData), begin, end - begin);
                     #endif
 

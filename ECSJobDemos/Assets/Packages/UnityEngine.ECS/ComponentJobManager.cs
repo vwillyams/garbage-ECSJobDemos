@@ -9,7 +9,7 @@ namespace UnityEngine.ECS
     {
         public unsafe struct ComponentSafetyHandle
         {
-    #if ENABLE_NATIVE_ARRAY_CHECKS
+    #if ENABLE_UNITY_COLLECTIONS_CHECKS
             public AtomicSafetyHandle       safetyHandle;
     #endif
             public JobHandle                writeFence;
@@ -23,16 +23,16 @@ namespace UnityEngine.ECS
 
         JobHandle*              m_ReadJobFences;
         ComponentSafetyHandle*  m_ComponentSafetyHandles;
+        #if ENABLE_UNITY_COLLECTIONS_CHECKS
         AtomicSafetyHandle      m_TempSafety;
+        #endif
 
         //@TODO: Check against too many types created...
 
         public ComponentJobSafetyManager()
         {
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_TempSafety = AtomicSafetyHandle.Create();
-#else
-            m_TempSafety = new AtomicSafetyHandle();
 #endif
             m_ReadJobFences = (JobHandle*)UnsafeUtility.Malloc(sizeof(JobHandle) * kMaxReadJobHandles * kMaxTypes, 16, Allocator.Persistent);
             UnsafeUtility.MemClear((IntPtr)m_ReadJobFences, sizeof(JobHandle) * kMaxReadJobHandles * kMaxTypes);
@@ -40,7 +40,7 @@ namespace UnityEngine.ECS
             m_ComponentSafetyHandles = (ComponentSafetyHandle*)UnsafeUtility.Malloc(sizeof(ComponentSafetyHandle) * kMaxTypes, 16, Allocator.Persistent);
             UnsafeUtility.MemClear((IntPtr)m_ComponentSafetyHandles, sizeof(ComponentSafetyHandle) * kMaxTypes);
 
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             for (int i = 0; i != kMaxTypes;i++)
             {
                 m_ComponentSafetyHandles[i].safetyHandle = AtomicSafetyHandle.Create();
@@ -71,7 +71,7 @@ namespace UnityEngine.ECS
                 m_ComponentSafetyHandles[t].numReadFences = 0;
             }
 
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             for (int i = 0; i != count; i++)
                 AtomicSafetyHandle.CheckDeallocateAndThrow(m_ComponentSafetyHandles[i].safetyHandle);
 
@@ -96,7 +96,7 @@ namespace UnityEngine.ECS
             for (int i = 0; i < kMaxTypes * kMaxReadJobHandles; i++)
                 m_ReadJobFences[i].Complete();
 
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             for (int i = 0; i < kMaxTypes; i++)
             {
                 var res = AtomicSafetyHandle.EnforceAllBufferJobsHaveCompletedAndRelease(m_ComponentSafetyHandles[i].safetyHandle);
@@ -144,7 +144,7 @@ namespace UnityEngine.ECS
         public void CompleteWriteDependency(int type)
         {
             m_ComponentSafetyHandles[type].writeFence.Complete();
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckReadAndThrow(m_ComponentSafetyHandles[type].safetyHandle);
 #endif
         }
@@ -156,7 +156,7 @@ namespace UnityEngine.ECS
             m_ComponentSafetyHandles[type].numReadFences = 0;
 
             m_ComponentSafetyHandles[type].writeFence.Complete();
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckWriteAndThrow(m_ComponentSafetyHandles[type].safetyHandle);
 #endif
         }
@@ -197,20 +197,21 @@ namespace UnityEngine.ECS
                 CombineReadDependencies(type);
         }
 
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
         public AtomicSafetyHandle GetSafetyHandle(int type)
         {
             m_HasCleanHandles = false;
-#if ENABLE_NATIVE_ARRAY_CHECKS
             return m_ComponentSafetyHandles[type].safetyHandle;
-#else
-            return new AtomicSafetyHandle();
-#endif
         }
+#endif
 
         void CombineReadDependencies(int type)
         {
             //@TODO: blah...
-            var readFencesSlice = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<JobHandle>((IntPtr)(m_ReadJobFences + type * kMaxReadJobHandles), m_ComponentSafetyHandles[type].numReadFences, m_TempSafety, Allocator.Invalid);
+            var readFencesSlice = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<JobHandle>((IntPtr)(m_ReadJobFences + type * kMaxReadJobHandles), m_ComponentSafetyHandles[type].numReadFences, Allocator.Invalid);
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref readFencesSlice, m_TempSafety);
+#endif
             m_ReadJobFences[type * kMaxReadJobHandles] = JobHandle.CombineDependencies(readFencesSlice);
             m_ComponentSafetyHandles[type].numReadFences = 1;
         }

@@ -52,7 +52,7 @@ namespace Unity.Jobs
                 int* outputPtr = (int*)jobData.outputIndices.GetUnsafePtr();
                 int outputIndex = oldLength;
 
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
                 JobsUtility.PatchBufferMinMaxRanges (bufferRangePatchData, UnsafeUtility.AddressOf (ref jobData), 0, jobData.appendCount);
 #endif
                 for (int i = 0;i != jobData.appendCount;i++)
@@ -77,7 +77,7 @@ namespace Unity.Jobs
                 {
                     int inputIndex = outputPtr[i];
 
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
                     JobsUtility.PatchBufferMinMaxRanges (bufferRangePatchData, UnsafeUtility.AddressOf (ref jobData), inputIndex, 1);
 #endif
 

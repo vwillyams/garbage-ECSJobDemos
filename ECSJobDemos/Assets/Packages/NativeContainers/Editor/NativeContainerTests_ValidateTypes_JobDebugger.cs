@@ -5,7 +5,7 @@ using NUnit.Framework;
 using System;
 using Unity.Collections;
 
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 public class NativeContainderTests_ValidateTypes_JobDebugger : NativeContainerTests_ValidateTypesFixture
 {
 	struct WriteOnlyHashMapParallelForJob : IJobParallelFor

@@ -12,13 +12,13 @@ namespace UnityEngine.ECS
         ComponentDataArrayCache m_Cache;
 
         int m_Length;
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
         int m_MinIndex;
         int m_MaxIndex;
         AtomicSafetyHandle m_Safety;
 #endif
 
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal unsafe ComponentDataArray(ComponentDataArrayCache cache, int length, AtomicSafetyHandle safety, bool isReadOnly)
 #else
         internal unsafe ComponentDataArray(ComponentDataArrayCache cache, int length)
@@ -27,7 +27,7 @@ namespace UnityEngine.ECS
             m_Cache = cache;
 
             m_Length = length;
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_MinIndex = 0;
             m_MaxIndex = length - 1;
             m_Safety = safety;
@@ -38,7 +38,7 @@ namespace UnityEngine.ECS
 
         public void CopyTo(NativeSlice<T> dst, int startIndex = 0)
         {
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             if (dst.Length == 0)
                 return;
 
@@ -78,7 +78,7 @@ namespace UnityEngine.ECS
         {
             get
             {
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
                 AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
                 if (index < m_MinIndex || index > m_MaxIndex)
                     FailOutOfRangeError(index);
@@ -92,7 +92,7 @@ namespace UnityEngine.ECS
 
 			set
 			{
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 				if (index < m_MinIndex || index > m_MaxIndex)
 					FailOutOfRangeError(index);
@@ -105,7 +105,7 @@ namespace UnityEngine.ECS
 			}
 		}
 
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
         void FailOutOfRangeError(int index)
 		{
 			//@TODO: Make error message utility and share with NativeArray...

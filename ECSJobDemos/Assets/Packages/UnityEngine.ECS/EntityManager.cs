@@ -260,7 +260,7 @@ namespace UnityEngine.ECS
                 m_CachedComponentTypeArray[t] = type->types[t];
                 ++t;
             }
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             if (t < type->typesCount && type->types[t] == componentType)
                 throw new InvalidOperationException("Trying to add a component to an entity which is already present");
 #endif
@@ -308,7 +308,12 @@ namespace UnityEngine.ECS
         public unsafe ComponentDataArrayFromEntity<T> GetComponentDataArrayFromEntity<T>() where T : struct, IComponentData
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             return new ComponentDataArrayFromEntity<T>(m_JobSafetyManager.GetSafetyHandle(typeIndex), typeIndex, m_Entities);
+#else
+            return new ComponentDataArrayFromEntity<T>(typeIndex, m_Entities);
+#endif
         }
 
 

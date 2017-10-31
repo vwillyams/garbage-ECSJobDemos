@@ -14,13 +14,13 @@ namespace UnityEngine.ECS
         int                     m_Length;
 
 
-        #if ENABLE_NATIVE_ARRAY_CHECKS
+        #if ENABLE_UNITY_COLLECTIONS_CHECKS
         int                      	m_MinIndex;
 		int                      	m_MaxIndex;
 		AtomicSafetyHandle       	m_Safety;
         #endif
 
-		#if ENABLE_NATIVE_ARRAY_CHECKS
+		#if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal unsafe ComponentDataFixedArray(ComponentDataArrayCache cache, int length, int fixedArrayLength, AtomicSafetyHandle safety, bool isReadOnly)
 		#else
         internal unsafe ComponentDataFixedArray(ComponentDataArrayCache cache, int length, int fixedArrayLength)
@@ -30,7 +30,7 @@ namespace UnityEngine.ECS
             m_Cache = cache;
             m_FixedArrayLength = fixedArrayLength;
 
-			#if ENABLE_NATIVE_ARRAY_CHECKS
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			m_MinIndex = 0;
 			m_MaxIndex = length - 1;
 			m_Safety = safety;
@@ -44,24 +44,26 @@ namespace UnityEngine.ECS
 		{
 			get
 			{
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 				if (index < m_MinIndex || index > m_MaxIndex)
 					FailOutOfRangeError(index);
 				AtomicSafetyHandle safety = m_Safety;
-#else
-				AtomicSafetyHandle safety = new AtomicSafetyHandle();
 #endif
 
                 if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
                     m_Cache.UpdateCache(index);
 
                 IntPtr ptr = m_Cache.CachedPtr + (index * m_Cache.CachedStride);
-                return NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(ptr, m_FixedArrayLength, safety, Allocator.Invalid);
+                var array = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(ptr, m_FixedArrayLength, Allocator.Invalid);
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref array, safety);
+#endif
+                return array;
 			}
 		}
 
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
         void FailOutOfRangeError(int index)
 		{
 			//@TODO: Make error message utility and share with NativeArray...

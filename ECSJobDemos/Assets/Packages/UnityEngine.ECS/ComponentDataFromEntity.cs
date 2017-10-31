@@ -5,24 +5,30 @@ namespace UnityEngine.ECS
 {
     public unsafe struct ComponentDataArrayFromEntity<T> where T : struct, IComponentData
     {
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
         AtomicSafetyHandle      m_Safety;
 #endif
         EntityDataManager       m_Entities;
         int                     m_TypeIndex;
 
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal ComponentDataArrayFromEntity(AtomicSafetyHandle safety, int typeIndex, EntityDataManager entityData)
         {
-#if ENABLE_NATIVE_ARRAY_CHECKS
             m_Safety = safety;
-#endif
             m_TypeIndex = typeIndex;
             m_Entities = entityData;
         }
+#else
+        internal ComponentDataArrayFromEntity(int typeIndex, EntityDataManager entityData)
+        {
+            m_TypeIndex = typeIndex;
+            m_Entities = entityData;
+        }
+#endif
 
         public bool Exists(Entity entity)
         {
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 #endif
             //@TODO: out of bounds index checks...
@@ -34,7 +40,7 @@ namespace UnityEngine.ECS
         {
             get
             {
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
                 AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 #endif
                 m_Entities.AssertEntityHasComponent(entity, m_TypeIndex);
@@ -47,7 +53,7 @@ namespace UnityEngine.ECS
             }
 			set
 			{
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
                 AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
                 m_Entities.AssertEntityHasComponent(entity, m_TypeIndex);

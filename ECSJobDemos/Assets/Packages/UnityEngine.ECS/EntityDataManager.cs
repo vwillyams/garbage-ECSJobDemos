@@ -1,7 +1,7 @@
 ﻿using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using System;
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 using NUnit.Framework;
 #endif
 
@@ -49,7 +49,7 @@ namespace UnityEngine.ECS
             return m_Entities[entity.index].version == entity.version;
         }
 
-        [System.Diagnostics.Conditional("ENABLE_NATIVE_ARRAY_CHECKS")]
+        [System.Diagnostics.Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
         public void AssertEntitiesExist(Entity* entities, int count)
         {
             for (int i = 0; i != count;i++)
@@ -59,7 +59,7 @@ namespace UnityEngine.ECS
             }
         }
 
-        [System.Diagnostics.Conditional("ENABLE_NATIVE_ARRAY_CHECKS")]
+        [System.Diagnostics.Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
         public void AssertEntityHasComponent(Entity entity, int typeIndex)
         {
             if (!HasComponent(entity, typeIndex))
@@ -128,7 +128,7 @@ namespace UnityEngine.ECS
             }
         }
 
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
         void AssertInternalConsistency()
         {
             int aliveEntities = 0;

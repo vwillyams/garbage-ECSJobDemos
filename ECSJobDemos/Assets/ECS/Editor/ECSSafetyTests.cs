@@ -2,16 +2,18 @@
 using NUnit.Framework;
 using Unity.Jobs;
 using System;
+using UnityEngine.TestTools;
+
+//@TODO: We should really design systems / jobs / exceptions / errors 
+//       so that an error in one system does not affect the next system.
+//       Right now failure to set dependencies correctly in one system affects other code,
+//       this makes the error messages significantly less useful...
+//       So need to redo all tests accordingly
 
 namespace UnityEngine.ECS.Tests
 {
     public class ECSSafetyTests : ECSFixture
 	{
-        public ECSSafetyTests()
-        {
-            Assert.IsTrue(Unity.Jobs.LowLevel.Unsafe.JobsUtility.GetJobDebuggerEnabled(), "JobDebugger must be enabled for these tests");
-        }
-
         [Test]
         public void ReadOnlyComponentDataArray()
         {
@@ -37,32 +39,7 @@ namespace UnityEngine.ECS.Tests
             m_Manager.DestroyEntity(entity);
         }
 
-        struct TestComponentWriteJob : IJob
-        {
-            public ComponentDataArray<EcsTestData> data;
-            public void Execute()
-            { }
-        }
 
-        [Test]
-        public void ComponentDataArrayJobSafety()
-        {
-            var group = m_Manager.CreateComponentGroup(typeof(EcsTestData));
-            var entity = m_Manager.CreateEntity(typeof(EcsTestData));
-            m_Manager.SetComponent(entity, new EcsTestData(42));
-
-            var job = new TestComponentWriteJob();
-            job.data = group.GetComponentDataArray<EcsTestData>();
-            Assert.AreEqual(42, job.data[0].value);
-
-            var fence = job.Schedule();
-            Assert.Throws<System.InvalidOperationException>(() => { var f = job.data[0].value; });
-
-            fence.Complete();
-            Assert.AreEqual(42, job.data[0].value);
-
-            m_Manager.DestroyEntity(entity);
-        }
 
         [Test]
         public void AccessComponentArrayAfterCreationThrowsException()
@@ -78,38 +55,81 @@ namespace UnityEngine.ECS.Tests
         }
 
         [Test]
-        public void GetComponentDataArrayFromEntitySafety()
+        public void CreateEntityInvalidatesArray()
         {
-            var archetype = m_Manager.CreateArchetype(typeof(EcsTestData));
-            var entity = m_Manager.CreateEntity(archetype);
-            m_Manager.SetComponent(entity, new EcsTestData(42));
+            CreateEntityWithDefaultData(0);
 
-            var data = m_Manager.GetComponentDataArrayFromEntity<EcsTestData>();
+            var group = m_Manager.CreateComponentGroup(typeof(EcsTestData));
+            var arr = group.GetComponentDataArray<EcsTestData>();
 
-            Assert.IsTrue(data.Exists(entity));
-            Assert.AreEqual(42, data[entity].value);
+            CreateEntityWithDefaultData(1);
 
-            data[entity] = new EcsTestData(13);
+            Assert.Throws<InvalidOperationException>(() => { var value = arr[0]; });
+        }
 
+        [Test]
+        public void GetSetComponentThrowsIfNotExist()
+        {
+            var entity = m_Manager.CreateEntity(typeof(EcsTestData));
+            var destroyedEntity = m_Manager.CreateEntity(typeof(EcsTestData));
+            m_Manager.DestroyEntity(destroyedEntity);
+
+            Assert.Throws<System.ArgumentException>(() => { m_Manager.SetComponent(entity, new EcsTestData2()); });
+            Assert.Throws<System.ArgumentException>(() => { m_Manager.SetComponent(destroyedEntity, new EcsTestData2()); });
+
+            Assert.Throws<System.ArgumentException>(() => { m_Manager.GetComponent<EcsTestData2>(entity); });
+            Assert.Throws<System.ArgumentException>(() => { m_Manager.GetComponent<EcsTestData2>(destroyedEntity); });
+        }
+
+        [Test]
+        public void ComponentDataArrayFromEntityThrowsIfNotExist()
+        {
+            var entity = m_Manager.CreateEntity(typeof(EcsTestData));
+            var destroyedEntity = m_Manager.CreateEntity(typeof(EcsTestData));
+            m_Manager.DestroyEntity(destroyedEntity);
+
+            var data = m_Manager.GetComponentDataArrayFromEntity<EcsTestData2>();
+
+            Assert.Throws<System.ArgumentException>(() => { data[entity] = new EcsTestData2(); });
+            Assert.Throws<System.ArgumentException>(() => { data[destroyedEntity] = new EcsTestData2(); });
+
+            Assert.Throws<System.ArgumentException>(() => { var p = data[entity]; });
+            Assert.Throws<System.ArgumentException>(() => { var p = data[destroyedEntity]; });
+        }
+
+        [Test]
+        public void AddComponentTwiceThrows()
+        {
+            var entity = m_Manager.CreateEntity();
+
+            m_Manager.AddComponent(entity, new EcsTestData(1));
+            Assert.Throws<System.InvalidOperationException>(() => { m_Manager.AddComponent(entity, new EcsTestData(1)); });
+        }
+
+        [Test]
+        public void AddRemoveComponentOnDestroyedEntityThrows()
+        {
+            var destroyedEntity = m_Manager.CreateEntity();
+            m_Manager.DestroyEntity(destroyedEntity);
+
+            Assert.Throws<System.ArgumentException>(() => { m_Manager.AddComponent(destroyedEntity, new EcsTestData(1)); });
+            Assert.Throws<System.ArgumentException>(() => { m_Manager.RemoveComponent<EcsTestData>(destroyedEntity); });
+        }
+
+        [Test]
+        public void RemoveComponentOnEntityWithoutComponent()
+        {
+            var entity = m_Manager.CreateEntity();
+            Assert.Throws<System.ArgumentException>(() => { m_Manager.RemoveComponent<EcsTestData>(entity); });
+        }
+
+        [Test]
+        public void CreateDestroyEmptyEntity()
+        {
+            var entity = m_Manager.CreateEntity();
+            Assert.IsTrue(m_Manager.Exists(entity));
             m_Manager.DestroyEntity(entity);
-
-            Assert.Throws<InvalidOperationException>(() => { data.Exists(entity); });
-            Assert.Throws<InvalidOperationException>(() => { data[entity] = new EcsTestData(); });
-        }
-
-        [Test]
-        [Ignore("TODO")]
-        public void ForgetAddJobDependencyIsCaughtInComponentSystem()
-        {
-            throw new System.NotImplementedException();
-            // * Give error immediately about missing AddDependency call?
-            // * Sync against other job even if it was forgotten.
-        }
-
-        [Test]
-        [Ignore("Figure out how we can get a stress test going, covering various functionality and testing that nothing gets corrupted")]
-        public void DestroyEntityWhileJobIsRunning()
-        {
+            Assert.IsFalse(m_Manager.Exists(entity));
         }
     }
 }

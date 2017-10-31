@@ -45,6 +45,21 @@ namespace UnityEngine.ECS
             grp->numRequiredComponents = requiredCount;
             grp->requiredComponents = (ComponentType*)m_GroupDataChunkAllocator.Construct(sizeof(ComponentType) * requiredCount, 4, requiredTypes);
 
+            //@TODO: Allow creation of ComponentGroup to understand read only types...
+            int* types = (int*)m_GroupDataChunkAllocator.Allocate(sizeof(int) * requiredCount, 4);
+            grp->readerTypesCount = 0;
+            grp->writerTypesCount = 0;
+
+            for (int i = 0; i != requiredCount;i++)
+            {
+                types[i] = requiredTypes[i].typeIndex;
+                grp->writerTypesCount++;
+            }
+            grp->writerTypes = types;
+            grp->readerTypes = null;
+
+            grp->requiredComponents = (ComponentType*)m_GroupDataChunkAllocator.Construct(sizeof(ComponentType) * requiredCount, 4, requiredTypes);
+
             grp->firstMatchingArchetype = null;
             grp->lastMatchingArchetype = null;
             for (Archetype* type = typeMan.m_LastArchetype; type != null; type = type->prevArchetype)
@@ -119,6 +134,12 @@ namespace UnityEngine.ECS
     }
     unsafe struct EntityGroupData
     {
+        public int*                 readerTypes;
+        public int                  readerTypesCount;
+
+        public int*                 writerTypes;
+        public int                  writerTypesCount;
+
         public ComponentType*       requiredComponents;
         public int                  numRequiredComponents;
         public MatchingArchetypes*  firstMatchingArchetype;
@@ -297,5 +318,20 @@ namespace UnityEngine.ECS
 				return types.ToArray ();
 			}
 		}
-	}
+
+        public void CompleteDependency()
+        {
+            m_SafetyManager.CompleteDependencies(m_GroupData->readerTypes, m_GroupData->readerTypesCount, m_GroupData->writerTypes, m_GroupData->writerTypesCount);
+        }
+/*TODO:
+        public JobHandle GetDependency()
+        {
+            return new JobHandle();
+        }
+*/
+        public void AddDependency(JobHandle job)
+        {
+            m_SafetyManager.AddDependency(m_GroupData->readerTypes, m_GroupData->readerTypesCount, m_GroupData->writerTypes, m_GroupData->writerTypesCount, job);
+        }
+    }
 }

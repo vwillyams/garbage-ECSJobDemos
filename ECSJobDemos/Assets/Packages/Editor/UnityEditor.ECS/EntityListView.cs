@@ -7,16 +7,14 @@ using System.Reflection;
 using Unity.Jobs;
 using System.Linq;
 using System.Text;
-
+#if false
 namespace UnityEngine.ECS
 {
     public class EntityListView : TreeView {
 
         ComponentGroup currentSystem;
 
-        List<object> nativeArrays;
-
-        List<int> typeIndexToNativeIndex;
+        Dictionary<Type, object> nativeArrays;
 
         EntityWindow window;
 
@@ -72,9 +70,7 @@ namespace UnityEngine.ECS
         {
             if (currentSystem != null)
             {
-                nativeArrays = new List<object>();
-                typeIndexToNativeIndex = new List<int>();
-                var columnIndex = 0;
+                nativeArrays = new Dictionary<Type, object>();
                 foreach (var type in currentSystem.Types)
                 {
                     if (type.GetInterfaces().Contains(typeof(IComponentData)))
@@ -82,16 +78,10 @@ namespace UnityEngine.ECS
                         var attr = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
                         var method = typeof(ComponentGroup).GetMethod("GetComponentDataArray", attr);
                         method = method.MakeGenericMethod(type);
-                        var args = new object[] {false};
+                        var args = new object[] {true};
                         var array = method.Invoke(currentSystem, args);
-                        nativeArrays.Add(array);
-                        typeIndexToNativeIndex.Add(columnIndex);
+                        nativeArrays.Add(type, array);
                     }
-                    else
-                    {
-                        typeIndexToNativeIndex.Add(-1);
-                    }
-                    ++columnIndex;
                 }
             }
         }
@@ -137,11 +127,11 @@ namespace UnityEngine.ECS
             }
             else
             {
-                var type = currentSystem.Types[column - 1];
-                var nativeIndex = typeIndexToNativeIndex[column - 1];
-                if (nativeIndex < 0)
+                var typeIndex = column - 1;
+                var type = currentSystem.Types[typeIndex];
+                if (!nativeArrays.ContainsKey(type))
                     return;
-                var array = nativeArrays[nativeIndex];
+                var array = nativeArrays[type];
                 var arrayType = typeof(ComponentDataArray<>).MakeGenericType(type);
                 var arrayIndexer = arrayType.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance).GetGetMethod();
                 var arrayElement = arrayIndexer.Invoke(array, new object[]{item.id});
@@ -152,3 +142,4 @@ namespace UnityEngine.ECS
 
     }
 }
+#endif

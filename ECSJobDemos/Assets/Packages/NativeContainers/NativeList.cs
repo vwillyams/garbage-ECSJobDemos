@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine;
+using Unity.Mathematics;
 
 #if ENABLE_NATIVE_ARRAY_CHECKS
 using System.Diagnostics;
@@ -27,10 +27,10 @@ namespace Unity.Collections
 	[NativeContainer]
 	public struct NativeList<T> where T : struct
 	{
-		System.IntPtr 					m_Buffer;
+		internal System.IntPtr 			m_Buffer;
 		Allocator 						m_AllocatorLabel;
 		#if ENABLE_NATIVE_ARRAY_CHECKS
-		AtomicSafetyHandle 				m_Safety;
+		internal AtomicSafetyHandle 	m_Safety;
 		DisposeSentinel					m_DisposeSentinel;
 		#endif
 
@@ -163,7 +163,7 @@ namespace Unity.Collections
                 Capacity = data->length + elements.Length * 2;
 
             int sizeOf = UnsafeUtility.SizeOf<T> ();
-            UnsafeUtility.MemCpy (data->list + data->length * sizeOf, elements.UnsafePtr, sizeOf * elements.Length);
+            UnsafeUtility.MemCpy (data->list + data->length * sizeOf, elements.GetUnsafePtr(), sizeOf * elements.Length);
 
             data->length += elements.Length;
         }
@@ -210,7 +210,7 @@ namespace Unity.Collections
 #endif
 
 			NativeListData* data = (NativeListData*)nativeList.m_Buffer;
-			return NativeArray<T>.ConvertExistingDataToNativeArrayInternal (data->list, data->length, arraySafety, Allocator.Invalid);
+			return NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T> (data->list, data->length, arraySafety, Allocator.Invalid);
 		}
 
 		unsafe public T[] ToArray()
@@ -227,19 +227,6 @@ namespace Unity.Collections
 			nativeArray.CopyFrom(array);
 		}
 
-		public unsafe System.IntPtr UnsafePtr
-		{
-			get
-			{
-				#if ENABLE_NATIVE_ARRAY_CHECKS
-				AtomicSafetyHandle.CheckWriteAndThrow (m_Safety);
-				#endif
-
-				NativeListData* data = (NativeListData*)m_Buffer;
-				return data->list;
-			}
-		}
-
 		public unsafe void ResizeUninitialized(int length)
 		{
 			#if ENABLE_NATIVE_ARRAY_CHECKS
@@ -250,5 +237,20 @@ namespace Unity.Collections
 			NativeListData* data = (NativeListData*)m_Buffer;
 			data->length = length;
 		}
+	}
+}
+namespace Unity.Collections.LowLevel.Unsafe
+{
+	static class NativeListUnsafeUtility
+	{
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public static unsafe IntPtr GetUnsafePtr<T>(this NativeList<T> nativeList) where T : struct
+        {
+#if ENABLE_NATIVE_ARRAY_CHECKS
+            AtomicSafetyHandle.CheckWriteAndThrow(nativeList.m_Safety);
+#endif
+			NativeListData* data = (NativeListData*)nativeList.m_Buffer;
+			return data->list;
+        }
 	}
 }

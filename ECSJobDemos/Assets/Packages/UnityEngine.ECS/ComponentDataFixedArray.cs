@@ -48,13 +48,16 @@ namespace UnityEngine.ECS
 				AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 				if (index < m_MinIndex || index > m_MaxIndex)
 					FailOutOfRangeError(index);
+				AtomicSafetyHandle safety = m_Safety;
+#else
+				AtomicSafetyHandle safety = new AtomicSafetyHandle();
 #endif
 
                 if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
                     m_Cache.UpdateCache(index);
 
                 IntPtr ptr = m_Cache.CachedPtr + (index * m_Cache.CachedStride);
-                return NativeArray<T>.ConvertExistingDataToNativeArrayInternal(ptr, m_FixedArrayLength, m_Safety, Allocator.Invalid);
+                return NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(ptr, m_FixedArrayLength, safety, Allocator.Invalid);
 			}
 		}
 

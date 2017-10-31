@@ -1,9 +1,5 @@
-﻿using UnityEngine;
-using Unity.Collections;
-using Unity.Jobs;
-using UnityEngine.ECS;
-using System.Collections.Generic;
-
+﻿using Unity.Collections;
+using Unity.Mathematics;
 namespace UnityEngine.ECS.Rendering
 {
 
@@ -50,8 +46,7 @@ namespace UnityEngine.ECS.Rendering
 
                 var group = EntityManager.CreateComponentGroup(uniqueType, ComponentType.Create<InstanceRendererTransform>());
 
-                //@TODO: Support for dependency management against group API
-                EntityManager.CompleteAllJobs();
+                group.CompleteDependency();
 
                 var transforms = group.GetComponentDataArray<InstanceRendererTransform>();
 

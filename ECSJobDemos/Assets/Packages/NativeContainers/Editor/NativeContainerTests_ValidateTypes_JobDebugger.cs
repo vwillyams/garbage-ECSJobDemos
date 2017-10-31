@@ -8,8 +8,9 @@ using Unity.Collections;
 #if ENABLE_NATIVE_ARRAY_CHECKS
 public class NativeContainderTests_ValidateTypes_JobDebugger : NativeContainerTests_ValidateTypesFixture
 {
-	struct WriteHashMapParallelForJob : IJobParallelFor
+	struct WriteOnlyHashMapParallelForJob : IJobParallelFor
 	{
+        [WriteOnly]
 		NativeHashMap<int, int> value;
 
 		public void Execute(int index) {}
@@ -33,7 +34,7 @@ public class NativeContainderTests_ValidateTypes_JobDebugger : NativeContainerTe
 	[Test]
 	public void ValidatedUnsupportedTypes()
 	{
-        CheckNativeContainerReflectionExceptionParallelFor<WriteHashMapParallelForJob> ("WriteOnlyHashMapParallelForJob.value is not declared [ReadOnly] in a IJobParallelFor job. The container does not support parallel writing. Please use a more suitable container type.");
+        CheckNativeContainerReflectionExceptionParallelFor<WriteOnlyHashMapParallelForJob> ("WriteOnlyHashMapParallelForJob.value is not declared [ReadOnly] in a IJobParallelFor job. The container does not support parallel writing. Please use a more suitable container type.");
 		CheckNativeContainerReflectionException<DeallocateOnJobCompletionOnUnsupportedType> ("DeallocateOnJobCompletionOnUnsupportedType.value uses [DeallocateOnJobCompletion] but the native container does not support deallocation of the memory from a job.");
 
 		// ReadWrite against atomic write only container

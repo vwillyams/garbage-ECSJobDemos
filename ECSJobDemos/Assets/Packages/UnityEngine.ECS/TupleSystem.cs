@@ -44,9 +44,7 @@ namespace UnityEngine.ECS
             public void UpdateInjection(object targetObject, ComponentGroup group, TupleInjectionData tuple)
             {
                 var array = group.GetComponentArray<T>();
-                //@TODO: Make sure SetFieldStruct works with managed types
-                //UnsafeUtility.SetFieldStruct(targetObject, tuple.field, ref array);
-                tuple.field.SetValue(targetObject, array);
+                UnsafeUtility.SetFieldStruct(targetObject, tuple.field, ref array);
             }
         }
 

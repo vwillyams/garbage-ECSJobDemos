@@ -2,6 +2,7 @@
 ECSJobDemos/Library
 ECSJobDemos/Temp
 ECSJobDemos/obj
+ECSJobDemos/.idea*
 
 UnstablePrototypes/BlobificationPrototype/Library
 UnstablePrototypes/BlobificationPrototype/Temp

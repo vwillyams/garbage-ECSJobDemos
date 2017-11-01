@@ -61,16 +61,16 @@ public class ECSInstantiatePerformance : MonoBehaviour
 
         int size = sizeof(Component128Bytes) + sizeof(Component12Bytes) + sizeof(Component64Bytes) + sizeof(Component64Bytes) + sizeof(Component16Bytes) + sizeof(Entity);
         size *= kInstanceCount;
-        var src = UnsafeUtility.Malloc(size, 64, Allocator.Persistent);
-        var dst = UnsafeUtility.Malloc(size, 64, Allocator.Persistent);
+        var src = UnsafeUtility.Malloc((ulong)size, 64, Allocator.Persistent);
+        var dst = UnsafeUtility.Malloc((ulong)size, 64, Allocator.Persistent);
 
         memcpySampler.Begin();
-        UnsafeUtility.MemCpy(dst, src, size);
+        UnsafeUtility.MemCpy(dst, src, (ulong)size);
         memcpySampler.End();
 
 
         memcpy12Sampler.Begin();
-        UnsafeUtility.MemCpy(dst, src, sizeof(Component12Bytes) * PerformanceTestConfiguration.InstanceCount);
+        UnsafeUtility.MemCpy(dst, src, (ulong)sizeof(Component12Bytes) * PerformanceTestConfiguration.InstanceCount);
         memcpy12Sampler.End();
 
         UnsafeUtility.Free(src, Allocator.Persistent);

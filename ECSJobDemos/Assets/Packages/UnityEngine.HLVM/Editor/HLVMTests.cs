@@ -80,7 +80,7 @@ public class HLVMTests
 	{
 		public void Execute()
 		{
-			System.IntPtr allocated = UnsafeUtility.Malloc(UnsafeUtility.SizeOf<int>() * 100, 4, Allocator.Persistent);
+			System.IntPtr allocated = UnsafeUtility.Malloc((ulong)UnsafeUtility.SizeOf<int>() * 100, 4, Allocator.Persistent);
 			UnsafeUtility.Free(allocated, Allocator.Persistent);
 		}            
 

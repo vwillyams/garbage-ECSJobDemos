@@ -34,11 +34,11 @@ namespace UnityEngine.ECS
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_TempSafety = AtomicSafetyHandle.Create();
 #endif
-            m_ReadJobFences = (JobHandle*)UnsafeUtility.Malloc(sizeof(JobHandle) * kMaxReadJobHandles * kMaxTypes, 16, Allocator.Persistent);
-            UnsafeUtility.MemClear((IntPtr)m_ReadJobFences, sizeof(JobHandle) * kMaxReadJobHandles * kMaxTypes);
+            m_ReadJobFences = (JobHandle*)UnsafeUtility.Malloc((ulong)(sizeof(JobHandle) * kMaxReadJobHandles * kMaxTypes), 16, Allocator.Persistent);
+            UnsafeUtility.MemClear((IntPtr)m_ReadJobFences, (ulong)sizeof(JobHandle) * kMaxReadJobHandles * kMaxTypes);
 
-            m_ComponentSafetyHandles = (ComponentSafetyHandle*)UnsafeUtility.Malloc(sizeof(ComponentSafetyHandle) * kMaxTypes, 16, Allocator.Persistent);
-            UnsafeUtility.MemClear((IntPtr)m_ComponentSafetyHandles, sizeof(ComponentSafetyHandle) * kMaxTypes);
+            m_ComponentSafetyHandles = (ComponentSafetyHandle*)UnsafeUtility.Malloc((ulong)(sizeof(ComponentSafetyHandle) * kMaxTypes), 16, Allocator.Persistent);
+            UnsafeUtility.MemClear((IntPtr)m_ComponentSafetyHandles, (ulong)(sizeof(ComponentSafetyHandle) * kMaxTypes));
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             for (int i = 0; i != kMaxTypes;i++)

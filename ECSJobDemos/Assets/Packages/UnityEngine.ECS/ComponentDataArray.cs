@@ -62,7 +62,7 @@ namespace UnityEngine.ECS
                 {
                     IntPtr srcPtr = m_Cache.CachedPtr + (index * elementSize);
                     IntPtr dstPtr = dst.GetUnsafePtr() + (copiedCount * elementSize);
-                    UnsafeUtility.MemCpy(dstPtr, srcPtr, elementSize * copyCount);
+                    UnsafeUtility.MemCpy(dstPtr, srcPtr, (ulong)(elementSize * copyCount));
                 }
                 else
                 {

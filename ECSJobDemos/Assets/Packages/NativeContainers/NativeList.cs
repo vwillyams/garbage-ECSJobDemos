@@ -99,8 +99,8 @@ namespace Unity.Collections
 				if (data->capacity == value)
 					return;
 			
-				IntPtr newData = UnsafeUtility.Malloc (value * UnsafeUtility.SizeOf<T>(), UnsafeUtility.AlignOf<T>(), m_AllocatorLabel);
-				UnsafeUtility.MemCpy (newData, data->list, data->length * UnsafeUtility.SizeOf<T>());
+				IntPtr newData = UnsafeUtility.Malloc ((ulong)(value * UnsafeUtility.SizeOf<T>()), UnsafeUtility.AlignOf<T>(), m_AllocatorLabel);
+				UnsafeUtility.MemCpy (newData, data->list, (ulong)(data->length * UnsafeUtility.SizeOf<T>()));
 				UnsafeUtility.Free (data->list, m_AllocatorLabel);
 				data->list = newData;
 				data->capacity = value;
@@ -117,14 +117,14 @@ namespace Unity.Collections
                 throw new ArgumentException(string.Format("{0} used in NativeList<{0}> must be blittable", typeof(T)));
 #endif
 
-            m_Buffer = UnsafeUtility.Malloc (sizeof(NativeListData), UnsafeUtility.AlignOf<NativeListData>(), i_label);
+            m_Buffer = UnsafeUtility.Malloc ((ulong)sizeof(NativeListData), UnsafeUtility.AlignOf<NativeListData>(), i_label);
 			NativeListData* data = (NativeListData*)m_Buffer;
 
 			int elementSize = UnsafeUtility.SizeOf<T> ();
 
             //@TODO: Find out why this is needed?
             capacity = Math.Max(1, capacity);
-			data->list = UnsafeUtility.Malloc (capacity * elementSize, UnsafeUtility.AlignOf<T>(), i_label);
+			data->list = UnsafeUtility.Malloc ((ulong)(capacity * elementSize), UnsafeUtility.AlignOf<T>(), i_label);
 
 			data->length = 0;
 			data->capacity = capacity;
@@ -164,7 +164,7 @@ namespace Unity.Collections
                 Capacity = data->length + elements.Length * 2;
 
             int sizeOf = UnsafeUtility.SizeOf<T> ();
-            UnsafeUtility.MemCpy (data->list + data->length * sizeOf, elements.GetUnsafePtr(), sizeOf * elements.Length);
+            UnsafeUtility.MemCpy (data->list + data->length * sizeOf, elements.GetUnsafePtr(), (ulong)(sizeOf * elements.Length));
 
             data->length += elements.Length;
         }

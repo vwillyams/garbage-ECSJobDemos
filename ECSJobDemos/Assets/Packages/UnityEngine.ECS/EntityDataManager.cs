@@ -25,7 +25,7 @@ namespace UnityEngine.ECS
         public void OnCreate()
         {
             m_EntitiesCapacity = 1000000;
-            m_Entities = (EntityData*)UnsafeUtility.Malloc(m_EntitiesCapacity * sizeof(EntityData), 64, Allocator.Persistent);
+            m_Entities = (EntityData*)UnsafeUtility.Malloc((ulong)(m_EntitiesCapacity * sizeof(EntityData)), 64, Allocator.Persistent);
             for (int i = 0; i != m_EntitiesCapacity - 1; i++)
             {
                 m_Entities[i].index = i + 1;

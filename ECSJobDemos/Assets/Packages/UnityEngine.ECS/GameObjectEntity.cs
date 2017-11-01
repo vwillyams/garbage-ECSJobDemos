@@ -25,16 +25,14 @@ namespace UnityEngine.ECS
             m_EntityManager = DependencyManager.GetBehaviourManager(typeof(EntityManager)) as EntityManager;
 
             t = 0;
-            for (int i = 0; i != components.Length;i++)
+            for (int i = 0; i != components.Length; i++)
             {
                 var com = components[i];
                 var componentData = com as ComponentDataWrapperBase;
 
                 if (componentData != null)
                     types[t++] = componentData.GetComponentType(m_EntityManager);
-                else if (com is GameObjectEntity)
-                    ;
-                else
+                else if (!(com is GameObjectEntity))
                     types[t++] = com.GetType();
             }
 
@@ -51,14 +49,11 @@ namespace UnityEngine.ECS
                     componentDataWrapper.UpdateComponentData(m_EntityManager, m_Entity);
                     t++;
                 }
-                else if (com is GameObjectEntity)
-                    ;
-                else
+                else if (!(com is GameObjectEntity))
                 {
                     m_EntityManager.SetComponentObject(m_Entity, types[t], com);
                     t++;
                 }
-                    
             }
         }
 

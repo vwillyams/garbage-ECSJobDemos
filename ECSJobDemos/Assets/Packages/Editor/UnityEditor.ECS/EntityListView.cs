@@ -7,7 +7,7 @@ using System.Reflection;
 using Unity.Jobs;
 using System.Linq;
 using System.Text;
-#if false
+
 namespace UnityEngine.ECS
 {
     public class EntityListView : TreeView {
@@ -142,4 +142,3 @@ namespace UnityEngine.ECS
 
     }
 }
-#endif

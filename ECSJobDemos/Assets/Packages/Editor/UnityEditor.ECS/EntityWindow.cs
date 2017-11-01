@@ -6,7 +6,6 @@ using Unity.Jobs;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 
-#if false
 namespace UnityEngine.ECS
 {
     public class EntityWindow : EditorWindow {
@@ -15,12 +14,12 @@ namespace UnityEngine.ECS
         [SerializeField]
         const int kDefaultSystemListWidth = 300;
         const float kMinListWidth = 200f;
-        const float kSystemListHeight = 200f;
+        const float kSystemListHeight = 100f;
 
-        [SerializeField]
-        SplitterState systemTupleSplitter = new SplitterState(new float[] { 1, 1 }, new int[] { 100, 100 }, null);
-        [SerializeField]
-        SplitterState entityListSplitter = new SplitterState(new float[] { 1, 1 }, new int[] { 100, 100 }, null);
+        // [SerializeField]
+        // SplitterState systemTupleSplitter = new SplitterState(new float[] { 1, 1 }, new int[] { 100, 100 }, null);
+        // [SerializeField]
+        // SplitterState entityListSplitter = new SplitterState(new float[] { 1, 1 }, new int[] { 100, 100 }, null);
 
         public ComponentSystem CurrentSystemSelection {
             get { return currentSystemSelection; }
@@ -150,24 +149,27 @@ namespace UnityEngine.ECS
                 return;
             }
 
-            SplitterGUILayout.BeginVerticalSplit(entityListSplitter);
+            // SplitterGUILayout.BeginVerticalSplit(entityListSplitter);
 
-            SplitterGUILayout.BeginHorizontalSplit(systemTupleSplitter);
+            // SplitterGUILayout.BeginHorizontalSplit(systemTupleSplitter);
+            GUILayout.BeginHorizontal(GUILayout.Height(kSystemListHeight));
+
             GUILayout.BeginVertical();
             SystemList();
             GUILayout.EndVertical();
             GUILayout.BeginVertical();
             TupleList();
             GUILayout.EndVertical();
-            SplitterGUILayout.EndHorizontalSplit();
+
+            // SplitterGUILayout.EndHorizontalSplit();
+            GUILayout.EndHorizontal();
 
             GUILayout.BeginVertical();
             EntityList();
             GUILayout.EndVertical();
 
-            SplitterGUILayout.EndVerticalSplit();
+            // SplitterGUILayout.EndVerticalSplit();
 
         }
     }
 }
-#endif

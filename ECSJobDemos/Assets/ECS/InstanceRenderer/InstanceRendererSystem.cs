@@ -24,7 +24,7 @@ namespace UnityEngine.ECS.Rendering
             fixed (Matrix4x4* matricesPtr = outMatrices)
             {
                 UnityEngine.Assertions.Assert.AreEqual(sizeof(Matrix4x4), sizeof(InstanceRendererTransform));
-                var matricesSlice = new NativeSlice<InstanceRendererTransform>(matricesPtr, length);
+                var matricesSlice = new NativeSlice<InstanceRendererTransform>((System.IntPtr)matricesPtr, length);
                 transforms.CopyTo(matricesSlice, beginIndex);
             }
         }

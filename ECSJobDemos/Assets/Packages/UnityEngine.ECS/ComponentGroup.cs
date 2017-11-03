@@ -167,7 +167,7 @@ namespace UnityEngine.ECS
             m_Transforms = trans;
             m_TransformsDirty = true;
 
-            if (m_Transforms.IsCreated)
+            if (m_Transforms.IsAllocated)
             {
                 var transformType = TypeManager.GetTypeIndex<Transform>();
                 for (MatchingArchetypes* type = m_GroupData->firstMatchingArchetype; type != null; type = type->next)
@@ -181,7 +181,7 @@ namespace UnityEngine.ECS
 
         public void Dispose()
         {
-            if (m_Transforms.IsCreated)
+            if (m_Transforms.IsAllocated)
             {
                 if (m_LastRegisteredListenerArchetype != null)
                 {
@@ -289,7 +289,7 @@ namespace UnityEngine.ECS
 
         internal void UpdateTransformAccessArray()
         {
-            if (!m_Transforms.IsCreated)
+            if (!m_Transforms.IsAllocated)
                 return;
             int transformIdx = TypeManager.GetTypeIndex<Transform>();
             for (MatchingArchetypes* type = m_LastRegisteredListenerArchetype != null ? m_LastRegisteredListenerArchetype->next : m_GroupData->firstMatchingArchetype; type != null; type = type->next)

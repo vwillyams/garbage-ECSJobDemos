@@ -87,7 +87,7 @@ namespace UnityEngine.ECS
         unsafe public ComponentGroup CreateComponentGroup(UnityEngine.Jobs.TransformAccessArray trans, params ComponentType[] requiredComponents)
         {
             int len = PopulatedCachedTypeArray(requiredComponents);
-            if (trans.IsAllocated)
+            if (trans.IsCreated)
             {
                 bool hasTransform = false;
                 var transformType = ComponentType.Create<Transform>();

@@ -10,7 +10,7 @@ public class NativeArraySortTests
     {
         var random = new System.Random();
         NativeArray<int> array = new NativeArray<int>(size, Allocator.Persistent);
-        Assert.IsTrue(array.IsAllocated);
+        Assert.IsTrue(array.IsCreated);
 
         for (int i = 0; i < array.Length; i++)
         {
@@ -33,7 +33,7 @@ public class NativeArraySortTests
     {
         var random = new System.Random();
         NativeArray<int> array = new NativeArray<int>(size, Allocator.Persistent);
-        Assert.IsTrue(array.IsAllocated);
+        Assert.IsTrue(array.IsCreated);
 
         for (int i = 0; i < array.Length; i++)
         {
@@ -56,7 +56,7 @@ public class NativeArraySortTests
     {
         var random = new System.Random();
         NativeArray<byte> array = new NativeArray<byte>(size, Allocator.Persistent);
-        Assert.IsTrue(array.IsAllocated);
+        Assert.IsTrue(array.IsCreated);
 
         for (int i = 0; i < array.Length; i++)
         {
@@ -79,7 +79,7 @@ public class NativeArraySortTests
     {
         var random = new System.Random();
         NativeArray<short> array = new NativeArray<short>(size, Allocator.Persistent);
-        Assert.IsTrue(array.IsAllocated);
+        Assert.IsTrue(array.IsCreated);
 
         for (int i = 0; i < array.Length; i++)
         {
@@ -102,7 +102,7 @@ public class NativeArraySortTests
     {
         var random = new System.Random();
         NativeArray<float> array = new NativeArray<float>(size, Allocator.Persistent);
-        Assert.IsTrue(array.IsAllocated);
+        Assert.IsTrue(array.IsCreated);
 
         for (int i = 0; i < array.Length; i++)
         {

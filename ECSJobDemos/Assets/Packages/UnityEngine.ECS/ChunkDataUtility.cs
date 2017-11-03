@@ -25,7 +25,7 @@ namespace UnityEngine.ECS
             int offset = chunk->archetype->offsets[indexInTypeArray];
             int stride = chunk->archetype->strides[indexInTypeArray];
 
-            return chunk->buffer + (offset + stride * index);
+            return (IntPtr)((Byte*)chunk->buffer + (offset + stride * index));
         }
 
         public static IntPtr GetComponentData(Chunk* chunk, int index, int indexInTypeArray)
@@ -33,7 +33,7 @@ namespace UnityEngine.ECS
             int offset = chunk->archetype->offsets[indexInTypeArray];
             int stride = chunk->archetype->strides[indexInTypeArray];
 
-            return chunk->buffer + (offset + stride * index);
+            return (IntPtr)((Byte*)chunk->buffer + (offset + stride * index));
         }
 
 
@@ -78,14 +78,14 @@ namespace UnityEngine.ECS
             if (count == 1)
                 return;
             src = dst;
-            dst = dst + size;
+            dst = (IntPtr)((Byte*)dst + size);
             int copySize = size;
             int remainSize = size * (count - 1);
 
             while (remainSize > copySize)
             {
                 UnsafeUtility.MemCpy(dst, src, (ulong)copySize);
-                dst += copySize;
+                dst = (IntPtr)((Byte*)dst + copySize);
                 remainSize -= copySize;
                 copySize += copySize;
             }
@@ -131,8 +131,8 @@ namespace UnityEngine.ECS
                     ++dstI;
                 else
                 {
-                    IntPtr src = srcChunk->buffer + srcArch->offsets[srcI] + srcIndex * srcArch->strides[srcI];
-                    IntPtr dst = dstChunk->buffer + dstArch->offsets[dstI] + dstIndex * dstArch->strides[dstI];
+                    IntPtr src = (IntPtr)((Byte*)srcChunk->buffer + srcArch->offsets[srcI] + srcIndex * srcArch->strides[srcI]);
+                    IntPtr dst = (IntPtr)((Byte*)dstChunk->buffer + dstArch->offsets[dstI] + dstIndex * dstArch->strides[dstI]);
                     UnsafeUtility.MemCpy(dst, src, (ulong)srcArch->sizeOfs[srcI]);
                     ++srcI;
                     ++dstI;

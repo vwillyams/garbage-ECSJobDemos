@@ -115,7 +115,7 @@ namespace UnityEngine.ECS
             CachedStride = archetype->strides[typeIndexInArchetype];
             CachedBeginIndex = m_CurrentChunkIndex + m_CurrentArchetypeIndex;
             CachedEndIndex = CachedBeginIndex + m_CurrentChunk->count;
-            CachedPtr = m_CurrentChunk->buffer + archetype->offsets[typeIndexInArchetype] - (CachedBeginIndex * CachedStride);
+            CachedPtr = (IntPtr)((Byte*)m_CurrentChunk->buffer + archetype->offsets[typeIndexInArchetype] - (CachedBeginIndex * CachedStride));
         }
     }
 }

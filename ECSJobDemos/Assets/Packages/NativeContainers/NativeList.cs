@@ -14,7 +14,7 @@ namespace Unity.Collections
 		public System.IntPtr					list;
 		public int								length;
 		public int								capacity;
-		
+
 		public unsafe static void DeallocateList(IntPtr buffer, Allocator allocation)
 		{
 			NativeListData* data = (NativeListData*)buffer;
@@ -76,7 +76,7 @@ namespace Unity.Collections
 				return data->length;
 			}
 		}
-			
+
 		unsafe public int Capacity
 		{
 			get
@@ -98,7 +98,7 @@ namespace Unity.Collections
 				NativeListData* data = (NativeListData*)m_Buffer;
 				if (data->capacity == value)
 					return;
-			
+
 				IntPtr newData = UnsafeUtility.Malloc ((ulong)(value * UnsafeUtility.SizeOf<T>()), UnsafeUtility.AlignOf<T>(), m_AllocatorLabel);
 				UnsafeUtility.MemCpy (newData, data->list, (ulong)(data->length * UnsafeUtility.SizeOf<T>()));
 				UnsafeUtility.Free (data->list, m_AllocatorLabel);
@@ -138,7 +138,7 @@ namespace Unity.Collections
 		}
 
 		unsafe public void Add(T element)
-		{			
+		{
 			NativeListData* data = (NativeListData*)m_Buffer;
 			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckWriteAndBumpSecondaryVersion(m_Safety);
@@ -154,7 +154,7 @@ namespace Unity.Collections
 
         //@TODO: Test for AddRange
         unsafe public void AddRange(NativeArray<T> elements)
-        {   
+        {
             NativeListData* data = (NativeListData*)m_Buffer;
             #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckWriteAndBumpSecondaryVersion(m_Safety);
@@ -164,13 +164,13 @@ namespace Unity.Collections
                 Capacity = data->length + elements.Length * 2;
 
             int sizeOf = UnsafeUtility.SizeOf<T> ();
-            UnsafeUtility.MemCpy (data->list + data->length * sizeOf, elements.GetUnsafePtr(), (ulong)(sizeOf * elements.Length));
+            UnsafeUtility.MemCpy((IntPtr)((Byte*)data->list + data->length * sizeOf), elements.GetUnsafePtr(), (ulong)(sizeOf * elements.Length));
 
             data->length += elements.Length;
         }
 
 		unsafe public void RemoveAtSwapBack(int index)
-		{			
+		{
 			NativeListData* data = (NativeListData*)m_Buffer;
 			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckWriteAndBumpSecondaryVersion(m_Safety);
@@ -188,7 +188,7 @@ namespace Unity.Collections
 
 		unsafe public void Dispose()
 		{
-			#if ENABLE_UNITY_COLLECTIONS_CHECKS            
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS
             DisposeSentinel.Dispose(m_Safety, ref m_DisposeSentinel);
 			#endif
 

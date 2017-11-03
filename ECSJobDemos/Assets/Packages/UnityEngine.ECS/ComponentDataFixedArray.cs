@@ -54,7 +54,7 @@ namespace UnityEngine.ECS
                 if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
                     m_Cache.UpdateCache(index);
 
-                IntPtr ptr = m_Cache.CachedPtr + (index * m_Cache.CachedStride);
+                IntPtr ptr = (IntPtr)((Byte*)m_Cache.CachedPtr + (index * m_Cache.CachedStride));
                 var array = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(ptr, m_FixedArrayLength, Allocator.Invalid);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref array, safety);
@@ -69,7 +69,7 @@ namespace UnityEngine.ECS
 			//@TODO: Make error message utility and share with NativeArray...
 			if (index < Length && (m_MinIndex != 0 || m_MaxIndex != Length - 1))
 				throw new IndexOutOfRangeException(string.Format("Index {0} is out of restricted IJobParallelFor range [{1}...{2}] in ReadWriteBuffer.\nReadWriteBuffers are restricted to only read & write the element at the job index. You can use double buffering strategies to avoid race conditions due to reading & writing in parallel to the same elements from a job.", index, m_MinIndex, m_MaxIndex));
-		
+
 			throw new IndexOutOfRangeException(string.Format("Index {0} is out of range of '{1}' Length.", index, Length));
 		}
 #endif

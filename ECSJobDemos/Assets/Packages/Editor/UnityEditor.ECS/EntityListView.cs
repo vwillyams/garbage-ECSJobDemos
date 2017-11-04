@@ -76,6 +76,7 @@ namespace UnityEngine.ECS
                     if (type.GetInterfaces().Contains(typeof(IComponentData)))
                     {
                         var attr = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
+                        rowHeight = Mathf.Max(rowHeight, StructGUI.RowsForType(type)*18);
                         var method = typeof(ComponentGroup).GetMethod("GetComponentDataArray", attr);
                         method = method.MakeGenericMethod(type);
                         var args = new object[] {true};
@@ -119,7 +120,7 @@ namespace UnityEngine.ECS
 		void CellGUI (Rect cellRect, TreeViewItem item, int column, ref RowGUIArgs args)
 		{
 			// Center cell rect vertically (makes it easier to place controls, icons etc in the cells)
-			CenterRectUsingSingleLineHeight(ref cellRect);
+			// CenterRectUsingSingleLineHeight(ref cellRect);
 
 			if (column == 0)
             {

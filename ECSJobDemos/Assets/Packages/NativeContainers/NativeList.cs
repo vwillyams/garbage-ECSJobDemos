@@ -164,7 +164,7 @@ namespace Unity.Collections
                 Capacity = data->length + elements.Length * 2;
 
             int sizeOf = UnsafeUtility.SizeOf<T> ();
-            UnsafeUtility.MemCpy((IntPtr)((Byte*)data->list + data->length * sizeOf), elements.GetUnsafePtr(), (ulong)(sizeOf * elements.Length));
+            UnsafeUtility.MemCpy(data->list + data->length * sizeOf, elements.GetUnsafePtr(), (ulong)(sizeOf * elements.Length));
 
             data->length += elements.Length;
         }

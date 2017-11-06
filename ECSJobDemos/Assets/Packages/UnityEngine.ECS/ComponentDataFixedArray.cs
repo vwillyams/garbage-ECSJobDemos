@@ -54,7 +54,7 @@ namespace UnityEngine.ECS
                 if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
                     m_Cache.UpdateCache(index);
 
-                IntPtr ptr = (IntPtr)((Byte*)m_Cache.CachedPtr + (index * m_Cache.CachedStride));
+                IntPtr ptr = m_Cache.CachedPtr + (index * m_Cache.CachedStride);
                 var array = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(ptr, m_FixedArrayLength, Allocator.Invalid);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref array, safety);

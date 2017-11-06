@@ -25,7 +25,7 @@ namespace UnityEngine.ECS
 
     public static class ProcessEntityJobExtension1
     {
-        public static JobHandle Schedule<T, U0>(this T jobData, ComponentDataArray<U0> componentDataArray, int innerloopBatchCount, JobHandle dependsOn = new JobHandle())
+        static public JobHandle Schedule<T, U0>(this T jobData, ComponentDataArray<U0> componentDataArray, int innerloopBatchCount, JobHandle dependsOn = new JobHandle())
             where T : struct, IJobProcessComponentData<U0>
             where U0 : struct, IComponentData
         {
@@ -44,7 +44,7 @@ namespace UnityEngine.ECS
             public ComponentDataArray<U0>  componentDataArray;
             public T                       data;
 
-            public static IntPtr jobReflectionData;
+            static public IntPtr jobReflectionData;
 
             public static IntPtr Initialize()
             {
@@ -78,7 +78,7 @@ namespace UnityEngine.ECS
 
     public static class ProcessEntityJobExtension2
     {
-        public static JobHandle Schedule<T, U0, U1>(this T jobData, ComponentDataArray<U0> componentDataArray0, ComponentDataArray<U1> componentDataArray1, int innerloopBatchCount, JobHandle dependsOn = new JobHandle())
+        static public JobHandle Schedule<T, U0, U1>(this T jobData, ComponentDataArray<U0> componentDataArray0, ComponentDataArray<U1> componentDataArray1, int innerloopBatchCount, JobHandle dependsOn = new JobHandle())
             where T : struct, IJobProcessComponentData<U0, U1>
             where U0 : struct, IComponentData
             where U1 : struct, IComponentData
@@ -101,7 +101,7 @@ namespace UnityEngine.ECS
             public ComponentDataArray<U1>  componentDataArray1;
             public T                       data;
 
-            public static IntPtr jobReflectionData;
+            static public IntPtr jobReflectionData;
 
             public static IntPtr Initialize()
             {
@@ -135,7 +135,7 @@ namespace UnityEngine.ECS
         }
     }
 
-    public class GenericProcessComponentSystem<TJob, TComponentData0> : JobComponentSystem
+    public class GenericProcessComponentSystem<TJob, TComponentData0> : JobComponentSystem 
         where TJob : struct, IAutoComponentSystemJob, IJobProcessComponentData<TComponentData0>
         where TComponentData0 : struct, IComponentData
     {

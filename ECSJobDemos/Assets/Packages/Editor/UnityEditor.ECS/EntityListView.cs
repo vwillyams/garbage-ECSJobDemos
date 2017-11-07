@@ -16,14 +16,11 @@ namespace UnityEngine.ECS
 
         Dictionary<Type, object> nativeArrays;
 
-        EntityWindow window;
-
         int linesPerRow;
         const float pointsBetweenRows = 2f;
 
-        public EntityListView(TreeViewState state, MultiColumnHeader header, ComponentGroup system, EntityWindow window) : base(state, header)
+        public EntityListView(TreeViewState state, MultiColumnHeader header, ComponentGroup system) : base(state, header)
         {
-            this.window = window;
             this.currentSystem = system;
             // header.sortingChanged += OnSortChanged;
             Reload();

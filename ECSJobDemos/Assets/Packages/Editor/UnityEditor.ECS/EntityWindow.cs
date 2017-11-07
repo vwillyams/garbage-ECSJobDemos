@@ -55,7 +55,7 @@ namespace UnityEngine.ECS
             entityListState = new TreeViewState();
             var headerState = EntityListView.GetOrBuildHeaderState(ref entityColumnHeaderStates, currentComponentGroupSelection);
             var header = new MultiColumnHeader(headerState);
-            entityListView = new EntityListView(entityListState, header, currentComponentGroupSelection, this);
+            entityListView = new EntityListView(entityListState, header, currentComponentGroupSelection);
         }
 
         [SerializeField]
@@ -80,8 +80,8 @@ namespace UnityEngine.ECS
         bool initialized;
 
         // Rect systemListRect { get { return new Rect(0f, 0f, systemListWidth, kSystemListHeight); } }
-        [SerializeField]
-        Rect verticalSplitterRect = new Rect(kMinListWidth, 0f, 1f, kSystemListHeight);
+        // [SerializeField]
+        // Rect verticalSplitterRect = new Rect(kMinListWidth, 0f, 1f, kSystemListHeight);
         // Rect tupleListRect { get { return new Rect(systemListWidth, 0f, position.width - systemListWidth, kSystemListHeight); } }
         // Rect horizontalSplitterRect { get { return new Rect(0f, kSystemListHeight, position.width, 1f); } }
         Rect entityListRect { get { return new Rect(0f, kSystemListHeight, position.width, position.height - kSystemListHeight); } }

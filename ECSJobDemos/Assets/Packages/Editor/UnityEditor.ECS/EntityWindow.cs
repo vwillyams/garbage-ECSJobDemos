@@ -53,7 +53,7 @@ namespace UnityEngine.ECS
             if (currentComponentGroupSelection == null)
                 return;
             entityListState = new TreeViewState();
-            var headerState = EntityListView.BuildHeaderState(currentComponentGroupSelection);
+            var headerState = EntityListView.GetOrBuildHeaderState(ref entityColumnHeaderStates, currentComponentGroupSelection);
             var header = new MultiColumnHeader(headerState);
             entityListView = new EntityListView(entityListState, header, currentComponentGroupSelection, this);
         }
@@ -73,7 +73,8 @@ namespace UnityEngine.ECS
 
         EntityListView entityListView;
 
-        MultiColumnHeaderState entityListHeaderState;
+        [SerializeField]
+        List<MultiColumnHeaderState> entityColumnHeaderStates;
 
         [NonSerialized]
         bool initialized;

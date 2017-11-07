@@ -29,7 +29,34 @@ namespace UnityEngine.ECS
             Reload();
         }
 
-        public static MultiColumnHeaderState BuildHeaderState(ComponentGroup system)
+        public static MultiColumnHeaderState GetOrBuildHeaderState(ref List<MultiColumnHeaderState> headerStates, ComponentGroup system)
+        {
+            if (headerStates == null)
+                headerStates = new List<MultiColumnHeaderState>();
+            
+            var types = system.Types;
+
+            foreach (var headerState in headerStates)
+            {
+                var match = true;
+                for (var i = 1; i < types.Length; ++i)
+                {
+                    if (headerState.columns[i + 1].headerContent.text != types[i].Name)
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match)
+                    return headerState;
+            }
+
+            var newHeaderState = BuildHeaderState(system);
+            headerStates.Add(newHeaderState);
+            return newHeaderState;
+        }
+
+        static MultiColumnHeaderState BuildHeaderState(ComponentGroup system)
         {
             var types = system.Types;
             var columns = new List<MultiColumnHeaderState.Column>(types.Length + 1);

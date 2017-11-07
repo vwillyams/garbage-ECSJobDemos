@@ -7,6 +7,8 @@ using System.Reflection;
 
 public static class StructGUI {
 
+	public const float pointsPerLine = 14f;
+
 	static GUIStyle labelStyle {
 		get {
 			if (m_LabelStyle == null)
@@ -22,33 +24,46 @@ public static class StructGUI {
 	public static void CellGUI(Rect rect, IComponentData data, int rows)
 	{
 		var fields = data.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
-		var displayedFields = 0;
-		foreach (var field in fields)
-		{
-			displayedFields += 1 + MathGUI.ColumnsForType(field.FieldType);
-		}
-		var fieldWidth = rect.width/displayedFields;
+		var columns = ColumnsForType(data.GetType());
+		var labelWidth = MaxLabelWidthForType(data.GetType());
+		var fieldWidth = (rect.width - labelWidth)/columns;
 		var fieldHeight = rect.height/rows;
-		var currentCell = new Rect(rect.x, rect.y, fieldWidth, fieldHeight);
+		var currentCell = new Rect(rect.x + labelWidth, rect.y, fieldWidth, fieldHeight);
 		foreach (var field in fields)
 		{
-			GUI.Label(currentCell, field.Name, labelStyle);
-			currentCell.x += fieldWidth;
+			var labelCell = new Rect(rect.x, currentCell.y, labelWidth, fieldHeight);
+			GUI.Label(labelCell, field.Name, labelStyle);
 
 			var value = field.GetValue(data);
 			MathGUI.FieldGUI(currentCell, value);
-			currentCell.x += fieldWidth * MathGUI.ColumnsForType(field.FieldType);
+			currentCell.y += fieldHeight * MathGUI.RowsForType(field.FieldType);
 		}
 	}
 
 	public static int RowsForType(Type type)
 	{
 		var fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public);
-		var rows = 1;
+		var rows = 0;
 		foreach (var field in fields)
-		{
-			rows = Mathf.Max(rows, MathGUI.RowsForType(field.FieldType));
-		}
+			rows += MathGUI.RowsForType(field.FieldType);
 		return rows;
+	}
+
+	public static int ColumnsForType(Type type)
+	{
+		var fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public);
+		var columns = 0;
+		foreach (var field in fields)
+			columns = Mathf.Max(MathGUI.ColumnsForType(field.FieldType), columns);
+		return columns;
+	}
+
+	public static float MaxLabelWidthForType(Type type)
+	{
+		var fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public);
+		var maxLabeLWidth = 0f;
+		foreach (var field in fields)
+			maxLabeLWidth = Mathf.Max(labelStyle.CalcSize(new GUIContent(field.Name)).x, maxLabeLWidth);
+		return maxLabeLWidth;
 	}
 }

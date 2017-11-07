@@ -19,7 +19,6 @@ namespace UnityEngine.ECS
         EntityWindow window;
 
         int linesPerRow;
-        const float pointsPerLine = 14f;
         const float pointsBetweenRows = 2f;
 
         public EntityListView(TreeViewState state, MultiColumnHeader header, ComponentGroup system, EntityWindow window) : base(state, header)
@@ -82,7 +81,7 @@ namespace UnityEngine.ECS
                     {
                         var attr = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
                         linesPerRow = Mathf.Max(linesPerRow, StructGUI.RowsForType(type));
-                        rowHeight = pointsPerLine * linesPerRow + pointsBetweenRows;
+                        rowHeight = StructGUI.pointsPerLine * linesPerRow + pointsBetweenRows;
                         var method = typeof(ComponentGroup).GetMethod("GetComponentDataArray", attr);
                         method = method.MakeGenericMethod(type);
                         var args = new object[] {true};

@@ -14,9 +14,17 @@ public static class MathGUI {
 	{
 		var type = data.GetType();
 		var rows = RowsForType(type);
+		var columns = ColumnsForType(type);
 		if (rows == 1)
 		{
-			VectorGUI(firstCell, data);
+			if (columns == 1)
+			{
+				ScalarGUI(firstCell, (float)data);
+			}
+			else
+			{
+				VectorGUI(firstCell, data);
+			}
 		}
 		else
 		{

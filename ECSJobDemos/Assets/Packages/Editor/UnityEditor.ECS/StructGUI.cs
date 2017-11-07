@@ -7,21 +7,34 @@ using System.Reflection;
 
 public static class StructGUI {
 
-	public static void CellGUI(Rect rect, IComponentData data)
+	static GUIStyle labelStyle {
+		get {
+			if (m_LabelStyle == null)
+			{
+				m_LabelStyle = EditorStyles.miniLabel;
+				m_LabelStyle.alignment = TextAnchor.MiddleRight;
+			}
+			return m_LabelStyle;
+		}
+	}
+	static GUIStyle m_LabelStyle;
+
+	public static void CellGUI(Rect rect, IComponentData data, int rows)
 	{
 		var fields = data.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
 		var displayedFields = 0;
-		var rows = 1;
 		foreach (var field in fields)
 		{
-			displayedFields += MathGUI.ColumnsForType(field.FieldType);
+			displayedFields += 1 + MathGUI.ColumnsForType(field.FieldType);
 		}
-		rows = RowsForType(data.GetType());
 		var fieldWidth = rect.width/displayedFields;
 		var fieldHeight = rect.height/rows;
 		var currentCell = new Rect(rect.x, rect.y, fieldWidth, fieldHeight);
 		foreach (var field in fields)
 		{
+			GUI.Label(currentCell, field.Name, labelStyle);
+			currentCell.x += fieldWidth;
+
 			var value = field.GetValue(data);
 			MathGUI.FieldGUI(currentCell, value);
 			currentCell.x += fieldWidth * MathGUI.ColumnsForType(field.FieldType);

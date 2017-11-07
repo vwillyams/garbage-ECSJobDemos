@@ -18,6 +18,10 @@ namespace UnityEngine.ECS
 
         EntityWindow window;
 
+        int linesPerRow;
+        const float pointsPerLine = 14f;
+        const float pointsBetweenRows = 2f;
+
         public EntityListView(TreeViewState state, MultiColumnHeader header, ComponentGroup system, EntityWindow window) : base(state, header)
         {
             this.window = window;
@@ -71,12 +75,14 @@ namespace UnityEngine.ECS
             if (currentSystem != null)
             {
                 nativeArrays = new Dictionary<Type, object>();
+                linesPerRow = 1;
                 foreach (var type in currentSystem.Types)
                 {
                     if (type.GetInterfaces().Contains(typeof(IComponentData)))
                     {
                         var attr = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
-                        rowHeight = Mathf.Max(rowHeight, StructGUI.RowsForType(type)*18);
+                        linesPerRow = Mathf.Max(linesPerRow, StructGUI.RowsForType(type));
+                        rowHeight = pointsPerLine * linesPerRow + pointsBetweenRows;
                         var method = typeof(ComponentGroup).GetMethod("GetComponentDataArray", attr);
                         method = method.MakeGenericMethod(type);
                         var args = new object[] {true};
@@ -119,9 +125,6 @@ namespace UnityEngine.ECS
 
 		void CellGUI (Rect cellRect, TreeViewItem item, int column, ref RowGUIArgs args)
 		{
-			// Center cell rect vertically (makes it easier to place controls, icons etc in the cells)
-			// CenterRectUsingSingleLineHeight(ref cellRect);
-
 			if (column == 0)
             {
                 DefaultGUI.LabelRightAligned(cellRect, args.item.displayName, args.selected, args.focused);
@@ -137,7 +140,8 @@ namespace UnityEngine.ECS
                 var arrayIndexer = arrayType.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance).GetGetMethod();
                 var arrayElement = arrayIndexer.Invoke(array, new object[]{item.id});
                 
-                StructGUI.CellGUI(cellRect, (IComponentData)arrayElement);
+                cellRect.height -= pointsBetweenRows;
+                StructGUI.CellGUI(cellRect, (IComponentData)arrayElement, linesPerRow);
             }
         }
 

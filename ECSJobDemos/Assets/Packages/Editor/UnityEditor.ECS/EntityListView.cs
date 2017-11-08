@@ -19,8 +19,6 @@ namespace UnityEngine.ECS
         int linesPerRow;
         const float pointsBetweenRows = 2f;
 
-        const float indexWidth = 30f;
-
         public EntityListView(TreeViewState state, MultiColumnHeader header, ComponentGroup system) : base(state, header)
         {
             this.currentSystem = system;
@@ -71,23 +69,10 @@ namespace UnityEngine.ECS
                 totalCells += cells[i];
             }
 
-            var cellWidth = listWidth - indexWidth;
+            var cellWidth = listWidth;
             if (totalCells > 0f)
                 cellWidth /= totalCells;
-
-            columns.Add(new MultiColumnHeaderState.Column
-            {
-                headerContent = new GUIContent("Index"),
-                contextMenuText = "Asset",
-                headerTextAlignment = TextAlignment.Center,
-                sortedAscending = true,
-                sortingArrowAlignment = TextAlignment.Right,
-                width = indexWidth, 
-                minWidth = 30,
-                maxWidth = 60,
-                autoResize = false,
-                allowToggleVisibility = true
-            });
+            
             for (var i = 0; i < types.Length; ++i)
             {
                 columns.Add(new MultiColumnHeaderState.Column
@@ -174,30 +159,22 @@ namespace UnityEngine.ECS
 
 		void CellGUI (Rect cellRect, TreeViewItem item, int column, ref RowGUIArgs args)
 		{
-			if (column == 0)
-            {
-                DefaultGUI.LabelRightAligned(cellRect, args.item.displayName, args.selected, args.focused);
-            }
+            var type = currentSystem.Types[column];
+            if (!nativeArrays.ContainsKey(type))
+                return;
+            var array = nativeArrays[type];
+            Type arrayType;
+            if (type.GetInterfaces().Contains(typeof(IComponentData)))
+                arrayType = typeof(ComponentDataArray<>).MakeGenericType(type);
+            else if (type == typeof(Entity))
+                arrayType = typeof(EntityArray);
             else
-            {
-                var typeIndex = column - 1;
-                var type = currentSystem.Types[typeIndex];
-                if (!nativeArrays.ContainsKey(type))
-                    return;
-                var array = nativeArrays[type];
-                Type arrayType;
-                if (type.GetInterfaces().Contains(typeof(IComponentData)))
-                    arrayType = typeof(ComponentDataArray<>).MakeGenericType(type);
-                else if (type == typeof(Entity))
-                    arrayType = typeof(EntityArray);
-                else
-                    return;
-                var arrayIndexer = arrayType.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance).GetGetMethod();
-                var arrayElement = arrayIndexer.Invoke(array, new object[]{item.id});
-                
-                cellRect.height -= pointsBetweenRows;
-                StructGUI.CellGUI(cellRect, arrayElement, linesPerRow);
-            }
+                return;
+            var arrayIndexer = arrayType.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance).GetGetMethod();
+            var arrayElement = arrayIndexer.Invoke(array, new object[]{item.id});
+            
+            cellRect.height -= pointsBetweenRows;
+            StructGUI.CellGUI(cellRect, arrayElement, linesPerRow);
         }
 
     }

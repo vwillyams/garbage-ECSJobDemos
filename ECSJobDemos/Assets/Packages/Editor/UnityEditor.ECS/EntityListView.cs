@@ -37,6 +37,8 @@ namespace UnityEngine.ECS
 
             foreach (var headerState in headerStates)
             {
+                if (headerState.columns.Length != types.Length + 1)
+                    continue;
                 var match = true;
                 for (var i = 1; i < types.Length; ++i)
                 {

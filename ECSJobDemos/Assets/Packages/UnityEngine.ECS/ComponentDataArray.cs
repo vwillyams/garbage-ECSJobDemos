@@ -110,7 +110,12 @@ namespace UnityEngine.ECS
 		{
 			//@TODO: Make error message utility and share with NativeArray...
 			if (index < Length && (m_MinIndex != 0 || m_MaxIndex != Length - 1))
-				throw new IndexOutOfRangeException(string.Format("Index {0} is out of restricted IJobParallelFor range [{1}...{2}] in ReadWriteBuffer.\nReadWriteBuffers are restricted to only read & write the element at the job index. You can use double buffering strategies to avoid race conditions due to reading & writing in parallel to the same elements from a job.", index, m_MinIndex, m_MaxIndex));
+				throw new IndexOutOfRangeException(string.Format(
+					"Index {0} is out of restricted IJobParallelFor range [{1}...{2}] in ReadWriteBuffer.\n" +
+					"ReadWriteBuffers are restricted to only read & write the element at the job index. " +
+					"You can use double buffering strategies to avoid race conditions due to " +
+					"reading & writing in parallel to the same elements from a job.",
+					index, m_MinIndex, m_MaxIndex));
 
 			throw new IndexOutOfRangeException(string.Format("Index {0} is out of range of '{1}' Length.", index, Length));
 		}

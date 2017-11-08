@@ -2,11 +2,12 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.ECS;
 using Unity.Jobs;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 
-namespace UnityEngine.ECS
+namespace UnityEditor.ECS
 {
     public class EntityWindow : EditorWindow {
         

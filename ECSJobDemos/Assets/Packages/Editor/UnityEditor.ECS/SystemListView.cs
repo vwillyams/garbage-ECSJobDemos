@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
+using UnityEngine.ECS;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using System.Collections.Generic;
 
-namespace UnityEngine.ECS
+namespace UnityEditor.ECS
 {
     public class SystemListView : TreeView {
         

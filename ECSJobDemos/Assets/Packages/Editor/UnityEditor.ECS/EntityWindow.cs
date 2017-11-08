@@ -53,7 +53,7 @@ namespace UnityEngine.ECS
             if (currentComponentGroupSelection == null)
                 return;
             entityListState = new TreeViewState();
-            var headerState = EntityListView.GetOrBuildHeaderState(ref entityColumnHeaderStates, currentComponentGroupSelection);
+            var headerState = EntityListView.GetOrBuildHeaderState(ref entityColumnHeaderStates, currentComponentGroupSelection, position.width - GUI.skin.verticalScrollbar.fixedWidth);
             var header = new MultiColumnHeader(headerState);
             entityListView = new EntityListView(entityListState, header, currentComponentGroupSelection);
         }

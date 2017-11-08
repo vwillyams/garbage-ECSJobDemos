@@ -76,7 +76,7 @@ public static class MathGUI {
 		else if (type == typeof(float))
 			return 1;
 		else
-			throw new ArgumentException(string.Format("Type {0} not supported"), type.ToString());
+			return 1;
 	}
 
 	public static int RowsForType(Type type)
@@ -90,6 +90,6 @@ public static class MathGUI {
 		else if (type == typeof(float) || type == typeof(float2) || type == typeof(float3) || type == typeof(float4))
 			return 1;
 		else
-			throw new ArgumentException(string.Format("Type {0} not supported"), type.ToString());
+			return 1;
 	}
 }

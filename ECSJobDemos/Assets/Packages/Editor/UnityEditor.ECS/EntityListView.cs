@@ -19,6 +19,8 @@ namespace UnityEngine.ECS
         int linesPerRow;
         const float pointsBetweenRows = 2f;
 
+        const float indexWidth = 30f;
+
         public EntityListView(TreeViewState state, MultiColumnHeader header, ComponentGroup system) : base(state, header)
         {
             this.currentSystem = system;
@@ -26,7 +28,7 @@ namespace UnityEngine.ECS
             Reload();
         }
 
-        public static MultiColumnHeaderState GetOrBuildHeaderState(ref List<MultiColumnHeaderState> headerStates, ComponentGroup system)
+        public static MultiColumnHeaderState GetOrBuildHeaderState(ref List<MultiColumnHeaderState> headerStates, ComponentGroup system, float listWidth)
         {
             if (headerStates == null)
                 headerStates = new List<MultiColumnHeaderState>();
@@ -48,15 +50,28 @@ namespace UnityEngine.ECS
                     return headerState;
             }
 
-            var newHeaderState = BuildHeaderState(system);
+            var newHeaderState = BuildHeaderState(system, listWidth);
             headerStates.Add(newHeaderState);
             return newHeaderState;
         }
 
-        static MultiColumnHeaderState BuildHeaderState(ComponentGroup system)
+        static MultiColumnHeaderState BuildHeaderState(ComponentGroup system, float listWidth)
         {
             var types = system.Types;
             var columns = new List<MultiColumnHeaderState.Column>(types.Length + 1);
+
+            var cells = new int[types.Length];
+
+            var totalCells = 0;
+            for (var i = 0; i < types.Length; ++i)
+            {
+                cells[i] = StructGUI.ColumnsForType(types[i]);
+                totalCells += cells[i];
+            }
+
+            var cellWidth = listWidth - indexWidth;
+            if (totalCells > 0f)
+                cellWidth /= totalCells;
 
             columns.Add(new MultiColumnHeaderState.Column
             {
@@ -65,7 +80,7 @@ namespace UnityEngine.ECS
                 headerTextAlignment = TextAlignment.Center,
                 sortedAscending = true,
                 sortingArrowAlignment = TextAlignment.Right,
-                width = 30, 
+                width = indexWidth, 
                 minWidth = 30,
                 maxWidth = 60,
                 autoResize = false,
@@ -80,7 +95,7 @@ namespace UnityEngine.ECS
 					headerTextAlignment = TextAlignment.Center,
 					sortedAscending = true,
 					sortingArrowAlignment = TextAlignment.Right,
-					width = 60, 
+					width = cells[i] * cellWidth, 
 					minWidth = 60,
 					maxWidth = 500,
 					autoResize = false,

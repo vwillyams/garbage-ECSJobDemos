@@ -19,7 +19,7 @@ public static class MathGUI {
 		{
 			if (columns == 1)
 			{
-				ScalarGUI(firstCell, (float)data);
+				ScalarGUI(firstCell, data);
 			}
 			else
 			{
@@ -54,15 +54,19 @@ public static class MathGUI {
 		for (var i = 0; i < columns; ++i)
 		{
 			var field = type.GetField(vectorFieldNames[i], BindingFlags.Instance | BindingFlags.Public);
-			var value = (float)field.GetValue(data);
+			var value = field.GetValue(data);
 			ScalarGUI(currentCell, value);
 			currentCell.x += firstCell.width;
 		}
 	}
 
-	public static void ScalarGUI(Rect cell, float data)
+	public static void ScalarGUI(Rect cell, object value)
 	{
-		EditorGUI.FloatField(cell, GUIContent.none, data);
+		var valueType = value.GetType();
+		if (valueType == typeof(float))
+			EditorGUI.FloatField(cell, GUIContent.none, (float)value);
+		else if (valueType == typeof(int))
+			EditorGUI.IntField(cell, GUIContent.none, (int)value);
 	}
 
 	public static int ColumnsForType(Type type)

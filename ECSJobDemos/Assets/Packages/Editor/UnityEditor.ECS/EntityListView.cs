@@ -116,14 +116,23 @@ namespace UnityEngine.ECS
                 linesPerRow = 1;
                 foreach (var type in currentSystem.Types)
                 {
+                    var attr = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
                     if (type.GetInterfaces().Contains(typeof(IComponentData)))
                     {
-                        var attr = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
                         linesPerRow = Mathf.Max(linesPerRow, StructGUI.RowsForType(type));
                         rowHeight = StructGUI.pointsPerLine * linesPerRow + pointsBetweenRows;
                         var method = typeof(ComponentGroup).GetMethod("GetComponentDataArray", attr);
                         method = method.MakeGenericMethod(type);
                         var args = new object[] {true};
+                        var array = method.Invoke(currentSystem, args);
+                        nativeArrays.Add(type, array);
+                    }
+                    else if (type == typeof(Entity))
+                    {
+                        linesPerRow = Mathf.Max(linesPerRow, StructGUI.RowsForType(type));
+                        rowHeight = StructGUI.pointsPerLine * linesPerRow + pointsBetweenRows;
+                        var method = typeof(ComponentGroup).GetMethod("GetEntityArray", attr);
+                        var args = new object[] {};
                         var array = method.Invoke(currentSystem, args);
                         nativeArrays.Add(type, array);
                     }
@@ -174,12 +183,18 @@ namespace UnityEngine.ECS
                 if (!nativeArrays.ContainsKey(type))
                     return;
                 var array = nativeArrays[type];
-                var arrayType = typeof(ComponentDataArray<>).MakeGenericType(type);
+                Type arrayType;
+                if (type.GetInterfaces().Contains(typeof(IComponentData)))
+                    arrayType = typeof(ComponentDataArray<>).MakeGenericType(type);
+                else if (type == typeof(Entity))
+                    arrayType = typeof(EntityArray);
+                else
+                    return;
                 var arrayIndexer = arrayType.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance).GetGetMethod();
                 var arrayElement = arrayIndexer.Invoke(array, new object[]{item.id});
                 
                 cellRect.height -= pointsBetweenRows;
-                StructGUI.CellGUI(cellRect, (IComponentData)arrayElement, linesPerRow);
+                StructGUI.CellGUI(cellRect, arrayElement, linesPerRow);
             }
         }
 

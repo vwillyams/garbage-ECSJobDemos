@@ -21,7 +21,7 @@ public static class StructGUI {
 	}
 	static GUIStyle m_LabelStyle;
 
-	public static void CellGUI(Rect rect, IComponentData data, int rows)
+	public static void CellGUI(Rect rect, object data, int rows)
 	{
 		var fields = data.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
 		var columns = ColumnsForType(data.GetType());

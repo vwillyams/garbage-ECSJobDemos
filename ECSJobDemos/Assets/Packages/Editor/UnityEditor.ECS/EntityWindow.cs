@@ -93,6 +93,16 @@ namespace UnityEditor.ECS
             EditorWindow.GetWindow<EntityWindow>("Entities");
         }
 
+        void OnFocus()
+        {
+            SceneView.onSceneGUIDelegate += OnSceneGUI;
+        }
+
+        void OnLostFocs()
+        {
+            SceneView.onSceneGUIDelegate -= OnSceneGUI;
+        }
+
         void InitIfNeeded()
         {
             if (!initialized)
@@ -172,6 +182,12 @@ namespace UnityEditor.ECS
 
             // SplitterGUILayout.EndVerticalSplit();
 
+        }
+
+        void OnSceneGUI(SceneView sceneView)
+        {
+            if (entityListView != null)
+                entityListView.DrawSelection();
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.ECS;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using System.Collections.Generic;
@@ -115,6 +116,14 @@ namespace UnityEditor.ECS
                         var array = method.Invoke(currentSystem, args);
                         nativeArrays.Add(type, array);
                     }
+                    else if (typeof(Component).IsAssignableFrom(type))
+                    {
+                        var method = typeof(ComponentGroup).GetMethod("GetComponentArray", attr);
+                        method = method.MakeGenericMethod(type);
+                        var args = new object[] {};
+                        var array = method.Invoke(currentSystem, args);
+                        nativeArrays.Add(type, array);
+                    }
                     else if (type == typeof(Entity))
                     {
                         linesPerRow = Mathf.Max(linesPerRow, StructGUI.RowsForType(type));
@@ -158,6 +167,26 @@ namespace UnityEditor.ECS
 			}
 		}
 
+        object GetObjectFromArray(Type type, int index)
+        {
+            if (!nativeArrays.ContainsKey(type))
+                throw new ArgumentException(string.Format("No native array for type {0}", type));
+            var array = nativeArrays[type];
+            Type arrayType;
+            if (type.GetInterfaces().Contains(typeof(IComponentData)))
+                arrayType = typeof(ComponentDataArray<>).MakeGenericType(type);
+            else if (type == typeof(Entity))
+                arrayType = typeof(EntityArray);
+            else if (typeof(Component).IsAssignableFrom(type))
+                arrayType = typeof(ComponentArray<>).MakeGenericType(type);
+            else
+                throw new NotSupportedException(string.Format("No array type defined for {0}", type));
+            var arrayIndexer = arrayType.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance).GetGetMethod();
+            var arrayElement = arrayIndexer.Invoke(array, new object[]{index});
+
+            return arrayElement;
+        }
+
 		void CellGUI (Rect cellRect, TreeViewItem item, int column, ref RowGUIArgs args)
 		{
             var type = currentSystem.Types[column];
@@ -176,6 +205,32 @@ namespace UnityEditor.ECS
             
             cellRect.height -= pointsBetweenRows;
             StructGUI.CellGUI(cellRect, arrayElement, linesPerRow);
+        }
+
+        public void DrawSelection()
+        {
+            if (!HasSelection())
+                return;
+            foreach (var type in currentSystem.Types)
+            {
+                foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public))
+                {
+                    foreach (var attribute in field.CustomAttributes)
+                    {
+                        if (attribute.AttributeType == typeof(SceneViewWorldPositionAttribute))
+                        {
+                            foreach (var id in GetSelection())
+                            {
+                                var data = GetObjectFromArray(type, id);
+                                var f3 = (float3)field.GetValue(data);
+                                var v3 = new Vector3(f3.x, f3.y, f3.z);
+                                Handles.color = Color.red;
+                                Handles.CubeHandleCap(0, v3, Quaternion.identity, 1f, EventType.Repaint);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
     }

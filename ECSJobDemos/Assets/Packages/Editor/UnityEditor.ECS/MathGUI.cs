@@ -64,11 +64,7 @@ namespace UnityEditor.ECS
 
 		public static void ScalarGUI(Rect cell, object value)
 		{
-			var valueType = value.GetType();
-			if (valueType == typeof(float))
-				EditorGUI.FloatField(cell, GUIContent.none, (float)value);
-			else if (valueType == typeof(int))
-				EditorGUI.IntField(cell, GUIContent.none, (int)value);
+			GUI.Label(cell, value.ToString());
 		}
 
 		public static int ColumnsForType(Type type)

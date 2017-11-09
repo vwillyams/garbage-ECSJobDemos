@@ -15,8 +15,11 @@ namespace UnityEditor.ECS
 			get {
 				if (m_LabelStyle == null)
 				{
-					m_LabelStyle = EditorStyles.miniLabel;
-					m_LabelStyle.alignment = TextAnchor.MiddleRight;
+					m_LabelStyle = new GUIStyle(EditorStyles.miniLabel);
+					m_LabelStyle.alignment = TextAnchor.LowerRight;
+					var color = m_LabelStyle.normal.textColor;
+					color.a *= 0.5f;
+					m_LabelStyle.normal.textColor = color;
 				}
 				return m_LabelStyle;
 			}

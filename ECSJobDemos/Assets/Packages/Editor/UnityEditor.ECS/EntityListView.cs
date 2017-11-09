@@ -24,6 +24,7 @@ namespace UnityEditor.ECS
         public EntityListView(TreeViewState state, MultiColumnHeader header, ComponentGroup system) : base(state, header)
         {
             this.currentSystem = system;
+            showAlternatingRowBackgrounds = true;
             // header.sortingChanged += OnSortChanged;
             Reload();
         }

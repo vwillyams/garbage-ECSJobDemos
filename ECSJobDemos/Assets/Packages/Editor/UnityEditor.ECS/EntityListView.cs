@@ -37,12 +37,12 @@ namespace UnityEditor.ECS
 
             foreach (var headerState in headerStates)
             {
-                if (headerState.columns.Length != types.Length + 1)
+                if (headerState.columns.Length != types.Length)
                     continue;
                 var match = true;
-                for (var i = 1; i < types.Length; ++i)
+                for (var i = 0; i < types.Length; ++i)
                 {
-                    if (headerState.columns[i + 1].headerContent.text != types[i].Name)
+                    if (headerState.columns[i].headerContent.text != types[i].Name)
                     {
                         match = false;
                         break;
@@ -132,6 +132,10 @@ namespace UnityEditor.ECS
                         var args = new object[] {};
                         var array = method.Invoke(currentSystem, args);
                         nativeArrays.Add(type, array);
+                    }
+                    else
+                    {
+                        nativeArrays.Add(type, null);
                     }
                 }
             }

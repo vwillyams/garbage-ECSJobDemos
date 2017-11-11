@@ -2,18 +2,7 @@
 using Unity.Mathematics;
 namespace UnityEngine.ECS.Rendering
 {
-
-
-    /*
-        public struct SimpleTransform : IComponentData
-        {
-            public float3   position;
-            public float    scale;
-            public float4   rotation;
-        }
-    */
-
-    [UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.PreLateUpdate.ParticleSystemBeginUpdateAll))]
+   [UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.PreLateUpdate.ParticleSystemBeginUpdateAll))]
     public class InstanceRendererSystem : ComponentSystem
 	{
         // Instance renderer takes only batches of 1024

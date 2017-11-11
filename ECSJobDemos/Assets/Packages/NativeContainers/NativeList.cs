@@ -248,9 +248,8 @@ namespace Unity.Collections
 }
 namespace Unity.Collections.LowLevel.Unsafe
 {
-	static class NativeListUnsafeUtility
+	public static class NativeListUnsafeUtility
 	{
-        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public static unsafe IntPtr GetUnsafePtr<T>(this NativeList<T> nativeList) where T : struct
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS

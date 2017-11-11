@@ -1,4 +1,0 @@
-{
-	"name": "UnityEngine.Jobs",
-	"references": [ "NativeContainers", "UnityEngine.math" ]
-}

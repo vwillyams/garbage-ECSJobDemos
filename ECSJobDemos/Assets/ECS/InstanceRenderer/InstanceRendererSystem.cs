@@ -24,7 +24,7 @@ namespace UnityEngine.ECS.Rendering
             fixed (Matrix4x4* matricesPtr = outMatrices)
             {
                 UnityEngine.Assertions.Assert.AreEqual(sizeof(Matrix4x4), sizeof(InstanceRendererTransform));
-                var matricesSlice = new NativeSlice<InstanceRendererTransform>((System.IntPtr)matricesPtr, length);
+	            var matricesSlice = Unity.Collections.LowLevel.Unsafe.NativeSliceUnsafeUtility.ConvertExistingDataToNativeSlice<InstanceRendererTransform>((System.IntPtr) matricesPtr, length);
                 transforms.CopyTo(matricesSlice, beginIndex);
             }
         }
@@ -44,7 +44,7 @@ namespace UnityEngine.ECS.Rendering
                 var uniqueType = uniqueRendererTypes[i];
                 var renderer = EntityManager.GetSharedComponentData<InstanceRenderer>(uniqueType);
 
-                var group = EntityManager.CreateComponentGroup(uniqueType, ComponentType.Create<InstanceRendererTransform>());
+                var group = EntityManager.CreateComponentGroup(uniqueType, typeof(InstanceRendererTransform));
 
                 group.CompleteDependency();
 

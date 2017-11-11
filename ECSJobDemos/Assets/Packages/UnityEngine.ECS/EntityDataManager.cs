@@ -116,13 +116,16 @@ namespace UnityEngine.ECS
                     if (chunk->managedArrayIndex >= 0)
                         ChunkDataUtility.CopyManagedObjects(typeMan, chunk, chunk->count - batchCount, chunk, indexInChunk, batchCount);
                 }
-
+                
                 if (chunk->managedArrayIndex >= 0)
                     ChunkDataUtility.ClearManagedObjects(typeMan, chunk, chunk->count - batchCount, batchCount);
 
                 chunk->count -= batchCount;
                 chunk->archetype->entityCount -= batchCount;
-
+                
+                //@TODO: When Chunk reaches zero we should probably put the chunk back into a pool,
+                // as opposed to keeping it all linked up (which slows down iteration)
+                
                 entities += batchCount;
                 count -= batchCount;
             }

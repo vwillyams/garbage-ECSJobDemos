@@ -41,7 +41,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 	CustomSampler destroySampler;
 	CustomSampler iterateSampler;
     CustomSampler memcpySampler;
-	CustomSampler memcpy12Sampler;
+	CustomSampler instantiateMemcpySampler ;
 	CustomSampler iterateUnsafeSampler;
 	CustomSampler iterateArraySampler;
 	CustomSampler iterateNativeArraySampler;
@@ -51,6 +51,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 	{
 		setupSampler = CustomSampler.Create("Setup");
 		instantiateSampler = CustomSampler.Create("InstantiateTest");
+		instantiateMemcpySampler = CustomSampler.Create("InstantiateTest - Memcpy");
 		destroySampler = CustomSampler.Create("DestroyTest");
         iterateSampler = CustomSampler.Create("IterateTest - ComponentDataArray<Component4Bytes>");
         memcpySampler = CustomSampler.Create("Iterate - Memcpy");
@@ -106,15 +107,19 @@ public class ECSInstantiatePerformance : MonoBehaviour
 	unsafe void TestUnsafePtr()
 	{
 		setupSampler.Begin();
-		int size = sizeof(float);
+		int size = sizeof(Component4Bytes) + sizeof(Component16Bytes)  + sizeof(Component64Bytes) + sizeof(Component12Bytes) + sizeof(Component128Bytes) + sizeof(Entity);
 		size *= PerformanceTestConfiguration.InstanceCount;
 		var src = (float*)UnsafeUtility.Malloc((ulong)size, 64, Allocator.Persistent);
 		var dst = (float*)UnsafeUtility.Malloc((ulong)size, 64, Allocator.Persistent);
 		setupSampler.End();
-		
+
 		memcpySampler.Begin();
-		UnsafeUtility.MemCpy((IntPtr)dst, (IntPtr)src, (ulong)size);
+		UnsafeUtility.MemCpy((IntPtr)dst, (IntPtr)src, (ulong)sizeof(float) * PerformanceTestConfiguration.InstanceCount);
 		memcpySampler.End();
+
+		instantiateMemcpySampler.Begin();
+		UnsafeUtility.MemCpy((IntPtr)dst, (IntPtr)src, (ulong)size);
+		instantiateMemcpySampler.End();
 
 		iterateUnsafeSampler.Begin();
 		float* ptr = src;

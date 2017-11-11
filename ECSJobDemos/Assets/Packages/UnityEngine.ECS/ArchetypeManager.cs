@@ -281,9 +281,16 @@ namespace UnityEngine.ECS
 
         public Chunk* GetChunkWithEmptySlots(Archetype* archetype)
         {
-            Chunk* chunk = archetype->last;
-            if (chunk == null || chunk->count == chunk->capacity)
-                chunk = AllocateChunk (archetype);
+            Chunk* chunk = archetype->first;
+	        while (chunk != null)
+	        {
+		        if (chunk->count != chunk->capacity)
+			        return chunk;
+		        
+		        chunk = chunk->next;
+	        }
+
+	        chunk = AllocateChunk (archetype);
 
             return chunk;
         }

@@ -4,6 +4,7 @@ using UnityEngine.ECS;
 using UnityEngine.Profiling;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
+using System;
 
 // 64 + 16 + 12 + 128 = 220 bytes
 
@@ -22,6 +23,11 @@ struct Component12Bytes : IComponentData
     public float3 value;
 }
 
+struct Component4Bytes : IComponentData
+{
+	public float value;
+}
+
 struct Component128Bytes : IComponentData
 {
     float4x4 value0;
@@ -30,25 +36,107 @@ struct Component128Bytes : IComponentData
 
 public class ECSInstantiatePerformance : MonoBehaviour
 {
-    const int kInstanceCount = 10 * 1000;
-
-    CustomSampler instantiateSampler;
+	CustomSampler setupSampler;
+	CustomSampler instantiateSampler;
 	CustomSampler destroySampler;
 	CustomSampler iterateSampler;
     CustomSampler memcpySampler;
-    CustomSampler memcpy12Sampler;
-
+	CustomSampler memcpy12Sampler;
+	CustomSampler iterateUnsafeSampler;
+	CustomSampler iterateArraySampler;
+	CustomSampler iterateNativeArraySampler;
+	CustomSampler iterateNativeSliceSampler;
+	 
     void Awake()
 	{
+		setupSampler = CustomSampler.Create("Setup");
 		instantiateSampler = CustomSampler.Create("InstantiateTest");
 		destroySampler = CustomSampler.Create("DestroyTest");
-        iterateSampler = CustomSampler.Create("IterateTest");
-        memcpySampler = CustomSampler.Create("Memcpy - All component size");
-        memcpy12Sampler = CustomSampler.Create("Memcpy - Component 12 bytes");
+        iterateSampler = CustomSampler.Create("IterateTest - ComponentDataArray<Component4Bytes>");
+        memcpySampler = CustomSampler.Create("Iterate - Memcpy");
+		iterateUnsafeSampler = CustomSampler.Create("Iterate - Unsafe Ptr float");
+		iterateArraySampler = CustomSampler.Create("Iterate - float[]");
+		iterateNativeArraySampler = CustomSampler.Create("Iterate - NativeArray<float>");
+		iterateNativeSliceSampler = CustomSampler.Create("Iterate - NativeSlice<float>");
     }
 
-    unsafe void Update()
+	unsafe void TestManagedArray()
 	{
+		setupSampler.Begin();
+		var array = new float[PerformanceTestConfiguration.InstanceCount];
+		setupSampler.End();
+
+		iterateArraySampler.Begin();
+		float sum = 0;
+		for (int i = 0; i != array.Length; i++)
+			sum += array[i];
+		iterateArraySampler.End();
+	}
+	
+	unsafe void TestNativeArray()
+	{
+		setupSampler.Begin();
+		var array = new NativeArray<float>(PerformanceTestConfiguration.InstanceCount, Allocator.Persistent);
+		setupSampler.End();
+
+		iterateNativeArraySampler.Begin();
+		{
+			float sum = 0;
+			for (int i = 0; i != array.Length; i++)
+				sum += array[i];
+		}
+		iterateNativeArraySampler.End();
+		
+
+		iterateNativeSliceSampler.Begin();
+		{
+			var slice = new NativeSlice<float>(array);
+			float sum = 0;
+			for (int i = 0; i != slice.Length; i++)
+				sum += slice[i];
+		}
+		iterateNativeSliceSampler.End();
+
+		
+		setupSampler.Begin();
+		array.Dispose();
+		setupSampler.End();
+	}
+	
+	unsafe void TestUnsafePtr()
+	{
+		setupSampler.Begin();
+		int size = sizeof(float);
+		size *= PerformanceTestConfiguration.InstanceCount;
+		var src = (float*)UnsafeUtility.Malloc((ulong)size, 64, Allocator.Persistent);
+		var dst = (float*)UnsafeUtility.Malloc((ulong)size, 64, Allocator.Persistent);
+		setupSampler.End();
+		
+		memcpySampler.Begin();
+		UnsafeUtility.MemCpy((IntPtr)dst, (IntPtr)src, (ulong)size);
+		memcpySampler.End();
+
+		iterateUnsafeSampler.Begin();
+		float* ptr = src;
+		float sum = 0;
+		int count = PerformanceTestConfiguration.InstanceCount;
+		for (int i = 0; i != count; i++)
+			sum += ptr[i];
+		iterateUnsafeSampler.End();
+		
+		setupSampler.Begin();
+		UnsafeUtility.Free((IntPtr)src, Allocator.Persistent);
+		UnsafeUtility.Free((IntPtr)dst, Allocator.Persistent);
+		setupSampler.End();
+	}
+	
+    unsafe void Update()
+    {
+	    TestUnsafePtr();
+	    TestManagedArray();
+	    TestNativeArray();
+	    
+		setupSampler.Begin();
         DependencyManager oldRoot = null;
         if (PerformanceTestConfiguration.CleanManagers)
         {
@@ -57,58 +145,48 @@ public class ECSInstantiatePerformance : MonoBehaviour
             DependencyManager.SetDefaultCapacity(PerformanceTestConfiguration.InstanceCount * 2);
         }
 
-		var m_EntityManager = DependencyManager.GetBehaviourManager<EntityManager>();
+		var entityManager = DependencyManager.GetBehaviourManager<EntityManager>();
 
-        int size = sizeof(Component128Bytes) + sizeof(Component12Bytes) + sizeof(Component64Bytes) + sizeof(Component64Bytes) + sizeof(Component16Bytes) + sizeof(Entity);
-        size *= kInstanceCount;
-        var src = UnsafeUtility.Malloc((ulong)size, 64, Allocator.Persistent);
-        var dst = UnsafeUtility.Malloc((ulong)size, 64, Allocator.Persistent);
+		setupSampler.End();
+		
+		setupSampler.Begin();
+       	var archetype = entityManager.CreateEntity();
+        entityManager.AddComponent<Component128Bytes>(archetype, new Component128Bytes());
+        entityManager.AddComponent<Component12Bytes>(archetype, new Component12Bytes());
+        entityManager.AddComponent<Component64Bytes>(archetype, new Component64Bytes());
+	    entityManager.AddComponent<Component16Bytes>(archetype, new Component16Bytes());
+	    entityManager.AddComponent<Component4Bytes>(archetype, new Component4Bytes());
 
-        memcpySampler.Begin();
-        UnsafeUtility.MemCpy(dst, src, (ulong)size);
-        memcpySampler.End();
-
-
-        memcpy12Sampler.Begin();
-        UnsafeUtility.MemCpy(dst, src, (ulong)sizeof(Component12Bytes) * PerformanceTestConfiguration.InstanceCount);
-        memcpy12Sampler.End();
-
-        UnsafeUtility.Free(src, Allocator.Persistent);
-        UnsafeUtility.Free(dst, Allocator.Persistent);
-
-
-       var archetype = m_EntityManager.CreateEntity();
-        m_EntityManager.AddComponent<Component128Bytes>(archetype, new Component128Bytes());
-        m_EntityManager.AddComponent<Component12Bytes>(archetype, new Component12Bytes());
-        m_EntityManager.AddComponent<Component64Bytes>(archetype, new Component64Bytes());
-        m_EntityManager.AddComponent<Component16Bytes>(archetype, new Component16Bytes());
-
-		m_EntityManager.CreateComponentGroup(typeof(Component128Bytes));
-        var group1 = m_EntityManager.CreateComponentGroup(typeof(Component12Bytes));
-        m_EntityManager.CreateComponentGroup(typeof(Component128Bytes));
-
+        var group = entityManager.CreateComponentGroup(typeof(Component4Bytes));
+		setupSampler.End();		
+		
 		instantiateSampler.Begin ();
         var instances = new NativeArray<Entity>(PerformanceTestConfiguration.InstanceCount, Allocator.Temp);
-		m_EntityManager.Instantiate (archetype, instances);
+		entityManager.Instantiate (archetype, instances);
 		instantiateSampler.End();
 
 		iterateSampler.Begin ();
-		var array = group1.GetComponentDataArray<Component12Bytes>();
+		var array = group.GetComponentDataArray<Component4Bytes>();
 		float sum = 0;
 		for (int i = 0; i < array.Length; ++i)
-			sum += array[i].value.x;
+			sum += array[i].value;
 		iterateSampler.End ();
 
 		destroySampler.Begin ();
-		m_EntityManager.DestroyEntity (instances);
+		entityManager.DestroyEntity (instances);
 		destroySampler.End ();
 
+		setupSampler.Begin();
+	    entityManager.DestroyEntity (archetype);
+	    
 		instances.Dispose ();
-
+	    group.Dispose();
+	    
         if (oldRoot != null)
         {
             DependencyManager.Root.Dispose();
             DependencyManager.Root = oldRoot;
         }
+		setupSampler.End();
 	}
 }

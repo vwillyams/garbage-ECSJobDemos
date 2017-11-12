@@ -72,27 +72,6 @@ namespace UnityEngine.ECS
             }
         }
 
-        public static void MemCpyReplicate(IntPtr dst, IntPtr src, int size, int count)
-        {
-            UnsafeUtility.MemCpy(dst, src, (ulong)size);
-            if (count == 1)
-                return;
-            src = dst;
-            dst = dst + size;
-            int copySize = size;
-            int remainSize = size * (count - 1);
-
-            while (remainSize > copySize)
-            {
-                UnsafeUtility.MemCpy(dst, src, (ulong)copySize);
-                dst += copySize;
-                remainSize -= copySize;
-                copySize += copySize;
-            }
-
-            UnsafeUtility.MemCpy(dst, src, (ulong)remainSize);
-        }
-
         public static void ReplicateComponents(Chunk* srcChunk, int srcIndex, Chunk* dstChunk, int dstBaseIndex, int count)
         {
             Archetype* arch = srcChunk->archetype;
@@ -101,7 +80,7 @@ namespace UnityEngine.ECS
                 // assumes fully strided data
                 IntPtr src = GetComponentData(srcChunk, srcIndex, 0);
                 IntPtr dst = GetComponentData(dstChunk, dstBaseIndex, 0);
-                MemCpyReplicate(dst, src, arch->stridedBytesPerInstance, count);
+                UnsafeUtility.MemCpyReplicate(dst, src, arch->stridedBytesPerInstance, count);
             }
             else
             {
@@ -111,7 +90,7 @@ namespace UnityEngine.ECS
                 {
                     IntPtr dst = GetComponentData(dstChunk, dstBaseIndex, t);
                     IntPtr src = GetComponentData(srcChunk, srcIndex, t);
-                    MemCpyReplicate(dst, src, arch->sizeOfs[t], count);
+                    UnsafeUtility.MemCpyReplicate(dst, src, arch->sizeOfs[t], count);
                 }
             }
         }

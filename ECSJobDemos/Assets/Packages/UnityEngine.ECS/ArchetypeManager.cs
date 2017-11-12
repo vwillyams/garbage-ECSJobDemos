@@ -290,9 +290,7 @@ namespace UnityEngine.ECS
 		        chunk = chunk->next;
 	        }
 
-	        chunk = AllocateChunk (archetype);
-
-            return chunk;
+	        return AllocateChunk (archetype);
         }
 
         public static int AllocateIntoChunk (Chunk* chunk, int count, out int outIndex)

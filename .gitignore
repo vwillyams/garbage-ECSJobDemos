@@ -17,3 +17,4 @@ UnstablePrototypes/LowLevelQueryAPI/.editorconfig
 *.sln
 *.suo
 *.userprefs
+*.app

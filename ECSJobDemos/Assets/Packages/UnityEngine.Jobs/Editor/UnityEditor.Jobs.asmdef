@@ -1,0 +1,8 @@
+{
+    "name": "UnityEditor.Jobs",
+    "references": [],
+    "includePlatforms": [
+        "Android"
+    ],
+    "excludePlatforms": []
+}

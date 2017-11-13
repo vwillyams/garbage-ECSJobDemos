@@ -46,7 +46,7 @@ namespace UnityEngine.ECS.Tests
             arr = group.GetComponentDataArray<EcsTestData>();
             Assert.AreEqual(1, arr.Length);
             Assert.AreEqual(42, arr[0].value);
-            arr = group.GetComponentDataArray<EcsTestData>(true);
+            arr = group.GetReadOnlyComponentDataArray<EcsTestData>();
             Assert.AreEqual(1, arr.Length);
             Assert.Throws<System.InvalidOperationException>(() => { arr[0] = new EcsTestData(0); });
             arr = group.GetComponentDataArray<EcsTestData>();
@@ -56,8 +56,6 @@ namespace UnityEngine.ECS.Tests
 
             m_Manager.DestroyEntity(entity);
         }
-
-
 
         [Test]
         public void AccessComponentArrayAfterCreationThrowsException()

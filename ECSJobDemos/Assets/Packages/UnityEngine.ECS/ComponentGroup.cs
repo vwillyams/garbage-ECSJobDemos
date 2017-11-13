@@ -228,8 +228,8 @@ namespace UnityEngine.ECS
             return new ComponentDataArrayCache(last->archetypeSegments + componentIndex, length);
         }
 
-
-        public ComponentDataArray<T> GetComponentDataArray<T>(bool readOnly = false) where T : struct, IComponentData
+        [return: ReadOnly]
+        public ComponentDataArray<T> GetReadOnlyComponentDataArray<T>() where T : struct, IComponentData
         {
             int length;
             int componentIndex;
@@ -237,19 +237,33 @@ namespace UnityEngine.ECS
 
             var cache = GetComponentDataArrayCache(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            return new ComponentDataArray<T>(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex), readOnly);
+            return new ComponentDataArray<T>(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex), true);
 #else
 			return new ComponentDataArray<T>(cache, length);
 #endif
         }
 
-        public ComponentDataFixedArray<T> GetComponentDataFixedArray<T>(ComponentType type, bool readOnly = false) where T : struct
+        public ComponentDataArray<T> GetComponentDataArray<T>() where T : struct, IComponentData
+        {
+            int length;
+            int componentIndex;
+            int typeIndex = TypeManager.GetTypeIndex<T>();
+
+            var cache = GetComponentDataArrayCache(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            return new ComponentDataArray<T>(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex), false);
+#else
+			return new ComponentDataArray<T>(cache, length);
+#endif
+        }
+
+        public ComponentDataFixedArray<T> GetComponentDataFixedArray<T>(ComponentType type) where T : struct
         {
             int length;
             int componentIndex;
             var cache = GetComponentDataArrayCache(type.typeIndex, out length, out componentIndex);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            return new ComponentDataFixedArray<T>(cache, length, 64, m_SafetyManager.GetSafetyHandle(type.typeIndex), readOnly);
+            return new ComponentDataFixedArray<T>(cache, length, 64, m_SafetyManager.GetSafetyHandle(type.typeIndex), false);
 #else
 			return new ComponentDataFixedArray<T>(cache, length, 64);
 #endif
@@ -323,12 +337,12 @@ namespace UnityEngine.ECS
         {
             m_SafetyManager.CompleteDependencies(m_GroupData->readerTypes, m_GroupData->readerTypesCount, m_GroupData->writerTypes, m_GroupData->writerTypesCount);
         }
-/*TODO:
+
         public JobHandle GetDependency()
         {
-            return new JobHandle();
+            return m_SafetyManager.GetDependency(m_GroupData->readerTypes, m_GroupData->readerTypesCount, m_GroupData->writerTypes, m_GroupData->writerTypesCount);
         }
-*/
+
         public void AddDependency(JobHandle job)
         {
             m_SafetyManager.AddDependency(m_GroupData->readerTypes, m_GroupData->readerTypesCount, m_GroupData->writerTypes, m_GroupData->writerTypesCount, job);

@@ -19,8 +19,8 @@ namespace UnityEngine.ECS
 			}
 		}
 
-        internal ComponentType[]		    m_JobDependencyForReadingManagers;
-        internal ComponentType[]		    m_JobDependencyForWritingManagers;
+        internal int[]		    			m_JobDependencyForReadingManagers;
+        internal int[]		    			m_JobDependencyForWritingManagers;
         internal ComponentJobSafetyManager  m_SafetyManager;
         EntityManager                       m_EntityManager;
 
@@ -65,13 +65,12 @@ namespace UnityEngine.ECS
             CompleteDependencyInternal();
     	}
 
-        internal void CompleteDependencyInternal()
+        internal unsafe void CompleteDependencyInternal()
         {
-            foreach (var dep in m_JobDependencyForReadingManagers)
-                m_SafetyManager.CompleteWriteDependency(dep.typeIndex);
-
-            foreach (var dep in m_JobDependencyForWritingManagers)
-                m_SafetyManager.CompleteReadAndWriteDependency(dep.typeIndex);
+	        fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
+	        {
+		        m_SafetyManager.CompleteDependencies(readersPtr, m_JobDependencyForReadingManagers.Length, writersPtr, m_JobDependencyForWritingManagers.Length);
+	        }
         }
 
 		internal void OnUpdateDontCompleteDependencies()
@@ -102,22 +101,12 @@ namespace UnityEngine.ECS
 			OnUpdateDontCompleteDependencies ();
 		}
 
-		public JobHandle GetDependency ()
+		public unsafe JobHandle GetDependency ()
 		{
-			int maxDependencyLength = m_JobDependencyForReadingManagers.Length + m_JobDependencyForWritingManagers.Length * 2;
-			if (m_JobDependencyCombineList.Capacity < maxDependencyLength)
-				m_JobDependencyCombineList.Capacity = maxDependencyLength;
-			m_JobDependencyCombineList.Clear();
-			foreach (var dep in m_JobDependencyForReadingManagers)
+			fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
 			{
-				m_JobDependencyCombineList.Add(m_SafetyManager.GetWriteDependency (dep.typeIndex));
+				return m_SafetyManager.GetDependency(readersPtr, m_JobDependencyForReadingManagers.Length, writersPtr, m_JobDependencyForWritingManagers.Length);
 			}
-			foreach (var dep in m_JobDependencyForWritingManagers)
-			{
-				m_JobDependencyCombineList.Add(m_SafetyManager.GetWriteDependency (dep.typeIndex));
-				m_JobDependencyCombineList.Add(m_SafetyManager.GetReadDependency (dep.typeIndex));
-			}
-			return JobHandle.CombineDependencies(m_JobDependencyCombineList);
 		}
 
 		public void CompleteDependency ()
@@ -125,12 +114,12 @@ namespace UnityEngine.ECS
             CompleteDependencyInternal();
 		}
 
-		public void AddDependency (JobHandle handle)
+		public unsafe void AddDependency (JobHandle dependency)
 		{
-			foreach (var dep in m_JobDependencyForReadingManagers)
-				m_SafetyManager.AddReadDependency (dep.typeIndex, handle);
-			foreach (var dep in m_JobDependencyForWritingManagers)
-				m_SafetyManager.AddWriteDependency (dep.typeIndex, handle);
+			fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
+			{
+				m_SafetyManager.AddDependency(readersPtr, m_JobDependencyForReadingManagers.Length, writersPtr, m_JobDependencyForWritingManagers.Length, dependency);
+			}
 		}
 	}
 

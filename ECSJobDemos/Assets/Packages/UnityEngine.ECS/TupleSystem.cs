@@ -34,7 +34,12 @@ namespace UnityEngine.ECS
         {
             public void UpdateInjection(object targetObject, ComponentGroup group, TupleInjectionData tuple)
             {
-                var array = group.GetComponentDataArray<T>(tuple.isReadOnly);
+                ComponentDataArray<T> array;
+                
+                if (tuple.isReadOnly)
+                    array = group.GetReadOnlyComponentDataArray<T>();
+                else
+                    array = group.GetComponentDataArray<T>();
                 UnsafeUtility.SetFieldStruct(targetObject, tuple.field, ref array);
             }
         }
@@ -84,30 +89,13 @@ namespace UnityEngine.ECS
             }
         }
 
-		public ComponentDataArray<T> GetComponentDataArray<T>(bool readOnly) where T : struct, IComponentData
-		{
-			return m_EntityGroup.GetComponentDataArray<T>(readOnly);
-		}
-
-		public ComponentArray<T> GetComponentArray<T>() where T : Component
-		{
-            return m_EntityGroup.GetComponentArray<T>();
-        }
-
 		public void Dispose()
 		{
 			m_EntityGroup.Dispose ();
 			m_EntityGroup = null;
 		}
 
-        //@TODO:
-        public void UpdateTransformAccessArray()
-        {
-            m_EntityGroup.UpdateTransformAccessArray();
-        }
-        public EntityArray GetEntityArray() { return m_EntityGroup.GetEntityArray(); }
 		public ComponentGroup EntityGroup          { get { return m_EntityGroup; } }
-
 
         public void UpdateInjection(object targetObject)
         {
@@ -117,10 +105,11 @@ namespace UnityEngine.ECS
             for (var i = 0; i != m_ComponentInjections.Length; i++)
                 m_ComponentInjections[i].injection.UpdateInjection(targetObject, m_EntityGroup, m_ComponentInjections[i]);
 
-            UpdateTransformAccessArray();
+            m_EntityGroup.UpdateTransformAccessArray();
+            
             if (m_EntityArrayInjection != null)
             {
-                var entityArray = GetEntityArray();
+                var entityArray = m_EntityGroup.GetEntityArray();
                 UnsafeUtility.SetFieldStruct(targetObject, m_EntityArrayInjection, ref entityArray);
             }
         }

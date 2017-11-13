@@ -26,14 +26,7 @@ namespace UnityEngine.ECS
 				public FieldInfo 				field;
 			}
 
-			public struct GetComponent
-			{
-				public Type type;
-				public FieldInfo 				field;
-			}
-
 			public Manager[] 				managers;
-			public GetComponent[] getComponents;
 		}
 
 		public ReadOnlyCollection<ScriptBehaviourManager> BehaviourManagers
@@ -171,7 +164,6 @@ namespace UnityEngine.ECS
 		static Dependencies CreateDependencyInjection(Type type)
 		{
 			var managers = new List<Dependencies.Manager>();
-			var getComponents = new List<Dependencies.GetComponent>();
 
 			var fields = type.GetFields (BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 			foreach (var field in fields)
@@ -195,10 +187,9 @@ namespace UnityEngine.ECS
 
             ValidateNoStaticInjectDependency(type);
 
-			if (managers.Count != 0 || getComponents.Count != 0)
+			if (managers.Count != 0)
 			{
 				var deps = new Dependencies ();
-				deps.getComponents = getComponents.ToArray ();
 				deps.managers = managers.ToArray ();
 				return deps;
 			}

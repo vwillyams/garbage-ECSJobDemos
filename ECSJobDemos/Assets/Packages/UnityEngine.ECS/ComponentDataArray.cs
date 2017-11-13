@@ -36,41 +36,37 @@ namespace UnityEngine.ECS
 #endif
         }
 
-        public void CopyTo(NativeSlice<T> dst, int startIndex = 0)
+
+        NativeSlice<T> GetChunkSlice(int startIndex, int maxCount)
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            if (dst.Length == 0)
-                return;
-
             AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
-            //@TODO: Logic is weird. think about switching MaxIndex to end index???
-            if (startIndex < m_MinIndex || startIndex + dst.Length > m_MaxIndex + 1)
-                // @TODO: message is not accurate
-                FailOutOfRangeError(startIndex + (dst.Length - 1));
+#endif
+            
+            m_Cache.UpdateCache(startIndex);
+            
+            IntPtr ptr = m_Cache.CachedPtr + (startIndex * m_Cache.CachedStride);
+            int count = Math.Min(maxCount, m_Cache.CachedEndIndex - startIndex);
+
+            
+            var slice = NativeSliceUnsafeUtility.ConvertExistingDataToNativeSlice<T>(ptr, m_Cache.CachedStride, count);
+            
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            NativeSliceUnsafeUtility.SetAtomicSafetyHandle(ref slice, m_Safety);
 #endif
 
-            int elementSize = UnsafeUtility.SizeOf<T>();
+            return slice;
+        }
+
+        public void CopyTo(NativeSlice<T> dst, int startIndex = 0)
+        {
             int copiedCount = 0;
             while (copiedCount < dst.Length)
             {
-                int index = copiedCount + startIndex;
-                m_Cache.UpdateCache(index);
+                var chunkSlice = GetChunkSlice(startIndex + copiedCount, dst.Length - copiedCount);
+                dst.Slice(copiedCount, chunkSlice .Length).CopyFrom(chunkSlice);
 
-                int copyCount = Math.Min(m_Cache.CachedEndIndex - index, dst.Length - copiedCount);
-
-                if (m_Cache.CachedStride == elementSize && dst.Stride == elementSize)
-                {
-                    IntPtr srcPtr = m_Cache.CachedPtr + (index * elementSize);
-                    IntPtr dstPtr = dst.GetUnsafePtr() + (copiedCount * elementSize);
-                    UnsafeUtility.MemCpy(dstPtr, srcPtr, (ulong)(elementSize * copyCount));
-                }
-                else
-                {
-                    for (int i = 0; i != copyCount; i++)
-                        dst[i + copiedCount] = UnsafeUtility.ReadArrayElementWithStride<T>(m_Cache.CachedPtr, i + index, m_Cache.CachedStride);
-                }
-
-                copiedCount += copyCount;
+                copiedCount += chunkSlice.Length;
             }
         }
 

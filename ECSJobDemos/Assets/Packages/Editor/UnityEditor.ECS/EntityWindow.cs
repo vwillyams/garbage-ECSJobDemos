@@ -35,9 +35,8 @@ namespace UnityEditor.ECS
 
         void InitTupleList()
         {
-            tupleListState = new TreeViewState();
-            tupleListView = new TupleListView(tupleListState, this);
-            tupleListView.SetSelection(currentSystemSelection);
+            var tupleListState = TupleListView.GetStateForSystem(currentSystemSelection, ref tupleListStates, ref tupleListStateNames);
+            tupleListView = new TupleListView(tupleListState, this, currentSystemSelection);
         }
 
         public ComponentGroup CurrentComponentGroupSelection {
@@ -64,9 +63,6 @@ namespace UnityEditor.ECS
 
         SystemListView systemListView;
 
-        [SerializeField]
-        TreeViewState tupleListState;
-
         TupleListView tupleListView;
 
         [SerializeField]
@@ -76,6 +72,12 @@ namespace UnityEditor.ECS
 
         [SerializeField]
         List<MultiColumnHeaderState> entityColumnHeaderStates;
+
+        [SerializeField]
+        List<string> tupleListStateNames;
+
+        [SerializeField]
+        List<TreeViewState> tupleListStates;
 
         [NonSerialized]
         bool initialized;

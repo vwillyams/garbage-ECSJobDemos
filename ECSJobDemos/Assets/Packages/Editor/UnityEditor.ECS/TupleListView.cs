@@ -17,21 +17,48 @@ namespace UnityEditor.ECS
 
         EntityWindow window;
 
-        public TupleListView(TreeViewState state, EntityWindow window) : base(state)
+
+        public static TreeViewState GetStateForSystem(ComponentSystem system, ref List<TreeViewState> states, ref List<string> stateNames)
         {
-            this.window = window;
-            Reload();
+            if (system == null)
+                return new TreeViewState();
+
+            if (states == null)
+            {
+                states = new List<TreeViewState>();
+                stateNames = new List<string>();
+            }
+            var currentSystemName = system.GetType().Name.ToString();
+
+            TreeViewState stateForCurrentSystem = null;
+            for (var i = 0; i < states.Count; ++i)
+            {
+                if (stateNames[i] == currentSystemName)
+                {
+                    stateForCurrentSystem = states[i];
+                    break;
+                }
+            }
+            if (stateForCurrentSystem == null)
+            {
+                stateForCurrentSystem = new TreeViewState();
+                states.Add(stateForCurrentSystem);
+                stateNames.Add(currentSystemName);
+            }
+            return stateForCurrentSystem;
         }
 
-        public void SetSelection(ComponentSystem system)
+        public TupleListView(TreeViewState state, EntityWindow window, ComponentSystem system) : base(state)
         {
+            this.window = window;
             currentSystem = system;
-            componentGroupsById = new Dictionary<int, ComponentGroup>();
             Reload();
+            SelectionChanged(GetSelection());
         }
 
         protected override TreeViewItem BuildRoot()
         {
+            componentGroupsById = new Dictionary<int, ComponentGroup>();
             var currentID = 0;
             var root  = new TreeViewItem { id = currentID++, depth = -1, displayName = "Root" };
             if (currentSystem == null)

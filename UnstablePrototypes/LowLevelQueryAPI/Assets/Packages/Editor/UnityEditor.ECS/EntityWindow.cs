@@ -2,12 +2,12 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.ECS;
 using Unity.Jobs;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 
-#if false
-namespace UnityEngine.ECS
+namespace UnityEditor.ECS
 {
     public class EntityWindow : EditorWindow {
         
@@ -15,10 +15,12 @@ namespace UnityEngine.ECS
         [SerializeField]
         const int kDefaultSystemListWidth = 300;
         const float kMinListWidth = 200f;
-        const float kSystemListHeight = 200f;
+        const float kSystemListHeight = 100f;
 
-        [SerializeField]
-        SplitterState systemTupleSplitter = new SplitterState(new float[] { 1, 1 }, new int[] { 100, 100 }, null);
+        // [SerializeField]
+        // SplitterState systemTupleSplitter = new SplitterState(new float[] { 1, 1 }, new int[] { 100, 100 }, null);
+        // [SerializeField]
+        // SplitterState entityListSplitter = new SplitterState(new float[] { 1, 1 }, new int[] { 100, 100 }, null);
 
         public ComponentSystem CurrentSystemSelection {
             get { return currentSystemSelection; }
@@ -52,9 +54,9 @@ namespace UnityEngine.ECS
             if (currentComponentGroupSelection == null)
                 return;
             entityListState = new TreeViewState();
-            var headerState = EntityListView.BuildHeaderState(currentComponentGroupSelection);
+            var headerState = EntityListView.GetOrBuildHeaderState(ref entityColumnHeaderStates, currentComponentGroupSelection, position.width - GUI.skin.verticalScrollbar.fixedWidth);
             var header = new MultiColumnHeader(headerState);
-            entityListView = new EntityListView(entityListState, header, currentComponentGroupSelection, this);
+            entityListView = new EntityListView(entityListState, header, currentComponentGroupSelection);
         }
 
         [SerializeField]
@@ -72,14 +74,18 @@ namespace UnityEngine.ECS
 
         EntityListView entityListView;
 
-        MultiColumnHeaderState entityListHeaderState;
+        [SerializeField]
+        List<MultiColumnHeaderState> entityColumnHeaderStates;
 
         [NonSerialized]
         bool initialized;
 
+        [NonSerialized]
+        bool systemsNull = true;
+
         // Rect systemListRect { get { return new Rect(0f, 0f, systemListWidth, kSystemListHeight); } }
-        [SerializeField]
-        Rect verticalSplitterRect = new Rect(kMinListWidth, 0f, 1f, kSystemListHeight);
+        // [SerializeField]
+        // Rect verticalSplitterRect = new Rect(kMinListWidth, 0f, 1f, kSystemListHeight);
         // Rect tupleListRect { get { return new Rect(systemListWidth, 0f, position.width - systemListWidth, kSystemListHeight); } }
         // Rect horizontalSplitterRect { get { return new Rect(0f, kSystemListHeight, position.width, 1f); } }
         Rect entityListRect { get { return new Rect(0f, kSystemListHeight, position.width, position.height - kSystemListHeight); } }
@@ -88,6 +94,16 @@ namespace UnityEngine.ECS
         static void Init ()
         {
             EditorWindow.GetWindow<EntityWindow>("Entities");
+        }
+
+        void OnFocus()
+        {
+            SceneView.onSceneGUIDelegate += OnSceneGUI;
+        }
+
+        void OnLostFocs()
+        {
+            SceneView.onSceneGUIDelegate -= OnSceneGUI;
         }
 
         void InitIfNeeded()
@@ -116,9 +132,10 @@ namespace UnityEngine.ECS
             return GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
         }
 
-        void SystemList()
+        void SystemList(bool systemsWereNull)
         {
-            systemListView.SetManagers(systems);
+            if (systemsWereNull)
+                systemListView.SetManagers(systems);
             systemListView.OnGUI(GetExpandingRect());
         }
 
@@ -142,21 +159,44 @@ namespace UnityEngine.ECS
         void OnGUI ()
         {
             InitIfNeeded();
-            if (systems == null)
+            var systemsWereNull = systemsNull;
+            systemsNull = systems == null;
+            if (systemsNull)
             {
                 GUILayout.Label("No ComponentSystems loaded. (Try pushing Play)");
                 return;
             }
 
-            SplitterGUILayout.BeginHorizontalSplit(systemTupleSplitter);
+            // SplitterGUILayout.BeginVerticalSplit(entityListSplitter);
+
+            // SplitterGUILayout.BeginHorizontalSplit(systemTupleSplitter);
+            GUILayout.BeginHorizontal(GUILayout.Height(kSystemListHeight));
+
             GUILayout.BeginVertical();
-            SystemList();
+            SystemList(systemsWereNull);
             GUILayout.EndVertical();
             GUILayout.BeginVertical();
             TupleList();
             GUILayout.EndVertical();
-            SplitterGUILayout.EndHorizontalSplit();
+
+            // SplitterGUILayout.EndHorizontalSplit();
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginVertical();
+            EntityList();
+            GUILayout.EndVertical();
+
+            // SplitterGUILayout.EndVerticalSplit();
+
+        }
+
+        void OnSceneGUI(SceneView sceneView)
+        {
+            if (entityListView != null)
+                entityListView.DrawSelection();
+
+            if (CurrentSystemSelection != null && EditorApplication.isPlaying)
+                Repaint();
         }
     }
 }
-#endif

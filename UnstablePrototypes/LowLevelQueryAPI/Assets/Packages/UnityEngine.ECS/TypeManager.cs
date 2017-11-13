@@ -85,7 +85,7 @@ namespace UnityEngine.ECS
 
                 if (typeof(IComponentData).IsAssignableFrom(type))
                 {
-                    componentSize = UnsafeUtility.SizeOfStruct(type);
+                    componentSize = UnsafeUtility.SizeOf(type);
                 }
 
                 if (typeof(IComponentData).IsAssignableFrom(type) && typeof(ISharedComponentData).IsAssignableFrom(type))
@@ -101,7 +101,7 @@ namespace UnityEngine.ECS
             if (type.IsClass)
                 throw new System.ArgumentException("Array type must be a blittable struct");
 
-            m_Types.Add(new ComponentType(type, UnsafeUtility.SizeOfStruct(type) * numElements, false, numElements));
+            m_Types.Add(new ComponentType(type, UnsafeUtility.SizeOf(type) * numElements, false, numElements));
             return m_Types.Count - 1;
         }
 

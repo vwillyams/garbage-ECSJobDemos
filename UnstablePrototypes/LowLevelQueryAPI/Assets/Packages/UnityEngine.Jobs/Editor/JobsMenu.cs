@@ -35,36 +35,4 @@ class JobsMenu
         return true;
     }
 
-    const string kBurst = "Jobs/Enable Burst Compiling";
-    [MenuItem(kBurst, false)]
-    static void EnableBurstCompiler()
-    {
-        UnityEditor.EditorPrefs.SetBool("ENABLE_BURST_COMPILER", !UnityEditor.EditorPrefs.GetBool("ENABLE_BURST_COMPILER"));
-    }
-
-    [MenuItem(kBurst, true)]
-    static bool EnableBurstCompilerValidate()
-    {
-        Menu.SetChecked(kBurst, UnityEditor.EditorPrefs.GetBool("ENABLE_BURST_COMPILER"));
-#if ENABLE_HLVM_COMPILER
-        return true;
-#else
-        return false;
-#endif
-    }
-
-    const string kBurstJobs = "Jobs/Use Burst Jobs";
-    [MenuItem(kBurstJobs, false)]
-    static void SwitchBurst()
-    {
-        JobsUtility.SetAllowUsingJobCompiler(!JobsUtility.GetAllowUsingJobCompiler());
-    }
-
-    [MenuItem(kBurstJobs, true)]
-    static bool SwitchBurstValidate()
-    {
-        Menu.SetChecked(kBurstJobs, JobsUtility.GetAllowUsingJobCompiler());
-        return UnityEditor.EditorPrefs.GetBool("ENABLE_BURST_COMPILER");
-    }
-
 }

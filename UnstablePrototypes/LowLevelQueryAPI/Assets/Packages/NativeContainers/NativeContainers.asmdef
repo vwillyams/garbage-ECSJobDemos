@@ -1,0 +1,4 @@
+{
+	"name": "NativeContainers",
+	"references": [ "Unity.Mathematics" ]
+}

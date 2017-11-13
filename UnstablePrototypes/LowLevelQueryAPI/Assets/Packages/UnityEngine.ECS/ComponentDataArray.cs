@@ -12,13 +12,13 @@ namespace UnityEngine.ECS
         ComponentDataArrayCache m_Cache;
 
         int m_Length;
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
         int m_MinIndex;
         int m_MaxIndex;
         AtomicSafetyHandle m_Safety;
 #endif
 
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal unsafe ComponentDataArray(ComponentDataArrayCache cache, int length, AtomicSafetyHandle safety, bool isReadOnly)
 #else
         internal unsafe ComponentDataArray(ComponentDataArrayCache cache, int length)
@@ -27,7 +27,7 @@ namespace UnityEngine.ECS
             m_Cache = cache;
 
             m_Length = length;
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_MinIndex = 0;
             m_MaxIndex = length - 1;
             m_Safety = safety;
@@ -38,7 +38,7 @@ namespace UnityEngine.ECS
 
         public void CopyTo(NativeSlice<T> dst, int startIndex = 0)
         {
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             if (dst.Length == 0)
                 return;
 
@@ -62,7 +62,7 @@ namespace UnityEngine.ECS
                 {
                     IntPtr srcPtr = m_Cache.CachedPtr + (index * elementSize);
                     IntPtr dstPtr = dst.GetUnsafePtr() + (copiedCount * elementSize);
-                    UnsafeUtility.MemCpy(dstPtr, srcPtr, elementSize * copyCount);
+                    UnsafeUtility.MemCpy(dstPtr, srcPtr, (ulong)(elementSize * copyCount));
                 }
                 else
                 {
@@ -78,7 +78,7 @@ namespace UnityEngine.ECS
         {
             get
             {
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
                 AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
                 if (index < m_MinIndex || index > m_MaxIndex)
                     FailOutOfRangeError(index);
@@ -92,7 +92,7 @@ namespace UnityEngine.ECS
 
 			set
 			{
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 				if (index < m_MinIndex || index > m_MaxIndex)
 					FailOutOfRangeError(index);
@@ -105,12 +105,17 @@ namespace UnityEngine.ECS
 			}
 		}
 
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
         void FailOutOfRangeError(int index)
 		{
 			//@TODO: Make error message utility and share with NativeArray...
 			if (index < Length && (m_MinIndex != 0 || m_MaxIndex != Length - 1))
-				throw new IndexOutOfRangeException(string.Format("Index {0} is out of restricted IJobParallelFor range [{1}...{2}] in ReadWriteBuffer.\nReadWriteBuffers are restricted to only read & write the element at the job index. You can use double buffering strategies to avoid race conditions due to reading & writing in parallel to the same elements from a job.", index, m_MinIndex, m_MaxIndex));
+				throw new IndexOutOfRangeException(string.Format(
+					"Index {0} is out of restricted IJobParallelFor range [{1}...{2}] in ReadWriteBuffer.\n" +
+					"ReadWriteBuffers are restricted to only read & write the element at the job index. " +
+					"You can use double buffering strategies to avoid race conditions due to " +
+					"reading & writing in parallel to the same elements from a job.",
+					index, m_MinIndex, m_MaxIndex));
 
 			throw new IndexOutOfRangeException(string.Format("Index {0} is out of range of '{1}' Length.", index, Length));
 		}

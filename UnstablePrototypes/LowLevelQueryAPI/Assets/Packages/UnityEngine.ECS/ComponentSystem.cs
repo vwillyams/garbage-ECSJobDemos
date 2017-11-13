@@ -8,8 +8,10 @@ namespace UnityEngine.ECS
         TupleSystem[] 					m_Tuples;
 
         //@TODO: properly
-        public ComponentGroup[] ComponentGroups {
-			get {
+        public ComponentGroup[] ComponentGroups
+        {
+			get
+            {
 				var groupArray = new ComponentGroup[m_Tuples.Length];
 				for (var i = 0; i < groupArray.Length; ++i)
 					groupArray[i] = m_Tuples[i].EntityGroup;
@@ -67,11 +69,9 @@ namespace UnityEngine.ECS
         {
             foreach (var dep in m_JobDependencyForReadingManagers)
                 m_SafetyManager.CompleteWriteDependency(dep.typeIndex);
+
             foreach (var dep in m_JobDependencyForWritingManagers)
-            {
-                m_SafetyManager.CompleteWriteDependency(dep.typeIndex);
-                m_SafetyManager.CompleteReadDependency(dep.typeIndex);
-            }
+                m_SafetyManager.CompleteReadAndWriteDependency(dep.typeIndex);
         }
 
 		internal void OnUpdateDontCompleteDependencies()

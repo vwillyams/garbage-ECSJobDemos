@@ -48,7 +48,7 @@ namespace UnityEngine.ECS
         public IntPtr Construct(int size, int alignment, void* src)
         {
             IntPtr res = Allocate(size, alignment);
-            UnsafeUtility.MemCpy(res, (IntPtr)src, size);
+            UnsafeUtility.MemCpy(res, (IntPtr)src, (ulong)size);
             return res;
         }
 

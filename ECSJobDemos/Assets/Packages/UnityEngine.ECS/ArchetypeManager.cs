@@ -240,7 +240,7 @@ namespace UnityEngine.ECS
 
         const int kChunkSize = 16 * 1024;
 
-        static int GetChunkBufferSize()
+        public static int GetChunkBufferSize()
         {
             int bufferOffset = (sizeof(Chunk) + 63) & ~63;
             int bufferSize = kChunkSize - bufferOffset;
@@ -281,11 +281,16 @@ namespace UnityEngine.ECS
 
         public Chunk* GetChunkWithEmptySlots(Archetype* archetype)
         {
-            Chunk* chunk = archetype->last;
-            if (chunk == null || chunk->count == chunk->capacity)
-                chunk = AllocateChunk (archetype);
+            Chunk* chunk = archetype->first;
+	        while (chunk != null)
+	        {
+		        if (chunk->count != chunk->capacity)
+			        return chunk;
+		        
+		        chunk = chunk->next;
+	        }
 
-            return chunk;
+	        return AllocateChunk (archetype);
         }
 
         public static int AllocateIntoChunk (Chunk* chunk, int count, out int outIndex)

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using Unity.Jobs;
 using Unity.Collections;
 
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 public class NativeMultiHashMapTests_JobDebugger : NativeMultiHashMapTestsFixture
 {
 	[Test]

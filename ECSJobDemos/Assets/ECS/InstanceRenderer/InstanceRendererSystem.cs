@@ -1,23 +1,8 @@
-﻿using UnityEngine;
-using Unity.Collections;
-using Unity.Jobs;
-using UnityEngine.ECS;
-using System.Collections.Generic;
-
+﻿using Unity.Collections;
+using Unity.Mathematics;
 namespace UnityEngine.ECS.Rendering
 {
-
-
-    /*
-        public struct SimpleTransform : IComponentData
-        {
-            public float3   position;
-            public float    scale;
-            public float4   rotation;
-        }
-    */
-
-    [UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.PreLateUpdate.ParticleSystemBeginUpdateAll))]
+   [UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.PreLateUpdate.ParticleSystemBeginUpdateAll))]
     public class InstanceRendererSystem : ComponentSystem
 	{
         // Instance renderer takes only batches of 1024
@@ -28,7 +13,7 @@ namespace UnityEngine.ECS.Rendering
             fixed (Matrix4x4* matricesPtr = outMatrices)
             {
                 UnityEngine.Assertions.Assert.AreEqual(sizeof(Matrix4x4), sizeof(InstanceRendererTransform));
-                var matricesSlice = new NativeSlice<InstanceRendererTransform>(matricesPtr, length);
+	            var matricesSlice = Unity.Collections.LowLevel.Unsafe.NativeSliceUnsafeUtility.ConvertExistingDataToNativeSlice<InstanceRendererTransform>((System.IntPtr) matricesPtr, length);
                 transforms.CopyTo(matricesSlice, beginIndex);
             }
         }
@@ -48,10 +33,9 @@ namespace UnityEngine.ECS.Rendering
                 var uniqueType = uniqueRendererTypes[i];
                 var renderer = EntityManager.GetSharedComponentData<InstanceRenderer>(uniqueType);
 
-                var group = EntityManager.CreateComponentGroup(uniqueType, ComponentType.Create<InstanceRendererTransform>());
+                var group = EntityManager.CreateComponentGroup(uniqueType, typeof(InstanceRendererTransform));
 
-                //@TODO: Support for dependency management against group API
-                EntityManager.CompleteAllJobs();
+                group.CompleteDependency();
 
                 var transforms = group.GetComponentDataArray<InstanceRendererTransform>();
 

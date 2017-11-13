@@ -14,7 +14,7 @@ namespace Unity.Collections
         public int m_FirstUsedBlock;
 
         public int m_Capacity;
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
         public int m_CurrentCount;
 #endif
 
@@ -59,7 +59,7 @@ namespace Unity.Collections
 
         public unsafe static void AllocateQueue<T>(int capacity, Allocator label, out IntPtr outBuf) where T : struct
         {
-            outBuf = UnsafeUtility.Malloc(UnsafeUtility.SizeOf<NativeQueueData>(), UnsafeUtility.AlignOf<NativeQueueData>(), label);
+            outBuf = UnsafeUtility.Malloc((ulong)UnsafeUtility.SizeOf<NativeQueueData>(), UnsafeUtility.AlignOf<NativeQueueData>(), label);
             NativeQueueData* data = (NativeQueueData*)outBuf;
             data->m_NextFreeBlock = 0;
             data->m_FirstUsedBlock = 0;
@@ -76,13 +76,13 @@ namespace Unity.Collections
                 data->m_NumBlocks = 2;
 
             data->m_Capacity = capacity;
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             data->m_CurrentCount = 0;
 #endif
 
             int totalSizeInBytes = (64 + data->m_BlockSize * UnsafeUtility.SizeOf<T>()) * data->m_NumBlocks;
 
-            data->m_Data = UnsafeUtility.Malloc(totalSizeInBytes, JobsUtility.CacheLineSize, label);
+            data->m_Data = UnsafeUtility.Malloc((ulong)totalSizeInBytes, JobsUtility.CacheLineSize, label);
             int* blockLengths = GetBlockLengths<T>(data);
             for (int i = 0; i < data->m_NumBlocks; ++i)
                 blockLengths[i * IntsPerCacheLine] = 0;
@@ -107,7 +107,7 @@ namespace Unity.Collections
             }
 
             int totalSizeInBytes = (64 + newBlockSize * UnsafeUtility.SizeOf<T>()) * newNumBlocks;
-            IntPtr newData = UnsafeUtility.Malloc(totalSizeInBytes, JobsUtility.CacheLineSize, label);
+            IntPtr newData = UnsafeUtility.Malloc((ulong)totalSizeInBytes, JobsUtility.CacheLineSize, label);
 
             // Copy the data from the old buffer to the new while compacting it and tracking the size
             int count = 0;
@@ -118,12 +118,12 @@ namespace Unity.Collections
             {
                 Byte* srcPtr = ((Byte*)data->m_Data) + (i * data->m_BlockSize + data->m_CurrentReadIndexInBlock) * UnsafeUtility.SizeOf<T>();
                 count = blockLengths[i * IntsPerCacheLine] - data->m_CurrentReadIndexInBlock;
-                UnsafeUtility.MemCpy((IntPtr)dstPtr, (IntPtr)srcPtr, count * UnsafeUtility.SizeOf<T>());
+                UnsafeUtility.MemCpy((IntPtr)dstPtr, (IntPtr)srcPtr, (ulong)(count * UnsafeUtility.SizeOf<T>()));
                 i = (i + 1) % data->m_NumBlocks;
                 while (i != data->m_NextFreeBlock)
                 {
                     srcPtr = ((Byte*)data->m_Data) + i * data->m_BlockSize * UnsafeUtility.SizeOf<T>();
-                    UnsafeUtility.MemCpy((IntPtr)(dstPtr + count), (IntPtr)srcPtr, blockLengths[i * IntsPerCacheLine] * UnsafeUtility.SizeOf<T>());
+                    UnsafeUtility.MemCpy((IntPtr)(dstPtr + count), (IntPtr)srcPtr, (ulong)(blockLengths[i * IntsPerCacheLine] * UnsafeUtility.SizeOf<T>()));
                     count += blockLengths[i * IntsPerCacheLine];
                     i = (i + 1) % data->m_NumBlocks;
                 }
@@ -168,7 +168,7 @@ namespace Unity.Collections
 
         System.IntPtr m_Buffer;
 
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
         AtomicSafetyHandle m_Safety;
         DisposeSentinel m_DisposeSentinel;
 #endif
@@ -177,7 +177,7 @@ namespace Unity.Collections
 
         public unsafe NativeQueue(int capacity, Allocator label)
         {
-#if ENABLE_NATIVE_ARRAY_CHECKS            
+#if ENABLE_UNITY_COLLECTIONS_CHECKS            
             if (!UnsafeUtility.IsBlittable<T>())
                 throw new ArgumentException(string.Format("{0} used in NativeQueue<{0}> must be blittable", typeof(T)));
 #endif
@@ -185,7 +185,7 @@ namespace Unity.Collections
 
 			NativeQueueData.AllocateQueue<T>(capacity, label, out m_Buffer);
 
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			DisposeSentinel.Create(m_Buffer, label, out m_Safety, out m_DisposeSentinel, 0, NativeQueueData.DeallocateQueue);
 #endif
 		}
@@ -194,7 +194,7 @@ namespace Unity.Collections
 		{
 			get
 			{
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 #endif
 
@@ -217,7 +217,7 @@ namespace Unity.Collections
 		{
 			get
 			{
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 #endif
 
@@ -226,7 +226,7 @@ namespace Unity.Collections
 			}
 			set
 			{
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
 
@@ -237,7 +237,7 @@ namespace Unity.Collections
 
 		unsafe public T Peek()
 		{
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 #endif
 
@@ -269,12 +269,12 @@ namespace Unity.Collections
 		}
 		unsafe public void Enqueue(T entry)
 		{
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
 
 			NativeQueueData* data = (NativeQueueData*)m_Buffer;
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			// FIXME: current count needs to be fixed to be availble in player builds
 			if (data->m_CurrentCount >= data->m_Capacity)
 				Capacity = GrowCapacity(Capacity);
@@ -302,7 +302,7 @@ namespace Unity.Collections
 
 		unsafe public T Dequeue()
 		{
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
 			NativeQueueData* data = (NativeQueueData*)m_Buffer;
@@ -327,7 +327,7 @@ namespace Unity.Collections
 			if (blockLengths[data->m_FirstUsedBlock*NativeQueueData.IntsPerCacheLine] == 0)
 				throw new InvalidOperationException("Trying to dequeue from an empty queue");
 
-			#if ENABLE_NATIVE_ARRAY_CHECKS
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			--data->m_CurrentCount;
 			#endif
 
@@ -338,7 +338,7 @@ namespace Unity.Collections
 
 		unsafe public void Clear()
 		{
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
 			NativeQueueData* data = (NativeQueueData*)m_Buffer;
@@ -346,7 +346,7 @@ namespace Unity.Collections
 			data->m_FirstUsedBlock = 0;
 			data->m_CurrentWriteBlockST = -1;
 			data->m_CurrentReadIndexInBlock = 0;
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			data->m_CurrentCount = 0;
 #endif
 
@@ -362,7 +362,7 @@ namespace Unity.Collections
 
 		public void Dispose()
 		{
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             DisposeSentinel.Dispose(m_Safety, ref m_DisposeSentinel);
 #endif
 
@@ -376,7 +376,7 @@ namespace Unity.Collections
 		{
 			IntPtr 	m_Buffer;
 
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle m_Safety;
 #endif
 
@@ -385,7 +385,7 @@ namespace Unity.Collections
 			unsafe public static implicit operator NativeQueue<T>.Concurrent (NativeQueue<T> queue)
 			{
 				NativeQueue<T>.Concurrent concurrent;
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckWriteAndThrow(queue.m_Safety);
 				concurrent.m_Safety = queue.m_Safety;
 				AtomicSafetyHandle.UseSecondaryVersion(ref concurrent.m_Safety);
@@ -400,7 +400,7 @@ namespace Unity.Collections
 			{
 				get
 				{
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 					AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 #endif
 
@@ -410,12 +410,12 @@ namespace Unity.Collections
 			}
 			unsafe public void Enqueue(T entry)
 			{
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
 				NativeQueueData* data = (NativeQueueData*)m_Buffer;
 
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				if (data->m_CurrentCount >= data->m_Capacity || Interlocked.Increment(ref data->m_CurrentCount) > data->m_Capacity)
 					throw new InvalidOperationException("Queue full");
 #endif

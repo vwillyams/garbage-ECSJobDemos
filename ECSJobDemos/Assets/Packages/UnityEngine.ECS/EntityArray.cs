@@ -14,13 +14,13 @@ namespace UnityEngine.ECS
         ComponentDataArrayCache m_Cache;
         int                     m_Length;
 
-		#if ENABLE_NATIVE_ARRAY_CHECKS
+		#if ENABLE_UNITY_COLLECTIONS_CHECKS
 		int                      	m_MinIndex;
 		int                      	m_MaxIndex;
 		AtomicSafetyHandle       	m_Safety;
 		#endif
 
-		#if ENABLE_NATIVE_ARRAY_CHECKS
+		#if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal unsafe EntityArray(ComponentDataArrayCache cache, int length, AtomicSafetyHandle safety)
 		#else
         internal unsafe EntityArray(ComponentDataArrayCache cache, int length)
@@ -29,7 +29,7 @@ namespace UnityEngine.ECS
             m_Length = length;
             m_Cache = cache;
 
-			#if ENABLE_NATIVE_ARRAY_CHECKS
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			m_MinIndex = 0;
 			m_MaxIndex = length - 1;
 			m_Safety = safety;
@@ -42,7 +42,7 @@ namespace UnityEngine.ECS
 		{
 			get
 			{
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 				if (index < m_MinIndex || index > m_MaxIndex)
 					FailOutOfRangeError(index);
@@ -55,7 +55,7 @@ namespace UnityEngine.ECS
 			}
 		}
 
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
         void FailOutOfRangeError(int index)
 		{
 			//@TODO: Make error message utility and share with NativeArray...

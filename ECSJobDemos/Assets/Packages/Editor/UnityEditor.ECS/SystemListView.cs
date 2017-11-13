@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
+using UnityEngine.ECS;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using System.Collections.Generic;
 
-#if false
-namespace UnityEngine.ECS
+namespace UnityEditor.ECS
 {
     public class SystemListView : TreeView {
         
@@ -32,6 +32,7 @@ namespace UnityEngine.ECS
                     managersByNamespace[ns].Add(manager);
             }
             Reload();
+            SelectionChanged(GetSelection());
         }
 
         protected override TreeViewItem BuildRoot()
@@ -79,4 +80,3 @@ namespace UnityEngine.ECS
 
     }
 }
-#endif

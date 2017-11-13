@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
-using UnityEngine.Experimental;
-using Unity.Jobs;
 using Unity.Collections;
 using UnityEngine.ECS;
-using System.Collections.Generic;
+using Unity.Mathematics;
+using Unity.Mathematics.Experimental;
 
 namespace BoidSimulations
 {

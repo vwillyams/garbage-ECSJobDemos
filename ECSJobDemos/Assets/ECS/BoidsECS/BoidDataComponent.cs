@@ -1,12 +1,12 @@
-﻿using System;
-using UnityEngine;
-using Unity.Collections;
+﻿using UnityEngine;
 using UnityEngine.ECS;
+using Unity.Mathematics;
 
 namespace BoidSimulations
 {
 	public struct BoidData : IComponentData
 	{
+		[SceneViewWorldPosition]
 		public float3  position;
 		public float3  forward;
 

@@ -45,7 +45,7 @@ namespace UnityEngine.ECS
             {
                 IntPtr src = GetComponentData(srcChunk, srcIndex, i);
                 IntPtr dst = GetComponentData(dstChunk, dstIndex, i);
-                UnsafeUtility.MemCpy(dst, src, arch->sizeOfs[i]);
+                UnsafeUtility.MemCpy(dst, src, (ulong)arch->sizeOfs[i]);
             }
         }
 
@@ -67,30 +67,9 @@ namespace UnityEngine.ECS
                 for (int t = 1; t != arch->typesCount; t++)
                 {
                     IntPtr dst = GetComponentData(dstChunk, dstIndex + e, t);
-                    UnsafeUtility.MemClear(dst, arch->sizeOfs[t]);
+                    UnsafeUtility.MemClear(dst, (ulong)arch->sizeOfs[t]);
                 }
             }
-        }
-
-        public static void MemCpyReplicate(IntPtr dst, IntPtr src, int size, int count)
-        {
-            UnsafeUtility.MemCpy(dst, src, size);
-            if (count == 1)
-                return;
-            src = dst;
-            dst = dst + size;
-            int copySize = size;
-            int remainSize = size * (count - 1);
-
-            while (remainSize > copySize)
-            {
-                UnsafeUtility.MemCpy(dst, src, copySize);
-                dst += copySize;
-                remainSize -= copySize;
-                copySize += copySize;
-            }
-
-            UnsafeUtility.MemCpy(dst, src, remainSize);
         }
 
         public static void ReplicateComponents(Chunk* srcChunk, int srcIndex, Chunk* dstChunk, int dstBaseIndex, int count)
@@ -101,7 +80,7 @@ namespace UnityEngine.ECS
                 // assumes fully strided data
                 IntPtr src = GetComponentData(srcChunk, srcIndex, 0);
                 IntPtr dst = GetComponentData(dstChunk, dstBaseIndex, 0);
-                MemCpyReplicate(dst, src, arch->stridedBytesPerInstance, count);
+                UnsafeUtility.MemCpyReplicate(dst, src, (ulong)arch->stridedBytesPerInstance, count);
             }
             else
             {
@@ -111,7 +90,7 @@ namespace UnityEngine.ECS
                 {
                     IntPtr dst = GetComponentData(dstChunk, dstBaseIndex, t);
                     IntPtr src = GetComponentData(srcChunk, srcIndex, t);
-                    MemCpyReplicate(dst, src, arch->sizeOfs[t], count);
+                    UnsafeUtility.MemCpyReplicate(dst, src, (ulong)arch->sizeOfs[t], count);
                 }
             }
         }
@@ -133,7 +112,7 @@ namespace UnityEngine.ECS
                 {
                     IntPtr src = srcChunk->buffer + srcArch->offsets[srcI] + srcIndex * srcArch->strides[srcI];
                     IntPtr dst = dstChunk->buffer + dstArch->offsets[dstI] + dstIndex * dstArch->strides[dstI];
-                    UnsafeUtility.MemCpy(dst, src, srcArch->sizeOfs[srcI]);
+                    UnsafeUtility.MemCpy(dst, src, (ulong)srcArch->sizeOfs[srcI]);
                     ++srcI;
                     ++dstI;
                 }

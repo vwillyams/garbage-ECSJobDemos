@@ -86,14 +86,14 @@ namespace Unity.Collections
 			where TKey : struct
 			where TValue : struct
 		{
-#if ENABLE_NATIVE_ARRAY_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             if (!UnsafeUtility.IsBlittable<TKey>())
                 throw new ArgumentException(string.Format("{0} used in NativeHashMap<{0},{1}> must be blittable", typeof(TKey), typeof(TValue)));
             if (!UnsafeUtility.IsBlittable<TKey>())
                 throw new ArgumentException(string.Format("{1} used in NativeHashMap<{0},{1}> must be blittable", typeof(TKey), typeof(TValue)));
 #endif
 
-			outBuf = UnsafeUtility.Malloc (sizeof(NativeHashMapData), UnsafeUtility.AlignOf<NativeHashMapData>(), label);
+			outBuf = UnsafeUtility.Malloc ((ulong)sizeof(NativeHashMapData), UnsafeUtility.AlignOf<NativeHashMapData>(), label);
 
 			NativeHashMapData* data = (NativeHashMapData*)outBuf;
 
@@ -103,7 +103,7 @@ namespace Unity.Collections
 			int keyOffset, nextOffset, bucketOffset;
 			int totalSize = CalculateDataSize<TKey, TValue>(length, bucketLength, out keyOffset, out nextOffset, out bucketOffset);
 			
-			data->values = UnsafeUtility.Malloc (totalSize, cacheLineSize, label);
+			data->values = UnsafeUtility.Malloc ((ulong)totalSize, cacheLineSize, label);
 			data->keys = (IntPtr)((byte*)data->values + keyOffset);
 			data->next = (IntPtr)((byte*)data->values + nextOffset);
 			data->buckets = (IntPtr)((byte*)data->values + bucketOffset);
@@ -121,15 +121,15 @@ namespace Unity.Collections
 			int keyOffset, nextOffset, bucketOffset;
 			int totalSize = CalculateDataSize<TKey, TValue>(newCapacity, newBucketCapacity, out keyOffset, out nextOffset, out bucketOffset);
 			
-			IntPtr newData = UnsafeUtility.Malloc (totalSize, cacheLineSize, label);
+			IntPtr newData = UnsafeUtility.Malloc ((ulong)totalSize, cacheLineSize, label);
 			IntPtr newKeys = (IntPtr)((byte*)newData + keyOffset);
 			IntPtr newNext = (IntPtr)((byte*)newData + nextOffset);
 			IntPtr newBuckets = (IntPtr)((byte*)newData + bucketOffset);
 
 			// The items are taken from a free-list and might not be tightly packed, copy all of the old capcity
-			UnsafeUtility.MemCpy (newData, data->values, data->capacity * UnsafeUtility.SizeOf<TValue>());
-			UnsafeUtility.MemCpy (newKeys, data->keys, data->capacity * UnsafeUtility.SizeOf<TKey>());
-			UnsafeUtility.MemCpy (newNext, data->next, data->capacity * UnsafeUtility.SizeOf<int>());
+			UnsafeUtility.MemCpy (newData, data->values, (ulong)(data->capacity * UnsafeUtility.SizeOf<TValue>()));
+			UnsafeUtility.MemCpy (newKeys, data->keys, (ulong)(data->capacity * UnsafeUtility.SizeOf<TKey>()));
+			UnsafeUtility.MemCpy (newNext, data->next, (ulong)(data->capacity * UnsafeUtility.SizeOf<int>()));
 			for (int emptyNext = data->capacity; emptyNext < newCapacity; ++emptyNext)
 				((int*)newNext)[emptyNext] = -1;
 
@@ -443,7 +443,7 @@ namespace Unity.Collections
 	{
 		System.IntPtr 			m_Buffer;
 
-		#if ENABLE_NATIVE_ARRAY_CHECKS
+		#if ENABLE_UNITY_COLLECTIONS_CHECKS
 		AtomicSafetyHandle 		m_Safety;
 		DisposeSentinel			m_DisposeSentinel;
 		#endif
@@ -456,7 +456,7 @@ namespace Unity.Collections
 			// Bucket size if bigger to reduce collisions
 			NativeHashMapData.AllocateHashMap<TKey, TValue> (capacity, capacity*2, label, out m_Buffer);
 
-			#if ENABLE_NATIVE_ARRAY_CHECKS
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			DisposeSentinel.Create(m_Buffer, label, out m_Safety, out m_DisposeSentinel, 0, NativeHashMapData.DeallocateHashMap);
 			#endif
 
@@ -467,7 +467,7 @@ namespace Unity.Collections
 		{
 			get
 			{
-				#if ENABLE_NATIVE_ARRAY_CHECKS
+				#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 				#endif
 
@@ -479,7 +479,7 @@ namespace Unity.Collections
 		{
 			get
 			{
-				#if ENABLE_NATIVE_ARRAY_CHECKS
+				#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 				#endif
 
@@ -488,7 +488,7 @@ namespace Unity.Collections
 			}
 			set
 			{
-				#if ENABLE_NATIVE_ARRAY_CHECKS
+				#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 				#endif
 
@@ -499,7 +499,7 @@ namespace Unity.Collections
 
 		unsafe public void Clear()
 		{
-			#if ENABLE_NATIVE_ARRAY_CHECKS
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 			#endif
 			NativeHashMapBase<TKey, TValue>.Clear((NativeHashMapData*)m_Buffer);
@@ -507,7 +507,7 @@ namespace Unity.Collections
 		
 		unsafe public bool TryAdd(TKey key, TValue item)
 		{
-			#if ENABLE_NATIVE_ARRAY_CHECKS
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 			#endif
 			return NativeHashMapBase<TKey, TValue>.TryAdd((NativeHashMapData*)m_Buffer, key, item, false, m_AllocatorLabel);
@@ -515,7 +515,7 @@ namespace Unity.Collections
 
 		unsafe public void Remove(TKey key)
 		{
-			#if ENABLE_NATIVE_ARRAY_CHECKS
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 			#endif
 			NativeHashMapBase<TKey, TValue>.Remove((NativeHashMapData*)m_Buffer, key, false);
@@ -524,7 +524,7 @@ namespace Unity.Collections
 		unsafe public bool TryGetValue(TKey key, out TValue item)
 		{
 			NativeMultiHashMapIterator<TKey> tempIt;
-			#if ENABLE_NATIVE_ARRAY_CHECKS
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 			#endif
 			return NativeHashMapBase<TKey, TValue>.TryGetFirstValueAtomic((NativeHashMapData*)m_Buffer, key, out item, out tempIt);
@@ -537,7 +537,7 @@ namespace Unity.Collections
 
 		public void Dispose()
 		{
-			#if ENABLE_NATIVE_ARRAY_CHECKS            
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS            
             DisposeSentinel.Dispose(m_Safety, ref m_DisposeSentinel);
 			#endif
 
@@ -551,14 +551,14 @@ namespace Unity.Collections
 		{
 			IntPtr 	m_Buffer;
 
-			#if ENABLE_NATIVE_ARRAY_CHECKS
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle m_Safety;
 			#endif
 
 			unsafe public static implicit operator NativeHashMap<TKey, TValue>.Concurrent (NativeHashMap<TKey, TValue> hashMap)
 			{
 				NativeHashMap<TKey, TValue>.Concurrent concurrent;
-				#if ENABLE_NATIVE_ARRAY_CHECKS
+				#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckWriteAndThrow(hashMap.m_Safety);
 				concurrent.m_Safety = hashMap.m_Safety;
 				AtomicSafetyHandle.UseSecondaryVersion(ref concurrent.m_Safety);
@@ -572,7 +572,7 @@ namespace Unity.Collections
 			{
 				get
 				{
-					#if ENABLE_NATIVE_ARRAY_CHECKS
+					#if ENABLE_UNITY_COLLECTIONS_CHECKS
 					AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 					#endif
 
@@ -583,7 +583,7 @@ namespace Unity.Collections
 
 			unsafe public bool TryAdd(TKey key, TValue item)
 			{
-				#if ENABLE_NATIVE_ARRAY_CHECKS
+				#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 				#endif
 				return NativeHashMapBase<TKey, TValue>.TryAddAtomic((NativeHashMapData*)m_Buffer, key, item, false);
@@ -599,7 +599,7 @@ namespace Unity.Collections
 	{
 		System.IntPtr 			m_Buffer;
 
-		#if ENABLE_NATIVE_ARRAY_CHECKS
+		#if ENABLE_UNITY_COLLECTIONS_CHECKS
 		AtomicSafetyHandle 		m_Safety;
 		DisposeSentinel			m_DisposeSentinel;
 		#endif
@@ -612,7 +612,7 @@ namespace Unity.Collections
 			// Bucket size if bigger to reduce collisions
 			NativeHashMapData.AllocateHashMap<TKey, TValue> (capacity, capacity*2, label, out m_Buffer);
 
-			#if ENABLE_NATIVE_ARRAY_CHECKS
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			DisposeSentinel.Create(m_Buffer, label, out m_Safety, out m_DisposeSentinel, 0, NativeHashMapData.DeallocateHashMap);
 			#endif
 
@@ -623,7 +623,7 @@ namespace Unity.Collections
 		{
 			get
 			{
-				#if ENABLE_NATIVE_ARRAY_CHECKS
+				#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 				#endif
 
@@ -635,7 +635,7 @@ namespace Unity.Collections
 		{
 			get
 			{
-				#if ENABLE_NATIVE_ARRAY_CHECKS
+				#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 				#endif
 
@@ -644,7 +644,7 @@ namespace Unity.Collections
 			}
 			set
 			{
-				#if ENABLE_NATIVE_ARRAY_CHECKS
+				#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 				#endif
 
@@ -655,7 +655,7 @@ namespace Unity.Collections
 
 		unsafe public void Clear()
 		{
-			#if ENABLE_NATIVE_ARRAY_CHECKS
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 			#endif
 			NativeHashMapBase<TKey, TValue>.Clear((NativeHashMapData*)m_Buffer);
@@ -663,7 +663,7 @@ namespace Unity.Collections
 
 		unsafe public void Add(TKey key, TValue item)
 		{
-			#if ENABLE_NATIVE_ARRAY_CHECKS
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 			#endif
 			NativeHashMapBase<TKey, TValue>.TryAdd((NativeHashMapData*)m_Buffer, key, item, true, m_AllocatorLabel);
@@ -671,14 +671,14 @@ namespace Unity.Collections
 
 		unsafe public void Remove(TKey key)
 		{
-			#if ENABLE_NATIVE_ARRAY_CHECKS
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 			#endif
 			NativeHashMapBase<TKey, TValue>.Remove((NativeHashMapData*)m_Buffer, key, true);
 		}
 		unsafe public void Remove(NativeMultiHashMapIterator<TKey> it)
 		{
-			#if ENABLE_NATIVE_ARRAY_CHECKS
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 			#endif
 			NativeHashMapBase<TKey, TValue>.Remove((NativeHashMapData*)m_Buffer, it);
@@ -686,7 +686,7 @@ namespace Unity.Collections
 
 		unsafe public bool TryGetFirstValue(TKey key, out TValue item, out NativeMultiHashMapIterator<TKey> it)
 		{
-			#if ENABLE_NATIVE_ARRAY_CHECKS
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 			#endif
 			return NativeHashMapBase<TKey, TValue>.TryGetFirstValueAtomic((NativeHashMapData*)m_Buffer, key, out item, out it);
@@ -694,7 +694,7 @@ namespace Unity.Collections
 
 		unsafe public bool TryGetNextValue(out TValue item, ref NativeMultiHashMapIterator<TKey> it)
 		{
-			#if ENABLE_NATIVE_ARRAY_CHECKS
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 			#endif
 			return NativeHashMapBase<TKey, TValue>.TryGetNextValueAtomic((NativeHashMapData*)m_Buffer, out item, ref it);
@@ -702,7 +702,7 @@ namespace Unity.Collections
 
 		unsafe public bool SetValue(TValue item, NativeMultiHashMapIterator<TKey> it)
 		{
-			#if ENABLE_NATIVE_ARRAY_CHECKS
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 			#endif
 			return NativeHashMapBase<TKey, TValue>.SetValue((NativeHashMapData*)m_Buffer, ref it, ref item);
@@ -716,7 +716,7 @@ namespace Unity.Collections
 
 		unsafe public void Dispose()
 		{
-			#if ENABLE_NATIVE_ARRAY_CHECKS            
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS            
             DisposeSentinel.Dispose(m_Safety, ref m_DisposeSentinel);
 			#endif
 
@@ -730,14 +730,14 @@ namespace Unity.Collections
 		{
 			IntPtr 	m_Buffer;
 
-			#if ENABLE_NATIVE_ARRAY_CHECKS
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle m_Safety;
 			#endif
 
 			unsafe public static implicit operator NativeMultiHashMap<TKey, TValue>.Concurrent (NativeMultiHashMap<TKey, TValue> multiHashMap)
 			{
 				NativeMultiHashMap<TKey, TValue>.Concurrent concurrent;
-				#if ENABLE_NATIVE_ARRAY_CHECKS
+				#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckWriteAndThrow(multiHashMap.m_Safety);
 				concurrent.m_Safety = multiHashMap.m_Safety;
 				AtomicSafetyHandle.UseSecondaryVersion(ref concurrent.m_Safety);
@@ -751,7 +751,7 @@ namespace Unity.Collections
 			{
 				get
 				{
-					#if ENABLE_NATIVE_ARRAY_CHECKS
+					#if ENABLE_UNITY_COLLECTIONS_CHECKS
 					AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 					#endif
 
@@ -762,7 +762,7 @@ namespace Unity.Collections
 
 			unsafe public void Add(TKey key, TValue item)
 			{
-				#if ENABLE_NATIVE_ARRAY_CHECKS
+				#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 				#endif
 				NativeHashMapBase<TKey, TValue>.TryAddAtomic((NativeHashMapData*)m_Buffer, key, item, true);

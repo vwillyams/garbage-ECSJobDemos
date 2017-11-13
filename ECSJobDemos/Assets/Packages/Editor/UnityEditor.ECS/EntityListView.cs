@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using UnityEngine.ECS;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using System.Collections.Generic;
@@ -7,45 +9,73 @@ using System.Reflection;
 using Unity.Jobs;
 using System.Linq;
 using System.Text;
-#if false
-namespace UnityEngine.ECS
+
+namespace UnityEditor.ECS
 {
     public class EntityListView : TreeView {
 
         ComponentGroup currentSystem;
 
-        List<object> nativeArrays;
+        Dictionary<Type, object> nativeArrays;
 
-        List<int> typeIndexToNativeIndex;
+        int linesPerRow;
+        const float pointsBetweenRows = 2f;
 
-        EntityWindow window;
-
-        public EntityListView(TreeViewState state, MultiColumnHeader header, ComponentGroup system, EntityWindow window) : base(state, header)
+        public EntityListView(TreeViewState state, MultiColumnHeader header, ComponentGroup system) : base(state, header)
         {
-            this.window = window;
             this.currentSystem = system;
+            showAlternatingRowBackgrounds = true;
             // header.sortingChanged += OnSortChanged;
             Reload();
         }
 
-        public static MultiColumnHeaderState BuildHeaderState(ComponentGroup system)
+        public static MultiColumnHeaderState GetOrBuildHeaderState(ref List<MultiColumnHeaderState> headerStates, ComponentGroup system, float listWidth)
+        {
+            if (headerStates == null)
+                headerStates = new List<MultiColumnHeaderState>();
+            
+            var types = system.Types;
+
+            foreach (var headerState in headerStates)
+            {
+                if (headerState.columns.Length != types.Length)
+                    continue;
+                var match = true;
+                for (var i = 0; i < types.Length; ++i)
+                {
+                    if (headerState.columns[i].headerContent.text != types[i].Name)
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match)
+                    return headerState;
+            }
+
+            var newHeaderState = BuildHeaderState(system, listWidth);
+            headerStates.Add(newHeaderState);
+            return newHeaderState;
+        }
+
+        static MultiColumnHeaderState BuildHeaderState(ComponentGroup system, float listWidth)
         {
             var types = system.Types;
             var columns = new List<MultiColumnHeaderState.Column>(types.Length + 1);
 
-            columns.Add(new MultiColumnHeaderState.Column
+            var cells = new int[types.Length];
+
+            var totalCells = 0;
+            for (var i = 0; i < types.Length; ++i)
             {
-                headerContent = new GUIContent("Index"),
-                contextMenuText = "Asset",
-                headerTextAlignment = TextAlignment.Center,
-                sortedAscending = true,
-                sortingArrowAlignment = TextAlignment.Right,
-                width = 30, 
-                minWidth = 30,
-                maxWidth = 60,
-                autoResize = false,
-                allowToggleVisibility = true
-            });
+                cells[i] = StructGUI.ColumnsForType(types[i]);
+                totalCells += cells[i];
+            }
+
+            var cellWidth = listWidth;
+            if (totalCells > 0f)
+                cellWidth /= totalCells;
+            
             for (var i = 0; i < types.Length; ++i)
             {
                 columns.Add(new MultiColumnHeaderState.Column
@@ -55,7 +85,7 @@ namespace UnityEngine.ECS
 					headerTextAlignment = TextAlignment.Center,
 					sortedAscending = true,
 					sortingArrowAlignment = TextAlignment.Right,
-					width = 60, 
+					width = cells[i] * cellWidth, 
 					minWidth = 60,
 					maxWidth = 500,
 					autoResize = false,
@@ -72,26 +102,42 @@ namespace UnityEngine.ECS
         {
             if (currentSystem != null)
             {
-                nativeArrays = new List<object>();
-                typeIndexToNativeIndex = new List<int>();
-                var columnIndex = 0;
+                nativeArrays = new Dictionary<Type, object>();
+                linesPerRow = 1;
                 foreach (var type in currentSystem.Types)
                 {
+                    var attr = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
                     if (type.GetInterfaces().Contains(typeof(IComponentData)))
                     {
-                        var attr = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
+                        linesPerRow = Mathf.Max(linesPerRow, StructGUI.RowsForType(type));
+                        rowHeight = StructGUI.pointsPerLine * linesPerRow + pointsBetweenRows;
                         var method = typeof(ComponentGroup).GetMethod("GetComponentDataArray", attr);
                         method = method.MakeGenericMethod(type);
-                        var args = new object[] {false};
+                        var args = new object[] {true};
                         var array = method.Invoke(currentSystem, args);
-                        nativeArrays.Add(array);
-                        typeIndexToNativeIndex.Add(columnIndex);
+                        nativeArrays.Add(type, array);
+                    }
+                    else if (typeof(Component).IsAssignableFrom(type))
+                    {
+                        var method = typeof(ComponentGroup).GetMethod("GetComponentArray", attr);
+                        method = method.MakeGenericMethod(type);
+                        var args = new object[] {};
+                        var array = method.Invoke(currentSystem, args);
+                        nativeArrays.Add(type, array);
+                    }
+                    else if (type == typeof(Entity))
+                    {
+                        linesPerRow = Mathf.Max(linesPerRow, StructGUI.RowsForType(type));
+                        rowHeight = StructGUI.pointsPerLine * linesPerRow + pointsBetweenRows;
+                        var method = typeof(ComponentGroup).GetMethod("GetEntityArray", attr);
+                        var args = new object[] {};
+                        var array = method.Invoke(currentSystem, args);
+                        nativeArrays.Add(type, array);
                     }
                     else
                     {
-                        typeIndexToNativeIndex.Add(-1);
+                        nativeArrays.Add(type, null);
                     }
-                    ++columnIndex;
                 }
             }
         }
@@ -126,30 +172,71 @@ namespace UnityEngine.ECS
 			}
 		}
 
+        object GetObjectFromArray(Type type, int index)
+        {
+            if (!nativeArrays.ContainsKey(type))
+                throw new ArgumentException(string.Format("No native array for type {0}", type));
+            var array = nativeArrays[type];
+            Type arrayType;
+            if (type.GetInterfaces().Contains(typeof(IComponentData)))
+                arrayType = typeof(ComponentDataArray<>).MakeGenericType(type);
+            else if (type == typeof(Entity))
+                arrayType = typeof(EntityArray);
+            else if (typeof(Component).IsAssignableFrom(type))
+                arrayType = typeof(ComponentArray<>).MakeGenericType(type);
+            else
+                throw new NotSupportedException(string.Format("No array type defined for {0}", type));
+            var arrayIndexer = arrayType.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance).GetGetMethod();
+            var arrayElement = arrayIndexer.Invoke(array, new object[]{index});
+
+            return arrayElement;
+        }
+
 		void CellGUI (Rect cellRect, TreeViewItem item, int column, ref RowGUIArgs args)
 		{
-			// Center cell rect vertically (makes it easier to place controls, icons etc in the cells)
-			CenterRectUsingSingleLineHeight(ref cellRect);
-
-			if (column == 0)
-            {
-                DefaultGUI.LabelRightAligned(cellRect, args.item.displayName, args.selected, args.focused);
-            }
+            var type = currentSystem.Types[column];
+            if (!nativeArrays.ContainsKey(type))
+                return;
+            var array = nativeArrays[type];
+            Type arrayType;
+            if (type.GetInterfaces().Contains(typeof(IComponentData)))
+                arrayType = typeof(ComponentDataArray<>).MakeGenericType(type);
+            else if (type == typeof(Entity))
+                arrayType = typeof(EntityArray);
             else
+                return;
+            var arrayIndexer = arrayType.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance).GetGetMethod();
+            var arrayElement = arrayIndexer.Invoke(array, new object[]{item.id});
+            
+            cellRect.height -= pointsBetweenRows;
+            StructGUI.CellGUI(cellRect, arrayElement, linesPerRow);
+        }
+
+        public void DrawSelection()
+        {
+            if (!HasSelection())
+                return;
+            foreach (var type in currentSystem.Types)
             {
-                var type = currentSystem.Types[column - 1];
-                var nativeIndex = typeIndexToNativeIndex[column - 1];
-                if (nativeIndex < 0)
-                    return;
-                var array = nativeArrays[nativeIndex];
-                var arrayType = typeof(ComponentDataArray<>).MakeGenericType(type);
-                var arrayIndexer = arrayType.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance).GetGetMethod();
-                var arrayElement = arrayIndexer.Invoke(array, new object[]{item.id});
-                
-                StructGUI.CellGUI(cellRect, (IComponentData)arrayElement);
+                foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public))
+                {
+                    foreach (var attribute in field.CustomAttributes)
+                    {
+                        if (attribute.AttributeType == typeof(SceneViewWorldPositionAttribute))
+                        {
+                            foreach (var id in GetSelection())
+                            {
+                                var data = GetObjectFromArray(type, id);
+                                var f3 = (float3)field.GetValue(data);
+                                var v3 = new Vector3(f3.x, f3.y, f3.z);
+                                Handles.color = Color.red;
+                                Handles.CubeHandleCap(0, v3, Quaternion.identity, 1f, EventType.Repaint);
+                            }
+                        }
+                    }
+                }
             }
         }
 
     }
 }
-#endif

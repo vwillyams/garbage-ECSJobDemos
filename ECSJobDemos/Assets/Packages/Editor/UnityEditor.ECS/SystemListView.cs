@@ -32,6 +32,7 @@ namespace UnityEditor.ECS
                     managersByNamespace[ns].Add(manager);
             }
             Reload();
+            SelectionChanged(GetSelection());
         }
 
         protected override TreeViewItem BuildRoot()

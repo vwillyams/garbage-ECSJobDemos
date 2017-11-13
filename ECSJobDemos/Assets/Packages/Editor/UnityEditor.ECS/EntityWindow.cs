@@ -80,6 +80,9 @@ namespace UnityEditor.ECS
         [NonSerialized]
         bool initialized;
 
+        [NonSerialized]
+        bool systemsNull = true;
+
         // Rect systemListRect { get { return new Rect(0f, 0f, systemListWidth, kSystemListHeight); } }
         // [SerializeField]
         // Rect verticalSplitterRect = new Rect(kMinListWidth, 0f, 1f, kSystemListHeight);
@@ -129,9 +132,10 @@ namespace UnityEditor.ECS
             return GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
         }
 
-        void SystemList()
+        void SystemList(bool systemsWereNull)
         {
-            systemListView.SetManagers(systems);
+            if (systemsWereNull)
+                systemListView.SetManagers(systems);
             systemListView.OnGUI(GetExpandingRect());
         }
 
@@ -155,7 +159,9 @@ namespace UnityEditor.ECS
         void OnGUI ()
         {
             InitIfNeeded();
-            if (systems == null)
+            var systemsWereNull = systemsNull;
+            systemsNull = systems == null;
+            if (systemsNull)
             {
                 GUILayout.Label("No ComponentSystems loaded. (Try pushing Play)");
                 return;
@@ -167,7 +173,7 @@ namespace UnityEditor.ECS
             GUILayout.BeginHorizontal(GUILayout.Height(kSystemListHeight));
 
             GUILayout.BeginVertical();
-            SystemList();
+            SystemList(systemsWereNull);
             GUILayout.EndVertical();
             GUILayout.BeginVertical();
             TupleList();
@@ -188,6 +194,9 @@ namespace UnityEditor.ECS
         {
             if (entityListView != null)
                 entityListView.DrawSelection();
+
+            if (CurrentSystemSelection != null && EditorApplication.isPlaying)
+                Repaint();
         }
     }
 }

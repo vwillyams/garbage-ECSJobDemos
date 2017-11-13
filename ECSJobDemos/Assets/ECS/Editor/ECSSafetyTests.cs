@@ -14,6 +14,24 @@ namespace UnityEngine.ECS.Tests
 {
     public class ECSSafetyTests : ECSFixture
 	{
+	    [Test]
+	    public void ComponentArrayChunkSliceOutOfBoundsThrowsException()
+	    {
+	        for (int i = 0;i<10;i++)
+	            m_Manager.CreateEntity(typeof(EcsTestData), typeof(EcsTestData2));
+
+	        var group = m_Manager.CreateComponentGroup(typeof(EcsTestData));
+	        var testData = group.GetComponentDataArray<EcsTestData>();
+
+	        Assert.AreEqual(0, testData.GetChunkSlice(5, 0).Length);
+	        Assert.AreEqual(10, testData.GetChunkSlice(0, 10).Length);
+
+	        Assert.Throws<IndexOutOfRangeException>(() => { testData.GetChunkSlice(-1, 1); });
+	        Assert.Throws<IndexOutOfRangeException>(() => { testData.GetChunkSlice(5, 6); });
+	        Assert.Throws<IndexOutOfRangeException>(() => { testData.GetChunkSlice(10, 1); });
+	    }
+	    
+	    
         [Test]
         public void ReadOnlyComponentDataArray()
         {

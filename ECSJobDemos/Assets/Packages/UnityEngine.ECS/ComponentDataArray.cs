@@ -36,11 +36,15 @@ namespace UnityEngine.ECS
 #endif
         }
 
-
-        NativeSlice<T> GetChunkSlice(int startIndex, int maxCount)
+        public NativeSlice<T> GetChunkSlice(int startIndex, int maxCount)
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
+
+	        if (startIndex < m_MinIndex)
+		        FailOutOfRangeError(startIndex);
+	        else if (startIndex + maxCount > m_MaxIndex + 1)
+		        FailOutOfRangeError(startIndex + maxCount);
 #endif
             
             m_Cache.UpdateCache(startIndex);

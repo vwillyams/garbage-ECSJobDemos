@@ -45,7 +45,6 @@ namespace Unity.Collections
 		private int padding1_14;
 		private int padding1_15;
 		public int				firstFree;
-		public int				approximateFreeListSize;
 		// FIXME: p2gc does not like fixed arrays in structs, so expand them manually
 		//private fixed byte 		padding2[60];
 		private int padding2_01;
@@ -206,7 +205,6 @@ namespace Unity.Collections
 			for (int i = 0; i < data->capacity; ++i)
 				nextPtrs[i] = -1;
 			data->firstFree = -1;
-			data->approximateFreeListSize = 0;
 			data->allocatedIndexLength = 0;
 		}
 		
@@ -218,7 +216,6 @@ namespace Unity.Collections
 			idx = data->firstFree;
 			if (idx >= 0 && Interlocked.CompareExchange(ref data->firstFree, nextPtrs[idx], idx) == idx)
 			{
-				Interlocked.Decrement(ref data->approximateFreeListSize);
 				nextPtrs[idx] = -1;
 				return idx;
 			}
@@ -237,7 +234,6 @@ namespace Unity.Collections
 					throw new System.InvalidOperationException("HashMap is full");
 			}
 			while (Interlocked.CompareExchange(ref data->firstFree, nextPtrs[idx], idx) != idx);
-			Interlocked.Decrement(ref data->approximateFreeListSize);
 			nextPtrs[idx] = -1;
 			return idx;			
 		}
@@ -271,7 +267,6 @@ namespace Unity.Collections
 							nextPtrs[idx] = data->firstFree;
 						} 
 						while (Interlocked.CompareExchange(ref data->firstFree, idx, nextPtrs[idx]) != nextPtrs[idx]);
-						Interlocked.Increment(ref data->approximateFreeListSize);
 
 						return false;
 					}
@@ -298,7 +293,6 @@ namespace Unity.Collections
 			if (idx >= 0)
 			{
 				data->firstFree = ((int*)data->next)[idx];
-				--data->approximateFreeListSize;
 			}
 			else
 				idx = data->allocatedIndexLength++;
@@ -341,7 +335,6 @@ namespace Unity.Collections
 						nextPtrs[prevEntry] = nextPtrs[entryIdx];
 					// And free the index
 					int nextIdx = nextPtrs[entryIdx];
-					++data->approximateFreeListSize;
 					nextPtrs[entryIdx] = data->firstFree;
 					data->firstFree = entryIdx;
 					entryIdx = nextIdx;
@@ -378,7 +371,6 @@ namespace Unity.Collections
 				nextPtrs[entryIdx] = nextPtrs[it.EntryIndex];
 			}
 			// And free the index
-			++data->approximateFreeListSize;
 			nextPtrs[it.EntryIndex] = data->firstFree;
 			data->firstFree = it.EntryIndex;
 		}
@@ -472,7 +464,11 @@ namespace Unity.Collections
 				#endif
 
 				NativeHashMapData* data = (NativeHashMapData*)m_Buffer;
-				return Math.Min(data->capacity, data->allocatedIndexLength) - data->approximateFreeListSize;
+				int* nextPtrs = (int*)data->next;
+				int freeListSize = 0;
+				for (int freeIdx = data->firstFree; freeIdx >= 0; freeIdx = nextPtrs[freeIdx])
+					++freeListSize;
+				return Math.Min(data->capacity, data->allocatedIndexLength) - freeListSize;
 			}
 		}
 		unsafe public int Capacity
@@ -628,7 +624,11 @@ namespace Unity.Collections
 				#endif
 
 				NativeHashMapData* data = (NativeHashMapData*)m_Buffer;
-				return Math.Min(data->capacity, data->allocatedIndexLength) - data->approximateFreeListSize;
+				int* nextPtrs = (int*)data->next;
+				int freeListSize = 0;
+				for (int freeIdx = data->firstFree; freeIdx >= 0; freeIdx = nextPtrs[freeIdx])
+					++freeListSize;
+				return Math.Min(data->capacity, data->allocatedIndexLength) - freeListSize;
 			}
 		}
 		unsafe public int Capacity

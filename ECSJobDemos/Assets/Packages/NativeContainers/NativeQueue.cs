@@ -14,7 +14,6 @@ namespace Unity.Collections
         public int m_FirstUsedBlock;
 
         public int m_Capacity;
-		public int m_FreeCount;
 
         public int m_BlockSize;
         public int m_NumBlocks;
@@ -25,6 +24,7 @@ namespace Unity.Collections
 
         public fixed int m_CurrentWriteBlockTLS[JobsUtility.MaxJobThreadCount * IntsPerCacheLine];
         public fixed int m_FreeCountTLS[JobsUtility.MaxJobThreadCount * IntsPerCacheLine];
+		public int m_FreeCount;
 
         public static int* GetBlockLengths<T>(NativeQueueData* data) where T : struct
         {

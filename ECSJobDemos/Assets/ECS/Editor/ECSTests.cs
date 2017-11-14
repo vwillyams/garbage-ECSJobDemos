@@ -429,5 +429,13 @@ namespace UnityEngine.ECS.Tests
             copied.Dispose();
             entities.Dispose();
         }
+		
+		[Test]
+		public void ReadOnlyAndNonReadOnlyArchetypeAreEqual()
+		{
+			var arch = m_Manager.CreateArchetype(ComponentType.ReadOnly(typeof(EcsTestData)));
+			var arch2 = m_Manager.CreateArchetype(typeof(EcsTestData));
+			Assert.AreEqual(arch, arch2);
+		}
 	}
 }

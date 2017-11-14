@@ -7,7 +7,7 @@ namespace UnityEngine.ECS
     {
         static public int GetIndexInTypeArray(Archetype* archetype, int typeIndex)
         {
-            ComponentType* types = archetype->types;
+            ComponentTypeInArchetype* types = archetype->types;
             int typeCount = archetype->typesCount;
             for (int i = 0; i != typeCount; i++)
             {

@@ -69,38 +69,26 @@ namespace UnityEngine.ECS
             return new ComponentType(type, false);
         }
 
-        //@TODO: We should remove all the comparison operators, make it very explicit.
-        //       What you are comparing...
-        //       eg. comparing readonly doesn't make sense in many cases... Should be explicit what we want to compare...
-        
-        
-        public override bool Equals(object other)
-        {
-            return this == (ComponentType)other;
-        }
-
-        public override int GetHashCode()
-        {
-            return (typeIndex * 397) ^ sharedComponentIndex;
-        }
-
-
-        static public bool operator ==(ComponentType lhs, ComponentType rhs)
-        {
-            return lhs.typeIndex == rhs.typeIndex && lhs.sharedComponentIndex == rhs.sharedComponentIndex;
-        }
-        static public bool operator !=(ComponentType lhs, ComponentType rhs)
-        {
-            return lhs.typeIndex != rhs.typeIndex || lhs.sharedComponentIndex != rhs.sharedComponentIndex;
-        }
-
         static public bool operator <(ComponentType lhs, ComponentType rhs)
         {
-            return lhs.typeIndex != rhs.typeIndex ? lhs.typeIndex < rhs.typeIndex : lhs.sharedComponentIndex < rhs.sharedComponentIndex;
+            if (lhs.typeIndex == rhs.typeIndex)
+                return lhs.sharedComponentIndex != rhs.sharedComponentIndex ? lhs.sharedComponentIndex < rhs.sharedComponentIndex : lhs.readOnly < rhs.readOnly;
+            else
+                return lhs.typeIndex < rhs.typeIndex;
+
         }
         static public bool operator >(ComponentType lhs, ComponentType rhs)
         {
-            return lhs.typeIndex != rhs.typeIndex ? lhs.typeIndex > rhs.typeIndex : lhs.sharedComponentIndex > rhs.sharedComponentIndex;
+            return rhs < lhs;
+        }
+
+        static public bool operator ==(ComponentType lhs, ComponentType rhs)
+        {
+            return lhs.typeIndex == rhs.typeIndex && lhs.sharedComponentIndex == rhs.sharedComponentIndex && lhs.readOnly == rhs.readOnly;
+        }
+        static public bool operator !=(ComponentType lhs, ComponentType rhs)
+        {
+            return lhs.typeIndex != rhs.typeIndex || lhs.sharedComponentIndex != rhs.sharedComponentIndex && lhs.readOnly == rhs.readOnly;
         }
 
         unsafe static internal bool CompareArray(ComponentType* type1, int typeCount1, ComponentType* type2, int typeCount2)
@@ -114,8 +102,7 @@ namespace UnityEngine.ECS
             }
             return true;
         }
-
-
+        
         public int typeIndex;
         public int readOnly;
         public int sharedComponentIndex;

@@ -56,16 +56,18 @@ namespace UnityEngine.ECS
         ComponentGroup 						m_EntityGroup;
 
 		internal TupleSystem(EntityManager entityManager, TupleSystem.TupleInjectionData[] componentDataInjections, TupleSystem.TupleInjectionData[] componentInjections, FieldInfo entityArrayInjection, UnityEngine.Jobs.TransformAccessArray transforms)
-        {
-			var requiredComponentTypes = new ComponentType[componentInjections.Length + componentDataInjections.Length];
+		{
+            var transformsCount = transforms.IsCreated ? 1 : 0;
+			var requiredComponentTypes = new ComponentType[componentInjections.Length + componentDataInjections.Length + transformsCount ];
 
             for (int i = 0; i != componentDataInjections.Length; i++)
-            {
                 requiredComponentTypes[i] = new ComponentType(componentDataInjections[i].genericType, componentDataInjections[i].isReadOnly);
-            }
 				
             for (int i = 0; i != componentInjections.Length; i++)
                 requiredComponentTypes[i + componentDataInjections.Length] = componentInjections[i].genericType;
+		    
+		    if (transformsCount != 0)
+		        requiredComponentTypes[componentInjections.Length + componentDataInjections.Length] = typeof(Transform);
 
             m_EntityGroup = entityManager.CreateComponentGroup(transforms, requiredComponentTypes);
 

@@ -22,7 +22,7 @@ namespace UnityEngine.ECS
 
     	//@TODO: Capacity defaulting mechanism...
 
-        static TupleSystem CreateTuplesInjection(FieldInfo entityArrayField, FieldInfo transformAccessArrayField, List<TupleSystem.TupleInjectionData> injections, List<int> outReadJobDependencies, List<int> outWriteJobDependencies, object targetObject)
+        static TupleSystem CreateTuplesInjection(FieldInfo entityArrayField, FieldInfo transformAccessArrayField, List<TupleSystem.TupleInjectionData> injections, object targetObject)
     	{
 			var componentInjections = new List<TupleSystem.TupleInjectionData>();
 			var componentDataInjections = new List<TupleSystem.TupleInjectionData>();
@@ -31,11 +31,6 @@ namespace UnityEngine.ECS
     		{
 				if (injections[i].containerType == typeof(ComponentDataArray<>))
 				{
-					if (injections[i].isReadOnly)
-                        outReadJobDependencies.Add (new ComponentType(injections[i].genericType).typeIndex);
-					else
-                        outWriteJobDependencies.Add (new ComponentType(injections[i].genericType).typeIndex);
-
 					componentDataInjections.Add (injections [i]);
 				}
 				else if (injections[i].containerType == typeof(ComponentArray<>))
@@ -122,7 +117,7 @@ namespace UnityEngine.ECS
     		return true;
     	}
 
-		static void CreateTuplesInjection(Type type, object targetObject, List<TupleSystem> outTupleSystem, List<int> outReadJobDependencies, List<int> outWriteJobDependencies)
+		static void CreateTuplesInjection(Type type, object targetObject, List<TupleSystem> outTupleSystem)
     	{
     		var fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
@@ -141,22 +136,19 @@ namespace UnityEngine.ECS
 				if (!CollectTuples (fields, ref fieldIndex, ref activeTupleSetIndex, out entityArrayField, out transformAccessArrayField, injections))
     				return;
 
-				var tupleSystem = CreateTuplesInjection (entityArrayField, transformAccessArrayField, injections, outReadJobDependencies, outWriteJobDependencies, targetObject);
+				var tupleSystem = CreateTuplesInjection (entityArrayField, transformAccessArrayField, injections, targetObject);
     			outTupleSystem.Add (tupleSystem);
     		}
     	}
 
-        internal static void CreateTuplesInjection(Type type, object targetObject, out TupleSystem[] outTupleSystem, out int[] outReadJobDependencies, out int[] outWriteJobDependencies)
+        internal static void CreateTuplesInjection(Type type, object targetObject, out TupleSystem[] outTupleSystem)
     	{
     		var tuples = new List<TupleSystem> ();
             var readDependencies = new List<int> ();
 			var writeDependencies = new List<int> ();
-			CreateTuplesInjection(type, targetObject, tuples, readDependencies, writeDependencies);
-
+			CreateTuplesInjection(type, targetObject, tuples);
 
 			outTupleSystem = tuples.ToArray ();
-			outReadJobDependencies = readDependencies.ToArray ();
-			outWriteJobDependencies = writeDependencies.ToArray ();
     	}
     }
 }

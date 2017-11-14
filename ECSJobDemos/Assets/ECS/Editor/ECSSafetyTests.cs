@@ -35,24 +35,22 @@ namespace UnityEngine.ECS.Tests
         [Test]
         public void ReadOnlyComponentDataArray()
         {
-            var archetype = m_Manager.CreateArchetype(typeof(EcsTestData), typeof(EcsTestData2));
+            var group = m_Manager.CreateComponentGroup(typeof(EcsTestData2), ComponentType.ReadOnly(typeof(EcsTestData)));
 
-            var group = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(EcsTestData2));
-            var arr = group.GetComponentDataArray<EcsTestData>();
-            Assert.AreEqual(0, arr.Length);
-
-            var entity = m_Manager.CreateEntity(archetype);
+            var entity = m_Manager.CreateEntity(typeof(EcsTestData), typeof(EcsTestData2));
             m_Manager.SetComponent(entity, new EcsTestData(42));
-            arr = group.GetComponentDataArray<EcsTestData>();
+            
+            // EcsTestData is read only
+            var arr = group.GetComponentDataArray<EcsTestData>();
             Assert.AreEqual(1, arr.Length);
             Assert.AreEqual(42, arr[0].value);
-            arr = group.GetReadOnlyComponentDataArray<EcsTestData>();
-            Assert.AreEqual(1, arr.Length);
             Assert.Throws<System.InvalidOperationException>(() => { arr[0] = new EcsTestData(0); });
-            arr = group.GetComponentDataArray<EcsTestData>();
-            Assert.AreEqual(1, arr.Length);
-            arr[0] = new EcsTestData(0);
-            Assert.AreEqual(0, arr[0].value);
+           
+            // EcsTestData2 can be written to
+            var arr2 = group.GetComponentDataArray<EcsTestData2>();
+            Assert.AreEqual(1, arr2.Length);
+            arr2[0] = new EcsTestData2(55);
+            Assert.AreEqual(55, arr2[0].value0);
 
             m_Manager.DestroyEntity(entity);
         }

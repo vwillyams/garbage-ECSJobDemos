@@ -8,12 +8,12 @@ namespace UnityEngine.ECS
     {
         internal struct TupleInjectionData
         {
-            public FieldInfo field;
-            public Type containerType;
-            public Type genericType;
-            public bool isReadOnly;
+            public FieldInfo           field;
+            public Type                containerType;
+            public Type                genericType;
+            public bool                isReadOnly;
 
-            internal IUpdateInjection injection;
+            internal IUpdateInjection  injection;
 
             public TupleInjectionData(FieldInfo field, Type containerType, Type genericType, bool isReadOnly)
             {
@@ -34,12 +34,7 @@ namespace UnityEngine.ECS
         {
             public void UpdateInjection(object targetObject, ComponentGroup group, TupleInjectionData tuple)
             {
-                ComponentDataArray<T> array;
-                
-                if (tuple.isReadOnly)
-                    array = group.GetReadOnlyComponentDataArray<T>();
-                else
-                    array = group.GetComponentDataArray<T>();
+                var array = group.GetComponentDataArray<T>();
                 UnsafeUtility.SetFieldStruct(targetObject, tuple.field, ref array);
             }
         }
@@ -65,7 +60,10 @@ namespace UnityEngine.ECS
 			var requiredComponentTypes = new ComponentType[componentInjections.Length + componentDataInjections.Length];
 
             for (int i = 0; i != componentDataInjections.Length; i++)
-				requiredComponentTypes[i] = componentDataInjections [i].genericType;
+            {
+                requiredComponentTypes[i] = new ComponentType(componentDataInjections[i].genericType, componentDataInjections[i].isReadOnly);
+            }
+				
             for (int i = 0; i != componentInjections.Length; i++)
                 requiredComponentTypes[i + componentDataInjections.Length] = componentInjections[i].genericType;
 

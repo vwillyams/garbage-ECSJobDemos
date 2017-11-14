@@ -33,7 +33,9 @@ namespace UnityEngine.ECS
     		base.OnCreateManager(capacity);
 
             m_SafetyManager = m_EntityManager.ComponentJobSafetyManager;
-			InjectTuples.CreateTuplesInjection (GetType(), this, out m_Tuples, out m_JobDependencyForReadingManagers, out m_JobDependencyForWritingManagers);
+			InjectTuples.CreateTuplesInjection (GetType(), this, out m_Tuples);
+		    
+		    ComponentGroup.ExtractJobDependencyTypes(ComponentGroups, out m_JobDependencyForReadingManagers, out m_JobDependencyForWritingManagers);
     	}
 
     	override protected void OnDestroyManager()

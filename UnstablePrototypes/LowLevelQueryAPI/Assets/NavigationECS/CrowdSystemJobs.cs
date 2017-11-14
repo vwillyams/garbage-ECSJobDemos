@@ -1,6 +1,7 @@
 using System;
 using Unity.Collections;
 using Unity.Jobs;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.ECS;
@@ -17,7 +18,7 @@ public partial class CrowdSystem
         [ReadOnly]
         public NativeArray<uint> pathRequestIdForAgent;
 
-        public NativeArray<bool> planPathForAgent;
+        public NativeArray<BlittableBool> planPathForAgent;
 
         public void Execute(int index)
         {
@@ -39,7 +40,7 @@ public partial class CrowdSystem
 
         public ComponentDataArray<CrowdAgentNavigator> agentNavigators;
 
-        public NativeArray<bool> planPathForAgent;
+        public NativeArray<BlittableBool> planPathForAgent;
         public NativeArray<uint> pathRequestIdForAgent;
         public NativeArray<PathQueryQueueEcs.RequestEcs> pathRequests;
         public NativeArray<int> pathRequestsRange;

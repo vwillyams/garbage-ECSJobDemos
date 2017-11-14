@@ -1,5 +1,5 @@
 This project is meant to work with code from the native branch `scripting/jobsystem/navmesh` .\
-Revision needed: **7b8a774ba164** (2017-10-27 12:22:52 +0200)\
+Revision needed: **e2785435e885** (2017-11-14 10:14:37 +0100)\
 Good build: not available currently
 
 Example scenes:

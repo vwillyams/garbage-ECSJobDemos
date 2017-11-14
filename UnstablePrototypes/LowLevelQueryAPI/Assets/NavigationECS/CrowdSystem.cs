@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using Unity.Collections;
 using Unity.Jobs;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Experimental.AI;
 using UnityEngine.ECS;
@@ -20,8 +21,8 @@ public partial class CrowdSystem : JobComponentSystem
     [InjectTuples]
     ComponentDataArray<CrowdAgentNavigator> m_AgentNavigators;
 
-    NativeList<bool> m_PlanPathForAgent;
-    NativeList<bool> m_EmptyPlanPathForAgent;
+    NativeList<BlittableBool> m_PlanPathForAgent;
+    NativeList<BlittableBool> m_EmptyPlanPathForAgent;
     NativeList<uint> m_PathRequestIdForAgent;
     NativeList<PathQueryQueueEcs.RequestEcs> m_PathRequests;
     NativeArray<int> m_PathRequestsRange;
@@ -72,8 +73,8 @@ public partial class CrowdSystem : JobComponentSystem
 
         var agentCount = world.IsValid() ? capacity : 0;
         m_AgentPaths = new AgentPaths(agentCount, 128);
-        m_PlanPathForAgent = new NativeList<bool>(agentCount, Allocator.Persistent);
-        m_EmptyPlanPathForAgent = new NativeList<bool>(0, Allocator.Persistent);
+        m_PlanPathForAgent = new NativeList<BlittableBool>(agentCount, Allocator.Persistent);
+        m_EmptyPlanPathForAgent = new NativeList<BlittableBool>(0, Allocator.Persistent);
         m_PathRequestIdForAgent = new NativeList<uint>(agentCount, Allocator.Persistent);
         m_PathRequests = new NativeList<PathQueryQueueEcs.RequestEcs>(k_PathRequestsPerTick, Allocator.Persistent);
         m_PathRequests.ResizeUninitialized(k_PathRequestsPerTick);

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Jobs;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Assertions;
@@ -10,7 +11,7 @@ using Random = UnityEngine.Random;
 
 public class MultiplePaths : MonoBehaviour
 {
-    [UnityEngine.Range(1, 1000)]
+    [Range(1, 1000)]
     public int pathfindIterationsPerUpdate = 100;
     public bool drawDebug = true;
 
@@ -96,7 +97,7 @@ public class MultiplePaths : MonoBehaviour
         var pathsCount = m_Paths.Count;
         for (var i = 0; i < pathsCount; i++)
         {
-            if (!m_CornersJobHandles[i].isDone)
+            if (!m_CornersJobHandles[i].IsCompleted)
                 continue;
 
             while (m_StraightPathCorners.Count <= i)
@@ -123,7 +124,7 @@ public class MultiplePaths : MonoBehaviour
                     startPos = m_Paths[i].start.position + Random.insideUnitSphere,
                     straightPath = m_StraightPathCorners[i],
                     straightPathFlags = m_StraightPathCornersFlags[i],
-                    vertexSide = new NativeArray<float>()
+                    vertexSide = new NativeArray<float>(0, Allocator.TempJob)
                 };
                 m_CornersJobHandles[i] = findCorners.Schedule(mapTargetsFence);
             }
@@ -299,6 +300,7 @@ public class MultiplePaths : MonoBehaviour
 
         public NativeArray<NavMeshLocation> straightPath;
         public NativeArray<NavMeshStraightPathFlags> straightPathFlags;
+        [DeallocateOnJobCompletion]
         public NativeArray<float> vertexSide;
         public int maxStraightPath;
 

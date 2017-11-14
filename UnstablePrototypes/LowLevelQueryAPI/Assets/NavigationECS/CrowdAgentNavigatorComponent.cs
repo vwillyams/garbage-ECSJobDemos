@@ -1,4 +1,4 @@
-using UnityEngine;
+using Unity.Mathematics;
 using UnityEngine.ECS;
 using UnityEngine.Experimental.AI;
 
@@ -10,11 +10,11 @@ public struct CrowdAgentNavigator : IComponentData
     public float speed;
     public float nextCornerSide;
     public float3 steeringTarget;
-    public bool newDestinationRequested;
-    public bool goToDestination;
-    public bool destinationInView;
-    public bool destinationReached;
-    public bool active;
+    public BlittableBool newDestinationRequested;
+    public BlittableBool goToDestination;
+    public BlittableBool destinationInView;
+    public BlittableBool destinationReached;
+    public BlittableBool active;
 
     public void MoveTo(float3 dest)
     {

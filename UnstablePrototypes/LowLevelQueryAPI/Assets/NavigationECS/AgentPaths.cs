@@ -159,7 +159,7 @@ public struct AgentPaths
             InitializePath(index, backPath.size);
             var src = (PolygonID*)m_PathNodes.GetUnsafePtr() + backPath.begin;
             var dst = (PolygonID*)m_PathNodes.GetUnsafePtr() + removedPath.begin;
-            UnsafeUtility.MemCpy((IntPtr)dst, (IntPtr)src, backPath.size * UnsafeUtility.SizeOf<PolygonID>());
+            UnsafeUtility.MemCpy((IntPtr)dst, (IntPtr)src, (ulong)backPath.size * (ulong)UnsafeUtility.SizeOf<PolygonID>());
         }
 
         m_PathRanges.ResizeUninitialized(m_PathRanges.Length - 1);

@@ -16,6 +16,12 @@ namespace UnityEngine.ECS.Tests
 
 
         [Test]
+        public void TransformAccessArrayTests()
+        {
+            
+        }
+
+        [Test]
         public void ComponentDataAndTransformArray()
         {
             var entityMan = DependencyManager.GetBehaviourManager<EntityManager> ();

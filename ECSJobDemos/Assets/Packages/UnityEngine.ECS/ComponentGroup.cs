@@ -33,7 +33,7 @@ namespace UnityEngine.ECS
                 {
                     grp = (EntityGroupData*)grpPtr;
                     if (ComponentType.CompareArray(grp->requiredComponents, grp->requiredComponentsCount, requiredTypes, requiredCount))
-                        return new ComponentGroup(grp, m_JobSafetyManager, typeMan, trans);
+                        return new ComponentGroup(grp, m_JobSafetyManager, typeMan);
                 }
                 while (m_GroupLookup.TryGetNextValue(out grpPtr, ref it));
             }
@@ -66,7 +66,7 @@ namespace UnityEngine.ECS
             for (Archetype* type = typeMan.m_LastArchetype; type != null; type = type->prevArchetype)
                 AddArchetypeIfMatching(type, grp);
             m_GroupLookup.Add(hash, (IntPtr)grp);
-            return new ComponentGroup(grp, m_JobSafetyManager, typeMan, trans);
+            return new ComponentGroup(grp, m_JobSafetyManager, typeMan);
         }
         public void Dispose()
         {
@@ -156,44 +156,35 @@ namespace UnityEngine.ECS
         EntityGroupData*                      m_GroupData;
         ComponentJobSafetyManager             m_SafetyManager;
         ArchetypeManager                      m_TypeManager;
-        TransformAccessArray                  m_Transforms;
-        bool                                  m_TransformsDirty;
         MatchingArchetypes*                   m_LastRegisteredListenerArchetype;
 
-        internal ComponentGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager, ArchetypeManager typeManager, TransformAccessArray trans)
+        TransformAccessArray                  m_Transforms;
+        bool                                  m_TransformsDirty;
+
+        internal ComponentGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager, ArchetypeManager typeManager)
         {
             m_GroupData = groupData;
             m_SafetyManager = safetyManager;
             m_TypeManager = typeManager;
-            m_Transforms = trans;
             m_TransformsDirty = true;
-
-            if (m_Transforms.IsCreated)
-            {
-                var transformType = TypeManager.GetTypeIndex<Transform>();
-                for (MatchingArchetypes* type = m_GroupData->firstMatchingArchetype; type != null; type = type->next)
-                {
-                    int idx = ChunkDataUtility.GetIndexInTypeArray(type->archetype, transformType);
-                    m_TypeManager.AddManagedObjectModificationListener(type->archetype, idx, this);
-                }
-            }
-            m_LastRegisteredListenerArchetype = m_GroupData->lastMatchingArchetype;
+            m_LastRegisteredListenerArchetype = null;
         }
 
         public void Dispose()
         {
             if (m_Transforms.IsCreated)
             {
-                if (m_LastRegisteredListenerArchetype != null)
-                {
-                    var transformType = TypeManager.GetTypeIndex<Transform>();
-                    for (MatchingArchetypes* type = m_GroupData->firstMatchingArchetype; type != m_LastRegisteredListenerArchetype->next; type = type->next)
-                    {
-                        int idx = ChunkDataUtility.GetIndexInTypeArray(type->archetype, transformType);
-                        m_TypeManager.RemoveManagedObjectModificationListener(type->archetype, idx, this);
-                    }
-                }
                 m_Transforms.Dispose();
+            }
+            
+            if (m_LastRegisteredListenerArchetype != null)
+            {
+                var transformType = TypeManager.GetTypeIndex<Transform>();
+                for (MatchingArchetypes* type = m_GroupData->firstMatchingArchetype; type != m_LastRegisteredListenerArchetype->next; type = type->next)
+                {
+                    int idx = ChunkDataUtility.GetIndexInTypeArray(type->archetype, transformType);
+                    m_TypeManager.RemoveManagedObjectModificationListener(type->archetype, idx, this);
+                }
             }
         }
         public void OnManagedObjectModified()
@@ -330,10 +321,8 @@ namespace UnityEngine.ECS
             }
         }
 
-        internal void UpdateTransformAccessArray()
+        public TransformAccessArray GetTransformAccessArray()
         {
-            if (!m_Transforms.IsCreated)
-                return;
             int transformIdx = TypeManager.GetTypeIndex<Transform>();
             for (MatchingArchetypes* type = m_LastRegisteredListenerArchetype != null ? m_LastRegisteredListenerArchetype->next : m_GroupData->firstMatchingArchetype; type != null; type = type->next)
             {
@@ -342,12 +331,18 @@ namespace UnityEngine.ECS
                 m_TransformsDirty = true;
             }
             m_LastRegisteredListenerArchetype = m_GroupData->lastMatchingArchetype;
-            if (!m_TransformsDirty)
-                return;
-            m_TransformsDirty = false;
-            var trans = GetComponentArray<Transform>();
 
-		    m_Transforms.SetTransforms(trans.ToArray());
+            if (m_TransformsDirty)
+            {
+                var trans = GetComponentArray<Transform>();
+                if (!m_Transforms.IsCreated)
+                    m_Transforms = new TransformAccessArray(trans.ToArray());
+                else
+                    m_Transforms.SetTransforms(trans.ToArray());
+            }
+
+            m_TransformsDirty = false;
+            return m_Transforms;
         }
 
 		public Type[] Types

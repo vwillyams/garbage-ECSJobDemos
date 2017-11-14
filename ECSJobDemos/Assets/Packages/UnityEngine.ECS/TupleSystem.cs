@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Reflection;
+using System.Collections.Generic;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Collections;
+using UnityEngine.Jobs;
 
 namespace UnityEngine.ECS
 {
@@ -48,17 +51,20 @@ namespace UnityEngine.ECS
             }
         }
 
-		FieldInfo 							m_EntityArrayInjection;
+	    FieldInfo 							m_EntityArrayInjection;
+	    FieldInfo 							m_TransformAccessArrayInjections;
 
         TupleInjectionData[]                m_ComponentDataInjections;
         TupleInjectionData[]                m_ComponentInjections;
 
         ComponentGroup 						m_EntityGroup;
 
-		internal TupleSystem(EntityManager entityManager, TupleSystem.TupleInjectionData[] componentDataInjections, TupleSystem.TupleInjectionData[] componentInjections, FieldInfo entityArrayInjection, UnityEngine.Jobs.TransformAccessArray transforms)
+        FieldInfo 							m_GroupField;
+        
+		internal TupleSystem(EntityManager entityManager, FieldInfo groupField, TupleSystem.TupleInjectionData[] componentDataInjections, TupleSystem.TupleInjectionData[] componentInjections, FieldInfo entityArrayInjection, FieldInfo transformAccessArrayInjection)
 		{
-            var transformsCount = transforms.IsCreated ? 1 : 0;
-			var requiredComponentTypes = new ComponentType[componentInjections.Length + componentDataInjections.Length + transformsCount ];
+            var transformsCount = transformAccessArrayInjection != null ? 1 : 0;
+			var requiredComponentTypes = new ComponentType[componentInjections.Length + componentDataInjections.Length + transformsCount];
 
             for (int i = 0; i != componentDataInjections.Length; i++)
                 requiredComponentTypes[i] = new ComponentType(componentDataInjections[i].genericType, componentDataInjections[i].isReadOnly);
@@ -69,18 +75,20 @@ namespace UnityEngine.ECS
 		    if (transformsCount != 0)
 		        requiredComponentTypes[componentInjections.Length + componentDataInjections.Length] = typeof(Transform);
 
-            m_EntityGroup = entityManager.CreateComponentGroup(transforms, requiredComponentTypes);
+            m_EntityGroup = entityManager.CreateComponentGroup(requiredComponentTypes);
 
             m_ComponentDataInjections = componentDataInjections;
             m_ComponentInjections = componentInjections;
             m_EntityArrayInjection = entityArrayInjection;
+			m_TransformAccessArrayInjections = transformAccessArrayInjection;
+
+			m_GroupField = groupField;
 
             for (int i = 0; i != m_ComponentDataInjections.Length;i++)
             {
                 var injectionType = typeof(UpdateInjectionComponentDataArray<>).MakeGenericType(m_ComponentDataInjections[i].genericType);
                 m_ComponentDataInjections[i].injection = (IUpdateInjection)Activator.CreateInstance(injectionType);
             }
-
 
             for (int i = 0; i != m_ComponentInjections.Length; i++)
             {
@@ -99,20 +107,109 @@ namespace UnityEngine.ECS
 
         public void UpdateInjection(object targetObject)
         {
+            object groupObject = Activator.CreateInstance(m_GroupField.FieldType);
+
             for (var i = 0; i != m_ComponentDataInjections.Length; i++)
-                m_ComponentDataInjections[i].injection.UpdateInjection(targetObject, m_EntityGroup, m_ComponentDataInjections[i]);
+                m_ComponentDataInjections[i].injection.UpdateInjection(groupObject, m_EntityGroup, m_ComponentDataInjections[i]);
 
             for (var i = 0; i != m_ComponentInjections.Length; i++)
-                m_ComponentInjections[i].injection.UpdateInjection(targetObject, m_EntityGroup, m_ComponentInjections[i]);
+                m_ComponentInjections[i].injection.UpdateInjection(groupObject, m_EntityGroup, m_ComponentInjections[i]);
 
-            m_EntityGroup.UpdateTransformAccessArray();
-            
+	        if (m_TransformAccessArrayInjections != null)
+	        {
+		        var transformsArray = m_EntityGroup.GetTransformAccessArray();
+		        UnsafeUtility.SetFieldStruct(groupObject, m_TransformAccessArrayInjections, ref transformsArray);
+	        }
+	        
             if (m_EntityArrayInjection != null)
             {
                 var entityArray = m_EntityGroup.GetEntityArray();
-                UnsafeUtility.SetFieldStruct(targetObject, m_EntityArrayInjection, ref entityArray);
+                UnsafeUtility.SetFieldStruct(groupObject, m_EntityArrayInjection, ref entityArray);
             }
+	        
+            m_GroupField.SetValue(targetObject, groupObject);
         }
+
+	    static public TupleSystem CreateTupleSystem(Type injectedGroupType, FieldInfo groupField, EntityManager entityManager)
+	    {
+		    FieldInfo entityArrayField;
+		    FieldInfo transformAccessArrayField;
+		    var componentDataInjections = new List<TupleSystem.TupleInjectionData>();
+		    var componentInjections = new List<TupleSystem.TupleInjectionData>();
+		    var error = CollectInjectedGroup(injectedGroupType, out entityArrayField, out transformAccessArrayField, componentDataInjections, componentInjections);
+		    if (error != null)
+		    {
+			    //@TODO: Throw expceptions in case of error?
+			    Debug.LogError(error);
+			    return null;
+		    }
+
+		    return new TupleSystem(entityManager, groupField, componentDataInjections.ToArray(), componentInjections.ToArray(), entityArrayField, transformAccessArrayField);
+	    }
+
+	    static public TupleSystem[] InjectComponentGroups(Type componentSystemType, EntityManager entityManager)
+	    {
+		    var fields = componentSystemType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+		    var tuples = new List<TupleSystem>();
+		    foreach (var field in fields)
+		    {
+			    var attr = field.GetCustomAttributes(typeof(InjectComponentGroup), true);
+
+			    if (attr.Length != 0)
+				    tuples.Add(CreateTupleSystem(field.FieldType, field, entityManager));
+		    }
+
+		    return tuples.ToArray();
+	    }
+
+	    static string CollectInjectedGroup(Type injectedGroupType, out FieldInfo entityArrayField, out FieldInfo transformAccessArrayField, List<TupleSystem.TupleInjectionData> componentDataInjections, List<TupleSystem.TupleInjectionData> componentInjections)
+	    {
+			//@TODO: Improved error messages... should include full struct pathname etc.
+		    
+		    var fields = injectedGroupType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+		    var	injections = new List<TupleSystem.TupleInjectionData>();
+		    transformAccessArrayField = null;
+		    entityArrayField = null;
+
+			foreach(var field in fields)
+    		{
+				var isReadOnly = field.GetCustomAttributes(typeof(ReadOnlyAttribute), true).Length != 0;
+
+				if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(ComponentDataArray<>))
+				{
+					componentDataInjections.Add (new TupleSystem.TupleInjectionData (field, typeof(ComponentDataArray<>), field.FieldType.GetGenericArguments () [0], isReadOnly));
+				}
+				else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(ComponentArray<>))
+				{
+					if (isReadOnly)
+						return "[ReadOnly] may not be used on ComponentArray<>, it can only be used on ComponentDataArray<>";
+					componentInjections.Add (new TupleSystem.TupleInjectionData (field, typeof(ComponentArray<>), field.FieldType.GetGenericArguments () [0], false));
+				}
+				else if (field.FieldType == typeof(TransformAccessArray))
+				{
+					if (isReadOnly)
+						return "[ReadOnly] may not be used on a TransformAccessArray only on ComponentDataArray<>";
+					// Error on multiple transformAccessArray
+					if (transformAccessArrayField != null)
+						return "A [InjectComponentGroup] struct, may only contain a single TransformAccessArray";
+					transformAccessArrayField = field;
+				}
+				else if (field.FieldType == typeof(EntityArray))
+				{
+					// Error on multiple EntityArray
+					if (entityArrayField != null)
+						return "A [InjectComponentGroup] struct, may only contain a single EntityArray";
+					
+					entityArrayField = field;
+				}
+				else
+				{
+					return "[InjectComponentGroup] may only be used on ComponentDataArray<>, ComponentArray<> or TransformAccessArray";
+				}
+    		}
+
+		    return null;
+	    }
 
     }
 }

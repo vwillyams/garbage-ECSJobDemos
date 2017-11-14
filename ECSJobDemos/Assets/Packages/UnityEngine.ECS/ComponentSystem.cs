@@ -33,8 +33,8 @@ namespace UnityEngine.ECS
     		base.OnCreateManager(capacity);
 
             m_SafetyManager = m_EntityManager.ComponentJobSafetyManager;
-			InjectTuples.CreateTuplesInjection (GetType(), this, out m_Tuples);
-		    
+
+		    m_Tuples = TupleSystem.InjectComponentGroups(GetType(), m_EntityManager);
 		    ComponentGroup.ExtractJobDependencyTypes(ComponentGroups, out m_JobDependencyForReadingManagers, out m_JobDependencyForWritingManagers);
     	}
 

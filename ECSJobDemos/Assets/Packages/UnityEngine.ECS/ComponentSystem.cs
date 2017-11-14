@@ -7,7 +7,6 @@ namespace UnityEngine.ECS
     {
         TupleSystem[] 					m_Tuples;
 
-        //@TODO: properly
         public ComponentGroup[] ComponentGroups
         {
 			get

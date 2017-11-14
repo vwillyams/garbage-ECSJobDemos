@@ -14,24 +14,92 @@ namespace Unity.Collections
         public int m_FirstUsedBlock;
 
         public int m_Capacity;
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-        public int m_CurrentCount;
-#endif
+		public int m_FreeCount;
 
         public int m_BlockSize;
         public int m_NumBlocks;
 
-        public int m_CurrentWriteBlockST;
         public int m_CurrentReadIndexInBlock;
 
         public const int IntsPerCacheLine = JobsUtility.CacheLineSize / sizeof(int);
 
         public fixed int m_CurrentWriteBlockTLS[JobsUtility.MaxJobThreadCount * IntsPerCacheLine];
+        public fixed int m_FreeCountTLS[JobsUtility.MaxJobThreadCount * IntsPerCacheLine];
 
         public static int* GetBlockLengths<T>(NativeQueueData* data) where T : struct
         {
             return (int*)(((Byte*)data->m_Data) + data->m_BlockSize * UnsafeUtility.SizeOf<T>() * data->m_NumBlocks);
         }
+
+		public static bool ReduceFreeCountMT(NativeQueueData* data, int threadIndex)
+		{
+			if (data->m_FreeCountTLS[threadIndex * IntsPerCacheLine] > 0)
+			{
+				int count = Interlocked.Decrement(ref data->m_FreeCountTLS[threadIndex * IntsPerCacheLine]);
+				if (count >= 0)
+					return true;
+			}
+			if (data->m_FreeCount > 0)
+			{
+				data->m_FreeCountTLS[threadIndex * IntsPerCacheLine] = -0xffff;
+				// Grab some data from the shared cache
+				int count = Interlocked.Add(ref data->m_FreeCount, -16) + 16;
+				count = Math.Min(16, count);
+				if (count > 0)
+				{
+					data->m_FreeCountTLS[threadIndex * IntsPerCacheLine] = count-1;
+					return true;
+				}
+			}
+			// Try to steal a single item from another worker
+			bool again = true;
+			while (again)
+			{
+				again = false;
+				for (int other = (threadIndex+1) % JobsUtility.MaxJobThreadCount; other != threadIndex; other = (other+1) % JobsUtility.MaxJobThreadCount)
+				{
+					while (true)
+					{
+						int otherCount = data->m_FreeCountTLS[other * IntsPerCacheLine];
+						if (otherCount < 0)
+						{
+							if (otherCount == -0xffff)
+								again = true;
+							break;
+						}
+						if (Interlocked.CompareExchange(ref data->m_FreeCountTLS[other * IntsPerCacheLine], otherCount - 1, otherCount) == otherCount)
+							return true;
+					}
+				}
+			}
+			return false;
+		}
+		public static bool ReduceFreeCountST(NativeQueueData* data)
+		{
+			if (data->m_FreeCountTLS[0] > 0)
+			{
+				--data->m_FreeCountTLS[0];
+				return true;
+			}
+			if (data->m_FreeCount > 0)
+			{
+				// Grab some data from the shared cache
+				int count = Math.Min(16, data->m_FreeCount);
+				data->m_FreeCount -= count;
+				data->m_FreeCountTLS[0] += count - 1;
+				return true;
+			}
+			// Try to steal a single item from another worker
+			for (int other = 1 % JobsUtility.MaxJobThreadCount; other != 0; other = (other+1) % JobsUtility.MaxJobThreadCount)
+			{
+				if (data->m_FreeCountTLS[other * IntsPerCacheLine] > 0)
+				{
+					--data->m_FreeCountTLS[other * IntsPerCacheLine];
+					return true;
+				}
+			}
+			return false;
+		}
 
         public static int AllocateWriteBlockMT<T>(NativeQueueData* data, int threadIndex) where T : struct
         {
@@ -63,10 +131,13 @@ namespace Unity.Collections
             NativeQueueData* data = (NativeQueueData*)outBuf;
             data->m_NextFreeBlock = 0;
             data->m_FirstUsedBlock = 0;
-            data->m_CurrentWriteBlockST = -1;
             data->m_CurrentReadIndexInBlock = 0;
+			data->m_FreeCount = capacity;
             for (int tls = 0; tls < JobsUtility.MaxJobThreadCount; ++tls)
+			{
                 data->m_CurrentWriteBlockTLS[tls * IntsPerCacheLine] = -1;
+                data->m_FreeCountTLS[tls * IntsPerCacheLine] = 0;
+			}
 
             data->m_BlockSize = (JobsUtility.CacheLineSize + UnsafeUtility.SizeOf<T>() - 1) / UnsafeUtility.SizeOf<T>();
             // Round up the capacity to be an even number of blocks, add the number of threads as extra overhead since threads can allocate only one item from the block
@@ -76,9 +147,6 @@ namespace Unity.Collections
                 data->m_NumBlocks = 2;
 
             data->m_Capacity = capacity;
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            data->m_CurrentCount = 0;
-#endif
 
             int totalSizeInBytes = (64 + data->m_BlockSize * UnsafeUtility.SizeOf<T>()) * data->m_NumBlocks;
 
@@ -94,6 +162,8 @@ namespace Unity.Collections
 
             if (data->m_Capacity > newCapacity)
                 throw new System.Exception("Shrinking a queue is not supported");
+
+			data->m_FreeCount += newCapacity - data->m_Capacity;
 
             int newBlockSize = (JobsUtility.CacheLineSize + UnsafeUtility.SizeOf<T>() - 1) / UnsafeUtility.SizeOf<T>();
             int newNumBlocks = (newCapacity + newBlockSize - 1) / newBlockSize + JobsUtility.MaxJobThreadCount;
@@ -128,9 +198,13 @@ namespace Unity.Collections
                     i = (i + 1) % data->m_NumBlocks;
                 }
             }
-            data->m_CurrentWriteBlockST = -1;
             for (int tls = 0; tls < JobsUtility.MaxJobThreadCount; ++tls)
+			{
                 data->m_CurrentWriteBlockTLS[tls * IntsPerCacheLine] = -1;
+				if (data->m_FreeCountTLS[tls * IntsPerCacheLine] > 0)
+					data->m_FreeCount += data->m_FreeCountTLS[tls * IntsPerCacheLine];
+                data->m_FreeCountTLS[tls * IntsPerCacheLine] = 0;
+			}
 
             UnsafeUtility.Free(data->m_Data, label);
             data->m_Data = newData;
@@ -142,7 +216,7 @@ namespace Unity.Collections
             data->m_NextFreeBlock = count / newBlockSize;
             if (count % newBlockSize > 0)
             {
-                data->m_CurrentWriteBlockST = data->m_NextFreeBlock;
+                data->m_CurrentWriteBlockTLS[0] = data->m_NextFreeBlock;
                 data->m_NextFreeBlock = (data->m_NextFreeBlock + 1) % newNumBlocks;
             }
             blockLengths = GetBlockLengths<T>(data);
@@ -199,16 +273,11 @@ namespace Unity.Collections
 #endif
 
 				NativeQueueData* data = (NativeQueueData*)m_Buffer;
-				int* blockLengths = NativeQueueData.GetBlockLengths<T>(data);
-				int i = data->m_FirstUsedBlock;
-				if (blockLengths[i*NativeQueueData.IntsPerCacheLine] == 0)
-					return 0;
-				int count = blockLengths[i*NativeQueueData.IntsPerCacheLine] - data->m_CurrentReadIndexInBlock;
-				i = (i+1)%data->m_NumBlocks;
-				while (i != data->m_NextFreeBlock)
+				int count = data->m_Capacity - data->m_FreeCount;
+				for (int tls = 0; tls < JobsUtility.MaxJobThreadCount; ++tls)
 				{
-					count += blockLengths[i*NativeQueueData.IntsPerCacheLine];
-					i = (i+1)%data->m_NumBlocks;
+					if (data->m_FreeCountTLS[tls * NativeQueueData.IntsPerCacheLine] > 0)
+						count -= data->m_FreeCountTLS[tls * NativeQueueData.IntsPerCacheLine];
 				}
 				return count;
 			}
@@ -250,12 +319,12 @@ namespace Unity.Collections
 			{
 				int nextUsedBlock = (firstUsedBlock+1) % data->m_NumBlocks;
 				if (blockLengths[nextUsedBlock*NativeQueueData.IntsPerCacheLine] == 0 && blockLengths[firstUsedBlock*NativeQueueData.IntsPerCacheLine] != data->m_BlockSize)
-					throw new InvalidOperationException("Trying to dequeue from an empty queue");
+					throw new InvalidOperationException("Trying to peek from an empty queue");
 				firstUsedBlock = nextUsedBlock;
 				readIndexInBlock = 0;
 			}
 			if (blockLengths[firstUsedBlock*NativeQueueData.IntsPerCacheLine] == 0)
-				throw new InvalidOperationException("Trying to dequeue from an empty queue");
+				throw new InvalidOperationException("Trying to peek from an empty queue");
 
 			int idx = firstUsedBlock * data->m_BlockSize + readIndexInBlock;
 			return UnsafeUtility.ReadArrayElement<T>(data->m_Data, idx);
@@ -274,30 +343,37 @@ namespace Unity.Collections
 #endif
 
 			NativeQueueData* data = (NativeQueueData*)m_Buffer;
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-			// FIXME: current count needs to be fixed to be availble in player builds
-			if (data->m_CurrentCount >= data->m_Capacity)
+			bool isFull = (data->m_FreeCount == 0);
+			for (int tls = 0; tls < JobsUtility.MaxJobThreadCount && isFull; ++tls)
+				isFull = (data->m_FreeCountTLS[tls * NativeQueueData.IntsPerCacheLine] == 0);
+			if (isFull)
 				Capacity = GrowCapacity(Capacity);
-			++data->m_CurrentCount;
-#endif
 
             int* blockLengths = NativeQueueData.GetBlockLengths<T>(data);
-			if (data->m_CurrentWriteBlockST < 0)
+			if (data->m_CurrentWriteBlockTLS[0] < 0)
 			{
 				while (data->m_NextFreeBlock == data->m_FirstUsedBlock && blockLengths[data->m_FirstUsedBlock*NativeQueueData.IntsPerCacheLine] > 0)
 				{
 					Capacity = GrowCapacity(Capacity);
 				}
-				data->m_CurrentWriteBlockST = data->m_NextFreeBlock;
-				blockLengths[data->m_CurrentWriteBlockST*NativeQueueData.IntsPerCacheLine] = 0;
+				data->m_CurrentWriteBlockTLS[0] = data->m_NextFreeBlock;
+				blockLengths[data->m_CurrentWriteBlockTLS[0]*NativeQueueData.IntsPerCacheLine] = 0;
 				data->m_NextFreeBlock = (data->m_NextFreeBlock + 1) % data->m_NumBlocks;
 			}
 
-			int idx = data->m_CurrentWriteBlockST * data->m_BlockSize + blockLengths[data->m_CurrentWriteBlockST*NativeQueueData.IntsPerCacheLine];
+			// Reduce free count by 1
+			if (!NativeQueueData.ReduceFreeCountST(data))
+			{
+				Capacity = GrowCapacity(Capacity);
+				Enqueue(entry);
+				return;
+			}
+
+			int idx = data->m_CurrentWriteBlockTLS[0] * data->m_BlockSize + blockLengths[data->m_CurrentWriteBlockTLS[0]*NativeQueueData.IntsPerCacheLine];
 			UnsafeUtility.WriteArrayElement(data->m_Data, idx, entry);
-			++blockLengths[data->m_CurrentWriteBlockST*NativeQueueData.IntsPerCacheLine];
-			if (blockLengths[data->m_CurrentWriteBlockST*NativeQueueData.IntsPerCacheLine] == data->m_BlockSize)
-				data->m_CurrentWriteBlockST = -1;
+			++blockLengths[data->m_CurrentWriteBlockTLS[0]*NativeQueueData.IntsPerCacheLine];
+			if (blockLengths[data->m_CurrentWriteBlockTLS[0]*NativeQueueData.IntsPerCacheLine] == data->m_BlockSize)
+				data->m_CurrentWriteBlockTLS[0] = -1;
 		}
 
 		unsafe public T Dequeue()
@@ -319,17 +395,15 @@ namespace Unity.Collections
 					if (data->m_CurrentWriteBlockTLS[tls*NativeQueueData.IntsPerCacheLine] == data->m_FirstUsedBlock)
 						data->m_CurrentWriteBlockTLS[tls*NativeQueueData.IntsPerCacheLine] = -1;
 				}
-				if (data->m_CurrentWriteBlockST == data->m_FirstUsedBlock)
-					data->m_CurrentWriteBlockST = -1;
+				if (data->m_CurrentWriteBlockTLS[0] == data->m_FirstUsedBlock)
+					data->m_CurrentWriteBlockTLS[0] = -1;
 				data->m_FirstUsedBlock = nextUsedBlock;
 				data->m_CurrentReadIndexInBlock = 0;
 			}
 			if (blockLengths[data->m_FirstUsedBlock*NativeQueueData.IntsPerCacheLine] == 0)
 				throw new InvalidOperationException("Trying to dequeue from an empty queue");
 
-			#if ENABLE_UNITY_COLLECTIONS_CHECKS
-			--data->m_CurrentCount;
-			#endif
+			++data->m_FreeCount;
 
             int idx = data->m_FirstUsedBlock * data->m_BlockSize + data->m_CurrentReadIndexInBlock;
 			data->m_CurrentReadIndexInBlock++;
@@ -344,11 +418,14 @@ namespace Unity.Collections
 			NativeQueueData* data = (NativeQueueData*)m_Buffer;
 			data->m_NextFreeBlock = 0;
 			data->m_FirstUsedBlock = 0;
-			data->m_CurrentWriteBlockST = -1;
 			data->m_CurrentReadIndexInBlock = 0;
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-			data->m_CurrentCount = 0;
-#endif
+			data->m_FreeCount = data->m_Capacity;
+
+            for (int tls = 0; tls < JobsUtility.MaxJobThreadCount; ++tls)
+			{
+                data->m_CurrentWriteBlockTLS[tls * NativeQueueData.IntsPerCacheLine] = -1;
+				data->m_FreeCountTLS[tls * NativeQueueData.IntsPerCacheLine] = 0;
+			}
 
             int* blockLengths = NativeQueueData.GetBlockLengths<T>(data);
 			for (int i = 0 ; i < data->m_NumBlocks; ++i)
@@ -415,10 +492,8 @@ namespace Unity.Collections
 #endif
 				NativeQueueData* data = (NativeQueueData*)m_Buffer;
 
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-				if (data->m_CurrentCount >= data->m_Capacity || Interlocked.Increment(ref data->m_CurrentCount) > data->m_Capacity)
+				if (!NativeQueueData.ReduceFreeCountMT(data, m_ThreadIndex))
 					throw new InvalidOperationException("Queue full");
-#endif
 				int* blockLengths = NativeQueueData.GetBlockLengths<T>(data);
 				int writeBlock = NativeQueueData.AllocateWriteBlockMT<T>(data, m_ThreadIndex);
 				int idx = writeBlock * data->m_BlockSize + blockLengths[writeBlock*NativeQueueData.IntsPerCacheLine];

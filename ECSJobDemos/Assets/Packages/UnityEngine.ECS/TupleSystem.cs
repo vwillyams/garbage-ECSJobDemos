@@ -8,12 +8,12 @@ namespace UnityEngine.ECS
     {
         internal struct TupleInjectionData
         {
-            public FieldInfo field;
-            public Type containerType;
-            public Type genericType;
-            public bool isReadOnly;
+            public FieldInfo           field;
+            public Type                containerType;
+            public Type                genericType;
+            public bool                isReadOnly;
 
-            internal IUpdateInjection injection;
+            internal IUpdateInjection  injection;
 
             public TupleInjectionData(FieldInfo field, Type containerType, Type genericType, bool isReadOnly)
             {
@@ -34,7 +34,7 @@ namespace UnityEngine.ECS
         {
             public void UpdateInjection(object targetObject, ComponentGroup group, TupleInjectionData tuple)
             {
-                var array = group.GetComponentDataArray<T>(tuple.isReadOnly);
+                var array = group.GetComponentDataArray<T>();
                 UnsafeUtility.SetFieldStruct(targetObject, tuple.field, ref array);
             }
         }
@@ -56,13 +56,18 @@ namespace UnityEngine.ECS
         ComponentGroup 						m_EntityGroup;
 
 		internal TupleSystem(EntityManager entityManager, TupleSystem.TupleInjectionData[] componentDataInjections, TupleSystem.TupleInjectionData[] componentInjections, FieldInfo entityArrayInjection, UnityEngine.Jobs.TransformAccessArray transforms)
-        {
-			var requiredComponentTypes = new ComponentType[componentInjections.Length + componentDataInjections.Length];
+		{
+            var transformsCount = transforms.IsCreated ? 1 : 0;
+			var requiredComponentTypes = new ComponentType[componentInjections.Length + componentDataInjections.Length + transformsCount ];
 
             for (int i = 0; i != componentDataInjections.Length; i++)
-				requiredComponentTypes[i] = componentDataInjections [i].genericType;
+                requiredComponentTypes[i] = new ComponentType(componentDataInjections[i].genericType, componentDataInjections[i].isReadOnly);
+				
             for (int i = 0; i != componentInjections.Length; i++)
                 requiredComponentTypes[i + componentDataInjections.Length] = componentInjections[i].genericType;
+		    
+		    if (transformsCount != 0)
+		        requiredComponentTypes[componentInjections.Length + componentDataInjections.Length] = typeof(Transform);
 
             m_EntityGroup = entityManager.CreateComponentGroup(transforms, requiredComponentTypes);
 
@@ -84,30 +89,13 @@ namespace UnityEngine.ECS
             }
         }
 
-		public ComponentDataArray<T> GetComponentDataArray<T>(bool readOnly) where T : struct, IComponentData
-		{
-			return m_EntityGroup.GetComponentDataArray<T>(readOnly);
-		}
-
-		public ComponentArray<T> GetComponentArray<T>() where T : Component
-		{
-            return m_EntityGroup.GetComponentArray<T>();
-        }
-
 		public void Dispose()
 		{
 			m_EntityGroup.Dispose ();
 			m_EntityGroup = null;
 		}
 
-        //@TODO:
-        public void UpdateTransformAccessArray()
-        {
-            m_EntityGroup.UpdateTransformAccessArray();
-        }
-        public EntityArray GetEntityArray() { return m_EntityGroup.GetEntityArray(); }
 		public ComponentGroup EntityGroup          { get { return m_EntityGroup; } }
-
 
         public void UpdateInjection(object targetObject)
         {
@@ -117,10 +105,11 @@ namespace UnityEngine.ECS
             for (var i = 0; i != m_ComponentInjections.Length; i++)
                 m_ComponentInjections[i].injection.UpdateInjection(targetObject, m_EntityGroup, m_ComponentInjections[i]);
 
-            UpdateTransformAccessArray();
+            m_EntityGroup.UpdateTransformAccessArray();
+            
             if (m_EntityArrayInjection != null)
             {
-                var entityArray = GetEntityArray();
+                var entityArray = m_EntityGroup.GetEntityArray();
                 UnsafeUtility.SetFieldStruct(targetObject, m_EntityArrayInjection, ref entityArray);
             }
         }

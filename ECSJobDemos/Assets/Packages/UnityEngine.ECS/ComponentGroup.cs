@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine.Jobs;
@@ -31,7 +32,7 @@ namespace UnityEngine.ECS
                 do
                 {
                     grp = (EntityGroupData*)grpPtr;
-                    if (ComponentType.CompareArray(grp->requiredComponents, grp->numRequiredComponents, requiredTypes, requiredCount))
+                    if (ComponentType.CompareArray(grp->requiredComponents, grp->requiredComponentsCount, requiredTypes, requiredCount))
                         return new ComponentGroup(grp, m_JobSafetyManager, typeMan, trans);
                 }
                 while (m_GroupLookup.TryGetNextValue(out grpPtr, ref it));
@@ -42,7 +43,7 @@ namespace UnityEngine.ECS
             grp = (EntityGroupData*)m_GroupDataChunkAllocator.Allocate(sizeof(EntityGroupData), 8);
             grp->prevGroup = m_LastGroupData;
             m_LastGroupData = grp;
-            grp->numRequiredComponents = requiredCount;
+            grp->requiredComponentsCount = requiredCount;
             grp->requiredComponents = (ComponentType*)m_GroupDataChunkAllocator.Construct(sizeof(ComponentType) * requiredCount, 4, requiredTypes);
 
             //@TODO: Allow creation of ComponentGroup to understand read only types...
@@ -82,10 +83,10 @@ namespace UnityEngine.ECS
 
         void AddArchetypeIfMatching(Archetype* archetype, EntityGroupData* group)
         {
-            if (group->numRequiredComponents > archetype->typesCount)
+            if (group->requiredComponentsCount > archetype->typesCount)
                 return;
             int typeI = 0;
-            for (int i = 0; i < group->numRequiredComponents; ++i, ++typeI)
+            for (int i = 0; i < group->requiredComponentsCount; ++i, ++typeI)
             {
                 while (archetype->types[typeI].typeIndex < group->requiredComponents[i].typeIndex && typeI < archetype->typesCount)
                     ++typeI;
@@ -103,14 +104,14 @@ namespace UnityEngine.ECS
             }
             MatchingArchetypes* match = (MatchingArchetypes*)m_GroupDataChunkAllocator.Allocate(sizeof(MatchingArchetypes), 8);
             match->archetype = archetype;
-            match->archetypeSegments = (ComponentDataArchetypeSegment*)m_GroupDataChunkAllocator.Allocate(group->numRequiredComponents * sizeof(ComponentDataArchetypeSegment), 8);
+            match->archetypeSegments = (ComponentDataArchetypeSegment*)m_GroupDataChunkAllocator.Allocate(group->requiredComponentsCount * sizeof(ComponentDataArchetypeSegment), 8);
             match->next = null;
             if (group->lastMatchingArchetype != null)
                 group->lastMatchingArchetype->next = match;
             else
                 group->firstMatchingArchetype = match;
 
-            for (int component = 0; component < group->numRequiredComponents; ++component)
+            for (int component = 0; component < group->requiredComponentsCount; ++component)
             {
                 match->archetypeSegments[component].archetype = archetype;
                 match->archetypeSegments[component].nextSegment = null;
@@ -141,7 +142,7 @@ namespace UnityEngine.ECS
         public int                  writerTypesCount;
 
         public ComponentType*       requiredComponents;
-        public int                  numRequiredComponents;
+        public int                  requiredComponentsCount;
         public MatchingArchetypes*  firstMatchingArchetype;
         public MatchingArchetypes*  lastMatchingArchetype;
         public EntityGroupData*     prevGroup;
@@ -155,7 +156,7 @@ namespace UnityEngine.ECS
         EntityGroupData*                      m_GroupData;
         ComponentJobSafetyManager             m_SafetyManager;
         ArchetypeManager                      m_TypeManager;
-        TransformAccessArray m_Transforms;
+        TransformAccessArray                  m_Transforms;
         bool                                  m_TransformsDirty;
         MatchingArchetypes*                   m_LastRegisteredListenerArchetype;
 
@@ -200,12 +201,55 @@ namespace UnityEngine.ECS
             m_TransformsDirty = true;
         }
 
+        bool IsReadOnly(int componentIndex)
+        {
+            return m_GroupData->requiredComponents[componentIndex].readOnly != 0;
+        }
+
+        internal static void ExtractJobDependencyTypes(ComponentGroup[] groups, out int[] readingTypes, out int[] writingTypes)
+        {
+            var reading = new List<int>();
+            var writing = new List<int>();
+
+            foreach (var group in groups)
+            {
+                for (int i = 0;i != group.m_GroupData->requiredComponentsCount;i++)
+                {
+                    ComponentType type = group.m_GroupData->requiredComponents[i];
+                    if (!type.RequiresJobDependency)
+                        continue;
+
+                    if (type.readOnly != 0)
+                    {
+                        if (reading.Contains(type.typeIndex))
+                            continue;
+                        if (writing.Contains(type.typeIndex))
+                            continue;
+
+                        reading.Add(type.typeIndex);
+                    }
+                    else
+                    {
+                        if (reading.Contains(type.typeIndex))
+                            reading.Remove(type.typeIndex);
+                        if (writing.Contains(type.typeIndex))
+                            continue;
+                        writing.Add(type.typeIndex);
+                    }
+                }
+            }
+
+            readingTypes = reading.ToArray();
+            writingTypes = writing.ToArray();
+        }
+
+
         ComponentDataArrayCache GetComponentDataArrayCache(int componentType, out int outLength, out int componentIndex)
         {
             componentIndex = 0;
-            while (componentIndex < m_GroupData->numRequiredComponents && m_GroupData->requiredComponents[componentIndex].typeIndex != componentType)
+            while (componentIndex < m_GroupData->requiredComponentsCount && m_GroupData->requiredComponents[componentIndex].typeIndex != componentType)
                 ++componentIndex;
-            if (componentIndex >= m_GroupData->numRequiredComponents)
+            if (componentIndex >= m_GroupData->requiredComponentsCount)
             {
                 throw new InvalidOperationException(string.Format("Trying to get ComponentDataArray for {0} but the required component type was not declared in the EntityGroup.", TypeManager.GetType(componentType)));
             }
@@ -228,8 +272,7 @@ namespace UnityEngine.ECS
             return new ComponentDataArrayCache(last->archetypeSegments + componentIndex, length);
         }
 
-
-        public ComponentDataArray<T> GetComponentDataArray<T>(bool readOnly = false) where T : struct, IComponentData
+        public ComponentDataArray<T> GetComponentDataArray<T>() where T : struct, IComponentData
         {
             int length;
             int componentIndex;
@@ -237,19 +280,19 @@ namespace UnityEngine.ECS
 
             var cache = GetComponentDataArrayCache(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            return new ComponentDataArray<T>(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex), readOnly);
+            return new ComponentDataArray<T>(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex), IsReadOnly(componentIndex));
 #else
 			return new ComponentDataArray<T>(cache, length);
 #endif
         }
 
-        public ComponentDataFixedArray<T> GetComponentDataFixedArray<T>(ComponentType type, bool readOnly = false) where T : struct
+        public ComponentDataFixedArray<T> GetComponentDataFixedArray<T>(ComponentType type) where T : struct
         {
             int length;
             int componentIndex;
             var cache = GetComponentDataArrayCache(type.typeIndex, out length, out componentIndex);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            return new ComponentDataFixedArray<T>(cache, length, 64, m_SafetyManager.GetSafetyHandle(type.typeIndex), readOnly);
+            return new ComponentDataFixedArray<T>(cache, length, 64, m_SafetyManager.GetSafetyHandle(type.typeIndex), false);
 #else
 			return new ComponentDataFixedArray<T>(cache, length, 64);
 #endif
@@ -312,7 +355,7 @@ namespace UnityEngine.ECS
 			get
 			{
 				var types = new List<Type> ();
-				for (int i = 0; i < m_GroupData->numRequiredComponents; ++i)
+				for (int i = 0; i < m_GroupData->requiredComponentsCount; ++i)
 					types.Add(TypeManager.GetType(m_GroupData->requiredComponents[i].typeIndex));
 
 				return types.ToArray ();
@@ -323,12 +366,12 @@ namespace UnityEngine.ECS
         {
             m_SafetyManager.CompleteDependencies(m_GroupData->readerTypes, m_GroupData->readerTypesCount, m_GroupData->writerTypes, m_GroupData->writerTypesCount);
         }
-/*TODO:
+
         public JobHandle GetDependency()
         {
-            return new JobHandle();
+            return m_SafetyManager.GetDependency(m_GroupData->readerTypes, m_GroupData->readerTypesCount, m_GroupData->writerTypes, m_GroupData->writerTypesCount);
         }
-*/
+
         public void AddDependency(JobHandle job)
         {
             m_SafetyManager.AddDependency(m_GroupData->readerTypes, m_GroupData->readerTypesCount, m_GroupData->writerTypes, m_GroupData->writerTypesCount, job);

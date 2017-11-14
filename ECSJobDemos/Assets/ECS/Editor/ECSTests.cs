@@ -343,7 +343,7 @@ namespace UnityEngine.ECS.Tests
         [Test]
         unsafe public void CreateAndDestroyFixedArray()
         {
-            var fixedArrayType = new ComponentType(typeof(int), 64);
+            var fixedArrayType = ComponentType.FixedArray(typeof(int), 64);
             var entities = new NativeArray<Entity>(100, Allocator.Persistent);
             m_Manager.CreateEntity(m_Manager.CreateArchetype(fixedArrayType), entities);
 
@@ -429,5 +429,13 @@ namespace UnityEngine.ECS.Tests
             copied.Dispose();
             entities.Dispose();
         }
+		
+		[Test]
+		public void ReadOnlyAndNonReadOnlyArchetypeAreEqual()
+		{
+			var arch = m_Manager.CreateArchetype(ComponentType.ReadOnly(typeof(EcsTestData)));
+			var arch2 = m_Manager.CreateArchetype(typeof(EcsTestData));
+			Assert.AreEqual(arch, arch2);
+		}
 	}
 }

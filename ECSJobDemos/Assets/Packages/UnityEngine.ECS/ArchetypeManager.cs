@@ -10,6 +10,8 @@ namespace UnityEngine.ECS
 		void OnManagedObjectModified();
 	}
 	
+	
+	
     unsafe struct Chunk
 	{
 		public Archetype*   archetype;
@@ -23,6 +25,47 @@ namespace UnityEngine.ECS
 		public Chunk*  	    next;
 	}
 
+	struct ComponentTypeInArchetype
+	{
+		public int typeIndex;
+		public int sharedComponentIndex;
+
+		public ComponentTypeInArchetype(ComponentType type)
+		{
+			typeIndex = type.typeIndex;
+			sharedComponentIndex = type.sharedComponentIndex;
+		}
+
+		static public bool operator ==(ComponentTypeInArchetype lhs, ComponentTypeInArchetype rhs)
+		{
+			return lhs.typeIndex == rhs.typeIndex && lhs.sharedComponentIndex == rhs.sharedComponentIndex;
+		}
+		static public bool operator !=(ComponentTypeInArchetype lhs, ComponentTypeInArchetype rhs)
+		{
+			return lhs.typeIndex != rhs.typeIndex || lhs.sharedComponentIndex != rhs.sharedComponentIndex;
+		}
+		static public bool operator <(ComponentTypeInArchetype lhs, ComponentTypeInArchetype rhs)
+		{
+			return lhs.typeIndex != rhs.typeIndex ? lhs.typeIndex < rhs.typeIndex : lhs.sharedComponentIndex < rhs.sharedComponentIndex;
+		}
+		static public bool operator >(ComponentTypeInArchetype lhs, ComponentTypeInArchetype rhs)
+		{
+			return lhs.typeIndex != rhs.typeIndex ? lhs.typeIndex > rhs.typeIndex : lhs.sharedComponentIndex > rhs.sharedComponentIndex;
+		}
+		
+		public static unsafe bool CompareArray(ComponentTypeInArchetype* type1, int typeCount1, ComponentTypeInArchetype* type2, int typeCount2)
+		{
+			if (typeCount1 != typeCount2)
+				return false;
+			for (int i = 0; i < typeCount1; ++i)
+			{
+				if (type1[i] != type2[i])
+					return false;
+			}
+			return true;		
+		}
+	}
+
 	unsafe struct Archetype
 	{
 		public Chunk*           first;
@@ -31,8 +74,8 @@ namespace UnityEngine.ECS
 		public int              entityCount;
 		public int              chunkCapacity;
 
-        public ComponentType*   types;
-        public int              typesCount;
+        public ComponentTypeInArchetype*   types;
+        public int              		   typesCount;
 
 		// Index matches archetype types
         public int*   	        offsets;
@@ -119,7 +162,7 @@ namespace UnityEngine.ECS
 
 
 
-        public Archetype* GetArchetype(ComponentType* types, int count, EntityGroupManager groupManager, SharedComponentDataManager sharedComponentManager)
+        public Archetype* GetArchetype(ComponentTypeInArchetype* types, int count, EntityGroupManager groupManager, SharedComponentDataManager sharedComponentManager)
 		{
 			uint hash = HashUtility.fletcher32((ushort*)types, count * sizeof(ComponentType) / sizeof(ushort));
 			IntPtr typePtr;
@@ -130,14 +173,14 @@ namespace UnityEngine.ECS
 				do
 				{
 					type = (Archetype*)typePtr;
-					if (ComponentType.CompareArray(type->types, type->typesCount, types, count))
+					if (ComponentTypeInArchetype.CompareArray(type->types, type->typesCount, types, count))
 						return type;
 				} while (m_TypeLookup.TryGetNextValue(out typePtr, ref it));
 			}
 			// This is a new archetype, allocate it and add it to the hash map
             type = (Archetype*)m_ArchetypeChunkAllocator.Allocate(sizeof(Archetype), 8);
 			type->typesCount = count;
-            type->types = (ComponentType*)m_ArchetypeChunkAllocator.Construct(sizeof(ComponentType) * count, 4, types);
+            type->types = (ComponentTypeInArchetype*)m_ArchetypeChunkAllocator.Construct(sizeof(ComponentTypeInArchetype) * count, 4, types);
 
 			type->entityCount = 0;
 

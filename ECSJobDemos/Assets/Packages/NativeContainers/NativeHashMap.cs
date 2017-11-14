@@ -5,6 +5,7 @@ using UnityEngine;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Jobs.LowLevel.Unsafe;
 
 namespace Unity.Collections
 {
@@ -27,45 +28,12 @@ namespace Unity.Collections
 		public int				capacity;
 		public int				bucketCapacity;
 		// Add padding between fields to ensure they are on separate cache-lines
-		// FIXME: p2gc does not like fixed arrays in structs, so expand them manually
-		//private fixed byte 		padding1[60];
-		private int padding1_01;
-		private int padding1_02;
-		private int padding1_03;
-		private int padding1_04;
-		private int padding1_05;
-		private int padding1_06;
-		private int padding1_07;
-		private int padding1_08;
-		private int padding1_09;
-		private int padding1_10;
-		private int padding1_11;
-		private int padding1_12;
-		private int padding1_13;
-		private int padding1_14;
-		private int padding1_15;
-		public int				firstFree;
-		// FIXME: p2gc does not like fixed arrays in structs, so expand them manually
-		//private fixed byte 		padding2[60];
-		private int padding2_01;
-		private int padding2_02;
-		private int padding2_03;
-		private int padding2_04;
-		private int padding2_05;
-		private int padding2_06;
-		private int padding2_07;
-		private int padding2_08;
-		private int padding2_09;
-		private int padding2_10;
-		private int padding2_11;
-		private int padding2_12;
-		private int padding2_13;
-		private int padding2_14;
-		private int padding2_15;
+		private fixed byte 		padding1[60];
+        public fixed int firstFreeTLS[JobsUtility.MaxJobThreadCount * IntsPerCacheLine];
 		public int				allocatedIndexLength;
 
 		// 64 is the cache line size on x86, arm usually has 32 - so it is possible to save some memory there
-		private const int cacheLineSize = 64;
+        public const int IntsPerCacheLine = JobsUtility.CacheLineSize / sizeof(int);
 		private const int bucketSizeMultiplier = 2;
 
 		public static int GetBucketSize(int capacity)
@@ -102,7 +70,7 @@ namespace Unity.Collections
 			int keyOffset, nextOffset, bucketOffset;
 			int totalSize = CalculateDataSize<TKey, TValue>(length, bucketLength, out keyOffset, out nextOffset, out bucketOffset);
 			
-			data->values = UnsafeUtility.Malloc ((ulong)totalSize, cacheLineSize, label);
+			data->values = UnsafeUtility.Malloc ((ulong)totalSize, JobsUtility.CacheLineSize, label);
 			data->keys = (IntPtr)((byte*)data->values + keyOffset);
 			data->next = (IntPtr)((byte*)data->values + nextOffset);
 			data->buckets = (IntPtr)((byte*)data->values + bucketOffset);
@@ -120,7 +88,7 @@ namespace Unity.Collections
 			int keyOffset, nextOffset, bucketOffset;
 			int totalSize = CalculateDataSize<TKey, TValue>(newCapacity, newBucketCapacity, out keyOffset, out nextOffset, out bucketOffset);
 			
-			IntPtr newData = UnsafeUtility.Malloc ((ulong)totalSize, cacheLineSize, label);
+			IntPtr newData = UnsafeUtility.Malloc ((ulong)totalSize, JobsUtility.CacheLineSize, label);
 			IntPtr newKeys = (IntPtr)((byte*)newData + keyOffset);
 			IntPtr newNext = (IntPtr)((byte*)newData + nextOffset);
 			IntPtr newBuckets = (IntPtr)((byte*)newData + bucketOffset);
@@ -177,14 +145,14 @@ namespace Unity.Collections
 			int keySize = UnsafeUtility.SizeOf<TKey> ();
 
 			// Offset is rounded up to be an even cacheLineSize
-			keyOffset = (elementSize * length + cacheLineSize - 1);
-			keyOffset -= keyOffset % cacheLineSize;
+			keyOffset = (elementSize * length + JobsUtility.CacheLineSize - 1);
+			keyOffset -= keyOffset % JobsUtility.CacheLineSize;
 
-			nextOffset = (keyOffset + keySize * length + cacheLineSize - 1);
-			nextOffset -= nextOffset % cacheLineSize;
+			nextOffset = (keyOffset + keySize * length + JobsUtility.CacheLineSize - 1);
+			nextOffset -= nextOffset % JobsUtility.CacheLineSize;
 
-			bucketOffset = (nextOffset + UnsafeUtility.SizeOf<int>() * length + cacheLineSize - 1);
-			bucketOffset -= bucketOffset % cacheLineSize;
+			bucketOffset = (nextOffset + UnsafeUtility.SizeOf<int>() * length + JobsUtility.CacheLineSize - 1);
+			bucketOffset -= bucketOffset % JobsUtility.CacheLineSize;
 
 			int totalSize = bucketOffset + UnsafeUtility.SizeOf<int>() * bucketLength;
 			return totalSize;			
@@ -204,47 +172,78 @@ namespace Unity.Collections
 			int* nextPtrs = (int*)data->next;
 			for (int i = 0; i < data->capacity; ++i)
 				nextPtrs[i] = -1;
-			data->firstFree = -1;
+			for (int tls = 0; tls < JobsUtility.MaxJobThreadCount; ++tls)
+				data->firstFreeTLS[tls * NativeHashMapData.IntsPerCacheLine] = -1;
 			data->allocatedIndexLength = 0;
 		}
 		
-		static unsafe private int AllocEntry(NativeHashMapData* data)
+		static unsafe private int AllocEntry(NativeHashMapData* data, int threadIndex)
 		{
 			int idx;
 			int* nextPtrs = (int*)data->next;
-			// Try once to get an item from the free list
-			idx = data->firstFree;
-			if (idx >= 0 && Interlocked.CompareExchange(ref data->firstFree, nextPtrs[idx], idx) == idx)
-			{
-				nextPtrs[idx] = -1;
-				return idx;
-			}
-			// If it failed try to get one from the never-allocated array
-			if (data->allocatedIndexLength < data->capacity)
-			{
-				idx = Interlocked.Increment(ref data->allocatedIndexLength)-1;
-				if (idx < data->capacity)
-					return idx;
-			}
-			// If that also failed hammer on the free list until one is found
 			do
 			{
-				idx = data->firstFree;
-				if (idx < 0 || idx >= data->capacity)
+				idx = data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine];
+				if (idx < 0)
+				{
+					// Try to refill local cache
+					data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine] = -2;
+					// If it failed try to get one from the never-allocated array
+					if (data->allocatedIndexLength < data->capacity)
+					{
+						idx = Interlocked.Add(ref data->allocatedIndexLength, 16)-16;
+						if (idx < data->capacity)
+						{
+							int count = Math.Min(16, data->capacity - idx);
+							for (int i = 1; i < count; ++i)
+							{
+								nextPtrs[idx+i] = idx+i+1;
+							}
+							nextPtrs[idx+count - 1] = -1;
+							nextPtrs[idx] = -1;
+							data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine] = idx + 1;
+							return idx;
+						}
+					}
+					data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine] = -1;
+					// Failed to get any, try to get one from another free list
+					bool again = true;
+					while (again)
+					{
+						again = false;
+						for (int other = (threadIndex + 1) % JobsUtility.MaxJobThreadCount; other != threadIndex; other = (other + 1) % JobsUtility.MaxJobThreadCount)
+						{
+							do
+							{
+								idx = data->firstFreeTLS[other*NativeHashMapData.IntsPerCacheLine];
+								if(idx < 0)
+									break;
+							}
+							while (Interlocked.CompareExchange(ref data->firstFreeTLS[other * NativeHashMapData.IntsPerCacheLine], nextPtrs[idx], idx) != idx);
+							if (idx == -2)
+								again = true;
+							else if (idx >= 0)
+							{
+								nextPtrs[idx] = -1;
+								return idx;
+							}
+						}
+					}
 					throw new System.InvalidOperationException("HashMap is full");
+				}
 			}
-			while (Interlocked.CompareExchange(ref data->firstFree, nextPtrs[idx], idx) != idx);
+			while (Interlocked.CompareExchange(ref data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine], nextPtrs[idx], idx) != idx);
 			nextPtrs[idx] = -1;
-			return idx;			
+			return idx;
 		}
-		static unsafe public bool TryAddAtomic(NativeHashMapData* data, TKey key, TValue item, bool isMultiHashMap)
+		static unsafe public bool TryAddAtomic(NativeHashMapData* data, TKey key, TValue item, bool isMultiHashMap, int threadIndex)
 		{
 			TValue tempItem;
 			NativeMultiHashMapIterator<TKey> tempIt;
 			if (!isMultiHashMap && TryGetFirstValueAtomic(data, key, out tempItem, out tempIt))
 				return false;
 			// Allocate an entry from the free list
-			int idx = AllocEntry(data);
+			int idx = AllocEntry(data, threadIndex);
 
 			// Write the new value to the entry
 			UnsafeUtility.WriteArrayElement (data->keys, idx, key);
@@ -264,9 +263,9 @@ namespace Unity.Collections
 						// Put back the entry in the free list if someone else added it while trying to add
 						do
 						{
-							nextPtrs[idx] = data->firstFree;
+							nextPtrs[idx] = data->firstFreeTLS[threadIndex];
 						} 
-						while (Interlocked.CompareExchange(ref data->firstFree, idx, nextPtrs[idx]) != nextPtrs[idx]);
+						while (Interlocked.CompareExchange(ref data->firstFreeTLS[threadIndex], idx, nextPtrs[idx]) != nextPtrs[idx]);
 
 						return false;
 					}
@@ -283,16 +282,32 @@ namespace Unity.Collections
 				return false;
 			// Allocate an entry from the free list
 			int idx;
+			int* nextPtrs;
 
-			if (data->allocatedIndexLength >= data->capacity && data->firstFree < 0)
+			if (data->allocatedIndexLength >= data->capacity && data->firstFreeTLS[0] < 0)
 			{
-				int newCap = NativeHashMapData.GrowCapacity(data->capacity);
-				NativeHashMapData.ReallocateHashMap<TKey, TValue>(data, newCap, NativeHashMapData.GetBucketSize(newCap), allocation);
+				for (int tls = 1; tls < JobsUtility.MaxJobThreadCount; ++tls)
+				{
+					if (data->firstFreeTLS[tls*NativeHashMapData.IntsPerCacheLine] >= 0)
+					{
+						idx = data->firstFreeTLS[tls*NativeHashMapData.IntsPerCacheLine];
+						nextPtrs = (int*)data->next;
+						data->firstFreeTLS[tls*NativeHashMapData.IntsPerCacheLine] = nextPtrs[idx];
+						nextPtrs[idx] = -1;
+						data->firstFreeTLS[0] = idx;
+						break;
+					}
+				}
+				if (data->firstFreeTLS[0] < 0)
+				{
+					int newCap = NativeHashMapData.GrowCapacity(data->capacity);
+					NativeHashMapData.ReallocateHashMap<TKey, TValue>(data, newCap, NativeHashMapData.GetBucketSize(newCap), allocation);
+				}
 			}
-			idx = data->firstFree;
+			idx = data->firstFreeTLS[0];
 			if (idx >= 0)
 			{
-				data->firstFree = ((int*)data->next)[idx];
+				data->firstFreeTLS[0] = ((int*)data->next)[idx];
 			}
 			else
 				idx = data->allocatedIndexLength++;
@@ -307,7 +322,7 @@ namespace Unity.Collections
 			int bucket = Math.Abs(key.GetHashCode()) % data->bucketCapacity;
 			// Add the index to the hash-map
 			int* buckets = (int*)data->buckets;
-			int* nextPtrs = (int*)data->next;
+			nextPtrs = (int*)data->next;
 
 			nextPtrs[idx] = buckets[bucket];
 			buckets[bucket] = idx;
@@ -335,8 +350,8 @@ namespace Unity.Collections
 						nextPtrs[prevEntry] = nextPtrs[entryIdx];
 					// And free the index
 					int nextIdx = nextPtrs[entryIdx];
-					nextPtrs[entryIdx] = data->firstFree;
-					data->firstFree = entryIdx;
+					nextPtrs[entryIdx] = data->firstFreeTLS[0];
+					data->firstFreeTLS[0] = entryIdx;
 					entryIdx = nextIdx;
 					// Can only be one hit in regular hashmaps, so return
 					if (!isMultiHashMap)
@@ -371,8 +386,8 @@ namespace Unity.Collections
 				nextPtrs[entryIdx] = nextPtrs[it.EntryIndex];
 			}
 			// And free the index
-			nextPtrs[it.EntryIndex] = data->firstFree;
-			data->firstFree = it.EntryIndex;
+			nextPtrs[it.EntryIndex] = data->firstFreeTLS[0];
+			data->firstFreeTLS[0] = it.EntryIndex;
 		}
 
 		static unsafe public bool TryGetFirstValueAtomic(NativeHashMapData* data, TKey key, out TValue item, out NativeMultiHashMapIterator<TKey> it)
@@ -466,8 +481,9 @@ namespace Unity.Collections
 				NativeHashMapData* data = (NativeHashMapData*)m_Buffer;
 				int* nextPtrs = (int*)data->next;
 				int freeListSize = 0;
-				for (int freeIdx = data->firstFree; freeIdx >= 0; freeIdx = nextPtrs[freeIdx])
-					++freeListSize;
+				for (int tls = 0; tls < JobsUtility.MaxJobThreadCount; ++tls)
+					for (int freeIdx = data->firstFreeTLS[tls * NativeHashMapData.IntsPerCacheLine]; freeIdx >= 0; freeIdx = nextPtrs[freeIdx])
+						++freeListSize;
 				return Math.Min(data->capacity, data->allocatedIndexLength) - freeListSize;
 			}
 		}
@@ -543,6 +559,7 @@ namespace Unity.Collections
 
 		[NativeContainer]
 		[NativeContainerIsAtomicWriteOnly]
+		[NativeContainerNeedsThreadIndex]
 		public struct Concurrent
 		{
 			IntPtr 	m_Buffer;
@@ -550,6 +567,8 @@ namespace Unity.Collections
 			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle m_Safety;
 			#endif
+
+			int m_ThreadIndex;
 
 			unsafe public static implicit operator NativeHashMap<TKey, TValue>.Concurrent (NativeHashMap<TKey, TValue> hashMap)
 			{
@@ -559,6 +578,7 @@ namespace Unity.Collections
 				concurrent.m_Safety = hashMap.m_Safety;
 				AtomicSafetyHandle.UseSecondaryVersion(ref concurrent.m_Safety);
 				#endif
+				concurrent.m_ThreadIndex = 0;
 
 				concurrent.m_Buffer = hashMap.m_Buffer;
 				return concurrent;
@@ -582,7 +602,7 @@ namespace Unity.Collections
 				#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 				#endif
-				return NativeHashMapBase<TKey, TValue>.TryAddAtomic((NativeHashMapData*)m_Buffer, key, item, false);
+				return NativeHashMapBase<TKey, TValue>.TryAddAtomic((NativeHashMapData*)m_Buffer, key, item, false, m_ThreadIndex);
 			}
 		}
 	}
@@ -626,8 +646,9 @@ namespace Unity.Collections
 				NativeHashMapData* data = (NativeHashMapData*)m_Buffer;
 				int* nextPtrs = (int*)data->next;
 				int freeListSize = 0;
-				for (int freeIdx = data->firstFree; freeIdx >= 0; freeIdx = nextPtrs[freeIdx])
-					++freeListSize;
+				for (int tls = 0; tls < JobsUtility.MaxJobThreadCount; ++tls)
+					for (int freeIdx = data->firstFreeTLS[tls * NativeHashMapData.IntsPerCacheLine]; freeIdx >= 0; freeIdx = nextPtrs[freeIdx])
+						++freeListSize;
 				return Math.Min(data->capacity, data->allocatedIndexLength) - freeListSize;
 			}
 		}
@@ -726,6 +747,7 @@ namespace Unity.Collections
 
 		[NativeContainer]
 		[NativeContainerIsAtomicWriteOnly]
+		[NativeContainerNeedsThreadIndex]
 		public struct Concurrent
 		{
 			IntPtr 	m_Buffer;
@@ -733,6 +755,8 @@ namespace Unity.Collections
 			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle m_Safety;
 			#endif
+
+			int m_ThreadIndex;
 
 			unsafe public static implicit operator NativeMultiHashMap<TKey, TValue>.Concurrent (NativeMultiHashMap<TKey, TValue> multiHashMap)
 			{
@@ -742,6 +766,7 @@ namespace Unity.Collections
 				concurrent.m_Safety = multiHashMap.m_Safety;
 				AtomicSafetyHandle.UseSecondaryVersion(ref concurrent.m_Safety);
 				#endif
+				concurrent.m_ThreadIndex = 0;
 
 				concurrent.m_Buffer = multiHashMap.m_Buffer;
 				return concurrent;
@@ -765,7 +790,7 @@ namespace Unity.Collections
 				#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 				#endif
-				NativeHashMapBase<TKey, TValue>.TryAddAtomic((NativeHashMapData*)m_Buffer, key, item, true);
+				NativeHashMapBase<TKey, TValue>.TryAddAtomic((NativeHashMapData*)m_Buffer, key, item, true, m_ThreadIndex);
 			}
 		}
 	}

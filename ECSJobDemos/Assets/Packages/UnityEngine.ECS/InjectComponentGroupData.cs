@@ -164,7 +164,7 @@ namespace UnityEngine.ECS
 		    var tuples = new List<TupleSystem>();
 		    foreach (var field in fields)
 		    {
-			    var attr = field.GetCustomAttributes(typeof(InjectComponentGroup), true);
+			    var attr = field.GetCustomAttributes(typeof(InjectComponentGroupAttribute), true);
 
 			    if (attr.Length != 0)
 				    tuples.Add(CreateTupleSystem(field.FieldType, field, entityManager));

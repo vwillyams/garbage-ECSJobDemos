@@ -11,7 +11,7 @@ using System.Reflection;
 namespace UnityEngine.ECS
 {
 	[AttributeUsage(AttributeTargets.Field)]
-	public sealed class InjectComponentGroup : System.Attribute
+	public sealed class InjectComponentGroupAttribute : System.Attribute
 	{
 
 	}

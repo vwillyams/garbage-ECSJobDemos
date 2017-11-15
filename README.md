@@ -8,7 +8,7 @@ Required build: http://beta.unity3d.com/download/1df2d7edeae3/download.html
 unity source code branch: scripting/jobsystem/make-public
 
 # active development against master
-unity source code branch: scripting/jobsystem/make-public
+unity source code branch: scripting/jobsystem/make-public/demo
 NOTE: (Navmesh & Raycast job API's is not included on this branch, code is going to trunk seperately)
 
 # ECSJobDemos

@@ -100,6 +100,8 @@ namespace UnityEditor.ECS
 
         public void PrepareData()
         {
+            var emptyArgs = new object[] {};
+
             if (currentSystem != null)
             {
                 nativeArrays = new Dictionary<Type, object>();
@@ -113,16 +115,14 @@ namespace UnityEditor.ECS
                         rowHeight = StructGUI.pointsPerLine * linesPerRow + pointsBetweenRows;
                         var method = typeof(ComponentGroup).GetMethod("GetComponentDataArray", attr);
                         method = method.MakeGenericMethod(type);
-                        var args = new object[] {true};
-                        var array = method.Invoke(currentSystem, args);
+                        var array = method.Invoke(currentSystem, emptyArgs);
                         nativeArrays.Add(type, array);
                     }
                     else if (typeof(Component).IsAssignableFrom(type))
                     {
                         var method = typeof(ComponentGroup).GetMethod("GetComponentArray", attr);
                         method = method.MakeGenericMethod(type);
-                        var args = new object[] {};
-                        var array = method.Invoke(currentSystem, args);
+                        var array = method.Invoke(currentSystem, emptyArgs);
                         nativeArrays.Add(type, array);
                     }
                     else if (type == typeof(Entity))

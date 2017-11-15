@@ -13,19 +13,50 @@ namespace UnityEngine.ECS
             ComponentType type;
             type.typeIndex = TypeManager.GetTypeIndex<T>();
             type.sharedComponentIndex = -1;
+            type.readOnly = 0;
             return type;
         }
 
-        public ComponentType(Type type)
+        public static ComponentType ReadOnly(Type type)
+        {
+            ComponentType t;
+            t.typeIndex = TypeManager.GetTypeIndex(type);
+            t.sharedComponentIndex = -1;
+            t.readOnly = 1;
+            return t;
+        }
+        public static ComponentType ReadOnly<T>()
+        {
+            ComponentType t;
+            t.typeIndex = TypeManager.GetTypeIndex<T>();
+            t.sharedComponentIndex = -1;
+            t.readOnly = 1;
+            return t;
+        }
+
+        public ComponentType(Type type, bool isReadOnly = false)
         {
             typeIndex = TypeManager.GetTypeIndex(type);
             sharedComponentIndex = -1;
+            readOnly = isReadOnly ? 1 : 0;
+        }
+        
+        public static ComponentType FixedArray(Type type, int numElements)
+        {
+            ComponentType t;
+            t.typeIndex = TypeManager.CreateArrayType(type, numElements);
+            t.sharedComponentIndex = -1;
+            t.readOnly = 0;
+            return t;
         }
 
-        public ComponentType(Type type, int numElements)
+        internal bool RequiresJobDependency
         {
-            typeIndex = TypeManager.CreateArrayType(type, numElements);
-            sharedComponentIndex = -1;
+            get
+            {
+                var type = GetManagedType();
+                return typeof(IComponentData).IsAssignableFrom(type);
+            }
         }
 
         public Type GetManagedType()
@@ -35,36 +66,29 @@ namespace UnityEngine.ECS
 
         public static implicit operator ComponentType(Type type)
         {
-            return new ComponentType(type);
-        }
-
-        public override bool Equals(object other)
-        {
-            return this == (ComponentType)other;
-        }
-
-        public override int GetHashCode()
-        {
-            return (typeIndex * 397) ^ sharedComponentIndex;
-        }
-
-
-        static public bool operator ==(ComponentType lhs, ComponentType rhs)
-        {
-            return lhs.typeIndex == rhs.typeIndex && lhs.sharedComponentIndex == rhs.sharedComponentIndex;
-        }
-        static public bool operator !=(ComponentType lhs, ComponentType rhs)
-        {
-            return lhs.typeIndex != rhs.typeIndex || lhs.sharedComponentIndex != rhs.sharedComponentIndex;
+            return new ComponentType(type, false);
         }
 
         static public bool operator <(ComponentType lhs, ComponentType rhs)
         {
-            return lhs.typeIndex != rhs.typeIndex ? lhs.typeIndex < rhs.typeIndex : lhs.sharedComponentIndex < rhs.sharedComponentIndex;
+            if (lhs.typeIndex == rhs.typeIndex)
+                return lhs.sharedComponentIndex != rhs.sharedComponentIndex ? lhs.sharedComponentIndex < rhs.sharedComponentIndex : lhs.readOnly < rhs.readOnly;
+            else
+                return lhs.typeIndex < rhs.typeIndex;
+
         }
         static public bool operator >(ComponentType lhs, ComponentType rhs)
         {
-            return lhs.typeIndex != rhs.typeIndex ? lhs.typeIndex > rhs.typeIndex : lhs.sharedComponentIndex > rhs.sharedComponentIndex;
+            return rhs < lhs;
+        }
+
+        static public bool operator ==(ComponentType lhs, ComponentType rhs)
+        {
+            return lhs.typeIndex == rhs.typeIndex && lhs.sharedComponentIndex == rhs.sharedComponentIndex && lhs.readOnly == rhs.readOnly;
+        }
+        static public bool operator !=(ComponentType lhs, ComponentType rhs)
+        {
+            return lhs.typeIndex != rhs.typeIndex || lhs.sharedComponentIndex != rhs.sharedComponentIndex && lhs.readOnly == rhs.readOnly;
         }
 
         unsafe static internal bool CompareArray(ComponentType* type1, int typeCount1, ComponentType* type2, int typeCount2)
@@ -78,9 +102,9 @@ namespace UnityEngine.ECS
             }
             return true;
         }
-
-
+        
         public int typeIndex;
+        public int readOnly;
         public int sharedComponentIndex;
     }
 }

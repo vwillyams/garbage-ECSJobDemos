@@ -8,20 +8,29 @@ namespace UnityEngine.ECS.Tests
 {
     public class PureEcsTestSystem : ComponentSystem
     {
-        [InjectTuples]
-        public ComponentDataArray<EcsTestData> m_Data;
+        public struct DataAndEntites
+        {
+            public ComponentDataArray<EcsTestData> Data;
+            public EntityArray                     Entities;
+            public int                             Length;
+        }
 
-        [InjectTuples]
-        public EntityArray m_Entities;
+        [InjectComponentGroup] 
+        public DataAndEntites Group;
 
         public override void OnUpdate() { base.OnUpdate (); }
     }
 
     public class PureReadOnlySystem : ComponentSystem
     {
-        [InjectTuples]
-        [ReadOnlyAttribute]
-        public ComponentDataArray<EcsTestData> m_Data;
+        public struct Datas
+        {
+            [ReadOnly]
+            public ComponentDataArray<EcsTestData> Data;
+        }
+
+        [InjectComponentGroup] 
+        public Datas Group;
 
         public override void OnUpdate() { base.OnUpdate (); }
     }
@@ -30,7 +39,7 @@ namespace UnityEngine.ECS.Tests
 	public class ECSComponentSystemTests : ECSFixture
 	{
         [Test]
-        public void ReadOnlyTuples()
+        public void ReadOnlyComponentDataArray()
         {
             var readOnlySystem = DependencyManager.GetBehaviourManager<PureReadOnlySystem> ();
 
@@ -38,12 +47,12 @@ namespace UnityEngine.ECS.Tests
             m_Manager.AddComponent (go, new EcsTestData(2));
 
             readOnlySystem.OnUpdate ();
-            Assert.AreEqual (2, readOnlySystem.m_Data [0].value);
-            Assert.Throws<System.InvalidOperationException>(()=> { readOnlySystem.m_Data[0] = new EcsTestData(); });
+            Assert.AreEqual (2, readOnlySystem.Group.Data[0].value);
+            Assert.Throws<System.InvalidOperationException>(()=> { readOnlySystem.Group.Data[0] = new EcsTestData(); });
         }
         
         [Test]
-        public void RemoveComponentTupleTracking()
+        public void RemoveComponentGroupTracking()
         {
             var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
 
@@ -54,23 +63,23 @@ namespace UnityEngine.ECS.Tests
             m_Manager.AddComponent (go1, new EcsTestData(20));
 
             pureSystem.OnUpdate ();
-            Assert.AreEqual (2, pureSystem.m_Data.Length);
-            Assert.AreEqual (10, pureSystem.m_Data[0].value);
-            Assert.AreEqual (20, pureSystem.m_Data[1].value);
+            Assert.AreEqual (2, pureSystem.Group.Length);
+            Assert.AreEqual (10, pureSystem.Group.Data[0].value);
+            Assert.AreEqual (20, pureSystem.Group.Data[1].value);
 
             m_Manager.RemoveComponent<EcsTestData> (go0);
 
             pureSystem.OnUpdate ();
-            Assert.AreEqual (1, pureSystem.m_Data.Length);
-            Assert.AreEqual (20, pureSystem.m_Data[0].value);
+            Assert.AreEqual (1, pureSystem.Group.Length);
+            Assert.AreEqual (20, pureSystem.Group.Data[0].value);
 
             m_Manager.RemoveComponent<EcsTestData> (go1);
             pureSystem.OnUpdate ();
-            Assert.AreEqual (0, pureSystem.m_Data.Length);
+            Assert.AreEqual (0, pureSystem.Group.Length);
         }
 
         [Test]
-        public void EntityTupleTracking()
+        public void EntityGroupTracking()
         {
             var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
 
@@ -78,10 +87,11 @@ namespace UnityEngine.ECS.Tests
             m_Manager.AddComponent (go, new EcsTestData(2));
 
             pureSystem.OnUpdate ();
-            Assert.AreEqual (1, pureSystem.m_Data.Length);
-            Assert.AreEqual (1, pureSystem.m_Entities.Length);
-            Assert.AreEqual (2, pureSystem.m_Data[0].value);
-            Assert.AreEqual (go, pureSystem.m_Entities[0]);
+            Assert.AreEqual (1, pureSystem.Group.Length);
+            Assert.AreEqual (1, pureSystem.Group.Data.Length);
+            Assert.AreEqual (1, pureSystem.Group.Entities.Length);
+            Assert.AreEqual (2, pureSystem.Group.Data[0].value);
+            Assert.AreEqual (go, pureSystem.Group.Entities[0]);
         }
 	}
 }

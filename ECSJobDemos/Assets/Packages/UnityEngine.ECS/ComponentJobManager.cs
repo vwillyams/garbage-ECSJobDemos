@@ -26,6 +26,9 @@ namespace UnityEngine.ECS
         #if ENABLE_UNITY_COLLECTIONS_CHECKS
         AtomicSafetyHandle      m_TempSafety;
         #endif
+        
+        NativeList<JobHandle>   m_JobDependencyCombineList;
+
 
         //@TODO: Check against too many types created...
 
@@ -40,6 +43,8 @@ namespace UnityEngine.ECS
             m_ComponentSafetyHandles = (ComponentSafetyHandle*)UnsafeUtility.Malloc((ulong)(sizeof(ComponentSafetyHandle) * kMaxTypes), 16, Allocator.Persistent);
             UnsafeUtility.MemClear((IntPtr)m_ComponentSafetyHandles, (ulong)(sizeof(ComponentSafetyHandle) * kMaxTypes));
 
+            m_JobDependencyCombineList = new NativeList<JobHandle>(Allocator.Persistent);
+            
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             for (int i = 0; i != kMaxTypes;i++)
             {
@@ -90,6 +95,8 @@ namespace UnityEngine.ECS
 
         public void Dispose()
         {
+            m_JobDependencyCombineList.Dispose();
+            
             for (int i = 0; i < kMaxTypes;i++)
                 m_ComponentSafetyHandles[i].writeFence.Complete();
 
@@ -125,20 +132,48 @@ namespace UnityEngine.ECS
                 CompleteWriteDependency(readerTypes[i]);
         }
 
-        /*
-         @TODO:
         public JobHandle GetDependency(int* writerTypes, int writerTypesCount, int* readerTypes, int readerTypesCount)
         {
+            m_JobDependencyCombineList.Clear();
             
-        }
-        */
-        public void AddDependency(int* readerTypes, int readerTypesCount, int* writerTypes, int writerTypesCount, JobHandle job)
-        {
             for (int i = 0; i != writerTypesCount; i++)
-                AddWriteDependency(writerTypes[i], job);
+                m_JobDependencyCombineList.Add(m_ComponentSafetyHandles[writerTypes[i]].writeFence);
+            
+            for (int i = 0; i != readerTypesCount; i++)
+            {
+                int readerType = readerTypes[i];
+                m_JobDependencyCombineList.Add(m_ComponentSafetyHandles[readerType ].writeFence);
+                
+                int numReadFences = m_ComponentSafetyHandles[readerType ].numReadFences;
+                for (int j = 0; j != numReadFences; j++)
+                    m_JobDependencyCombineList.Add(m_ReadJobFences[readerType * kMaxReadJobHandles + j]);
+            }
+            
+            return JobHandle.CombineDependencies(m_JobDependencyCombineList);
+        }
+
+        public void AddDependency(int* readerTypes, int readerTypesCount, int* writerTypes, int writerTypesCount, JobHandle dependency)
+        {
+            
+            for (int i = 0; i != writerTypesCount; i++)
+            {
+                //@TODO: Check that it depends on all previous dependencies...
+                int writer = writerTypes[i];
+                m_ComponentSafetyHandles[writer].writeFence = dependency;
+            }
 
             for (int i = 0; i != readerTypesCount; i++)
-                AddReadDependency(readerTypes[i], job);
+            {
+                int reader = readerTypes[i];
+                m_ReadJobFences[reader  * kMaxReadJobHandles + m_ComponentSafetyHandles[reader ].numReadFences] = dependency;
+                m_ComponentSafetyHandles[reader].numReadFences++;
+
+                if (m_ComponentSafetyHandles[reader].numReadFences == kMaxReadJobHandles)
+                    CombineReadDependencies(reader);
+            }
+            
+            if (readerTypesCount != 0 || writerTypesCount != 0)
+                m_HasCleanHandles = false;
         }
 
         public void CompleteWriteDependency(int type)
@@ -159,42 +194,6 @@ namespace UnityEngine.ECS
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckWriteAndThrow(m_ComponentSafetyHandles[type].safetyHandle);
 #endif
-        }
-
-        //@TODO: Use new batched api instead and remove...
-        public JobHandle GetWriteDependency(int type)
-        {
-            return m_ComponentSafetyHandles[type].writeFence;
-        }
-
-        public JobHandle GetReadDependency(int type)
-        {
-            int numReadFences = m_ComponentSafetyHandles[type].numReadFences;
-            if (numReadFences == 0)
-                return new JobHandle();
-
-            if (numReadFences > 1)
-                CombineReadDependencies(type);
-
-            return m_ReadJobFences[type * kMaxReadJobHandles + 0];
-        }
-
-        public void AddWriteDependency(int type, JobHandle fence)
-        {
-            m_HasCleanHandles = false;
-            //@TODO: Check that it depends on all previous dependencies...
-            m_ComponentSafetyHandles[type].writeFence = fence;
-        }
-
-        public void AddReadDependency(int type, JobHandle fence)
-        {
-            m_HasCleanHandles = false;
-
-            m_ReadJobFences[type * kMaxReadJobHandles + m_ComponentSafetyHandles[type].numReadFences] = fence;
-            m_ComponentSafetyHandles[type].numReadFences++;
-
-            if (m_ComponentSafetyHandles[type].numReadFences == kMaxReadJobHandles)
-                CombineReadDependencies(type);
         }
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS

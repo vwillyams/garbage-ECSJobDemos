@@ -28,7 +28,7 @@ namespace UnityEngine.ECS
             }
         }
 
-        unsafe public void OnArchetypeAdded(ComponentType* types, int count)
+        unsafe public void OnArchetypeAdded(ComponentTypeInArchetype* types, int count)
         {
             for (int i = 0; i != count;i++)
             {
@@ -84,6 +84,7 @@ namespace UnityEngine.ECS
             ComponentType type;
             type.sharedComponentIndex = sharedIndex;
             type.typeIndex = typeIndex;
+            type.readOnly = 0;
             return type;
         }
     }

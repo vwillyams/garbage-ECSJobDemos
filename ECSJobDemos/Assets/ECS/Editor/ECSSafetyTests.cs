@@ -14,32 +14,46 @@ namespace UnityEngine.ECS.Tests
 {
     public class ECSSafetyTests : ECSFixture
 	{
+	    [Test]
+	    public void ComponentArrayChunkSliceOutOfBoundsThrowsException()
+	    {
+	        for (int i = 0;i<10;i++)
+	            m_Manager.CreateEntity(typeof(EcsTestData), typeof(EcsTestData2));
+
+	        var group = m_Manager.CreateComponentGroup(typeof(EcsTestData));
+	        var testData = group.GetComponentDataArray<EcsTestData>();
+
+	        Assert.AreEqual(0, testData.GetChunkSlice(5, 0).Length);
+	        Assert.AreEqual(10, testData.GetChunkSlice(0, 10).Length);
+
+	        Assert.Throws<IndexOutOfRangeException>(() => { testData.GetChunkSlice(-1, 1); });
+	        Assert.Throws<IndexOutOfRangeException>(() => { testData.GetChunkSlice(5, 6); });
+	        Assert.Throws<IndexOutOfRangeException>(() => { testData.GetChunkSlice(10, 1); });
+	    }
+	    
+	    
         [Test]
         public void ReadOnlyComponentDataArray()
         {
-            var archetype = m_Manager.CreateArchetype(typeof(EcsTestData), typeof(EcsTestData2));
+            var group = m_Manager.CreateComponentGroup(typeof(EcsTestData2), ComponentType.ReadOnly(typeof(EcsTestData)));
 
-            var group = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(EcsTestData2));
-            var arr = group.GetComponentDataArray<EcsTestData>();
-            Assert.AreEqual(0, arr.Length);
-
-            var entity = m_Manager.CreateEntity(archetype);
+            var entity = m_Manager.CreateEntity(typeof(EcsTestData), typeof(EcsTestData2));
             m_Manager.SetComponent(entity, new EcsTestData(42));
-            arr = group.GetComponentDataArray<EcsTestData>();
+            
+            // EcsTestData is read only
+            var arr = group.GetComponentDataArray<EcsTestData>();
             Assert.AreEqual(1, arr.Length);
             Assert.AreEqual(42, arr[0].value);
-            arr = group.GetComponentDataArray<EcsTestData>(true);
-            Assert.AreEqual(1, arr.Length);
             Assert.Throws<System.InvalidOperationException>(() => { arr[0] = new EcsTestData(0); });
-            arr = group.GetComponentDataArray<EcsTestData>();
-            Assert.AreEqual(1, arr.Length);
-            arr[0] = new EcsTestData(0);
-            Assert.AreEqual(0, arr[0].value);
+           
+            // EcsTestData2 can be written to
+            var arr2 = group.GetComponentDataArray<EcsTestData2>();
+            Assert.AreEqual(1, arr2.Length);
+            arr2[0] = new EcsTestData2(55);
+            Assert.AreEqual(55, arr2[0].value0);
 
             m_Manager.DestroyEntity(entity);
         }
-
-
 
         [Test]
         public void AccessComponentArrayAfterCreationThrowsException()

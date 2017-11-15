@@ -7,7 +7,7 @@ namespace UnityEngine.ECS
     {
         static public int GetIndexInTypeArray(Archetype* archetype, int typeIndex)
         {
-            ComponentType* types = archetype->types;
+            ComponentTypeInArchetype* types = archetype->types;
             int typeCount = archetype->typesCount;
             for (int i = 0; i != typeCount; i++)
             {
@@ -80,7 +80,7 @@ namespace UnityEngine.ECS
                 // assumes fully strided data
                 IntPtr src = GetComponentData(srcChunk, srcIndex, 0);
                 IntPtr dst = GetComponentData(dstChunk, dstBaseIndex, 0);
-                UnsafeUtility.MemCpyReplicate(dst, src, (ulong)arch->stridedBytesPerInstance, count);
+                UnsafeUtility.MemCpyReplicate(dst, src, arch->stridedBytesPerInstance, count);
             }
             else
             {
@@ -90,7 +90,7 @@ namespace UnityEngine.ECS
                 {
                     IntPtr dst = GetComponentData(dstChunk, dstBaseIndex, t);
                     IntPtr src = GetComponentData(srcChunk, srcIndex, t);
-                    UnsafeUtility.MemCpyReplicate(dst, src, (ulong)arch->sizeOfs[t], count);
+                    UnsafeUtility.MemCpyReplicate(dst, src, arch->sizeOfs[t], count);
                 }
             }
         }

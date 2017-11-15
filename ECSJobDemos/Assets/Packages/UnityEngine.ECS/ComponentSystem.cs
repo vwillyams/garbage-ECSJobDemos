@@ -5,22 +5,21 @@ namespace UnityEngine.ECS
 {
     public abstract class ComponentSystem : ScriptBehaviourManager
     {
-        TupleSystem[] 					m_Tuples;
+        InjectComponentGroupData[] 					m_InjectedComponentGroups;
 
-        //@TODO: properly
         public ComponentGroup[] ComponentGroups
         {
 			get
             {
-				var groupArray = new ComponentGroup[m_Tuples.Length];
+				var groupArray = new ComponentGroup[m_InjectedComponentGroups.Length];
 				for (var i = 0; i < groupArray.Length; ++i)
-					groupArray[i] = m_Tuples[i].EntityGroup;
+					groupArray[i] = m_InjectedComponentGroups[i].EntityGroup;
 				return groupArray;
 			}
 		}
 
-        internal ComponentType[]		    m_JobDependencyForReadingManagers;
-        internal ComponentType[]		    m_JobDependencyForWritingManagers;
+        internal int[]		    			m_JobDependencyForReadingManagers;
+        internal int[]		    			m_JobDependencyForWritingManagers;
         internal ComponentJobSafetyManager  m_SafetyManager;
         EntityManager                       m_EntityManager;
 
@@ -34,28 +33,30 @@ namespace UnityEngine.ECS
     		base.OnCreateManager(capacity);
 
             m_SafetyManager = m_EntityManager.ComponentJobSafetyManager;
-			InjectTuples.CreateTuplesInjection (GetType(), this, out m_Tuples, out m_JobDependencyForReadingManagers, out m_JobDependencyForWritingManagers);
+
+		    m_InjectedComponentGroups = InjectComponentGroupData.InjectComponentGroups(GetType(), m_EntityManager);
+		    ComponentGroup.ExtractJobDependencyTypes(ComponentGroups, out m_JobDependencyForReadingManagers, out m_JobDependencyForWritingManagers);
     	}
 
     	override protected void OnDestroyManager()
     	{
     		base.OnDestroyManager();
-    		for (int i = 0; i != m_Tuples.Length; i++)
+    		for (int i = 0; i != m_InjectedComponentGroups.Length; i++)
     		{
-    			if (m_Tuples[i] != null)
-    				m_Tuples[i].Dispose ();
+    			if (m_InjectedComponentGroups[i] != null)
+    				m_InjectedComponentGroups[i].Dispose ();
     		}
-    		m_Tuples = null;
+    		m_InjectedComponentGroups = null;
 			m_JobDependencyForReadingManagers = null;
 			m_JobDependencyForWritingManagers = null;
     	}
 
         protected EntityManager EntityManager { get { return m_EntityManager; }  }
 
-    	protected void UpdateInjectedTuples()
+    	protected void UpdateInjectedComponentGroups()
     	{
-    		foreach (var tuple in m_Tuples)
-    			tuple.UpdateInjection (this);
+    		foreach (var group in m_InjectedComponentGroups)
+			    group.UpdateInjection (this);
     	}
 
     	override public void OnUpdate()
@@ -65,19 +66,18 @@ namespace UnityEngine.ECS
             CompleteDependencyInternal();
     	}
 
-        internal void CompleteDependencyInternal()
+        internal unsafe void CompleteDependencyInternal()
         {
-            foreach (var dep in m_JobDependencyForReadingManagers)
-                m_SafetyManager.CompleteWriteDependency(dep.typeIndex);
-
-            foreach (var dep in m_JobDependencyForWritingManagers)
-                m_SafetyManager.CompleteReadAndWriteDependency(dep.typeIndex);
+	        fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
+	        {
+		        m_SafetyManager.CompleteDependencies(readersPtr, m_JobDependencyForReadingManagers.Length, writersPtr, m_JobDependencyForWritingManagers.Length);
+	        }
         }
 
 		internal void OnUpdateDontCompleteDependencies()
 		{
 			base.OnUpdate ();
-			UpdateInjectedTuples ();
+			UpdateInjectedComponentGroups ();
 		}
     }
 
@@ -102,22 +102,12 @@ namespace UnityEngine.ECS
 			OnUpdateDontCompleteDependencies ();
 		}
 
-		public JobHandle GetDependency ()
+		public unsafe JobHandle GetDependency ()
 		{
-			int maxDependencyLength = m_JobDependencyForReadingManagers.Length + m_JobDependencyForWritingManagers.Length * 2;
-			if (m_JobDependencyCombineList.Capacity < maxDependencyLength)
-				m_JobDependencyCombineList.Capacity = maxDependencyLength;
-			m_JobDependencyCombineList.Clear();
-			foreach (var dep in m_JobDependencyForReadingManagers)
+			fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
 			{
-				m_JobDependencyCombineList.Add(m_SafetyManager.GetWriteDependency (dep.typeIndex));
+				return m_SafetyManager.GetDependency(readersPtr, m_JobDependencyForReadingManagers.Length, writersPtr, m_JobDependencyForWritingManagers.Length);
 			}
-			foreach (var dep in m_JobDependencyForWritingManagers)
-			{
-				m_JobDependencyCombineList.Add(m_SafetyManager.GetWriteDependency (dep.typeIndex));
-				m_JobDependencyCombineList.Add(m_SafetyManager.GetReadDependency (dep.typeIndex));
-			}
-			return JobHandle.CombineDependencies(m_JobDependencyCombineList);
 		}
 
 		public void CompleteDependency ()
@@ -125,12 +115,12 @@ namespace UnityEngine.ECS
             CompleteDependencyInternal();
 		}
 
-		public void AddDependency (JobHandle handle)
+		public unsafe void AddDependency (JobHandle dependency)
 		{
-			foreach (var dep in m_JobDependencyForReadingManagers)
-				m_SafetyManager.AddReadDependency (dep.typeIndex, handle);
-			foreach (var dep in m_JobDependencyForWritingManagers)
-				m_SafetyManager.AddWriteDependency (dep.typeIndex, handle);
+			fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
+			{
+				m_SafetyManager.AddDependency(readersPtr, m_JobDependencyForReadingManagers.Length, writersPtr, m_JobDependencyForWritingManagers.Length, dependency);
+			}
 		}
 	}
 

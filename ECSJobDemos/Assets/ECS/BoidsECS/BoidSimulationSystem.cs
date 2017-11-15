@@ -8,34 +8,50 @@ namespace BoidSimulations
 {
 	public class BoidSimulationSystem : JobComponentSystem
 	{
-		[InjectTuples(0)]
-		ComponentDataArray<BoidData> 				m_BoidData;
+		struct Boids
+		{
+			public ComponentDataArray<BoidData> boids;
+			public int 							Length;
+		}
+		[InjectComponentGroup] Boids m_Boids;
 
 
-		[InjectTuples(1)]
-		[ReadOnly]
-		ComponentDataArray<BoidTarget> 				m_BoidTargets;
-		[InjectTuples(1)]
-		ComponentArray<Transform> 					m_BoidTargetsTransforms;
+		struct BoidTargets
+		{
+			[ReadOnly] 
+			public ComponentDataArray<BoidTarget> boidTargets;
+			public ComponentArray<Transform>      transforms;
+			public int 							  Length;
+		}
+		[InjectComponentGroup] BoidTargets m_Targets;
 
+		struct Settings
+		{
+			[ReadOnly] 
+			public ComponentDataArray<BoidSimulationSettings> settings;
+			public int  									  Length;
+		}
+		[InjectComponentGroup] Settings m_Settings;
 
-		[InjectTuples(2)]
-		[ReadOnly]
-		ComponentDataArray<BoidSimulationSettings> 	m_BoidSimulationSettings;
+		struct Grounds
+		{
+			[ReadOnly] 
+			public ComponentDataArray<BoidGround> grounds;
+			public ComponentArray<Transform> 	  transforms;
+			public int 							  Length;
 
+		}
+		[InjectComponentGroup] Grounds m_Ground;
 
-		[InjectTuples(3)]
-		[ReadOnly]
-		ComponentDataArray<BoidGround> 				m_BoidGrounds;
-		[InjectTuples(3)]
-		ComponentArray<Transform> 					m_BoidGroundsTransforms;
+		struct BoidObstacles
+		{
+			[ReadOnly]
+			public ComponentDataArray<BoidObstacle> obstacles;
+			public ComponentArray<Transform> 		transforms;
+			public int 							    Length;
 
-
-		[InjectTuples(4)]
-		[ReadOnly]
-		ComponentDataArray<BoidObstacle> 			m_BoidObstacles;
-		[InjectTuples(4)]
-		ComponentArray<Transform> 					m_BoidObstacleTransforms;
+		}
+		[InjectComponentGroup] BoidObstacles m_BoidObstacles;
 
 		NativeMultiHashMap<int, int> 				m_Cells;
 
@@ -81,7 +97,7 @@ namespace BoidSimulations
 			public NativeArray<float3> 									targetPositions;
 
 			[ReadOnly]
-			public NativeMultiHashMap<int, int>   					cells;
+			public NativeMultiHashMap<int, int>   					    cells;
 
 			[ReadOnly]
 			[DeallocateOnJobCompletionAttribute]
@@ -99,18 +115,18 @@ namespace BoidSimulations
 		{
 			base.OnUpdate();
 
-			if (m_BoidData.Length == 0)
+			if (m_Boids.Length == 0)
 				return;
 
-			if (m_BoidSimulationSettings.Length != 1)
+			if (m_Settings.Length != 1)
 				return;
 
 			CompleteDependency ();
 
-			m_Cells.Capacity = math.max (m_Cells.Capacity, m_BoidData.Length);
+			m_Cells.Capacity = math.max (m_Cells.Capacity, m_Boids.Length);
 			m_Cells.Clear ();
 
-			var boids = new NativeArray<BoidData> (m_BoidData.Length, Allocator.TempJob);
+			var boids = new NativeArray<BoidData> (m_Boids.Length, Allocator.TempJob);
 			var cellOffsetsTable = new NativeArray<int>(HashUtility.cellOffsets, Allocator.TempJob);
 			
 			// Simulation
@@ -119,35 +135,35 @@ namespace BoidSimulations
 				boids = boids,
 				cells = m_Cells,
 				cellOffsetsTable = cellOffsetsTable,
-				simulationSettings = m_BoidSimulationSettings[0],
-				outputBoids = m_BoidData,
+				simulationSettings = m_Settings.settings[0],
+				outputBoids = m_Boids.boids,
 				obstacles = new NativeArray<BoidObstacle> (m_BoidObstacles.Length, Allocator.TempJob),
 			};
 
 			simulateJob.simulationState.deltaTime = Time.deltaTime;
 
-			for (int i = 0;i != simulateJob.obstacles.Length;i++)
+			for (int i = 0;i != m_BoidObstacles.Length;i++)
 			{
-				var obstacle = m_BoidObstacles[i];
-				obstacle.position = m_BoidObstacleTransforms[i].position;
+				var obstacle = m_BoidObstacles.obstacles[i];
+				obstacle.position = m_BoidObstacles.transforms[i].position;
 				simulateJob.obstacles[i] = obstacle;
 			}
-			if (m_BoidTargetsTransforms.Length == 0)
+			if (m_Targets.Length == 0)
 				simulateJob.simulationSettings.targetWeight = 0;
 			
-			if (m_BoidGroundsTransforms.Length >= 1)
-				simulateJob.simulationState.ground = m_BoidGroundsTransforms[0].position;
+			if (m_Ground.Length >= 1)
+				simulateJob.simulationState.ground = m_Ground.transforms[0].position;
 
-			simulateJob.targetPositions = new NativeArray<float3> (m_BoidTargetsTransforms.Length, Allocator.TempJob);
-			for (int i = 0; i != simulateJob.targetPositions.Length; i++)
-				simulateJob.targetPositions[i] = m_BoidTargetsTransforms[i].position;
+			simulateJob.targetPositions = new NativeArray<float3> (m_Targets.Length, Allocator.TempJob);
+			for (int i = 0; i != m_Targets.Length; i++)
+				simulateJob.targetPositions[i] = m_Targets.transforms[i].position;
 
 			var prepareParallelJob = new PrepareParallelBoidsJob
 			{
-				src = m_BoidData,
+				src = m_Boids.boids,
 				dst = boids,
 				outputCells = m_Cells,
-				cellRadius = m_BoidSimulationSettings[0].cellRadius
+				cellRadius = m_Settings.settings[0].cellRadius
 			};
 
 			var prepareJobHandle = prepareParallelJob.Schedule(boids.Length, 512, GetDependency());

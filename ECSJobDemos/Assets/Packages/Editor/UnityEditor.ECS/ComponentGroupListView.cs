@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace UnityEditor.ECS
 {
-    public class TupleListView : TreeView {
+    public class ComponentGroupListView : TreeView {
         
         Dictionary<int, ComponentGroup> componentGroupsById;
 
@@ -17,21 +17,48 @@ namespace UnityEditor.ECS
 
         EntityWindow window;
 
-        public TupleListView(TreeViewState state, EntityWindow window) : base(state)
+
+        public static TreeViewState GetStateForSystem(ComponentSystem system, ref List<TreeViewState> states, ref List<string> stateNames)
         {
-            this.window = window;
-            Reload();
+            if (system == null)
+                return new TreeViewState();
+
+            if (states == null)
+            {
+                states = new List<TreeViewState>();
+                stateNames = new List<string>();
+            }
+            var currentSystemName = system.GetType().Name.ToString();
+
+            TreeViewState stateForCurrentSystem = null;
+            for (var i = 0; i < states.Count; ++i)
+            {
+                if (stateNames[i] == currentSystemName)
+                {
+                    stateForCurrentSystem = states[i];
+                    break;
+                }
+            }
+            if (stateForCurrentSystem == null)
+            {
+                stateForCurrentSystem = new TreeViewState();
+                states.Add(stateForCurrentSystem);
+                stateNames.Add(currentSystemName);
+            }
+            return stateForCurrentSystem;
         }
 
-        public void SetSelection(ComponentSystem system)
+        public ComponentGroupListView(TreeViewState state, EntityWindow window, ComponentSystem system) : base(state)
         {
+            this.window = window;
             currentSystem = system;
-            componentGroupsById = new Dictionary<int, ComponentGroup>();
             Reload();
+            SelectionChanged(GetSelection());
         }
 
         protected override TreeViewItem BuildRoot()
         {
+            componentGroupsById = new Dictionary<int, ComponentGroup>();
             var currentID = 0;
             var root  = new TreeViewItem { id = currentID++, depth = -1, displayName = "Root" };
             if (currentSystem == null)
@@ -44,16 +71,16 @@ namespace UnityEditor.ECS
             }
             else
             {
-                var tupleIndex = 0;
+                var groupIndex = 0;
                 foreach (var group in currentSystem.ComponentGroups)
                 {
                     componentGroupsById.Add(currentID, group);
                     var types = group.Types;
-                    var tupleName = string.Join(", ", (from x in types select x.Name).ToArray());
+                    var groupName = string.Join(", ", (from x in types select x.Name).ToArray());
 
-                    var tupleItem = new TreeViewItem { id = currentID++, displayName = string.Format("({1}):", tupleIndex, tupleName) };
-                    root.AddChild(tupleItem);
-                    ++tupleIndex;
+                    var groupItem = new TreeViewItem { id = currentID++, displayName = string.Format("({1}):", groupIndex, groupName) };
+                    root.AddChild(groupItem);
+                    ++groupIndex;
                 }
                 SetupDepthsFromParentsAndChildren(root);
             }

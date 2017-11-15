@@ -6,6 +6,18 @@ namespace UnityEngine.ECS
 {
     class ComponentSystemInitializer
     {
+        static void GetBehaviourManagerAndLogException(Type type)
+        {
+            try
+            {
+                DependencyManager.GetBehaviourManager(type);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }        
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void Initialize()
         {
@@ -17,7 +29,7 @@ namespace UnityEngine.ECS
                 var systemTypes = allTypes.Where(t => t.IsSubclassOf(typeof(ComponentSystem)) && !t.IsAbstract && !t.ContainsGenericParameters);
                 foreach (var type in systemTypes)
                 {
-                    DependencyManager.GetBehaviourManager(type);
+                    GetBehaviourManagerAndLogException(type);
                 }
 
                 // Create All IAutoComponentSystemJob
@@ -38,12 +50,12 @@ namespace UnityEngine.ECS
                     if (genericTypes.Count == 2)
                     {
                         var type = typeof(GenericProcessComponentSystem<,>).MakeGenericType(genericTypes.ToArray());
-                        DependencyManager.GetBehaviourManager(type);
+                        GetBehaviourManagerAndLogException(type);
                     }
                     else if (genericTypes.Count == 3)
                     {
                         var type = typeof(GenericProcessComponentSystem<,,>).MakeGenericType(genericTypes.ToArray());
-                        DependencyManager.GetBehaviourManager(type);
+                        GetBehaviourManagerAndLogException(type);
                     }
                     else
                     {

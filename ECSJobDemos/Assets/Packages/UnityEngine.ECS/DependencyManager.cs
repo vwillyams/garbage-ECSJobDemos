@@ -101,8 +101,31 @@ namespace UnityEngine.ECS
 		{
 //          Debug.Log("Dispose DependencyManager");
 
+			// Destruction should happen in reverse order to construction
+			ms_BehaviourManagers.Reverse();
+
+			///@TODO: Crazy hackery to make EntityManager be destroyed last.
 			foreach (var behaviourManager in ms_BehaviourManagers)
-				ScriptBehaviourManager.DestroyInstance (behaviourManager);
+			{
+				if (behaviourManager is EntityManager)
+				{
+					ms_BehaviourManagers.Remove(behaviourManager);
+					ms_BehaviourManagers.Add(behaviourManager);
+					break;
+				}
+			}
+
+			foreach (var behaviourManager in ms_BehaviourManagers)
+			{
+				try
+				{
+					ScriptBehaviourManager.DestroyInstance (behaviourManager);
+				}
+				catch (Exception e)
+				{
+					Debug.LogException(e);
+				}
+			}
 
 			ms_BehaviourManagers.Clear();
 			ms_BehaviourManagerLookup.Clear();
@@ -110,7 +133,7 @@ namespace UnityEngine.ECS
 
 		ScriptBehaviourManager CreateAndRegisterManager (System.Type type, int capacity)
 		{
-			var manager = Activator.CreateInstance(type) as ScriptBehaviourManager;
+			var manager = Activator.CreateInstance(type) as ScriptBehaviourManager;;
 
 			ms_BehaviourManagers.Add (manager);
 			ms_BehaviourManagerLookup.Add(type, manager);

@@ -3,8 +3,8 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 namespace UnityEngine.ECS.Rendering
 {
-   [UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.PreLateUpdate.ParticleSystemBeginUpdateAll))]
-    public class InstanceRendererSystem : ComponentSystem
+	[UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.PreLateUpdate.ParticleSystemBeginUpdateAll))]
+	public class InstanceRendererSystem : ComponentSystem
 	{
         // Instance renderer takes only batches of 1024
         Matrix4x4[] m_MatricesArray = new Matrix4x4[1023];

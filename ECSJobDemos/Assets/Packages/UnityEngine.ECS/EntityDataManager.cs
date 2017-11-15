@@ -1,9 +1,7 @@
 ﻿using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using System;
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-using NUnit.Framework;
-#endif
+using UnityEngine.Assertions;
 
 namespace UnityEngine.ECS
 {
@@ -142,8 +140,8 @@ namespace UnityEngine.ECS
                 if (m_Entities[i].chunk != null)
                 {
                     aliveEntities++;
-
-                    Assert.AreEqual(entityType, m_Entities[i].archetype->types[0]);
+                    
+                    Assert.AreEqual(entityType, m_Entities[i].archetype->types[0].typeIndex);
                     Entity entity = *(Entity*)ChunkDataUtility.GetComponentData(m_Entities[i].chunk, m_Entities[i].index, 0);
                     Assert.AreEqual(i, entity.index);
                     Assert.AreEqual(m_Entities[i].version, entity.version);

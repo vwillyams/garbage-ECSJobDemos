@@ -60,7 +60,7 @@ namespace Unity.Collections
                 throw new ArgumentException(string.Format("{1} used in NativeHashMap<{0},{1}> must be blittable", typeof(TKey), typeof(TValue)));
 #endif
 
-			outBuf = UnsafeUtility.Malloc ((ulong)sizeof(NativeHashMapData), UnsafeUtility.AlignOf<NativeHashMapData>(), label);
+			outBuf = UnsafeUtility.Malloc (sizeof(NativeHashMapData), UnsafeUtility.AlignOf<NativeHashMapData>(), label);
 
 			NativeHashMapData* data = (NativeHashMapData*)outBuf;
 
@@ -70,7 +70,7 @@ namespace Unity.Collections
 			int keyOffset, nextOffset, bucketOffset;
 			int totalSize = CalculateDataSize<TKey, TValue>(length, bucketLength, out keyOffset, out nextOffset, out bucketOffset);
 			
-			data->values = UnsafeUtility.Malloc ((ulong)totalSize, JobsUtility.CacheLineSize, label);
+			data->values = UnsafeUtility.Malloc (totalSize, JobsUtility.CacheLineSize, label);
 			data->keys = (IntPtr)((byte*)data->values + keyOffset);
 			data->next = (IntPtr)((byte*)data->values + nextOffset);
 			data->buckets = (IntPtr)((byte*)data->values + bucketOffset);
@@ -88,15 +88,15 @@ namespace Unity.Collections
 			int keyOffset, nextOffset, bucketOffset;
 			int totalSize = CalculateDataSize<TKey, TValue>(newCapacity, newBucketCapacity, out keyOffset, out nextOffset, out bucketOffset);
 			
-			IntPtr newData = UnsafeUtility.Malloc ((ulong)totalSize, JobsUtility.CacheLineSize, label);
+			IntPtr newData = UnsafeUtility.Malloc (totalSize, JobsUtility.CacheLineSize, label);
 			IntPtr newKeys = (IntPtr)((byte*)newData + keyOffset);
 			IntPtr newNext = (IntPtr)((byte*)newData + nextOffset);
 			IntPtr newBuckets = (IntPtr)((byte*)newData + bucketOffset);
 
 			// The items are taken from a free-list and might not be tightly packed, copy all of the old capcity
-			UnsafeUtility.MemCpy (newData, data->values, (ulong)(data->capacity * UnsafeUtility.SizeOf<TValue>()));
-			UnsafeUtility.MemCpy (newKeys, data->keys, (ulong)(data->capacity * UnsafeUtility.SizeOf<TKey>()));
-			UnsafeUtility.MemCpy (newNext, data->next, (ulong)(data->capacity * UnsafeUtility.SizeOf<int>()));
+			UnsafeUtility.MemCpy (newData, data->values, data->capacity * UnsafeUtility.SizeOf<TValue>());
+			UnsafeUtility.MemCpy (newKeys, data->keys, data->capacity * UnsafeUtility.SizeOf<TKey>());
+			UnsafeUtility.MemCpy (newNext, data->next, data->capacity * UnsafeUtility.SizeOf<int>());
 			for (int emptyNext = data->capacity; emptyNext < newCapacity; ++emptyNext)
 				((int*)newNext)[emptyNext] = -1;
 

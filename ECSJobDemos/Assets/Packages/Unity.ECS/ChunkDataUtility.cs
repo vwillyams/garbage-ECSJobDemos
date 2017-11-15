@@ -57,7 +57,7 @@ namespace UnityEngine.ECS
             {
                 IntPtr src = GetComponentData(srcChunk, srcIndex, i);
                 IntPtr dst = GetComponentData(dstChunk, dstIndex, i);
-                UnsafeUtility.MemCpy(dst, src, (ulong)arch->sizeOfs[i]);
+                UnsafeUtility.MemCpy(dst, src, arch->sizeOfs[i]);
             }
         }
 
@@ -79,7 +79,7 @@ namespace UnityEngine.ECS
                 for (int t = 1; t != arch->typesCount; t++)
                 {
                     IntPtr dst = GetComponentData(dstChunk, dstIndex + e, t);
-                    UnsafeUtility.MemClear(dst, (ulong)arch->sizeOfs[t]);
+                    UnsafeUtility.MemClear(dst, arch->sizeOfs[t]);
                 }
             }
         }
@@ -124,7 +124,7 @@ namespace UnityEngine.ECS
                 {
                     IntPtr src = srcChunk->buffer + srcArch->offsets[srcI] + srcIndex * srcArch->strides[srcI];
                     IntPtr dst = dstChunk->buffer + dstArch->offsets[dstI] + dstIndex * dstArch->strides[dstI];
-                    UnsafeUtility.MemCpy(dst, src, (ulong)srcArch->sizeOfs[srcI]);
+                    UnsafeUtility.MemCpy(dst, src, srcArch->sizeOfs[srcI]);
                     ++srcI;
                     ++dstI;
                 }

@@ -127,7 +127,7 @@ namespace Unity.Collections
 
         public unsafe static void AllocateQueue<T>(int capacity, Allocator label, out IntPtr outBuf) where T : struct
         {
-            outBuf = UnsafeUtility.Malloc((ulong)UnsafeUtility.SizeOf<NativeQueueData>(), UnsafeUtility.AlignOf<NativeQueueData>(), label);
+            outBuf = UnsafeUtility.Malloc(UnsafeUtility.SizeOf<NativeQueueData>(), UnsafeUtility.AlignOf<NativeQueueData>(), label);
             NativeQueueData* data = (NativeQueueData*)outBuf;
             data->m_NextFreeBlock = 0;
             data->m_FirstUsedBlock = 0;
@@ -150,7 +150,7 @@ namespace Unity.Collections
 
             int totalSizeInBytes = (64 + data->m_BlockSize * UnsafeUtility.SizeOf<T>()) * data->m_NumBlocks;
 
-            data->m_Data = UnsafeUtility.Malloc((ulong)totalSizeInBytes, JobsUtility.CacheLineSize, label);
+            data->m_Data = UnsafeUtility.Malloc(totalSizeInBytes, JobsUtility.CacheLineSize, label);
             int* blockLengths = GetBlockLengths<T>(data);
             for (int i = 0; i < data->m_NumBlocks; ++i)
                 blockLengths[i * IntsPerCacheLine] = 0;
@@ -177,7 +177,7 @@ namespace Unity.Collections
             }
 
             int totalSizeInBytes = (64 + newBlockSize * UnsafeUtility.SizeOf<T>()) * newNumBlocks;
-            IntPtr newData = UnsafeUtility.Malloc((ulong)totalSizeInBytes, JobsUtility.CacheLineSize, label);
+            IntPtr newData = UnsafeUtility.Malloc(totalSizeInBytes, JobsUtility.CacheLineSize, label);
 
             // Copy the data from the old buffer to the new while compacting it and tracking the size
             int count = 0;
@@ -188,12 +188,12 @@ namespace Unity.Collections
             {
                 Byte* srcPtr = ((Byte*)data->m_Data) + (i * data->m_BlockSize + data->m_CurrentReadIndexInBlock) * UnsafeUtility.SizeOf<T>();
                 count = blockLengths[i * IntsPerCacheLine] - data->m_CurrentReadIndexInBlock;
-                UnsafeUtility.MemCpy((IntPtr)dstPtr, (IntPtr)srcPtr, (ulong)(count * UnsafeUtility.SizeOf<T>()));
+                UnsafeUtility.MemCpy((IntPtr)dstPtr, (IntPtr)srcPtr, count * UnsafeUtility.SizeOf<T>());
                 i = (i + 1) % data->m_NumBlocks;
                 while (i != data->m_NextFreeBlock)
                 {
                     srcPtr = ((Byte*)data->m_Data) + i * data->m_BlockSize * UnsafeUtility.SizeOf<T>();
-                    UnsafeUtility.MemCpy((IntPtr)(dstPtr + count * UnsafeUtility.SizeOf<T>()), (IntPtr)srcPtr, (ulong)(blockLengths[i * IntsPerCacheLine] * UnsafeUtility.SizeOf<T>()));
+                    UnsafeUtility.MemCpy((IntPtr)(dstPtr + count * UnsafeUtility.SizeOf<T>()), (IntPtr)srcPtr, blockLengths[i * IntsPerCacheLine] * UnsafeUtility.SizeOf<T>());
                     count += blockLengths[i * IntsPerCacheLine];
                     i = (i + 1) % data->m_NumBlocks;
                 }

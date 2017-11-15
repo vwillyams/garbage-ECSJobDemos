@@ -117,20 +117,20 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		setupSampler.Begin();
 		int size = sizeof(Component4Bytes) + sizeof(Component16Bytes)  + sizeof(Component64Bytes) + sizeof(Component12Bytes) + sizeof(Component128Bytes) + sizeof(Entity);
 		size *= PerformanceTestConfiguration.InstanceCount;
-		var src = (float*)UnsafeUtility.Malloc((ulong)size, 64, Allocator.Persistent);
-		UnsafeUtility.MemClear((IntPtr)src, (ulong)size);
+		var src = (float*)UnsafeUtility.Malloc(size, 64, Allocator.Persistent);
+		UnsafeUtility.MemClear((IntPtr)src, size);
 		
-		var dst = (float*)UnsafeUtility.Malloc((ulong)size, 64, Allocator.Persistent);
+		var dst = (float*)UnsafeUtility.Malloc(size, 64, Allocator.Persistent);
 		setupSampler.End();
 
 		instantiateMemcpySampler.Begin();
-		UnsafeUtility.MemCpy((IntPtr)dst, (IntPtr)src, (ulong)size);
+		UnsafeUtility.MemCpy((IntPtr)dst, (IntPtr)src, size);
 		instantiateMemcpySampler.End();
 
 		memcpySampler.Begin();
 		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
 		{
-			UnsafeUtility.MemCpy((IntPtr)dst, (IntPtr)src, (ulong)sizeof(float) * PerformanceTestConfiguration.InstanceCount);
+			UnsafeUtility.MemCpy((IntPtr)dst, (IntPtr)src, sizeof(float) * PerformanceTestConfiguration.InstanceCount);
 		}
 		memcpySampler.End();
 

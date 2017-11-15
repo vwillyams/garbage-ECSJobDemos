@@ -54,8 +54,8 @@ namespace UnityEngine.ECS
             m_SharedComponentManager = new SharedComponentDataManager();
             TypeManager.Initialize();
 
-            m_CachedComponentTypeArray = (ComponentType*)UnsafeUtility.Malloc((ulong)(sizeof(ComponentType) * 32 * 1024), 16, Allocator.Persistent);
-            m_CachedComponentTypeInArchetypeArray = (ComponentTypeInArchetype*)UnsafeUtility.Malloc((ulong)(sizeof(ComponentTypeInArchetype) * 32 * 1024), 16, Allocator.Persistent);
+            m_CachedComponentTypeArray = (ComponentType*)UnsafeUtility.Malloc(sizeof(ComponentType) * 32 * 1024, 16, Allocator.Persistent);
+            m_CachedComponentTypeInArchetypeArray = (ComponentTypeInArchetype*)UnsafeUtility.Malloc(sizeof(ComponentTypeInArchetype) * 32 * 1024, 16, Allocator.Persistent);
         }
 
         unsafe protected override void OnDestroyManager()

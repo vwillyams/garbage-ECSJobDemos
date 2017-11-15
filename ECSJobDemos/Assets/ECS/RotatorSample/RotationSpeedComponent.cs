@@ -11,22 +11,23 @@ namespace RotatorSamples
 
 	public class RotatingSystem : ComponentSystem
 	{
-		// NOTE: InjectTuples scans all [InjectTuples] in the class
-		// and returns the union of objects that have both Transform and LightRotator
-		[InjectTuples]
-		public ComponentArray<Transform> 				m_Transforms;
+		struct Group
+		{
+			public ComponentArray<Transform> 				transforms;
+			public ComponentArray<RotationSpeedComponent>   rotators;
+		}
 
-		[InjectTuples]
-		public ComponentArray<RotationSpeedComponent>   m_Rotators;
+		[InjectComponentGroup]
+		Group m_Rotators;
 
 		override public void OnUpdate()
 		{
 			base.OnUpdate ();
 
 			float dt = Time.deltaTime;
-			for (int i = 0; i != m_Transforms.Length;i++)
+			for (int i = 0; i != m_Rotators.transforms.Length;i++)
 			{
-				m_Transforms[i].rotation = m_Transforms[i].rotation * Quaternion.AngleAxis(dt * m_Rotators[i].speed, Vector3.up);
+				m_Rotators.transforms[i].rotation = m_Rotators.transforms[i].rotation * Quaternion.AngleAxis(dt * m_Rotators.rotators[i].speed, Vector3.up);
 			}
 		}
 	}

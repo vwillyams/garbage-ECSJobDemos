@@ -139,8 +139,12 @@ namespace UnityEngine.ECS
         where TJob : struct, IAutoComponentSystemJob, IJobProcessComponentData<TComponentData0>
         where TComponentData0 : struct, IComponentData
     {
-        [InjectTuples]
-        ComponentDataArray<TComponentData0> m_Component0;
+        struct DataGroup
+        {
+            internal ComponentDataArray<TComponentData0> component0;
+        }
+        [InjectComponentGroup]
+        private DataGroup m_Group;
 
         public override void OnUpdate()
         {
@@ -151,7 +155,7 @@ namespace UnityEngine.ECS
             TJob jobData = new TJob();
             jobData.Prepare();
 
-            AddDependency(jobData.Schedule(m_Component0, batchSize, GetDependency()));
+            AddDependency(jobData.Schedule(m_Group.component0, batchSize, GetDependency()));
         }
     }
 
@@ -160,11 +164,14 @@ namespace UnityEngine.ECS
     where TComponentData0 : struct, IComponentData
     where TComponentData1 : struct, IComponentData
     {
-        [InjectTuples]
-        ComponentDataArray<TComponentData0> m_Component0;
+        struct DataGroup
+        {
+            internal ComponentDataArray<TComponentData0> component0;
+            internal ComponentDataArray<TComponentData1> component1;
+        }
 
-        [InjectTuples]
-        ComponentDataArray<TComponentData1> m_Component1;
+        [InjectComponentGroup]
+        private DataGroup m_Group;
 
         public override void OnUpdate()
         {
@@ -175,7 +182,7 @@ namespace UnityEngine.ECS
             TJob jobData = new TJob();
             jobData.Prepare();
 
-            AddDependency(jobData.Schedule(m_Component0, m_Component1, batchSize, GetDependency()));
+            AddDependency(jobData.Schedule(m_Group.component0, m_Group.component1, batchSize, GetDependency()));
         }
     }
 

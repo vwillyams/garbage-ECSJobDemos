@@ -11,12 +11,15 @@ namespace BoidSimulations
 	[UpdateAfter(typeof(BoidSimulationSystem))]
 	class BoidsToTransformSystem : JobComponentSystem
 	{
-		[InjectTuples]
-        [ReadOnly]
-        ComponentDataArray<BoidData> 	m_BoidData;
+		struct Group
+		{
+			[ReadOnly]
+			public ComponentDataArray<BoidData> 	boids;
 
-		[InjectTuples]
-		TransformAccessArray 		    m_BoidTransforms;
+			public TransformAccessArray 		    transforms;
+		}
+
+		[InjectComponentGroup] Group m_Boids;
 
 		struct WriteBoidsToTransformsJob : IJobParallelForTransform
 		{
@@ -32,33 +35,14 @@ namespace BoidSimulations
 			}
 		}
 
-        struct TestJob : IJob
-        {
-            public ComponentDataArray<Blah> boidData;
-
-            public void Execute()
-            {
-
-            }
-        }
-
-        JobHandle handle;
-
 		override public void OnUpdate()
 		{
 			base.OnUpdate ();
 
 			WriteBoidsToTransformsJob writeJob;
-			writeJob.boidData = m_BoidData;
+			writeJob.boidData = m_Boids.boids;
 
-			AddDependency(writeJob.Schedule (m_BoidTransforms, GetDependency()));
-            /*
-            EntityManager.CreateEntity(typeof(Blah));
-
-            TestJob job = new TestJob();
-            job.boidData = EntityManager.CreateComponentGroup(typeof(Blah)).GetComponentDataArray<Blah>();
-            job.Schedule();
-            */
+			AddDependency(writeJob.Schedule (m_Boids.transforms, GetDependency()));
 		}
 	}
 }

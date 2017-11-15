@@ -33,29 +33,29 @@ namespace RotatorSamples
 
     //@TODO: struct with Length returning itself infinite recursion crashes editor instead of exception...
 
-#if false
+#if true
 
 	// Single thread
 	[UpdateAfter(typeof(DamageSystem))]
-	public class RotatingSystem : ComponentSystem
+	public class SystemRotator : ComponentSystem
 	{
-		// NOTE: InjectTuples scans all [InjectTuples] in the class
-		// and returns the union of objects that have both Transform and LightRotator
-		[InjectTuples]
-		public ComponentArray<Transform> m_Transforms;
+		struct Group
+		{
+			public TransformAccessArray    				transforms;
+			public ComponentDataArray<RotationSpeed>    rotators;
+		}
 
-		[InjectTuples]
-		public ComponentDataArray<RotationSpeed>        m_Rotators;
-
+		[InjectComponentGroup]
+		Group m_Rotators;
 
 		override public void OnUpdate()
 		{
 			base.OnUpdate ();
 
 			float dt = Time.deltaTime;
-			for (int i = 0; i != m_Transforms.Length;i++)
+			for (int i = 0; i != m_Rotators.transforms.Length;i++)
 			{
-				m_Transforms[i].rotation = m_Transforms[i].rotation * Quaternion.AngleAxis(dt * m_Rotators[i].speed, Vector3.up);
+				m_Rotators.transforms[i].rotation = m_Rotators.transforms[i].rotation * Quaternion.AngleAxis(dt * m_Rotators.rotators[i].speed, Vector3.up);
 			}
 		}
 	}
@@ -66,25 +66,24 @@ namespace RotatorSamples
     [UpdateAfter(typeof(DamageSystem))]
 	public class SystemRotator : JobComponentSystem
 	{
-		// NOTE: InjectTuples scans all [InjectTuples] in the class
-		// and returns the union of objects that have both Transform and LightRotator
+		struct Group
+		{
+			public TransformAccessArray    				transforms;
+			public ComponentDataArray<RotationSpeed>    rotators;
+		}
 
-		[InjectTuples]
-		public TransformAccessArray                m_Transforms;
-
-		[InjectTuples]
-        [ReadOnly]
-		public ComponentDataArray<RotationSpeed>    m_Rotators;
-
+		[InjectComponentGroup]
+		Group m_Rotators;
+		
 		public override void OnUpdate()
 		{
 			base.OnUpdate ();
 
 			var job = new Job();
 			job.dt = Time.deltaTime;
-			job.rotators = m_Rotators;
+			job.rotators = m_Rotators.rotators;
 
-            AddDependency(job.Schedule(m_Transforms, GetDependency()));
+            AddDependency(job.Schedule(m_Rotators.transforms, GetDependency()));
 		}
 
 		struct Job : IJobParallelForTransform

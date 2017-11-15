@@ -15,16 +15,4 @@ namespace UnityEngine.ECS
 	{
 
 	}
-
-	//@TODO: Remove
-	[AttributeUsage(AttributeTargets.Field)]
-    public class InjectTuples : System.Attribute
-    {
-    	public int TupleSetIndex { get; set; }
-
-    	public InjectTuples(int tupleSetIndex = 0)
-    	{
-    		TupleSetIndex = tupleSetIndex;
-    	}
-    }
 }

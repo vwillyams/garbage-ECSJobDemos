@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace UnityEditor.ECS
 {
-    public class TupleListView : TreeView {
+    public class ComponentGroupListView : TreeView {
         
         Dictionary<int, ComponentGroup> componentGroupsById;
 
@@ -48,7 +48,7 @@ namespace UnityEditor.ECS
             return stateForCurrentSystem;
         }
 
-        public TupleListView(TreeViewState state, EntityWindow window, ComponentSystem system) : base(state)
+        public ComponentGroupListView(TreeViewState state, EntityWindow window, ComponentSystem system) : base(state)
         {
             this.window = window;
             currentSystem = system;
@@ -71,16 +71,16 @@ namespace UnityEditor.ECS
             }
             else
             {
-                var tupleIndex = 0;
+                var groupIndex = 0;
                 foreach (var group in currentSystem.ComponentGroups)
                 {
                     componentGroupsById.Add(currentID, group);
                     var types = group.Types;
-                    var tupleName = string.Join(", ", (from x in types select x.Name).ToArray());
+                    var groupName = string.Join(", ", (from x in types select x.Name).ToArray());
 
-                    var tupleItem = new TreeViewItem { id = currentID++, displayName = string.Format("({1}):", tupleIndex, tupleName) };
-                    root.AddChild(tupleItem);
-                    ++tupleIndex;
+                    var groupItem = new TreeViewItem { id = currentID++, displayName = string.Format("({1}):", groupIndex, groupName) };
+                    root.AddChild(groupItem);
+                    ++groupIndex;
                 }
                 SetupDepthsFromParentsAndChildren(root);
             }

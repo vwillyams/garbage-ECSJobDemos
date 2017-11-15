@@ -17,26 +17,21 @@ namespace UnityEditor.ECS
         const float kMinListWidth = 200f;
         const float kSystemListHeight = 100f;
 
-        // [SerializeField]
-        // SplitterState systemTupleSplitter = new SplitterState(new float[] { 1, 1 }, new int[] { 100, 100 }, null);
-        // [SerializeField]
-        // SplitterState entityListSplitter = new SplitterState(new float[] { 1, 1 }, new int[] { 100, 100 }, null);
-
         public ComponentSystem CurrentSystemSelection {
             get { return currentSystemSelection; }
             set {
                 currentSystemSelection = value;
                 currentComponentGroupSelection = null;
-                InitTupleList();
+                InitComponentGroupList();
                 InitEntityList();
             }
         }
         ComponentSystem currentSystemSelection;
 
-        void InitTupleList()
+        void InitComponentGroupList()
         {
-            var tupleListState = TupleListView.GetStateForSystem(currentSystemSelection, ref tupleListStates, ref tupleListStateNames);
-            tupleListView = new TupleListView(tupleListState, this, currentSystemSelection);
+            var groupListState = ComponentGroupListView.GetStateForSystem(currentSystemSelection, ref componentGroupListStates, ref componentGroupListStateNames);
+            _componentGroupListView = new ComponentGroupListView(groupListState, this, currentSystemSelection);
         }
 
         public ComponentGroup CurrentComponentGroupSelection {
@@ -63,7 +58,7 @@ namespace UnityEditor.ECS
 
         SystemListView systemListView;
 
-        TupleListView tupleListView;
+        ComponentGroupListView _componentGroupListView;
 
         [SerializeField]
         TreeViewState entityListState;
@@ -74,10 +69,10 @@ namespace UnityEditor.ECS
         List<MultiColumnHeaderState> entityColumnHeaderStates;
 
         [SerializeField]
-        List<string> tupleListStateNames;
+        List<string> componentGroupListStateNames;
 
         [SerializeField]
-        List<TreeViewState> tupleListStates;
+        List<TreeViewState> componentGroupListStates;
 
         [NonSerialized]
         bool initialized;
@@ -85,11 +80,6 @@ namespace UnityEditor.ECS
         [NonSerialized]
         bool systemsNull = true;
 
-        // Rect systemListRect { get { return new Rect(0f, 0f, systemListWidth, kSystemListHeight); } }
-        // [SerializeField]
-        // Rect verticalSplitterRect = new Rect(kMinListWidth, 0f, 1f, kSystemListHeight);
-        // Rect tupleListRect { get { return new Rect(systemListWidth, 0f, position.width - systemListWidth, kSystemListHeight); } }
-        // Rect horizontalSplitterRect { get { return new Rect(0f, kSystemListHeight, position.width, 1f); } }
         Rect entityListRect { get { return new Rect(0f, kSystemListHeight, position.width, position.height - kSystemListHeight); } }
 
         [MenuItem ("Window/Entities", false, 2017)]
@@ -141,11 +131,11 @@ namespace UnityEditor.ECS
             systemListView.OnGUI(GetExpandingRect());
         }
 
-        void TupleList()
+        void ComponentGroupList()
         {
             if (CurrentSystemSelection != null)
             {
-                tupleListView.OnGUI(GetExpandingRect());
+                _componentGroupListView.OnGUI(GetExpandingRect());
             }
         }
 
@@ -169,27 +159,20 @@ namespace UnityEditor.ECS
                 return;
             }
 
-            // SplitterGUILayout.BeginVerticalSplit(entityListSplitter);
-
-            // SplitterGUILayout.BeginHorizontalSplit(systemTupleSplitter);
             GUILayout.BeginHorizontal(GUILayout.Height(kSystemListHeight));
 
             GUILayout.BeginVertical();
             SystemList(systemsWereNull);
             GUILayout.EndVertical();
             GUILayout.BeginVertical();
-            TupleList();
+            ComponentGroupList();
             GUILayout.EndVertical();
 
-            // SplitterGUILayout.EndHorizontalSplit();
             GUILayout.EndHorizontal();
 
             GUILayout.BeginVertical();
             EntityList();
             GUILayout.EndVertical();
-
-            // SplitterGUILayout.EndVerticalSplit();
-
         }
 
         void OnSceneGUI(SceneView sceneView)

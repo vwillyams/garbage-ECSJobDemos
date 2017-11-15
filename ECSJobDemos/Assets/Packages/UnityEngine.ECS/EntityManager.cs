@@ -97,27 +97,6 @@ namespace UnityEngine.ECS
         {
             return m_GroupManager.CreateEntityGroup(m_ArchetypeManager, m_CachedComponentTypeArray, PopulatedCachedTypeArray(requiredComponents), new TransformAccessArray());
         }
-        unsafe public ComponentGroup CreateComponentGroup(UnityEngine.Jobs.TransformAccessArray trans, params ComponentType[] requiredComponents)
-        {
-            int len = PopulatedCachedTypeArray(requiredComponents);
-           
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            if (trans.IsCreated)
-            {
-                bool hasTransform = false;
-                var transformType = ComponentType.Create<Transform>();
-                for (int i = 0; i < len; ++i)
-                {
-                    if (m_CachedComponentTypeArray[i].typeIndex == transformType.typeIndex)
-                        hasTransform = true;
-                }
-                if (!hasTransform)
-                    throw new System.ArgumentException("Creating a component group with a transform access array without passing typeof(Transform) as part of the required components is illegal");
-            }
-#endif
-
-            return m_GroupManager.CreateEntityGroup(m_ArchetypeManager, m_CachedComponentTypeArray, len, trans);
-        }
 
         unsafe public EntityArchetype CreateArchetype(params ComponentType[] types)
         {

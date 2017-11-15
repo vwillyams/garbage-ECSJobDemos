@@ -33,7 +33,7 @@ namespace RotatorSamples
 
     //@TODO: struct with Length returning itself infinite recursion crashes editor instead of exception...
 
-#if true
+#if false
 
 	// Single thread
 	[UpdateAfter(typeof(DamageSystem))]
@@ -43,6 +43,7 @@ namespace RotatorSamples
 		{
 			public TransformAccessArray    				transforms;
 			public ComponentDataArray<RotationSpeed>    rotators;
+			public int 								    Length;
 		}
 
 		[InjectComponentGroup]
@@ -53,7 +54,7 @@ namespace RotatorSamples
 			base.OnUpdate ();
 
 			float dt = Time.deltaTime;
-			for (int i = 0; i != m_Rotators.transforms.Length;i++)
+			for (int i = 0; i != m_Rotators.Length;i++)
 			{
 				m_Rotators.transforms[i].rotation = m_Rotators.transforms[i].rotation * Quaternion.AngleAxis(dt * m_Rotators.rotators[i].speed, Vector3.up);
 			}

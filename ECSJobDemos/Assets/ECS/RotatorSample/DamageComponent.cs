@@ -25,6 +25,7 @@ namespace RotatorSamples
 		{
 			public ComponentDataArray<Damage>   		damages;
 			public TransformAccessArray  				transforms;
+			public int  								Length;
 		}
 
 		[InjectComponentGroup] 
@@ -35,6 +36,7 @@ namespace RotatorSamples
 		{
 			public ComponentDataArray<RotationSpeed>   	speed;
 			public TransformAccessArray  				transforms;
+			public int  								Length;
 		}
 
 		[InjectComponentGroup] 
@@ -46,8 +48,8 @@ namespace RotatorSamples
 
 			// Extract positions for both damage and rotations in two arrays
 			// so that our N * N loop isn't doing complex calls and has tight data
-			NativeArray<float3> damagePositions = new NativeArray<float3> (m_Damages.transforms.Length, Allocator.TempJob);
-			NativeArray<float3> rotationPositions = new NativeArray<float3> (m_Rotators.transforms.Length, Allocator.TempJob);
+			NativeArray<float3> damagePositions = new NativeArray<float3> (m_Damages.Length, Allocator.TempJob);
+			NativeArray<float3> rotationPositions = new NativeArray<float3> (m_Rotators.Length, Allocator.TempJob);
 			var damagePositionsJob = GetPositionsJob.Schedule (m_Damages.transforms, damagePositions);
 			var rotationsJob = GetPositionsJob.Schedule (m_Rotators.transforms, rotationPositions);
 
@@ -61,7 +63,7 @@ namespace RotatorSamples
 			damageJob.damages = m_Damages.damages;
 
 			var dependency = JobHandle.CombineDependencies (damagePositionsJob, rotationsJob, GetDependency());
-			AddDependency(damageJob.Schedule (rotationPositions.Length, 64, dependency));
+			AddDependency(damageJob.Schedule (m_Rotators.Length, 64, dependency));
 		}
 
 		// Used to Extract positions from transforms

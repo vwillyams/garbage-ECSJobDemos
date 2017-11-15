@@ -12,6 +12,7 @@ namespace UnityEngine.ECS.Tests
         {
             public ComponentDataArray<EcsTestData> Data;
             public EntityArray                     Entities;
+            public int                             Length;
         }
 
         [InjectComponentGroup] 
@@ -62,19 +63,19 @@ namespace UnityEngine.ECS.Tests
             m_Manager.AddComponent (go1, new EcsTestData(20));
 
             pureSystem.OnUpdate ();
-            Assert.AreEqual (2, pureSystem.Group.Data.Length);
+            Assert.AreEqual (2, pureSystem.Group.Length);
             Assert.AreEqual (10, pureSystem.Group.Data[0].value);
             Assert.AreEqual (20, pureSystem.Group.Data[1].value);
 
             m_Manager.RemoveComponent<EcsTestData> (go0);
 
             pureSystem.OnUpdate ();
-            Assert.AreEqual (1, pureSystem.Group.Data.Length);
+            Assert.AreEqual (1, pureSystem.Group.Length);
             Assert.AreEqual (20, pureSystem.Group.Data[0].value);
 
             m_Manager.RemoveComponent<EcsTestData> (go1);
             pureSystem.OnUpdate ();
-            Assert.AreEqual (0, pureSystem.Group.Data.Length);
+            Assert.AreEqual (0, pureSystem.Group.Length);
         }
 
         [Test]
@@ -86,6 +87,7 @@ namespace UnityEngine.ECS.Tests
             m_Manager.AddComponent (go, new EcsTestData(2));
 
             pureSystem.OnUpdate ();
+            Assert.AreEqual (1, pureSystem.Group.Length);
             Assert.AreEqual (1, pureSystem.Group.Data.Length);
             Assert.AreEqual (1, pureSystem.Group.Entities.Length);
             Assert.AreEqual (2, pureSystem.Group.Data[0].value);

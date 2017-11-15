@@ -53,6 +53,7 @@ namespace UnityEngine.ECS
 
 	    FieldInfo 							m_EntityArrayInjection;
 	    FieldInfo 							m_TransformAccessArrayInjections;
+	    FieldInfo 							m_LengthInjection;
 
         TupleInjectionData[]                m_ComponentDataInjections;
         TupleInjectionData[]                m_ComponentInjections;
@@ -61,7 +62,9 @@ namespace UnityEngine.ECS
 
         FieldInfo 							m_GroupField;
         
-		internal TupleSystem(EntityManager entityManager, FieldInfo groupField, TupleSystem.TupleInjectionData[] componentDataInjections, TupleSystem.TupleInjectionData[] componentInjections, FieldInfo entityArrayInjection, FieldInfo transformAccessArrayInjection)
+
+	    
+		internal TupleSystem(EntityManager entityManager, FieldInfo groupField, TupleSystem.TupleInjectionData[] componentDataInjections, TupleSystem.TupleInjectionData[] componentInjections, FieldInfo entityArrayInjection, FieldInfo transformAccessArrayInjection, FieldInfo lengthInjection)
 		{
             var transformsCount = transformAccessArrayInjection != null ? 1 : 0;
 			var requiredComponentTypes = new ComponentType[componentInjections.Length + componentDataInjections.Length + transformsCount];
@@ -79,7 +82,8 @@ namespace UnityEngine.ECS
 
             m_ComponentDataInjections = componentDataInjections;
             m_ComponentInjections = componentInjections;
-            m_EntityArrayInjection = entityArrayInjection;
+			m_EntityArrayInjection = entityArrayInjection;
+			m_LengthInjection = lengthInjection;
 			m_TransformAccessArrayInjections = transformAccessArrayInjection;
 
 			m_GroupField = groupField;
@@ -126,17 +130,24 @@ namespace UnityEngine.ECS
                 var entityArray = m_EntityGroup.GetEntityArray();
                 UnsafeUtility.SetFieldStruct(groupObject, m_EntityArrayInjection, ref entityArray);
             }
-	        
-            m_GroupField.SetValue(targetObject, groupObject);
+
+	        if (m_LengthInjection != null)
+	        {
+		        int length = m_EntityGroup.Length;
+		        UnsafeUtility.SetFieldStruct(groupObject, m_LengthInjection, ref length);
+	        }
+
+	        m_GroupField.SetValue(targetObject, groupObject);
         }
 
 	    static public TupleSystem CreateTupleSystem(Type injectedGroupType, FieldInfo groupField, EntityManager entityManager)
 	    {
 		    FieldInfo entityArrayField;
 		    FieldInfo transformAccessArrayField;
+		    FieldInfo lengthField;
 		    var componentDataInjections = new List<TupleSystem.TupleInjectionData>();
 		    var componentInjections = new List<TupleSystem.TupleInjectionData>();
-		    var error = CollectInjectedGroup(injectedGroupType, out entityArrayField, out transformAccessArrayField, componentDataInjections, componentInjections);
+		    var error = CollectInjectedGroup(injectedGroupType, out entityArrayField, out transformAccessArrayField, out lengthField, componentDataInjections, componentInjections);
 		    if (error != null)
 		    {
 			    //@TODO: Throw expceptions in case of error?
@@ -144,7 +155,7 @@ namespace UnityEngine.ECS
 			    return null;
 		    }
 
-		    return new TupleSystem(entityManager, groupField, componentDataInjections.ToArray(), componentInjections.ToArray(), entityArrayField, transformAccessArrayField);
+		    return new TupleSystem(entityManager, groupField, componentDataInjections.ToArray(), componentInjections.ToArray(), entityArrayField, transformAccessArrayField, lengthField);
 	    }
 
 	    static public TupleSystem[] InjectComponentGroups(Type componentSystemType, EntityManager entityManager)
@@ -162,7 +173,7 @@ namespace UnityEngine.ECS
 		    return tuples.ToArray();
 	    }
 
-	    static string CollectInjectedGroup(Type injectedGroupType, out FieldInfo entityArrayField, out FieldInfo transformAccessArrayField, List<TupleSystem.TupleInjectionData> componentDataInjections, List<TupleSystem.TupleInjectionData> componentInjections)
+	    static string CollectInjectedGroup(Type injectedGroupType, out FieldInfo entityArrayField, out FieldInfo transformAccessArrayField, out FieldInfo lengthField, List<TupleSystem.TupleInjectionData> componentDataInjections, List<TupleSystem.TupleInjectionData> componentInjections)
 	    {
 			//@TODO: Improved error messages... should include full struct pathname etc.
 		    
@@ -170,6 +181,7 @@ namespace UnityEngine.ECS
 		    var	injections = new List<TupleSystem.TupleInjectionData>();
 		    transformAccessArrayField = null;
 		    entityArrayField = null;
+		    lengthField = null;
 
 			foreach(var field in fields)
     		{
@@ -202,11 +214,19 @@ namespace UnityEngine.ECS
 					
 					entityArrayField = field;
 				}
-				else
-				{
-					return "[InjectComponentGroup] may only be used on ComponentDataArray<>, ComponentArray<> or TransformAccessArray";
-				}
-    		}
+				else if (field.FieldType == typeof(int))
+			    {
+				    // Error on multiple EntityArray
+				    if (field.Name != "Length")
+					    return "A [InjectComponentGroup] struct, supports only a specialized int storing the length of the group. (\"int Length;\")";
+				    lengthField = field;
+			    }
+			    else
+			    {
+				    return
+					    "[InjectComponentGroup] may only be used on ComponentDataArray<>, ComponentArray<> or TransformAccessArray";
+			    }
+		    }
 
 		    return null;
 	    }

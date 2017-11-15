@@ -11,6 +11,7 @@ namespace BoidSimulations
 		struct Boids
 		{
 			public ComponentDataArray<BoidData> boids;
+			public int 							Length;
 		}
 		[InjectComponentGroup] Boids m_Boids;
 
@@ -19,8 +20,8 @@ namespace BoidSimulations
 		{
 			[ReadOnly] 
 			public ComponentDataArray<BoidTarget> boidTargets;
-
 			public ComponentArray<Transform>      transforms;
+			public int 							  Length;
 		}
 		[InjectComponentGroup] BoidTargets m_Targets;
 
@@ -28,6 +29,7 @@ namespace BoidSimulations
 		{
 			[ReadOnly] 
 			public ComponentDataArray<BoidSimulationSettings> settings;
+			public int  									  Length;
 		}
 		[InjectComponentGroup] Settings m_Settings;
 
@@ -36,6 +38,8 @@ namespace BoidSimulations
 			[ReadOnly] 
 			public ComponentDataArray<BoidGround> grounds;
 			public ComponentArray<Transform> 	  transforms;
+			public int 							  Length;
+
 		}
 		[InjectComponentGroup] Grounds m_Ground;
 
@@ -44,6 +48,8 @@ namespace BoidSimulations
 			[ReadOnly]
 			public ComponentDataArray<BoidObstacle> obstacles;
 			public ComponentArray<Transform> 		transforms;
+			public int 							    Length;
+
 		}
 		[InjectComponentGroup] BoidObstacles m_BoidObstacles;
 
@@ -91,7 +97,7 @@ namespace BoidSimulations
 			public NativeArray<float3> 									targetPositions;
 
 			[ReadOnly]
-			public NativeMultiHashMap<int, int>   					cells;
+			public NativeMultiHashMap<int, int>   					    cells;
 
 			[ReadOnly]
 			[DeallocateOnJobCompletionAttribute]
@@ -109,18 +115,18 @@ namespace BoidSimulations
 		{
 			base.OnUpdate();
 
-			if (m_Boids.boids.Length == 0)
+			if (m_Boids.Length == 0)
 				return;
 
-			if (m_Settings.settings.Length != 1)
+			if (m_Settings.Length != 1)
 				return;
 
 			CompleteDependency ();
 
-			m_Cells.Capacity = math.max (m_Cells.Capacity, m_Boids.boids.Length);
+			m_Cells.Capacity = math.max (m_Cells.Capacity, m_Boids.Length);
 			m_Cells.Clear ();
 
-			var boids = new NativeArray<BoidData> (m_Boids.boids.Length, Allocator.TempJob);
+			var boids = new NativeArray<BoidData> (m_Boids.Length, Allocator.TempJob);
 			var cellOffsetsTable = new NativeArray<int>(HashUtility.cellOffsets, Allocator.TempJob);
 			
 			// Simulation
@@ -131,25 +137,25 @@ namespace BoidSimulations
 				cellOffsetsTable = cellOffsetsTable,
 				simulationSettings = m_Settings.settings[0],
 				outputBoids = m_Boids.boids,
-				obstacles = new NativeArray<BoidObstacle> (m_BoidObstacles.obstacles.Length, Allocator.TempJob),
+				obstacles = new NativeArray<BoidObstacle> (m_BoidObstacles.Length, Allocator.TempJob),
 			};
 
 			simulateJob.simulationState.deltaTime = Time.deltaTime;
 
-			for (int i = 0;i != simulateJob.obstacles.Length;i++)
+			for (int i = 0;i != m_BoidObstacles.Length;i++)
 			{
 				var obstacle = m_BoidObstacles.obstacles[i];
 				obstacle.position = m_BoidObstacles.transforms[i].position;
 				simulateJob.obstacles[i] = obstacle;
 			}
-			if (m_Targets.transforms.Length == 0)
+			if (m_Targets.Length == 0)
 				simulateJob.simulationSettings.targetWeight = 0;
 			
-			if (m_Ground.transforms.Length >= 1)
+			if (m_Ground.Length >= 1)
 				simulateJob.simulationState.ground = m_Ground.transforms[0].position;
 
-			simulateJob.targetPositions = new NativeArray<float3> (m_Targets.transforms.Length, Allocator.TempJob);
-			for (int i = 0; i != simulateJob.targetPositions.Length; i++)
+			simulateJob.targetPositions = new NativeArray<float3> (m_Targets.Length, Allocator.TempJob);
+			for (int i = 0; i != m_Targets.Length; i++)
 				simulateJob.targetPositions[i] = m_Targets.transforms[i].position;
 
 			var prepareParallelJob = new PrepareParallelBoidsJob

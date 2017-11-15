@@ -7,9 +7,9 @@ using UnityEngine.Jobs;
 
 namespace UnityEngine.ECS
 {
-	class TupleSystem
+	class InjectComponentGroupData
     {
-        internal struct TupleInjectionData
+        internal struct InjectionData
         {
             public FieldInfo           field;
             public Type                containerType;
@@ -18,7 +18,7 @@ namespace UnityEngine.ECS
 
             internal IUpdateInjection  injection;
 
-            public TupleInjectionData(FieldInfo field, Type containerType, Type genericType, bool isReadOnly)
+            public InjectionData(FieldInfo field, Type containerType, Type genericType, bool isReadOnly)
             {
                 this.field = field;
                 this.containerType = containerType;
@@ -30,41 +30,41 @@ namespace UnityEngine.ECS
 
         internal  interface IUpdateInjection
         {
-            void UpdateInjection(object targetObject, ComponentGroup group, TupleInjectionData tuple);
+            void UpdateInjection(object targetObject, ComponentGroup group, InjectionData injection);
         }
 
         internal class UpdateInjectionComponentDataArray<T> : IUpdateInjection where T : struct, IComponentData
         {
-            public void UpdateInjection(object targetObject, ComponentGroup group, TupleInjectionData tuple)
+            public void UpdateInjection(object targetObject, ComponentGroup group, InjectionData injection)
             {
                 var array = group.GetComponentDataArray<T>();
-                UnsafeUtility.SetFieldStruct(targetObject, tuple.field, ref array);
+                UnsafeUtility.SetFieldStruct(targetObject, injection.field, ref array);
             }
         }
 
         internal class UpdateInjectionComponentArray<T> : IUpdateInjection where T : UnityEngine.Component
         {
-            public void UpdateInjection(object targetObject, ComponentGroup group, TupleInjectionData tuple)
+            public void UpdateInjection(object targetObject, ComponentGroup group, InjectionData injection)
             {
                 var array = group.GetComponentArray<T>();
-                UnsafeUtility.SetFieldStruct(targetObject, tuple.field, ref array);
+                UnsafeUtility.SetFieldStruct(targetObject, injection.field, ref array);
             }
         }
 
-	    FieldInfo 							m_EntityArrayInjection;
-	    FieldInfo 							m_TransformAccessArrayInjections;
-	    FieldInfo 							m_LengthInjection;
+	    FieldInfo 			m_EntityArrayInjection;
+	    FieldInfo 			m_TransformAccessArrayInjections;
+	    FieldInfo 			m_LengthInjection;
 
-        TupleInjectionData[]                m_ComponentDataInjections;
-        TupleInjectionData[]                m_ComponentInjections;
+        InjectionData[]     m_ComponentDataInjections;
+        InjectionData[]     m_ComponentInjections;
 
-        ComponentGroup 						m_EntityGroup;
+        ComponentGroup 		m_EntityGroup;
 
-        FieldInfo 							m_GroupField;
+        FieldInfo 			m_GroupField;
         
 
 	    
-		internal TupleSystem(EntityManager entityManager, FieldInfo groupField, TupleSystem.TupleInjectionData[] componentDataInjections, TupleSystem.TupleInjectionData[] componentInjections, FieldInfo entityArrayInjection, FieldInfo transformAccessArrayInjection, FieldInfo lengthInjection)
+		internal InjectComponentGroupData(EntityManager entityManager, FieldInfo groupField, InjectComponentGroupData.InjectionData[] componentDataInjections, InjectComponentGroupData.InjectionData[] componentInjections, FieldInfo entityArrayInjection, FieldInfo transformAccessArrayInjection, FieldInfo lengthInjection)
 		{
             var transformsCount = transformAccessArrayInjection != null ? 1 : 0;
 			var requiredComponentTypes = new ComponentType[componentInjections.Length + componentDataInjections.Length + transformsCount];
@@ -140,13 +140,13 @@ namespace UnityEngine.ECS
 	        m_GroupField.SetValue(targetObject, groupObject);
         }
 
-	    static public TupleSystem CreateTupleSystem(Type injectedGroupType, FieldInfo groupField, EntityManager entityManager)
+	    static InjectComponentGroupData CreateInjection(Type injectedGroupType, FieldInfo groupField, EntityManager entityManager)
 	    {
 		    FieldInfo entityArrayField;
 		    FieldInfo transformAccessArrayField;
 		    FieldInfo lengthField;
-		    var componentDataInjections = new List<TupleSystem.TupleInjectionData>();
-		    var componentInjections = new List<TupleSystem.TupleInjectionData>();
+		    var componentDataInjections = new List<InjectComponentGroupData.InjectionData>();
+		    var componentInjections = new List<InjectComponentGroupData.InjectionData>();
 		    var error = CollectInjectedGroup(injectedGroupType, out entityArrayField, out transformAccessArrayField, out lengthField, componentDataInjections, componentInjections);
 		    if (error != null)
 		    {
@@ -155,30 +155,30 @@ namespace UnityEngine.ECS
 			    return null;
 		    }
 
-		    return new TupleSystem(entityManager, groupField, componentDataInjections.ToArray(), componentInjections.ToArray(), entityArrayField, transformAccessArrayField, lengthField);
+		    return new InjectComponentGroupData(entityManager, groupField, componentDataInjections.ToArray(), componentInjections.ToArray(), entityArrayField, transformAccessArrayField, lengthField);
 	    }
 
-	    static public TupleSystem[] InjectComponentGroups(Type componentSystemType, EntityManager entityManager)
+	    static public InjectComponentGroupData[] InjectComponentGroups(Type componentSystemType, EntityManager entityManager)
 	    {
 		    var fields = componentSystemType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-		    var tuples = new List<TupleSystem>();
+		    var injectGroups = new List<InjectComponentGroupData>();
 		    foreach (var field in fields)
 		    {
 			    var attr = field.GetCustomAttributes(typeof(InjectComponentGroupAttribute), true);
 
 			    if (attr.Length != 0)
-				    tuples.Add(CreateTupleSystem(field.FieldType, field, entityManager));
+				    injectGroups.Add(CreateInjection(field.FieldType, field, entityManager));
 		    }
 
-		    return tuples.ToArray();
+		    return injectGroups.ToArray();
 	    }
 
-	    static string CollectInjectedGroup(Type injectedGroupType, out FieldInfo entityArrayField, out FieldInfo transformAccessArrayField, out FieldInfo lengthField, List<TupleSystem.TupleInjectionData> componentDataInjections, List<TupleSystem.TupleInjectionData> componentInjections)
+	    static string CollectInjectedGroup(Type injectedGroupType, out FieldInfo entityArrayField, out FieldInfo transformAccessArrayField, out FieldInfo lengthField, List<InjectComponentGroupData.InjectionData> componentDataInjections, List<InjectComponentGroupData.InjectionData> componentInjections)
 	    {
 			//@TODO: Improved error messages... should include full struct pathname etc.
 		    
 		    var fields = injectedGroupType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-		    var	injections = new List<TupleSystem.TupleInjectionData>();
+		    var	injections = new List<InjectComponentGroupData.InjectionData>();
 		    transformAccessArrayField = null;
 		    entityArrayField = null;
 		    lengthField = null;
@@ -189,13 +189,13 @@ namespace UnityEngine.ECS
 
 				if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(ComponentDataArray<>))
 				{
-					componentDataInjections.Add (new TupleSystem.TupleInjectionData (field, typeof(ComponentDataArray<>), field.FieldType.GetGenericArguments () [0], isReadOnly));
+					componentDataInjections.Add (new InjectComponentGroupData.InjectionData (field, typeof(ComponentDataArray<>), field.FieldType.GetGenericArguments () [0], isReadOnly));
 				}
 				else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(ComponentArray<>))
 				{
 					if (isReadOnly)
 						return "[ReadOnly] may not be used on ComponentArray<>, it can only be used on ComponentDataArray<>";
-					componentInjections.Add (new TupleSystem.TupleInjectionData (field, typeof(ComponentArray<>), field.FieldType.GetGenericArguments () [0], false));
+					componentInjections.Add (new InjectComponentGroupData.InjectionData (field, typeof(ComponentArray<>), field.FieldType.GetGenericArguments () [0], false));
 				}
 				else if (field.FieldType == typeof(TransformAccessArray))
 				{

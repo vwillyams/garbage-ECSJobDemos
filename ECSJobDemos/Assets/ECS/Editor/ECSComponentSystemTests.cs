@@ -39,7 +39,7 @@ namespace UnityEngine.ECS.Tests
 	public class ECSComponentSystemTests : ECSFixture
 	{
         [Test]
-        public void ReadOnlyTuples()
+        public void ReadOnlyComponentDataArray()
         {
             var readOnlySystem = DependencyManager.GetBehaviourManager<PureReadOnlySystem> ();
 
@@ -52,7 +52,7 @@ namespace UnityEngine.ECS.Tests
         }
         
         [Test]
-        public void RemoveComponentTupleTracking()
+        public void RemoveComponentGroupTracking()
         {
             var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
 
@@ -79,7 +79,7 @@ namespace UnityEngine.ECS.Tests
         }
 
         [Test]
-        public void EntityTupleTracking()
+        public void EntityGroupTracking()
         {
             var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
 

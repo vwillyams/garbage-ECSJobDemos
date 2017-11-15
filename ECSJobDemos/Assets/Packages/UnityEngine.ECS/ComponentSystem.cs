@@ -5,15 +5,15 @@ namespace UnityEngine.ECS
 {
     public abstract class ComponentSystem : ScriptBehaviourManager
     {
-        TupleSystem[] 					m_Tuples;
+        InjectComponentGroupData[] 					m_InjectedComponentGroups;
 
         public ComponentGroup[] ComponentGroups
         {
 			get
             {
-				var groupArray = new ComponentGroup[m_Tuples.Length];
+				var groupArray = new ComponentGroup[m_InjectedComponentGroups.Length];
 				for (var i = 0; i < groupArray.Length; ++i)
-					groupArray[i] = m_Tuples[i].EntityGroup;
+					groupArray[i] = m_InjectedComponentGroups[i].EntityGroup;
 				return groupArray;
 			}
 		}
@@ -34,29 +34,29 @@ namespace UnityEngine.ECS
 
             m_SafetyManager = m_EntityManager.ComponentJobSafetyManager;
 
-		    m_Tuples = TupleSystem.InjectComponentGroups(GetType(), m_EntityManager);
+		    m_InjectedComponentGroups = InjectComponentGroupData.InjectComponentGroups(GetType(), m_EntityManager);
 		    ComponentGroup.ExtractJobDependencyTypes(ComponentGroups, out m_JobDependencyForReadingManagers, out m_JobDependencyForWritingManagers);
     	}
 
     	override protected void OnDestroyManager()
     	{
     		base.OnDestroyManager();
-    		for (int i = 0; i != m_Tuples.Length; i++)
+    		for (int i = 0; i != m_InjectedComponentGroups.Length; i++)
     		{
-    			if (m_Tuples[i] != null)
-    				m_Tuples[i].Dispose ();
+    			if (m_InjectedComponentGroups[i] != null)
+    				m_InjectedComponentGroups[i].Dispose ();
     		}
-    		m_Tuples = null;
+    		m_InjectedComponentGroups = null;
 			m_JobDependencyForReadingManagers = null;
 			m_JobDependencyForWritingManagers = null;
     	}
 
         protected EntityManager EntityManager { get { return m_EntityManager; }  }
 
-    	protected void UpdateInjectedTuples()
+    	protected void UpdateInjectedComponentGroups()
     	{
-    		foreach (var tuple in m_Tuples)
-    			tuple.UpdateInjection (this);
+    		foreach (var group in m_InjectedComponentGroups)
+			    group.UpdateInjection (this);
     	}
 
     	override public void OnUpdate()
@@ -77,7 +77,7 @@ namespace UnityEngine.ECS
 		internal void OnUpdateDontCompleteDependencies()
 		{
 			base.OnUpdate ();
-			UpdateInjectedTuples ();
+			UpdateInjectedComponentGroups ();
 		}
     }
 

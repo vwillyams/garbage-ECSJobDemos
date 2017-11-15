@@ -36,11 +36,17 @@ namespace UnityEngine.ECS
 
 		    m_InjectedComponentGroups = InjectComponentGroupData.InjectComponentGroups(GetType(), m_EntityManager);
 		    ComponentGroup.ExtractJobDependencyTypes(ComponentGroups, out m_JobDependencyForReadingManagers, out m_JobDependencyForWritingManagers);
-    	}
+
+		    UpdateInjectedComponentGroups();
+	    }
 
     	override protected void OnDestroyManager()
     	{
     		base.OnDestroyManager();
+		    
+		    CompleteDependencyInternal();
+		    UpdateInjectedComponentGroups();
+		    
     		for (int i = 0; i != m_InjectedComponentGroups.Length; i++)
     		{
     			if (m_InjectedComponentGroups[i] != null)
@@ -61,10 +67,18 @@ namespace UnityEngine.ECS
 
     	override public void OnUpdate()
     	{
-			OnUpdateDontCompleteDependencies ();
+		    base.OnUpdate ();
 
-            CompleteDependencyInternal();
-    	}
+		    CompleteDependencyInternal();
+		    UpdateInjectedComponentGroups ();
+	  	}
+	    
+	    
+	    internal void OnUpdateFromJobComponentSystem()
+	    {
+		    base.OnUpdate ();
+		    UpdateInjectedComponentGroups ();
+	    }
 
         internal unsafe void CompleteDependencyInternal()
         {
@@ -74,32 +88,13 @@ namespace UnityEngine.ECS
 	        }
         }
 
-		internal void OnUpdateDontCompleteDependencies()
-		{
-			base.OnUpdate ();
-			UpdateInjectedComponentGroups ();
-		}
     }
 
 	public abstract class JobComponentSystem : ComponentSystem
 	{
-		NativeList<JobHandle>                   m_JobDependencyCombineList;
-
-    	override protected void OnCreateManager(int capacity)
-    	{
-    		base.OnCreateManager(capacity);
-			m_JobDependencyCombineList = new NativeList<JobHandle>(Allocator.Persistent);
-    	}
-
-    	override protected void OnDestroyManager()
-    	{
-    		base.OnDestroyManager();
-			m_JobDependencyCombineList.Dispose();
-    	}
-		
-		override public void OnUpdate()
+  		override public void OnUpdate()
 		{
-			OnUpdateDontCompleteDependencies ();
+			OnUpdateFromJobComponentSystem();
 		}
 
 		public unsafe JobHandle GetDependency ()

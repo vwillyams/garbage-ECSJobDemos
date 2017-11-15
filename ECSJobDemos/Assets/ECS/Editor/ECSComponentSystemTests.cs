@@ -35,7 +35,6 @@ namespace UnityEngine.ECS.Tests
         public override void OnUpdate() { base.OnUpdate (); }
     }
 
-
 	public class ECSComponentSystemTests : ECSFixture
 	{
         [Test]
@@ -93,5 +92,78 @@ namespace UnityEngine.ECS.Tests
             Assert.AreEqual (2, pureSystem.Group.Data[0].value);
             Assert.AreEqual (go, pureSystem.Group.Entities[0]);
         }
+	    
+	    public class OnDestroyManagerJobsHaveCompletedJobSystem : JobComponentSystem
+	    {
+	        struct Job : IJob
+	        {
+	            public ComponentDataArray<EcsTestData> data;
+
+	            public void Execute()
+	            {
+	                data[0] = new EcsTestData(42);
+	            }
+	        }
+        
+	        public struct Group
+	        {
+	            public ComponentDataArray<EcsTestData> Data;
+	        }
+
+	        [InjectComponentGroup] 
+	        public Group group;
+
+	        protected override void OnDestroyManager()
+	        {
+		        UpdateInjectedComponentGroups();
+		        
+	            var job = new Job();
+	            job.data = group.Data;
+	            AddDependency(job.Schedule());
+
+	            base.OnDestroyManager();
+            
+	            // base.OnDestroyManager(); will wait for the job
+	            // and ensure that you can safely access the injected groups
+	            Assert.AreEqual(42, group.Data[0].value);   
+	        }
+	    }
+		
+		[Test]
+		public void OnDestroyManagerJobsHaveCompleted()
+		{
+			m_Manager.CreateEntity (typeof(EcsTestData));
+			DependencyManager.GetBehaviourManager<OnDestroyManagerJobsHaveCompletedJobSystem>();
+			TearDown();
+		}
+		
+		public class OnCreateManagerComponentGroupInjectionSystem : JobComponentSystem
+		{
+			public struct Group
+			{
+				public ComponentDataArray<EcsTestData> Data;
+			}
+
+			[InjectComponentGroup] 
+			public Group group;
+
+			protected override void OnCreateManager(int capacity)
+			{
+				// base.OnCreateManager should inject the component group,
+				// so that any code in OnCreateManager can access them
+				base.OnCreateManager(capacity);
+				
+				Assert.AreEqual(1, group.Data.Length);
+				Assert.AreEqual(42, group.Data[0].value);
+			}
+		}
+		
+		[Test]
+		public void OnCreateManagerComponentGroupInjectionWorks()
+		{
+			var entity = m_Manager.CreateEntity (typeof(EcsTestData));
+			m_Manager.SetComponent(entity, new EcsTestData(42));
+			DependencyManager.GetBehaviourManager<OnCreateManagerComponentGroupInjectionSystem>();
+		}
 	}
 }

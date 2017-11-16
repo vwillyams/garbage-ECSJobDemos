@@ -20,6 +20,7 @@ public partial class CrowdSystem : JobComponentSystem
     {
         public ComponentDataArray<CrowdAgent> agents;
         public ComponentDataArray<CrowdAgentNavigator> agentNavigators;
+        public ComponentDataFixedArray<PolygonID> paths;
     }
 
     [InjectComponentGroup]
@@ -46,8 +47,6 @@ public partial class CrowdSystem : JobComponentSystem
     NativeArray<JobHandle> m_AfterQueriesProcessed;
     JobHandle m_AfterQueriesCleanup;
     JobHandle m_AfterMovedRequestsForgotten;
-
-    AgentPaths m_AgentPaths;
 
     int m_InitialCapacity;
 
@@ -76,7 +75,6 @@ public partial class CrowdSystem : JobComponentSystem
         var queryCount = world.IsValid() ? k_QueryCount : 0;
 
         var agentCount = world.IsValid() ? capacity : 0;
-        m_AgentPaths = new AgentPaths(agentCount, 128);
         m_PlanPathForAgent = new NativeList<bool1>(agentCount, Allocator.Persistent);
         m_EmptyPlanPathForAgent = new NativeList<bool1>(0, Allocator.Persistent);
         m_PathRequestIdForAgent = new NativeList<uint>(agentCount, Allocator.Persistent);
@@ -117,7 +115,6 @@ public partial class CrowdSystem : JobComponentSystem
             m_QueryQueues[i].Dispose();
         }
         m_AfterQueriesProcessed.Dispose();
-        m_AgentPaths.Dispose();
         m_PlanPathForAgent.Dispose();
         m_EmptyPlanPathForAgent.Dispose();
         m_PathRequestIdForAgent.Dispose();
@@ -139,7 +136,6 @@ public partial class CrowdSystem : JobComponentSystem
             m_AfterMovedRequestsForgotten.Complete();
             m_AfterQueriesCleanup.Complete();
 
-            m_AgentPaths.AddAgents(numberOfAdded);
             AddAgentResources(numberOfAdded);
         }
     }
@@ -150,7 +146,6 @@ public partial class CrowdSystem : JobComponentSystem
 
         m_PlanPathForAgent.RemoveAtSwapBack(index);
         m_PathRequestIdForAgent.RemoveAtSwapBack(index);
-        m_AgentPaths.OnRemoveSwapBack(index);
 
         m_AfterQueriesCleanup.Complete();
         for (var i = 0; i < m_QueryQueues.Length; i++)
@@ -210,15 +205,15 @@ public partial class CrowdSystem : JobComponentSystem
         if (m_Crowd.agentNavigators.Length == 0)
             return;
 
-        var missingAgents = m_Crowd.agentNavigators.Length - m_AgentPaths.Count;
+        var missingAgents = m_Crowd.agentNavigators.Length - m_PlanPathForAgent.Length;
         if (missingAgents > 0)
         {
             AddAgents(missingAgents);
         }
 
 #if DEBUG_CROWDSYSTEM_ASSERTS
-        Debug.Assert(m_Crowd.agents.Length <= m_AgentPaths.Count && m_Crowd.agents.Length <= m_PathRequestIdForAgent.Length && m_Crowd.agents.Length <= m_PlanPathForAgent.Length,
-            "" + m_Crowd.agents.Length + " agents, " + m_AgentPaths.Count + " path slots, " + m_PathRequestIdForAgent.Length + " path request IDs, " + m_PlanPathForAgent.Length + " slots for WantsPath");
+        Debug.Assert(m_Crowd.agents.Length <= m_PathRequestIdForAgent.Length && m_Crowd.agents.Length <= m_PlanPathForAgent.Length,
+            "" + m_Crowd.agents.Length + " agents, " + m_PathRequestIdForAgent.Length + " path request IDs, " + m_PlanPathForAgent.Length + " slots for WantsPath");
 
         if (dbgCheckRequests)
         {
@@ -350,11 +345,11 @@ public partial class CrowdSystem : JobComponentSystem
         var afterPathsAdded = afterQueriesProcessed;
         foreach (var queue in m_QueryQueues)
         {
-            var resultsJob = new ApplyQueryResultsJob { queryQueue = queue, paths = m_AgentPaths.GetAllData(), agentNavigators = m_Crowd.agentNavigators };
+            var resultsJob = new ApplyQueryResultsJob { queryQueue = queue, paths = m_Crowd.paths, agentNavigators = m_Crowd.agentNavigators };
             afterPathsAdded = resultsJob.Schedule(afterPathsAdded);
         }
 
-        var advance = new AdvancePathJob { agents = m_Crowd.agents, agentNavigators = m_Crowd.agentNavigators, paths = m_AgentPaths.GetRangesData() };
+        var advance = new AdvancePathJob { agents = m_Crowd.agents, agentNavigators = m_Crowd.agentNavigators, paths = m_Crowd.paths };
         var afterPathsTrimmed = advance.Schedule(m_Crowd.agents.Length, k_AgentsBatchSize, afterPathsAdded);
 
         const int maxCornersPerAgent = 2;
@@ -363,7 +358,7 @@ public partial class CrowdSystem : JobComponentSystem
         {
             agents = m_Crowd.agents,
             agentNavigators = m_Crowd.agentNavigators,
-            paths = m_AgentPaths.GetReadOnlyData(),
+            paths = m_Crowd.paths,
             straightPath = new NativeArray<NavMeshLocation>(totalCornersBuffer, Allocator.TempJob),
             straightPathFlags = new NativeArray<NavMeshStraightPathFlags>(totalCornersBuffer, Allocator.TempJob),
             vertexSide = new NativeArray<float>(totalCornersBuffer, Allocator.TempJob)
@@ -437,8 +432,7 @@ public partial class CrowdSystem : JobComponentSystem
 
             //Debug.DrawRay(agent.worldPosition + offset, agent.velocity, Color.cyan);
 
-            var pathInfo = m_AgentPaths.GetPathInfo(i);
-            if (pathInfo.size == 0 || m_PlanPathForAgent[i] || agentNavigator.newDestinationRequested || m_PathRequestIdForAgent[i] != PathQueryQueueEcs.RequestEcs.invalidId)
+            if (agentNavigator.pathSize == 0 || m_PlanPathForAgent[i] || agentNavigator.newDestinationRequested || m_PathRequestIdForAgent[i] != PathQueryQueueEcs.RequestEcs.invalidId)
             {
                 var requestInProcess = m_PathRequestIdForAgent[i] != PathQueryQueueEcs.RequestEcs.invalidId;
                 var stateColor = requestInProcess ? Color.yellow : (m_PlanPathForAgent[i] || agentNavigator.newDestinationRequested ? Color.magenta : Color.red);
@@ -447,7 +441,7 @@ public partial class CrowdSystem : JobComponentSystem
             }
 
             offset = 0.9f * offset;
-            float3 pathEndPos = pathInfo.end.position;
+            float3 pathEndPos = agentNavigator.pathEnd.position;
             Debug.DrawLine(agent.worldPosition + offset, pathEndPos, Color.black);
 
             if (agentNavigator.destinationInView)

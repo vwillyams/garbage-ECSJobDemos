@@ -18,7 +18,7 @@ public partial class CrowdSystem
         [ReadOnly]
         public NativeArray<uint> pathRequestIdForAgent;
 
-        public NativeArray<BlittableBool> planPathForAgent;
+        public NativeArray<bool1> planPathForAgent;
 
         public void Execute(int index)
         {
@@ -40,7 +40,7 @@ public partial class CrowdSystem
 
         public ComponentDataArray<CrowdAgentNavigator> agentNavigators;
 
-        public NativeArray<BlittableBool> planPathForAgent;
+        public NativeArray<bool1> planPathForAgent;
         public NativeArray<uint> pathRequestIdForAgent;
         public NativeArray<PathQueryQueueEcs.RequestEcs> pathRequests;
         public NativeArray<int> pathRequestsRange;

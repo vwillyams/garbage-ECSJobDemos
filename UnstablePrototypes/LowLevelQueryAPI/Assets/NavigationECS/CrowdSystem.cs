@@ -25,8 +25,8 @@ public partial class CrowdSystem : JobComponentSystem
     [InjectComponentGroup]
     CrowdGroup m_Crowd;
 
-    NativeList<BlittableBool> m_PlanPathForAgent;
-    NativeList<BlittableBool> m_EmptyPlanPathForAgent;
+    NativeList<bool1> m_PlanPathForAgent;
+    NativeList<bool1> m_EmptyPlanPathForAgent;
     NativeList<uint> m_PathRequestIdForAgent;
     NativeList<PathQueryQueueEcs.RequestEcs> m_PathRequests;
     NativeArray<int> m_PathRequestsRange;
@@ -77,8 +77,8 @@ public partial class CrowdSystem : JobComponentSystem
 
         var agentCount = world.IsValid() ? capacity : 0;
         m_AgentPaths = new AgentPaths(agentCount, 128);
-        m_PlanPathForAgent = new NativeList<BlittableBool>(agentCount, Allocator.Persistent);
-        m_EmptyPlanPathForAgent = new NativeList<BlittableBool>(0, Allocator.Persistent);
+        m_PlanPathForAgent = new NativeList<bool1>(agentCount, Allocator.Persistent);
+        m_EmptyPlanPathForAgent = new NativeList<bool1>(0, Allocator.Persistent);
         m_PathRequestIdForAgent = new NativeList<uint>(agentCount, Allocator.Persistent);
         m_PathRequests = new NativeList<PathQueryQueueEcs.RequestEcs>(k_PathRequestsPerTick, Allocator.Persistent);
         m_PathRequests.ResizeUninitialized(k_PathRequestsPerTick);

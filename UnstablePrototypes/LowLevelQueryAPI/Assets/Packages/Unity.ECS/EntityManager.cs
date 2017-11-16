@@ -237,64 +237,74 @@ namespace UnityEngine.ECS
             }
         }
 
-        public unsafe void AddComponent<T>(Entity entity, T componentData) where T : struct, IComponentData
+        public unsafe void AddComponent(Entity entity, ComponentType type)
         {
             m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
 
             m_Entities.AssertEntitiesExist(&entity, 1);
 
             //@TODO: Handle ISharedComponentData
-            var componentType = new ComponentTypeInArchetype(ComponentType.Create<T>());
-            Archetype* type = m_Entities.GetArchetype(entity);
+            var componentType = new ComponentTypeInArchetype(type);
+            Archetype* archetype = m_Entities.GetArchetype(entity);
             int t = 0;
-            while (t < type->typesCount && type->types[t] < componentType)
+            while (t < archetype->typesCount && archetype->types[t] < componentType)
             {
-                m_CachedComponentTypeInArchetypeArray[t] = type->types[t];
+                m_CachedComponentTypeInArchetypeArray[t] = archetype->types[t];
                 ++t;
             }
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            if (t < type->typesCount && type->types[t] == componentType)
+            if (t < archetype->typesCount && archetype->types[t] == componentType)
                 throw new InvalidOperationException("Trying to add a component to an entity which is already present");
 #endif
             m_CachedComponentTypeInArchetypeArray[t] = componentType;
-            while (t < type->typesCount)
+            while (t < archetype->typesCount)
             {
-                m_CachedComponentTypeInArchetypeArray[t + 1] = type->types[t];
+                m_CachedComponentTypeInArchetypeArray[t + 1] = archetype->types[t];
                 ++t;
             }
-            Archetype* newType = m_ArchetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, type->typesCount + 1, m_GroupManager, m_SharedComponentManager);
+            Archetype* newType = m_ArchetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, archetype->typesCount + 1, m_GroupManager, m_SharedComponentManager);
             Chunk* newChunk = m_ArchetypeManager.GetChunkWithEmptySlots(newType);
 
             int newChunkIndex = ArchetypeManager.AllocateIntoChunk(newChunk);
             m_Entities.SetArchetype(m_ArchetypeManager, entity, newType, newChunk, newChunkIndex);
-            SetComponent<T>(entity, componentData);
         }
 
-        public unsafe void RemoveComponent<T>(Entity entity) where T : struct, IComponentData
+        public unsafe void RemoveComponent(Entity entity, ComponentType type)
         {
             m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
 
-            var componentType = new ComponentTypeInArchetype(ComponentType.Create<T>());
+            var componentType = new ComponentTypeInArchetype(type);
 
             m_Entities.AssertEntityHasComponent(entity, componentType.typeIndex);
 
-            Archetype* type = m_Entities.GetArchetype(entity);
+            Archetype* archtype = m_Entities.GetArchetype(entity);
             int removedTypes = 0;
-            for (int t = 0; t < type->typesCount; ++t)
+            for (int t = 0; t < archtype->typesCount; ++t)
             {
-                if (type->types[t] == componentType)
+                if (archtype->types[t] == componentType)
                     ++removedTypes;
                 else
-                    m_CachedComponentTypeInArchetypeArray[t - removedTypes] = type->types[t];
+                    m_CachedComponentTypeInArchetypeArray[t - removedTypes] = archtype->types[t];
             }
 
             Assertions.Assert.AreNotEqual(-1, removedTypes);
 
-            Archetype* newType = m_ArchetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, type->typesCount - removedTypes, m_GroupManager, m_SharedComponentManager);
+            Archetype* newType = m_ArchetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, archtype->typesCount - removedTypes, m_GroupManager, m_SharedComponentManager);
 
             Chunk* newChunk = m_ArchetypeManager.GetChunkWithEmptySlots(newType);
             int newChunkIndex = ArchetypeManager.AllocateIntoChunk(newChunk);
-            m_Entities.SetArchetype(m_ArchetypeManager, entity, newType, newChunk, newChunkIndex);
+            m_Entities.SetArchetype(m_ArchetypeManager, entity, newType, newChunk, newChunkIndex);     
+        }
+
+        public void AddComponent<T>(Entity entity, T componentData) where T : struct, IComponentData
+        {
+            AddComponent(entity, ComponentType.Create<T>());
+            SetComponent<T>(entity, componentData);
+        }
+
+        public void RemoveComponent<T>(Entity entity) where T : struct, IComponentData
+        {
+            RemoveComponent(entity, ComponentType.Create<T>());
         }
 
         public unsafe ComponentDataArrayFromEntity<T> GetComponentDataArrayFromEntity<T>() where T : struct, IComponentData
@@ -307,8 +317,7 @@ namespace UnityEngine.ECS
             return new ComponentDataArrayFromEntity<T>(typeIndex, m_Entities);
 #endif
         }
-
-
+        
         public T GetComponent<T>(Entity entity) where T : struct, IComponentData
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
@@ -374,6 +383,11 @@ namespace UnityEngine.ECS
             return m_SharedComponentManager.GetSharedComponentData<T>(archetype->types[indexInTypeArray].sharedComponentIndex);
         }
 
+        public NativeArray<T> GetComponentFixedArray<T>(Entity entity) where T : struct
+        {
+            throw new NotImplementedException();
+        }
+        
         public void CompleteAllJobs()
         {
             ComponentJobSafetyManager.CompleteAllJobsAndInvalidateArrays();

@@ -359,6 +359,15 @@ namespace UnityEngine.ECS.Tests
 		{
 		}
 
+		[Test]
+		public void AddComponentFixedArrayWorks()
+		{
+			var entity = m_Manager.CreateEntity();
+			m_Manager.AddComponent(entity, ComponentType.FixedArray(typeof(int), 11));
+			
+			//@TODO:.... complete test
+		}
+		
 
 		[Test]
         public void CreateAndDestroyFixedArray()

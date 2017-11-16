@@ -9,7 +9,7 @@ unity source code branch: scripting/jobsystem/make-public
 
 # active development against master
 unity source code branch: scripting/jobsystem/make-public/demo
-NOTE: (Navmesh & Raycast job API's is not included on this branch, code is going to trunk seperately)
+NOTE: (Navmesh & Raycast job API's is included in this branch)
 
 # ECSJobDemos
 Project folder for basic ECS dev & tests

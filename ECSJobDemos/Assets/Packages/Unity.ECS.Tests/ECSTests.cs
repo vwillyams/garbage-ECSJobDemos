@@ -360,12 +360,31 @@ namespace UnityEngine.ECS.Tests
 		}
 
 		[Test]
-		public void AddComponentFixedArrayWorks()
+		[Ignore("TODO")]
+		public void RemoveComponentWithDifferentArraySizeWorks()
+		{
+		}
+		
+		[Test]
+		public void FixedArrayAddRemoveComponent()
 		{
 			var entity = m_Manager.CreateEntity();
 			m_Manager.AddComponent(entity, ComponentType.FixedArray(typeof(int), 11));
+
+			Assert.IsTrue(m_Manager.HasComponent(entity, ComponentType.FixedArray(typeof(int), 11)));			
+			Assert.IsTrue(m_Manager.HasComponent(entity, typeof(int)));			
+
+			var array = m_Manager.GetComponentFixedArray<int>(entity);
 			
-			//@TODO:.... complete test
+			Assert.AreEqual(11, array.Length);
+			array[7] = 5;
+			Assert.AreEqual(5, array[7]);
+			
+			m_Manager.RemoveComponent(entity, ComponentType.FixedArray(typeof(int), 11));
+			
+			Assert.IsFalse(m_Manager.HasComponent(entity, ComponentType.FixedArray(typeof(int), 11)));			
+			Assert.IsFalse(m_Manager.HasComponent(entity, typeof(int)));			
+			Assert.Throws<ArgumentException>(() => { m_Manager.GetComponentFixedArray<int>(entity); });			
 		}
 		
 

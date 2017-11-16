@@ -375,7 +375,6 @@ namespace UnityEngine.ECS
         unsafe public T GetSharedComponentData<T>(Entity entity) where T : struct, ISharedComponentData
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
-
             m_Entities.AssertEntityHasComponent(entity, typeIndex);
 
             Archetype* archetype = m_Entities.GetArchetype(entity);
@@ -385,7 +384,21 @@ namespace UnityEngine.ECS
 
         public NativeArray<T> GetComponentFixedArray<T>(Entity entity) where T : struct
         {
-            throw new NotImplementedException();
+            int typeIndex = TypeManager.GetTypeIndex<T>();
+            m_Entities.AssertEntityHasComponent(entity, typeIndex);
+            m_JobSafetyManager.CompleteWriteDependency(typeIndex);
+
+            IntPtr ptr;
+            int length;
+            m_Entities.GetComponentDataWithTypeAndFixedArrayLength (entity, typeIndex, out ptr, out length);
+
+            var array = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(ptr, length, Allocator.Invalid);
+            
+            #if ENABLE_UNITY_COLLECTIONS_CHECKS
+            NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref array, m_JobSafetyManager.GetSafetyHandle(typeIndex)); 
+            #endif
+
+            return array;
         }
         
         public void CompleteAllJobs()

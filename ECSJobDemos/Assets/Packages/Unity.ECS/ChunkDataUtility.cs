@@ -18,6 +18,18 @@ namespace UnityEngine.ECS
             return -1;
         }
 
+        public static void GetComponentDataWithTypeAndFixedArrayLength(Chunk* chunk, int index, int typeIndex, out IntPtr outPtr, out int outArrayLength)
+        {
+            int indexInTypeArray = GetIndexInTypeArray(chunk->archetype, typeIndex);
+
+            int offset = chunk->archetype->offsets[indexInTypeArray];
+            int stride = chunk->archetype->strides[indexInTypeArray];
+
+            outPtr = chunk->buffer + (offset + stride * index);
+            outArrayLength = chunk->archetype->types[indexInTypeArray].arraySize;
+        }
+
+        
         public static IntPtr GetComponentDataWithType(Chunk* chunk, int index, int typeIndex)
         {
             int indexInTypeArray = GetIndexInTypeArray(chunk->archetype, typeIndex);

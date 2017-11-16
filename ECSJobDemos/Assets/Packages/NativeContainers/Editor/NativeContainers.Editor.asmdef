@@ -1,5 +1,0 @@
-{
-	"name": "NativeContainers.Editor",
-	"references": [ "NativeContainers" ],
-	"includePlatforms": ["Editor"]
-}

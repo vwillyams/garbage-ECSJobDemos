@@ -12,9 +12,9 @@ using UnityEngine.TestTools;
 
 namespace UnityEngine.ECS.Tests
 {
-    public class ECSJobSafetyTests : ECSFixture
+    public class JobSafetyTests : ECSTestsFixture
 	{
-        public ECSJobSafetyTests()
+        public JobSafetyTests()
         {
             Assert.IsTrue(Unity.Jobs.LowLevel.Unsafe.JobsUtility.GetJobDebuggerEnabled(), "JobDebugger must be enabled for these tests");
         }

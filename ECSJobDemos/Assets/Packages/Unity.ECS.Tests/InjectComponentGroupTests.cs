@@ -6,38 +6,38 @@ using Unity.Jobs;
 
 namespace UnityEngine.ECS.Tests
 {
-    public class PureEcsTestSystem : ComponentSystem
-    {
-        public struct DataAndEntites
-        {
-            public ComponentDataArray<EcsTestData> Data;
-            public EntityArray                     Entities;
-            public int                             Length;
-        }
-
-        [InjectComponentGroup] 
-        public DataAndEntites Group;
-
-        public override void OnUpdate() { base.OnUpdate (); }
-    }
-
-    public class PureReadOnlySystem : ComponentSystem
-    {
-        public struct Datas
-        {
-            [ReadOnly]
-            public ComponentDataArray<EcsTestData> Data;
-        }
-
-        [InjectComponentGroup] 
-        public Datas Group;
-
-        public override void OnUpdate() { base.OnUpdate (); }
-    }
-
-	public class ECSComponentSystemTests : ECSFixture
+	public class InjectComponentGroupTests : ECSTestsFixture
 	{
-        [Test]
+		public class PureEcsTestSystem : ComponentSystem
+		{
+			public struct DataAndEntites
+			{
+				public ComponentDataArray<EcsTestData> Data;
+				public EntityArray                     Entities;
+				public int                             Length;
+			}
+
+			[InjectComponentGroup] 
+			public DataAndEntites Group;
+
+			public override void OnUpdate() { base.OnUpdate (); }
+		}
+
+		public class PureReadOnlySystem : ComponentSystem
+		{
+			public struct Datas
+			{
+				[ReadOnly]
+				public ComponentDataArray<EcsTestData> Data;
+			}
+
+			[InjectComponentGroup] 
+			public Datas Group;
+
+			public override void OnUpdate() { base.OnUpdate (); }
+		}
+
+		[Test]
         public void ReadOnlyComponentDataArray()
         {
             var readOnlySystem = DependencyManager.GetBehaviourManager<PureReadOnlySystem> ();

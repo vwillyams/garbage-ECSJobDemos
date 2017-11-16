@@ -8,7 +8,7 @@ namespace UnityEngine.ECS.Tests
 {
     //@TODO: Test for prevent adding Wrapper component to type system...
 
-	public class ECS_GameObject : ECSFixture
+	public class GameObjectEntityTests : ECSTestsFixture
     {
         [Test]
         [Ignore("not implemented")]

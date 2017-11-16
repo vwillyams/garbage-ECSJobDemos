@@ -3,13 +3,12 @@ using NUnit.Framework;
 
 namespace UnityEngine.ECS.Tests
 {
-    public class TypeManagerTests : ECSFixture
+    public class TypeManagerTests : ECSTestsFixture
 	{
         struct NonBlittableComponentData : IComponentData
         {
             string empty;
         }
-
 
         struct TestType1
 		{
@@ -20,7 +19,7 @@ namespace UnityEngine.ECS.Tests
 			int empty;
 		}
 		[Test]
-		unsafe public void CreateArchetypes()
+		public void CreateArchetypes()
 		{
             var archetype1 = m_Manager.CreateArchetype(ComponentType.Create<TestType1>(), ComponentType.Create<TestType2>());
             var archetype1Same = m_Manager.CreateArchetype(ComponentType.Create<TestType1>(), ComponentType.Create<TestType2>());
@@ -34,7 +33,7 @@ namespace UnityEngine.ECS.Tests
 		}
 
         [Test]
-        unsafe public void TestTypeManager()
+        public void TestTypeManager()
         {
             var entity = ComponentType.Create<Entity>();
             var testData = ComponentType.Create<EcsTestData>();
@@ -48,7 +47,7 @@ namespace UnityEngine.ECS.Tests
         }
 
         [Test]
-        unsafe public void NonBlittableComponentDataThrows()
+        public void NonBlittableComponentDataThrows()
         {
             Assert.Throws<System.ArgumentException>(() => { ComponentType.Create<NonBlittableComponentData>(); });
         }

@@ -12,7 +12,7 @@ using UnityEngine.TestTools;
 
 namespace UnityEngine.ECS.Tests
 {
-    public class ECSSafetyTests : ECSFixture
+    public class SafetyTests : ECSTestsFixture
 	{
 	    [Test]
 	    public void ComponentArrayChunkSliceOutOfBoundsThrowsException()

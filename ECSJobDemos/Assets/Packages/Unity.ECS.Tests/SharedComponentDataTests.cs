@@ -6,7 +6,7 @@ using Unity.Collections;
 
 namespace UnityEngine.ECS.Tests
 {
-    public class ECSSharedComponentDataTests : ECSFixture
+    public class SharedComponentDataTests : ECSTestsFixture
     {
         struct SharedData : ISharedComponentData
         {

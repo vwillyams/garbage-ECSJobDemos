@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace UnityEngine.ECS.Tests
 {
-	public class ECSFixture
+	public class ECSTestsFixture
 	{
         protected DependencyManager m_PreviousDependencyManager;
 		protected EntityManager     m_Manager;

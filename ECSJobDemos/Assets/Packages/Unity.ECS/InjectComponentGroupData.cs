@@ -55,7 +55,6 @@ namespace UnityEngine.ECS
 	    FieldInfo 			m_TransformAccessArrayInjections;
 	    FieldInfo 			m_LengthInjection;
 
-        InjectionData[]     m_ComponentDataInjections;
         InjectionData[]     m_ComponentInjections;
 
         ComponentGroup 		m_EntityGroup;
@@ -64,23 +63,19 @@ namespace UnityEngine.ECS
         
 
 	    
-		internal InjectComponentGroupData(EntityManager entityManager, FieldInfo groupField, InjectComponentGroupData.InjectionData[] componentDataInjections, InjectComponentGroupData.InjectionData[] componentInjections, FieldInfo entityArrayInjection, FieldInfo transformAccessArrayInjection, FieldInfo lengthInjection)
+		internal InjectComponentGroupData(EntityManager entityManager, FieldInfo groupField, InjectComponentGroupData.InjectionData[] componentInjections, FieldInfo entityArrayInjection, FieldInfo transformAccessArrayInjection, FieldInfo lengthInjection)
 		{
             var transformsCount = transformAccessArrayInjection != null ? 1 : 0;
-			var requiredComponentTypes = new ComponentType[componentInjections.Length + componentDataInjections.Length + transformsCount];
+			var requiredComponentTypes = new ComponentType[componentInjections.Length + transformsCount];
 
-            for (int i = 0; i != componentDataInjections.Length; i++)
-                requiredComponentTypes[i] = new ComponentType(componentDataInjections[i].genericType, componentDataInjections[i].isReadOnly);
-				
             for (int i = 0; i != componentInjections.Length; i++)
-                requiredComponentTypes[i + componentDataInjections.Length] = componentInjections[i].genericType;
+                requiredComponentTypes[i] = new ComponentType(componentInjections[i].genericType, componentInjections[i].isReadOnly);
 		    
 		    if (transformsCount != 0)
-		        requiredComponentTypes[componentInjections.Length + componentDataInjections.Length] = typeof(Transform);
+		        requiredComponentTypes[componentInjections.Length] = typeof(Transform);
 
             m_EntityGroup = entityManager.CreateComponentGroup(requiredComponentTypes);
 
-            m_ComponentDataInjections = componentDataInjections;
             m_ComponentInjections = componentInjections;
 			m_EntityArrayInjection = entityArrayInjection;
 			m_LengthInjection = lengthInjection;
@@ -88,17 +83,6 @@ namespace UnityEngine.ECS
 
 			m_GroupField = groupField;
 
-            for (int i = 0; i != m_ComponentDataInjections.Length;i++)
-            {
-                var injectionType = typeof(UpdateInjectionComponentDataArray<>).MakeGenericType(m_ComponentDataInjections[i].genericType);
-                m_ComponentDataInjections[i].injection = (IUpdateInjection)Activator.CreateInstance(injectionType);
-            }
-
-            for (int i = 0; i != m_ComponentInjections.Length; i++)
-            {
-                var injectionType = typeof(UpdateInjectionComponentArray<>).MakeGenericType(m_ComponentInjections[i].genericType);
-                m_ComponentInjections[i].injection = (IUpdateInjection)Activator.CreateInstance(injectionType);
-            }
         }
 
 		public void Dispose()
@@ -112,9 +96,6 @@ namespace UnityEngine.ECS
         public void UpdateInjection(object targetObject)
         {
             object groupObject = Activator.CreateInstance(m_GroupField.FieldType);
-
-            for (var i = 0; i != m_ComponentDataInjections.Length; i++)
-                m_ComponentDataInjections[i].injection.UpdateInjection(groupObject, m_EntityGroup, m_ComponentDataInjections[i]);
 
             for (var i = 0; i != m_ComponentInjections.Length; i++)
                 m_ComponentInjections[i].injection.UpdateInjection(groupObject, m_EntityGroup, m_ComponentInjections[i]);
@@ -145,9 +126,8 @@ namespace UnityEngine.ECS
 		    FieldInfo entityArrayField;
 		    FieldInfo transformAccessArrayField;
 		    FieldInfo lengthField;
-		    var componentDataInjections = new List<InjectComponentGroupData.InjectionData>();
 		    var componentInjections = new List<InjectComponentGroupData.InjectionData>();
-		    var error = CollectInjectedGroup(injectedGroupType, out entityArrayField, out transformAccessArrayField, out lengthField, componentDataInjections, componentInjections);
+		    var error = CollectInjectedGroup(injectedGroupType, out entityArrayField, out transformAccessArrayField, out lengthField, componentInjections);
 		    if (error != null)
 		    {
 			    //@TODO: Throw expceptions in case of error?
@@ -155,7 +135,7 @@ namespace UnityEngine.ECS
 			    return null;
 		    }
 
-		    return new InjectComponentGroupData(entityManager, groupField, componentDataInjections.ToArray(), componentInjections.ToArray(), entityArrayField, transformAccessArrayField, lengthField);
+		    return new InjectComponentGroupData(entityManager, groupField, componentInjections.ToArray(), entityArrayField, transformAccessArrayField, lengthField);
 	    }
 
 	    static public InjectComponentGroupData[] InjectComponentGroups(Type componentSystemType, EntityManager entityManager)
@@ -173,12 +153,11 @@ namespace UnityEngine.ECS
 		    return injectGroups.ToArray();
 	    }
 
-	    static string CollectInjectedGroup(Type injectedGroupType, out FieldInfo entityArrayField, out FieldInfo transformAccessArrayField, out FieldInfo lengthField, List<InjectComponentGroupData.InjectionData> componentDataInjections, List<InjectComponentGroupData.InjectionData> componentInjections)
+	    static string CollectInjectedGroup(Type injectedGroupType, out FieldInfo entityArrayField, out FieldInfo transformAccessArrayField, out FieldInfo lengthField, List<InjectComponentGroupData.InjectionData> componentInjections)
 	    {
 			//@TODO: Improved error messages... should include full struct pathname etc.
 		    
 		    var fields = injectedGroupType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-		    var	injections = new List<InjectComponentGroupData.InjectionData>();
 		    transformAccessArrayField = null;
 		    entityArrayField = null;
 		    lengthField = null;
@@ -189,13 +168,24 @@ namespace UnityEngine.ECS
 
 				if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(ComponentDataArray<>))
 				{
-					componentDataInjections.Add (new InjectComponentGroupData.InjectionData (field, typeof(ComponentDataArray<>), field.FieldType.GetGenericArguments () [0], isReadOnly));
+					var injection = new InjectComponentGroupData.InjectionData(field, typeof(ComponentDataArray<>), field.FieldType.GetGenericArguments()[0], isReadOnly);
+					
+					var injectionType = typeof(UpdateInjectionComponentDataArray<>).MakeGenericType(injection.genericType);
+					injection.injection = (IUpdateInjection)Activator.CreateInstance(injectionType);
+
+					componentInjections.Add (injection);
 				}
 				else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(ComponentArray<>))
 				{
 					if (isReadOnly)
 						return "[ReadOnly] may not be used on ComponentArray<>, it can only be used on ComponentDataArray<>";
-					componentInjections.Add (new InjectComponentGroupData.InjectionData (field, typeof(ComponentArray<>), field.FieldType.GetGenericArguments () [0], false));
+
+					var injection = new InjectComponentGroupData.InjectionData(field, typeof(ComponentArray<>), field.FieldType.GetGenericArguments()[0], false);
+					
+					var injectionType = typeof(UpdateInjectionComponentArray<>).MakeGenericType(injection.genericType);
+					injection.injection = (IUpdateInjection)Activator.CreateInstance(injectionType);
+					
+					componentInjections.Add (injection);
 				}
 				else if (field.FieldType == typeof(TransformAccessArray))
 				{

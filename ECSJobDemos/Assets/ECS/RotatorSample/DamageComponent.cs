@@ -9,7 +9,7 @@ using Unity.Mathematics;
 namespace RotatorSamples
 {
 	[Serializable]
-	public struct Damage : IComponentData//IComponentData
+	public struct Damage : IComponentData
 	{
 		public float radius;
 		public float slowdownPerSecond;

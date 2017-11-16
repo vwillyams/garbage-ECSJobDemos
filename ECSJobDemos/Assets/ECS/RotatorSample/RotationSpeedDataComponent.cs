@@ -9,29 +9,13 @@ using UnityEngine.Jobs;
 
 namespace RotatorSamples
 {
-	// New light weight component is a struct.
-	// The data is stored in a NativeArray owned by a LightWeightComponentManager<>
-	// 
-	// * Data is stored in tightly packed array (Good for performance and also allows for safe jobification)
-	// * Allows for light weight components to live without their game object, 
-	//   enabling massive scale lightweight simulation (Think 2M instances in City Skylines)
 	[Serializable]
 	public struct RotationSpeed : IComponentData
 	{
 		public float speed;
-
-		public RotationSpeed (float speed) { this.speed = speed; }
 	}
 
-
-	// @TODO: This whole  wraper component should be unnecessary and just handled on the C++ side.
-	// A new GameObject light weight component integration would make the inspector look like it is a full component
-	// while the data is actually stored in a LightWeightComponentManager<>.
-	// Effectively the game object simply stores an index to the LightWeightComponentManager<>.
 	public class RotationSpeedDataComponent : ComponentDataWrapper<RotationSpeed> { }
-
-
-    //@TODO: struct with Length returning itself infinite recursion crashes editor instead of exception...
 
 #if false
 

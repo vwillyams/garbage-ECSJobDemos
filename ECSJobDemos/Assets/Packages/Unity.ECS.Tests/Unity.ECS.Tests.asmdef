@@ -1,0 +1,14 @@
+{
+    "name": "Unity.ECS.Tests",
+    "references": [
+        "UnityEngine.ECS",
+        "Unity.Collections"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

@@ -1,0 +1,9 @@
+{
+    "name": "UnityEngine.ECS",
+    "references": [
+        "Unity.Collections"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": []
+}

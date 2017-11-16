@@ -61,7 +61,7 @@ namespace Unity.Collections
 					while (true)
 					{
 						int otherCount = data->m_FreeCountTLS[other * IntsPerCacheLine];
-						if (otherCount < 0)
+						if (otherCount <= 0)
 						{
 							if (otherCount == -0xffff)
 								again = true;
@@ -86,7 +86,7 @@ namespace Unity.Collections
 				// Grab some data from the shared cache
 				int count = Math.Min(16, data->m_FreeCount);
 				data->m_FreeCount -= count;
-				data->m_FreeCountTLS[0] += count - 1;
+				data->m_FreeCountTLS[0] = count - 1;
 				return true;
 			}
 			// Try to steal a single item from another worker
@@ -193,7 +193,7 @@ namespace Unity.Collections
                 while (i != data->m_NextFreeBlock)
                 {
                     srcPtr = ((Byte*)data->m_Data) + i * data->m_BlockSize * UnsafeUtility.SizeOf<T>();
-                    UnsafeUtility.MemCpy((IntPtr)(dstPtr + count), (IntPtr)srcPtr, (ulong)(blockLengths[i * IntsPerCacheLine] * UnsafeUtility.SizeOf<T>()));
+                    UnsafeUtility.MemCpy((IntPtr)(dstPtr + count * UnsafeUtility.SizeOf<T>()), (IntPtr)srcPtr, (ulong)(blockLengths[i * IntsPerCacheLine] * UnsafeUtility.SizeOf<T>()));
                     count += blockLengths[i * IntsPerCacheLine];
                     i = (i + 1) % data->m_NumBlocks;
                 }
@@ -273,7 +273,9 @@ namespace Unity.Collections
 #endif
 
 				NativeQueueData* data = (NativeQueueData*)m_Buffer;
-				int count = data->m_Capacity - data->m_FreeCount;
+				int count = data->m_Capacity;
+				if (data->m_FreeCount > 0)
+					count -= data->m_FreeCount;
 				for (int tls = 0; tls < JobsUtility.MaxJobThreadCount; ++tls)
 				{
 					if (data->m_FreeCountTLS[tls * NativeQueueData.IntsPerCacheLine] > 0)
@@ -403,7 +405,10 @@ namespace Unity.Collections
 			if (blockLengths[data->m_FirstUsedBlock*NativeQueueData.IntsPerCacheLine] == 0)
 				throw new InvalidOperationException("Trying to dequeue from an empty queue");
 
-			++data->m_FreeCount;
+			if (data->m_FreeCount <= 0)
+				data->m_FreeCount = 1;
+			else
+				++data->m_FreeCount;
 
             int idx = data->m_FirstUsedBlock * data->m_BlockSize + data->m_CurrentReadIndexInBlock;
 			data->m_CurrentReadIndexInBlock++;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace UnityEngine.ECS
 {
@@ -26,7 +27,7 @@ namespace UnityEngine.ECS
                 var allTypes = ass.GetTypes();
 
                 // Create all ComponentSystem
-                var systemTypes = allTypes.Where(t => t.IsSubclassOf(typeof(ComponentSystem)) && !t.IsAbstract && !t.ContainsGenericParameters);
+                var systemTypes = allTypes.Where(t => t.IsSubclassOf(typeof(ComponentSystem)) && !t.IsAbstract && !t.ContainsGenericParameters && t.GetCustomAttributes(typeof(DisableAutoCreationAttribute), true).Length == 0);
                 foreach (var type in systemTypes)
                 {
                     GetBehaviourManagerAndLogException(type);
@@ -34,7 +35,7 @@ namespace UnityEngine.ECS
 
                 // Create All IAutoComponentSystemJob
                 var genericTypes = new List<Type>();
-                var jobTypes = allTypes.Where(t => typeof(IAutoComponentSystemJob).IsAssignableFrom(t) && !t.IsAbstract);
+                var jobTypes = allTypes.Where(t => typeof(IAutoComponentSystemJob).IsAssignableFrom(t) && !t.IsAbstract && t.GetCustomAttributes(typeof(DisableAutoCreationAttribute), true).Length == 0);
                 foreach (var jobType in jobTypes)
                 {
                     genericTypes.Clear();

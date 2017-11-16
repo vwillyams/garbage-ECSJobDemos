@@ -93,7 +93,7 @@ namespace UnityEngine.ECS.Tests
             Assert.AreEqual (go, pureSystem.Group.Entities[0]);
         }
 	    
-		/*
+		[DisableAutoCreation]
 	    public class OnDestroyManagerJobsHaveCompletedJobSystem : JobComponentSystem
 	    {
 	        struct Job : IJob
@@ -137,9 +137,8 @@ namespace UnityEngine.ECS.Tests
 			DependencyManager.GetBehaviourManager<OnDestroyManagerJobsHaveCompletedJobSystem>();
 			TearDown();
 		}
-		/*
-		
-		/*
+
+		[DisableAutoCreation]
 		public class OnCreateManagerComponentGroupInjectionSystem : JobComponentSystem
 		{
 			public struct Group
@@ -168,6 +167,5 @@ namespace UnityEngine.ECS.Tests
 			m_Manager.SetComponent(entity, new EcsTestData(42));
 			DependencyManager.GetBehaviourManager<OnCreateManagerComponentGroupInjectionSystem>();
 		}
-		*/
 	}
 }

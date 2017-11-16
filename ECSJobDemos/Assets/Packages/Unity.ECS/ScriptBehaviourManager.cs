@@ -20,6 +20,11 @@ namespace UnityEngine.ECS
 		}
 	}
 
+	[AttributeUsage(AttributeTargets.Class)]
+	sealed public class DisableAutoCreationAttribute : System.Attribute
+	{
+	}
+	
 	public class ScriptBehaviourManager
 	{
 		// FIXME: HACK! - mono 4.6 has problems invoking virtual methods as delegates from native, so wrap the invocation in a non-virtual class

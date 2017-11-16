@@ -341,18 +341,21 @@ namespace UnityEngine.ECS.Tests
 			}
 		}
 
+		//@TODO: Add test for trying to create archetype with just int. make sure it gives exception..
+		
         [Test]
-        unsafe public void CreateAndDestroyFixedArray()
+        public void CreateAndDestroyFixedArray()
         {
             var fixedArrayType = ComponentType.FixedArray(typeof(int), 64);
             var entities = new NativeArray<Entity>(100, Allocator.Persistent);
             m_Manager.CreateEntity(m_Manager.CreateArchetype(fixedArrayType), entities);
 
-            var group = m_Manager.CreateComponentGroup(fixedArrayType);
+            var group = m_Manager.CreateComponentGroup(typeof(int));
 
-            var fixedArray = group.GetComponentDataFixedArray<int>(fixedArrayType);
+            var fixedArray = group.GetComponentDataFixedArray<int>();
 
-            Assert.AreEqual(64, fixedArray[0].Length);
+	        Assert.AreEqual(entities.Length, fixedArray.Length);
+	        Assert.AreEqual(64, fixedArray[0].Length);
             for (int i = 0; i < entities.Length;i++)
             {
                 Assert.AreEqual(0, fixedArray[i][3]);

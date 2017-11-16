@@ -277,15 +277,18 @@ namespace UnityEngine.ECS
 #endif
         }
 
-        public ComponentDataFixedArray<T> GetComponentDataFixedArray<T>(ComponentType type) where T : struct
+        public ComponentDataFixedArray<T> GetComponentDataFixedArray<T>() where T : struct
         {
             int length;
             int componentIndex;
-            var cache = GetComponentDataArrayCache(type.typeIndex, out length, out componentIndex);
+            int typeIndex = TypeManager.GetTypeIndex<T>();
+
+            
+            var cache = GetComponentDataArrayCache(typeIndex, out length, out componentIndex);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            return new ComponentDataFixedArray<T>(cache, length, 64, m_SafetyManager.GetSafetyHandle(type.typeIndex), false);
+            return new ComponentDataFixedArray<T>(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex), false);
 #else
-			return new ComponentDataFixedArray<T>(cache, length, 64);
+			return new ComponentDataFixedArray<T>(cache, length);
 #endif
         }
 

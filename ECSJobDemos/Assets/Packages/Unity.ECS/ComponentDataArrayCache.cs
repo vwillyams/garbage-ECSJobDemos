@@ -21,6 +21,7 @@ namespace UnityEngine.ECS
         public int                             CachedStride;
         public int                             CachedBeginIndex;
         public int                             CachedEndIndex;
+        public int                             CachedSizeOf;
 
         ComponentDataArchetypeSegment*  m_FirstArchetypeSegment;
         ComponentDataArchetypeSegment*  m_CurrentArchetypeSegment;
@@ -33,6 +34,7 @@ namespace UnityEngine.ECS
             m_FirstArchetypeSegment = data;
             m_CurrentArchetypeSegment = data;
             m_CurrentArchetypeIndex = 0;
+            CachedSizeOf = 0;
             if (length > 0)
                 m_CurrentChunk = data->archetype->first;
             else
@@ -116,6 +118,7 @@ namespace UnityEngine.ECS
             CachedBeginIndex = m_CurrentChunkIndex + m_CurrentArchetypeIndex;
             CachedEndIndex = CachedBeginIndex + m_CurrentChunk->count;
             CachedPtr = m_CurrentChunk->buffer + archetype->offsets[typeIndexInArchetype] - (CachedBeginIndex * CachedStride);
+            CachedSizeOf = archetype->sizeOfs[typeIndexInArchetype];
         }
     }
 }

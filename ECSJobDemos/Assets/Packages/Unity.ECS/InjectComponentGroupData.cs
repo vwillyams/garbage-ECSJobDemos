@@ -42,6 +42,15 @@ namespace UnityEngine.ECS
             }
         }
 
+	    internal class UpdateInjectionComponentDataFixedArray<T> : IUpdateInjection where T : struct
+	    {
+		    public void UpdateInjection(object targetObject, ComponentGroup group, InjectionData injection)
+		    {
+			    var array = group.GetComponentDataFixedArray<T>();
+			    UnsafeUtility.SetFieldStruct(targetObject, injection.field, ref array);
+		    }
+	    }
+	    
         internal class UpdateInjectionComponentArray<T> : IUpdateInjection where T : UnityEngine.Component
         {
             public void UpdateInjection(object targetObject, ComponentGroup group, InjectionData injection)
@@ -166,15 +175,24 @@ namespace UnityEngine.ECS
     		{
 				var isReadOnly = field.GetCustomAttributes(typeof(ReadOnlyAttribute), true).Length != 0;
 
-				if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(ComponentDataArray<>))
-				{
-					var injection = new InjectComponentGroupData.InjectionData(field, typeof(ComponentDataArray<>), field.FieldType.GetGenericArguments()[0], isReadOnly);
+			    if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(ComponentDataArray<>))
+			    {
+				    var injection = new InjectComponentGroupData.InjectionData(field, typeof(ComponentDataArray<>), field.FieldType.GetGenericArguments()[0], isReadOnly);
 					
-					var injectionType = typeof(UpdateInjectionComponentDataArray<>).MakeGenericType(injection.genericType);
-					injection.injection = (IUpdateInjection)Activator.CreateInstance(injectionType);
+				    var injectionType = typeof(UpdateInjectionComponentDataArray<>).MakeGenericType(injection.genericType);
+				    injection.injection = (IUpdateInjection)Activator.CreateInstance(injectionType);
 
-					componentInjections.Add (injection);
-				}
+				    componentInjections.Add (injection);
+			    }
+			    else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(ComponentDataFixedArray<>))
+			    {
+				    var injection = new InjectComponentGroupData.InjectionData(field, typeof(ComponentDataFixedArray<>), field.FieldType.GetGenericArguments()[0], isReadOnly);
+					
+				    var injectionType = typeof(UpdateInjectionComponentDataFixedArray<>).MakeGenericType(injection.genericType);
+				    injection.injection = (IUpdateInjection)Activator.CreateInstance(injectionType);
+
+				    componentInjections.Add (injection);
+			    }
 				else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(ComponentArray<>))
 				{
 					if (isReadOnly)

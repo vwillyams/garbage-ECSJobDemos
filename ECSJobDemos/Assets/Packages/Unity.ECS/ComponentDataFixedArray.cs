@@ -10,7 +10,7 @@ namespace UnityEngine.ECS
 	public unsafe struct ComponentDataFixedArray<T> where T : struct
 	{
         ComponentDataArrayCache m_Cache;
-        int                     m_FixedArrayLength;
+        int                     m_CachedFixedArrayLength;
         int                     m_Length;
 
 
@@ -21,14 +21,14 @@ namespace UnityEngine.ECS
         #endif
 
 		#if ENABLE_UNITY_COLLECTIONS_CHECKS
-        internal unsafe ComponentDataFixedArray(ComponentDataArrayCache cache, int length, int fixedArrayLength, AtomicSafetyHandle safety, bool isReadOnly)
+        internal unsafe ComponentDataFixedArray(ComponentDataArrayCache cache, int length, AtomicSafetyHandle safety, bool isReadOnly)
 		#else
-        internal unsafe ComponentDataFixedArray(ComponentDataArrayCache cache, int length, int fixedArrayLength)
+        internal unsafe ComponentDataFixedArray(ComponentDataArrayCache cache, int length)
 		#endif
 		{
             m_Length = length;
             m_Cache = cache;
-            m_FixedArrayLength = fixedArrayLength;
+			m_CachedFixedArrayLength = -1;
 
 			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			m_MinIndex = 0;
@@ -51,11 +51,20 @@ namespace UnityEngine.ECS
 				AtomicSafetyHandle safety = m_Safety;
 #endif
 
-                if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
-                    m_Cache.UpdateCache(index);
+				if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
+				{
+					m_Cache.UpdateCache(index);
+					m_CachedFixedArrayLength = m_Cache.CachedSizeOf / UnsafeUtility.SizeOf<T>();
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+					if (m_Cache.CachedSizeOf % UnsafeUtility.SizeOf<T>() != 0)
+					{
+						throw new System.InvalidOperationException("Fixed array size must be multiple of sizeof"); 
+					}
+#endif
+				}
 
                 IntPtr ptr = m_Cache.CachedPtr + (index * m_Cache.CachedStride);
-                var array = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(ptr, m_FixedArrayLength, Allocator.Invalid);
+                var array = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(ptr, m_CachedFixedArrayLength, Allocator.Invalid);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref array, safety);
 #endif

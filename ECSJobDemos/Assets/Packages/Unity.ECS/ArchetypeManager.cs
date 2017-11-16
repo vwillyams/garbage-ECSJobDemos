@@ -29,20 +29,23 @@ namespace UnityEngine.ECS
 	{
 		public int typeIndex;
 		public int sharedComponentIndex;
+		public int arraySize;
 
 		public ComponentTypeInArchetype(ComponentType type)
 		{
 			typeIndex = type.typeIndex;
 			sharedComponentIndex = type.sharedComponentIndex;
+			///@TODO: Does this make sense? maybe just have arraysize in source always 1...
+			arraySize = type.arraySize == -1 ? 1 : type.arraySize;
 		}
 
 		static public bool operator ==(ComponentTypeInArchetype lhs, ComponentTypeInArchetype rhs)
 		{
-			return lhs.typeIndex == rhs.typeIndex && lhs.sharedComponentIndex == rhs.sharedComponentIndex;
+			return lhs.typeIndex == rhs.typeIndex && lhs.sharedComponentIndex == rhs.sharedComponentIndex &&  lhs.arraySize == rhs.arraySize;
 		}
 		static public bool operator !=(ComponentTypeInArchetype lhs, ComponentTypeInArchetype rhs)
 		{
-			return lhs.typeIndex != rhs.typeIndex || lhs.sharedComponentIndex != rhs.sharedComponentIndex;
+			return lhs.typeIndex != rhs.typeIndex || lhs.sharedComponentIndex != rhs.sharedComponentIndex || lhs.arraySize != rhs.arraySize;
 		}
 		static public bool operator <(ComponentTypeInArchetype lhs, ComponentTypeInArchetype rhs)
 		{
@@ -188,8 +191,8 @@ namespace UnityEngine.ECS
 
 
             // FIXME: proper alignment
-            type->offsets = (int*)m_ArchetypeChunkAllocator.Allocate (sizeof(int) * count, 4);
-			type->strides = (int*)m_ArchetypeChunkAllocator.Allocate (sizeof(int) * count, 4);
+            type->offsets = (int*)m_ArchetypeChunkAllocator.Allocate(sizeof(int) * count, 4);
+			type->strides = (int*)m_ArchetypeChunkAllocator.Allocate(sizeof(int) * count, 4);
             type->sizeOfs = (int*)m_ArchetypeChunkAllocator.Allocate(sizeof(int) * count, 4);
 
             // strided
@@ -199,7 +202,7 @@ namespace UnityEngine.ECS
                 for (int i = 0; i < count; ++i)
                 {
                     TypeManager.ComponentType cType = TypeManager.GetComponentType(types[i].typeIndex);
-                    int sizeOf = cType.sizeInChunk;
+                    int sizeOf = cType.sizeInChunk * types[i].arraySize;
 
                     type->offsets[i] = bytesPerInstance;
                     type->sizeOfs[i] = sizeOf;
@@ -220,7 +223,7 @@ namespace UnityEngine.ECS
                 for (int i = 0; i < count; ++i)
                 {
                     TypeManager.ComponentType cType = TypeManager.GetComponentType(types[i].typeIndex);
-                    int sizeOf = cType.sizeInChunk;
+                    int sizeOf = cType.sizeInChunk * types[i].arraySize;
                     type->sizeOfs[i] = sizeOf;
 
                     bytesPerInstance += sizeOf;

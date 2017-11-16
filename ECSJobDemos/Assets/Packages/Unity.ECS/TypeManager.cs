@@ -14,17 +14,15 @@ namespace UnityEngine.ECS
 
         public struct ComponentType
         {
-            public ComponentType(Type type, int size, bool requireManagedClass, int arrayElements=0)
+            public ComponentType(Type type, int size, bool requireManagedClass)
             {
                 this.type = type;
                 this.sizeInChunk = size;
-                this.arrayElements = arrayElements;
                 this.requireManagedClass = requireManagedClass;
             }
 
             public Type     type;
             public int      sizeInChunk;
-            public int      arrayElements;
             public bool     requireManagedClass;
         }
 
@@ -62,7 +60,7 @@ namespace UnityEngine.ECS
             for (int i = 0; i != m_Types.Count;i++)
             {
                 var c = m_Types[i];
-                if (c.arrayElements == 0 && c.type == type)
+                if (c.type == type)
                 {
                     typeIndex = i;
                     break;
@@ -94,15 +92,6 @@ namespace UnityEngine.ECS
                 m_Types.Add (new ComponentType(type, componentSize, type.IsClass));
                 return m_Types.Count - 1;
             }
-        }
-
-        public static int CreateArrayType(Type type, int numElements)
-        {
-            if (type.IsClass)
-                throw new System.ArgumentException("Array type must be a blittable struct");
-
-            m_Types.Add(new ComponentType(type, UnsafeUtility.SizeOf(type) * numElements, false, numElements));
-            return m_Types.Count - 1;
         }
 
         static public ComponentType GetComponentType(int typeIndex)

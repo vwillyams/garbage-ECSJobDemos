@@ -341,36 +341,54 @@ namespace UnityEngine.ECS.Tests
 			}
 		}
 
-		//@TODO: Add test for trying to create archetype with just int. make sure it gives exception..
+		[Test]
+		[Ignore("TODO")]
+		public void AddingComponentWithJustIntButNotFixedArrayThrows()
+		{
+		}
 		
-        [Test]
+		[Test]
+		[Ignore("TODO")]
+		public void GetComponentDataFixedArrayAgainstNotArrayThrows()
+		{
+		}
+
+		[Test]
+		[Ignore("TODO")]
+		public void GetComponentDataAgainstArrayThrows()
+		{
+		}
+
+
+		[Test]
         public void CreateAndDestroyFixedArray()
         {
-            var fixedArrayType = ComponentType.FixedArray(typeof(int), 64);
-            var entities = new NativeArray<Entity>(100, Allocator.Persistent);
-            m_Manager.CreateEntity(m_Manager.CreateArchetype(fixedArrayType), entities);
+            var entity64 = m_Manager.CreateEntity(ComponentType.FixedArray(typeof(int), 64));
+	        var entity10 = m_Manager.CreateEntity(ComponentType.FixedArray(typeof(int), 10));
 
             var group = m_Manager.CreateComponentGroup(typeof(int));
 
             var fixedArray = group.GetComponentDataFixedArray<int>();
 
-	        Assert.AreEqual(entities.Length, fixedArray.Length);
+	        Assert.AreEqual(2, fixedArray.Length);
 	        Assert.AreEqual(64, fixedArray[0].Length);
-            for (int i = 0; i < entities.Length;i++)
-            {
-                Assert.AreEqual(0, fixedArray[i][3]);
-                NativeArray<int > array = fixedArray[i];
-                array[3] = i;
-            }
+	        Assert.AreEqual(10, fixedArray[1].Length);
 
-            for (int i = 0; i < entities.Length; i++)
+	        Assert.AreEqual(0, fixedArray[0][3]);
+	        Assert.AreEqual(0, fixedArray[1][3]);
+	        
+			NativeArray<int > array;
+		        
+	        array = fixedArray[0];
+	        array[3] = 0;
+
+	        array = fixedArray[1];
+	        array[3] = 1;
+
+            for (int i = 0; i < fixedArray.Length; i++)
             {
                 Assert.AreEqual(i, fixedArray[i][3]);
             }
-
-            m_Manager.DestroyEntity(entities);
-
-            entities.Dispose();
         }
 		[Test]
 		public void IterateEntityArray()

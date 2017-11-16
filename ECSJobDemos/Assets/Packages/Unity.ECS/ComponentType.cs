@@ -14,6 +14,7 @@ namespace UnityEngine.ECS
             type.typeIndex = TypeManager.GetTypeIndex<T>();
             type.sharedComponentIndex = -1;
             type.readOnly = 0;
+            type.arraySize = -1;
             return type;
         }
 
@@ -23,6 +24,7 @@ namespace UnityEngine.ECS
             t.typeIndex = TypeManager.GetTypeIndex(type);
             t.sharedComponentIndex = -1;
             t.readOnly = 1;
+            t.arraySize = -1;
             return t;
         }
         public static ComponentType ReadOnly<T>()
@@ -31,6 +33,7 @@ namespace UnityEngine.ECS
             t.typeIndex = TypeManager.GetTypeIndex<T>();
             t.sharedComponentIndex = -1;
             t.readOnly = 1;
+            t.arraySize = -1;
             return t;
         }
 
@@ -39,14 +42,16 @@ namespace UnityEngine.ECS
             typeIndex = TypeManager.GetTypeIndex(type);
             sharedComponentIndex = -1;
             readOnly = isReadOnly ? 1 : 0;
+            arraySize = -1;
         }
         
         public static ComponentType FixedArray(Type type, int numElements)
         {
             ComponentType t;
-            t.typeIndex = TypeManager.CreateArrayType(type, numElements);
+            t.typeIndex = TypeManager.GetTypeIndex(type);
             t.sharedComponentIndex = -1;
             t.readOnly = 0;
+            t.arraySize = numElements;
             return t;
         }
 
@@ -106,5 +111,6 @@ namespace UnityEngine.ECS
         public int typeIndex;
         public int readOnly;
         public int sharedComponentIndex;
+        public int arraySize;
     }
 }

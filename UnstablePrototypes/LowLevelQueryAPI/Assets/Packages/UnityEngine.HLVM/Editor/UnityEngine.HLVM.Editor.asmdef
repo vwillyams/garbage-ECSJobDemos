@@ -1,5 +1,0 @@
-{
-	"name": "UnityEngine.HLVM.Editor",
-	"references": [ "NativeContainers", "UnityEngine.HLVM" ],
-	"includePlatforms": ["Editor"]
-}

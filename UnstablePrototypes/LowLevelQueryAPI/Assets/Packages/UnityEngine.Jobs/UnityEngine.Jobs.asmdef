@@ -1,9 +1,0 @@
-{
-    "name": "UnityEngine.Jobs",
-    "references": [
-        "NativeContainers",
-        "Unity.Mathematics"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": []
-}

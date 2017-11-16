@@ -7,14 +7,19 @@ using UnityEngine.ECS;
 [UpdateAfter(typeof(CrowdSystem))]
 class CrowdAgentsToTransformSystem : JobComponentSystem
 {
-    [InjectTuples]
-    ComponentDataArray<CrowdAgent> m_CrowdAgents;
+    struct CrowdGroup
+    {
+        [ReadOnly]
+        public ComponentDataArray<CrowdAgent> agents;
 
-    [InjectTuples]
-    TransformAccessArray m_CrowdAgentTransforms;
+        public TransformAccessArray agentTransforms;
 
-    [InjectTuples]
-    ComponentDataArray<WriteToTransformMarker> m_WriteToTrasformFlag;
+        [ReadOnly]
+        public ComponentDataArray<WriteToTransformMarker> m_WriteToTrasformFlag;
+    }
+
+    [InjectComponentGroup]
+    CrowdGroup m_Crowd;
 
     struct WriteCrowdAgentsToTransformsJob : IJobParallelForTransform
     {
@@ -35,7 +40,7 @@ class CrowdAgentsToTransformSystem : JobComponentSystem
         base.OnUpdate();
 
         WriteCrowdAgentsToTransformsJob writeJob;
-        writeJob.crowdAgents = m_CrowdAgents;
-        AddDependency(writeJob.Schedule(m_CrowdAgentTransforms, GetDependency()));
+        writeJob.crowdAgents = m_Crowd.agents;
+        AddDependency(writeJob.Schedule(m_Crowd.agentTransforms, GetDependency()));
     }
 }

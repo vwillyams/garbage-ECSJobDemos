@@ -16,10 +16,14 @@ public partial class CrowdSystem : JobComponentSystem
     int dbgSampleTimespan = 50; //frames
 #endif
 
-    [InjectTuples]
-    ComponentDataArray<CrowdAgent> m_Agents;
-    [InjectTuples]
-    ComponentDataArray<CrowdAgentNavigator> m_AgentNavigators;
+    struct CrowdGroup
+    {
+        public ComponentDataArray<CrowdAgent> agents;
+        public ComponentDataArray<CrowdAgentNavigator> agentNavigators;
+    }
+
+    [InjectComponentGroup]
+    CrowdGroup m_Crowd;
 
     NativeList<BlittableBool> m_PlanPathForAgent;
     NativeList<BlittableBool> m_EmptyPlanPathForAgent;
@@ -203,18 +207,18 @@ public partial class CrowdSystem : JobComponentSystem
             }
         }
 
-        if (m_AgentNavigators.Length == 0)
+        if (m_Crowd.agentNavigators.Length == 0)
             return;
 
-        var missingAgents = m_AgentNavigators.Length - m_AgentPaths.Count;
+        var missingAgents = m_Crowd.agentNavigators.Length - m_AgentPaths.Count;
         if (missingAgents > 0)
         {
             AddAgents(missingAgents);
         }
 
 #if DEBUG_CROWDSYSTEM_ASSERTS
-        Debug.Assert(m_Agents.Length <= m_AgentPaths.Count && m_Agents.Length <= m_PathRequestIdForAgent.Length && m_Agents.Length <= m_PlanPathForAgent.Length,
-            "" + m_Agents.Length + " agents, " + m_AgentPaths.Count + " path slots, " + m_PathRequestIdForAgent.Length + " path request IDs, " + m_PlanPathForAgent.Length + " slots for WantsPath");
+        Debug.Assert(m_Crowd.agents.Length <= m_AgentPaths.Count && m_Crowd.agents.Length <= m_PathRequestIdForAgent.Length && m_Crowd.agents.Length <= m_PlanPathForAgent.Length,
+            "" + m_Crowd.agents.Length + " agents, " + m_AgentPaths.Count + " path slots, " + m_PathRequestIdForAgent.Length + " path request IDs, " + m_PlanPathForAgent.Length + " slots for WantsPath");
 
         if (dbgCheckRequests)
         {
@@ -289,17 +293,17 @@ public partial class CrowdSystem : JobComponentSystem
         // TODO: probably move this to a user System independent to the crowd system [#-adriant]
         //var pathNeededJob = new CheckPathNeededJob
         //{
-        //    agentNavigators = m_AgentNavigators,
+        //    agentNavigators = m_Crowd.agentNavigators,
         //    planPathForAgent = m_PlanPathForAgent,
         //    pathRequestIdForAgent = m_PathRequestIdForAgent,
         //    paths = m_AgentPaths.GetReadOnlyData()
         //};
-        //var afterPathNeedChecked = pathNeededJob.Schedule(m_Agents.Length, k_AgentsBatchSize, m_AfterQueriesCleanup);
+        //var afterPathNeedChecked = pathNeededJob.Schedule(m_Crowd.agents.Length, k_AgentsBatchSize, m_AfterQueriesCleanup);
 
         var makeRequestsJob = new MakePathRequestsJob
         {
-            agents = m_Agents,
-            agentNavigators = m_AgentNavigators,
+            agents = m_Crowd.agents,
+            agentNavigators = m_Crowd.agentNavigators,
             planPathForAgent = m_EmptyPlanPathForAgent,
             pathRequestIdForAgent = m_PathRequestIdForAgent,
             pathRequests = m_PathRequests,
@@ -346,30 +350,30 @@ public partial class CrowdSystem : JobComponentSystem
         var afterPathsAdded = afterQueriesProcessed;
         foreach (var queue in m_QueryQueues)
         {
-            var resultsJob = new ApplyQueryResultsJob { queryQueue = queue, paths = m_AgentPaths.GetAllData(), agentNavigators = m_AgentNavigators };
+            var resultsJob = new ApplyQueryResultsJob { queryQueue = queue, paths = m_AgentPaths.GetAllData(), agentNavigators = m_Crowd.agentNavigators };
             afterPathsAdded = resultsJob.Schedule(afterPathsAdded);
         }
 
-        var advance = new AdvancePathJob { agents = m_Agents, agentNavigators = m_AgentNavigators, paths = m_AgentPaths.GetRangesData() };
-        var afterPathsTrimmed = advance.Schedule(m_Agents.Length, k_AgentsBatchSize, afterPathsAdded);
+        var advance = new AdvancePathJob { agents = m_Crowd.agents, agentNavigators = m_Crowd.agentNavigators, paths = m_AgentPaths.GetRangesData() };
+        var afterPathsTrimmed = advance.Schedule(m_Crowd.agents.Length, k_AgentsBatchSize, afterPathsAdded);
 
         const int maxCornersPerAgent = 2;
-        var totalCornersBuffer = m_Agents.Length * maxCornersPerAgent;
+        var totalCornersBuffer = m_Crowd.agents.Length * maxCornersPerAgent;
         var vel = new UpdateVelocityJob
         {
-            agents = m_Agents,
-            agentNavigators = m_AgentNavigators,
+            agents = m_Crowd.agents,
+            agentNavigators = m_Crowd.agentNavigators,
             paths = m_AgentPaths.GetReadOnlyData(),
             straightPath = new NativeArray<NavMeshLocation>(totalCornersBuffer, Allocator.TempJob),
             straightPathFlags = new NativeArray<NavMeshStraightPathFlags>(totalCornersBuffer, Allocator.TempJob),
             vertexSide = new NativeArray<float>(totalCornersBuffer, Allocator.TempJob)
         };
-        var afterVelocitiesUpdated = vel.Schedule(m_Agents.Length, k_AgentsBatchSize, afterPathsTrimmed);
+        var afterVelocitiesUpdated = vel.Schedule(m_Crowd.agents.Length, k_AgentsBatchSize, afterPathsTrimmed);
 
-        var move = new MoveLocationsJob { agents = m_Agents, dt = Time.deltaTime };
-        var afterAgentsMoved = move.Schedule(m_Agents.Length, k_AgentsBatchSize, afterVelocitiesUpdated);
+        var move = new MoveLocationsJob { agents = m_Crowd.agents, dt = Time.deltaTime };
+        var afterAgentsMoved = move.Schedule(m_Crowd.agents.Length, k_AgentsBatchSize, afterVelocitiesUpdated);
 
-        //var arrivalJob = new CheckArrivalToDestinationJob { agents = m_Agents };
+        //var arrivalJob = new CheckArrivalToDestinationJob { agents = m_Crowd.agents };
         //afterAgentsMoved = arrivalJob.Schedule(afterAgentsMoved);
 
         AddDependency(afterAgentsMoved);
@@ -417,10 +421,10 @@ public partial class CrowdSystem : JobComponentSystem
     void DrawDebug()
     {
         var activeAgents = 0;
-        for (var i = 0; i < m_Agents.Length; ++i)
+        for (var i = 0; i < m_Crowd.agents.Length; ++i)
         {
-            var agent = m_Agents[i];
-            var agentNavigator = m_AgentNavigators[i];
+            var agent = m_Crowd.agents[i];
+            var agentNavigator = m_Crowd.agentNavigators[i];
             float3 offset = 0.5f * Vector3.up;
 
             if (!agentNavigator.active)
@@ -460,7 +464,7 @@ public partial class CrowdSystem : JobComponentSystem
 #if DEBUG_CROWDSYSTEM_LOGS
         if (dbgPrintAgentCount && Time.frameCount % dbgSampleTimespan == 0)
         {
-            Debug.Log("CS Agents active= " + activeAgents + " / total=" + m_Agents.Length);
+            Debug.Log("CS Agents active= " + activeAgents + " / total=" + m_Crowd.agents.Length);
         }
 #endif
     }

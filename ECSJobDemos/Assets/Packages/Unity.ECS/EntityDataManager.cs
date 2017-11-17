@@ -58,17 +58,32 @@ namespace UnityEngine.ECS
         }
 
         [System.Diagnostics.Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
-        public void AssertEntityHasComponent(Entity entity, int typeIndex)
+        public void AssertEntityHasComponent(Entity entity, ComponentType componentType)
         {
-            if (!HasComponent(entity, typeIndex))
+            if (!HasComponent(entity, componentType))
             {
-                if (Exists(entity))
-                    throw new System.ArgumentException("entity does not exist");
+                if (!Exists(entity))
+                    throw new System.ArgumentException("The Entity does not exist");
+                else if (HasComponent(entity, componentType.typeIndex))
+                    throw new System.ArgumentException(string.Format("The component typeof({0}) exists on the entity but the exact type {1} does not", componentType.GetManagedType(), componentType));
                 else
-                    throw new System.ArgumentException("{0} component has not been added to the entity.");
+                    throw new System.ArgumentException(string.Format("{0} component has not been added to the entity.", componentType));
             }
         }
 
+        [System.Diagnostics.Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
+        public void AssertEntityHasComponent(Entity entity, int componentType)
+        {
+            if (!HasComponent(entity, componentType))
+            {
+                if (Exists(entity))
+                    throw new System.ArgumentException("The entity does not exist");
+                else
+                //@TODO: Throw with specific type...
+                    throw new System.ArgumentException("The component has not been added to the entity.");
+            }
+        }
+        
         public void DeallocateEnties(ArchetypeManager typeMan, Entity* entities, int count)
         {
             while (count != 0)
@@ -199,6 +214,14 @@ namespace UnityEngine.ECS
                     return false;
 
                 return archetype->types[idx].sharedComponentIndex == type.sharedComponentIndex;
+            }
+            else if (type.arraySize != -1)
+            {
+                int idx = ChunkDataUtility.GetIndexInTypeArray(archetype, type.typeIndex);
+                if (idx == -1)
+                    return false;
+
+                return archetype->types[idx].arraySize == type.arraySize;
             }
             else
                 return ChunkDataUtility.GetIndexInTypeArray(archetype, type.typeIndex) != -1;

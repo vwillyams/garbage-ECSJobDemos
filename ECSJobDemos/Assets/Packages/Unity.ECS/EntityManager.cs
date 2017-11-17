@@ -158,7 +158,7 @@ namespace UnityEngine.ECS
             m_Entities.DeallocateEnties(m_ArchetypeManager, &entity, 1);
         }
 
-        unsafe public bool Exists(Entity entity)
+        public bool Exists(Entity entity)
         {
             return m_Entities.Exists(entity);
         }
@@ -275,13 +275,13 @@ namespace UnityEngine.ECS
 
             var componentType = new ComponentTypeInArchetype(type);
 
-            m_Entities.AssertEntityHasComponent(entity, componentType.typeIndex);
+            m_Entities.AssertEntityHasComponent(entity, type);
 
             Archetype* archtype = m_Entities.GetArchetype(entity);
             int removedTypes = 0;
             for (int t = 0; t < archtype->typesCount; ++t)
             {
-                if (archtype->types[t] == componentType)
+                if (archtype->types[t].typeIndex == componentType.typeIndex)
                     ++removedTypes;
                 else
                     m_CachedComponentTypeInArchetypeArray[t - removedTypes] = archtype->types[t];

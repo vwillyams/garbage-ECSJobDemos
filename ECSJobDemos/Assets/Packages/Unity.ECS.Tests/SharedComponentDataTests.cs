@@ -40,7 +40,36 @@ namespace UnityEngine.ECS.Tests
 
 
         [Test]
-        public void FindSharedComponentDatas()
+        public void HasComponentData()
+        {
+            var sharedType20 = m_Manager.CreateSharedComponentType(new SharedData(20));
+            var sharedType30 = m_Manager.CreateSharedComponentType(new SharedData(30));
+
+            var entity = m_Manager.CreateEntity(sharedType20);
+
+            Assert.IsTrue(m_Manager.HasComponent<SharedData>(entity));
+            Assert.IsTrue(m_Manager.HasComponent(entity, typeof(SharedData)));
+            Assert.IsTrue(m_Manager.HasComponent(entity, sharedType20));
+            
+            Assert.IsFalse(m_Manager.HasComponent(entity, sharedType30));
+        }
+
+        [Test]
+        public void ArchetypesOfSameDataEqual()
+        {
+            var sharedTypeA = m_Manager.CreateSharedComponentType(new SharedData(20));
+            var sharedTypeB = m_Manager.CreateSharedComponentType(new SharedData(20));
+
+            Assert.AreEqual(sharedTypeA, sharedTypeB);
+
+            var archetypeA = m_Manager.CreateArchetype(typeof(EcsTestData), sharedTypeA);
+            var archetypeB = m_Manager.CreateArchetype(typeof(EcsTestData), sharedTypeB);
+
+            Assert.AreEqual(archetypeA, archetypeB);
+        }
+        
+        [Test]
+        public void ArchetypesOfDifferentDataDoNotEqual()
         {
             var sharedType20 = m_Manager.CreateSharedComponentType(new SharedData(20));
             var sharedType30 = m_Manager.CreateSharedComponentType(new SharedData(30));
@@ -51,12 +80,18 @@ namespace UnityEngine.ECS.Tests
             var archetype20 = m_Manager.CreateArchetype(typeof(EcsTestData), sharedType20);
 
             Assert.AreNotEqual(archetype20, archetype30);
+        }
+
+        [Test]
+        public void FindSharedComponentDatas()
+        {
+            var sharedType20 = m_Manager.CreateSharedComponentType(new SharedData(20));
+            var sharedType30 = m_Manager.CreateSharedComponentType(new SharedData(30));
+
+            var archetype30 = m_Manager.CreateArchetype(typeof(EcsTestData), sharedType30);
+            var archetype20 = m_Manager.CreateArchetype(typeof(EcsTestData), sharedType20);
 
             var entity = m_Manager.CreateEntity(archetype20);
-
-            Assert.IsTrue(m_Manager.HasComponent<SharedData>(entity));
-            Assert.IsTrue(m_Manager.HasComponent(entity, sharedType20));
-            Assert.IsFalse(m_Manager.HasComponent(entity, sharedType30));
 
             Assert.AreEqual(20, m_Manager.GetSharedComponentData<SharedData>(entity).value);
 
@@ -66,7 +101,7 @@ namespace UnityEngine.ECS.Tests
             var groupNotExists = m_Manager.CreateComponentGroup(typeof(EcsTestData), sharedType30);
             Assert.AreEqual(0, groupNotExists.GetComponentDataArray<EcsTestData>().Length);
 
-            var groupAll = m_Manager.CreateComponentGroup(typeof(EcsTestData), ComponentType.Create<SharedData>());
+            var groupAll = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(SharedData));
             Assert.AreEqual(1, groupAll.GetComponentDataArray<EcsTestData>().Length);
         }
     }  

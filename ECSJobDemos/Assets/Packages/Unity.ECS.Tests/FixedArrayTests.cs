@@ -29,11 +29,44 @@ namespace UnityEngine.ECS.Tests
 		}
 
 		[Test]
-		[Ignore("TODO")]
-		public void RemoveComponentWithDifferentArraySizeWorks()
+		public void HasComponent()
 		{
+			var array11Type = ComponentType.FixedArray(typeof(int), 11);
+			var array12Type = ComponentType.FixedArray(typeof(int), 12);
+			var entity = m_Manager.CreateEntity(array11Type);
+			
+			Assert.IsTrue(m_Manager.HasComponent(entity, typeof(int)));			
+			Assert.IsTrue(m_Manager.HasComponent(entity, array11Type));
+			
+			Assert.IsFalse(m_Manager.HasComponent(entity, array12Type));
 		}
 		
+		[Test]
+		public void RemoveComponentWithUnspecifiedLength()
+		{
+			var entity = m_Manager.CreateEntity(ComponentType.FixedArray(typeof(int), 11));
+			m_Manager.RemoveComponent(entity, typeof(int));
+			Assert.IsFalse(m_Manager.HasComponent(entity, typeof(int)));
+		}
+		
+		[Test]
+		public void RemoveComponentWithExactLength()
+		{
+			var fixed11 = ComponentType.FixedArray(typeof(int), 11);
+			var entity = m_Manager.CreateEntity(fixed11 );
+			m_Manager.RemoveComponent(entity, fixed11 );
+			Assert.IsFalse(m_Manager.HasComponent(entity, typeof(int)));
+		}
+
+		[Test]
+		public void RemoveComponentWithIncorrectLength()
+		{
+			var fixed11 = ComponentType.FixedArray(typeof(int), 11);
+			var fixed1 = ComponentType.FixedArray(typeof(int), 1);
+			var entity = m_Manager.CreateEntity(fixed11 );
+			Assert.Throws<ArgumentException>(() => { m_Manager.RemoveComponent(entity, fixed1); });
+		}
+
 		[Test]
 		public void FixedArrayAddRemoveComponent()
 		{

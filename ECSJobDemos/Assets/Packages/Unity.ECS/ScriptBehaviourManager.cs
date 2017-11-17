@@ -10,17 +10,6 @@ namespace UnityEngine.ECS
 {
 	//@TODO: Checks to ensure base override is always called.
 	[AttributeUsage(AttributeTargets.Class)]
-	public class UpdateAfter : System.Attribute
-	{
-		public Type  SystemType { get; set; }
-
-		public UpdateAfter(Type systemType)
-		{
-		    SystemType = systemType;
-		}
-	}
-
-	[AttributeUsage(AttributeTargets.Class)]
 	sealed public class DisableAutoCreationAttribute : System.Attribute
 	{
 	}

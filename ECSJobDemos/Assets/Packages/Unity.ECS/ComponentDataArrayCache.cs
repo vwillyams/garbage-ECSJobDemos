@@ -18,7 +18,6 @@ namespace UnityEngine.ECS
     unsafe struct ComponentDataArrayCache
     {
         public IntPtr                          CachedPtr;
-        public int                             CachedStride;
         public int                             CachedBeginIndex;
         public int                             CachedEndIndex;
         public int                             CachedSizeOf;
@@ -42,7 +41,6 @@ namespace UnityEngine.ECS
             m_CurrentChunkIndex = 0;
 
             CachedPtr = IntPtr.Zero;
-            CachedStride = 0;
             CachedBeginIndex = 0;
             CachedEndIndex = 0;
         }
@@ -58,28 +56,6 @@ namespace UnityEngine.ECS
             rangeLength -= index - CachedBeginIndex;
             return objs;
         }
-
-        #if false
-        public void AssertIndexOutOfBoundsInternal(int index, int size)
-        {
-            int indexInChunk = index - CachedBeginIndex;
-            if (indexInChunk < 0)
-                throw new System.InvalidOperationException(string.Format("index out of bounds index: {0} indexinchunk: {1} chunkcount:{2}", index, indexInChunk, m_CurrentChunk->count));
-            if (indexInChunk >= m_CurrentChunk->count)
-                throw new System.InvalidOperationException(string.Format("index out of bounds index: {0} indexinchunk: {1} chunkcount:{2}", index, indexInChunk, m_CurrentChunk->count));
-            if (CachedStride != size)
-                throw new System.ArgumentException("size and stride dont match");
-            if (m_CurrentChunk == null)
-                throw new System.ArgumentException("chunk is null");
-            
-            long readLocation = (long)CachedPtr + (index * CachedStride);
-            long offset = readLocation - (long)m_CurrentChunk->buffer;
-            if (offset < 0)
-                throw new System.InvalidOperationException(string.Format("out of bounds index in index: {0} index in chunk: {1} offset: {2}", index, indexInChunk, offset));
-            if (offset + size > ArchetypeManager.GetChunkBufferSize())
-                throw new System.InvalidOperationException(string.Format("out of bounds index in index: {0} index in chunk: {1} offset: {2}", index, indexInChunk, offset));
-        }
-        #endif
 
         public void UpdateCache(int index)
         {
@@ -114,11 +90,10 @@ namespace UnityEngine.ECS
             var archetype = m_CurrentArchetypeSegment->archetype;
             var typeIndexInArchetype = m_CurrentArchetypeSegment->typeIndexInArchetype;
             
-            CachedStride = archetype->strides[typeIndexInArchetype];
             CachedBeginIndex = m_CurrentChunkIndex + m_CurrentArchetypeIndex;
             CachedEndIndex = CachedBeginIndex + m_CurrentChunk->count;
-            CachedPtr = m_CurrentChunk->buffer + archetype->offsets[typeIndexInArchetype] - (CachedBeginIndex * CachedStride);
             CachedSizeOf = archetype->sizeOfs[typeIndexInArchetype];
+            CachedPtr = m_CurrentChunk->buffer + archetype->offsets[typeIndexInArchetype] - CachedBeginIndex * CachedSizeOf;
         }
     }
 }

@@ -23,12 +23,12 @@ namespace UnityEngine.ECS.Tests
 	        var group = m_Manager.CreateComponentGroup(typeof(EcsTestData));
 	        var testData = group.GetComponentDataArray<EcsTestData>();
 
-	        Assert.AreEqual(0, testData.GetChunkSlice(5, 0).Length);
-	        Assert.AreEqual(10, testData.GetChunkSlice(0, 10).Length);
+	        Assert.AreEqual(0, testData.GetChunkArray(5, 0).Length);
+	        Assert.AreEqual(10, testData.GetChunkArray(0, 10).Length);
 
-	        Assert.Throws<IndexOutOfRangeException>(() => { testData.GetChunkSlice(-1, 1); });
-	        Assert.Throws<IndexOutOfRangeException>(() => { testData.GetChunkSlice(5, 6); });
-	        Assert.Throws<IndexOutOfRangeException>(() => { testData.GetChunkSlice(10, 1); });
+	        Assert.Throws<IndexOutOfRangeException>(() => { testData.GetChunkArray(-1, 1); });
+	        Assert.Throws<IndexOutOfRangeException>(() => { testData.GetChunkArray(5, 6); });
+	        Assert.Throws<IndexOutOfRangeException>(() => { testData.GetChunkArray(10, 1); });
 	    }
 	    
 	    

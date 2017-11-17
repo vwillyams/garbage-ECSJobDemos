@@ -36,7 +36,7 @@ namespace UnityEngine.ECS
 #endif
         }
 
-        public NativeSlice<T> GetChunkSlice(int startIndex, int maxCount)
+        public NativeArray<T> GetChunkArray(int startIndex, int maxCount)
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
@@ -49,17 +49,16 @@ namespace UnityEngine.ECS
             
             m_Cache.UpdateCache(startIndex);
             
-            IntPtr ptr = m_Cache.CachedPtr + (startIndex * m_Cache.CachedStride);
+            IntPtr ptr = m_Cache.CachedPtr + startIndex * m_Cache.CachedSizeOf;
             int count = Math.Min(maxCount, m_Cache.CachedEndIndex - startIndex);
 
-            
-            var slice = NativeSliceUnsafeUtility.ConvertExistingDataToNativeSlice<T>(ptr, m_Cache.CachedStride, count);
+	        var arr = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(ptr, count, Allocator.Invalid);
             
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            NativeSliceUnsafeUtility.SetAtomicSafetyHandle(ref slice, m_Safety);
+            NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref arr, m_Safety);
 #endif
 
-            return slice;
+            return arr;
         }
 
         public void CopyTo(NativeSlice<T> dst, int startIndex = 0)
@@ -67,10 +66,10 @@ namespace UnityEngine.ECS
             int copiedCount = 0;
             while (copiedCount < dst.Length)
             {
-                var chunkSlice = GetChunkSlice(startIndex + copiedCount, dst.Length - copiedCount);
-                dst.Slice(copiedCount, chunkSlice .Length).CopyFrom(chunkSlice);
+                var chunkArray = GetChunkArray(startIndex + copiedCount, dst.Length - copiedCount);
+                dst.Slice(copiedCount, chunkArray.Length).CopyFrom(chunkArray);
 
-                copiedCount += chunkSlice.Length;
+                copiedCount += chunkArray.Length;
             }
         }
 
@@ -87,7 +86,7 @@ namespace UnityEngine.ECS
                 if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
                     m_Cache.UpdateCache(index);
 
-                return UnsafeUtility.ReadArrayElementWithStride<T>(m_Cache.CachedPtr, index, m_Cache.CachedStride);
+                return UnsafeUtility.ReadArrayElement<T>(m_Cache.CachedPtr, index);
             }
 
 			set
@@ -101,7 +100,7 @@ namespace UnityEngine.ECS
                 if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
                     m_Cache.UpdateCache(index);
 
-				UnsafeUtility.WriteArrayElementWithStride (m_Cache.CachedPtr, index, m_Cache.CachedStride, value);
+				UnsafeUtility.WriteArrayElement(m_Cache.CachedPtr, index, value);
 			}
 		}
 

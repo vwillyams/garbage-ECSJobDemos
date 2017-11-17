@@ -352,6 +352,21 @@ namespace UnityEngine.ECS
             m_ArchetypeManager.SetManagedObject(chunk, componentType, chunkIndex, componentObject);
         }
 
+        internal unsafe Component GetComponentObject(Entity entity, ComponentType componentType)
+        {
+            m_Entities.AssertEntityHasComponent(entity, componentType.typeIndex);
+
+            Chunk* chunk;
+            int chunkIndex;
+            m_Entities.GetComponentChunk(entity, out chunk, out chunkIndex);
+            return m_ArchetypeManager.GetManagedObject(chunk, componentType.typeIndex, chunkIndex) as Component;
+        }
+
+        public T GetComponentObject<T>(Entity entity) where T : Component
+        {
+            return GetComponentObject(entity, new ComponentType(typeof(T))) as T;
+        }
+
         /// Shared component data
         //@TODO: Shared component data
         //@TODO: * Need to handle refcounting / destruction of archetypes, right now we just leak shared component types

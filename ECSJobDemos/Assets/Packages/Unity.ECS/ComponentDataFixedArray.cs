@@ -63,7 +63,7 @@ namespace UnityEngine.ECS
 #endif
 				}
 
-                IntPtr ptr = m_Cache.CachedPtr + (index * m_Cache.CachedStride);
+                IntPtr ptr = m_Cache.CachedPtr + index * m_Cache.CachedSizeOf;
                 var array = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(ptr, m_CachedFixedArrayLength, Allocator.Invalid);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref array, safety);

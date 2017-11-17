@@ -51,7 +51,7 @@ namespace UnityEngine.ECS
                 if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
                     m_Cache.UpdateCache(index);
 
-                return UnsafeUtility.ReadArrayElementWithStride<Entity>(m_Cache.CachedPtr, index, m_Cache.CachedStride);
+                return UnsafeUtility.ReadArrayElement<Entity>(m_Cache.CachedPtr, index);
 			}
 		}
 

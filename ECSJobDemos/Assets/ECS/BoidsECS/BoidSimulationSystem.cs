@@ -166,8 +166,8 @@ namespace BoidSimulations
 				cellRadius = m_Settings.settings[0].cellRadius
 			};
 
-			var prepareJobHandle = prepareParallelJob.Schedule(boids.Length, 512, GetDependency());
-			var simulationJobHandle = simulateJob.Schedule (boids.Length, 512, prepareJobHandle);
+			var prepareJobHandle = prepareParallelJob.Schedule(boids.Length, 32, GetDependency());
+			var simulationJobHandle = simulateJob.Schedule (boids.Length, 32, prepareJobHandle);
 
 			AddDependency (simulationJobHandle);
 

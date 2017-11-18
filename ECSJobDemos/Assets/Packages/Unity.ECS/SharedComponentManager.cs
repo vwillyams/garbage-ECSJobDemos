@@ -85,7 +85,7 @@ namespace UnityEngine.ECS
             type.sharedComponentIndex = sharedIndex;
             type.typeIndex = typeIndex;
             type.readOnly = 0;
-            type.arraySize = -1;
+            type.FixedArrayLength = -1;
             
             return type;
         }

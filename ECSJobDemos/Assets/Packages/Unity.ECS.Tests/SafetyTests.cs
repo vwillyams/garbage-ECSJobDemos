@@ -14,7 +14,15 @@ namespace UnityEngine.ECS.Tests
 {
     public class SafetyTests : ECSTestsFixture
 	{
-	    [Test]
+
+		[Test]
+		[Ignore("TODO")]
+		public void RemoveEntityComponentThrows()
+		{
+		    
+		}
+
+		[Test]
 	    public void ComponentArrayChunkSliceOutOfBoundsThrowsException()
 	    {
 	        for (int i = 0;i<10;i++)
@@ -117,7 +125,7 @@ namespace UnityEngine.ECS.Tests
             var entity = m_Manager.CreateEntity();
 
             m_Manager.AddComponent(entity, new EcsTestData(1));
-            Assert.Throws<System.InvalidOperationException>(() => { m_Manager.AddComponent(entity, new EcsTestData(1)); });
+            Assert.Throws<System.ArgumentException>(() => { m_Manager.AddComponent(entity, new EcsTestData(1)); });
         }
 
         [Test]

@@ -5,16 +5,11 @@ namespace UnityEngine.ECS.Tests
 {
     public class TypeManagerTests : ECSTestsFixture
 	{
-        struct NonBlittableComponentData : IComponentData
-        {
-            string empty;
-        }
-
-        struct TestType1
+        struct TestType1 : IComponentData
 		{
 			int empty;
 		}
-		struct TestType2
+		struct TestType2 : IComponentData
 		{
 			int empty;
 		}
@@ -45,6 +40,11 @@ namespace UnityEngine.ECS.Tests
 
             Assert.AreEqual(typeof(Entity), entity.GetManagedType());
         }
+
+		struct NonBlittableComponentData : IComponentData
+		{
+			string empty;
+		}
 
         [Test]
         public void NonBlittableComponentDataThrows()

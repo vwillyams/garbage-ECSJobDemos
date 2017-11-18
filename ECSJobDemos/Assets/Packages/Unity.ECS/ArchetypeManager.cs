@@ -29,23 +29,25 @@ namespace UnityEngine.ECS
 	{
 		public int typeIndex;
 		public int sharedComponentIndex;
-		public int arraySize;
+		public int FixedArrayLength;
+
+		public bool IsFixedArray 			   { get { return FixedArrayLength != -1; } }
+		public int  FixedArrayLengthMultiplier { get { return FixedArrayLength != -1 ? FixedArrayLength : 1; } }
 
 		public ComponentTypeInArchetype(ComponentType type)
 		{
 			typeIndex = type.typeIndex;
 			sharedComponentIndex = type.sharedComponentIndex;
-			///@TODO: Does this make sense? maybe just have arraysize in source always 1...
-			arraySize = type.arraySize == -1 ? 1 : type.arraySize;
+			FixedArrayLength = type.FixedArrayLength;
 		}
 
 		static public bool operator ==(ComponentTypeInArchetype lhs, ComponentTypeInArchetype rhs)
 		{
-			return lhs.typeIndex == rhs.typeIndex && lhs.sharedComponentIndex == rhs.sharedComponentIndex &&  lhs.arraySize == rhs.arraySize;
+			return lhs.typeIndex == rhs.typeIndex && lhs.sharedComponentIndex == rhs.sharedComponentIndex &&  lhs.FixedArrayLength == rhs.FixedArrayLength;
 		}
 		static public bool operator !=(ComponentTypeInArchetype lhs, ComponentTypeInArchetype rhs)
 		{
-			return lhs.typeIndex != rhs.typeIndex || lhs.sharedComponentIndex != rhs.sharedComponentIndex || lhs.arraySize != rhs.arraySize;
+			return lhs.typeIndex != rhs.typeIndex || lhs.sharedComponentIndex != rhs.sharedComponentIndex || lhs.FixedArrayLength != rhs.FixedArrayLength;
 		}
 		static public bool operator <(ComponentTypeInArchetype lhs, ComponentTypeInArchetype rhs)
 		{
@@ -67,6 +69,19 @@ namespace UnityEngine.ECS
 			}
 			return true;		
 		}
+		
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+		public override string ToString()
+		{
+			ComponentType type;
+			type.FixedArrayLength = FixedArrayLength;
+			type.typeIndex = typeIndex;
+			type.readOnly = 0;
+			type.sharedComponentIndex = sharedComponentIndex;
+			return type.ToString();
+		}
+#endif
+
 	}
 
 	unsafe struct Archetype
@@ -160,8 +175,18 @@ namespace UnityEngine.ECS
 			listeners.managedObjectListeners[typeIdx].Remove(listener);
 		}
 
-
-
+		[System.Diagnostics.Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
+		public void AssertArchetypeComponents(ComponentTypeInArchetype* types, int count)
+		{
+			for (int i = 1; i < count; i++)
+			{
+				if (!TypeManager.IsValidComponentTypeForArchetype(types[i].typeIndex, types[i].IsFixedArray))
+					throw new ArgumentException($"{types[i]} is not a valid component type.");
+				else if (types[i - 1].typeIndex == types[i].typeIndex)
+					throw new ArgumentException($"It is not allowed to have two components of the same type on the same entity. ({types[i-1]} and {types[i]})");
+			}
+		}
+		
         public Archetype* GetArchetype(ComponentTypeInArchetype* types, int count, EntityGroupManager groupManager, SharedComponentDataManager sharedComponentManager)
 		{
 			uint hash = HashUtility.fletcher32((ushort*)types, count * sizeof(ComponentType) / sizeof(ushort));
@@ -177,6 +202,9 @@ namespace UnityEngine.ECS
 						return type;
 				} while (m_TypeLookup.TryGetNextValue(out typePtr, ref it));
 			}
+
+			AssertArchetypeComponents(types, count);
+			
 			// This is a new archetype, allocate it and add it to the hash map
             type = (Archetype*)m_ArchetypeChunkAllocator.Allocate(sizeof(Archetype), 8);
 			type->typesCount = count;
@@ -197,7 +225,7 @@ namespace UnityEngine.ECS
             for (int i = 0; i < count; ++i)
             {
                 TypeManager.ComponentType cType = TypeManager.GetComponentType(types[i].typeIndex);
-                int sizeOf = cType.sizeInChunk * types[i].arraySize;
+                int sizeOf = cType.sizeInChunk * types[i].FixedArrayLengthMultiplier;
                 type->sizeOfs[i] = sizeOf;
 
                 bytesPerInstance += sizeOf;
@@ -221,7 +249,7 @@ namespace UnityEngine.ECS
 
             for (int i = 0; i < count; ++i)
             {
-                if (TypeManager.GetComponentType(types[i].typeIndex).requireManagedClass)
+                if (TypeManager.GetComponentType(types[i].typeIndex).category == TypeManager.TypeCategory.Class)
                     ++type->numManagedArrays;
             }
 
@@ -232,7 +260,7 @@ namespace UnityEngine.ECS
 				for (int i = 0; i < count; ++i)
 				{
                		TypeManager.ComponentType cType = TypeManager.GetComponentType(types[i].typeIndex);
-					if (cType.requireManagedClass)
+					if (cType.category == TypeManager.TypeCategory.Class)
 						type->managedArrayOffset[i] = mi++;
 					else
 						type->managedArrayOffset[i] = -1;

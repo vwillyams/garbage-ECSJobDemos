@@ -18,6 +18,7 @@ namespace UnityEngine.ECS.Tests
 
         //@TODO: No tests for invalid shared components / destroyed shared component data
         //@TODO: No tests for if we leak shared data when last entity is destroyed...
+        //@TODO: No tests for invalid shared component type?
 
         [Test]
         public void GetAllUniqueSharedComponents()
@@ -68,6 +69,7 @@ namespace UnityEngine.ECS.Tests
             Assert.AreEqual(archetypeA, archetypeB);
         }
         
+        
         [Test]
         public void ArchetypesOfDifferentDataDoNotEqual()
         {
@@ -103,6 +105,15 @@ namespace UnityEngine.ECS.Tests
 
             var groupAll = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(SharedData));
             Assert.AreEqual(1, groupAll.GetComponentDataArray<EcsTestData>().Length);
+        }
+        
+        
+        [Test]
+        [Ignore("Failing currently, behaviour could either by to throw exception in CreateEntity or making it return the default SharedData. Not sure which is preferrable")]
+        public void AddComponentWithDefaultSharedComponentType()
+        {
+            var entity = m_Manager.CreateEntity(typeof(SharedData));
+            Assert.AreEqual(0, m_Manager.GetSharedComponentData<SharedData>(entity).value);
         }
     }  
 }

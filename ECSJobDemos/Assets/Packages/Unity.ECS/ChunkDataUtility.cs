@@ -26,7 +26,7 @@ namespace UnityEngine.ECS
             int stride = chunk->archetype->strides[indexInTypeArray];
 
             outPtr = chunk->buffer + (offset + stride * index);
-            outArrayLength = chunk->archetype->types[indexInTypeArray].arraySize;
+            outArrayLength = chunk->archetype->types[indexInTypeArray].FixedArrayLength;
         }
 
         

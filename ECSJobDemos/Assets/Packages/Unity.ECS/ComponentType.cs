@@ -14,7 +14,7 @@ namespace UnityEngine.ECS
             type.typeIndex = TypeManager.GetTypeIndex<T>();
             type.sharedComponentIndex = -1;
             type.readOnly = 0;
-            type.arraySize = -1;
+            type.FixedArrayLength = -1;
             return type;
         }
 
@@ -24,7 +24,7 @@ namespace UnityEngine.ECS
             t.typeIndex = TypeManager.GetTypeIndex(type);
             t.sharedComponentIndex = -1;
             t.readOnly = 1;
-            t.arraySize = -1;
+            t.FixedArrayLength = -1;
             return t;
         }
         public static ComponentType ReadOnly<T>()
@@ -33,7 +33,7 @@ namespace UnityEngine.ECS
             t.typeIndex = TypeManager.GetTypeIndex<T>();
             t.sharedComponentIndex = -1;
             t.readOnly = 1;
-            t.arraySize = -1;
+            t.FixedArrayLength = -1;
             return t;
         }
 
@@ -42,16 +42,21 @@ namespace UnityEngine.ECS
             typeIndex = TypeManager.GetTypeIndex(type);
             sharedComponentIndex = -1;
             readOnly = isReadOnly ? 1 : 0;
-            arraySize = -1;
+            FixedArrayLength = -1;
         }
         
         public static ComponentType FixedArray(Type type, int numElements)
         {
+            #if ENABLE_UNITY_COLLECTIONS_CHECKS
+            if (numElements < 0)
+                throw new System.ArgumentException("FixedArray length must be 0 or larger");
+            #endif
+            
             ComponentType t;
             t.typeIndex = TypeManager.GetTypeIndex(type);
             t.sharedComponentIndex = -1;
             t.readOnly = 0;
-            t.arraySize = numElements;
+            t.FixedArrayLength = numElements;
             return t;
         }
 
@@ -107,10 +112,22 @@ namespace UnityEngine.ECS
             }
             return true;
         }
-        
+
+        public bool IsFixedArray { get { return FixedArrayLength != -1; } }
+
         public int typeIndex;
         public int readOnly;
         public int sharedComponentIndex;
-        public int arraySize;
+        public int FixedArrayLength;
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+        public override string ToString()
+        {
+            if (IsFixedArray)
+                return $"FixedArray(typeof({GetManagedType()}, {FixedArrayLength}))";
+            else
+                return GetManagedType().ToString();
+        }
+#endif
     }
 }

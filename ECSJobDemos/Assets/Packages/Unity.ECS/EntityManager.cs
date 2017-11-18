@@ -2,6 +2,7 @@
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using System;
+using System.Runtime.InteropServices;
 
 namespace UnityEngine.ECS
 {
@@ -252,10 +253,7 @@ namespace UnityEngine.ECS
                 m_CachedComponentTypeInArchetypeArray[t] = archetype->types[t];
                 ++t;
             }
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            if (t < archetype->typesCount && archetype->types[t] == componentType)
-                throw new InvalidOperationException("Trying to add a component to an entity which is already present");
-#endif
+
             m_CachedComponentTypeInArchetypeArray[t] = componentType;
             while (t < archetype->typesCount)
             {
@@ -352,19 +350,15 @@ namespace UnityEngine.ECS
             m_ArchetypeManager.SetManagedObject(chunk, componentType, chunkIndex, componentObject);
         }
 
-        internal unsafe Component GetComponentObject(Entity entity, ComponentType componentType)
+        public unsafe T GetComponentObject<T>(Entity entity) where T : Component 
         {
-            m_Entities.AssertEntityHasComponent(entity, componentType.typeIndex);
+            int typeIndex = TypeManager.GetTypeIndex<T>();
+            m_Entities.AssertEntityHasComponent(entity, typeIndex);
 
             Chunk* chunk;
             int chunkIndex;
             m_Entities.GetComponentChunk(entity, out chunk, out chunkIndex);
-            return m_ArchetypeManager.GetManagedObject(chunk, componentType.typeIndex, chunkIndex) as Component;
-        }
-
-        public T GetComponentObject<T>(Entity entity) where T : Component
-        {
-            return GetComponentObject(entity, new ComponentType(typeof(T))) as T;
+            return m_ArchetypeManager.GetManagedObject(chunk, typeIndex, chunkIndex) as T;
         }
 
         /// Shared component data
@@ -400,7 +394,12 @@ namespace UnityEngine.ECS
         public NativeArray<T> GetComponentFixedArray<T>(Entity entity) where T : struct
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_Entities.AssertEntityHasComponent(entity, typeIndex);
+            if (TypeManager.GetComponentType<T>().category != TypeManager.TypeCategory.OtherValueType)
+                throw new ArgumentException($"GetComponentFixedArray<{typeof(T)}> may not be IComponentData or ISharedComponentData");
+#endif
+            
             m_JobSafetyManager.CompleteWriteDependency(typeIndex);
 
             IntPtr ptr;

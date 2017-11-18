@@ -11,23 +11,59 @@ namespace UnityEngine.ECS.Tests
 	public class FixedArrayTests : ECSTestsFixture
 	{
 		[Test]
-		[Ignore("TODO")]
-		public void AddingComponentWithJustIntButNotFixedArrayThrows()
+		public void CreateEntityWithTwoSameTypeFixedArraysThrows()
 		{
+			var array11Type = ComponentType.FixedArray(typeof(int), 11);
+			var array12Type = ComponentType.FixedArray(typeof(int), 12);
+			Assert.Throws<ArgumentException>(() => { m_Manager.CreateEntity(array11Type, array12Type); });
 		}
 		
 		[Test]
-		[Ignore("TODO")]
-		public void GetComponentDataFixedArrayAgainstNotArrayThrows()
+		public void GetComponentFixedArrayAgainstIComponentDataThrows()
 		{
+			var entity = m_Manager.CreateEntity(typeof(EcsTestData));
+			Assert.Throws<ArgumentException>(() => { m_Manager.GetComponentFixedArray<EcsTestData>(entity); });
 		}
 
 		[Test]
-		[Ignore("TODO")]
-		public void GetComponentDataAgainstArrayThrows()
+		public void CreatingFixedArrayOfIComponentDataThrows()
 		{
+			Assert.Throws<ArgumentException>(() => { m_Manager.CreateEntity(ComponentType.FixedArray(typeof(EcsTestData), 2)); });
 		}
 
+		[Test]
+		public void CreateEntityWithIntThrows()
+		{
+			Assert.Throws<System.ArgumentException>(() => { m_Manager.CreateEntity(typeof(int));});
+		}
+
+		[Test]
+		public void AddComponentWithIntThrows()
+		{
+			var entity = m_Manager.CreateEntity();
+			Assert.Throws<System.ArgumentException>(() => { m_Manager.AddComponent(entity, ComponentType.Create<int>()); });
+		}
+		
+		[Test]
+		public void CreateEntityArrayWithValidLengths([Values(0, 1, 2, 100)]int length)
+		{
+			var entity = m_Manager.CreateEntity(ComponentType.FixedArray(typeof(int), length));
+			
+			var array = m_Manager.GetComponentFixedArray<int>(entity);
+			Assert.AreEqual(length, array.Length);
+		}
+		
+		[Test]
+		[TestCase(-1)]
+		// Invalid because chunk size is too small to hold a single entity
+		[TestCase(1024 * 1024)]
+		[Ignore("Crashes")]
+		public void CreateEntityWithInvalidFixedArraySize(int length)
+		{
+			var arrayType = ComponentType.FixedArray(typeof(int), length);
+			Assert.Throws<ArgumentException>(() => m_Manager.CreateEntity(arrayType));
+		}
+		
 		[Test]
 		public void HasComponent()
 		{

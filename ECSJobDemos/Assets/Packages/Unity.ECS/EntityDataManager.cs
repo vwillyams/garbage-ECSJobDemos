@@ -215,13 +215,13 @@ namespace UnityEngine.ECS
 
                 return archetype->types[idx].sharedComponentIndex == type.sharedComponentIndex;
             }
-            else if (type.arraySize != -1)
+            else if (type.IsFixedArray)
             {
                 int idx = ChunkDataUtility.GetIndexInTypeArray(archetype, type.typeIndex);
                 if (idx == -1)
                     return false;
 
-                return archetype->types[idx].arraySize == type.arraySize;
+                return archetype->types[idx].FixedArrayLength == type.FixedArrayLength;
             }
             else
                 return ChunkDataUtility.GetIndexInTypeArray(archetype, type.typeIndex) != -1;

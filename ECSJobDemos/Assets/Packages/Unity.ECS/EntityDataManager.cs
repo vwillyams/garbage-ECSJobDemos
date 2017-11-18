@@ -76,7 +76,7 @@ namespace UnityEngine.ECS
         {
             if (!HasComponent(entity, componentType))
             {
-                if (Exists(entity))
+                if (!Exists(entity))
                     throw new System.ArgumentException("The entity does not exist");
                 else
                 //@TODO: Throw with specific type...

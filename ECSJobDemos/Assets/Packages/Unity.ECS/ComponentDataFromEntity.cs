@@ -3,7 +3,8 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.ECS
 {
-    public unsafe struct ComponentDataArrayFromEntity<T> where T : struct, IComponentData
+    [NativeContainer]
+    public unsafe struct ComponentDataFromEntity<T> where T : struct, IComponentData
     {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         AtomicSafetyHandle      m_Safety;
@@ -12,7 +13,7 @@ namespace UnityEngine.ECS
         int                     m_TypeIndex;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        internal ComponentDataArrayFromEntity(AtomicSafetyHandle safety, int typeIndex, EntityDataManager entityData)
+        internal ComponentDataFromEntity(int typeIndex, EntityDataManager entityData, AtomicSafetyHandle safety)
         {
             m_Safety = safety;
             m_TypeIndex = typeIndex;

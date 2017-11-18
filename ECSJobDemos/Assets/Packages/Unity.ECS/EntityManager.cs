@@ -305,14 +305,25 @@ namespace UnityEngine.ECS
             RemoveComponent(entity, ComponentType.Create<T>());
         }
 
-        public unsafe ComponentDataArrayFromEntity<T> GetComponentDataArrayFromEntity<T>() where T : struct, IComponentData
+        public ComponentDataFromEntity<T> GetComponentDataArrayFromEntity<T>(bool isReadOnly = false) where T : struct, IComponentData
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            return new ComponentDataArrayFromEntity<T>(m_JobSafetyManager.GetSafetyHandle(typeIndex), typeIndex, m_Entities);
+            return new ComponentDataFromEntity<T>(typeIndex, m_Entities, m_JobSafetyManager.GetSafetyHandle(typeIndex, isReadOnly));
 #else
-            return new ComponentDataArrayFromEntity<T>(typeIndex, m_Entities);
+            return new ComponentDataFromEntity<T>(typeIndex, m_Entities);
+#endif
+        }
+        
+        public FixedArrayFromEntity<T> GetFixedArrayFromEntity<T>(bool isReadOnly = false) where T : struct
+        {
+            int typeIndex = TypeManager.GetTypeIndex<T>();
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            return new FixedArrayFromEntity<T>(typeIndex, m_Entities, m_JobSafetyManager.GetSafetyHandle(typeIndex, isReadOnly));
+#else
+            return new FixedArrayFromEntity<T>(typeIndex, m_Entities);
 #endif
         }
         
@@ -391,7 +402,7 @@ namespace UnityEngine.ECS
             return m_SharedComponentManager.GetSharedComponentData<T>(archetype->types[indexInTypeArray].sharedComponentIndex);
         }
 
-        public NativeArray<T> GetComponentFixedArray<T>(Entity entity) where T : struct
+        public NativeArray<T> GetFixedArray<T>(Entity entity) where T : struct
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -409,7 +420,7 @@ namespace UnityEngine.ECS
             var array = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(ptr, length, Allocator.Invalid);
             
             #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref array, m_JobSafetyManager.GetSafetyHandle(typeIndex)); 
+            NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref array, m_JobSafetyManager.GetSafetyHandle(typeIndex, false)); 
             #endif
 
             return array;

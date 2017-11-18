@@ -8,6 +8,7 @@ namespace UnityEngine.ECS.Tests
 {
 	public class InjectComponentGroupTests : ECSTestsFixture
 	{
+		[DisableAutoCreation]
 		public class PureEcsTestSystem : ComponentSystem
 		{
 			public struct DataAndEntites
@@ -23,6 +24,7 @@ namespace UnityEngine.ECS.Tests
 			public override void OnUpdate() { base.OnUpdate (); }
 		}
 
+		[DisableAutoCreation]
 		public class PureReadOnlySystem : ComponentSystem
 		{
 			public struct Datas
@@ -37,6 +39,8 @@ namespace UnityEngine.ECS.Tests
 			public override void OnUpdate() { base.OnUpdate (); }
 		}
 
+		
+		
 		[Test]
         public void ReadOnlyComponentDataArray()
         {
@@ -92,6 +96,63 @@ namespace UnityEngine.ECS.Tests
             Assert.AreEqual (2, pureSystem.Group.Data[0].value);
             Assert.AreEqual (go, pureSystem.Group.Entities[0]);
         }
+		
+		[DisableAutoCreation]
+		public class FromEntitySystemIncrementInJob : JobComponentSystem
+		{
+			public struct IncrementValueJob : IJob
+			{
+				public Entity entity;
+				
+				public ComponentDataFromEntity<EcsTestData> ecsTestDataFromEntity;
+				public FixedArrayFromEntity<int> intArrayFromEntity;
+
+				public void Execute()
+				{
+					var array = intArrayFromEntity[entity];
+					for (int i = 0;i<array.Length;i++)
+						array[i]++;
+
+					var value = ecsTestDataFromEntity[entity];
+					value.value++;
+					ecsTestDataFromEntity[entity] = value;
+				}
+			}
+
+			[InjectComponentFromEntity]
+			FixedArrayFromEntity<int> intArrayFromEntity;
+			
+			[InjectComponentFromEntity]
+			ComponentDataFromEntity<EcsTestData> ecsTestDataFromEntity;
+
+			public Entity entity;
+			
+			public override void OnUpdate()
+			{
+				base.OnUpdate ();
+				
+				var job = new IncrementValueJob();
+				job.entity = entity;
+				job.ecsTestDataFromEntity = ecsTestDataFromEntity;
+				job.intArrayFromEntity = intArrayFromEntity;
+
+				AddDependency(job.Schedule(GetDependency()));
+			}
+		}
+		
+		[Test]
+		public void FromEntitySystemIncrementInJobWorks()
+		{
+			var system = DependencyManager.GetBehaviourManager<FromEntitySystemIncrementInJob> ();
+
+			var entity = m_Manager.CreateEntity (typeof(EcsTestData), ComponentType.FixedArray(typeof(int), 5));
+			system.entity = entity;
+			system.OnUpdate ();
+			system.OnUpdate ();
+
+			Assert.AreEqual(2, m_Manager.GetComponent<EcsTestData>(entity).value);
+			Assert.AreEqual(2, m_Manager.GetFixedArray<int>(entity)[0]);
+		}
 	    
 		[DisableAutoCreation]
 	    public class OnDestroyManagerJobsHaveCompletedJobSystem : JobComponentSystem

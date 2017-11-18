@@ -19,7 +19,7 @@ namespace UnityEngine.ECS
 #endif
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        internal unsafe ComponentDataArray(ComponentDataArrayCache cache, int length, AtomicSafetyHandle safety, bool isReadOnly)
+        internal unsafe ComponentDataArray(ComponentDataArrayCache cache, int length, AtomicSafetyHandle safety)
 #else
         internal unsafe ComponentDataArray(ComponentDataArrayCache cache, int length)
 #endif
@@ -31,8 +31,6 @@ namespace UnityEngine.ECS
             m_MinIndex = 0;
             m_MaxIndex = length - 1;
             m_Safety = safety;
-            if (isReadOnly)
-                AtomicSafetyHandle.UseSecondaryVersion(ref m_Safety);
 #endif
         }
 

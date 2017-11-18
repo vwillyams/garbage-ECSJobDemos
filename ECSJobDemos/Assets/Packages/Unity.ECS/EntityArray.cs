@@ -33,7 +33,6 @@ namespace UnityEngine.ECS
 			m_MinIndex = 0;
 			m_MaxIndex = length - 1;
 			m_Safety = safety;
-			AtomicSafetyHandle.UseSecondaryVersion(ref m_Safety);
 			#endif
 
 		}

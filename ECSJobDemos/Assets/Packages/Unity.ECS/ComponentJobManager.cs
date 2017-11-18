@@ -197,10 +197,14 @@ namespace UnityEngine.ECS
         }
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        public AtomicSafetyHandle GetSafetyHandle(int type)
+        public AtomicSafetyHandle GetSafetyHandle(int type, bool isReadOnly)
         {
             m_HasCleanHandles = false;
-            return m_ComponentSafetyHandles[type].safetyHandle;
+            AtomicSafetyHandle handle = m_ComponentSafetyHandles[type].safetyHandle;
+            if (isReadOnly)
+                AtomicSafetyHandle.UseSecondaryVersion(ref handle);
+            
+            return handle;
         }
 #endif
 

@@ -197,41 +197,41 @@ namespace UnityEngine.ECS
             return m_GroupData->requiredComponents[componentIndex].readOnly != 0;
         }
 
-        internal static void ExtractJobDependencyTypes(ComponentGroup[] groups, out int[] readingTypes, out int[] writingTypes)
+        internal static void AddReaderWriter(ComponentType type, List<int> reading, List<int> writing)
         {
-            var reading = new List<int>();
-            var writing = new List<int>();
+            if (!type.RequiresJobDependency)
+                return;
+                    
+            if (type.readOnly != 0)
+            {
+                if (reading.Contains(type.typeIndex))
+                    return;
+                if (writing.Contains(type.typeIndex))
+                    return;
 
+                reading.Add(type.typeIndex);
+            }
+            else
+            {
+                if (reading.Contains(type.typeIndex))
+                    reading.Remove(type.typeIndex);
+                if (writing.Contains(type.typeIndex))
+                    return;
+                writing.Add(type.typeIndex);
+            }
+        }
+
+
+        internal static void ExtractJobDependencyTypes(ComponentGroup[] groups, List<int> reading, List<int> writing)
+        {
             foreach (var group in groups)
             {
                 for (int i = 0;i != group.m_GroupData->requiredComponentsCount;i++)
                 {
                     ComponentType type = group.m_GroupData->requiredComponents[i];
-                    if (!type.RequiresJobDependency)
-                        continue;
-
-                    if (type.readOnly != 0)
-                    {
-                        if (reading.Contains(type.typeIndex))
-                            continue;
-                        if (writing.Contains(type.typeIndex))
-                            continue;
-
-                        reading.Add(type.typeIndex);
-                    }
-                    else
-                    {
-                        if (reading.Contains(type.typeIndex))
-                            reading.Remove(type.typeIndex);
-                        if (writing.Contains(type.typeIndex))
-                            continue;
-                        writing.Add(type.typeIndex);
-                    }
+                    AddReaderWriter(type, reading, writing);
                 }
             }
-
-            readingTypes = reading.ToArray();
-            writingTypes = writing.ToArray();
         }
 
 
@@ -271,22 +271,21 @@ namespace UnityEngine.ECS
 
             var cache = GetComponentDataArrayCache(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            return new ComponentDataArray<T>(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex), IsReadOnly(componentIndex));
+            return new ComponentDataArray<T>(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex, IsReadOnly(componentIndex)));
 #else
 			return new ComponentDataArray<T>(cache, length);
 #endif
         }
 
-        public ComponentDataFixedArray<T> GetComponentDataFixedArray<T>() where T : struct
+        public FixedArrayArray<T> GetFixedArrayArray<T>() where T : struct
         {
             int length;
             int componentIndex;
             int typeIndex = TypeManager.GetTypeIndex<T>();
 
-            
             var cache = GetComponentDataArrayCache(typeIndex, out length, out componentIndex);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            return new ComponentDataFixedArray<T>(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex), false);
+            return new FixedArrayArray<T>(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex, false));
 #else
 			return new ComponentDataFixedArray<T>(cache, length);
 #endif
@@ -299,7 +298,7 @@ namespace UnityEngine.ECS
             int typeIndex = TypeManager.GetTypeIndex<Entity>();
             var cache = GetComponentDataArrayCache(typeIndex, out length, out componentIndex);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            return new EntityArray(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex));
+            return new EntityArray(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex, false));
 #else
 			return new EntityArray(cache, length);
 #endif

@@ -7,7 +7,7 @@ namespace UnityEngine.ECS
 
 	[NativeContainer]
 	[NativeContainerSupportsMinMaxWriteRestriction]
-	public unsafe struct ComponentDataFixedArray<T> where T : struct
+	public unsafe struct FixedArrayArray<T> where T : struct
 	{
         ComponentDataArrayCache m_Cache;
         int                     m_CachedFixedArrayLength;
@@ -21,7 +21,7 @@ namespace UnityEngine.ECS
         #endif
 
 		#if ENABLE_UNITY_COLLECTIONS_CHECKS
-        internal unsafe ComponentDataFixedArray(ComponentDataArrayCache cache, int length, AtomicSafetyHandle safety, bool isReadOnly)
+        internal unsafe FixedArrayArray(ComponentDataArrayCache cache, int length, AtomicSafetyHandle safety)
 		#else
         internal unsafe ComponentDataFixedArray(ComponentDataArrayCache cache, int length)
 		#endif
@@ -34,8 +34,6 @@ namespace UnityEngine.ECS
 			m_MinIndex = 0;
 			m_MaxIndex = length - 1;
 			m_Safety = safety;
-			if (isReadOnly)
-				AtomicSafetyHandle.UseSecondaryVersion(ref m_Safety);
 			#endif
 
 		}

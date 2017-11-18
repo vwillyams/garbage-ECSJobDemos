@@ -22,7 +22,7 @@ namespace UnityEngine.ECS.Tests
 		public void GetComponentFixedArrayAgainstIComponentDataThrows()
 		{
 			var entity = m_Manager.CreateEntity(typeof(EcsTestData));
-			Assert.Throws<ArgumentException>(() => { m_Manager.GetComponentFixedArray<EcsTestData>(entity); });
+			Assert.Throws<ArgumentException>(() => { m_Manager.GetFixedArray<EcsTestData>(entity); });
 		}
 
 		[Test]
@@ -49,7 +49,7 @@ namespace UnityEngine.ECS.Tests
 		{
 			var entity = m_Manager.CreateEntity(ComponentType.FixedArray(typeof(int), length));
 			
-			var array = m_Manager.GetComponentFixedArray<int>(entity);
+			var array = m_Manager.GetFixedArray<int>(entity);
 			Assert.AreEqual(length, array.Length);
 		}
 		
@@ -104,37 +104,29 @@ namespace UnityEngine.ECS.Tests
 		}
 
 		[Test]
-		public void FixedArrayAddRemoveComponent()
+		public void MutateFixedArrayData()
 		{
 			var entity = m_Manager.CreateEntity();
 			m_Manager.AddComponent(entity, ComponentType.FixedArray(typeof(int), 11));
 
-			Assert.IsTrue(m_Manager.HasComponent(entity, ComponentType.FixedArray(typeof(int), 11)));			
-			Assert.IsTrue(m_Manager.HasComponent(entity, typeof(int)));			
-
-			var array = m_Manager.GetComponentFixedArray<int>(entity);
+			var array = m_Manager.GetFixedArray<int>(entity);
 			
 			Assert.AreEqual(11, array.Length);
 			array[7] = 5;
 			Assert.AreEqual(5, array[7]);
-			
-			m_Manager.RemoveComponent(entity, ComponentType.FixedArray(typeof(int), 11));
-			
-			Assert.IsFalse(m_Manager.HasComponent(entity, ComponentType.FixedArray(typeof(int), 11)));			
-			Assert.IsFalse(m_Manager.HasComponent(entity, typeof(int)));			
-			Assert.Throws<ArgumentException>(() => { m_Manager.GetComponentFixedArray<int>(entity); });			
 		}
 		
+		//@TODO: Should really test additional constraint against exact size as well...
 
 		[Test]
-        public void CreateAndDestroyFixedArray()
+        public void FixedArrayComponentGroupIteration()
         {
             var entity64 = m_Manager.CreateEntity(ComponentType.FixedArray(typeof(int), 64));
 	        var entity10 = m_Manager.CreateEntity(ComponentType.FixedArray(typeof(int), 10));
 
             var group = m_Manager.CreateComponentGroup(typeof(int));
 
-            var fixedArray = group.GetComponentDataFixedArray<int>();
+            var fixedArray = group.GetFixedArrayArray<int>();
 
 	        Assert.AreEqual(2, fixedArray.Length);
 	        Assert.AreEqual(64, fixedArray[0].Length);
@@ -156,5 +148,18 @@ namespace UnityEngine.ECS.Tests
                 Assert.AreEqual(i, fixedArray[i][3]);
             }
         }
+		
+		[Test]
+		public void FixedArrayFromEntityWorks()
+		{
+			var entityInt = m_Manager.CreateEntity(ComponentType.FixedArray(typeof(int), 3));
+			m_Manager.GetFixedArray<int>(entityInt).CopyFrom(new int[] { 1, 2, 3});
+						
+			var intLookup = m_Manager.GetFixedArrayFromEntity<int>();
+			Assert.IsTrue(intLookup.Exists(entityInt));
+			Assert.IsFalse(intLookup.Exists(new Entity()));
+			
+			Assert.AreEqual(2, intLookup[entityInt][1]);
+		}
 	}
 }

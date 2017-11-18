@@ -1,11 +1,13 @@
 ﻿using Unity.Collections;
 using Unity.Jobs;
+using System.Collections.Generic;
 
 namespace UnityEngine.ECS
 {
     public abstract class ComponentSystem : ScriptBehaviourManager
     {
-        InjectComponentGroupData[] 					m_InjectedComponentGroups;
+	    InjectComponentGroupData[] 			m_InjectedComponentGroups;
+	    InjectionData[] 					m_InjectedFromEntity;
 
         public ComponentGroup[] ComponentGroups
         {
@@ -34,9 +36,16 @@ namespace UnityEngine.ECS
 
             m_SafetyManager = m_EntityManager.ComponentJobSafetyManager;
 
-		    m_InjectedComponentGroups = InjectComponentGroupData.InjectComponentGroups(GetType(), m_EntityManager);
-		    ComponentGroup.ExtractJobDependencyTypes(ComponentGroups, out m_JobDependencyForReadingManagers, out m_JobDependencyForWritingManagers);
+		    ComponentSystemInjection.Inject(GetType(), m_EntityManager, out m_InjectedComponentGroups, out m_InjectedFromEntity);
 
+		    var readingTypes = new List<int>();
+		    var writingTypes = new List<int>();
+		    
+		    ComponentGroup.ExtractJobDependencyTypes(ComponentGroups, readingTypes, writingTypes);
+		    InjectFromEntityData.ExtractJobDependencyTypes(m_InjectedFromEntity, readingTypes, writingTypes);
+		    m_JobDependencyForReadingManagers = readingTypes.ToArray();
+		    m_JobDependencyForWritingManagers = writingTypes.ToArray();
+		    
 		    UpdateInjectedComponentGroups();
 	    }
 
@@ -63,6 +72,8 @@ namespace UnityEngine.ECS
     	{
     		foreach (var group in m_InjectedComponentGroups)
 			    group.UpdateInjection (this);
+		    
+		    InjectFromEntityData.UpdateInjection(this, EntityManager, m_InjectedFromEntity);
     	}
 
     	override public void OnUpdate()

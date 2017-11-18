@@ -65,6 +65,7 @@ namespace UnityEngine.ECS
             get
             {
                 var type = GetManagedType();
+                //@TODO: This is wrong... Not right for fixed array, think about Entity array?
                 return typeof(IComponentData).IsAssignableFrom(type);
             }
         }

@@ -178,6 +178,11 @@ namespace UnityEngine.ECS
 		[System.Diagnostics.Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
 		public void AssertArchetypeComponents(ComponentTypeInArchetype* types, int count)
 		{
+			if (count < 1)
+				throw new System.ArgumentException($"Invalid component count");
+			if (types[0].typeIndex != TypeManager.GetTypeIndex<Entity>())
+				throw new System.ArgumentException($"The Entity ID must always be the first component");
+			
 			for (int i = 1; i < count; i++)
 			{
 				if (!TypeManager.IsValidComponentTypeForArchetype(types[i].typeIndex, types[i].IsFixedArray))

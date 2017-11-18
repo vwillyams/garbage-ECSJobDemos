@@ -16,10 +16,11 @@ namespace UnityEngine.ECS.Tests
 	{
 
 		[Test]
-		[Ignore("TODO")]
 		public void RemoveEntityComponentThrows()
 		{
-		    
+			var entity = m_Manager.CreateEntity(typeof(EcsTestData));
+			Assert.Throws<ArgumentException>(() => { m_Manager.RemoveComponent(entity, typeof(Entity)); });
+			Assert.IsTrue(m_Manager.HasComponent<EcsTestData>(entity));
 		}
 
 		[Test]

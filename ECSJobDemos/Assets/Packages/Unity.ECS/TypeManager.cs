@@ -122,6 +122,11 @@ namespace UnityEngine.ECS
                 {
                     throw new System.ArgumentException($"'{type}' is not a valid component");
                 }
+#else
+                else
+                {
+                    category = TypeCategory.OtherValueType;
+                }
 #endif
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS

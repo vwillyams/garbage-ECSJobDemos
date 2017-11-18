@@ -170,8 +170,6 @@ namespace BoidSimulations
 			var simulationJobHandle = simulateJob.Schedule (boids.Length, 32, prepareJobHandle);
 
 			AddDependency (simulationJobHandle);
-
-			JobHandle.ScheduleBatchedJobs ();
 		}
 
 		protected override void OnCreateManager(int capacity)

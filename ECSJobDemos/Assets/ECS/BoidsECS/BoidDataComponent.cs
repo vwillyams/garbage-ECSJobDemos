@@ -6,6 +6,7 @@ namespace BoidSimulations
 {
 	public struct BoidData : IComponentData
 	{
+		[SceneViewWorldPosition]
 		public float3  position;
 		public float3  forward;
 

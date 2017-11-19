@@ -1,5 +1,7 @@
+using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.Collections;
+using UnityEngine.ECS;
 using UnityEngine.Experimental.AI;
 
 public struct PathQueryQueueEcs
@@ -23,13 +25,21 @@ public struct PathQueryQueueEcs
         public int resultNodesCount;
         public int resultPathsCount;
         public int currentAgentIndex;
-        public AgentPaths.Path currentPathRequest;
+        public PathInfo currentPathRequest;
+    }
+
+    struct PathInfo
+    {
+        public int begin;
+        public int size;
+        public NavMeshLocation start;
+        public NavMeshLocation end;
     }
 
     NavMeshPathQuery m_Query;
     NativeArray<RequestEcs> m_Requests;
     NativeArray<PolygonID> m_ResultNodes;
-    NativeArray<AgentPaths.Path> m_ResultRanges;
+    NativeArray<PathInfo> m_ResultRanges;
     NativeArray<int> m_AgentIndices;
     NativeArray<float> m_Costs;
     NativeArray<QueryQueueState> m_State;
@@ -40,8 +50,8 @@ public struct PathQueryQueueEcs
         m_Query = new NavMeshPathQuery(world, nodePoolSize, Allocator.Persistent);
         m_Requests = new NativeArray<RequestEcs>(maxRequestCount, Allocator.Persistent);
         m_ResultNodes = new NativeArray<PolygonID>(2 * nodePoolSize, Allocator.Persistent);
-        m_ResultRanges = new NativeArray<AgentPaths.Path>(maxRequestCount, Allocator.Persistent);
-        m_AgentIndices = new NativeArray<int>(maxRequestCount, Allocator.Persistent);
+        m_ResultRanges = new NativeArray<PathInfo>(maxRequestCount + 1, Allocator.Persistent);
+        m_AgentIndices = new NativeArray<int>(maxRequestCount + 1, Allocator.Persistent);
         m_Costs = new NativeArray<float>(32, Allocator.Persistent);
         for (var i = 0; i < m_Costs.Length; ++i)
             m_Costs[i] = 1.0f;
@@ -54,7 +64,7 @@ public struct PathQueryQueueEcs
             resultNodesCount = 0,
             resultPathsCount = 0,
             currentAgentIndex = -1,
-            currentPathRequest = new AgentPaths.Path()
+            currentPathRequest = new PathInfo()
         };
     }
 
@@ -87,7 +97,7 @@ public struct PathQueryQueueEcs
         return m_State[0].requestCount;
     }
 
-    public int GetProcessedRequestCount()
+    public int GetProcessedRequestsCount()
     {
         return m_State[0].requestIndex;
     }
@@ -106,7 +116,7 @@ public struct PathQueryQueueEcs
 
         for (var i = 0; i < state.requestCount; i++)
         {
-            if (m_Requests[i].agentIndex == index)
+            if (m_Requests[state.requestIndex + i].agentIndex == index)
                 return true;
         }
 
@@ -118,7 +128,7 @@ public struct PathQueryQueueEcs
         return m_State[0].resultPathsCount;
     }
 
-    public void CopyResultsTo(ref AgentPaths.AllWritable agentPaths)
+    public void CopyResultsTo(ref ComponentDataFixedArray<PolygonID> agentPaths, ref ComponentDataArray<CrowdAgentNavigator> agentNavigators)
     {
         var state = m_State[0];
         for (var i = 0; i < state.resultPathsCount; i++)
@@ -126,7 +136,21 @@ public struct PathQueryQueueEcs
             var index = m_AgentIndices[i];
             var resultPathInfo = m_ResultRanges[i];
             var resultNodes = new NativeSlice<PolygonID>(m_ResultNodes, resultPathInfo.begin, resultPathInfo.size);
-            agentPaths.SetPath(index, resultNodes, resultPathInfo.start, resultPathInfo.end);
+            var agentPathBuffer = agentPaths[index];
+
+            // TODO Mark the path as Invalid when the buffer is not large enough to fit the entire path.
+            var pathLength = math.min(resultNodes.Length, agentPathBuffer.Length);
+            for (var j = 0; j < pathLength; j++)
+            {
+                agentPathBuffer[j] = resultNodes[j];
+            }
+
+            var navigator = agentNavigators[index];
+            navigator.pathStart = resultPathInfo.start;
+            navigator.pathEnd = resultPathInfo.end;
+            navigator.pathSize = pathLength;
+            navigator.StartMoving();
+            agentNavigators[index] = navigator;
         }
     }
 
@@ -138,7 +162,76 @@ public struct PathQueryQueueEcs
         m_State[0] = state;
     }
 
-    public void UpdateTimeliced(int maxIter = 100)
+    public void RemoveAgentRecords(int index, int replacementAgent)
+    {
+#if DEBUG_CROWDSYSTEM_ASSERTS
+        Debug.Assert(index >= 0);
+#endif
+
+        var stateChanged = false;
+        var state = m_State[0];
+        if (state.currentAgentIndex == index)
+        {
+            state.currentAgentIndex = -1;
+            stateChanged = true;
+        }
+        else if (state.currentAgentIndex == replacementAgent)
+        {
+            state.currentAgentIndex = index;
+            stateChanged = true;
+        }
+
+        // remove results for that agent
+        for (var i = 0; i < state.resultPathsCount; i++)
+        {
+            if (m_AgentIndices[i] == index)
+            {
+                var backIndex = state.resultPathsCount - 1;
+                if (i != backIndex)
+                {
+                    m_ResultRanges[i] = m_ResultRanges[backIndex];
+                    m_AgentIndices[i] = m_AgentIndices[backIndex];
+                }
+                state.resultPathsCount--;
+                stateChanged = true;
+                i--; // rewinds i one step back to account for the newly moved item
+            }
+            else if (m_AgentIndices[i] == replacementAgent)
+            {
+                m_AgentIndices[i] = index;
+            }
+        }
+
+        //remove requests in queue for that agent
+        for (var q = 0; q < state.requestCount; q++)
+        {
+            var i = state.requestIndex + q;
+            if (m_Requests[i].agentIndex == index)
+            {
+                var backIndex = state.requestIndex + state.requestCount - 1;
+                if (i != backIndex)
+                {
+                    m_Requests[i] = m_Requests[backIndex];
+                }
+                state.requestCount--;
+                stateChanged = true;
+                q--;
+            }
+            else if (m_Requests[i].agentIndex == replacementAgent)
+            {
+                var req = m_Requests[i];
+                req.agentIndex = index;
+                m_Requests[i] = req;
+            }
+        }
+
+        if (stateChanged)
+        {
+            m_State[0] = state;
+        }
+    }
+
+    public void UpdateTimesliced(int maxIter = 100)
     {
         var state = m_State[0];
         while (maxIter > 0 && (state.currentAgentIndex >= 0 || state.requestCount > 0 && state.requestIndex < state.requestCount))
@@ -155,7 +248,7 @@ public struct PathQueryQueueEcs
                 if (!startLoc.valid || !endLoc.valid)
                     continue;
 
-                state.currentPathRequest = new AgentPaths.Path()
+                state.currentPathRequest = new PathInfo()
                 {
                     begin = 0,
                     size = 0,
@@ -164,11 +257,14 @@ public struct PathQueryQueueEcs
                 };
 
                 var status = m_Query.InitSlicedFindPath(startLoc, endLoc, 0, m_Costs, request.mask);
-                if (status != PathQueryStatus.Failure)
+                if (!status.IsFailure())
                 {
                     state.currentAgentIndex = request.agentIndex;
                 }
             }
+
+            if (state.resultPathsCount >= m_ResultRanges.Length)
+                break;
 
             if (state.currentAgentIndex >= 0)
             {
@@ -177,20 +273,22 @@ public struct PathQueryQueueEcs
                 var status = m_Query.UpdateSlicedFindPath(maxIter, out niter);
                 maxIter -= niter;
 
-                if (status == PathQueryStatus.Success)
+                if (status.IsSuccess())
                 {
                     var npath = 0;
                     status = m_Query.FinalizeSlicedFindPath(out npath);
-                    if (status == PathQueryStatus.Success)
+                    if (status.IsSuccess())
                     {
                         // TODO: Maybe add a method to get beforehand the number of result nodes and check if it will fit in the remaining space in m_ResultNodes [#adriant]
 
-                        var resPolygons = new NativeArray<PolygonID>(npath, Allocator.TempJob);
+                        var resPolygons = new NativeArray<PolygonID>(npath, Allocator.Temp);
                         var pathInfo = state.currentPathRequest;
                         pathInfo.size = m_Query.GetPathResult(resPolygons);
                         if (pathInfo.size > 0)
                         {
+#if DEBUG_CROWDSYSTEM_ASSERTS
                             Debug.Assert(pathInfo.size + state.resultNodesCount <= m_ResultNodes.Length);
+#endif
 
                             pathInfo.begin = state.resultNodesCount;
                             for (var i = 0; i < npath; i++)
@@ -205,7 +303,10 @@ public struct PathQueryQueueEcs
                         state.currentPathRequest = pathInfo;
                         resPolygons.Dispose();
                     }
+                }
 
+                if (!status.InProgress())
+                {
                     state.currentAgentIndex = -1;
                 }
             }
@@ -228,11 +329,11 @@ public struct PathQueryQueueEcs
                 }
             }
 
-            var dest = 0;
+            var dst = 0;
             var src = state.requestIndex;
-            for (; src < state.requestCount; src++, dest++)
+            for (; src < state.requestCount; src++, dst++)
             {
-                m_Requests[dest] = m_Requests[src];
+                m_Requests[dst] = m_Requests[src];
             }
             state.requestCount -= state.requestIndex;
             state.requestIndex = 0;
@@ -241,17 +342,32 @@ public struct PathQueryQueueEcs
         }
     }
 
-    //public bool DbgRequestExistsInQueue(uint requestUid)
-    //{
-    //    var existsInQ = false;
-    //    var state = m_State[0];
-    //    for (var i = state.requestIndex; i < state.requestCount; ++i)
-    //    {
-    //        existsInQ = (m_Requests[i].uid == requestUid);
-    //        if (existsInQ)
-    //            break;
-    //    }
+    public void DbgGetRequests(out NativeArray<RequestEcs> requestQueue, out int countWaiting, out int countDone, out RequestEcs inProgress)
+    {
+        requestQueue = m_Requests;
+        var state = m_State[0];
+        countWaiting = state.requestCount - state.requestIndex;
+        countDone = state.requestIndex;
+        inProgress = new RequestEcs
+        {
+            uid = state.currentAgentIndex >= 0 ? uint.MaxValue : RequestEcs.invalidId,
+            agentIndex = state.currentAgentIndex,
+            start = state.currentPathRequest.start.position,
+            end = state.currentPathRequest.end.position
+        };
+    }
 
-    //    return existsInQ;
-    //}
+    public bool DbgRequestExistsInQueue(uint requestUid)
+    {
+        var existsInQ = false;
+        var state = m_State[0];
+        for (var i = state.requestIndex; i < state.requestCount; ++i)
+        {
+            existsInQ = (m_Requests[i].uid == requestUid);
+            if (existsInQ)
+                break;
+        }
+
+        return existsInQ;
+    }
 }

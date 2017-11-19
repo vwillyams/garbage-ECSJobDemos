@@ -1,7 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.ECS;
+using UnityEngine.Experimental.AI;
 
 public class CrowdSpawner : MonoBehaviour
 {
@@ -11,26 +10,29 @@ public class CrowdSpawner : MonoBehaviour
 
     public int totalAgentCount = 0;
 
+    const int k_MaxPathSize = 128;
+
     void Update()
     {
-		var entityManager = DependencyManager.GetBehaviourManager<EntityManager>();
-        for (int i = 0; i < newAgents; ++i)
+        var entityManager = DependencyManager.GetBehaviourManager<EntityManager>();
+        for (var i = 0; i < newAgents; ++i)
         {
             var pos = new Vector3(Random.Range(-range, range), 0, Random.Range(-range, range));
-            var go = GameObject.Instantiate(prefab, pos, Quaternion.identity, transform) as GameObject;
+            var go = Instantiate(prefab, pos, Quaternion.identity, transform);
             go.name = "CrowdAgent_" + (totalAgentCount + i);
+            var entity = go.GetComponent<GameObjectEntity>().Entity;
             var agent = new CrowdAgent { type = 0, worldPosition = pos };
-            entityManager.SetComponent<CrowdAgent>(go.GetComponent<GameObjectEntity>().Entity, agent);
+            entityManager.SetComponent(entity, agent);
             var agentNavigator = new CrowdAgentNavigator
             {
                 active = true,
-                crowdId = -1,
                 newDestinationRequested = false,
                 goToDestination = false,
                 destinationInView = false,
                 destinationReached = true
             };
-            entityManager.SetComponent<CrowdAgentNavigator>(go.GetComponent<GameObjectEntity>().Entity, agentNavigator);
+            entityManager.SetComponent(entity, agentNavigator);
+            entityManager.AddComponent(entity, ComponentType.FixedArray(typeof(PolygonID), k_MaxPathSize));
         }
         totalAgentCount += newAgents;
         newAgents = 0;

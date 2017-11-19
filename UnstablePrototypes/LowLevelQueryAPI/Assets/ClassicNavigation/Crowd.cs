@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Jobs;
-using UnityEngine.Collections;
 using UnityEngine.Experimental.AI;
 
 public class Crowd : MonoBehaviour
@@ -118,12 +119,14 @@ public class Crowd : MonoBehaviour
                 const int maxCorners = 2;
                 var straightPath = new NativeArray<NavMeshLocation>(maxCorners, Allocator.TempJob);
                 var straightPathFlags = new NativeArray<NavMeshStraightPathFlags>(straightPath.Length, Allocator.TempJob);
+                var vertexSide = new NativeArray<float>(straightPath.Length, Allocator.TempJob);
                 var cornerCount = 0;
-                var pathStatus = PathUtils.FindStraightPath(currentPos, endPos, new NativeSlice<PolygonID>(p.polygons), p.size, ref straightPath, ref straightPathFlags, ref cornerCount, straightPath.Length);
+                var pathStatus = PathUtils.FindStraightPath(currentPos, endPos, p.polygons, p.size, ref straightPath, ref straightPathFlags, ref vertexSide, ref cornerCount, straightPath.Length);
                 steeringTarget = pathStatus == PathQueryStatus.Success && cornerCount > 1 ? straightPath[1].position : currentPos;
 
                 straightPath.Dispose();
                 straightPathFlags.Dispose();
+                vertexSide.Dispose();
 
                 //{
                 //    Vector3 left, right;
@@ -140,6 +143,7 @@ public class Crowd : MonoBehaviour
             var velocity = steeringTarget - currentPos;
             velocity.y = 0.0f;
             vel[index] = velocity.normalized;
+
             // TODO: add avoidance as a job after this one
         }
     }
@@ -174,6 +178,7 @@ public class Crowd : MonoBehaviour
         public NativeArray<Vector3> pos;
         [ReadOnly]
         public NativeArray<Vector3> vel;
+
         public void Execute(int index, TransformAccess transform)
         {
             transform.position = pos[index];
@@ -250,14 +255,14 @@ public class Crowd : MonoBehaviour
         QueryNewPaths();
         GetPathResults();
 
-        var advance = new AdvancePathJob() {loc = m_Locations, paths = m_Paths };
+        var advance = new AdvancePathJob() { loc = m_Locations, paths = m_Paths };
         for (int i = 0; i < m_Count; ++i) advance.Execute(i);
 
-        var vel = new UpdateVelocityJob() {paths = m_Paths, pos = m_Positions, vel = m_Velocities};
+        var vel = new UpdateVelocityJob() { paths = m_Paths, pos = m_Positions, vel = m_Velocities };
         for (int i = 0; i < m_Count; ++i) vel.Execute(i);
 
-        var move = new MoveLocationsJob() {pos = m_Positions, loc = m_Locations, vel = m_Velocities, dt = Time.deltaTime};
-        var write = new WriteTransformJob() {pos = m_Positions, vel = m_Velocities};
+        var move = new MoveLocationsJob() { pos = m_Positions, loc = m_Locations, vel = m_Velocities, dt = Time.deltaTime };
+        var write = new WriteTransformJob() { pos = m_Positions, vel = m_Velocities };
 
         var moveFence = move.Schedule(m_Count, 10);
         m_WriteFence = write.Schedule(m_TransformArray, moveFence);

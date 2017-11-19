@@ -1,0 +1,14 @@
+{
+    "name": "Unity.HLVM.Tests",
+    "references": [
+        "Unity.HLVM",
+        "Unity.Collections"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

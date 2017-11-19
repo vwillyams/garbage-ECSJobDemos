@@ -1,10 +1,7 @@
-using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Experimental.AI;
-using UnityEngine.Jobs;
-using UnityEngine.Collections;
-
 
 public struct PolygonPath
 {
@@ -20,7 +17,11 @@ public class PathQueryQueue
     public struct Handle
     {
         public int id;
-        public bool valid { get { return id != 0; } }
+
+        public bool valid
+        {
+            get { return id != 0; }
+        }
     };
 
     NavMeshPathQuery m_Query;
@@ -63,7 +64,7 @@ public class PathQueryQueue
     Handle GetNewHandle()
     {
         // TODO: check existing requests for collisions
-        while (++m_HandleID == 0) {}
+        while (++m_HandleID == 0) { }
         return new Handle { id = m_HandleID };
     }
 
@@ -112,6 +113,7 @@ public class PathQueryQueue
                 m_Current.handle = req.handle;
                 m_Current.start = NavMeshQuery.MapLocation(req.start, 10.0f * Vector3.one, 0, -1);
                 m_Current.end = NavMeshQuery.MapLocation(req.end, 10.0f * Vector3.one, 0, -1);
+
                 // TODO: check the status returned by InitSlicedFindPath()
                 m_Query.InitSlicedFindPath(m_Current.start, m_Current.end, 0, m_Costs, -1);
             }
@@ -120,6 +122,7 @@ public class PathQueryQueue
             {
                 // Continue existing request
                 int niter = 0;
+
                 // TODO: check status
                 var status = m_Query.UpdateSlicedFindPath(maxIter, out niter);
                 maxIter -= niter;

@@ -9,7 +9,7 @@ using Unity.Mathematics;
 namespace RotatorSamples
 {
 	[Serializable]
-	public struct Damage : IComponentData//IComponentData
+	public struct Damage : IComponentData
 	{
 		public float radius;
 		public float slowdownPerSecond;
@@ -21,28 +21,37 @@ namespace RotatorSamples
 	[UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.PreLateUpdate.ParticleSystemBeginUpdateAll))]
 	public class DamageSystem : JobComponentSystem
 	{
-		// Damage components and transforms are in first tuple set (both arrays are in sync and required)
-		[InjectTuples(0)]
-		public ComponentDataArray<Damage>   		m_Damages;
-		[InjectTuples(0)]
-		public TransformAccessArray  				m_DamageTransforms;
+		struct Damages
+		{
+			public ComponentDataArray<Damage>   		damages;
+			public TransformAccessArray  				transforms;
+			public int  								Length;
+		}
 
-		// RotationSpeed components and transforms are in second tuple set (both arrays are in sync and required)
-		[InjectTuples(1)]
-		public ComponentDataArray<RotationSpeed>    m_RotationSpeed;
-		[InjectTuples(1)]
-		public TransformAccessArray  				m_RotationSpeedTransforms;
+		[InjectComponentGroup] 
+		Damages m_Damages;
+		
+		
+		struct Rotators
+		{
+			public ComponentDataArray<RotationSpeed>   	speed;
+			public TransformAccessArray  				transforms;
+			public int  								Length;
+		}
 
+		[InjectComponentGroup] 
+		Rotators m_Rotators;
+		
 		public override void OnUpdate()
 		{
 			base.OnUpdate ();
 
 			// Extract positions for both damage and rotations in two arrays
 			// so that our N * N loop isn't doing complex calls and has tight data
-			NativeArray<float3> damagePositions = new NativeArray<float3> (m_DamageTransforms.Length, Allocator.TempJob);
-			NativeArray<float3> rotationPositions = new NativeArray<float3> (m_RotationSpeedTransforms.Length, Allocator.TempJob);
-			var damagePositionsJob = GetPositionsJob.Schedule (m_DamageTransforms, damagePositions);
-			var rotationsJob = GetPositionsJob.Schedule (m_RotationSpeedTransforms, rotationPositions);
+			NativeArray<float3> damagePositions = new NativeArray<float3> (m_Damages.Length, Allocator.TempJob);
+			NativeArray<float3> rotationPositions = new NativeArray<float3> (m_Rotators.Length, Allocator.TempJob);
+			var damagePositionsJob = GetPositionsJob.Schedule (m_Damages.transforms, damagePositions);
+			var rotationsJob = GetPositionsJob.Schedule (m_Rotators.transforms, rotationPositions);
 
 			// Schedule job that applies damage (Slowing rotation speed down)
 			// when the damage component is near the rotation component
@@ -50,11 +59,11 @@ namespace RotatorSamples
 			damageJob.deltaTime = Time.deltaTime;
 			damageJob.damagePositions = damagePositions;
 			damageJob.rotationPositions = rotationPositions;
-			damageJob.rotationSpeeds = m_RotationSpeed;
-			damageJob.damages = m_Damages;
+			damageJob.rotationSpeeds = m_Rotators.speed;
+			damageJob.damages = m_Damages.damages;
 
 			var dependency = JobHandle.CombineDependencies (damagePositionsJob, rotationsJob, GetDependency());
-			AddDependency(damageJob.Schedule (m_RotationSpeed.Length, 64, dependency));
+			AddDependency(damageJob.Schedule (m_Rotators.Length, 64, dependency));
 		}
 
 		// Used to Extract positions from transforms

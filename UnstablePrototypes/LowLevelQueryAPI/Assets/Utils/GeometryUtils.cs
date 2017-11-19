@@ -1,4 +1,4 @@
-using UnityEngine;
+using Unity.Mathematics;
 
 public class GeometryUtils
 {
@@ -9,11 +9,11 @@ public class GeometryUtils
         var v = q1 - q0;
         var w0 = p0 - q0;
 
-		float a = math.dot(u, u);
-		float b = math.dot(u, v);
-		float c = math.dot(v, v);
-		float d = math.dot(u, w0);
-		float e = math.dot(v, w0);
+        float a = math.dot(u, u);
+        float b = math.dot(u, v);
+        float c = math.dot(v, v);
+        float d = math.dot(u, w0);
+        float e = math.dot(v, w0);
 
         float den = (a * c - b * b);
         float sc, tc;
@@ -22,6 +22,7 @@ public class GeometryUtils
         {
             sc = 0;
             tc = d / b;
+
             // todo: handle b = 0 (=> a and/or c is 0)
         }
         else
@@ -30,8 +31,8 @@ public class GeometryUtils
             tc = (a * e - b * d) / (a * c - b * b);
         }
 
-		c0 = math.lerp(p0, p1, sc);
-		c1 = math.lerp(q0, q1, tc);
+        c0 = math.lerp(p0, p1, sc);
+        c1 = math.lerp(q0, q1, tc);
 
         return den != 0;
     }

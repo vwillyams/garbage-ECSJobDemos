@@ -1,20 +1,10 @@
 ﻿using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 namespace UnityEngine.ECS.Rendering
 {
-
-
-    /*
-        public struct SimpleTransform : IComponentData
-        {
-            public float3   position;
-            public float    scale;
-            public float4   rotation;
-        }
-    */
-
-    [UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.PreLateUpdate.ParticleSystemBeginUpdateAll))]
-    public class InstanceRendererSystem : ComponentSystem
+	[UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.PreLateUpdate.ParticleSystemBeginUpdateAll))]
+	public class InstanceRendererSystem : ComponentSystem
 	{
         // Instance renderer takes only batches of 1024
         Matrix4x4[] m_MatricesArray = new Matrix4x4[1023];
@@ -24,7 +14,10 @@ namespace UnityEngine.ECS.Rendering
             fixed (Matrix4x4* matricesPtr = outMatrices)
             {
                 UnityEngine.Assertions.Assert.AreEqual(sizeof(Matrix4x4), sizeof(InstanceRendererTransform));
-                var matricesSlice = new NativeSlice<InstanceRendererTransform>(matricesPtr, length);
+	            var matricesSlice = Unity.Collections.LowLevel.Unsafe.NativeSliceUnsafeUtility.ConvertExistingDataToNativeSlice<InstanceRendererTransform>((System.IntPtr) matricesPtr, sizeof(Matrix4x4), length);
+	            #if ENABLE_UNITY_COLLECTIONS_CHECKS
+	            Unity.Collections.LowLevel.Unsafe.NativeSliceUnsafeUtility.SetAtomicSafetyHandle(ref matricesSlice, AtomicSafetyHandle.GetTempUnsafePtrSliceHandle());
+	            #endif
                 transforms.CopyTo(matricesSlice, beginIndex);
             }
         }
@@ -44,7 +37,7 @@ namespace UnityEngine.ECS.Rendering
                 var uniqueType = uniqueRendererTypes[i];
                 var renderer = EntityManager.GetSharedComponentData<InstanceRenderer>(uniqueType);
 
-                var group = EntityManager.CreateComponentGroup(uniqueType, ComponentType.Create<InstanceRendererTransform>());
+                var group = EntityManager.CreateComponentGroup(uniqueType, typeof(InstanceRendererTransform));
 
                 group.CompleteDependency();
 

@@ -1,40 +1,45 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.Collections;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine.ECS;
-using UnityEngine.Jobs;
 
 [UpdateAfter(typeof(CrowdSystem))]
 public class RandomDestinationSystem : JobComponentSystem
 {
-    [InjectTuples]
-    ComponentDataArray<CrowdAgent> m_Agents;
-    [InjectTuples]
-    ComponentDataArray<CrowdAgentNavigator> m_AgentNavigators;
+    struct CrowdGroup
+    {
+        [ReadOnly]
+        public ComponentDataArray<CrowdAgent> agents;
+        public ComponentDataArray<CrowdAgentNavigator> agentNavigators;
+    }
+
+    [InjectComponentGroup]
+    CrowdGroup m_Crowd;
 
     const int k_AgentsPerBatch = 100;
 
-    override protected void OnCreateManager(int capacity)
+    protected override void OnCreateManager(int capacity)
     {
         base.OnCreateManager(capacity);
     }
 
-    override protected void OnDestroyManager()
+    protected override void OnDestroyManager()
     {
         base.OnDestroyManager();
     }
 
-    override public void OnUpdate()
+    public override void OnUpdate()
     {
         base.OnUpdate();
 
-        if (m_Agents.Length == 0)
+        if (m_Crowd.agents.Length == 0)
             return;
 
         CompleteDependency();
 
-        var destinationJob = new SetDestinationJob { agents = m_Agents, agentNavigators = m_AgentNavigators, randomNumber = UnityEngine.Random.value };
-        var afterDestinationsSet = destinationJob.Schedule(m_Agents.Length, k_AgentsPerBatch);
+        var destinationJob = new SetDestinationJob { agents = m_Crowd.agents, agentNavigators = m_Crowd.agentNavigators, randomNumber = UnityEngine.Random.value };
+        var afterDestinationsSet = destinationJob.Schedule(m_Crowd.agents.Length, k_AgentsPerBatch);
         JobHandle.ScheduleBatchedJobs();
 
         AddDependency(afterDestinationsSet);

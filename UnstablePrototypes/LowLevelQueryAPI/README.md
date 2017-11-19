@@ -1,6 +1,6 @@
-This project is meant to work with code from the native branch scripting/jobsystem/unite-demo-2017 .\
-Revision needed: **5976ec88a8ca** (2017-08-15 15:07:19 +0200)\
-Good build (with ECS): http://beta.unity3d.com/download/5976ec88a8ca/download.html
+This project is meant to work with code from the native branch `scripting/jobsystem/navmesh` .\
+Revision needed: **e2785435e885** (2017-11-14 10:14:37 +0100)\
+Good build: not available currently
 
 Example scenes:
 

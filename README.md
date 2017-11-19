@@ -1,22 +1,23 @@
 # Intro
 
-Talk about C# job system at Unite Europe
-https://www.youtube.com/watch?v=AXUvnk7Jws4
+Talk about C# job system & Entity Component System at Unite Austin
+https://youtu.be/tGmnZdY5Y-E
 
-More info in confluence:
+# unity build (compatible with "stable" branch)
+Required build: http://beta.unity3d.com/download/93dd73495c06/download.html
+unity source code branch: scripting/jobsystem/make-public/demo
 
-https://confluence.hq.unity3d.com/display/~joe/ECS+-+High+performance+game+code
-
-# unity build
-Required build: http://beta.unity3d.com/download/84ad1b91b91b/download.html
-branch: scripting/jobsystem/unite-demo-2017
+# active development against master
+unity source code branch: scripting/jobsystem/make-public/demo
+NOTE: (Navmesh & Raycast job API's is included in this branch)
 
 # ECSJobDemos
 Project folder for basic ECS dev & tests
-* ECS
-* Boid demo
+* Entity Component System implementation
+* Boid demo using ECS
+* InstanceRenderer using Entities
 * Culling demo
 * NativeList, Nativehashmap and tests
 
-# AI Navigation
-Sandbox project for pathfinding: [LowLevelQueryAPI](UnstablePrototypes/LowLevelQueryAPI). (requires its own special build)
+# AI Navigation & Batched raycasts
+Sandbox project for pathfinding: [LowLevelQueryAPI](AI_Prototyping/LowLevelQueryAPI).\

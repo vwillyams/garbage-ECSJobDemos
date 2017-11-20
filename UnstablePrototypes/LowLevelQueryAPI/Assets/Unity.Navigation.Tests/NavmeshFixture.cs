@@ -1,16 +1,18 @@
-﻿using UnityEngine;
+using UnityEngine;
 using NUnit.Framework;
 using System.Collections.Generic;
 using UnityEngine.AI;
+using UnityEngine.Experimental.AI;
+using Unity.Collections;
 
 namespace Unity.Navigation.Tests
 {
     public class NavmeshFixture
     {
-        NavMeshData m_NavMeshData;
-        NavMeshDataInstance m_NavMeshInstance;
-        const int k_AreaWalking = 0;
-        internal const float k_Height = 0.3f;
+        NavMeshData 			m_NavMeshData;
+        NavMeshDataInstance 	m_NavMeshInstance;
+        const int 				k_AreaWalking = 0;
+        internal const float 	k_Height = 0.3f;
 
         [SetUp]
         public void Setup()
@@ -38,21 +40,39 @@ namespace Unity.Navigation.Tests
         }
     }
 
-    public class NavmeshSafety : NavmeshFixture
+	public class NavmeshPathQueryInvalidSetup
 	{
 		[Test]
-		public void NewEditModeTestSimplePasses()
+		public void CreateAndDisposeQueryOnEmptyDefaultWorld()
 		{
-//			var query = new
+			var query = new NavMeshPathQuery(NavMeshWorld.GetDefaultWorld(), 100, Allocator.Persistent);
+			query.Dispose();
+		}
+
+		[Test]
+		public void CreateAndDisposeQueryOnEmptyNullWorld()
+		{
+			Assert.Throws<System.ArgumentNullException>(() =>
+			{
+				new NavMeshPathQuery(new NavMeshWorld(), 100, Allocator.Persistent);
+			});
 		}
 	}
 
     public class NavMeshSanity : NavmeshFixture
     {
+		[Test]
+		public void CreateAndDisposeQuery()
+		{
+			var query = new NavMeshPathQuery(NavMeshWorld.GetDefaultWorld(), 100, Allocator.Persistent);
+			query.Dispose();
+		}
+
         [Test]
         public void NavMesh_Exists()
         {
-            NavMeshHit hit;
+            //@TODO: We have two different NavMeshHit... THATS BAD
+            UnityEngine.AI.NavMeshHit hit;
             var center = new Vector3(0, k_Height, 0);
             var found = NavMesh.SamplePosition(center, out hit, 1, NavMesh.AllAreas);
             Assert.IsTrue(found, string.Format("NavMesh was not found at position {0}.", center));

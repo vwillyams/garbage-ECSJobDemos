@@ -1,0 +1,11 @@
+{
+    "name": "Unity.Navigation.Tests",
+    "references": [],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

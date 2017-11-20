@@ -45,8 +45,10 @@ namespace Unity.Navigation.Tests
 		[Test]
 		public void CreateAndDisposeQueryOnEmptyDefaultWorld()
 		{
-			var query = new NavMeshPathQuery(NavMeshWorld.GetDefaultWorld(), 100, Allocator.Persistent);
-			query.Dispose();
+            Assert.Throws<System.ArgumentNullException>(() =>
+            {
+                new NavMeshPathQuery(NavMeshWorld.GetDefaultWorld(), 100, Allocator.Persistent);
+            });
 		}
 
 		[Test]

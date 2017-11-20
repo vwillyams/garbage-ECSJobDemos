@@ -1,13 +1,16 @@
 
+ECSJobDemos/Assets/Plugins*
 ECSJobDemos/Library
 ECSJobDemos/Temp
 ECSJobDemos/obj
+
 
 
 UnstablePrototypes/BlobificationPrototype/Library
 UnstablePrototypes/BlobificationPrototype/Temp
 UnstablePrototypes/BlobificationPrototype/obj
 
+UnstablePrototypes/LowLevelQueryAPI/Assets/Plugins*
 UnstablePrototypes/LowLevelQueryAPI/Library
 UnstablePrototypes/LowLevelQueryAPI/Temp
 UnstablePrototypes/LowLevelQueryAPI/obj

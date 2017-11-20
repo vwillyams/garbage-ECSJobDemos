@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Experimental.AI;
@@ -54,11 +55,14 @@ public class PathQueryQueue
     public void Dispose()
     {
         m_Costs.Dispose();
-
+        m_Query.Dispose();
+        
         foreach (var path in m_Results)
         {
             path.polygons.Dispose();
         }
+        m_Results = null;
+        m_Requests = null;
     }
 
     Handle GetNewHandle()

@@ -76,6 +76,7 @@ public struct PathQueryQueueEcs
         m_AgentIndices.Dispose();
         m_Costs.Dispose();
         m_State.Dispose();
+        m_Query.Dispose();
     }
 
     public bool Enqueue(RequestEcs request)

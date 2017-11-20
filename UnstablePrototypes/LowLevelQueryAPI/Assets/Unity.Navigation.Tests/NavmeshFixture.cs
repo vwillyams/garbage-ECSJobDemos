@@ -1,8 +1,5 @@
 ﻿using UnityEngine;
-using UnityEditor;
-using UnityEngine.TestTools;
 using NUnit.Framework;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.AI;
 
@@ -10,12 +7,13 @@ namespace Unity.Navigation.Tests
 {
     public class NavmeshFixture
     {
-        NavMeshData m_NavMesh;
-        NavMeshDataInstance m_NavMeshInstances;
+        NavMeshData m_NavMeshData;
+        NavMeshDataInstance m_NavMeshInstance;
         const int k_AreaWalking = 0;
-        const float k_Height = 0.3f;
+        internal const float k_Height = 0.3f;
 
-        void Setup()
+        [SetUp]
+        public void Setup()
         {
             var boxSource1 = new NavMeshBuildSource
             {
@@ -27,24 +25,37 @@ namespace Unity.Navigation.Tests
             var sources = new List<NavMeshBuildSource> { boxSource1 };
             var bounds = new Bounds(Vector3.zero, 100.0f * Vector3.one);
             var settings = NavMesh.GetSettingsByID(0);
-            m_NavMesh = NavMeshBuilder.BuildNavMeshData(settings, sources, bounds, Vector3.zero, Quaternion.identity);
+            m_NavMeshData = NavMeshBuilder.BuildNavMeshData(settings, sources, bounds, Vector3.zero, Quaternion.identity);
 
-            m_NavMeshInstances = NavMesh.AddNavMeshData(m_NavMesh);
+            m_NavMeshInstance = NavMesh.AddNavMeshData(m_NavMeshData);
         }
 
-        void TearDown()
+        [TearDown]
+        public void TearDown()
         {
-            m_NavMeshInstances.Remove();
+            m_NavMeshInstance.Remove();
+            Object.DestroyImmediate(m_NavMeshData);
         }
-
     }
 
-	public class NavmeshSafety : NavmeshFixture
+    public class NavmeshSafety : NavmeshFixture
 	{
 		[Test]
 		public void NewEditModeTestSimplePasses()
 		{
-//			var query = new 	
+//			var query = new
 		}
 	}
+
+    public class NavMeshSanity : NavmeshFixture
+    {
+        [Test]
+        public void NavMesh_Exists()
+        {
+            NavMeshHit hit;
+            var center = new Vector3(0, k_Height, 0);
+            var found = NavMesh.SamplePosition(center, out hit, 1, NavMesh.AllAreas);
+            Assert.IsTrue(found, string.Format("NavMesh was not found at position {0}.", center));
+        }
+    }
 }

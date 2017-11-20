@@ -103,9 +103,29 @@ namespace UnityEngine.ECS
 
 	public abstract class JobComponentSystem : ComponentSystem
 	{
+		private NativeList<JobHandle> m_PreviousFrameDependencies;
+		
+		override protected void OnCreateManager(int capacity)
+		{
+			base.OnCreateManager(capacity);
+			m_PreviousFrameDependencies = new NativeList<JobHandle>(1, Allocator.Persistent);
+		}
+
+		override protected void OnDestroyManager()
+		{
+			base.OnDestroyManager();
+			m_PreviousFrameDependencies.Dispose();
+		}
+		
+		
   		override public void OnUpdate()
 		{
 			OnUpdateFromJobComponentSystem();
+			
+			// We need to wait on all previous frame dependencies, otherwise it is possible that we create infinitely long dependency chains
+			// without anyone ever waiting on it
+			JobHandle.CompleteAll(m_PreviousFrameDependencies);
+			m_PreviousFrameDependencies.Clear();
 		}
 
 		public unsafe JobHandle GetDependency ()
@@ -123,6 +143,8 @@ namespace UnityEngine.ECS
 
 		public unsafe void AddDependency (JobHandle dependency)
 		{
+			m_PreviousFrameDependencies.Add(dependency);
+			
 			fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
 			{
 				m_SafetyManager.AddDependency(readersPtr, m_JobDependencyForReadingManagers.Length, writersPtr, m_JobDependencyForWritingManagers.Length, dependency);

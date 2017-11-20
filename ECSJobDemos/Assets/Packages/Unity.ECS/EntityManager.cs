@@ -363,13 +363,13 @@ namespace UnityEngine.ECS
 
         public unsafe T GetComponentObject<T>(Entity entity) where T : Component 
         {
-            int typeIndex = TypeManager.GetTypeIndex<T>();
-            m_Entities.AssertEntityHasComponent(entity, typeIndex);
+            ComponentType componentType = ComponentType.Create<T>();
+            m_Entities.AssertEntityHasComponent(entity, componentType.typeIndex);
 
             Chunk* chunk;
             int chunkIndex;
             m_Entities.GetComponentChunk(entity, out chunk, out chunkIndex);
-            return m_ArchetypeManager.GetManagedObject(chunk, typeIndex, chunkIndex) as T;
+            return m_ArchetypeManager.GetManagedObject(chunk, componentType, chunkIndex) as T;
         }
 
         /// Shared component data

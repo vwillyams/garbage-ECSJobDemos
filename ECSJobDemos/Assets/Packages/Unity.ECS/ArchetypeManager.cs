@@ -364,7 +364,15 @@ namespace UnityEngine.ECS
             
         }*/
 
-		public object GetManagedObject(Chunk* chunk, int type, int index)
+        public object GetManagedObject(Chunk* chunk, ComponentType type, int index)
+        {
+            int typeOfs = ChunkDataUtility.GetIndexInTypeArray(chunk->archetype, type.typeIndex);
+            if (typeOfs < 0 || chunk->archetype->managedArrayOffset[typeOfs] < 0)
+                throw new InvalidOperationException("Trying to get managed object for non existing component");
+            return GetManagedObject(chunk, typeOfs, index);
+        }
+
+        internal object GetManagedObject(Chunk* chunk, int type, int index)
 		{
 			int managedStart = chunk->archetype->managedArrayOffset[type] * chunk->capacity;
 			return m_ManagedArrays[chunk->managedArrayIndex].managedArray[index + managedStart];

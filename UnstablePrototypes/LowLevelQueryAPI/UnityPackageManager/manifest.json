@@ -1,4 +1,6 @@
 {
 	"dependencies": {
+		 "com.unity.ecs_bundle": "file:/Users/joe/Sources/ECSJobDemos/ECSJobDemos/Assets/Packages"
 	}
 }
+

@@ -128,7 +128,7 @@ public struct PathQueryQueueEcs
         return m_State[0].resultPathsCount;
     }
 
-    public void CopyResultsTo(ref ComponentDataFixedArray<PolygonID> agentPaths, ref ComponentDataArray<CrowdAgentNavigator> agentNavigators)
+    public void CopyResultsTo(ref FixedArrayArray<PolygonID> agentPaths, ref ComponentDataArray<CrowdAgentNavigator> agentNavigators)
     {
         var state = m_State[0];
         for (var i = 0; i < state.resultPathsCount; i++)

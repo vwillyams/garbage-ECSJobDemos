@@ -183,7 +183,7 @@ public partial class CrowdSystem
         public ComponentDataArray<CrowdAgent> agents;
 
         public ComponentDataArray<CrowdAgentNavigator> agentNavigators;
-        public ComponentDataFixedArray<PolygonID> paths;
+        public FixedArrayArray<PolygonID> paths;
 
         public void Execute(int index)
         {
@@ -243,7 +243,7 @@ public partial class CrowdSystem
     public struct UpdateVelocityJob : IJobParallelFor
     {
         [ReadOnly]
-        public ComponentDataFixedArray<PolygonID> paths;
+        public FixedArrayArray<PolygonID> paths;
 
         public ComponentDataArray<CrowdAgentNavigator> agentNavigators;
         public ComponentDataArray<CrowdAgent> agents;
@@ -360,7 +360,7 @@ public partial class CrowdSystem
     public struct ApplyQueryResultsJob : IJob
     {
         public PathQueryQueueEcs queryQueue;
-        public ComponentDataFixedArray<PolygonID> paths;
+        public FixedArrayArray<PolygonID> paths;
         public ComponentDataArray<CrowdAgentNavigator> agentNavigators;
 
         public void Execute()

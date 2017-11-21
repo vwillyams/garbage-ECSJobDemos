@@ -12,10 +12,10 @@ namespace Unity.Navigation.Tests
 {
     public class NavmeshFixture
     {
-        NavMeshData 			m_NavMeshData;
-        NavMeshDataInstance 	m_NavMeshInstance;
-        const int 				k_AreaWalking = 0;
-        internal const float 	k_Height = 0.3f;
+	    public NavMeshData 			m_NavMeshData;
+        public NavMeshDataInstance 	m_NavMeshInstance;
+        const int 					k_AreaWalking = 0;
+        internal const float 		k_Height = 0.3f;
 
         [SetUp]
         public void Setup()
@@ -32,19 +32,21 @@ namespace Unity.Navigation.Tests
             var settings = NavMesh.GetSettingsByID(0);
             m_NavMeshData = NavMeshBuilder.BuildNavMeshData(settings, sources, bounds, Vector3.zero, Quaternion.identity);
 
+	        NavMesh.RemoveAllNavmeshData();
+	        
             m_NavMeshInstance = NavMesh.AddNavMeshData(m_NavMeshData);
         }
 
         public void ChangeNavMesh()
         {
-            m_NavMeshInstance.Remove();
-	        NavMesh.AddNavMeshData(m_NavMeshData);
+	        NavMesh.RemoveNavMeshData(m_NavMeshInstance);
+	        m_NavMeshInstance = NavMesh.AddNavMeshData(m_NavMeshData);
         }
 
         [TearDown]
         public void TearDown()
         {
-            m_NavMeshInstance.Remove();
+	        NavMesh.RemoveNavMeshData(m_NavMeshInstance);
             Object.DestroyImmediate(m_NavMeshData);
         }
     }
@@ -72,6 +74,14 @@ namespace Unity.Navigation.Tests
 
     public class NavMeshSanity : NavmeshFixture
     {
+	    [Test]
+	    public void RemoveNavmeshInstanceTwiceLogsError()
+	    {
+		    UnityEngine.TestTools.LogAssert.Expect(LogType.Error, "Failed...");
+		    NavMesh.RemoveNavMeshData(m_NavMeshInstance);
+		    NavMesh.RemoveNavMeshData(m_NavMeshInstance);
+	    }
+	    	    
 	    public void TestPathQuery(NavMeshPathQuery pathQuery)
 	    {
 		    var startLocation = NavMeshQuery.MapLocation(Vector3.zero, Vector3.one, 0);
@@ -101,16 +111,15 @@ namespace Unity.Navigation.Tests
 
 
 	    [Test]
-        public void NavMeshPathCalculationWorksAfterNavmeshChange()
+        public void NavMeshPathQueryWorksAfterChangingNavmesh()
 	    {
-		    for (int i = 0; i < 3; i++)
+		    var pathQuery = new NavMeshPathQuery(NavMeshWorld.GetDefaultWorld(), 100, Allocator.Persistent);
+		    for (int i = 0; i < 100; i++)
 		    {
 			    ChangeNavMesh();
-
-			    var pathQuery = new NavMeshPathQuery(NavMeshWorld.GetDefaultWorld(), 100, Allocator.Persistent);
 			    TestPathQuery(pathQuery);
-			    pathQuery.Dispose();
 		    }
+		    pathQuery.Dispose();
         }
 
 	    [Test]

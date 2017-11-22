@@ -52,6 +52,21 @@ namespace UnityEngine.ECS
 
 		public List<UpdateOrderConstraint> UpdateOrderConstraints {get{return m_UpdateOrderConstraints;}}
 
+		// FIXME: HACK! - mono 4.6 has problems invoking virtual methods as delegates from native, so wrap the invocation in a non-virtual class
+		public class DummyDelagateWrapper
+		{
+			public DummyDelagateWrapper(ScriptBehaviourManager man)
+			{
+				manager = man;
+			}
+			private ScriptBehaviourManager manager;
+			public void TriggerUpdate()
+			{
+				manager.OnUpdate();
+				Unity.Jobs.JobHandle.ScheduleBatchedJobs();
+			}
+		}
+
 		class ScriptBehaviourGroup
 		{
 			public ScriptBehaviourGroup(Type grpType, Dictionary<Type, ScriptBehaviourGroup> allGroups, HashSet<Type> circularCheck = null)
@@ -145,7 +160,7 @@ namespace UnityEngine.ECS
 			public HashSet<Type> updateAfter;
 		}
 
-		class DependantBehavior
+		class DependantBehavior : IComparable
 		{
 			public DependantBehavior(ScriptBehaviourManager man)
 			{
@@ -156,7 +171,12 @@ namespace UnityEngine.ECS
 				maxInsertPos = 0;
 				spawnsJobs = false;
 
-				unvalidatedBeforeDeps = 0;
+				unvalidatedSystemsUpdatingBefore = 0;
+				longestSystemsUpdatingBeforeChain = 0;
+			}
+			public int CompareTo(object other)
+			{
+				return longestSystemsUpdatingBeforeChain - (other as DependantBehavior).longestSystemsUpdatingBeforeChain;
 			}
 			public ScriptBehaviourManager manager;
 			public HashSet<Type> updateBefore;
@@ -165,7 +185,8 @@ namespace UnityEngine.ECS
 			public int maxInsertPos;
 			public bool spawnsJobs;
 
-			public int unvalidatedBeforeDeps;
+			public int unvalidatedSystemsUpdatingBefore;
+			public int longestSystemsUpdatingBeforeChain;
 		}
 
 		void UpdateInsertionPos(DependantBehavior target, Type dep, PlayerLoopSystem defaultPlayerLoop, bool after)
@@ -363,7 +384,8 @@ namespace UnityEngine.ECS
 					Debug.LogError(string.Format("{0} is over constrained with engine containts - ignoring dependencies", system.manager.GetType()));
 					system.minInsertPos = system.maxInsertPos = 0;
 				}
-				system.unvalidatedBeforeDeps = system.updateBefore.Count;
+				system.unvalidatedSystemsUpdatingBefore = system.updateAfter.Count;
+				system.longestSystemsUpdatingBeforeChain = 0;
 			}
 
 			// Check for circular dependencies, start with all systems updateing last, mark all systems it updates after as having one more validated dep and start over
@@ -374,12 +396,14 @@ namespace UnityEngine.ECS
 				foreach (var typeAndSystem in dependencyGraph)
 				{
 					var system = typeAndSystem.Value;
-					if (system.unvalidatedBeforeDeps == 0)
+					if (system.unvalidatedSystemsUpdatingBefore == 0)
 					{
-						system.unvalidatedBeforeDeps = -1;
-						foreach (var after in system.updateAfter)
+						system.unvalidatedSystemsUpdatingBefore = -1;
+						foreach (var nextInChain in system.updateBefore)
 						{
-							--dependencyGraph[after].unvalidatedBeforeDeps;
+							if (system.longestSystemsUpdatingBeforeChain >= dependencyGraph[nextInChain].longestSystemsUpdatingBeforeChain)
+								dependencyGraph[nextInChain].longestSystemsUpdatingBeforeChain = system.longestSystemsUpdatingBeforeChain + 1;
+							--dependencyGraph[nextInChain].unvalidatedSystemsUpdatingBefore;
 							progress = true;
 						}
 					}
@@ -389,14 +413,15 @@ namespace UnityEngine.ECS
 			foreach (var typeAndSystem in dependencyGraph)
 			{
 				var system = typeAndSystem.Value;
-				if (system.unvalidatedBeforeDeps > 0)
+				if (system.unvalidatedSystemsUpdatingBefore > 0)
 				{
 					Debug.LogError(string.Format("{0} is in a chain of circular dependencies - ignoring dependencies", system.manager.GetType()));
-					foreach (var before in system.updateBefore)
+					foreach (var after in system.updateAfter)
 					{
-						dependencyGraph[before].updateAfter.Remove(system.manager.GetType());
+						dependencyGraph[after].updateBefore.Remove(system.manager.GetType());
 					}
-					system.updateBefore.Clear();
+					system.updateAfter.Clear();
+					system.longestSystemsUpdatingBeforeChain = 0;
 				}
 			}
 
@@ -539,10 +564,91 @@ namespace UnityEngine.ECS
 				}
 			}
 			// Create a default bucket for all remaining systems
+			int defaultPos = 0;
+			foreach (var sys in defaultPlayerLoop.subSystemList)
+			{
+				defaultPos += 1 + sys.subSystemList.Length;
+				if (sys.type == typeof(UnityEngine.Experimental.PlayerLoop.Update))
+					break;
+			}
+			// Check if the default pos can be merged with anything
+			foreach (var bucket in insertionBuckets)
+			{
+				if (bucket.minInsertPos <= defaultPos && bucket.maxInsertPos >= defaultPos)
+				{
+					bucket.minInsertPos = defaultPos;
+					bucket.maxInsertPos = defaultPos;
+					foreach (var sys in remainingSystems)
+						bucket.systems.Add(sys);
+					remainingSystems.Clear();
+					break;
+				}
+			}
+			if (remainingSystems.Count > 0)
+			{
+				var bucket = new InsertionBucket();
+				bucket.minInsertPos = defaultPos;
+				bucket.maxInsertPos = defaultPos;
+				foreach (var sys in remainingSystems)
+					bucket.systems.Add(sys);
+				insertionBuckets.Add(bucket);
+				insertionBuckets.Sort();
+			}
 
-			// Sort the systems in each bucket
+			// Sort the systems in each bucket while optimizing for giving jobs time to run
+			foreach (var bucket in insertionBuckets)
+				bucket.systems.Sort();
 
 			// Insert the buckets at the appropriate place
+			int currentPos = 0;
+			var ecsPlayerLoop = new PlayerLoopSystem();
+			ecsPlayerLoop.subSystemList = new PlayerLoopSystem[defaultPlayerLoop.subSystemList.Length];
+			int currentBucket = 0;
+			for (int i = 0; i < defaultPlayerLoop.subSystemList.Length; ++i)
+			{
+				int firstPos = currentPos + 1;
+				int lastPos = firstPos + defaultPlayerLoop.subSystemList[i].subSystemList.Length;
+				// Find all new things to insert here
+				int systemsToInsert = 0;
+				foreach (var bucket in insertionBuckets)
+				{
+					if (bucket.minInsertPos >= firstPos && bucket.minInsertPos <= lastPos)
+						systemsToInsert += bucket.systems.Count;
+				}
+				ecsPlayerLoop.subSystemList[i] = defaultPlayerLoop.subSystemList[i];
+				if (systemsToInsert > 0)
+				{
+					ecsPlayerLoop.subSystemList[i].subSystemList = new PlayerLoopSystem[defaultPlayerLoop.subSystemList[i].subSystemList.Length + systemsToInsert];
+					int dstPos = 0;
+					for (int srcPos = 0; srcPos < defaultPlayerLoop.subSystemList[i].subSystemList.Length; ++srcPos, ++dstPos)
+					{
+						while (insertionBuckets[currentBucket].minInsertPos <= firstPos+srcPos)
+						{
+							foreach (var insert in insertionBuckets[currentBucket].systems)
+							{
+								ecsPlayerLoop.subSystemList[i].subSystemList[dstPos].type = insert.manager.GetType();
+								var tmp = new DummyDelagateWrapper(insert.manager);
+								ecsPlayerLoop.subSystemList[i].subSystemList[dstPos].updateDelegate = tmp.TriggerUpdate;
+								++dstPos;
+							}
+							++currentBucket;
+						}
+						ecsPlayerLoop.subSystemList[i].subSystemList[dstPos] = defaultPlayerLoop.subSystemList[i].subSystemList[srcPos];
+					}
+					while (insertionBuckets[currentBucket].minInsertPos <= lastPos)
+					{
+						foreach (var insert in insertionBuckets[currentBucket].systems)
+						{
+							ecsPlayerLoop.subSystemList[i].subSystemList[dstPos].type = insert.manager.GetType();
+							var tmp = new DummyDelagateWrapper(insert.manager);
+							ecsPlayerLoop.subSystemList[i].subSystemList[dstPos].updateDelegate = tmp.TriggerUpdate;
+							++dstPos;
+						}
+						++currentBucket;
+					}
+				}
+			}
+
 			return defaultPlayerLoop;
 		}
 		

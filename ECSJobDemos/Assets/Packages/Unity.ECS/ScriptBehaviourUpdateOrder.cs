@@ -8,7 +8,7 @@ namespace UnityEngine.ECS
 {
 	// Updating before or after an engine system guarantees it is in the same update phase as the dependency
 	// Update After a phase means in that pase but after all engine systems, Before a phase means in that phase but before all engine systems
-	[AttributeUsage(AttributeTargets.Class)]
+	[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 	public class UpdateBefore : System.Attribute
 	{
 		public Type  SystemType { get; set; }
@@ -18,7 +18,7 @@ namespace UnityEngine.ECS
 		    SystemType = systemType;
 		}
 	}
-	[AttributeUsage(AttributeTargets.Class)]
+	[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 	public class UpdateAfter : System.Attribute
 	{
 		public Type  SystemType { get; set; }
@@ -29,7 +29,7 @@ namespace UnityEngine.ECS
 		}
 	}
 	// Updating in a group means all dependencies from that group are inherited. A system can be in multiple goups
-	[AttributeUsage(AttributeTargets.Class)]
+	[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 	public class UpdateInGroup : System.Attribute
 	{
 		public Type  GroupType { get; set; }
@@ -109,7 +109,7 @@ namespace UnityEngine.ECS
 						bool firstType = true;
 						foreach (var circularType in circularCheck)
 						{
-							msg += (firstType ? ", " : "") + circularType;
+							msg += (firstType ? "" : ", ") + circularType;
 							firstType = false;
 						}
 						UnityEngine.Debug.LogError(msg);
@@ -271,7 +271,7 @@ namespace UnityEngine.ECS
 			attribs = target.GetCustomAttributes(typeof(UpdateBefore), true);
 			for (int i = 0; i < attribs.Length; ++i)
 			{
-				var attribDep = attribs[i] as UpdateAfter;
+				var attribDep = attribs[i] as UpdateBefore;
 				DependantBehavior otherSystem;
 				ScriptBehaviourGroup otherGroup;
 				if (dependencies.TryGetValue(attribDep.SystemType, out otherSystem))
@@ -388,7 +388,7 @@ namespace UnityEngine.ECS
 				system.longestSystemsUpdatingBeforeChain = 0;
 			}
 
-			// Check for circular dependencies, start with all systems updateing last, mark all systems it updates after as having one more validated dep and start over
+			// Check for circular dependencies, start with all systems updating first, mark all systems it updates after as having one more validated dep and start over
 			bool progress = true;
 			while (progress)
 			{
@@ -429,25 +429,44 @@ namespace UnityEngine.ECS
 			foreach (var typeAndSystem in dependencyGraph)
 			{
 				var system = typeAndSystem.Value;
+				if (system.updateBefore.Count == 0)
+				{
+					ValidateAndFixSingleChainMaxPos(system, dependencyGraph, system.minInsertPos);
+				}
 				if (system.updateAfter.Count == 0)
 				{
-					ValidateAndFixSingleChain(system, dependencyGraph, system.minInsertPos);
+					ValidateAndFixSingleChainMinPos(system, dependencyGraph, system.minInsertPos);
 				}
 			}	
 		}
-		static void ValidateAndFixSingleChain(DependantBehavior system, Dictionary<Type, DependantBehavior> dependencyGraph, int minInsertPos)
+		static void ValidateAndFixSingleChainMinPos(DependantBehavior system, Dictionary<Type, DependantBehavior> dependencyGraph, int minInsertPos)
 		{
-			foreach (var after in system.updateAfter)
+			foreach (var nextInChain in system.updateBefore)
 			{
-				var afterSys = dependencyGraph[after];
-				if (afterSys.minInsertPos < minInsertPos)
-					afterSys.minInsertPos = minInsertPos;
-				if (afterSys.maxInsertPos > 0 && afterSys.maxInsertPos < afterSys.minInsertPos)
+				var nextSys = dependencyGraph[nextInChain];
+				if (nextSys.minInsertPos < minInsertPos)
+					nextSys.minInsertPos = minInsertPos;
+				if (nextSys.maxInsertPos > 0 && nextSys.maxInsertPos < nextSys.minInsertPos)
 				{
-					Debug.LogError(string.Format("{0} is over constrained with engine and system containts - ignoring dependencies", after));
-					afterSys.maxInsertPos = 0;
+					Debug.LogError(string.Format("{0} is over constrained with engine and system containts - ignoring dependencies", nextInChain));
+					nextSys.maxInsertPos = 0;
 				}
-				ValidateAndFixSingleChain(afterSys, dependencyGraph, afterSys.minInsertPos);
+				ValidateAndFixSingleChainMinPos(nextSys, dependencyGraph, nextSys.minInsertPos);
+			}
+		}
+		static void ValidateAndFixSingleChainMaxPos(DependantBehavior system, Dictionary<Type, DependantBehavior> dependencyGraph, int maxInsertPos)
+		{
+			foreach (var prevInChain in system.updateAfter)
+			{
+				var prevSys = dependencyGraph[prevInChain];
+				if (prevSys.maxInsertPos == 0 || prevSys.maxInsertPos > maxInsertPos)
+					prevSys.maxInsertPos = maxInsertPos;
+				if (prevSys.maxInsertPos < prevSys.minInsertPos)
+				{
+					Debug.LogError(string.Format("{0} is over constrained with engine and system containts - ignoring dependencies", prevInChain));
+					prevSys.minInsertPos = 0;
+				}
+				ValidateAndFixSingleChainMaxPos(prevSys, dependencyGraph, prevSys.maxInsertPos);
 			}
 		}
 
@@ -465,7 +484,10 @@ namespace UnityEngine.ECS
 
 			public int CompareTo(object other)
 			{
-				return minInsertPos - (other as InsertionBucket).minInsertPos;
+				var otherBucket = other as InsertionBucket;
+				if (minInsertPos == otherBucket.minInsertPos)
+					return maxInsertPos - otherBucket.maxInsertPos;
+				return minInsertPos - otherBucket.minInsertPos;
 			}
 
 			public void IncludeAllEarlierJobs(DependantBehavior behave, Dictionary<Type, DependantBehavior> dependencyGraph, HashSet<DependantBehavior> remainingSystems)
@@ -499,7 +521,7 @@ namespace UnityEngine.ECS
 				return defaultPlayerLoop;
 			Dictionary<Type, DependantBehavior> dependencyGraph = BuildSystemGraph(activeManagers, defaultPlayerLoop);
 
-			// Locate all insertion points
+			// Locate all insertion point buckets
 			List<InsertionBucket> insertionBuckets = new List<InsertionBucket>();
 			HashSet<DependantBehavior> remainingSystems = new HashSet<DependantBehavior>();
 			foreach (var sys in dependencyGraph)
@@ -531,7 +553,7 @@ namespace UnityEngine.ECS
 				else
 					remainingSystems.Add(sys.Value);
 			}
-			// Sort the buckets, start with "first"
+			// Sort the buckets, in ascending min index order (with ascending max index as secondary condition)
 			insertionBuckets.Sort();
 			// Merge all subsequent buckets which can be merged to get as few as possible
 			for (int i = 0; i < insertionBuckets.Count; ++i)

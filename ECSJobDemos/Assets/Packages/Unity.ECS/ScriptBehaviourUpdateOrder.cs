@@ -46,11 +46,11 @@ namespace UnityEngine.ECS
 		Type systemAfter;
 	}
 
-	public class ScriptBehaviourUpdateOrder
+	public static class ScriptBehaviourUpdateOrder
 	{
-		List<UpdateOrderConstraint> m_UpdateOrderConstraints = new List<UpdateOrderConstraint>();
+		static List<UpdateOrderConstraint> m_UpdateOrderConstraints = new List<UpdateOrderConstraint>();
 
-		public List<UpdateOrderConstraint> UpdateOrderConstraints {get{return m_UpdateOrderConstraints;}}
+		public static List<UpdateOrderConstraint> UpdateOrderConstraints {get{return m_UpdateOrderConstraints;}}
 
 		// FIXME: HACK! - mono 4.6 has problems invoking virtual methods as delegates from native, so wrap the invocation in a non-virtual class
 		public class DummyDelagateWrapper
@@ -189,7 +189,7 @@ namespace UnityEngine.ECS
 			public int longestSystemsUpdatingBeforeChain;
 		}
 
-		void UpdateInsertionPos(DependantBehavior target, Type dep, PlayerLoopSystem defaultPlayerLoop, bool after)
+		static void UpdateInsertionPos(DependantBehavior target, Type dep, PlayerLoopSystem defaultPlayerLoop, bool after)
 		{
 			int pos = 0;
 			foreach (var sys in defaultPlayerLoop.subSystemList)
@@ -244,7 +244,7 @@ namespace UnityEngine.ECS
 			// System was not found
 		}
 
-		void AddDependencies(DependantBehavior targetSystem, Dictionary<Type, DependantBehavior> dependencies, Dictionary<Type, ScriptBehaviourGroup> allGroups, PlayerLoopSystem defaultPlayerLoop)
+		static void AddDependencies(DependantBehavior targetSystem, Dictionary<Type, DependantBehavior> dependencies, Dictionary<Type, ScriptBehaviourGroup> allGroups, PlayerLoopSystem defaultPlayerLoop)
 		{
 			var target = targetSystem.manager.GetType();
 			var attribs = target.GetCustomAttributes(typeof(UpdateAfter), true);
@@ -336,7 +336,7 @@ namespace UnityEngine.ECS
 			}
 		}
 
-		Dictionary<Type, DependantBehavior> BuildSystemGraph(HashSet<ScriptBehaviourManager> activeManagers, PlayerLoopSystem defaultPlayerLoop)
+		static Dictionary<Type, DependantBehavior> BuildSystemGraph(HashSet<ScriptBehaviourManager> activeManagers, PlayerLoopSystem defaultPlayerLoop)
 		{
 			// Collect all groups and create empty dependency data
 			Dictionary<Type, ScriptBehaviourGroup> allGroups = new Dictionary<Type, ScriptBehaviourGroup>();
@@ -373,7 +373,7 @@ namespace UnityEngine.ECS
 			return dependencies;
 		}
 
-		void ValidateAndFixSystemGraph(Dictionary<Type, DependantBehavior> dependencyGraph)
+		static void ValidateAndFixSystemGraph(Dictionary<Type, DependantBehavior> dependencyGraph)
 		{
 			// Check for simple over constraints on engine systems
 			foreach (var typeAndSystem in dependencyGraph)
@@ -435,7 +435,7 @@ namespace UnityEngine.ECS
 				}
 			}	
 		}
-		void ValidateAndFixSingleChain(DependantBehavior system, Dictionary<Type, DependantBehavior> dependencyGraph, int minInsertPos)
+		static void ValidateAndFixSingleChain(DependantBehavior system, Dictionary<Type, DependantBehavior> dependencyGraph, int minInsertPos)
 		{
 			foreach (var after in system.updateAfter)
 			{
@@ -493,8 +493,10 @@ namespace UnityEngine.ECS
 				}
 			}
 		}
-		public PlayerLoopSystem InsertManagersInPlayerLoop(HashSet<ScriptBehaviourManager> activeManagers, PlayerLoopSystem defaultPlayerLoop)
+		public static PlayerLoopSystem InsertManagersInPlayerLoop(HashSet<ScriptBehaviourManager> activeManagers, PlayerLoopSystem defaultPlayerLoop)
 		{
+			if (activeManagers.Count == 0)
+				return defaultPlayerLoop;
 			Dictionary<Type, DependantBehavior> dependencyGraph = BuildSystemGraph(activeManagers, defaultPlayerLoop);
 
 			// Locate all insertion points
@@ -523,6 +525,7 @@ namespace UnityEngine.ECS
 						bucket.minInsertPos = minPos;
 						bucket.maxInsertPos = maxPos;
 						bucket.systems.Add(sys.Value);
+						insertionBuckets.Add(bucket);
 					}
 				}
 				else
@@ -622,7 +625,7 @@ namespace UnityEngine.ECS
 					int dstPos = 0;
 					for (int srcPos = 0; srcPos < defaultPlayerLoop.subSystemList[i].subSystemList.Length; ++srcPos, ++dstPos)
 					{
-						while (insertionBuckets[currentBucket].minInsertPos <= firstPos+srcPos)
+						while (currentBucket < insertionBuckets.Count && insertionBuckets[currentBucket].minInsertPos <= firstPos+srcPos)
 						{
 							foreach (var insert in insertionBuckets[currentBucket].systems)
 							{
@@ -635,7 +638,7 @@ namespace UnityEngine.ECS
 						}
 						ecsPlayerLoop.subSystemList[i].subSystemList[dstPos] = defaultPlayerLoop.subSystemList[i].subSystemList[srcPos];
 					}
-					while (insertionBuckets[currentBucket].minInsertPos <= lastPos)
+					while (currentBucket < insertionBuckets.Count && insertionBuckets[currentBucket].minInsertPos <= lastPos)
 					{
 						foreach (var insert in insertionBuckets[currentBucket].systems)
 						{
@@ -647,9 +650,10 @@ namespace UnityEngine.ECS
 						++currentBucket;
 					}
 				}
+				currentPos = lastPos;
 			}
 
-			return defaultPlayerLoop;
+			return ecsPlayerLoop;
 		}
 		
     }

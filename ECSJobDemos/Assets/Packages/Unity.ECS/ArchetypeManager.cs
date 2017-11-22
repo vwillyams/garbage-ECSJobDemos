@@ -194,7 +194,7 @@ namespace UnityEngine.ECS
 		
         public Archetype* GetArchetype(ComponentTypeInArchetype* types, int count, EntityGroupManager groupManager, SharedComponentDataManager sharedComponentManager)
 		{
-			uint hash = HashUtility.fletcher32((ushort*)types, count * sizeof(ComponentType) / sizeof(ushort));
+			uint hash = HashUtility.fletcher32((ushort*)types, count * sizeof(ComponentTypeInArchetype) / sizeof(ushort));
 			IntPtr typePtr;
 			Archetype* type;
 			NativeMultiHashMapIterator<uint> it;

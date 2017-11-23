@@ -65,7 +65,7 @@ namespace Unity.Navigation.Tests
         }
     }
 
-    public class NavMeshLocationTest : NavMeshInstancesFixture
+    public class NavMeshLocationTests : NavMeshInstancesFixture
     {
         [Test]
         public void NavMeshLocation_WhenCreatedEmpty_IsInvalid()

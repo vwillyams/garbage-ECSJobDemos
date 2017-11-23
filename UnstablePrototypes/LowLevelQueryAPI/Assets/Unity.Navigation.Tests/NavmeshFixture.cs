@@ -1,8 +1,6 @@
-using System;
 using UnityEngine;
 using NUnit.Framework;
 using System.Collections.Generic;
-using NUnit.Framework.Constraints;
 using UnityEngine.AI;
 using UnityEngine.Experimental.AI;
 using Unity.Collections;
@@ -10,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace Unity.Navigation.Tests
 {
-    public class NavmeshFixture
+    public class NavMeshFixture
     {
 	    public NavMeshData 			m_NavMeshData;
         public NavMeshDataInstance 	m_NavMeshInstance;
@@ -34,7 +32,10 @@ namespace Unity.Navigation.Tests
 
 	        NavMesh.RemoveAllNavmeshData();
 	        
-            m_NavMeshInstance = NavMesh.AddNavMeshData(m_NavMeshData);
+	        m_NavMeshInstance = NavMesh.AddNavMeshData(m_NavMeshData);
+	        
+	        //@TODO: Just temp workaround
+	        m_NavMeshInstance = NavMesh.AddNavMeshData(m_NavMeshData);
         }
 
         public void ChangeNavMesh()
@@ -42,47 +43,8 @@ namespace Unity.Navigation.Tests
 	        NavMesh.RemoveNavMeshData(m_NavMeshInstance);
 	        m_NavMeshInstance = NavMesh.AddNavMeshData(m_NavMeshData);
         }
-
-        [TearDown]
-        public void TearDown()
-        {
-	        NavMesh.RemoveNavMeshData(m_NavMeshInstance);
-            Object.DestroyImmediate(m_NavMeshData);
-        }
-    }
-
-	public class NavmeshPathQueryInvalidSetup
-	{
-		[Test]
-		public void CreateAndDisposeQueryOnEmptyDefaultWorld()
-		{
-            Assert.Throws<System.ArgumentNullException>(() =>
-            {
-                new NavMeshPathQuery(NavMeshWorld.GetDefaultWorld(), 100, Allocator.Persistent);
-            });
-		}
-
-		[Test]
-		public void CreateAndDisposeQueryOnEmptyNullWorld()
-		{
-			Assert.Throws<System.ArgumentNullException>(() =>
-			{
-				new NavMeshPathQuery(new NavMeshWorld(), 100, Allocator.Persistent);
-			});
-		}
-	}
-
-    public class NavMeshSanity : NavmeshFixture
-    {
-	    [Test]
-	    public void RemoveNavmeshInstanceTwiceLogsError()
-	    {
-		    UnityEngine.TestTools.LogAssert.Expect(LogType.Error, "Failed...");
-		    NavMesh.RemoveNavMeshData(m_NavMeshInstance);
-		    NavMesh.RemoveNavMeshData(m_NavMeshInstance);
-	    }
-	    	    
-	    public void TestPathQuery(NavMeshPathQuery pathQuery)
+	    
+	    public static void TestPathQuery(NavMeshPathQuery pathQuery)
 	    {
 		    var startLocation = NavMeshQuery.MapLocation(Vector3.zero, Vector3.one, 0);
 		    var endLocation = NavMeshQuery.MapLocation(new Vector3(5, 0, 0), Vector3.one, 0);
@@ -90,7 +52,7 @@ namespace Unity.Navigation.Tests
 		    var costs = new NativeArray<float>(32, Allocator.Persistent);
 		    for (int i = 0; i < costs.Length; i++)
 			    costs[i] = 1.0F;
-	        
+		    
 		    Assert.AreEqual(PathQueryStatus.InProgress, pathQuery.InitSlicedFindPath(startLocation, endLocation, 0, costs));
 		    int iterationsPerformed;
 		    Assert.AreEqual(PathQueryStatus.Success, pathQuery.UpdateSlicedFindPath(1000, out iterationsPerformed));
@@ -109,43 +71,11 @@ namespace Unity.Navigation.Tests
 		    res.Dispose();
 	    }
 
-
-	    [Test]
-        public void NavMeshPathQueryWorksAfterChangingNavmesh()
-	    {
-		    var pathQuery = new NavMeshPathQuery(NavMeshWorld.GetDefaultWorld(), 100, Allocator.Persistent);
-		    for (int i = 0; i < 100; i++)
-		    {
-			    ChangeNavMesh();
-			    TestPathQuery(pathQuery);
-		    }
-		    pathQuery.Dispose();
-        }
-
-	    [Test]
-	    public void ChangingNavmeshInvalidatesPathQueries()
-	    {
-		    var pathQuery = new NavMeshPathQuery(NavMeshWorld.GetDefaultWorld(), 100, Allocator.Persistent);
-		    ChangeNavMesh();
-		    Assert.Throws<InvalidOperationException>(() => { TestPathQuery(pathQuery); });
-			pathQuery.Dispose();
-	    }
-
-		[Test]
-		public void CreateAndDisposeQuery()
-		{
-			var query = new NavMeshPathQuery(NavMeshWorld.GetDefaultWorld(), 100, Allocator.Persistent);
-			query.Dispose();
-		}
-
-        [Test]
-        public void NavMesh_Exists()
+        [TearDown]
+        public void TearDown()
         {
-            //@TODO: We have two different NavMeshHit... THATS BAD
-            UnityEngine.AI.NavMeshHit hit;
-            var center = new Vector3(0, k_Height, 0);
-            var found = NavMesh.SamplePosition(center, out hit, 1, NavMesh.AllAreas);
-            Assert.IsTrue(found, string.Format("NavMesh was not found at position {0}.", center));
+	        NavMesh.RemoveNavMeshData(m_NavMeshInstance);
+            Object.DestroyImmediate(m_NavMeshData);
         }
     }
 }

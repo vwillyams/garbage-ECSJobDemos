@@ -39,9 +39,9 @@ namespace UnityEditor.ECS
         {
             var currentID = 0;
             var root  = new TreeViewItem { id = currentID++, depth = -1, displayName = "Root" };
-            if (managersByNamespace == null)
+            if (managersByNamespace == null || managersByNamespace.Count == 0)
             {
-                root.AddChild(new TreeViewItem { id = currentID++, displayName = "No Managers Loaded"});
+                root.AddChild(new TreeViewItem { id = currentID++, displayName = "No ComponentSystems Loaded"});
             }
             else
             {

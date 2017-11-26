@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine.Jobs;
@@ -157,7 +156,7 @@ namespace UnityEngine.ECS
         ComponentJobSafetyManager             m_SafetyManager;
         ArchetypeManager                      m_TypeManager;
         MatchingArchetypes*                   m_LastRegisteredListenerArchetype;
-
+        
         TransformAccessArray                  m_Transforms;
         bool                                  m_TransformsDirty;
 
@@ -235,7 +234,7 @@ namespace UnityEngine.ECS
         }
 
 
-        ComponentDataArrayCache GetComponentDataArrayCache(int componentType, out int outLength, out int componentIndex)
+        internal ComponentDataArrayCache GetComponentDataArrayCache(int componentType, out int outLength, out int componentIndex)
         {
             componentIndex = 0;
             while (componentIndex < m_GroupData->requiredComponentsCount && m_GroupData->requiredComponents[componentIndex].typeIndex != componentType)
@@ -372,6 +371,11 @@ namespace UnityEngine.ECS
         public void AddDependency(JobHandle job)
         {
             m_SafetyManager.AddDependency(m_GroupData->readerTypes, m_GroupData->readerTypesCount, m_GroupData->writerTypes, m_GroupData->writerTypesCount, job);
+        }
+
+        internal ArchetypeManager GetArchetypeManager()
+        {
+            return m_TypeManager;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿    using UnityEngine.ECS;
+﻿using UnityEngine.ECS;
+using UnityEngine.ECS.Experimental.Slow;
 using NUnit.Framework;
 using Unity.Collections;
 using System.Collections.Generic;
@@ -58,6 +59,37 @@ namespace UnityEngine.ECS.Tests
             var arr = grp.GetComponentArray<Rigidbody>();
             Assert.AreEqual(1, arr.Length);
             Assert.AreEqual(go.GetComponent<UnityEngine.Rigidbody>(), arr[0]);
+
+            Object.DestroyImmediate(go);
+        }
+
+
+        struct MyEntity
+        {
+            public Light      light;
+            public Rigidbody  rigidbody;
+        }
+
+        [Test]
+        public void ComponentEnumerator()
+        {
+            var entityMan = DependencyManager.GetBehaviourManager<EntityManager>();
+
+            var go = new GameObject();
+            go.AddComponent<Rigidbody>();
+            go.AddComponent<Light>();
+            // Execute in edit mode is not enabled so this has to be called manually right now
+            go.AddComponent<GameObjectEntity>().OnEnable();
+
+            int iterations = 0;
+            var enumerator = new ComponentGroupEnumerable<MyEntity>(entityMan);
+            foreach (var entity in enumerator)
+            {
+                Assert.AreEqual(go.GetComponent<Light>(), entity.light);
+                Assert.AreEqual(go.GetComponent<Rigidbody>(), entity.rigidbody);
+                iterations++;
+            }
+            Assert.AreEqual(1, iterations);
 
             Object.DestroyImmediate(go);
         }

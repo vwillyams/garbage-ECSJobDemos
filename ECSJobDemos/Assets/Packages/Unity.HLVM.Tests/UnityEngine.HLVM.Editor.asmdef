@@ -1,8 +1,8 @@
 {
     "name": "Unity.HLVM.Tests",
     "references": [
-        "Unity.HLVM",
-        "Unity.Collections"
+        "Unity.Collections",
+        "Unity.Jobs"
     ],
     "optionalUnityReferences": [
         "TestAssemblies"

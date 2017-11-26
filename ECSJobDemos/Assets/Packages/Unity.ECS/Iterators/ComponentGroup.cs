@@ -233,17 +233,16 @@ namespace UnityEngine.ECS
             }
         }
 
-
         internal ComponentDataArrayCache GetComponentDataArrayCache(int componentType, out int outLength, out int componentIndex)
         {
             componentIndex = 0;
             while (componentIndex < m_GroupData->requiredComponentsCount && m_GroupData->requiredComponents[componentIndex].typeIndex != componentType)
                 ++componentIndex;
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             if (componentIndex >= m_GroupData->requiredComponentsCount)
-            {
                 throw new InvalidOperationException(string.Format("Trying to get ComponentDataArray for {0} but the required component type was not declared in the EntityGroup.", TypeManager.GetType(componentType)));
-            }
-
+#endif
+            
             // Update the archetype segments
             int length = 0;
             MatchingArchetypes* last = null;

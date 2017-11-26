@@ -6,6 +6,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using System;
 using UnityEngine.Assertions;
+using UnityEngine.ECS.Experimental.Slow;
 
 // 64 + 16 + 12 + 128 = 220 bytes
 
@@ -41,6 +42,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 	CustomSampler instantiateSampler;
 	CustomSampler destroySampler;
 	CustomSampler iterateSampler;
+	CustomSampler iterateForEachSampler;
     CustomSampler memcpySampler;
 	CustomSampler instantiateMemcpySampler ;
 	CustomSampler iterateUnsafeSampler;
@@ -54,7 +56,8 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		instantiateSampler = CustomSampler.Create("InstantiateTest");
 		instantiateMemcpySampler = CustomSampler.Create("InstantiateTest - Memcpy");
 		destroySampler = CustomSampler.Create("DestroyTest");
-        iterateSampler = CustomSampler.Create("IterateTest - ComponentDataArray<Component4Bytes>");
+		iterateSampler = CustomSampler.Create("IterateTest - ComponentDataArray<Component4Bytes>");
+		iterateForEachSampler = CustomSampler.Create("IterateTest - foreach() - ComponentGroupEnumerable<Component4Bytes*>");
         memcpySampler = CustomSampler.Create("Iterate - Memcpy");
 		iterateUnsafeSampler = CustomSampler.Create("Iterate - Unsafe Ptr float");
 		iterateArraySampler = CustomSampler.Create("Iterate - float[]");
@@ -152,6 +155,11 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		setupSampler.End();
 	}
 
+	unsafe struct EntityIter
+	{
+		public Component4Bytes* component4Bytes;
+	}
+
 	unsafe void TestEntities()
 	{
 		setupSampler.Begin();
@@ -188,6 +196,20 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		}
 		iterateSampler.End ();
 
+		var enumerator = new ComponentGroupEnumerable<EntityIter>(entityManager);
+			
+		iterateForEachSampler.Begin ();
+		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
+		{
+			float sum = 0;
+			foreach (var e in enumerator)
+				sum += e.component4Bytes->value;
+			Assert.AreEqual(0.0F, sum);
+		}
+		iterateForEachSampler.End ();
+		enumerator.Dispose();
+		
+		
 		destroySampler.Begin ();
 		entityManager.DestroyEntity (instances);
 		destroySampler.End ();

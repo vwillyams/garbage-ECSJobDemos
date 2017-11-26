@@ -2,25 +2,73 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.ECS.Experimental.Slow
 {
     class ComponentGroupEnumeratorStaticCache
     {
-        public FieldInfo[]           Fields;
+        public int[]                 ComponentDataFieldOffsets;
+        public ComponentType[]       ComponentDataTypes;
+
+        public int[]                 ComponentFieldOffsets;
         public ComponentType[]       ComponentTypes;
 
+        public ComponentType[]       AllComponentTypes;
+        
         public ComponentGroupEnumeratorStaticCache(Type type)
         {
-            Fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            ComponentTypes = new ComponentType[Fields.Length];
-            for (int i = 0; i != Fields.Length; i++)
+            var fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+            var componentFieldOffsetsBuilder = new List<int>();
+            var componentTypesBuilder = new List<ComponentType>();
+            
+            var componentDataFieldOffsetsBuilder = new List<int>();
+            var componentDataTypesBuilder = new List<ComponentType>();
+            
+            foreach(var field in fields)
             {
-                var fieldType = Fields[i].FieldType;
-                if (!fieldType.IsSubclassOf(typeof(Component)))
-                    throw new System.ArgumentException($"{type}.{Fields[i].Name} must be a class UnityEngine.Component. IComponentData is not supported for now until C# 7.2 with ref structs support.");
-                ComponentTypes[i] = new ComponentType(fieldType);
+                var fieldType = field.FieldType;
+                var offset = UnsafeUtility.GetFieldOffset(field);
+
+                if (fieldType.IsPointer)
+                {
+                    //@TODO: Find out if there is a non-string based version of doing this...
+                    string pointerTypeFullName = fieldType.FullName;
+                    Type valueType = fieldType.Assembly.GetType(pointerTypeFullName.Remove(pointerTypeFullName.Length - 1));
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                    if (!typeof(IComponentData).IsAssignableFrom(valueType))
+                        throw new System.ArgumentException($"{type}.{field.Name} is a pointer type but not a IComponentData. Only IComponentData may be a pointer type for enumeration.");
+#endif                    
+                    componentDataFieldOffsetsBuilder.Add(offset);
+                    componentDataTypesBuilder.Add(valueType);
+                }
+                else if (fieldType.IsSubclassOf(typeof(Component)))
+                {
+                    componentFieldOffsetsBuilder.Add(offset);
+                    componentTypesBuilder.Add(fieldType);
+                }
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                else if (typeof(IComponentData).IsAssignableFrom(fieldType))
+                {
+                    throw new System.ArgumentException($"{type}.{field.Name} must be an unsafe pointer to the {fieldType}. Like this: {fieldType}* {field.Name};");
+                }
+                else
+                {
+                    throw new System.ArgumentException($"{type}.{field.Name} can not be used in a component enumerator");
+                }
+#endif
             }
+
+            ComponentFieldOffsets = componentFieldOffsetsBuilder.ToArray();
+            ComponentTypes = componentTypesBuilder.ToArray();
+
+            ComponentDataFieldOffsets = componentDataFieldOffsetsBuilder.ToArray();
+            ComponentDataTypes = componentDataTypesBuilder.ToArray();
+
+            componentTypesBuilder.AddRange(componentDataTypesBuilder);
+            AllComponentTypes = componentTypesBuilder.ToArray();
         }
     }
 
@@ -29,10 +77,16 @@ namespace UnityEngine.ECS.Experimental.Slow
         ComponentGroup                         m_ComponentGroup;
         ComponentGroupEnumeratorStaticCache    m_StaticCache;
 
+        ComponentDataArrayCache[]              m_ComponentDataCache;
+        ComponentDataArrayCache[]              m_ComponentCache;
+        
         public ComponentGroupEnumerable(EntityManager entityManager)
         {
             m_StaticCache = new ComponentGroupEnumeratorStaticCache(typeof(T));
-            m_ComponentGroup = entityManager.CreateComponentGroup(m_StaticCache.ComponentTypes);
+            m_ComponentGroup = entityManager.CreateComponentGroup(m_StaticCache.AllComponentTypes);
+
+            m_ComponentDataCache = new ComponentDataArrayCache[m_StaticCache.ComponentDataTypes.Length];
+            m_ComponentCache = new ComponentDataArrayCache[m_StaticCache.ComponentTypes.Length];
         }
 
         public void Dispose()
@@ -45,18 +99,23 @@ namespace UnityEngine.ECS.Experimental.Slow
         {
             int length = 0;
             int componentIndex;
-            var caches = new ComponentDataArrayCache[m_StaticCache.ComponentTypes.Length];
-            for (int i = 0; i < caches.Length; i++)
-                caches[i] = m_ComponentGroup.GetComponentDataArrayCache(m_StaticCache.ComponentTypes[i].typeIndex, out length, out componentIndex);
+            for (int i = 0; i < m_ComponentDataCache.Length; i++)
+                m_ComponentDataCache[i] = m_ComponentGroup.GetComponentDataArrayCache(m_StaticCache.ComponentDataTypes[i].typeIndex, out length, out componentIndex);
 
-            return new ComponentGroupEnumerator<T>(length, m_StaticCache, caches, m_ComponentGroup.GetArchetypeManager());
+            for (int i = 0; i < m_ComponentCache.Length; i++)
+                m_ComponentCache[i] = m_ComponentGroup.GetComponentDataArrayCache(m_StaticCache.ComponentTypes[i].typeIndex, out length, out componentIndex);
+            
+            return new ComponentGroupEnumerator<T>(length, m_StaticCache, m_ComponentDataCache, m_ComponentCache, m_ComponentGroup.GetArchetypeManager());
         }
     
         public struct ComponentGroupEnumerator<T> : IEnumerator<T> where T : struct
         {
-            FieldInfo[]                 m_Fields;
-            ComponentDataArrayCache[]   m_DataArrayCaches;
-    
+            int[]                       m_ComponentFieldOffsets;
+            ComponentDataArrayCache[]   m_ComponentCaches;
+
+            int[]                       m_ComponentDataFieldOffsets;
+            ComponentDataArrayCache[]   m_ComponentDataCaches;
+
             ArchetypeManager		    m_ArchetypeManager;
     
             int                         m_Index;
@@ -65,28 +124,32 @@ namespace UnityEngine.ECS.Experimental.Slow
             int                         m_CacheBeginIndex;
             int                         m_CacheEndIndex;
 
-            internal ComponentGroupEnumerator(int length, ComponentGroupEnumeratorStaticCache staticCache, ComponentDataArrayCache[] dataArrays, ArchetypeManager archetypeManager)
+            internal ComponentGroupEnumerator(int length, ComponentGroupEnumeratorStaticCache staticCache, ComponentDataArrayCache[] componentDataCaches, ComponentDataArrayCache[] componentCaches, ArchetypeManager archetypeManager)
             {
                 m_Length = length;
                 m_Index = -1;
                 m_CacheBeginIndex = 0;
                 m_CacheEndIndex = 0;
                 m_ArchetypeManager = archetypeManager;
+
+                m_ComponentDataFieldOffsets = staticCache.ComponentDataFieldOffsets;
+                m_ComponentDataCaches = componentDataCaches;
                 
-                m_Fields = staticCache.Fields;
-                m_DataArrayCaches = dataArrays;
+                m_ComponentFieldOffsets = staticCache.ComponentFieldOffsets;
+                m_ComponentCaches = componentCaches;
             }
-    
+
             public void Dispose()
             {
-                m_Fields = null;
-                m_DataArrayCaches = null;
+                //@TODO: Prevent multiple instances (error checks)... because of ComponentDataArrayCache[] being reused from ComponentGroupEnumerable
             }
     
             public void UpdateCache()
             {
-                for (int i = 0; i != m_DataArrayCaches.Length; i++)
-                    m_DataArrayCaches[i].UpdateCache(m_Index);
+                for (int i = 0; i != m_ComponentCaches.Length; i++)
+                    m_ComponentCaches[i].UpdateCache(m_Index);
+                for (int i = 0; i != m_ComponentDataCaches.Length; i++)
+                    m_ComponentDataCaches[i].UpdateCache(m_Index);
             }
     
             public bool MoveNext()
@@ -111,23 +174,30 @@ namespace UnityEngine.ECS.Experimental.Slow
             {
                 m_Index = -1;
             }
-    
-            public T Current
+
+            unsafe public T Current
             {
                 get
                 {
-                    object value = new T();
-                    
-                    //@TODO: This could use a bit of optimization...
-                    // * no gc alloc
-                    // * write to pointer directly (need il asm?)
-                    for (int i = 0; i != m_DataArrayCaches.Length; i++)
+                    T value = default(T);
+                    byte* valuePtr = (byte*)UnsafeUtility.AddressOf(ref value);
+
+                    for (int i = 0; i != m_ComponentCaches.Length; i++)
                     {
-                        var component = m_DataArrayCaches[i].GetManagedObject(m_ArchetypeManager, m_Index);
-                        m_Fields[i].SetValue(value, component);
+                        var component = m_ComponentCaches[i].GetManagedObject(m_ArchetypeManager, m_Index);
+                        var valuePtrOffsetted = (valuePtr + m_ComponentFieldOffsets[i]);
+                        UnsafeUtility.CopyObjectAddressToPtr(component, (IntPtr)valuePtrOffsetted);
+                    }
+
+                    for (int i = 0; i != m_ComponentDataCaches.Length; i++)
+                    {
+                        void* componentPtr = (void*)(m_ComponentDataCaches[i].CachedPtr + (m_ComponentDataCaches[i].CachedSizeOf * m_Index));
+                        void** valuePtrOffsetted = (void**)(valuePtr + m_ComponentDataFieldOffsets[i]);
+
+                        *valuePtrOffsetted = componentPtr;
                     }
     
-                    return (T)value;
+                    return value;
                 }
             }
     
@@ -137,7 +207,4 @@ namespace UnityEngine.ECS.Experimental.Slow
             }
         }
     }
-
-
-
 }

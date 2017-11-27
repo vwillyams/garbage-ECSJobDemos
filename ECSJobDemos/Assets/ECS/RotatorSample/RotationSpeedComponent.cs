@@ -13,22 +13,18 @@ namespace RotatorSamples
 	{
 		struct Group
 		{
-			public ComponentArray<Transform> 				transforms;
-			public ComponentArray<RotationSpeedComponent>   rotators;
-			public int 										Length;
+			public Transform 				transform;
+			public RotationSpeedComponent   rotation;
 		}
-
-		[InjectComponentGroup]
-		Group m_Rotators;
 
 		override public void OnUpdate()
 		{
 			base.OnUpdate ();
 
 			float dt = Time.deltaTime;
-			for (int i = 0; i != m_Rotators.Length;i++)
+			foreach(var e in GetEntities<Group>())
 			{
-				m_Rotators.transforms[i].rotation = m_Rotators.transforms[i].rotation * Quaternion.AngleAxis(dt * m_Rotators.rotators[i].speed, Vector3.up);
+				e.transform.rotation = e.transform.rotation * Quaternion.AngleAxis(dt * e.rotation.speed, Vector3.up);
 			}
 		}
 	}

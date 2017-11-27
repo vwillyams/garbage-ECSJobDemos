@@ -1,5 +1,4 @@
 ﻿using UnityEngine.ECS;
-using UnityEngine.ECS.Experimental.Slow;
 using NUnit.Framework;
 using Unity.Collections;
 using System.Collections.Generic;
@@ -81,6 +80,12 @@ namespace UnityEngine.ECS.Tests
             //* Check for string in MyEntity and other illegal constructs...
         }
 
+        [Test]
+        [Ignore("TODO")]
+        public void AddComponentDuringForeachProtection()
+        {
+            //* Check for string in MyEntity and other illegal constructs...
+        }
         [Test]
         unsafe public void ComponentEnumerator()
         {

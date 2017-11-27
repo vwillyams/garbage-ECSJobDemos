@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using Unity.Collections.LowLevel.Unsafe;
 
-namespace UnityEngine.ECS.Experimental.Slow
+namespace UnityEngine.ECS
 {
     class ComponentGroupEnumeratorStaticCache
     {
@@ -72,7 +72,7 @@ namespace UnityEngine.ECS.Experimental.Slow
         }
     }
 
-    public struct ComponentGroupEnumerable<T> : IDisposable where T : struct 
+    public class ComponentGroupEnumerable<T> : IDisposable where T : struct 
     {
         ComponentGroup                         m_ComponentGroup;
         ComponentGroupEnumeratorStaticCache    m_StaticCache;
@@ -94,6 +94,8 @@ namespace UnityEngine.ECS.Experimental.Slow
             m_ComponentGroup.Dispose();
             m_ComponentGroup = null;
         }
+
+        public ComponentGroup ComponentGroup { get { return m_ComponentGroup; } }
 
         public ComponentGroupEnumerator<T> GetEnumerator()
         {

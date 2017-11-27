@@ -7,7 +7,6 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using System;
 using UnityEngine.Assertions;
-using UnityEngine.ECS.Experimental.Slow;
 
 // 64 + 16 + 12 + 128 = 220 bytes
 

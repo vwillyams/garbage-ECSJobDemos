@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028364, g: 0.22571398, b: 0.30692267, a: 1}
+  m_IndirectSpecularColor: {r: 0.18029502, g: 0.22572649, b: 0.30692935, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -759,11 +759,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 281714004}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6e590bf7cfed54702a45475389f3d717, type: 3}
+  m_Script: {fileID: 11500000, guid: 3bf6fcc12bc714b6783b58421f9ed6ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SerializedData:
-    speed: 30
+  speed: 189
 --- !u!114 &281714007
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1537,11 +1536,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 744570691}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6e590bf7cfed54702a45475389f3d717, type: 3}
+  m_Script: {fileID: 11500000, guid: 3bf6fcc12bc714b6783b58421f9ed6ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SerializedData:
-    speed: 30
+  speed: 189
 --- !u!114 &744570694
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1648,11 +1646,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 745027862}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6e590bf7cfed54702a45475389f3d717, type: 3}
+  m_Script: {fileID: 11500000, guid: 3bf6fcc12bc714b6783b58421f9ed6ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SerializedData:
-    speed: 30
+  speed: 189
 --- !u!114 &745027865
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2425,11 +2422,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1311924435}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6e590bf7cfed54702a45475389f3d717, type: 3}
+  m_Script: {fileID: 11500000, guid: 3bf6fcc12bc714b6783b58421f9ed6ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SerializedData:
-    speed: 30
+  speed: 189
 --- !u!114 &1311924438
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2881,11 +2877,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1548787274}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6e590bf7cfed54702a45475389f3d717, type: 3}
+  m_Script: {fileID: 11500000, guid: 3bf6fcc12bc714b6783b58421f9ed6ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SerializedData:
-    speed: 30
+  speed: 189
 --- !u!114 &1548787277
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3702,11 +3697,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 2037267715}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6e590bf7cfed54702a45475389f3d717, type: 3}
+  m_Script: {fileID: 11500000, guid: 3bf6fcc12bc714b6783b58421f9ed6ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SerializedData:
-    speed: 30
+  speed: 189
 --- !u!114 &2037267718
 MonoBehaviour:
   m_ObjectHideFlags: 0

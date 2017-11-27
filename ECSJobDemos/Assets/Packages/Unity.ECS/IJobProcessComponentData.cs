@@ -152,7 +152,7 @@ namespace UnityEngine.ECS
 
             int batchSize = 32;
 
-            TJob jobData = new TJob();
+            TJob jobData = default(TJob);
             jobData.Prepare();
 
             AddDependency(jobData.Schedule(m_Group.component0, batchSize, GetDependency()));
@@ -179,7 +179,7 @@ namespace UnityEngine.ECS
 
             int batchSize = 32;
 
-            TJob jobData = new TJob();
+            TJob jobData = default(TJob);
             jobData.Prepare();
 
             AddDependency(jobData.Schedule(m_Group.component0, m_Group.component1, batchSize, GetDependency()));

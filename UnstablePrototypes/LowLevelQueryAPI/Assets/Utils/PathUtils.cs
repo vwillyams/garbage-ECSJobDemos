@@ -18,7 +18,7 @@ public class PathUtils
     }
 
     // Retrace portals between corners register if type of polygon changes
-    public static int RetracePortals(int startIndex, int endIndex
+    public static int RetracePortals(NavMeshQuery query, int startIndex, int endIndex
         , NativeSlice<PolygonID> path, int n, Vector3 termPos
         , ref NativeArray<NavMeshLocation> straightPath
         , ref NativeArray<NavMeshStraightPathFlags> straightPathFlags
@@ -31,12 +31,12 @@ public class PathUtils
 
         for (int k = startIndex; k < endIndex - 1; ++k)
         {
-            var type1 = NavMeshQuery.GetPolygonType(path[k]);
-            var type2 = NavMeshQuery.GetPolygonType(path[k + 1]);
+            var type1 = query.GetPolygonType(path[k]);
+            var type2 = query.GetPolygonType(path[k + 1]);
             if (type1 != type2)
             {
                 Vector3 l, r;
-                var status = NavMeshQuery.GetPortalPoints(path[k], path[k + 1], out l, out r);
+                var status = query.GetPortalPoints(path[k], path[k + 1], out l, out r);
 
 #if DEBUG_CROWDSYSTEM_ASSERTS
                 Assert.IsTrue(status); // Expect path elements k, k+1 to be verified
@@ -44,7 +44,7 @@ public class PathUtils
 
                 float3 cpa1, cpa2;
                 GeometryUtils.SegmentSegmentCPA(out cpa1, out cpa2, l, r, straightPath[n - 1].position, termPos);
-                straightPath[n] = new NavMeshLocation() { polygon = path[k + 1].polygon, position = cpa1 };
+                straightPath[n] = new NavMeshLocation(cpa1, path[k + 1]);
 
                 // TODO maybe the flag should be additive with |=
                 straightPathFlags[n] = (type2 == NavMeshPolyTypes.kPolyTypeOffMeshConnection) ? NavMeshStraightPathFlags.kStraightPathOffMeshConnection : 0;
@@ -54,13 +54,13 @@ public class PathUtils
                 }
             }
         }
-        straightPath[n] = new NavMeshLocation() { polygon = path[endIndex].polygon, position = termPos };
-        straightPathFlags[n] = NavMeshQuery.GetPolygonType(path[endIndex]) == NavMeshPolyTypes.kPolyTypeOffMeshConnection ? NavMeshStraightPathFlags.kStraightPathOffMeshConnection : 0;
+        straightPath[n] = new NavMeshLocation(termPos, path[endIndex]);
+        straightPathFlags[n] = query.GetPolygonType(path[endIndex]) == NavMeshPolyTypes.kPolyTypeOffMeshConnection ? NavMeshStraightPathFlags.kStraightPathOffMeshConnection : 0;
         return ++n;
     }
 
     public static PathQueryStatus FindStraightPath(
-        PolygonPathEcs path
+        NavMeshQuery query, PolygonPathEcs path
         , ref NativeArray<NavMeshLocation> straightPath
         , ref NativeArray<NavMeshStraightPathFlags> straightPathFlags
         , ref NativeArray<float> vertexSide
@@ -68,10 +68,10 @@ public class PathUtils
         , int maxStraightPath
     )
     {
-        return FindStraightPath(path.start.position, path.end.position, new NativeSlice<PolygonID>(path.polygons), path.size, ref straightPath, ref straightPathFlags, ref vertexSide, ref straightPathCount, maxStraightPath);
+        return FindStraightPath(query, path.start.position, path.end.position, new NativeSlice<PolygonID>(path.polygons), path.size, ref straightPath, ref straightPathFlags, ref vertexSide, ref straightPathCount, maxStraightPath);
     }
 
-    public static PathQueryStatus FindStraightPath(Vector3 startPos, Vector3 endPos
+    public static PathQueryStatus FindStraightPath(NavMeshQuery query, Vector3 startPos, Vector3 endPos
         , NativeSlice<PolygonID> path, int pathSize
         , ref NativeArray<NavMeshLocation> straightPath
         , ref NativeArray<NavMeshStraightPathFlags> straightPathFlags
@@ -90,17 +90,16 @@ public class PathUtils
         // TODO // Assert.IsTrue(startPos is in the polygon of path[0].polygonId);
 
         // TODO make PolygonID.valid to be ThreadSafe and use if (!path[0].valid)
-        if (path[0].polygon == 0)
+        if (!query.IsValid(path[0]))
         {
             straightPath[0] = new NavMeshLocation(); // empty terminator
             return PathQueryStatus.Failure; // | kNavMeshInvalidParam;
         }
 
-        straightPath[0] = new NavMeshLocation
-        {
-            position = startPos, // TODO make sure the start position is in this polygon?
-            polygon = path[0].polygon // TODO search the polygon on the path where the start position is
-        };
+        straightPath[0] = new NavMeshLocation(
+            startPos, // TODO make sure the start position is in this polygon?
+            path[0] // TODO search the polygon on the path where the start position is
+        );
 
         straightPathFlags[0] = NavMeshStraightPathFlags.kStraightPathStart;
 
@@ -109,7 +108,7 @@ public class PathUtils
 
         if (pathSize > 1)
         {
-            var startPolyWorldToLocal = NavMeshQuery.PolygonWorldToLocalMatrix(path[0]);
+            var startPolyWorldToLocal = query.PolygonWorldToLocalMatrix(path[0]);
 
             var apex = startPolyWorldToLocal.MultiplyPoint(startPos);
             var left = Vector3.zero;
@@ -119,7 +118,7 @@ public class PathUtils
 
             for (var i = 1; i <= pathSize; ++i)
             {
-                var polyWorldToLocal = NavMeshQuery.PolygonWorldToLocalMatrix(path[apexIndex]);
+                var polyWorldToLocal = query.PolygonWorldToLocalMatrix(path[apexIndex]);
 
                 Vector3 vl, vr;
                 if (i == pathSize)
@@ -128,7 +127,7 @@ public class PathUtils
                 }
                 else
                 {
-                    var success = NavMeshQuery.GetPortalPoints(path[i - 1], path[i], out vl, out vr);
+                    var success = query.GetPortalPoints(path[i - 1], path[i], out vl, out vr);
                     if (!success)
                     {
                         return PathQueryStatus.Failure; // | kNavMeshInvalidParam;
@@ -156,10 +155,10 @@ public class PathUtils
                 // Terminate funnel by turning
                 if (Perp2D(left, vr) < 0)
                 {
-                    var polyLocalToWorld = NavMeshQuery.PolygonLocalToWorldMatrix(path[apexIndex]);
+                    var polyLocalToWorld = query.PolygonLocalToWorldMatrix(path[apexIndex]);
                     var termPos = polyLocalToWorld.MultiplyPoint(apex + left);
 
-                    n = RetracePortals(apexIndex, leftIndex, path, n, termPos, ref straightPath, ref straightPathFlags, maxStraightPath);
+                    n = RetracePortals(query, apexIndex, leftIndex, path, n, termPos, ref straightPath, ref straightPathFlags, maxStraightPath);
                     if (vertexSide.Length > 0)
                     {
                         vertexSide[n - 1] = -1;
@@ -181,10 +180,10 @@ public class PathUtils
                 }
                 if (Perp2D(right, vl) > 0)
                 {
-                    var polyLocalToWorld = NavMeshQuery.PolygonLocalToWorldMatrix(path[apexIndex]);
+                    var polyLocalToWorld = query.PolygonLocalToWorldMatrix(path[apexIndex]);
                     var termPos = polyLocalToWorld.MultiplyPoint(apex + right);
 
-                    n = RetracePortals(apexIndex, rightIndex, path, n, termPos, ref straightPath, ref straightPathFlags, maxStraightPath);
+                    n = RetracePortals(query, apexIndex, rightIndex, path, n, termPos, ref straightPath, ref straightPathFlags, maxStraightPath);
                     if (vertexSide.Length > 0)
                     {
                         vertexSide[n - 1] = 1;
@@ -226,7 +225,7 @@ public class PathUtils
         if (n > 0 && (straightPath[n - 1].position == endPos))
             n--;
 
-        n = RetracePortals(apexIndex, pathSize - 1, path, n, endPos, ref straightPath, ref straightPathFlags, maxStraightPath);
+        n = RetracePortals(query, apexIndex, pathSize - 1, path, n, endPos, ref straightPath, ref straightPathFlags, maxStraightPath);
         if (vertexSide.Length > 0)
         {
             vertexSide[n - 1] = 0;

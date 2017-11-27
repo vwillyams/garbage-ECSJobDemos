@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using NUnit.Framework;
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine.AI;
 using UnityEngine.Experimental.AI;
 using Object = UnityEngine.Object;
@@ -13,6 +14,7 @@ namespace Unity.Navigation.Tests
         NavMeshData m_NavMeshData;
         List<NavMeshDataInstance> m_NavMeshInstances;
         internal NavMeshLinkInstance m_LinkInstance;
+        internal NavMeshQuery m_NavMeshQuery;
         internal const int k_AreaWalking = 0;
         internal const int k_AreaSliding = 5;
         internal Int32 m_TestedAreaMask = 0;
@@ -50,11 +52,14 @@ namespace Unity.Navigation.Tests
 
             m_TestedAgentTypeId = settings.agentTypeID;
             m_TestedAreaMask = 1 << boxSource1.area;
+
+            m_NavMeshQuery = new NavMeshQuery(NavMeshWorld.GetDefaultWorld(), Allocator.Persistent);
         }
 
         [TearDown]
         public void Dispose()
         {
+            m_NavMeshQuery.Dispose();
             foreach (var nmInstance in m_NavMeshInstances)
             {
                 nmInstance.Remove();
@@ -72,7 +77,7 @@ namespace Unity.Navigation.Tests
         {
             var nmLocation = new NavMeshLocation();
 
-            Assert.IsFalse(nmLocation.valid);
+            Assert.IsFalse(m_NavMeshQuery.IsValid(nmLocation));
         }
 
         [Test]
@@ -80,12 +85,12 @@ namespace Unity.Navigation.Tests
         {
             var testPos = new Vector3(1.0f, 0.5f, 2.0f);
             var testExtents = new Vector3(0.1f, 1.0f, 0.1f);
-            var nmLocation = NavMeshQuery.MapLocation(testPos, testExtents, m_TestedAgentTypeId, m_TestedAreaMask);
+            var nmLocation = m_NavMeshQuery.MapLocation(testPos, testExtents, m_TestedAgentTypeId, m_TestedAreaMask);
 
-            Assert.IsTrue(nmLocation.valid, "MapLocation() didn't return a valid location inside the NavMesh");
-            Assert.AreEqual(testPos.x, nmLocation.position.x, 0.001f, "NMLocation pos X not matching");
-            Assert.AreEqual(k_Height, nmLocation.position.y, 0.2f, "NMLocation pos Y not matching within voxel-height range");
-            Assert.AreEqual(testPos.z, nmLocation.position.z, 0.001f, "NMLocation pos Z not matching");
+            Assert.IsTrue(m_NavMeshQuery.IsValid(nmLocation), "MapLocation() didn't return a valid location inside the NavMesh");
+            Assert.AreEqual(testPos.x, nmLocation.position.x, 0.001f, "NavMeshLocation pos X not matching");
+            Assert.AreEqual(k_Height, nmLocation.position.y, 0.2f, "NavMeshLocation pos Y not matching within voxel-height range");
+            Assert.AreEqual(testPos.z, nmLocation.position.z, 0.001f, "NavMeshLocation pos Z not matching");
         }
 
         [Test]
@@ -93,9 +98,9 @@ namespace Unity.Navigation.Tests
         {
             var testPos = new Vector3(21.0f, 0.1f, 22.0f);
             var testExtents = new Vector3(1.0f, 1.0f, 1.0f);
-            var nmLocation = NavMeshQuery.MapLocation(testPos, testExtents, m_TestedAgentTypeId, m_TestedAreaMask);
+            var nmLocation = m_NavMeshQuery.MapLocation(testPos, testExtents, m_TestedAgentTypeId, m_TestedAreaMask);
 
-            Assert.IsFalse(nmLocation.valid, "MapLocation() didn't return an invalid location\n"
+            Assert.IsFalse(m_NavMeshQuery.IsValid(nmLocation), "MapLocation() didn't return an invalid location\n"
                 + " for a position outside the NavMesh" +
                 " endPos=" + nmLocation.position);
         }
@@ -104,10 +109,10 @@ namespace Unity.Navigation.Tests
         public void MoveNavMeshLocation_ToSamePos_ReturnsTheSameLocation()
         {
             var startPos = new Vector3(1.0f, 0.1f, 2.0f);
-            var startLocation = NavMeshQuery.MapLocation(startPos, Vector3.one, m_TestedAgentTypeId, m_TestedAreaMask);
-            var endLocation = NavMeshQuery.MoveLocation(startLocation, startPos, m_TestedAreaMask);
+            var startLocation = m_NavMeshQuery.MapLocation(startPos, Vector3.one, m_TestedAgentTypeId, m_TestedAreaMask);
+            var endLocation = m_NavMeshQuery.MoveLocation(startLocation, startPos, m_TestedAreaMask);
 
-            Assert.IsTrue(endLocation.valid, "MoveLocation() didn't return a valid location");
+            Assert.IsTrue(m_NavMeshQuery.IsValid(endLocation), "MoveLocation() didn't return a valid location");
             Assert.AreEqual(startLocation.polygon, endLocation.polygon, "MoveLocation() didn't return the same poly ref when it should have");
             Assert.AreEqual(startLocation.position.x, endLocation.position.x, 0.001f, "EndLocation pos X not matching the start location position");
             Assert.AreEqual(startLocation.position.y, endLocation.position.y, 0.001f, "EndLocation pos Y not matching the start location position");
@@ -119,10 +124,10 @@ namespace Unity.Navigation.Tests
         {
             var startPos = new Vector3(1.0f, 0.1f, 2.0f);
             var endPos = new Vector3(-3.0f, 1.0f, -0.1f);
-            var startLocation = NavMeshQuery.MapLocation(startPos, Vector3.one, m_TestedAgentTypeId, m_TestedAreaMask);
-            var endLocation = NavMeshQuery.MoveLocation(startLocation, endPos, m_TestedAreaMask);
+            var startLocation = m_NavMeshQuery.MapLocation(startPos, Vector3.one, m_TestedAgentTypeId, m_TestedAreaMask);
+            var endLocation = m_NavMeshQuery.MoveLocation(startLocation, endPos, m_TestedAreaMask);
 
-            Assert.IsTrue(endLocation.valid, "MoveLocation() didn't return a valid location inside the NavMesh");
+            Assert.IsTrue(m_NavMeshQuery.IsValid(endLocation), "MoveLocation() didn't return a valid location inside the NavMesh");
             Assert.AreNotEqual(startLocation.polygon, endLocation.polygon, "MoveLocation() didn't return a different poly ref when it should have");
             Assert.AreEqual(endPos.x, endLocation.position.x, 0.001f, "EndLocation pos X not matching with endPos");
             Assert.AreEqual(startLocation.position.y, endLocation.position.y, 0.001f, "EndLocation pos Y not matching with endPos");
@@ -134,10 +139,10 @@ namespace Unity.Navigation.Tests
         {
             var startPos = new Vector3(1.0f, 0.1f, 2.0f);
             var endPos = new Vector3(-30.0f, 1.0f, 2.0f);
-            var startLocation = NavMeshQuery.MapLocation(startPos, Vector3.one, m_TestedAgentTypeId, m_TestedAreaMask);
-            var endLocation = NavMeshQuery.MoveLocation(startLocation, endPos, m_TestedAreaMask);
+            var startLocation = m_NavMeshQuery.MapLocation(startPos, Vector3.one, m_TestedAgentTypeId, m_TestedAreaMask);
+            var endLocation = m_NavMeshQuery.MoveLocation(startLocation, endPos, m_TestedAreaMask);
 
-            Assert.IsTrue(endLocation.valid, "MoveLocation() didn't return a valid location\n"
+            Assert.IsTrue(m_NavMeshQuery.IsValid(endLocation), "MoveLocation() didn't return a valid location\n"
                 + " for a destination outside the NavMesh");
 
             const float defaultAgentRadius = 0.5f;
@@ -153,26 +158,26 @@ namespace Unity.Navigation.Tests
         public void MoveNavMeshLocation_ToDestinationAcrossInaccessibleArea_ReturnsLocationAtTheEdge()
         {
             var startPos = new Vector3(1.0f, 0.1f, 2.0f);
-            var startLocation = NavMeshQuery.MapLocation(startPos, Vector3.one, m_TestedAgentTypeId, m_TestedAreaMask);
+            var startLocation = m_NavMeshQuery.MapLocation(startPos, Vector3.one, m_TestedAgentTypeId, m_TestedAreaMask);
 
             var targetZ = new float[] { -3.0f, -4.0f };
             for (var i = 0; i < targetZ.Length; i++)
             {
                 var endPosInArea = targetZ[i] * Vector3.forward + Vector3.right;
-                var targetLocation = NavMeshQuery.MapLocation(endPosInArea, 0.01f * Vector3.one + Vector3.up, m_TestedAgentTypeId, m_TestedAreaMask);
+                var targetLocation = m_NavMeshQuery.MapLocation(endPosInArea, 0.01f * Vector3.one + Vector3.up, m_TestedAgentTypeId, m_TestedAreaMask);
                 if (i == 0)
                 {
-                    Assert.IsFalse(targetLocation.valid, "Target position is not in the inaccessible area " + targetLocation.position);
+                    Assert.IsFalse(m_NavMeshQuery.IsValid(targetLocation), "Target position is not in the inaccessible area " + targetLocation.position);
                 }
                 else if (i == 1)
                 {
                     Assert.Less(targetZ[i], -3.5f, "Target position is not beyond the inaccessible area");
-                    Assert.IsTrue(targetLocation.valid, "Target position is not in an accessible area " + targetLocation.position);
+                    Assert.IsTrue(m_NavMeshQuery.IsValid(targetLocation), "Target position is not in an accessible area " + targetLocation.position);
                 }
 
-                var endLocation = NavMeshQuery.MoveLocation(startLocation, endPosInArea, m_TestedAreaMask);
+                var endLocation = m_NavMeshQuery.MoveLocation(startLocation, endPosInArea, m_TestedAreaMask);
 
-                Assert.IsTrue(endLocation.valid, "MoveLocation() didn't return a valid location\n"
+                Assert.IsTrue(m_NavMeshQuery.IsValid(endLocation), "MoveLocation() didn't return a valid location\n"
                     + " for a target position standing on an area different than the start location" +
                     " endPos=" + endLocation.position);
 
@@ -187,22 +192,22 @@ namespace Unity.Navigation.Tests
         public void MoveNavMeshLocation_ToDestinationAcrossAccessibleAreas_ReturnsLocationAtTheDestination()
         {
             var startPos = new Vector3(1.0f, 0.1f, 2.0f);
-            var startLocation = NavMeshQuery.MapLocation(startPos, Vector3.one, m_TestedAgentTypeId, NavMesh.AllAreas);
+            var startLocation = m_NavMeshQuery.MapLocation(startPos, Vector3.one, m_TestedAgentTypeId, NavMesh.AllAreas);
 
             var targetZ = new float[] { -3.0f, -4.0f };
             for (var i = 0; i < targetZ.Length; i++)
             {
                 var targetPos = targetZ[i] * Vector3.forward + Vector3.right;
-                var targetLocation = NavMeshQuery.MapLocation(targetPos, 0.01f * Vector3.one + Vector3.up, m_TestedAgentTypeId, NavMesh.AllAreas);
-                Assert.IsTrue(targetLocation.valid, "Target position is not in an accessible area: endPosInArea=" + targetPos);
+                var targetLocation = m_NavMeshQuery.MapLocation(targetPos, 0.01f * Vector3.one + Vector3.up, m_TestedAgentTypeId, NavMesh.AllAreas);
+                Assert.IsTrue(m_NavMeshQuery.IsValid(targetLocation), "Target position is not in an accessible area: endPosInArea=" + targetPos);
                 if (i == 1)
                 {
                     Assert.Less(targetZ[i], -3.5f, "Target position is not beyond the inaccessible area");
                 }
 
-                var endLocation = NavMeshQuery.MoveLocation(startLocation, targetPos, NavMesh.AllAreas);
+                var endLocation = m_NavMeshQuery.MoveLocation(startLocation, targetPos, NavMesh.AllAreas);
 
-                Assert.IsTrue(endLocation.valid, "MoveLocation() didn't return a valid location\n"
+                Assert.IsTrue(m_NavMeshQuery.IsValid(endLocation), "MoveLocation() didn't return a valid location\n"
                     + " for a target position standing on an area different than the start location" +
                     " endPos=" + endLocation.position);
 
@@ -232,17 +237,17 @@ namespace Unity.Navigation.Tests
 
             var startPos = new Vector3(1.0f, 0.1f, 2.0f);
             var endPos = startPos + islandOffset;
-            var startLocation = NavMeshQuery.MapLocation(startPos, Vector3.one, m_TestedAgentTypeId, m_TestedAreaMask);
+            var startLocation = m_NavMeshQuery.MapLocation(startPos, Vector3.one, m_TestedAgentTypeId, m_TestedAreaMask);
 
-            Assert.IsTrue(startLocation.valid, "MapLocation() didn't return a valid START location startPos=" + startPos);
+            Assert.IsTrue(m_NavMeshQuery.IsValid(startLocation), "MapLocation() didn't return a valid START location startPos=" + startPos);
 
-            var mappedEndLocation = NavMeshQuery.MapLocation(endPos, Vector3.one, m_TestedAgentTypeId, m_TestedAreaMask);
-            Assert.IsTrue(mappedEndLocation.valid, "MapLocation() didn't return a valid location\n"
+            var mappedEndLocation = m_NavMeshQuery.MapLocation(endPos, Vector3.one, m_TestedAgentTypeId, m_TestedAreaMask);
+            Assert.IsTrue(m_NavMeshQuery.IsValid(mappedEndLocation), "MapLocation() didn't return a valid location\n"
                 + " for a target position on another island connected with a link endPos=" + endPos);
 
-            var endLocation = NavMeshQuery.MoveLocation(startLocation, endPos, m_TestedAreaMask);
+            var endLocation = m_NavMeshQuery.MoveLocation(startLocation, endPos, m_TestedAreaMask);
 
-            Assert.IsTrue(endLocation.valid, "MoveLocation() didn't return a valid location\n"
+            Assert.IsTrue(m_NavMeshQuery.IsValid(endLocation), "MoveLocation() didn't return a valid location\n"
                 + " at the edge of the main island\n"
                 + " for a target position on another island that's connected with a link");
 

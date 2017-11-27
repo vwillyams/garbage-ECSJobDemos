@@ -36,6 +36,7 @@ public struct PathQueryQueueEcs
         public NavMeshLocation end;
     }
 
+    NavMeshQuery m_NavMeshQuery;
     NavMeshPathQuery m_Query;
     NativeArray<RequestEcs> m_Requests;
     NativeArray<PolygonID> m_ResultNodes;
@@ -47,6 +48,7 @@ public struct PathQueryQueueEcs
     public PathQueryQueueEcs(int nodePoolSize, int maxRequestCount)
     {
         var world = NavMeshWorld.GetDefaultWorld();
+        m_NavMeshQuery = new NavMeshQuery(world, Allocator.Persistent);
         m_Query = new NavMeshPathQuery(world, nodePoolSize, Allocator.Persistent);
         m_Requests = new NativeArray<RequestEcs>(maxRequestCount, Allocator.Persistent);
         m_ResultNodes = new NativeArray<PolygonID>(2 * nodePoolSize, Allocator.Persistent);
@@ -77,6 +79,7 @@ public struct PathQueryQueueEcs
         m_Costs.Dispose();
         m_State.Dispose();
         m_Query.Dispose();
+        m_NavMeshQuery.Dispose();
     }
 
     public bool Enqueue(RequestEcs request)
@@ -244,9 +247,9 @@ public struct PathQueryQueueEcs
                 request.uid = RequestEcs.invalidId;
                 m_Requests[state.requestIndex] = request;
                 state.requestIndex++;
-                var startLoc = NavMeshQuery.MapLocation(request.start, 10.0f * Vector3.one, 0, request.mask);
-                var endLoc = NavMeshQuery.MapLocation(request.end, 10.0f * Vector3.one, 0, request.mask);
-                if (!startLoc.valid || !endLoc.valid)
+                var startLoc = m_NavMeshQuery.MapLocation(request.start, 10.0f * Vector3.one, 0, request.mask);
+                var endLoc = m_NavMeshQuery.MapLocation(request.end, 10.0f * Vector3.one, 0, request.mask);
+                if (!m_NavMeshQuery.IsValid(startLoc) || !m_NavMeshQuery.IsValid(endLoc))
                     continue;
 
                 state.currentPathRequest = new PathInfo()

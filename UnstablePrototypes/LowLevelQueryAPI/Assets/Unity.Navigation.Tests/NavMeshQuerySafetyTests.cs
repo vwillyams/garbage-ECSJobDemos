@@ -13,62 +13,69 @@ namespace Unity.Navigation.Tests
 	{
 		struct NavmeshCalculatPathJob : IJob
 		{
-			public NavMeshPathQuery query;
+			public NavMeshPathQuery pathQuery;
+			public NavMeshQuery navMeshQuery;
 
 			public void Execute()
 			{
-				TestPathQuery(query);
+				TestPathQuery(pathQuery, navMeshQuery);
 			}
 		}
-	    
+
 		[Test]
 		public void CreateAndDisposeQuery()
 		{
 			var query = new NavMeshPathQuery(NavMeshWorld.GetDefaultWorld(), 100, Allocator.Persistent);
 			query.Dispose();
 		}
-		
+
 		[Test]
 		public void NavMeshPathQueryWorksAfterChangingNavmesh()
 		{
 			var pathQuery = new NavMeshPathQuery(NavMeshWorld.GetDefaultWorld(), 100, Allocator.Persistent);
+			var navMeshQuery = new NavMeshQuery(NavMeshWorld.GetDefaultWorld(), Allocator.Persistent);
 			for (int i = 0; i < 100; i++)
 			{
 				ChangeNavMesh();
-				TestPathQuery(pathQuery);
+				TestPathQuery(pathQuery, navMeshQuery);
 			}
+			navMeshQuery.Dispose();
 			pathQuery.Dispose();
 		}
-	    	    
+
 		[Test]
 		public void JobIsCompletedBeforeMutatingNavMesh()
 		{
 			var job = new NavmeshCalculatPathJob();
-			job.query = new NavMeshPathQuery(NavMeshWorld.GetDefaultWorld(), 100, Allocator.Persistent);
+			job.pathQuery = new NavMeshPathQuery(NavMeshWorld.GetDefaultWorld(), 100, Allocator.Persistent);
+			job.navMeshQuery = new NavMeshQuery(NavMeshWorld.GetDefaultWorld(), Allocator.Persistent);
 			var jobDep = job.Schedule();
 			NavMeshWorld.GetDefaultWorld().AddDependency(jobDep);
-			
+
 			// @TODO: Isn't this job stuck on the jobdispatcher??? Why does this work?
 			ChangeNavMesh();
-		    
-			job.query.Dispose();
+
+			job.navMeshQuery.Dispose();
+			job.pathQuery.Dispose();
 		}
-		
+
 		[Test]
 		public void UnregisteredJobIsCompletedAndErrorBeforeMutatingMesh()
 		{
 			UnityEngine.TestTools.LogAssert.Expect(LogType.Error, new Regex("NavMeshWorld.AddDependency"));
 
 			var job = new NavmeshCalculatPathJob();
-			job.query = new NavMeshPathQuery(NavMeshWorld.GetDefaultWorld(), 100, Allocator.Persistent);
-			
+			job.pathQuery = new NavMeshPathQuery(NavMeshWorld.GetDefaultWorld(), 100, Allocator.Persistent);
+			job.navMeshQuery = new NavMeshQuery(NavMeshWorld.GetDefaultWorld(), Allocator.Persistent);
+
 			// Schedule job but forget to call NavMeshWorld.AddDependency
 			job.Schedule();
 			ChangeNavMesh();
-		    
-			job.query.Dispose();
+
+			job.navMeshQuery.Dispose();
+			job.pathQuery.Dispose();
 		}
-	    
+
 		[Test]
 		public void DisposeNavmeshQueryThenDestroyingNavmesh()
 		{
@@ -76,17 +83,17 @@ namespace Unity.Navigation.Tests
 			pathQuery.Dispose();
 			NavMesh.RemoveAllNavmeshData();
 		}
-		
-		
-		public static void AssertInitSlicedFindPathThrows(NavMeshPathQuery pathQuery)
+
+
+		public static void AssertInitSlicedFindPathThrows(NavMeshPathQuery pathQuery, NavMeshQuery navMeshQuery)
 		{
-			var startLocation = NavMeshQuery.MapLocation(Vector3.zero, Vector3.one, 0);
-			var endLocation = NavMeshQuery.MapLocation(new Vector3(5, 0, 0), Vector3.one, 0);
+			var startLocation = navMeshQuery.MapLocation(Vector3.zero, Vector3.one, 0);
+			var endLocation = navMeshQuery.MapLocation(new Vector3(5, 0, 0), Vector3.one, 0);
 
 			var costs = new NativeArray<float>(32, Allocator.Persistent);
 			for (int i = 0; i < costs.Length; i++)
 				costs[i] = 1.0F;
-		    
+
 			Assert.Throws<InvalidOperationException>(() => { pathQuery.InitSlicedFindPath(startLocation, endLocation, 0, costs); });
 			costs.Dispose();
 		}
@@ -95,11 +102,13 @@ namespace Unity.Navigation.Tests
 		public void DestroyingNavmeshWorldInvalidatesQueries()
 		{
 			var pathQuery = new NavMeshPathQuery(NavMeshWorld.GetDefaultWorld(), 100, Allocator.Persistent);
+			var navMeshQuery = new NavMeshQuery(NavMeshWorld.GetDefaultWorld(), Allocator.Persistent);
 			NavMesh.RemoveAllNavmeshData();
-			AssertInitSlicedFindPathThrows(pathQuery);
+			AssertInitSlicedFindPathThrows(pathQuery, navMeshQuery);
+			navMeshQuery.Dispose();
 			pathQuery.Dispose();
 		}
-		
+
 		[Test]
 		public void NavMeshQueryThrowsOnEmptyWorld()
 		{

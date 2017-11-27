@@ -34,6 +34,8 @@ public partial class CrowdSystem
     public struct MakePathRequestsJob : IJob
     {
         [ReadOnly]
+        public NavMeshQuery query;
+        [ReadOnly]
         public ComponentDataArray<CrowdAgent> agents;
 
         public ComponentDataArray<CrowdAgentNavigator> agentNavigators;
@@ -76,7 +78,7 @@ public partial class CrowdSystem
                     }
 
                     var agent = agents[index];
-                    if (!agent.location.valid)
+                    if (!query.IsValid(agent.location))
                         continue;
 
                     if (uniqueIdStore[0] == PathQueryQueueEcs.RequestEcs.invalidId)
@@ -196,7 +198,7 @@ public partial class CrowdSystem
             var i = 0;
             for (; i < agentNavigator.pathSize; ++i)
             {
-                if (path[i].polygon == agLoc.polygon)
+                if (path[i] == agLoc.polygon)
                     break;
             }
 
@@ -243,6 +245,8 @@ public partial class CrowdSystem
     public struct UpdateVelocityJob : IJobParallelFor
     {
         [ReadOnly]
+        public NavMeshQuery query;
+        [ReadOnly]
         public FixedArrayArray<PolygonID> paths;
 
         public ComponentDataArray<CrowdAgentNavigator> agentNavigators;
@@ -264,7 +268,7 @@ public partial class CrowdSystem
         {
             var agent = agents[index];
             var agentNavigator = agentNavigators[index];
-            if (!agentNavigator.active || !agent.location.valid)
+            if (!agentNavigator.active || !query.IsValid(agent.location))
             {
                 if (math.any(agent.velocity))
                 {
@@ -284,7 +288,7 @@ public partial class CrowdSystem
                 {
                     var cornerCount = 0;
                     var path = paths[index];
-                    var pathStatus = PathUtils.FindStraightPath(currentPos, endPos, path, agentNavigator.pathSize, ref straightPath, ref straightPathFlags, ref vertexSide, ref cornerCount, straightPath.Length);
+                    var pathStatus = PathUtils.FindStraightPath(query, currentPos, endPos, path, agentNavigator.pathSize, ref straightPath, ref straightPathFlags, ref vertexSide, ref cornerCount, straightPath.Length);
 
                     if (pathStatus.IsSuccess() && cornerCount > 1)
                     {
@@ -316,6 +320,9 @@ public partial class CrowdSystem
 
     public struct MoveLocationsJob : IJobParallelFor
     {
+        [ReadOnly]
+        public NavMeshQuery query;
+
         public ComponentDataArray<CrowdAgent> agents;
         public float dt;
 
@@ -324,18 +331,18 @@ public partial class CrowdSystem
             var agent = agents[index];
             var wantedPos = agent.worldPosition + agent.velocity * dt;
 
-            if (agent.location.valid)
+            if (query.IsValid(agent.location))
             {
                 if (math.any(agent.velocity))
                 {
-                    agent.location = NavMeshQuery.MoveLocation(agent.location, wantedPos);
+                    agent.location = query.MoveLocation(agent.location, wantedPos);
                 }
             }
             else
             {
                 // Constrain the position using the location
                 // TODO There are two positions that could be mapped: current agent position or the wanted position [#adriant]
-                agent.location = NavMeshQuery.MapLocation(wantedPos, 3 * Vector3.one, 0);
+                agent.location = query.MapLocation(wantedPos, 3 * Vector3.one, 0);
             }
             agent.worldPosition = agent.location.position;
 

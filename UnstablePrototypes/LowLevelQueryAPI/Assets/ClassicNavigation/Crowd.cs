@@ -24,6 +24,7 @@ public class Crowd : MonoBehaviour
     TransformAccessArray m_TransformArray;
     JobHandle m_WriteFence;
     PathQueryQueue m_QueryQueue;
+    NavMeshQuery m_NavMeshQuery;
 
     void OnEnable()
     {
@@ -35,11 +36,12 @@ public class Crowd : MonoBehaviour
         m_RequestHandles = new NativeArray<PathQueryQueue.Handle>(m_Count, Allocator.Persistent);
         m_TransformArray = new TransformAccessArray(m_Count, -1);
         m_Paths = new List<PolygonPath>();
+        m_NavMeshQuery = new NavMeshQuery(NavMeshWorld.GetDefaultWorld(), Allocator.Persistent);
 
         for (int i = 0; i < m_Count; ++i)
         {
             m_Positions[i] = new Vector3(Random.Range(-10.0f, 10.0f), 0, Random.Range(-10.0f, 10.0f));
-            m_Locations[i] = NavMeshQuery.MapLocation(m_Positions[i], 10.0f * Vector3.one, 0, NavMesh.AllAreas);
+            m_Locations[i] = m_NavMeshQuery.MapLocation(m_Positions[i], 10.0f * Vector3.one, 0, NavMesh.AllAreas);
 
             var path = new PolygonPath();
             m_Paths.Add(path);
@@ -60,6 +62,7 @@ public class Crowd : MonoBehaviour
         m_RequestHandles.Dispose();
         m_TransformArray.Dispose();
         m_QueryQueue.Dispose();
+        m_NavMeshQuery.Dispose();
         foreach (var path in m_Paths)
         {
             if (path.polygons.IsCreated)
@@ -82,7 +85,7 @@ public class Crowd : MonoBehaviour
             int i = 0;
             for (; i < path.size; ++i)
             {
-                if (path.polygons[i].polygon == loc[index].polygon)
+                if (path.polygons[i] == loc[index].polygon)
                     break;
             }
             if (i == 0) return;
@@ -100,6 +103,8 @@ public class Crowd : MonoBehaviour
     //  this has to run on main thread (no IJobParallelFor)
     public struct UpdateVelocityJob //: IJobParallelFor
     {
+        [ReadOnly]
+        public NavMeshQuery query;
         [ReadOnly]
         public List<PolygonPath> paths;
         [ReadOnly]
@@ -121,7 +126,7 @@ public class Crowd : MonoBehaviour
                 var straightPathFlags = new NativeArray<NavMeshStraightPathFlags>(straightPath.Length, Allocator.TempJob);
                 var vertexSide = new NativeArray<float>(straightPath.Length, Allocator.TempJob);
                 var cornerCount = 0;
-                var pathStatus = PathUtils.FindStraightPath(currentPos, endPos, p.polygons, p.size, ref straightPath, ref straightPathFlags, ref vertexSide, ref cornerCount, straightPath.Length);
+                var pathStatus = PathUtils.FindStraightPath(query, currentPos, endPos, p.polygons, p.size, ref straightPath, ref straightPathFlags, ref vertexSide, ref cornerCount, straightPath.Length);
                 steeringTarget = pathStatus == PathQueryStatus.Success && cornerCount > 1 ? straightPath[1].position : currentPos;
 
                 straightPath.Dispose();
@@ -151,10 +156,11 @@ public class Crowd : MonoBehaviour
     public struct MoveLocationsJob : IJobParallelFor
     {
         [ReadOnly]
+        public NavMeshQuery query;
+        [ReadOnly]
         public NativeArray<Vector3> vel;
         public NativeArray<Vector3> pos;
         public NativeArray<NavMeshLocation> loc;
-        NavMeshQuery query;
         public float dt;
 
         public void Execute(int index)
@@ -163,7 +169,7 @@ public class Crowd : MonoBehaviour
             pos[index] = pos[index] + vel[index] * dt;
 
             // Constrain the position using the location
-            var newLoc = NavMeshQuery.MoveLocation(loc[index], pos[index]);
+            var newLoc = query.MoveLocation(loc[index], pos[index]);
             pos[index] = newLoc.position;
             loc[index] = newLoc;
 
@@ -258,10 +264,10 @@ public class Crowd : MonoBehaviour
         var advance = new AdvancePathJob() { loc = m_Locations, paths = m_Paths };
         for (int i = 0; i < m_Count; ++i) advance.Execute(i);
 
-        var vel = new UpdateVelocityJob() { paths = m_Paths, pos = m_Positions, vel = m_Velocities };
+        var vel = new UpdateVelocityJob() { query = m_NavMeshQuery, paths = m_Paths, pos = m_Positions, vel = m_Velocities };
         for (int i = 0; i < m_Count; ++i) vel.Execute(i);
 
-        var move = new MoveLocationsJob() { pos = m_Positions, loc = m_Locations, vel = m_Velocities, dt = Time.deltaTime };
+        var move = new MoveLocationsJob() { query = m_NavMeshQuery, pos = m_Positions, loc = m_Locations, vel = m_Velocities, dt = Time.deltaTime };
         var write = new WriteTransformJob() { pos = m_Positions, vel = m_Velocities };
 
         var moveFence = move.Schedule(m_Count, 10);

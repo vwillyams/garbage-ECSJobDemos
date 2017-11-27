@@ -41,6 +41,7 @@ public partial class CrowdSystem : JobComponentSystem
     const int k_MaxQueryIterationsPerTick = 100;
     const int k_AgentsBatchSize = 50;
 
+    NavMeshQuery m_NavMeshQuery;
     PathQueryQueueEcs[] m_QueryQueues;
     bool[] m_IsEmptyQueryQueue;
     UpdateQueriesJob[] m_QueryJobs;
@@ -91,6 +92,7 @@ public partial class CrowdSystem : JobComponentSystem
         m_CurrentAgentIndex = new NativeArray<int>(1, Allocator.Persistent);
         m_CurrentAgentIndex[0] = 0;
 
+        m_NavMeshQuery = new NavMeshQuery(world, Allocator.Persistent);
         m_QueryQueues = new PathQueryQueueEcs[queryCount];
         m_QueryJobs = new UpdateQueriesJob[queryCount];
         m_AfterQueriesProcessed = new NativeArray<JobHandle>(queryCount, Allocator.Persistent);
@@ -122,6 +124,7 @@ public partial class CrowdSystem : JobComponentSystem
         m_PathRequestsRange.Dispose();
         m_UniqueIdStore.Dispose();
         m_CurrentAgentIndex.Dispose();
+        m_NavMeshQuery.Dispose();
     }
 
     public void OnAddElements(int numberOfAdded)
@@ -297,6 +300,7 @@ public partial class CrowdSystem : JobComponentSystem
 
         var makeRequestsJob = new MakePathRequestsJob
         {
+            query = m_NavMeshQuery,
             agents = m_Crowd.agents,
             agentNavigators = m_Crowd.agentNavigators,
             planPathForAgent = m_EmptyPlanPathForAgent,
@@ -356,6 +360,7 @@ public partial class CrowdSystem : JobComponentSystem
         var totalCornersBuffer = m_Crowd.agents.Length * maxCornersPerAgent;
         var vel = new UpdateVelocityJob
         {
+            query = m_NavMeshQuery,
             agents = m_Crowd.agents,
             agentNavigators = m_Crowd.agentNavigators,
             paths = m_Crowd.paths,
@@ -365,7 +370,7 @@ public partial class CrowdSystem : JobComponentSystem
         };
         var afterVelocitiesUpdated = vel.Schedule(m_Crowd.agents.Length, k_AgentsBatchSize, afterPathsTrimmed);
 
-        var move = new MoveLocationsJob { agents = m_Crowd.agents, dt = Time.deltaTime };
+        var move = new MoveLocationsJob { query = m_NavMeshQuery, agents = m_Crowd.agents, dt = Time.deltaTime };
         var afterAgentsMoved = move.Schedule(m_Crowd.agents.Length, k_AgentsBatchSize, afterVelocitiesUpdated);
 
         //var arrivalJob = new CheckArrivalToDestinationJob { agents = m_Crowd.agents };

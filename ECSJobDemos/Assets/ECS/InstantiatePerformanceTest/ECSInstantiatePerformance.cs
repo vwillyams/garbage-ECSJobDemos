@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine.ECS;
 using UnityEngine.Profiling;
 using Unity.Collections.LowLevel.Unsafe;
@@ -38,17 +39,91 @@ struct Component128Bytes : IComponentData
 
 public class ECSInstantiatePerformance : MonoBehaviour
 {
+	[ComputeJobOptimization]
+	struct Iterate_ComponentDataArray : IJob
+	{
+		public ComponentDataArray<Component4Bytes> array;
+		
+		public void Execute()
+		{
+			for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
+			{
+				float sum = 0;
+				for (int i = 0; i < array.Length; ++i)
+					sum += array[i].value;
+
+				if (sum != 0.0F)
+					throw new System.InvalidOperationException();
+			}
+		}
+	}
+
+	[ComputeJobOptimization]
+	unsafe struct Iterate_FloatPointer : IJob
+	{
+		[NativeDisableUnsafePtrRestriction]
+		public float* 	array;
+		public int 	length;
+		
+		public void Execute()
+		{
+			for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
+			{
+				float sum = 0;
+				for (int i = 0; i < length; ++i)
+					sum += array[i];
+
+				if (sum != 0.0F)
+					throw new System.InvalidOperationException();
+			}
+		}
+	}
+
+	[ComputeJobOptimization]
+	struct Iterate_NativeArray : IJob
+	{
+		public NativeArray<float> 	array;
+		
+		public void Execute()
+		{
+			for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
+			{
+				float sum = 0;
+				for (int i = 0; i < array.Length; ++i)
+					sum += array[i];
+
+				if (sum != 0.0F)
+					throw new System.InvalidOperationException();
+			}
+		}
+	}
+
+	[ComputeJobOptimization]
+	struct Iterate_NativeSlice : IJob
+	{
+		public NativeSlice<float> 	slice;
+		
+		public void Execute()
+		{
+			for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
+			{
+				float sum = 0;
+				for (int i = 0; i < slice.Length; ++i)
+					sum += slice[i];
+
+				if (sum != 0.0F)
+					throw new System.InvalidOperationException();
+			}
+		}
+	}
+	
 	CustomSampler setupSampler;
 	CustomSampler instantiateSampler;
 	CustomSampler destroySampler;
-	CustomSampler iterateSampler;
 	CustomSampler iterateForEachSampler;
     CustomSampler memcpySampler;
 	CustomSampler instantiateMemcpySampler ;
-	CustomSampler iterateUnsafeSampler;
 	CustomSampler iterateArraySampler;
-	CustomSampler iterateNativeArraySampler;
-	CustomSampler iterateNativeSliceSampler;
 	 
     void Awake()
 	{
@@ -56,13 +131,9 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		instantiateSampler = CustomSampler.Create("InstantiateTest");
 		instantiateMemcpySampler = CustomSampler.Create("InstantiateTest - Memcpy");
 		destroySampler = CustomSampler.Create("DestroyTest");
-		iterateSampler = CustomSampler.Create("IterateTest - ComponentDataArray<Component4Bytes>");
 		iterateForEachSampler = CustomSampler.Create("IterateTest - foreach() - ComponentGroupEnumerable<Component4Bytes*>");
         memcpySampler = CustomSampler.Create("Iterate - Memcpy");
-		iterateUnsafeSampler = CustomSampler.Create("Iterate - Unsafe Ptr float");
 		iterateArraySampler = CustomSampler.Create("Iterate - float[]");
-		iterateNativeArraySampler = CustomSampler.Create("Iterate - NativeArray<float>");
-		iterateNativeSliceSampler = CustomSampler.Create("Iterate - NativeSlice<float>");
     }
 
 	unsafe void TestManagedArray()
@@ -88,27 +159,11 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		var array = new NativeArray<float>(PerformanceTestConfiguration.InstanceCount, Allocator.Persistent);
 		setupSampler.End();
 
-		iterateNativeArraySampler.Begin();
-		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations;iter++)
-		{
-			float sum = 0;
-			for (int i = 0; i != array.Length; i++)
-				sum += array[i];
-			Assert.AreEqual(0.0F, sum);
-		}
-		iterateNativeArraySampler.End();
-		
+		var jobArray = new Iterate_NativeArray() { array = array };
+		jobArray.Run();
 
-		iterateNativeSliceSampler.Begin();
-		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations;iter++)
-		{
-			var slice = new NativeSlice<float>(array);
-			float sum = 0;
-			for (int i = 0; i != slice.Length; i++)
-				sum += slice[i];
-			Assert.AreEqual(0.0F, sum);
-		}
-		iterateNativeSliceSampler.End();
+		var jobSlice = new Iterate_NativeSlice() { slice = array };
+		jobSlice.Run();
 
 		setupSampler.Begin();
 		array.Dispose();
@@ -137,17 +192,8 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		}
 		memcpySampler.End();
 
-		iterateUnsafeSampler.Begin();
-		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
-		{
-			float* ptr = src;
-			float sum = 0;
-			int count = PerformanceTestConfiguration.InstanceCount;
-			for (int i = 0; i != count; i++)
-				sum += ptr[i];
-			Assert.AreEqual(0.0F, sum);
-		}
-		iterateUnsafeSampler.End();
+		var jobFloatPtr = new Iterate_FloatPointer() { array = src, length = PerformanceTestConfiguration.InstanceCount };
+		jobFloatPtr.Run();
 		
 		setupSampler.Begin();
 		UnsafeUtility.Free((IntPtr)src, Allocator.Persistent);
@@ -185,16 +231,8 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		entityManager.Instantiate (archetype, instances);
 		instantiateSampler.End();
 
-		iterateSampler.Begin ();
-		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
-		{
-			var array = group.GetComponentDataArray<Component4Bytes>();
-			float sum = 0;
-			for (int i = 0; i < array.Length; ++i)
-				sum += array[i].value;
-			Assert.AreEqual(0.0F, sum);
-		}
-		iterateSampler.End ();
+		var componentDataArrayJob = new Iterate_ComponentDataArray() { array = group.GetComponentDataArray<Component4Bytes>() };
+		componentDataArrayJob.Run();
 
 		var enumerator = new ComponentGroupEnumerable<EntityIter>(entityManager);
 			

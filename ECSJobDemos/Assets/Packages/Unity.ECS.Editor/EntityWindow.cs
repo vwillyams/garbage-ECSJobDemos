@@ -148,6 +148,17 @@ namespace UnityEditor.ECS
             }
         }
 
+        void ShowNoSystemsNotification()
+        {
+            GUILayout.FlexibleSpace();
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            GUILayout.Label("No ComponentSystems loaded. (Try pushing Play)");
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+            GUILayout.FlexibleSpace();
+        }
+
         void OnGUI ()
         {
             InitIfNeeded();
@@ -155,7 +166,7 @@ namespace UnityEditor.ECS
             systemsNull = systems == null;
             if (systemsNull)
             {
-                GUILayout.Label("No ComponentSystems loaded. (Try pushing Play)");
+                ShowNoSystemsNotification();
                 return;
             }
 

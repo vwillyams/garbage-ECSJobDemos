@@ -150,6 +150,17 @@ namespace UnityEngine.ECS.Experimental.Slow
                     m_ComponentCaches[i].UpdateCache(m_Index);
                 for (int i = 0; i != m_ComponentDataCaches.Length; i++)
                     m_ComponentDataCaches[i].UpdateCache(m_Index);
+
+                if (m_ComponentDataCaches.Length != 0)
+                {
+                    m_CacheBeginIndex = m_ComponentDataCaches[0].CachedBeginIndex;
+                    m_CacheEndIndex = m_ComponentDataCaches[0].CachedEndIndex;
+                }
+                else
+                {
+                    m_CacheBeginIndex = m_ComponentCaches[0].CachedBeginIndex;
+                    m_CacheEndIndex = m_ComponentCaches[0].CachedEndIndex;
+                }
             }
     
             public bool MoveNext()
@@ -191,7 +202,7 @@ namespace UnityEngine.ECS.Experimental.Slow
 
                     for (int i = 0; i != m_ComponentDataCaches.Length; i++)
                     {
-                        void* componentPtr = (void*)(m_ComponentDataCaches[i].CachedPtr + (m_ComponentDataCaches[i].CachedSizeOf * m_Index));
+                        void* componentPtr = (void*)((byte*)m_ComponentDataCaches[i].CachedPtr + (m_ComponentDataCaches[i].CachedSizeOf * m_Index));
                         void** valuePtrOffsetted = (void**)(valuePtr + m_ComponentDataFieldOffsets[i]);
 
                         *valuePtrOffsetted = componentPtr;

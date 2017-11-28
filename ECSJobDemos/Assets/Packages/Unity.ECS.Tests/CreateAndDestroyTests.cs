@@ -166,6 +166,25 @@ namespace UnityEngine.ECS.Tests
 			var arch2 = m_Manager.CreateArchetype(typeof(EcsTestData));
 			Assert.AreEqual(arch, arch2);
 		}
+
+		[Test]
+		public void SubtractiveArchetypeReactToAddRemoveComponent()
+		{
+			var subtractiveArch = m_Manager.CreateComponentGroup(ComponentType.Subtractive(typeof(EcsTestData)), typeof(EcsTestData2));
+
+			var archetype = m_Manager.CreateArchetype(typeof(EcsTestData), typeof(EcsTestData2));
+
+			var entity = m_Manager.CreateEntity(archetype);
+			Assert.AreEqual(0, subtractiveArch.GetComponentDataArray<EcsTestData2>().Length);
+
+			m_Manager.RemoveComponent<EcsTestData>(entity);
+			Assert.AreEqual(1, subtractiveArch.GetComponentDataArray<EcsTestData2>().Length);
+
+			m_Manager.AddComponent<EcsTestData>(entity, new EcsTestData());
+			Assert.AreEqual(0, subtractiveArch.GetComponentDataArray<EcsTestData2>().Length);
+
+			m_Manager.DestroyEntity(entity);
+		}
 	}
 /*
 	public class RefReturnsTests

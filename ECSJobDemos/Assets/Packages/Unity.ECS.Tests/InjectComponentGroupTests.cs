@@ -39,6 +39,21 @@ namespace UnityEngine.ECS.Tests
 			public override void OnUpdate() { base.OnUpdate (); }
 		}
 
+		[DisableAutoCreation]
+		public class SubtractiveSystem : ComponentSystem
+		{
+			public struct Datas
+			{
+				public ComponentDataArray<EcsTestData> Data;
+				public SubtractiveComponent<EcsTestData2> Data2;
+			}
+
+			[InjectComponentGroup] 
+			public Datas Group;
+
+			public override void OnUpdate() { base.OnUpdate (); }
+		}
+
 		
 		
 		[Test]
@@ -52,6 +67,22 @@ namespace UnityEngine.ECS.Tests
             readOnlySystem.OnUpdate ();
             Assert.AreEqual (2, readOnlySystem.Group.Data[0].value);
             Assert.Throws<System.InvalidOperationException>(()=> { readOnlySystem.Group.Data[0] = new EcsTestData(); });
+        }
+
+		[Test]
+        public void SubtractiveComponent()
+        {
+            var subtractiveSystem = DependencyManager.GetBehaviourManager<SubtractiveSystem> ();
+
+            var go = m_Manager.CreateEntity (new ComponentType[0]);
+            m_Manager.AddComponent (go, new EcsTestData(2));
+
+            subtractiveSystem.OnUpdate ();
+            Assert.AreEqual (1, subtractiveSystem.Group.Data.Length);
+            Assert.AreEqual (2, subtractiveSystem.Group.Data[0].value);
+            m_Manager.AddComponent (go, new EcsTestData2());
+            subtractiveSystem.OnUpdate ();
+            Assert.AreEqual (0, subtractiveSystem.Group.Data.Length);
         }
         
         [Test]

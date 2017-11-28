@@ -6,14 +6,24 @@ using System;
 
 namespace UnityEngine.ECS
 {
+    public struct SubtractiveComponent<T> where T : struct, IComponentData
+    {}
+
     public struct ComponentType
     {
+        public enum AccessMode
+        {
+            ReadWrite,
+            ReadOnly,
+            Subtractive
+        }
         public static ComponentType Create<T>()
         {
             ComponentType type;
             type.typeIndex = TypeManager.GetTypeIndex<T>();
             type.sharedComponentIndex = -1;
             type.readOnly = 0;
+            type.subtractive = 0;
             type.FixedArrayLength = -1;
             return type;
         }
@@ -24,6 +34,7 @@ namespace UnityEngine.ECS
             t.typeIndex = TypeManager.GetTypeIndex(type);
             t.sharedComponentIndex = -1;
             t.readOnly = 1;
+            t.subtractive = 0;
             t.FixedArrayLength = -1;
             return t;
         }
@@ -33,15 +44,38 @@ namespace UnityEngine.ECS
             t.typeIndex = TypeManager.GetTypeIndex<T>();
             t.sharedComponentIndex = -1;
             t.readOnly = 1;
+            t.subtractive = 0;
             t.FixedArrayLength = -1;
             return t;
         }
 
-        public ComponentType(Type type, bool isReadOnly = false)
+        public static ComponentType Subtractive(Type type)
+        {
+            ComponentType t;
+            t.typeIndex = TypeManager.GetTypeIndex(type);
+            t.sharedComponentIndex = -1;
+            t.readOnly = 0;
+            t.subtractive = 1;
+            t.FixedArrayLength = -1;
+            return t;
+        }
+        public static ComponentType Subtractive<T>()
+        {
+            ComponentType t;
+            t.typeIndex = TypeManager.GetTypeIndex<T>();
+            t.sharedComponentIndex = -1;
+            t.readOnly = 0;
+            t.subtractive = 1;
+            t.FixedArrayLength = -1;
+            return t;
+        }
+
+        public ComponentType(Type type, AccessMode accessMode = AccessMode.ReadWrite)
         {
             typeIndex = TypeManager.GetTypeIndex(type);
             sharedComponentIndex = -1;
-            readOnly = isReadOnly ? 1 : 0;
+            readOnly = (accessMode == AccessMode.ReadOnly) ? 1 : 0;
+            subtractive = (accessMode == AccessMode.Subtractive) ? 1 : 0;
             FixedArrayLength = -1;
         }
         
@@ -56,6 +90,7 @@ namespace UnityEngine.ECS
             t.typeIndex = TypeManager.GetTypeIndex(type);
             t.sharedComponentIndex = -1;
             t.readOnly = 0;
+            t.subtractive = 0;
             t.FixedArrayLength = numElements;
             return t;
         }
@@ -77,7 +112,7 @@ namespace UnityEngine.ECS
 
         public static implicit operator ComponentType(Type type)
         {
-            return new ComponentType(type, false);
+            return new ComponentType(type, ComponentType.AccessMode.ReadWrite);
         }
 
         static public bool operator <(ComponentType lhs, ComponentType rhs)
@@ -118,6 +153,7 @@ namespace UnityEngine.ECS
 
         public int typeIndex;
         public int readOnly;
+        public int subtractive;
         public int sharedComponentIndex;
         public int FixedArrayLength;
 

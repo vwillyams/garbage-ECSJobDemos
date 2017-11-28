@@ -20,6 +20,7 @@ namespace UnityEngine.ECS
 	    FieldInfo 			m_LengthInjection;
 
 	    InjectionData[]     m_ComponentInjections;
+	    ComponentType[]     m_ComponentRequirements;
 
 	    ComponentGroup 		m_EntityGroup;
 
@@ -53,16 +54,19 @@ namespace UnityEngine.ECS
             }
         }
 
-		InjectComponentGroupData(EntityManager entityManager, FieldInfo groupField, InjectionData[] componentInjections, FieldInfo entityArrayInjection, FieldInfo transformAccessArrayInjection, FieldInfo lengthInjection)
+		InjectComponentGroupData(EntityManager entityManager, FieldInfo groupField, InjectionData[] componentInjections, FieldInfo entityArrayInjection, FieldInfo transformAccessArrayInjection, FieldInfo lengthInjection, ComponentType[] componentRequirements)
 		{
             var transformsCount = transformAccessArrayInjection != null ? 1 : 0;
-			var requiredComponentTypes = new ComponentType[componentInjections.Length + transformsCount];
+			var requiredComponentTypes = new ComponentType[componentInjections.Length + transformsCount + componentRequirements.Length];
 
             for (int i = 0; i != componentInjections.Length; i++)
-                requiredComponentTypes[i] = new ComponentType(componentInjections[i].genericType, componentInjections[i].isReadOnly);
+                requiredComponentTypes[i] = new ComponentType(componentInjections[i].genericType, componentInjections[i].isReadOnly ? ComponentType.AccessMode.ReadOnly : ComponentType.AccessMode.ReadWrite);
 		    
 		    if (transformsCount != 0)
 		        requiredComponentTypes[componentInjections.Length] = typeof(Transform);
+
+            for (int i = 0; i != componentRequirements.Length; i++)
+                requiredComponentTypes[componentInjections.Length + transformsCount + i] = componentRequirements[i];
 
             m_EntityGroup = entityManager.CreateComponentGroup(requiredComponentTypes);
 
@@ -118,14 +122,15 @@ namespace UnityEngine.ECS
 		    FieldInfo transformAccessArrayField;
 		    FieldInfo lengthField;
 		    var componentInjections = new List<InjectionData>();
-		    var error = CollectInjectedGroup(injectedGroupType, out entityArrayField, out transformAccessArrayField, out lengthField, componentInjections);
+		    var componentRequirements = new List<ComponentType>();
+		    var error = CollectInjectedGroup(injectedGroupType, out entityArrayField, out transformAccessArrayField, out lengthField, componentInjections, componentRequirements);
 		    if (error != null)
 			    throw new System.InvalidOperationException(error);
 
-		    return new InjectComponentGroupData(entityManager, groupField, componentInjections.ToArray(), entityArrayField, transformAccessArrayField, lengthField);
+		    return new InjectComponentGroupData(entityManager, groupField, componentInjections.ToArray(), entityArrayField, transformAccessArrayField, lengthField, componentRequirements.ToArray());
 	    }
 
-	    static string CollectInjectedGroup(Type injectedGroupType, out FieldInfo entityArrayField, out FieldInfo transformAccessArrayField, out FieldInfo lengthField, List<InjectionData> componentInjections)
+	    static string CollectInjectedGroup(Type injectedGroupType, out FieldInfo entityArrayField, out FieldInfo transformAccessArrayField, out FieldInfo lengthField, List<InjectionData> componentInjections, List<ComponentType> componentRequirements)
 	    {
 			//@TODO: Improved error messages... should include full struct pathname etc.
 		    
@@ -146,6 +151,10 @@ namespace UnityEngine.ECS
 				    injection.injection = (IUpdateInjection)Activator.CreateInstance(injectionType);
 
 				    componentInjections.Add (injection);
+			    }
+			    else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(SubtractiveComponent<>))
+			    {
+					componentRequirements.Add (ComponentType.Subtractive(field.FieldType.GetGenericArguments()[0]));
 			    }
 			    else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(FixedArrayArray<>))
 			    {

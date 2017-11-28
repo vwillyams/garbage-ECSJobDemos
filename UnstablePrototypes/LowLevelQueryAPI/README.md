@@ -1,5 +1,5 @@
 This project is meant to work with code from the native branch `scripting/jobsystem/make-public/demo` .\
-Revision needed: **723ff1813610** (2017-11-27 17:03:54 +0100)\
+Revision needed: **a3f41f772319** (2017-11-28 15:03:00 +0100)\
 Good build: not available currently
 
 Example scenes:
@@ -23,6 +23,7 @@ Example scenes:
 Exclusive API featured:
 
     namespace UnityEngine.Experimental.AI
+
     struct PolygonID
 
     struct NavMeshLocation
@@ -58,14 +59,14 @@ Exclusive API featured:
         AddDependency()
         NavMeshWorld.GetDefaultWorld()
 
-    struct NavMeshPathQuery
+    struct NavMeshQuery
+        Dispose()
+
         InitSlicedFindPath()
         UpdateSlicedFindPath()
         FinalizeSlicedFindPath()
         GetPathResult()
-        Dispose()
 
-    struct NavMeshQuery
         IsValid(PolygonID polygon)
         IsValid(NavMeshLocation location)
         MapLocation()

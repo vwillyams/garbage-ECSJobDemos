@@ -25,8 +25,7 @@ public class PathQueryQueue
         }
     };
 
-    NavMeshQuery m_NavMeshQuery;
-    NavMeshPathQuery m_Query;
+    NavMeshQuery m_Query;
     Queue<Request> m_Requests;
     List<PolygonPath> m_Results;
     NativeArray<float> m_Costs;
@@ -45,8 +44,7 @@ public class PathQueryQueue
     public PathQueryQueue()
     {
         var world = NavMeshWorld.GetDefaultWorld();
-        m_NavMeshQuery = new NavMeshQuery(world, Allocator.Persistent);
-        m_Query = new NavMeshPathQuery(world, 2000, Allocator.Persistent);
+        m_Query = new NavMeshQuery(world, Allocator.Persistent, 2000);
         m_Requests = new Queue<Request>();
         m_Results = new List<PolygonPath>();
         m_Costs = new NativeArray<float>(32, Allocator.Persistent);
@@ -58,7 +56,6 @@ public class PathQueryQueue
     {
         m_Costs.Dispose();
         m_Query.Dispose();
-        m_NavMeshQuery.Dispose();
 
         foreach (var path in m_Results)
         {
@@ -118,8 +115,8 @@ public class PathQueryQueue
                 // Initialize a new request
                 var req = m_Requests.Dequeue();
                 m_Current.handle = req.handle;
-                m_Current.start = m_NavMeshQuery.MapLocation(req.start, 10.0f * Vector3.one, 0, -1);
-                m_Current.end = m_NavMeshQuery.MapLocation(req.end, 10.0f * Vector3.one, 0, -1);
+                m_Current.start = m_Query.MapLocation(req.start, 10.0f * Vector3.one, 0, -1);
+                m_Current.end = m_Query.MapLocation(req.end, 10.0f * Vector3.one, 0, -1);
 
                 // TODO: check the status returned by InitSlicedFindPath()
                 m_Query.InitSlicedFindPath(m_Current.start, m_Current.end, 0, m_Costs, -1);

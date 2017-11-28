@@ -44,10 +44,10 @@ namespace Unity.Navigation.Tests
 	        m_NavMeshInstance = NavMesh.AddNavMeshData(m_NavMeshData);
         }
 
-	    public static void TestPathQuery(NavMeshPathQuery pathQuery, NavMeshQuery navMeshQuery)
+	    public static void TestPathQuery(NavMeshQuery pathQuery)
 	    {
-		    var startLocation = navMeshQuery.MapLocation(Vector3.zero, Vector3.one, 0);
-		    var endLocation = navMeshQuery.MapLocation(new Vector3(5, 0, 0), Vector3.one, 0);
+		    var startLocation = pathQuery.MapLocation(Vector3.zero, Vector3.one, 0);
+		    var endLocation = pathQuery.MapLocation(new Vector3(5, 0, 0), Vector3.one, 0);
 
 		    var costs = new NativeArray<float>(32, Allocator.Persistent);
 		    for (int i = 0; i < costs.Length; i++)

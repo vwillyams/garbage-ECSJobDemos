@@ -45,18 +45,28 @@ namespace UnityEngine.ECS
             grp->requiredComponentsCount = requiredCount;
             grp->requiredComponents = (ComponentType*)m_GroupDataChunkAllocator.Construct(sizeof(ComponentType) * requiredCount, 4, requiredTypes);
 
-            //@TODO: Allow creation of ComponentGroup to understand read only types...
-            int* types = (int*)m_GroupDataChunkAllocator.Allocate(sizeof(int) * requiredCount, 4);
             grp->readerTypesCount = 0;
             grp->writerTypesCount = 0;
 
             for (int i = 0; i != requiredCount;i++)
             {
-                types[i] = requiredTypes[i].typeIndex;
-                grp->writerTypesCount++;
+                if (requiredTypes[i].readOnly != 0)
+                    grp->readerTypesCount++;
+                else
+                    grp->writerTypesCount++;
             }
-            grp->writerTypes = types;
-            grp->readerTypes = null;
+            grp->readerTypes = (int*)m_GroupDataChunkAllocator.Allocate(sizeof(int) * grp->readerTypesCount, 4);
+            grp->writerTypes = (int*)m_GroupDataChunkAllocator.Allocate(sizeof(int) * grp->writerTypesCount, 4);
+
+            int curReader = 0;
+            int curWriter = 0;
+            for (int i = 0; i != requiredCount;i++)
+            {
+                if (requiredTypes[i].readOnly != 0)
+                    grp->readerTypes[curReader++] = requiredTypes[i].typeIndex;
+                else
+                    grp->writerTypes[curWriter++] = requiredTypes[i].typeIndex;
+            }
 
             grp->requiredComponents = (ComponentType*)m_GroupDataChunkAllocator.Construct(sizeof(ComponentType) * requiredCount, 4, requiredTypes);
 

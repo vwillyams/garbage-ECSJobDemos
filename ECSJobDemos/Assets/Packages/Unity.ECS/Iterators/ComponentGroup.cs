@@ -263,7 +263,7 @@ namespace UnityEngine.ECS
             }
         }
 
-        internal ComponentDataArrayCache GetComponentDataArrayCache(int componentType, out int outLength, out int componentIndex)
+        internal ComponentChunkIterator GetComponentChunkIterator(int componentType, out int outLength, out int componentIndex)
         {
             componentIndex = 0;
             while (componentIndex < m_GroupData->requiredComponentsCount && m_GroupData->requiredComponents[componentIndex].typeIndex != componentType)
@@ -287,8 +287,8 @@ namespace UnityEngine.ECS
             outLength = length;
 
             if (last == null)
-                return new ComponentDataArrayCache(null, 0);
-            return new ComponentDataArrayCache(last->archetypeSegments + componentIndex, length);
+                return new ComponentChunkIterator(null, 0);
+            return new ComponentChunkIterator(last->archetypeSegments + componentIndex, length);
         }
 
         public ComponentDataArray<T> GetComponentDataArray<T>() where T : struct, IComponentData
@@ -297,7 +297,7 @@ namespace UnityEngine.ECS
             int componentIndex;
             int typeIndex = TypeManager.GetTypeIndex<T>();
 
-            var cache = GetComponentDataArrayCache(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
+            var cache = GetComponentChunkIterator(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             return new ComponentDataArray<T>(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex, IsReadOnly(componentIndex)));
 #else
@@ -311,7 +311,7 @@ namespace UnityEngine.ECS
             int componentIndex;
             int typeIndex = TypeManager.GetTypeIndex<T>();
 
-            var cache = GetComponentDataArrayCache(typeIndex, out length, out componentIndex);
+            var cache = GetComponentChunkIterator(typeIndex, out length, out componentIndex);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             return new FixedArrayArray<T>(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex, false));
 #else
@@ -324,7 +324,7 @@ namespace UnityEngine.ECS
             int length;
             int componentIndex;
             int typeIndex = TypeManager.GetTypeIndex<Entity>();
-            var cache = GetComponentDataArrayCache(typeIndex, out length, out componentIndex);
+            var cache = GetComponentChunkIterator(typeIndex, out length, out componentIndex);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             return new EntityArray(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex, false));
 #else
@@ -336,7 +336,7 @@ namespace UnityEngine.ECS
             int length;
             int componentIndex;
 
-            var cache = GetComponentDataArrayCache(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
+            var cache = GetComponentChunkIterator(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
             return new ComponentArray<T>(cache, length, m_TypeManager);
         }
 
@@ -346,7 +346,7 @@ namespace UnityEngine.ECS
             {
                 int length;
                 int componentIndex;
-                GetComponentDataArrayCache(TypeManager.GetTypeIndex<Entity>(), out length, out componentIndex);
+                GetComponentChunkIterator(TypeManager.GetTypeIndex<Entity>(), out length, out componentIndex);
                 return length;
             }
         }

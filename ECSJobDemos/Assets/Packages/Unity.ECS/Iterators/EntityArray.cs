@@ -11,8 +11,9 @@ namespace UnityEngine.ECS
 	[NativeContainerSupportsMinMaxWriteRestriction]
 	public unsafe struct EntityArray
 	{
-        ComponentDataArrayCache m_Cache;
-        int                     m_Length;
+		ComponentChunkIterator 		m_Iterator;
+		ComponentChunkCache 		m_Cache;
+		int                     	m_Length;
 
 		#if ENABLE_UNITY_COLLECTIONS_CHECKS
 		int                      	m_MinIndex;
@@ -21,13 +22,14 @@ namespace UnityEngine.ECS
 		#endif
 
 		#if ENABLE_UNITY_COLLECTIONS_CHECKS
-        internal unsafe EntityArray(ComponentDataArrayCache cache, int length, AtomicSafetyHandle safety)
+        internal unsafe EntityArray(ComponentChunkIterator iterator, int length, AtomicSafetyHandle safety)
 		#else
-        internal unsafe EntityArray(ComponentDataArrayCache cache, int length)
+        internal unsafe EntityArray(ComponentChunkIterator iterator, int length)
 		#endif
 		{
             m_Length = length;
-            m_Cache = cache;
+            m_Iterator = iterator;
+			m_Cache = default(ComponentChunkCache);
 
 			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			m_MinIndex = 0;
@@ -48,7 +50,7 @@ namespace UnityEngine.ECS
 #endif
 
                 if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
-                    m_Cache.UpdateCache(index);
+                    m_Iterator.UpdateCache(index, out m_Cache);
 
                 return UnsafeUtility.ReadArrayElement<Entity>(m_Cache.CachedPtr, index);
 			}

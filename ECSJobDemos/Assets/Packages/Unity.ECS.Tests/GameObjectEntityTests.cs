@@ -102,7 +102,7 @@ namespace UnityEngine.ECS.Tests
             entityManager.AddComponent(entity, new EcsTestData2(6));
 
             int iterations = 0;
-            var enumerator = new ComponentGroupEnumerable<MyEntity>(entityManager);
+            var enumerator = new ComponentGroupArray<MyEntity>(entityManager);
             foreach (var e in enumerator)
             {
                 Assert.AreEqual(5, e.testData->value);

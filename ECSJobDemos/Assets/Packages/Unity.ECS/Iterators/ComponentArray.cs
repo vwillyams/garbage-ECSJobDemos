@@ -11,14 +11,16 @@ namespace UnityEngine.ECS
 {
 	public unsafe struct ComponentArray<T> where T: Component
 	{
-        ComponentDataArrayCache m_Cache;
+        ComponentChunkIterator  m_Iterator;
+		ComponentChunkCache 	m_Cache;
         int                     m_Length;
         ArchetypeManager		m_ArchetypeManager;
 
-        internal unsafe ComponentArray(ComponentDataArrayCache cache, int length, ArchetypeManager typeMan)
+        internal unsafe ComponentArray(ComponentChunkIterator iterator, int length, ArchetypeManager typeMan)
 		{
             m_Length = length;
-            m_Cache = cache;
+            m_Cache = default(ComponentChunkCache);
+			m_Iterator = iterator;
 			m_ArchetypeManager = typeMan;
 		}
 
@@ -31,9 +33,9 @@ namespace UnityEngine.ECS
 					FailOutOfRangeError(index);
 
                 if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
-                    m_Cache.UpdateCache(index);
+	                m_Iterator.UpdateCache(index, out m_Cache);
 
-				return (T)m_Cache.GetManagedObject(m_ArchetypeManager, index);
+				return (T)m_Iterator.GetManagedObject(m_ArchetypeManager, m_Cache.CachedBeginIndex, index);
 			}
 		}
 
@@ -43,9 +45,9 @@ namespace UnityEngine.ECS
 			int i = 0;
 			while (i < m_Length)
 			{
-				m_Cache.UpdateCache(i);
+				m_Iterator.UpdateCache(i, out m_Cache);
 				int start, length;
-				var objs = m_Cache.GetManagedObjectRange(m_ArchetypeManager, i, out start, out length);
+				var objs = m_Iterator.GetManagedObjectRange(m_ArchetypeManager, m_Cache.CachedBeginIndex, i, out start, out length);
 				for (int obj = 0; obj < length; ++obj)
 					arr[i+obj] = (T)objs[start+obj];
 				i += length;

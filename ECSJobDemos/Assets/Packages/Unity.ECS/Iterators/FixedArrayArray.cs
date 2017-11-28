@@ -9,7 +9,8 @@ namespace UnityEngine.ECS
 	[NativeContainerSupportsMinMaxWriteRestriction]
 	public unsafe struct FixedArrayArray<T> where T : struct
 	{
-        ComponentDataArrayCache m_Cache;
+		ComponentChunkCache  	m_Cache;
+		ComponentChunkIterator  m_Iterator;
         int                     m_CachedFixedArrayLength;
         int                     m_Length;
 
@@ -21,13 +22,14 @@ namespace UnityEngine.ECS
         #endif
 
 		#if ENABLE_UNITY_COLLECTIONS_CHECKS
-        internal unsafe FixedArrayArray(ComponentDataArrayCache cache, int length, AtomicSafetyHandle safety)
+        internal unsafe FixedArrayArray(ComponentChunkIterator iterator, int length, AtomicSafetyHandle safety)
 		#else
-        internal unsafe ComponentDataFixedArray(ComponentDataArrayCache cache, int length)
+        internal unsafe ComponentDataFixedArray(ComponentChunkIterator iterator, int length)
 		#endif
 		{
             m_Length = length;
-            m_Cache = cache;
+            m_Iterator = iterator;
+			m_Cache = default(ComponentChunkCache);
 			m_CachedFixedArrayLength = -1;
 
 			#if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -51,7 +53,7 @@ namespace UnityEngine.ECS
 
 				if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
 				{
-					m_Cache.UpdateCache(index);
+					m_Iterator.UpdateCache(index, out m_Cache);
 					m_CachedFixedArrayLength = m_Cache.CachedSizeOf / UnsafeUtility.SizeOf<T>();
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 					if (m_Cache.CachedSizeOf % UnsafeUtility.SizeOf<T>() != 0)

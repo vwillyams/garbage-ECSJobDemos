@@ -89,16 +89,16 @@ namespace UnityEngine.ECS
 
         protected EntityManager EntityManager { get { return m_EntityManager; }  }
 
-	    public ComponentGroupEnumerable<T> GetEntities<T>() where T : struct
+	    public ComponentGroupArray<T> GetEntities<T>() where T : struct
 	    {
 		    for (int i = 0; i != m_CachedComponentGroupEnumerables.Length; i++)
 		    {
-			    var enumerable = m_CachedComponentGroupEnumerables[i] as ComponentGroupEnumerable<T>;
+			    var enumerable = m_CachedComponentGroupEnumerables[i] as ComponentGroupArray<T>;
 			    if (enumerable != null)
 				    return enumerable;
 		    }
 
-		    var res = new ComponentGroupEnumerable<T>(EntityManager);
+		    var res = new ComponentGroupArray<T>(EntityManager);
 		    ArrayUtility.Add(ref m_CachedComponentGroupEnumerables, res);
 		    ArrayUtility.Add(ref m_ComponentGroups, res.ComponentGroup);
 		    

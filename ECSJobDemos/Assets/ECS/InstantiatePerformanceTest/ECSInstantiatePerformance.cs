@@ -233,7 +233,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		var componentDataArrayJob = new Iterate_ComponentDataArray() { array = group.GetComponentDataArray<Component4Bytes>() };
 		componentDataArrayJob.Run();
 
-		var enumerator = new ComponentGroupEnumerable<EntityIter>(entityManager);
+		var enumerator = new ComponentGroupArray<EntityIter>(entityManager);
 			
 		iterateForEachSampler.Begin ();
 		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)

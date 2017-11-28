@@ -9,7 +9,8 @@ namespace UnityEngine.ECS
     [NativeContainerSupportsMinMaxWriteRestriction]
     public unsafe struct ComponentDataArray<T> where T : struct, IComponentData
     {
-        ComponentDataArrayCache m_Cache;
+        ComponentChunkIterator m_Iterator;
+	    ComponentChunkCache    m_Cache;
 
         int m_Length;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -19,13 +20,14 @@ namespace UnityEngine.ECS
 #endif
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        internal unsafe ComponentDataArray(ComponentDataArrayCache cache, int length, AtomicSafetyHandle safety)
+        internal unsafe ComponentDataArray(ComponentChunkIterator iterator, int length, AtomicSafetyHandle safety)
 #else
-        internal unsafe ComponentDataArray(ComponentDataArrayCache cache, int length)
+        internal unsafe ComponentDataArray(ComponentChunkIterator iterator, int length)
 #endif
         {
-            m_Cache = cache;
-
+            m_Iterator = iterator;
+	        m_Cache = default(ComponentChunkCache);
+	        
             m_Length = length;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_MinIndex = 0;
@@ -45,7 +47,7 @@ namespace UnityEngine.ECS
 		        FailOutOfRangeError(startIndex + maxCount);
 #endif
             
-            m_Cache.UpdateCache(startIndex);
+            m_Iterator.UpdateCache(startIndex, out m_Cache);
             
             IntPtr ptr = m_Cache.CachedPtr + startIndex * m_Cache.CachedSizeOf;
             int count = Math.Min(maxCount, m_Cache.CachedEndIndex - startIndex);
@@ -82,7 +84,7 @@ namespace UnityEngine.ECS
 #endif
 
                 if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
-                    m_Cache.UpdateCache(index);
+                    m_Iterator.UpdateCache(index, out m_Cache);
 
                 return UnsafeUtility.ReadArrayElement<T>(m_Cache.CachedPtr, index);
             }
@@ -96,7 +98,7 @@ namespace UnityEngine.ECS
 #endif
 
                 if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
-                    m_Cache.UpdateCache(index);
+                    m_Iterator.UpdateCache(index, out m_Cache);
 
 				UnsafeUtility.WriteArrayElement(m_Cache.CachedPtr, index, value);
 			}

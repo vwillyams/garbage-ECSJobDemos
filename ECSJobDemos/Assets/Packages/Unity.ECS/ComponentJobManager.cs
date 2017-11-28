@@ -132,7 +132,7 @@ namespace UnityEngine.ECS
                 CompleteWriteDependency(readerTypes[i]);
         }
 
-        public JobHandle GetDependency(int* writerTypes, int writerTypesCount, int* readerTypes, int readerTypesCount)
+        public JobHandle GetDependency(int* readerTypes, int readerTypesCount, int* writerTypes, int writerTypesCount)
         {
             m_JobDependencyCombineList.Clear();
             

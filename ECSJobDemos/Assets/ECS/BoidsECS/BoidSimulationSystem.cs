@@ -111,17 +111,13 @@ namespace BoidSimulations
 			}
 		}
 
-		override public void OnUpdate()
+		override public JobHandle OnUpdateForJob(JobHandle inputDeps)
 		{
-			base.OnUpdate();
-
 			if (m_Boids.Length == 0)
-				return;
+				return inputDeps;
 
 			if (m_Settings.Length != 1)
-				return;
-
-			CompleteDependency ();
+				return inputDeps;
 
 			m_Cells.Capacity = math.max (m_Cells.Capacity, m_Boids.Length);
 			m_Cells.Clear ();
@@ -166,10 +162,8 @@ namespace BoidSimulations
 				cellRadius = m_Settings.settings[0].cellRadius
 			};
 
-			var prepareJobHandle = prepareParallelJob.Schedule(boids.Length, 32, GetDependency());
-			var simulationJobHandle = simulateJob.Schedule (boids.Length, 32, prepareJobHandle);
-
-			AddDependency (simulationJobHandle);
+			var prepareJobHandle = prepareParallelJob.Schedule(boids.Length, 32, inputDeps);
+			return simulateJob.Schedule (boids.Length, 32, prepareJobHandle);
 		}
 
 		protected override void OnCreateManager(int capacity)

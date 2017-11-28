@@ -2,7 +2,10 @@
 using NUnit.Framework;
 using Unity.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Threading;
 using Unity.Jobs;
+using UnityEngine.Jobs;
 
 namespace UnityEngine.ECS.Tests
 {
@@ -260,4 +263,150 @@ namespace UnityEngine.ECS.Tests
 			DependencyManager.GetBehaviourManager<OnCreateManagerComponentGroupInjectionSystem>();
 		}
 	}
+
+	public class SystemDependencyTests : ECSTestsFixture
+	{
+		[DisableAutoCreation]
+		public class ReadSystem1 : JobComponentSystem
+		{
+			public struct Inputs
+			{
+				[ReadOnly]
+				public ComponentDataArray<EcsTestData> data;
+			}
+
+			[InjectComponentGroup] private Inputs m_Inputs;
+
+			private struct ReadJob : IJob
+			{
+				[ReadOnly]
+				public ComponentDataArray<EcsTestData> wat;
+
+				public void Execute()
+				{
+				}
+			}
+
+			public override JobHandle OnUpdateForJob(JobHandle input)
+			{
+				return new ReadJob() { wat = m_Inputs.data }.Schedule(input);
+			}
+		}
+
+		public class ReadSystem2 : JobComponentSystem
+		{
+			public struct Inputs
+			{
+				[ReadOnly]
+				public ComponentDataArray<EcsTestData> data;
+			}
+
+			public bool returnWrongJob = false;
+			public bool ignoreInputDeps = false;
+
+			[InjectComponentGroup] private Inputs m_Inputs;
+
+			private struct ReadJob : IJob
+			{
+				[ReadOnly]
+				public ComponentDataArray<EcsTestData> wat;
+
+				public void Execute()
+				{
+				}
+			}
+
+			public override JobHandle OnUpdateForJob(JobHandle input)
+			{
+                JobHandle h;
+
+				var job = new ReadJob() {wat = m_Inputs.data};
+
+				if (ignoreInputDeps)
+				{
+					h = job.Schedule();
+				}
+				else
+				{
+					h = job.Schedule(input);
+				}
+
+				return returnWrongJob ? input : h;
+			}
+		}
+
+		[DisableAutoCreation]
+		public class ReadSystem3 : JobComponentSystem
+		{
+			public struct Inputs
+			{
+				[ReadOnly]
+				public ComponentDataArray<EcsTestData> data;
+			}
+
+			[InjectComponentGroup] private Inputs m_Inputs;
+
+			public override JobHandle OnUpdateForJob(JobHandle input)
+			{
+				return input;
+			}
+		}
+
+		[DisableAutoCreation]
+		public class WriteSystem : JobComponentSystem
+		{
+			public struct Inputs
+			{
+				public ComponentDataArray<EcsTestData> data;
+			}
+
+			[InjectComponentGroup] private Inputs m_Inputs;
+
+			public override JobHandle OnUpdateForJob(JobHandle input)
+			{
+				return input;
+			}
+		}
+
+		[Test]
+		public void ReturningWrongJobThrowsInCorrectSystemUpdate()
+		{
+			var entity = m_Manager.CreateEntity (typeof(EcsTestData));
+			m_Manager.SetComponent(entity, new EcsTestData(42));
+			ReadSystem1 rs1 = DependencyManager.GetBehaviourManager<ReadSystem1>();
+			ReadSystem2 rs2 = DependencyManager.GetBehaviourManager<ReadSystem2>();
+
+			rs2.returnWrongJob = true;
+
+			rs1.OnUpdate();
+			Assert.Throws<System.InvalidOperationException>(() => { rs2.OnUpdate(); });
+		}
+
+		[Test]
+		public void IgnoredInputDepsThrowsInCorrectSystemUpdate()
+		{
+			var entity = m_Manager.CreateEntity (typeof(EcsTestData));
+			m_Manager.SetComponent(entity, new EcsTestData(42));
+			ReadSystem1 rs1 = DependencyManager.GetBehaviourManager<ReadSystem1>();
+			ReadSystem2 rs2 = DependencyManager.GetBehaviourManager<ReadSystem2>();
+
+			rs2.ignoreInputDeps = true;
+
+			rs1.OnUpdate();
+			Assert.Throws<System.InvalidOperationException>(() => { rs2.OnUpdate(); });
+		}
+
+		[Test]
+		public void NotUsingDataIsHarmless()
+		{
+			var entity = m_Manager.CreateEntity (typeof(EcsTestData));
+			m_Manager.SetComponent(entity, new EcsTestData(42));
+			ReadSystem1 rs1 = DependencyManager.GetBehaviourManager<ReadSystem1>();
+			ReadSystem3 rs3 = DependencyManager.GetBehaviourManager<ReadSystem3>();
+
+			rs1.OnUpdate();
+			rs3.OnUpdate();
+		}
+	}
+
 }

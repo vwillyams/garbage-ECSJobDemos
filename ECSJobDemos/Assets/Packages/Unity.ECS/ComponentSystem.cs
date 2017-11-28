@@ -1,7 +1,10 @@
-﻿using Unity.Collections;
+﻿using System;
+using Unity.Collections;
 using Unity.Jobs;
 using System.Collections.Generic;
 using UnityEditor;
+using Unity.Collections.LowLevel.Unsafe;
+using Unity.Jobs.LowLevel.Unsafe;
 
 namespace UnityEngine.ECS
 {
@@ -118,9 +121,8 @@ namespace UnityEngine.ECS
 
 		    CompleteDependencyInternal();
 		    UpdateInjectedComponentGroups ();
-	  	}
-	    
-	    
+	    }
+
 	    internal void OnUpdateFromJobComponentSystem()
 	    {
 		    base.OnUpdate ();
@@ -152,8 +154,12 @@ namespace UnityEngine.ECS
 			base.OnDestroyManager();
 			m_PreviousFrameDependencies.Dispose();
 		}
-		
-		
+
+	    virtual public JobHandle OnUpdateForJob(JobHandle inputDeps)
+	    {
+		    return inputDeps;
+	    }
+
   		override public void OnUpdate()
 		{
 			OnUpdateFromJobComponentSystem();
@@ -162,7 +168,84 @@ namespace UnityEngine.ECS
 			// without anyone ever waiting on it
 			JobHandle.CompleteAll(m_PreviousFrameDependencies);
 			m_PreviousFrameDependencies.Clear();
+
+			JobHandle input = GetDependency();
+			JobHandle output = OnUpdateForJob(input);
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+			if (JobsUtility.GetJobDebuggerEnabled())
+			{
+				// Check that all reading and writing jobs are a dependency of the output job, to
+				// catch systems that forget to add one of their jobs to the dependency graph.
+				//
+				// Note that this check is not strictly needed as we would catch the mistake anyway later,
+				// but checking it here means we can flag the system that has the mistake, rather than some
+				// other (innocent) system that is doing things correctly.
+
+				try
+				{
+					for (int i = 0; i < m_JobDependencyForReadingManagers.Length; ++i)
+					{
+						CheckJobDependencies(m_JobDependencyForReadingManagers[i], output);
+					}
+
+					for (int i = 0; i < m_JobDependencyForWritingManagers.Length; ++i)
+					{
+						CheckJobDependencies(m_JobDependencyForWritingManagers[i], output);
+					}
+				}
+				catch (InvalidOperationException)
+				{
+					EmergencySyncAllJobs();
+					throw;
+				}
+			}
+#endif
+			AddDependency(output);
 		}
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+		private void CheckJobDependencies(int type, JobHandle returnedHandle)
+		{
+            AtomicSafetyHandle h = m_SafetyManager.GetSafetyHandle(type, true);
+
+            unsafe
+            {
+                int readerCount = AtomicSafetyHandle.GetReaderArray(h, 0, IntPtr.Zero);
+                JobHandle* readers = stackalloc JobHandle[readerCount];
+                AtomicSafetyHandle.GetReaderArray(h, readerCount, (IntPtr) readers);
+
+                for (int i = 0; i < readerCount; ++i)
+                {
+                    if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(readers[i], returnedHandle))
+                    {
+                        throw new InvalidOperationException($"The system {this.GetType()} reads {TypeManager.GetType(type)} via {AtomicSafetyHandle.GetReaderName(h, i)} but that type was not returned as a job dependency. To ensure correct behavior of other systems, the job or a dependency of it must be returned from the OnUpdateForJob method.");
+                    }
+                }
+
+                JobHandle writer = AtomicSafetyHandle.GetWriter(h);
+                if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(writer, returnedHandle))
+                {
+                    throw new InvalidOperationException($"The system {this.GetType()} writes {TypeManager.GetType(type)} via {AtomicSafetyHandle.GetWriterName(h)} but that was not returned as a job dependency. To ensure correct behavior of other systems, the job or a dependency of it must be returned from the OnUpdateForJob method.");
+                }
+            }
+		}
+
+		private void EmergencySyncAllJobs()
+		{
+            for (int i = 0; i < m_JobDependencyForReadingManagers.Length; ++i)
+            {
+                int type = m_JobDependencyForReadingManagers[i];
+                AtomicSafetyHandle.EnforceAllBufferJobsHaveCompleted(m_SafetyManager.GetSafetyHandle(type, true));
+            }
+
+            for (int i = 0; i < m_JobDependencyForWritingManagers.Length; ++i)
+            {
+                int type = m_JobDependencyForWritingManagers[i];
+                AtomicSafetyHandle.EnforceAllBufferJobsHaveCompleted(m_SafetyManager.GetSafetyHandle(type, true));
+            }
+		}
+#endif
 
 		public unsafe JobHandle GetDependency ()
 		{

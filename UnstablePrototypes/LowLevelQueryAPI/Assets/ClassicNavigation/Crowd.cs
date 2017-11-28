@@ -123,7 +123,7 @@ public class Crowd : MonoBehaviour
             {
                 const int maxCorners = 2;
                 var straightPath = new NativeArray<NavMeshLocation>(maxCorners, Allocator.TempJob);
-                var straightPathFlags = new NativeArray<NavMeshStraightPathFlags>(straightPath.Length, Allocator.TempJob);
+                var straightPathFlags = new NativeArray<StraightPathFlags>(straightPath.Length, Allocator.TempJob);
                 var vertexSide = new NativeArray<float>(straightPath.Length, Allocator.TempJob);
                 var cornerCount = 0;
                 var pathStatus = PathUtils.FindStraightPath(query, currentPos, endPos, p.polygons, p.size, ref straightPath, ref straightPathFlags, ref vertexSide, ref cornerCount, straightPath.Length);

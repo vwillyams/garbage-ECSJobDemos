@@ -1,5 +1,5 @@
 This project is meant to work with code from the native branch `scripting/jobsystem/make-public/demo` .\
-Revision needed: **a3f41f772319** (2017-11-28 15:03:00 +0100)\
+Revision needed: **e30a6553542f** (2017-11-28 17:34:52 +0100)\
 Good build: not available currently
 
 Example scenes:
@@ -44,11 +44,6 @@ Exclusive API featured:
         PathQueryStatus.BufferTooSmall
         PathQueryStatus.OutOfNodes
         PathQueryStatus.PartialResult
-
-    enum NavMeshStraightPathFlags
-        NavMeshStraightPathFlags.kStraightPathStart
-        NavMeshStraightPathFlags.kStraightPathEnd
-        NavMeshStraightPathFlags.kStraightPathOffMeshConnection
 
     enum NavMeshPolyTypes
         NavMeshPolyTypes.kPolyTypeGround

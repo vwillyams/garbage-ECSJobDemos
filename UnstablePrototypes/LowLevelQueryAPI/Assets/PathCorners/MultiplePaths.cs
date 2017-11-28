@@ -23,7 +23,7 @@ public class MultiplePaths : MonoBehaviour
     NativeArray<NavMeshLocation> m_OriginLocations;
     NativeArray<NavMeshLocation> m_TargetLocations;
     List<NativeArray<NavMeshLocation>> m_StraightPathCorners;
-    List<NativeArray<NavMeshStraightPathFlags>> m_StraightPathCornersFlags;
+    List<NativeArray<StraightPathFlags>> m_StraightPathCornersFlags;
 
     NavMeshQuery m_NavMeshQuery;
     // Workaround for missing support for nested arrays
@@ -43,7 +43,7 @@ public class MultiplePaths : MonoBehaviour
         m_OriginLocations = new NativeArray<NavMeshLocation>(originsCount, Allocator.Persistent);
         m_TargetLocations = new NativeArray<NavMeshLocation>(targetsCount, Allocator.Persistent);
         m_StraightPathCorners = new List<NativeArray<NavMeshLocation>>();
-        m_StraightPathCornersFlags = new List<NativeArray<NavMeshStraightPathFlags>>();
+        m_StraightPathCornersFlags = new List<NativeArray<StraightPathFlags>>();
 
         m_NavMeshQuery = new NavMeshQuery(NavMeshWorld.GetDefaultWorld(), Allocator.Persistent);
         m_Paths = new List<PolygonPathEcs>(targetsCount);
@@ -109,14 +109,14 @@ public class MultiplePaths : MonoBehaviour
             }
             while (m_StraightPathCornersFlags.Count <= i)
             {
-                m_StraightPathCornersFlags.Add(new NativeArray<NavMeshStraightPathFlags>(pathsCount, Allocator.Persistent));
+                m_StraightPathCornersFlags.Add(new NativeArray<StraightPathFlags>(pathsCount, Allocator.Persistent));
             }
             if (m_StraightPathCorners[i].Length < m_Paths[i].size || m_StraightPathCornersFlags[i].Length < m_Paths[i].size)
             {
                 m_StraightPathCorners[i].Dispose();
                 m_StraightPathCornersFlags[i].Dispose();
                 m_StraightPathCorners[i] = new NativeArray<NavMeshLocation>(m_Paths[i].size + 1, Allocator.Persistent);
-                m_StraightPathCornersFlags[i] = new NativeArray<NavMeshStraightPathFlags>(m_Paths[i].size + 1, Allocator.Persistent);
+                m_StraightPathCornersFlags[i] = new NativeArray<StraightPathFlags>(m_Paths[i].size + 1, Allocator.Persistent);
             }
 
             if (m_Paths[i].size > 0)
@@ -272,7 +272,7 @@ public class MultiplePaths : MonoBehaviour
                 var loc2 = corners[i + 1];
                 if (!loc1.polygon.IsNull() && !loc2.polygon.IsNull())
                 {
-                    var color = flags[i] == NavMeshStraightPathFlags.kStraightPathOffMeshConnection ? Color.yellow : Color.magenta;
+                    var color = flags[i] == StraightPathFlags.OffMeshConnection ? Color.yellow : Color.magenta;
                     Debug.DrawLine(loc1.position + offset, loc2.position + offset, color);
                 }
                 else
@@ -310,7 +310,7 @@ public class MultiplePaths : MonoBehaviour
         public Vector3 startPos;
 
         public NativeArray<NavMeshLocation> straightPath;
-        public NativeArray<NavMeshStraightPathFlags> straightPathFlags;
+        public NativeArray<StraightPathFlags> straightPathFlags;
         [DeallocateOnJobCompletion]
         public NativeArray<float> vertexSide;
         public int maxStraightPath;

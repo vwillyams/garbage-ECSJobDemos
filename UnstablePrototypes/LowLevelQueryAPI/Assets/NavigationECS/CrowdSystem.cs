@@ -365,7 +365,7 @@ public partial class CrowdSystem : JobComponentSystem
             agentNavigators = m_Crowd.agentNavigators,
             paths = m_Crowd.paths,
             straightPath = new NativeArray<NavMeshLocation>(totalCornersBuffer, Allocator.TempJob),
-            straightPathFlags = new NativeArray<NavMeshStraightPathFlags>(totalCornersBuffer, Allocator.TempJob),
+            straightPathFlags = new NativeArray<StraightPathFlags>(totalCornersBuffer, Allocator.TempJob),
             vertexSide = new NativeArray<float>(totalCornersBuffer, Allocator.TempJob)
         };
         var afterVelocitiesUpdated = vel.Schedule(m_Crowd.agents.Length, k_AgentsBatchSize, afterPathsTrimmed);

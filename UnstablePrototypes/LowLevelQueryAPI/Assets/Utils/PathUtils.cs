@@ -1,7 +1,16 @@
-﻿using Unity.Collections;
+﻿using System;
+using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Experimental.AI;
+
+[Flags]
+public enum StraightPathFlags
+{
+    Start = 0x01,              // The vertex is the start position.
+    End = 0x02,                // The vertex is the end position.
+    OffMeshConnection = 0x04   // The vertex is start of an off-mesh link.
+}
 
 public class PathUtils
 {
@@ -21,7 +30,7 @@ public class PathUtils
     public static int RetracePortals(NavMeshQuery query, int startIndex, int endIndex
         , NativeSlice<PolygonID> path, int n, Vector3 termPos
         , ref NativeArray<NavMeshLocation> straightPath
-        , ref NativeArray<NavMeshStraightPathFlags> straightPathFlags
+        , ref NativeArray<StraightPathFlags> straightPathFlags
         , int maxStraightPath)
     {
 #if DEBUG_CROWDSYSTEM_ASSERTS
@@ -47,7 +56,7 @@ public class PathUtils
                 straightPath[n] = new NavMeshLocation(cpa1, path[k + 1]);
 
                 // TODO maybe the flag should be additive with |=
-                straightPathFlags[n] = (type2 == NavMeshPolyTypes.kPolyTypeOffMeshConnection) ? NavMeshStraightPathFlags.kStraightPathOffMeshConnection : 0;
+                straightPathFlags[n] = (type2 == NavMeshPolyTypes.kPolyTypeOffMeshConnection) ? StraightPathFlags.OffMeshConnection : 0;
                 if (++n == maxStraightPath)
                 {
                     return maxStraightPath;
@@ -55,14 +64,14 @@ public class PathUtils
             }
         }
         straightPath[n] = new NavMeshLocation(termPos, path[endIndex]);
-        straightPathFlags[n] = query.GetPolygonType(path[endIndex]) == NavMeshPolyTypes.kPolyTypeOffMeshConnection ? NavMeshStraightPathFlags.kStraightPathOffMeshConnection : 0;
+        straightPathFlags[n] = query.GetPolygonType(path[endIndex]) == NavMeshPolyTypes.kPolyTypeOffMeshConnection ? StraightPathFlags.OffMeshConnection : 0;
         return ++n;
     }
 
     public static PathQueryStatus FindStraightPath(
         NavMeshQuery query, PolygonPathEcs path
         , ref NativeArray<NavMeshLocation> straightPath
-        , ref NativeArray<NavMeshStraightPathFlags> straightPathFlags
+        , ref NativeArray<StraightPathFlags> straightPathFlags
         , ref NativeArray<float> vertexSide
         , ref int straightPathCount
         , int maxStraightPath
@@ -74,7 +83,7 @@ public class PathUtils
     public static PathQueryStatus FindStraightPath(NavMeshQuery query, Vector3 startPos, Vector3 endPos
         , NativeSlice<PolygonID> path, int pathSize
         , ref NativeArray<NavMeshLocation> straightPath
-        , ref NativeArray<NavMeshStraightPathFlags> straightPathFlags
+        , ref NativeArray<StraightPathFlags> straightPathFlags
         , ref NativeArray<float> vertexSide
         , ref int straightPathCount
         , int maxStraightPath)
@@ -89,7 +98,6 @@ public class PathUtils
 
         // TODO // Assert.IsTrue(startPos is in the polygon of path[0].polygonId);
 
-        // TODO make PolygonID.valid to be ThreadSafe and use if (!path[0].valid)
         if (!query.IsValid(path[0]))
         {
             straightPath[0] = new NavMeshLocation(); // empty terminator
@@ -101,7 +109,7 @@ public class PathUtils
             path[0] // TODO search the polygon on the path where the start position is
         );
 
-        straightPathFlags[0] = NavMeshStraightPathFlags.kStraightPathStart;
+        straightPathFlags[0] = StraightPathFlags.Start;
 
         var apexIndex = 0;
         var n = 1;
@@ -238,7 +246,7 @@ public class PathUtils
         }
 
         // Fix flag for final path point
-        straightPathFlags[n - 1] = NavMeshStraightPathFlags.kStraightPathEnd;
+        straightPathFlags[n - 1] = StraightPathFlags.End;
 
         straightPathCount = n;
         return PathQueryStatus.Success;

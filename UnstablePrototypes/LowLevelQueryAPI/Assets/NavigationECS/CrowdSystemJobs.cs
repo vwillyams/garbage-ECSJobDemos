@@ -258,7 +258,7 @@ public partial class CrowdSystem
 
         [DeallocateOnJobCompletion]
         [NativeDisableParallelForRestriction]
-        public NativeArray<NavMeshStraightPathFlags> straightPathFlags;
+        public NativeArray<StraightPathFlags> straightPathFlags;
 
         [DeallocateOnJobCompletion]
         [NativeDisableParallelForRestriction]

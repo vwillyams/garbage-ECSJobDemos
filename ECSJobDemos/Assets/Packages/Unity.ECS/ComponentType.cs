@@ -6,6 +6,9 @@ using System;
 
 namespace UnityEngine.ECS
 {
+    public struct SubtractiveComponent<T> where T : struct, IComponentData
+    {}
+
     public struct ComponentType
     {
         public enum AccessMode

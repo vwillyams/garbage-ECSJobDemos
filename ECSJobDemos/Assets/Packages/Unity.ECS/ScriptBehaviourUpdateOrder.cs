@@ -29,7 +29,8 @@ namespace UnityEngine.ECS
 		}
 	}
 	// Updating in a group means all dependencies from that group are inherited. A system can be in multiple goups
-	[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+	// There is nothing preventing systems from being in multiple groups, it can be added if there is a use-case for it
+	[AttributeUsage(AttributeTargets.Class)]
 	public class UpdateInGroup : System.Attribute
 	{
 		public Type  GroupType { get; set; }
@@ -40,18 +41,8 @@ namespace UnityEngine.ECS
 		}
 	}
 
-	public struct UpdateOrderConstraint
-	{
-		Type systemBefore;
-		Type systemAfter;
-	}
-
 	public static class ScriptBehaviourUpdateOrder
 	{
-		static List<UpdateOrderConstraint> m_UpdateOrderConstraints = new List<UpdateOrderConstraint>();
-
-		public static List<UpdateOrderConstraint> UpdateOrderConstraints {get{return m_UpdateOrderConstraints;}}
-
 		// FIXME: HACK! - mono 4.6 has problems invoking virtual methods as delegates from native, so wrap the invocation in a non-virtual class
 		public class DummyDelagateWrapper
 		{
@@ -160,7 +151,7 @@ namespace UnityEngine.ECS
 			public HashSet<Type> updateAfter;
 		}
 
-		class DependantBehavior : IComparable
+		class DependantBehavior
 		{
 			public DependantBehavior(ScriptBehaviourManager man)
 			{
@@ -170,13 +161,11 @@ namespace UnityEngine.ECS
 				minInsertPos = 0;
 				maxInsertPos = 0;
 				spawnsJobs = false;
+				waitsForJobs = false;
 
 				unvalidatedSystemsUpdatingBefore = 0;
 				longestSystemsUpdatingBeforeChain = 0;
-			}
-			public int CompareTo(object other)
-			{
-				return longestSystemsUpdatingBeforeChain - (other as DependantBehavior).longestSystemsUpdatingBeforeChain;
+				longestSystemsUpdatingAfterChain = 0;
 			}
 			public ScriptBehaviourManager manager;
 			public HashSet<Type> updateBefore;
@@ -184,11 +173,14 @@ namespace UnityEngine.ECS
 			public int minInsertPos;
 			public int maxInsertPos;
 			public bool spawnsJobs;
+			public bool waitsForJobs;
 
 			public int unvalidatedSystemsUpdatingBefore;
 			public int longestSystemsUpdatingBeforeChain;
+			public int longestSystemsUpdatingAfterChain;
 		}
 
+		// Try to find a system of the specified type in the default playerloop and update the min / max insertion position
 		static void UpdateInsertionPos(DependantBehavior target, Type dep, PlayerLoopSystem defaultPlayerLoop, bool after)
 		{
 			int pos = 0;
@@ -346,7 +338,7 @@ namespace UnityEngine.ECS
 				var attribs = manager.GetType().GetCustomAttributes(typeof(UpdateInGroup), true);
 				for (int grpIdx = 0; grpIdx < attribs.Length; ++grpIdx)
 				{
-					var grp = attribs[0] as UpdateInGroup;
+					var grp = attribs[grpIdx] as UpdateInGroup;
 					ScriptBehaviourGroup groupData;
 					if (!allGroups.TryGetValue(grp.GroupType, out groupData))
 						groupData = new ScriptBehaviourGroup(grp.GroupType, allGroups);
@@ -354,9 +346,6 @@ namespace UnityEngine.ECS
 				}
 
 				DependantBehavior dep = new DependantBehavior(manager);
-				// @TODO: should have an attribute for spawns jobs, or syncs jobs spawned by
-				// @TODO: need to deal with extracting dependencies for GenericProcessComponentSystem
-				dep.spawnsJobs = (manager is JobComponentSystem);// || (manager is GenericProcessComponentSystem);
 				dependencies.Add(manager.GetType(), dep);				
 			}
 
@@ -365,6 +354,7 @@ namespace UnityEngine.ECS
 			// Apply the update before / after dependencies
 			foreach (var manager in dependencies)
 			{
+				// @TODO: need to deal with extracting dependencies for GenericProcessComponentSystem
 				AddDependencies(manager.Value, dependencies, allGroups, defaultPlayerLoop);
 			}
 
@@ -386,6 +376,7 @@ namespace UnityEngine.ECS
 				}
 				system.unvalidatedSystemsUpdatingBefore = system.updateAfter.Count;
 				system.longestSystemsUpdatingBeforeChain = 0;
+				system.longestSystemsUpdatingAfterChain = 0;
 			}
 
 			// Check for circular dependencies, start with all systems updating first, mark all systems it updates after as having one more validated dep and start over
@@ -401,8 +392,6 @@ namespace UnityEngine.ECS
 						system.unvalidatedSystemsUpdatingBefore = -1;
 						foreach (var nextInChain in system.updateBefore)
 						{
-							if (system.longestSystemsUpdatingBeforeChain >= dependencyGraph[nextInChain].longestSystemsUpdatingBeforeChain)
-								dependencyGraph[nextInChain].longestSystemsUpdatingBeforeChain = system.longestSystemsUpdatingBeforeChain + 1;
 							--dependencyGraph[nextInChain].unvalidatedSystemsUpdatingBefore;
 							progress = true;
 						}
@@ -421,7 +410,6 @@ namespace UnityEngine.ECS
 						dependencyGraph[after].updateBefore.Remove(system.manager.GetType());
 					}
 					system.updateAfter.Clear();
-					system.longestSystemsUpdatingBeforeChain = 0;
 				}
 			}
 
@@ -431,7 +419,7 @@ namespace UnityEngine.ECS
 				var system = typeAndSystem.Value;
 				if (system.updateBefore.Count == 0)
 				{
-					ValidateAndFixSingleChainMaxPos(system, dependencyGraph, system.minInsertPos);
+					ValidateAndFixSingleChainMaxPos(system, dependencyGraph, system.maxInsertPos);
 				}
 				if (system.updateAfter.Count == 0)
 				{
@@ -444,12 +432,14 @@ namespace UnityEngine.ECS
 			foreach (var nextInChain in system.updateBefore)
 			{
 				var nextSys = dependencyGraph[nextInChain];
+				if (system.longestSystemsUpdatingBeforeChain >= nextSys.longestSystemsUpdatingBeforeChain)
+					nextSys.longestSystemsUpdatingBeforeChain = system.longestSystemsUpdatingBeforeChain + 1;
 				if (nextSys.minInsertPos < minInsertPos)
 					nextSys.minInsertPos = minInsertPos;
 				if (nextSys.maxInsertPos > 0 && nextSys.maxInsertPos < nextSys.minInsertPos)
 				{
 					Debug.LogError(string.Format("{0} is over constrained with engine and system containts - ignoring dependencies", nextInChain));
-					nextSys.maxInsertPos = 0;
+					nextSys.maxInsertPos = nextSys.minInsertPos;
 				}
 				ValidateAndFixSingleChainMinPos(nextSys, dependencyGraph, nextSys.minInsertPos);
 			}
@@ -459,12 +449,14 @@ namespace UnityEngine.ECS
 			foreach (var prevInChain in system.updateAfter)
 			{
 				var prevSys = dependencyGraph[prevInChain];
+				if (system.longestSystemsUpdatingAfterChain >= prevSys.longestSystemsUpdatingAfterChain)
+					prevSys.longestSystemsUpdatingAfterChain = system.longestSystemsUpdatingAfterChain + 1;
 				if (prevSys.maxInsertPos == 0 || prevSys.maxInsertPos > maxInsertPos)
 					prevSys.maxInsertPos = maxInsertPos;
-				if (prevSys.maxInsertPos < prevSys.minInsertPos)
+				if (prevSys.maxInsertPos > 0 && prevSys.maxInsertPos < prevSys.minInsertPos)
 				{
 					Debug.LogError(string.Format("{0} is over constrained with engine and system containts - ignoring dependencies", prevInChain));
-					prevSys.minInsertPos = 0;
+					prevSys.minInsertPos = prevSys.maxInsertPos;
 				}
 				ValidateAndFixSingleChainMaxPos(prevSys, dependencyGraph, prevSys.maxInsertPos);
 			}
@@ -474,121 +466,132 @@ namespace UnityEngine.ECS
 		{
 			public InsertionBucket()
 			{
-				minInsertPos = 0;
-				maxInsertPos = 0;
+				insertPos = 0;
+				insertSubPos = 0;
 				systems = new List<DependantBehavior>();
 			}
-			public int minInsertPos;
-			public int maxInsertPos;
+			public int insertPos;
+			public int insertSubPos;
 			public List<DependantBehavior> systems;
 
 			public int CompareTo(object other)
 			{
 				var otherBucket = other as InsertionBucket;
-				if (minInsertPos == otherBucket.minInsertPos)
-					return maxInsertPos - otherBucket.maxInsertPos;
-				return minInsertPos - otherBucket.minInsertPos;
+				if (insertPos == otherBucket.insertPos)
+					return insertSubPos - otherBucket.insertSubPos;
+				return insertPos - otherBucket.insertPos;
 			}
+		}
 
-			public void IncludeAllEarlierJobs(DependantBehavior behave, Dictionary<Type, DependantBehavior> dependencyGraph, HashSet<DependantBehavior> remainingSystems)
+		static void MarkSchedulingAndWaitingJobs(Dictionary<Type, DependantBehavior> dependencyGraph)
+		{
+			// @TODO: sync rules for read-only
+			HashSet<DependantBehavior> schedulers;
+			foreach (var systemKeyValue in dependencyGraph)
 			{
-				foreach (var sysType in behave.updateAfter)
-				{
-					var sys = dependencyGraph[sysType];
-					if (remainingSystems.Contains(sys))
-					{
-						systems.Add(sys);
-						remainingSystems.Remove(sys);
-					}
-				}
+				var system = systemKeyValue.Value;
+				// @TODO: GenericProcessComponentSystem
+				// @TODO: attribute
+				if (!(system is JobComponentSystem))
+					continue;
+				system.spawnsJobs = true;
+				schedulers.Add(system);
 			}
-			public void IncludeAllLaterJobs(DependantBehavior behave, Dictionary<Type, DependantBehavior> dependencyGraph, HashSet<DependantBehavior> remainingSystems)
+			foreach (var systemKeyValue in dependencyGraph)
 			{
-				foreach (var sysType in behave.updateBefore)
+				var system = systemKeyValue.Value;
+				// @TODO: attribute for sync
+				if (!(system is ComponentSystem))
+					continue;
+				HashSet<Type> waitComponent = new HashSet<Type>();
+				foreach (var componentGroup in (system.manager as ComponentSystem).ComponentGroups)
 				{
-					var sys = dependencyGraph[sysType];
-					if (remainingSystems.Contains(sys))
+					foreach (var type in componentGroup.Types)
+						waitComponent.Add(type);
+				}
+				foreach (var scheduler in schedulers)
+				{
+					// Check if the component groups overlaps
+					HashSet<Type> scheduleComponent = new HashSet<Type>();
+					foreach (var componentGroup in (scheduler.manager as ComponentSystem).ComponentGroups)
 					{
-						systems.Add(sys);
-						remainingSystems.Remove(sys);
+						foreach (var type in componentGroup.Types)
+							scheduleComponent.Add(type);
+					}
+					bool overlap = false;
+					foreach (var waitComp in waitComponent)
+					{
+						if (scheduleComponent.Contains(waitComp))
+						{
+							overlap = true;
+							break;
+						}
+					}
+					if (overlap)
+					{
+						system.waitsForJobs = true;
+						break;
 					}
 				}
 			}
 		}
+
 		public static PlayerLoopSystem InsertManagersInPlayerLoop(HashSet<ScriptBehaviourManager> activeManagers, PlayerLoopSystem defaultPlayerLoop)
 		{
 			if (activeManagers.Count == 0)
 				return defaultPlayerLoop;
 			Dictionary<Type, DependantBehavior> dependencyGraph = BuildSystemGraph(activeManagers, defaultPlayerLoop);
 
-			// Locate all insertion point buckets
-			List<InsertionBucket> insertionBuckets = new List<InsertionBucket>();
-			HashSet<DependantBehavior> remainingSystems = new HashSet<DependantBehavior>();
-			foreach (var sys in dependencyGraph)
+			MarkSchedulingAndWaitingJobs(dependencyGraph);
+
+			// Figure out which systems should be inserted early or late
+			HashSet<DependantBehavior> earlyUpdates = new HashSet<DependantBehavior>();
+			HashSet<DependantBehavior> normalUpdates = new HashSet<DependantBehavior>();
+			HashSet<DependantBehavior> lateUpdates = new HashSet<DependantBehavior>();
+			foreach (var dependency in dependencyGraph)
 			{
-				int minPos = sys.Value.minInsertPos;
-				int maxPos = sys.Value.maxInsertPos;
-				if (minPos != 0 || maxPos != 0)
-				{
-					// Check if this bucket already exists
-					bool added = false;
-					foreach (var bucket in insertionBuckets)
-					{
-						if (bucket.minInsertPos == minPos && bucket.maxInsertPos == maxPos)
-						{
-							bucket.systems.Add(sys.Value);
-							added = true;
-							break;
-						}
-					}
-					if (!added)
-					{
-						var bucket = new InsertionBucket();
-						bucket.minInsertPos = minPos;
-						bucket.maxInsertPos = maxPos;
-						bucket.systems.Add(sys.Value);
-						insertionBuckets.Add(bucket);
-					}
-				}
+				var system = dependency.Value;
+				if (system.spawnsJobs)
+					earlyUpdates.Add(system);
+				else if (system.waitsForJobs)
+					lateUpdates.Add(system);
 				else
-					remainingSystems.Add(sys.Value);
+					normalUpdates.Add(system);
 			}
-			// Sort the buckets, in ascending min index order (with ascending max index as secondary condition)
-			insertionBuckets.Sort();
-			// Merge all subsequent buckets which can be merged to get as few as possible
-			for (int i = 0; i < insertionBuckets.Count; ++i)
+			List<DependantBehavior> depsToAdd = new List<DependantBehavior>();
+			while (true)
 			{
-				var bucket = insertionBuckets[i];
-				while (i+1 < insertionBuckets.Count && insertionBuckets[i+1].minInsertPos <= bucket.maxInsertPos)
+				foreach (var sys in earlyUpdates)
 				{
-					// Merge with the other bucket
-					bucket.minInsertPos = insertionBuckets[i+1].minInsertPos;
-					bucket.maxInsertPos = Math.Min(bucket.maxInsertPos, insertionBuckets[i+1].maxInsertPos);
-					foreach (var sys in insertionBuckets[i+1].systems)
-						bucket.systems.Add(sys);
-					insertionBuckets.RemoveAt(i+1);
+					foreach (var depType in sys.updateAfter)
+					{
+						var depSys = dependencyGraph[depType];
+						if (normalUpdates.Remove(depSys) || lateUpdates.Remove(depSys))
+							depsToAdd.Add(depSys);
+					}
 				}
+				if (depsToAdd.Count == 0)
+					break;
+				foreach (var dep in depsToAdd)
+					earlyUpdates.Add(dep);
+			}
+			while (true)
+			{
+				foreach (var sys in lateUpdates)
+				{
+					foreach (var depType in sys.updateBefore)
+					{
+						var depSys = dependencyGraph[depType];
+						if (normalUpdates.Remove(depSys))
+							depsToAdd.Add(depSys);
+					}
+				}
+				if (depsToAdd.Count == 0)
+					break;
+				foreach (var dep in depsToAdd)
+					lateUpdates.Add(dep);
 			}
 
-			// Pull in everything in the updateAfter list which is not already in a bucket
-			foreach (var bucket in insertionBuckets)
-			{
-				for (int i = 0; i < bucket.systems.Count; ++i)
-				{
-					var sys = bucket.systems[i];
-					bucket.IncludeAllEarlierJobs(sys, dependencyGraph, remainingSystems);
-				}
-			}
-			// Pull in eveything in the updateBefore list which is not already in a bucket
-			foreach (var bucket in insertionBuckets)
-			{
-				for (int i = 0; i < bucket.systems.Count; ++i)
-				{
-					var sys = bucket.systems[i];
-					bucket.IncludeAllLaterJobs(sys, dependencyGraph, remainingSystems);
-				}
-			}
-			// Create a default bucket for all remaining systems
 			int defaultPos = 0;
 			foreach (var sys in defaultPlayerLoop.subSystemList)
 			{
@@ -596,33 +599,109 @@ namespace UnityEngine.ECS
 				if (sys.type == typeof(UnityEngine.Experimental.PlayerLoop.Update))
 					break;
 			}
-			// Check if the default pos can be merged with anything
-			foreach (var bucket in insertionBuckets)
+			Dictionary<int, InsertionBucket> insertionBucketDict = new Dictionary<int, InsertionBucket>();
+			// increase the number of dependencies allowed by 1, starting from 0 and add all systems with that many at the first or last possible pos
+			// bucket idx is insertion point << 2 | 0,1,2
+			// When adding propagate min or max through the chain
+			int processedChainLength = 0;
+			while (earlyUpdates.Count > 0 || lateUpdates.Count > 0)
 			{
-				if (bucket.minInsertPos <= defaultPos && bucket.maxInsertPos >= defaultPos)
+				foreach (var sys in earlyUpdates)
 				{
-					bucket.minInsertPos = defaultPos;
-					bucket.maxInsertPos = defaultPos;
-					foreach (var sys in remainingSystems)
-						bucket.systems.Add(sys);
-					remainingSystems.Clear();
-					break;
+					if (sys.longestSystemsUpdatingBeforeChain == processedChainLength)
+					{
+						if (sys.minInsertPos == 0)
+							sys.minInsertPos = defaultPos;
+						sys.maxInsertPos = sys.minInsertPos;
+						depsToAdd.Add(sys);
+						foreach (var nextSys in sys.updateBefore)
+						{
+							if (dependencyGraph[nextSys].minInsertPos < sys.minInsertPos)
+								dependencyGraph[nextSys].minInsertPos = sys.minInsertPos;
+						}
+					}
 				}
-			}
-			if (remainingSystems.Count > 0)
-			{
-				var bucket = new InsertionBucket();
-				bucket.minInsertPos = defaultPos;
-				bucket.maxInsertPos = defaultPos;
-				foreach (var sys in remainingSystems)
+				foreach (var sys in lateUpdates)
+				{
+					if (sys.longestSystemsUpdatingAfterChain == processedChainLength)
+					{
+						if (sys.maxInsertPos == 0)
+							sys.maxInsertPos = defaultPos;
+						sys.minInsertPos = sys.maxInsertPos;
+						depsToAdd.Add(sys);
+						foreach (var prevSys in sys.updateAfter)
+						{
+							if (dependencyGraph[prevSys].maxInsertPos == 0 || dependencyGraph[prevSys].maxInsertPos > sys.maxInsertPos)
+								dependencyGraph[prevSys].maxInsertPos = sys.maxInsertPos;
+						}
+					}
+				}
+
+				foreach (var sys in depsToAdd)
+				{
+					earlyUpdates.Remove(sys);
+					bool isLate = lateUpdates.Remove(sys);
+					int subIndex = isLate ? 2 : 0;
+
+					// Bucket to insert in is minPos == maxPos
+					int bucketIndex = (sys.minInsertPos << 2) | subIndex;
+					InsertionBucket bucket;
+					if (!insertionBucketDict.TryGetValue(bucketIndex, out bucket))
+					{
+						bucket = new InsertionBucket();
+						bucket.insertPos = sys.minInsertPos;
+						bucket.insertSubPos = subIndex;
+						insertionBucketDict.Add(bucketIndex, bucket);
+					}
 					bucket.systems.Add(sys);
-				insertionBuckets.Add(bucket);
-				insertionBuckets.Sort();
+				}
+
+				depsToAdd.Clear();
+				++processedChainLength;
+			}
+			processedChainLength = 0;
+			while (normalUpdates.Count > 0)
+			{
+				foreach (var sys in normalUpdates)
+				{
+					if (sys.longestSystemsUpdatingBeforeChain == processedChainLength)
+					{
+						if (sys.minInsertPos == 0)
+							sys.minInsertPos = defaultPos;
+						sys.maxInsertPos = sys.minInsertPos;
+						depsToAdd.Add(sys);
+						foreach (var nextSys in sys.updateBefore)
+						{
+							if (dependencyGraph[nextSys].minInsertPos < sys.minInsertPos)
+								dependencyGraph[nextSys].minInsertPos = sys.minInsertPos;
+						}
+					}
+				}
+
+				foreach (var sys in depsToAdd)
+				{
+					normalUpdates.Remove(sys);
+					int subIndex = 1;
+
+					// Bucket to insert in is minPos == maxPos
+					int bucketIndex = (sys.minInsertPos << 2) | subIndex;
+					InsertionBucket bucket;
+					if (!insertionBucketDict.TryGetValue(bucketIndex, out bucket))
+					{
+						bucket = new InsertionBucket();
+						bucket.insertPos = sys.minInsertPos;
+						bucket.insertSubPos = subIndex;
+						insertionBucketDict.Add(bucketIndex, bucket);
+					}
+					bucket.systems.Add(sys);
+				}
+
+				depsToAdd.Clear();
+				++processedChainLength;
 			}
 
-			// Sort the systems in each bucket while optimizing for giving jobs time to run
-			foreach (var bucket in insertionBuckets)
-				bucket.systems.Sort();
+			List<InsertionBucket> insertionBuckets = new List<InsertionBucket>(insertionBucketDict.Values);
+			insertionBuckets.Sort();
 
 			// Insert the buckets at the appropriate place
 			int currentPos = 0;
@@ -637,7 +716,7 @@ namespace UnityEngine.ECS
 				int systemsToInsert = 0;
 				foreach (var bucket in insertionBuckets)
 				{
-					if (bucket.minInsertPos >= firstPos && bucket.minInsertPos <= lastPos)
+					if (bucket.insertPos >= firstPos && bucket.insertPos <= lastPos)
 						systemsToInsert += bucket.systems.Count;
 				}
 				ecsPlayerLoop.subSystemList[i] = defaultPlayerLoop.subSystemList[i];
@@ -647,7 +726,7 @@ namespace UnityEngine.ECS
 					int dstPos = 0;
 					for (int srcPos = 0; srcPos < defaultPlayerLoop.subSystemList[i].subSystemList.Length; ++srcPos, ++dstPos)
 					{
-						while (currentBucket < insertionBuckets.Count && insertionBuckets[currentBucket].minInsertPos <= firstPos+srcPos)
+						while (currentBucket < insertionBuckets.Count && insertionBuckets[currentBucket].insertPos <= firstPos+srcPos)
 						{
 							foreach (var insert in insertionBuckets[currentBucket].systems)
 							{
@@ -660,7 +739,7 @@ namespace UnityEngine.ECS
 						}
 						ecsPlayerLoop.subSystemList[i].subSystemList[dstPos] = defaultPlayerLoop.subSystemList[i].subSystemList[srcPos];
 					}
-					while (currentBucket < insertionBuckets.Count && insertionBuckets[currentBucket].minInsertPos <= lastPos)
+					while (currentBucket < insertionBuckets.Count && insertionBuckets[currentBucket].insertPos <= lastPos)
 					{
 						foreach (var insert in insertionBuckets[currentBucket].systems)
 						{

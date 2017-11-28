@@ -59,7 +59,7 @@ namespace UnityEngine.ECS
 			var requiredComponentTypes = new ComponentType[componentInjections.Length + transformsCount];
 
             for (int i = 0; i != componentInjections.Length; i++)
-                requiredComponentTypes[i] = new ComponentType(componentInjections[i].genericType, componentInjections[i].isReadOnly);
+                requiredComponentTypes[i] = new ComponentType(componentInjections[i].genericType, componentInjections[i].isReadOnly ? ComponentType.AccessMode.ReadOnly : ComponentType.AccessMode.ReadWrite);
 		    
 		    if (transformsCount != 0)
 		        requiredComponentTypes[componentInjections.Length] = typeof(Transform);

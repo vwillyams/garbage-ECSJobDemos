@@ -152,7 +152,7 @@ namespace UnityEngine.ECS
 			public HashSet<Type> updateAfter;
 		}
 
-		class DependantBehavior
+		public class DependantBehavior
 		{
 			public DependantBehavior(ScriptBehaviourManager man)
 			{
@@ -537,11 +537,13 @@ namespace UnityEngine.ECS
 			}
 		}
 
+		public static Dictionary<Type, DependantBehavior> dependencyGraph;
+		
 		public static PlayerLoopSystem InsertManagersInPlayerLoop(HashSet<ScriptBehaviourManager> activeManagers, PlayerLoopSystem defaultPlayerLoop)
 		{
 			if (activeManagers.Count == 0)
 				return defaultPlayerLoop;
-			Dictionary<Type, DependantBehavior> dependencyGraph = BuildSystemGraph(activeManagers, defaultPlayerLoop);
+			dependencyGraph = BuildSystemGraph(activeManagers, defaultPlayerLoop);
 
 			MarkSchedulingAndWaitingJobs(dependencyGraph);
 

@@ -51,9 +51,10 @@ namespace UnityEngine.ECS
 				manager = man;
 			}
 			private ScriptBehaviourManager manager;
+
 			public void TriggerUpdate()
 			{
-				manager.OnUpdate();
+				manager.InternalUpdate();
 				Unity.Jobs.JobHandle.ScheduleBatchedJobs();
 			}
 		}

@@ -24,7 +24,9 @@ namespace UnityEngine.ECS.Tests
 			[InjectComponentGroup] 
 			public DataAndEntites Group;
 
-			public override void OnUpdate() { base.OnUpdate (); }
+			public override void OnUpdate()
+			{
+			}
 		}
 
 		[DisableAutoCreation]
@@ -39,7 +41,9 @@ namespace UnityEngine.ECS.Tests
 			[InjectComponentGroup] 
 			public Datas Group;
 
-			public override void OnUpdate() { base.OnUpdate (); }
+			public override void OnUpdate()
+			{
+			}
 		}
 
 		[DisableAutoCreation]
@@ -54,7 +58,9 @@ namespace UnityEngine.ECS.Tests
 			[InjectComponentGroup] 
 			public Datas Group;
 
-			public override void OnUpdate() { base.OnUpdate (); }
+			public override void OnUpdate()
+			{
+			}
 		}
 
 		
@@ -67,7 +73,7 @@ namespace UnityEngine.ECS.Tests
             var go = m_Manager.CreateEntity (new ComponentType[0]);
             m_Manager.AddComponent (go, new EcsTestData(2));
 
-            readOnlySystem.OnUpdate ();
+            readOnlySystem.InternalUpdate ();
             Assert.AreEqual (2, readOnlySystem.Group.Data[0].value);
             Assert.Throws<System.InvalidOperationException>(()=> { readOnlySystem.Group.Data[0] = new EcsTestData(); });
         }
@@ -80,11 +86,11 @@ namespace UnityEngine.ECS.Tests
             var go = m_Manager.CreateEntity (new ComponentType[0]);
             m_Manager.AddComponent (go, new EcsTestData(2));
 
-            subtractiveSystem.OnUpdate ();
+            subtractiveSystem.InternalUpdate ();
             Assert.AreEqual (1, subtractiveSystem.Group.Data.Length);
             Assert.AreEqual (2, subtractiveSystem.Group.Data[0].value);
             m_Manager.AddComponent (go, new EcsTestData2());
-            subtractiveSystem.OnUpdate ();
+            subtractiveSystem.InternalUpdate ();
             Assert.AreEqual (0, subtractiveSystem.Group.Data.Length);
         }
         
@@ -99,19 +105,19 @@ namespace UnityEngine.ECS.Tests
             var go1 = m_Manager.CreateEntity ();
             m_Manager.AddComponent (go1, new EcsTestData(20));
 
-            pureSystem.OnUpdate ();
+            pureSystem.InternalUpdate ();
             Assert.AreEqual (2, pureSystem.Group.Length);
             Assert.AreEqual (10, pureSystem.Group.Data[0].value);
             Assert.AreEqual (20, pureSystem.Group.Data[1].value);
 
             m_Manager.RemoveComponent<EcsTestData> (go0);
 
-            pureSystem.OnUpdate ();
+            pureSystem.InternalUpdate ();
             Assert.AreEqual (1, pureSystem.Group.Length);
             Assert.AreEqual (20, pureSystem.Group.Data[0].value);
 
             m_Manager.RemoveComponent<EcsTestData> (go1);
-            pureSystem.OnUpdate ();
+            pureSystem.InternalUpdate ();
             Assert.AreEqual (0, pureSystem.Group.Length);
         }
 
@@ -123,7 +129,7 @@ namespace UnityEngine.ECS.Tests
             var go = m_Manager.CreateEntity (new ComponentType[0]);
             m_Manager.AddComponent (go, new EcsTestData(2));
 
-            pureSystem.OnUpdate ();
+            pureSystem.InternalUpdate ();
             Assert.AreEqual (1, pureSystem.Group.Length);
             Assert.AreEqual (1, pureSystem.Group.Data.Length);
             Assert.AreEqual (1, pureSystem.Group.Entities.Length);
@@ -161,7 +167,7 @@ namespace UnityEngine.ECS.Tests
 
 			public Entity entity;
 			
-			public override JobHandle OnUpdateForJob(JobHandle inputDeps)
+			public override JobHandle OnUpdate(JobHandle inputDeps)
 			{
 				var job = new IncrementValueJob();
 				job.entity = entity;
@@ -179,13 +185,13 @@ namespace UnityEngine.ECS.Tests
 
 			var entity = m_Manager.CreateEntity (typeof(EcsTestData), ComponentType.FixedArray(typeof(int), 5));
 			system.entity = entity;
-			system.OnUpdate ();
-			system.OnUpdate ();
+			system.InternalUpdate();
+			system.InternalUpdate();
 
 			Assert.AreEqual(2, m_Manager.GetComponent<EcsTestData>(entity).value);
 			Assert.AreEqual(2, m_Manager.GetFixedArray<int>(entity)[0]);
 		}
-	    
+
 		[DisableAutoCreation]
 	    public class OnDestroyManagerJobsHaveCompletedJobSystem : JobComponentSystem
 	    {
@@ -222,7 +228,7 @@ namespace UnityEngine.ECS.Tests
 	            Assert.AreEqual(42, group.Data[0].value);   
 	        }
 	    }
-		
+
 		[Test]
 		public void OnDestroyManagerJobsHaveCompleted()
 		{
@@ -285,7 +291,7 @@ namespace UnityEngine.ECS.Tests
 				}
 			}
 
-			public override JobHandle OnUpdateForJob(JobHandle input)
+			public override JobHandle OnUpdate(JobHandle input)
 			{
 				return new ReadJob() { wat = m_Inputs.data }.Schedule(input);
 			}
@@ -314,7 +320,7 @@ namespace UnityEngine.ECS.Tests
 				}
 			}
 
-			public override JobHandle OnUpdateForJob(JobHandle input)
+			public override JobHandle OnUpdate(JobHandle input)
 			{
                 JobHandle h;
 
@@ -344,7 +350,7 @@ namespace UnityEngine.ECS.Tests
 
 			[InjectComponentGroup] private Inputs m_Inputs;
 
-			public override JobHandle OnUpdateForJob(JobHandle input)
+			public override JobHandle OnUpdate(JobHandle input)
 			{
 				return input;
 			}
@@ -360,7 +366,7 @@ namespace UnityEngine.ECS.Tests
 
 			[InjectComponentGroup] private Inputs m_Inputs;
 
-			public override JobHandle OnUpdateForJob(JobHandle input)
+			public override JobHandle OnUpdate(JobHandle input)
 			{
 				return input;
 			}
@@ -376,8 +382,8 @@ namespace UnityEngine.ECS.Tests
 
 			rs2.returnWrongJob = true;
 
-			rs1.OnUpdate();
-			Assert.Throws<System.InvalidOperationException>(() => { rs2.OnUpdate(); });
+			rs1.InternalUpdate();
+			Assert.Throws<System.InvalidOperationException>(() => { rs2.InternalUpdate(); });
 		}
 
 		[Test]
@@ -390,8 +396,8 @@ namespace UnityEngine.ECS.Tests
 
 			rs2.ignoreInputDeps = true;
 
-			rs1.OnUpdate();
-			Assert.Throws<System.InvalidOperationException>(() => { rs2.OnUpdate(); });
+			rs1.InternalUpdate();
+			Assert.Throws<System.InvalidOperationException>(() => { rs2.InternalUpdate(); });
 		}
 
 		[Test]
@@ -402,8 +408,8 @@ namespace UnityEngine.ECS.Tests
 			ReadSystem1 rs1 = DependencyManager.GetBehaviourManager<ReadSystem1>();
 			ReadSystem3 rs3 = DependencyManager.GetBehaviourManager<ReadSystem3>();
 
-			rs1.OnUpdate();
-			rs3.OnUpdate();
+			rs1.InternalUpdate();
+			rs3.InternalUpdate();
 		}
 	}
 

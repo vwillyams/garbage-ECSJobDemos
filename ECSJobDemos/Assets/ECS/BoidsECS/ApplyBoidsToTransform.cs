@@ -35,7 +35,7 @@ namespace BoidSimulations
 			}
 		}
 
-		public override JobHandle OnUpdateForJob(JobHandle inputDeps)
+		public override JobHandle OnUpdate(JobHandle inputDeps)
 		{
 			WriteBoidsToTransformsJob writeJob;
 			writeJob.boidData = m_Boids.boids;

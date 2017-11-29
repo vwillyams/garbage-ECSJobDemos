@@ -8,7 +8,7 @@ using Unity.Jobs.LowLevel.Unsafe;
 
 namespace UnityEngine.ECS
 {
-    public abstract class ComponentSystem : ScriptBehaviourManager
+    public abstract class ComponentSystemBase : ScriptBehaviourManager
     {
 	    InjectComponentGroupData[] 			m_InjectedComponentGroups;
 	    InjectionData[] 					m_InjectedFromEntity;
@@ -25,15 +25,13 @@ namespace UnityEngine.ECS
 	    
 	    public ComponentGroup[] 			ComponentGroups { get { return m_ComponentGroups; } }
 	    
-        protected ComponentSystem()
+        protected ComponentSystemBase()
         {
             m_EntityManager = DependencyManager.GetBehaviourManager<EntityManager>();
         }
 
-    	override protected void OnCreateManager(int capacity)
+    	protected override void OnCreateManagerInternal(int capacity)
     	{
-    		base.OnCreateManager(capacity);
-
             m_SafetyManager = m_EntityManager.ComponentJobSafetyManager;
 
 		    ComponentSystemInjection.Inject(GetType(), m_EntityManager, out m_InjectedComponentGroups, out m_InjectedFromEntity);
@@ -61,19 +59,20 @@ namespace UnityEngine.ECS
 		    m_JobDependencyForWritingManagers = writingTypes.ToArray();
 	    }
 
-
-	    override protected void OnDestroyManager()
+	    protected override void OnDestroyManager()
     	{
-    		base.OnDestroyManager();
-		    
 		    CompleteDependencyInternal();
 		    UpdateInjectedComponentGroups();
-		    
-    		for (int i = 0; i != m_InjectedComponentGroups.Length; i++)
-    		{
-    			if (m_InjectedComponentGroups[i] != null)
-    				m_InjectedComponentGroups[i].Dispose ();
-    		}
+
+		    if (null != m_InjectedComponentGroups)
+		    {
+			    for (int i = 0; i != m_InjectedComponentGroups.Length; i++)
+			    {
+				    if (m_InjectedComponentGroups[i] != null)
+					    m_InjectedComponentGroups[i].Dispose();
+			    }
+                m_InjectedComponentGroups = null;
+		    }
 
 		    for (int i = 0; i != m_ComponentGroups.Length; i++)
 		    {
@@ -82,7 +81,6 @@ namespace UnityEngine.ECS
 		    }
 
 		    m_CachedComponentGroupEnumerables = null;
-    		m_InjectedComponentGroups = null;
 			m_JobDependencyForReadingManagers = null;
 			m_JobDependencyForWritingManagers = null;
     	}
@@ -107,70 +105,64 @@ namespace UnityEngine.ECS
 		    return res;
 	    }
 
-	    protected void UpdateInjectedComponentGroups()
-    	{
+	    public void UpdateInjectedComponentGroups()
+	    {
+		    if (null == m_InjectedComponentGroups)
+			    return;
+
     		foreach (var group in m_InjectedComponentGroups)
 			    group.UpdateInjection (this);
 		    
 		    InjectFromEntityData.UpdateInjection(this, EntityManager, m_InjectedFromEntity);
     	}
 
-    	override public void OnUpdate()
-    	{
-		    base.OnUpdate ();
-
-		    CompleteDependencyInternal();
-		    UpdateInjectedComponentGroups ();
-	    }
-
-	    internal void OnUpdateFromJobComponentSystem()
-	    {
-		    base.OnUpdate ();
-		    UpdateInjectedComponentGroups ();
-	    }
-
-        private unsafe void CompleteDependencyInternal()
+        internal unsafe void CompleteDependencyInternal()
         {
 	        fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
 	        {
 		        m_SafetyManager.CompleteDependencies(readersPtr, m_JobDependencyForReadingManagers.Length, writersPtr, m_JobDependencyForWritingManagers.Length);
 	        }
         }
-
     }
 
-	public abstract class JobComponentSystem : ComponentSystem
+	public abstract class ComponentSystem : ComponentSystemBase
 	{
 		private NativeList<JobHandle> m_PreviousFrameDependencies;
-		
-		override protected void OnCreateManager(int capacity)
-		{
-			base.OnCreateManager(capacity);
-			m_PreviousFrameDependencies = new NativeList<JobHandle>(1, Allocator.Persistent);
-		}
 
-		override protected void OnDestroyManager()
-		{
-			base.OnDestroyManager();
-			m_PreviousFrameDependencies.Dispose();
-		}
-
-	    virtual public JobHandle OnUpdateForJob(JobHandle inputDeps)
+	    internal sealed override void InternalUpdate()
 	    {
-		    return inputDeps;
+		    CompleteDependencyInternal();
+		    UpdateInjectedComponentGroups ();
+
+		    OnUpdate();
 	    }
 
-  		public sealed override void OnUpdate()
+		protected sealed override void OnCreateManagerInternal(int capacity)
 		{
-			OnUpdateFromJobComponentSystem();
-			
+			base.OnCreateManagerInternal(capacity);
+		}
+
+		/// <summary>
+		/// Called once per frame on the main thread.
+		/// </summary>
+		public abstract void OnUpdate();
+	}
+
+	public abstract class JobComponentSystem : ComponentSystemBase
+	{
+		private NativeList<JobHandle> m_PreviousFrameDependencies;
+
+		internal sealed override void InternalUpdate()
+		{
+			UpdateInjectedComponentGroups();
+
 			// We need to wait on all previous frame dependencies, otherwise it is possible that we create infinitely long dependency chains
 			// without anyone ever waiting on it
 			JobHandle.CompleteAll(m_PreviousFrameDependencies);
 			m_PreviousFrameDependencies.Clear();
 
 			JobHandle input = GetDependency();
-			JobHandle output = OnUpdateForJob(input);
+			JobHandle output = OnUpdate(input);
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (JobsUtility.GetJobDebuggerEnabled())
@@ -204,6 +196,23 @@ namespace UnityEngine.ECS
 			AddDependencyInternal(output);
 		}
 
+		override sealed protected void OnCreateManagerInternal(int capacity)
+		{
+			base.OnCreateManagerInternal(capacity);
+			m_PreviousFrameDependencies = new NativeList<JobHandle>(1, Allocator.Persistent);
+		}
+
+		override protected void OnDestroyManager()
+		{
+			base.OnDestroyManager();
+			m_PreviousFrameDependencies.Dispose();
+		}
+
+	    public virtual JobHandle OnUpdate(JobHandle inputDeps)
+	    {
+		    return inputDeps;
+	    }
+
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 		private void CheckJobDependencies(int type, JobHandle returnedHandle)
 		{
@@ -219,14 +228,14 @@ namespace UnityEngine.ECS
                 {
                     if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(readers[i], returnedHandle))
                     {
-                        throw new InvalidOperationException($"The system {this.GetType()} reads {TypeManager.GetType(type)} via {AtomicSafetyHandle.GetReaderName(h, i)} but that type was not returned as a job dependency. To ensure correct behavior of other systems, the job or a dependency of it must be returned from the OnUpdateForJob method.");
+                        throw new InvalidOperationException($"The system {this.GetType()} reads {TypeManager.GetType(type)} via {AtomicSafetyHandle.GetReaderName(h, i)} but that type was not returned as a job dependency. To ensure correct behavior of other systems, the job or a dependency of it must be returned from the OnUpdate method.");
                     }
                 }
 
                 JobHandle writer = AtomicSafetyHandle.GetWriter(h);
                 if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(writer, returnedHandle))
                 {
-                    throw new InvalidOperationException($"The system {this.GetType()} writes {TypeManager.GetType(type)} via {AtomicSafetyHandle.GetWriterName(h)} but that was not returned as a job dependency. To ensure correct behavior of other systems, the job or a dependency of it must be returned from the OnUpdateForJob method.");
+                    throw new InvalidOperationException($"The system {this.GetType()} writes {TypeManager.GetType(type)} via {AtomicSafetyHandle.GetWriterName(h)} but that was not returned as a job dependency. To ensure correct behavior of other systems, the job or a dependency of it must be returned from the OnUpdate method.");
                 }
             }
 		}
@@ -249,6 +258,12 @@ namespace UnityEngine.ECS
 
 		private unsafe JobHandle GetDependency ()
 		{
+	        if (m_SafetyManager == null)
+	        {
+		        Debug.DebugBreak();
+		        return new JobHandle();
+	        }
+
 			fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
 			{
 				return m_SafetyManager.GetDependency(readersPtr, m_JobDependencyForReadingManagers.Length, writersPtr, m_JobDependencyForWritingManagers.Length);

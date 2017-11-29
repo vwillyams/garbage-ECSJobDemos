@@ -5,8 +5,11 @@ using UnityEngine;
 using System.Reflection;
 using System;
 using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
 using UnityEngine.Assertions;
 using UnityEngine.ECS;
+
+[assembly:InternalsVisibleTo("Unity.ECS.Tests")]
 
 namespace UnityEngine.ECS
 {

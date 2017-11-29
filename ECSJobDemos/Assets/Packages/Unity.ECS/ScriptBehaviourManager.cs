@@ -14,23 +14,34 @@ namespace UnityEngine.ECS
 	{
 	}
 	
-	public class ScriptBehaviourManager
+	public abstract class ScriptBehaviourManager
 	{
 		private static HashSet<ScriptBehaviourManager> s_ActiveManagers = new HashSet<ScriptBehaviourManager>();
 
 		internal static void CreateInstance(ScriptBehaviourManager manager, int capacity)
 		{
+			s_ActiveManagers.Add(manager);
+
+			DependencyManager.DependencyInject(manager);
+
+			UpdatePlayerLoop();
+
+			manager.OnCreateManagerInternal(capacity);
+
 			manager.OnCreateManager(capacity);
 		}
 
 		internal static void DestroyInstance(ScriptBehaviourManager inst)
 		{
-			inst.OnDestroyManager ();
+			s_ActiveManagers.Remove(inst);
+			UpdatePlayerLoop();
+			inst.OnDestroyManager();
 		}
 
 		// NOTE: The comments for behaviour below are how it is supposed to work.
 		//       In this prototype several things don't work that way yet...
 
+		protected abstract void OnCreateManagerInternal(int capacity);
 
 		/// <summary>
 		/// Called when the ScriptBehaviourManager is created.
@@ -41,11 +52,6 @@ namespace UnityEngine.ECS
 		/// <param name="capacity">Capacity describes how many objects will register with the manager. This lets you reduce realloc calls while the game is running.</param>
 		protected virtual void OnCreateManager(int capacity)
 		{
-			s_ActiveManagers.Add(this);
-
-			DependencyManager.DependencyInject (this);
-
-			UpdatePlayerLoop();
 		}
 
 		/// <summary>
@@ -54,20 +60,14 @@ namespace UnityEngine.ECS
 		/// </summary>
 		protected virtual void OnDestroyManager()
 		{
-			s_ActiveManagers.Remove(this);
-			UpdatePlayerLoop();
 		}
-
 
 		/// <summary>
 		/// Called once per frame
 		/// </summary>
-		public virtual void OnUpdate()
-		{
-			
-		}
+		internal abstract void InternalUpdate();
 
-		private void UpdatePlayerLoop()
+		private static void UpdatePlayerLoop()
 		{
 			var defaultLoop = UnityEngine.Experimental.LowLevel.PlayerLoop.GetDefaultPlayerLoop();
 			var ecsLoop = ScriptBehaviourUpdateOrder.InsertManagersInPlayerLoop(s_ActiveManagers, defaultLoop);

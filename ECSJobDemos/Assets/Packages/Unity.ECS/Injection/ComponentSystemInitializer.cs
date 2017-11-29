@@ -27,7 +27,7 @@ namespace UnityEngine.ECS
                 var allTypes = ass.GetTypes();
 
                 // Create all ComponentSystem
-                var systemTypes = allTypes.Where(t => t.IsSubclassOf(typeof(ComponentSystem)) && !t.IsAbstract && !t.ContainsGenericParameters && t.GetCustomAttributes(typeof(DisableAutoCreationAttribute), true).Length == 0);
+                var systemTypes = allTypes.Where(t => t.IsSubclassOf(typeof(ComponentSystemBase)) && !t.IsAbstract && !t.ContainsGenericParameters && t.GetCustomAttributes(typeof(DisableAutoCreationAttribute), true).Length == 0);
                 foreach (var type in systemTypes)
                 {
                     GetBehaviourManagerAndLogException(type);

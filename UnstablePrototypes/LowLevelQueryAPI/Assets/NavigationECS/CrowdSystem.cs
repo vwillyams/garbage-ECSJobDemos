@@ -203,7 +203,7 @@ public partial class CrowdSystem : JobComponentSystem
         }
 
         if (m_Crowd.agentNavigators.Length == 0)
-            return new JobHandle();
+            return inputDeps;
 
         var missingAgents = m_Crowd.agentNavigators.Length - m_PlanPathForAgent.Length;
         if (missingAgents > 0)

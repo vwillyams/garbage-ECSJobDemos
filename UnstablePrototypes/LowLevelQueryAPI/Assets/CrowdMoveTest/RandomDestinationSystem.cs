@@ -39,7 +39,7 @@ public class RandomDestinationSystem : JobComponentSystem
     public override JobHandle OnUpdateForJob(JobHandle inputDeps)
     {
         if (m_Crowd.agents.Length == 0)
-            return new JobHandle();
+            return inputDeps;
 
         var destinationJob = new SetDestinationJob { query = m_NavMeshQuery, agents = m_Crowd.agents, agentNavigators = m_Crowd.agentNavigators, randomNumber = UnityEngine.Random.value };
         return destinationJob.Schedule(m_Crowd.agents.Length, k_AgentsPerBatch, inputDeps);

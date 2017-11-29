@@ -161,16 +161,14 @@ namespace UnityEngine.ECS.Tests
 
 			public Entity entity;
 			
-			public override void OnUpdate()
+			public override JobHandle OnUpdateForJob(JobHandle inputDeps)
 			{
-				base.OnUpdate ();
-				
 				var job = new IncrementValueJob();
 				job.entity = entity;
 				job.ecsTestDataFromEntity = ecsTestDataFromEntity;
 				job.intArrayFromEntity = intArrayFromEntity;
 
-				AddDependency(job.Schedule(GetDependency()));
+				return job.Schedule(inputDeps);
 			}
 		}
 		

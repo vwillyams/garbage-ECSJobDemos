@@ -35,14 +35,12 @@ namespace BoidSimulations
 			}
 		}
 
-		override public void OnUpdate()
+		public override JobHandle OnUpdateForJob(JobHandle inputDeps)
 		{
-			base.OnUpdate ();
-
 			WriteBoidsToTransformsJob writeJob;
 			writeJob.boidData = m_Boids.boids;
 
-			AddDependency(writeJob.Schedule (m_Boids.transforms, GetDependency()));
+			return writeJob.Schedule(m_Boids.transforms, inputDeps);
 		}
 	}
 }

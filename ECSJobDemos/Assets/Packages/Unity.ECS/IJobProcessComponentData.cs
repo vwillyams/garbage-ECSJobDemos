@@ -146,16 +146,14 @@ namespace UnityEngine.ECS
         [InjectComponentGroup]
         private DataGroup m_Group;
 
-        public override void OnUpdate()
+        public override JobHandle OnUpdateForJob(JobHandle inputDeps)
         {
-            base.OnUpdate();
-
             int batchSize = 32;
 
             TJob jobData = default(TJob);
             jobData.Prepare();
 
-            AddDependency(jobData.Schedule(m_Group.component0, batchSize, GetDependency()));
+            return jobData.Schedule(m_Group.component0, batchSize, inputDeps);
         }
     }
 
@@ -173,16 +171,14 @@ namespace UnityEngine.ECS
         [InjectComponentGroup]
         private DataGroup m_Group;
 
-        public override void OnUpdate()
+        public override JobHandle OnUpdateForJob(JobHandle inputDeps)
         {
-            base.OnUpdate();
-
             int batchSize = 32;
 
             TJob jobData = default(TJob);
             jobData.Prepare();
 
-            AddDependency(jobData.Schedule(m_Group.component0, m_Group.component1, batchSize, GetDependency()));
+            return jobData.Schedule(m_Group.component0, m_Group.component1, batchSize, inputDeps);
         }
     }
 

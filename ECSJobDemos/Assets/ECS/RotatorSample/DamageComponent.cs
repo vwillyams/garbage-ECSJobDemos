@@ -42,10 +42,8 @@ namespace RotatorSamples
 		[InjectComponentGroup] 
 		Rotators m_Rotators;
 		
-		public override void OnUpdate()
+		public override JobHandle OnUpdateForJob(JobHandle inputDeps)
 		{
-			base.OnUpdate ();
-
 			// Extract positions for both damage and rotations in two arrays
 			// so that our N * N loop isn't doing complex calls and has tight data
 			NativeArray<float3> damagePositions = new NativeArray<float3> (m_Damages.Length, Allocator.TempJob);
@@ -62,8 +60,8 @@ namespace RotatorSamples
 			damageJob.rotationSpeeds = m_Rotators.speed;
 			damageJob.damages = m_Damages.damages;
 
-			var dependency = JobHandle.CombineDependencies (damagePositionsJob, rotationsJob, GetDependency());
-			AddDependency(damageJob.Schedule (m_Rotators.Length, 64, dependency));
+			var dependency = JobHandle.CombineDependencies (damagePositionsJob, rotationsJob, inputDeps);
+			return damageJob.Schedule(m_Rotators.Length, 64, dependency);
 		}
 
 		// Used to Extract positions from transforms

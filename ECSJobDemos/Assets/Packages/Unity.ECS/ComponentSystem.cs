@@ -160,7 +160,7 @@ namespace UnityEngine.ECS
 		    return inputDeps;
 	    }
 
-  		override public void OnUpdate()
+  		public sealed override void OnUpdate()
 		{
 			OnUpdateFromJobComponentSystem();
 			

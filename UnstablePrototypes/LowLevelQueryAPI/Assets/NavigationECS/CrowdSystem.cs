@@ -184,14 +184,11 @@ public partial class CrowdSystem : JobComponentSystem
 #endif
     }
 
-    public override void OnUpdate()
+    public override JobHandle OnUpdateForJob(JobHandle inputDeps)
     {
-        base.OnUpdate();
-
         //
         // Prepare data on the main thread
         //
-        CompleteDependency();
         m_AfterQueriesCleanup.Complete();
         m_AfterMovedRequestsForgotten.Complete();
 
@@ -206,7 +203,7 @@ public partial class CrowdSystem : JobComponentSystem
         }
 
         if (m_Crowd.agentNavigators.Length == 0)
-            return;
+            return new JobHandle();
 
         var missingAgents = m_Crowd.agentNavigators.Length - m_PlanPathForAgent.Length;
         if (missingAgents > 0)
@@ -296,7 +293,7 @@ public partial class CrowdSystem : JobComponentSystem
         //    pathRequestIdForAgent = m_PathRequestIdForAgent,
         //    paths = m_AgentPaths.GetReadOnlyData()
         //};
-        //var afterPathNeedChecked = pathNeededJob.Schedule(m_Crowd.agents.Length, k_AgentsBatchSize, m_AfterQueriesCleanup);
+        //var afterPathNeedChecked = pathNeededJob.Schedule(m_Crowd.agents.Length, k_AgentsBatchSize, inputDeps);
 
         var makeRequestsJob = new MakePathRequestsJob
         {
@@ -310,7 +307,7 @@ public partial class CrowdSystem : JobComponentSystem
             currentAgentIndex = m_CurrentAgentIndex,
             uniqueIdStore = m_UniqueIdStore
         };
-        var afterRequestsCreated = makeRequestsJob.Schedule(m_AfterQueriesCleanup);
+        var afterRequestsCreated = makeRequestsJob.Schedule(inputDeps);
 
         var afterRequestsMovedToQueries = afterRequestsCreated;
         if (m_QueryQueues.Length > 0)
@@ -376,8 +373,6 @@ public partial class CrowdSystem : JobComponentSystem
         //var arrivalJob = new CheckArrivalToDestinationJob { agents = m_Crowd.agents };
         //afterAgentsMoved = arrivalJob.Schedule(afterAgentsMoved);
 
-        AddDependency(afterAgentsMoved);
-
 #if DEBUG_CROWDSYSTEM_LOGS
         if (dbgPrintRequests)
         {
@@ -397,10 +392,11 @@ public partial class CrowdSystem : JobComponentSystem
             cleanupFence = queryCleanupJob.Schedule(cleanupFence);
             m_AfterQueriesCleanup = cleanupFence;
         }
-        JobHandle.ScheduleBatchedJobs();
 
         // TODO: job safety for navmesh mutation
         // NavMeshManager.DidScheduleQueryJobs(afterAgentsMoved);
+
+        return afterAgentsMoved;
     }
 
     public void AddAgentResources(int n)

@@ -36,20 +36,13 @@ public class RandomDestinationSystem : JobComponentSystem
         m_NavMeshQuery.Dispose();
     }
 
-    public override void OnUpdate()
+    public override JobHandle OnUpdateForJob(JobHandle inputDeps)
     {
-        base.OnUpdate();
-
         if (m_Crowd.agents.Length == 0)
-            return;
-
-        CompleteDependency();
+            return new JobHandle();
 
         var destinationJob = new SetDestinationJob { query = m_NavMeshQuery, agents = m_Crowd.agents, agentNavigators = m_Crowd.agentNavigators, randomNumber = UnityEngine.Random.value };
-        var afterDestinationsSet = destinationJob.Schedule(m_Crowd.agents.Length, k_AgentsPerBatch);
-        JobHandle.ScheduleBatchedJobs();
-
-        AddDependency(afterDestinationsSet);
+        return destinationJob.Schedule(m_Crowd.agents.Length, k_AgentsPerBatch, inputDeps);
     }
 
     public struct SetDestinationJob : IJobParallelFor

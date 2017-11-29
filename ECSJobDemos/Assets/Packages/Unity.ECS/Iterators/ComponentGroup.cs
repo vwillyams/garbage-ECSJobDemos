@@ -52,9 +52,9 @@ namespace UnityEngine.ECS
 
             for (int i = 0; i != requiredCount;i++)
             {
-                if (requiredTypes[i].subtractive != 0)
+                if (requiredTypes[i].accessMode == ComponentType.AccessMode.Subtractive)
                     grp->subtractiveComponentsCount++;
-                else if (requiredTypes[i].readOnly != 0)
+                else if (requiredTypes[i].accessMode == ComponentType.AccessMode.ReadOnly)
                     grp->readerTypesCount++;
                 else
                     grp->writerTypesCount++;
@@ -66,9 +66,9 @@ namespace UnityEngine.ECS
             int curWriter = 0;
             for (int i = 0; i != requiredCount;i++)
             {
-                if (requiredTypes[i].subtractive != 0)
+                if (requiredTypes[i].accessMode == ComponentType.AccessMode.Subtractive)
                 {}
-                else if (requiredTypes[i].readOnly != 0)
+                else if (requiredTypes[i].accessMode == ComponentType.AccessMode.ReadOnly)
                     grp->readerTypes[curReader++] = requiredTypes[i].typeIndex;
                 else
                     grp->writerTypes[curWriter++] = requiredTypes[i].typeIndex;
@@ -107,24 +107,26 @@ namespace UnityEngine.ECS
                 while (archetype->types[typeI].typeIndex < group->requiredComponents[i].typeIndex && typeI < archetype->typesCount)
                     ++typeI;
                 
-                int hasComponent = 1;
+                bool hasComponent = true;
                 if (typeI >= archetype->typesCount)
-                    hasComponent = 0;
+                    hasComponent = false;
 
                 // Type mismatch
-                if (hasComponent != 0 && archetype->types[typeI].typeIndex != group->requiredComponents[i].typeIndex)
-                    hasComponent = 0;
+                if (hasComponent && archetype->types[typeI].typeIndex != group->requiredComponents[i].typeIndex)
+                    hasComponent = false;
 
                 // We are looking for a specific shared type index and it doesn't match
-                if (hasComponent != 0 && group->requiredComponents[i].sharedComponentIndex != -1 && archetype->types[typeI].sharedComponentIndex != group->requiredComponents[i].sharedComponentIndex)
-                    hasComponent = 0;
+                if (hasComponent && group->requiredComponents[i].sharedComponentIndex != -1 && archetype->types[typeI].sharedComponentIndex != group->requiredComponents[i].sharedComponentIndex)
+                    hasComponent = false;
 
-                if (hasComponent == group->requiredComponents[i].subtractive)
+                if (hasComponent && group->requiredComponents[i].accessMode == ComponentType.AccessMode.Subtractive)
                     return;
-                if (hasComponent == 0)
-                    typeI = prevTypeI;
-                else
+                if (!hasComponent && group->requiredComponents[i].accessMode != ComponentType.AccessMode.Subtractive)
+                    return;
+                if (hasComponent)
                     prevTypeI = typeI;
+                else
+                    typeI = prevTypeI;
             }
             MatchingArchetypes* match = (MatchingArchetypes*)m_GroupDataChunkAllocator.Allocate(sizeof(MatchingArchetypes), 8);
             match->archetype = archetype;
@@ -143,7 +145,7 @@ namespace UnityEngine.ECS
                     match->archetypeSegments[component].nextSegment = group->lastMatchingArchetype->archetypeSegments + component;
 
                 int typeComponentIndex = -1;
-                if (group->requiredComponents[component].subtractive == 0)
+                if (group->requiredComponents[component].accessMode != ComponentType.AccessMode.Subtractive)
                 {
                     typeComponentIndex = ChunkDataUtility.GetIndexInTypeArray(archetype, group->requiredComponents[component].typeIndex);
                     Assertions.Assert.AreNotEqual(-1, typeComponentIndex);
@@ -223,15 +225,15 @@ namespace UnityEngine.ECS
 
         bool IsReadOnly(int componentIndex)
         {
-            return m_GroupData->requiredComponents[componentIndex].readOnly != 0;
+            return m_GroupData->requiredComponents[componentIndex].accessMode == ComponentType.AccessMode.ReadOnly;
         }
 
         internal static void AddReaderWriter(ComponentType type, List<int> reading, List<int> writing)
         {
-            if (!type.RequiresJobDependency || (type.subtractive != 0))
+            if (!type.RequiresJobDependency)
                 return;
                     
-            if (type.readOnly != 0)
+            if (type.accessMode == ComponentType.AccessMode.ReadOnly)
             {
                 if (reading.Contains(type.typeIndex))
                     return;
@@ -382,7 +384,7 @@ namespace UnityEngine.ECS
 				var types = new List<Type> ();
 				for (int i = 0; i < m_GroupData->requiredComponentsCount; ++i)
                 {
-                    if (m_GroupData->requiredComponents[i].subtractive == 0)
+                    if (m_GroupData->requiredComponents[i].accessMode != ComponentType.AccessMode.Subtractive)
 					    types.Add(TypeManager.GetType(m_GroupData->requiredComponents[i].typeIndex));
                 }
 

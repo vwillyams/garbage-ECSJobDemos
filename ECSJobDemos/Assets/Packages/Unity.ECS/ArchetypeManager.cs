@@ -76,8 +76,7 @@ namespace UnityEngine.ECS
 			ComponentType type;
 			type.FixedArrayLength = FixedArrayLength;
 			type.typeIndex = typeIndex;
-			type.readOnly = 0;
-			type.subtractive = 0;
+			type.accessMode = ComponentType.AccessMode.ReadWrite;
 			type.sharedComponentIndex = sharedComponentIndex;
 			return type.ToString();
 		}

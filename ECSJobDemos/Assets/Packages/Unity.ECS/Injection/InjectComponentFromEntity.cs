@@ -69,7 +69,7 @@ namespace UnityEngine.ECS
 			foreach (var injection in injections)
 			{
 				ComponentType type = new ComponentType(injection.genericType);
-				type.readOnly = injection.isReadOnly ? 1 : 0;
+				type.accessMode = injection.isReadOnly ? ComponentType.AccessMode.ReadOnly : ComponentType.AccessMode.ReadWrite;
 				ComponentGroup.AddReaderWriter(type, reading, writing);
 			}
 		}

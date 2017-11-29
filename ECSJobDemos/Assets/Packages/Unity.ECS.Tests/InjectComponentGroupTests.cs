@@ -213,7 +213,7 @@ namespace UnityEngine.ECS.Tests
 		        
 	            var job = new Job();
 	            job.data = group.Data;
-	            AddDependency(job.Schedule());
+	            AddDependencyInternal(job.Schedule());
 
 	            base.OnDestroyManager();
             

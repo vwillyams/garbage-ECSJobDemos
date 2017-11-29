@@ -129,7 +129,7 @@ namespace UnityEngine.ECS
 		    UpdateInjectedComponentGroups ();
 	    }
 
-        internal unsafe void CompleteDependencyInternal()
+        private unsafe void CompleteDependencyInternal()
         {
 	        fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
 	        {
@@ -201,7 +201,7 @@ namespace UnityEngine.ECS
 				}
 			}
 #endif
-			AddDependency(output);
+			AddDependencyInternal(output);
 		}
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -247,7 +247,7 @@ namespace UnityEngine.ECS
 		}
 #endif
 
-		public unsafe JobHandle GetDependency ()
+		private unsafe JobHandle GetDependency ()
 		{
 			fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
 			{
@@ -255,12 +255,7 @@ namespace UnityEngine.ECS
 			}
 		}
 
-		public void CompleteDependency ()
-		{
-            CompleteDependencyInternal();
-		}
-
-		public unsafe void AddDependency (JobHandle dependency)
+		protected unsafe void AddDependencyInternal(JobHandle dependency)
 		{
 			m_PreviousFrameDependencies.Add(dependency);
 			

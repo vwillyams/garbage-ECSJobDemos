@@ -1,5 +1,5 @@
 This project is meant to work with code from the native branch `scripting/jobsystem/make-public/demo` .\
-Revision needed: **e30a6553542f** (2017-11-28 17:34:52 +0100)\
+Revision needed: **cabd5a46f6d3** (2017-11-29 13:23:53 +0100)\
 Good build: not available currently
 
 Example scenes:
@@ -46,8 +46,8 @@ Exclusive API featured:
         PathQueryStatus.PartialResult
 
     enum NavMeshPolyTypes
-        NavMeshPolyTypes.kPolyTypeGround
-        NavMeshPolyTypes.kPolyTypeOffMeshConnection
+        NavMeshPolyTypes.Ground
+        NavMeshPolyTypes.OffMeshConnection
 
     struct NavMeshWorld
         IsValid()

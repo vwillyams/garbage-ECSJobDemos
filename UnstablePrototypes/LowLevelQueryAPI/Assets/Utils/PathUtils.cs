@@ -56,7 +56,7 @@ public class PathUtils
                 straightPath[n] = new NavMeshLocation(cpa1, path[k + 1]);
 
                 // TODO maybe the flag should be additive with |=
-                straightPathFlags[n] = (type2 == NavMeshPolyTypes.kPolyTypeOffMeshConnection) ? StraightPathFlags.OffMeshConnection : 0;
+                straightPathFlags[n] = (type2 == NavMeshPolyTypes.OffMeshConnection) ? StraightPathFlags.OffMeshConnection : 0;
                 if (++n == maxStraightPath)
                 {
                     return maxStraightPath;
@@ -64,7 +64,7 @@ public class PathUtils
             }
         }
         straightPath[n] = new NavMeshLocation(termPos, path[endIndex]);
-        straightPathFlags[n] = query.GetPolygonType(path[endIndex]) == NavMeshPolyTypes.kPolyTypeOffMeshConnection ? StraightPathFlags.OffMeshConnection : 0;
+        straightPathFlags[n] = query.GetPolygonType(path[endIndex]) == NavMeshPolyTypes.OffMeshConnection ? StraightPathFlags.OffMeshConnection : 0;
         return ++n;
     }
 

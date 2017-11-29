@@ -16,6 +16,7 @@ namespace UnityEngine.ECS
 
     unsafe struct EntityDataManager
     {
+        [NativeDisableUnsafePtrRestriction]
         internal EntityData* m_Entities;
         int m_EntitiesCapacity;
         int m_EntitiesFreeIndex;

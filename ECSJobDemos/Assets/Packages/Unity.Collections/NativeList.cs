@@ -28,10 +28,12 @@ namespace Unity.Collections
 	[NativeContainer]
 	public struct NativeList<T> where T : struct
 	{
+		[NativeDisableUnsafePtrRestriction]
 		internal System.IntPtr 			m_Buffer;
 		Allocator 						m_AllocatorLabel;
 		#if ENABLE_UNITY_COLLECTIONS_CHECKS
 		internal AtomicSafetyHandle 	m_Safety;
+		[NativeSetClassTypeToNullOnSchedule]
 		DisposeSentinel					m_DisposeSentinel;
 		#endif
 

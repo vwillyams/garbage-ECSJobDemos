@@ -1,11 +1,6 @@
-﻿using UnityEngine;
-using Unity.Collections;
-using Unity.Jobs;
+﻿using Unity.Collections;
 using System;
-using System.Collections.Generic;
-using UnityEngine.Assertions;
-using System.Linq;
-using System.Reflection;
+
 namespace UnityEngine.ECS
 {
     unsafe struct ComponentDataArchetypeSegment
@@ -17,6 +12,7 @@ namespace UnityEngine.ECS
 
     struct ComponentChunkCache
     {
+        [NativeDisableUnsafePtrRestriction]
         public IntPtr                          CachedPtr;
         public int                             CachedBeginIndex;
         public int                             CachedEndIndex;
@@ -25,9 +21,12 @@ namespace UnityEngine.ECS
 
     unsafe struct ComponentChunkIterator
     {
+        [NativeDisableUnsafePtrRestriction]
         ComponentDataArchetypeSegment*  m_FirstArchetypeSegment;
+        [NativeDisableUnsafePtrRestriction]
         ComponentDataArchetypeSegment*  m_CurrentArchetypeSegment;
         int                             m_CurrentArchetypeIndex;
+        [NativeDisableUnsafePtrRestriction]
         Chunk*                          m_CurrentChunk;
         int                             m_CurrentChunkIndex;
 

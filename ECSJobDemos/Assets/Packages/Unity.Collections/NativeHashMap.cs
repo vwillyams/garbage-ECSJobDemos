@@ -448,10 +448,12 @@ namespace Unity.Collections
 		where TKey : struct, System.IEquatable<TKey>
 		where TValue : struct
 	{
+		[NativeDisableUnsafePtrRestriction]
 		System.IntPtr 			m_Buffer;
 
 		#if ENABLE_UNITY_COLLECTIONS_CHECKS
 		AtomicSafetyHandle 		m_Safety;
+		[NativeSetClassTypeToNullOnSchedule]
 		DisposeSentinel			m_DisposeSentinel;
 		#endif
 
@@ -557,11 +559,13 @@ namespace Unity.Collections
 			m_Buffer = IntPtr.Zero;
 		}
 
+		
 		[NativeContainer]
 		[NativeContainerIsAtomicWriteOnly]
 		[NativeContainerNeedsThreadIndex]
 		public struct Concurrent
 		{
+			[NativeDisableUnsafePtrRestriction]
 			IntPtr 	m_Buffer;
 
 			#if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -597,6 +601,7 @@ namespace Unity.Collections
 				}
 			}
 
+			
 			unsafe public bool TryAdd(TKey key, TValue item)
 			{
 				#if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -613,10 +618,12 @@ namespace Unity.Collections
 		where TKey : struct, System.IEquatable<TKey>
 		where TValue : struct
 	{
+		[NativeDisableUnsafePtrRestriction]
 		System.IntPtr 			m_Buffer;
 
 		#if ENABLE_UNITY_COLLECTIONS_CHECKS
 		AtomicSafetyHandle 		m_Safety;
+		[NativeSetClassTypeToNullOnSchedule]
 		DisposeSentinel			m_DisposeSentinel;
 		#endif
 
@@ -750,6 +757,7 @@ namespace Unity.Collections
 		[NativeContainerNeedsThreadIndex]
 		public struct Concurrent
 		{
+			[NativeDisableUnsafePtrRestriction]
 			IntPtr 	m_Buffer;
 
 			#if ENABLE_UNITY_COLLECTIONS_CHECKS

@@ -2,19 +2,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.InteropServices;
+using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.ECS
 {
-    class ComponentGroupEnumeratorStaticCache
+    class ComponentGroupArrayStaticCache
     {
         public ComponentType[]       ComponentTypes;
         public int[]                 ComponentFieldOffsets;
         public int                   ComponentDataCount;
         public int                   ComponentCount;
         
-        public ComponentGroupEnumeratorStaticCache(Type type)
+        public ComponentGroupArrayStaticCache(Type type)
         {
             var fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
@@ -85,14 +85,31 @@ namespace UnityEngine.ECS
         public const int kMaxStream = 6;
     }
 
+    unsafe struct ComponentGroupArrayData
+    {
+        fixed byte                  m_Caches[16 * ComponentGroupStream.kMaxStream];
+
+        int                         m_ComponentDataCount;
+        int                         m_ComponentCount;
+
+        int                         m_Index;
+        int                         m_Length;
+    
+        int                         m_CacheBeginIndex;
+        int                         m_CacheEndIndex;
+
+        ComponentChunkIterator      m_ChunkIterator;
+        fixed int                   m_ComponentTypes[ComponentGroupStream.kMaxStream];
+    }
+
     public class ComponentGroupArray<T> : IDisposable where T : struct 
     {
-        ComponentGroup                         m_ComponentGroup;
-        ComponentGroupEnumeratorStaticCache    m_StaticCache;
+        ComponentGroup                    m_ComponentGroup;
+        ComponentGroupArrayStaticCache    m_StaticCache;
         
         public ComponentGroupArray(EntityManager entityManager)
         {
-            m_StaticCache = new ComponentGroupEnumeratorStaticCache(typeof(T));
+            m_StaticCache = new ComponentGroupArrayStaticCache(typeof(T));
             m_ComponentGroup = entityManager.CreateComponentGroup(m_StaticCache.ComponentTypes);
         }
 
@@ -112,10 +129,10 @@ namespace UnityEngine.ECS
             
             return new ComponentGroupEnumerator<T>(length, m_StaticCache, iterator, m_ComponentGroup.GetArchetypeManager());
         }
-            
+        
+        //@TODO: Container & safety...
         public unsafe struct ComponentGroupEnumerator<T> : IEnumerator<T> where T : struct
         {
-            
             fixed byte                  m_Caches[16 * ComponentGroupStream.kMaxStream];
 
             int                         m_ComponentDataCount;
@@ -129,9 +146,10 @@ namespace UnityEngine.ECS
 
             ComponentChunkIterator      m_ChunkIterator;
             fixed int                   m_ComponentTypes[ComponentGroupStream.kMaxStream];
+            [NativeSetClassTypeToNullOnSchedule]
             ArchetypeManager		    m_ArchetypeManager;
     
-            internal ComponentGroupEnumerator(int length, ComponentGroupEnumeratorStaticCache staticCache, ComponentChunkIterator chunkIterator, ArchetypeManager archetypeManager)
+            internal ComponentGroupEnumerator(int length, ComponentGroupArrayStaticCache staticCache, ComponentChunkIterator chunkIterator, ArchetypeManager archetypeManager)
             {
                 m_Length = length;
                 m_Index = -1;
@@ -148,11 +166,11 @@ namespace UnityEngine.ECS
                 {
                     fixed (byte* cacheBytes = m_Caches)
                     {
+                        ComponentGroupStream* streams = (ComponentGroupStream*)cacheBytes;
+                        
                         for (int i = 0; i < staticCache.ComponentDataCount + staticCache.ComponentCount; i++)
                         {
                             componentTypes[i] = staticCache.ComponentTypes[i].typeIndex;
-
-                            ComponentGroupStream* streams = (ComponentGroupStream*)cacheBytes;
                             streams[i].FieldOffset = (ushort)staticCache.ComponentFieldOffsets[i];
                         }
                     }
@@ -166,7 +184,7 @@ namespace UnityEngine.ECS
 
             public int Length { get { return m_Length; } }
 
-            unsafe public void UpdateCache()
+            unsafe void UpdateCache()
             {
                 ComponentChunkCache cache;
                 m_ChunkIterator.UpdateCache(m_Index, out cache);
@@ -218,13 +236,12 @@ namespace UnityEngine.ECS
             {
                 m_Index = -1;
             }
-            
+
             unsafe public T Current
             {
                 get
                 {
-                    T value = default(T);
-                    
+                    var value = default(T);
                     byte* valuePtr = (byte*)UnsafeUtility.AddressOf(ref value);
 
                     fixed (byte* cacheBytes = m_Caches)
@@ -249,6 +266,26 @@ namespace UnityEngine.ECS
                     return value;
                 }
             }
+            
+            //@TODO: Wrong place, not very C#py
+            public unsafe T this[int index]
+            {
+                get
+                {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+//                  AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
+//                  if (index < m_MinIndex || index > m_MaxIndex)
+//                      FailOutOfRangeError(index);
+#endif
+
+                    m_Index = index;
+                    if (m_Index < m_CacheBeginIndex || m_Index >= m_CacheEndIndex)
+                        UpdateCache();
+
+                    return Current;
+                }
+            }        
+            
     
             object IEnumerator.Current
             {

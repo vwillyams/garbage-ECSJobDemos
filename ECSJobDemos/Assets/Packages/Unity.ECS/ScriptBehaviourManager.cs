@@ -9,7 +9,7 @@ using UnityEngine.Assertions;
 namespace UnityEngine.ECS
 {
 	//@TODO: Checks to ensure base override is always called.
-	[AttributeUsage(AttributeTargets.Class)]
+	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
 	sealed public class DisableAutoCreationAttribute : System.Attribute
 	{
 	}

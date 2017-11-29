@@ -23,7 +23,7 @@ namespace UnityEngine.ECS
         void Prepare();
     }
 
-    public static class ProcessEntityJobExtension1
+    public static class JobProcessComponentDataExtension1
     {
         static public JobHandle Schedule<T, U0>(this T jobData, ComponentDataArray<U0> componentDataArray, int innerloopBatchCount, JobHandle dependsOn = new JobHandle())
             where T : struct, IJobProcessComponentData<U0>
@@ -76,7 +76,7 @@ namespace UnityEngine.ECS
         }
     }
 
-    public static class ProcessEntityJobExtension2
+    public static class JobProcessComponentDataExtension2
     {
         static public JobHandle Schedule<T, U0, U1>(this T jobData, ComponentDataArray<U0> componentDataArray0, ComponentDataArray<U1> componentDataArray1, int innerloopBatchCount, JobHandle dependsOn = new JobHandle())
             where T : struct, IJobProcessComponentData<U0, U1>

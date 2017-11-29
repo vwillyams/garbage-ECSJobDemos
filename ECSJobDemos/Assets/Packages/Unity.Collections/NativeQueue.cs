@@ -380,6 +380,13 @@ namespace Unity.Collections
 
 		unsafe public T Dequeue()
 		{
+			T item;
+			if (!TryDequeue(out item))
+				throw new InvalidOperationException("Trying to dequeue from an empty queue");
+			return item;
+		}
+		unsafe public bool TryDequeue(out T item)
+		{
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
@@ -390,7 +397,10 @@ namespace Unity.Collections
 			{
 				int nextUsedBlock = (data->m_FirstUsedBlock+1) % data->m_NumBlocks;
 				if (blockLengths[nextUsedBlock*NativeQueueData.IntsPerCacheLine] == 0 && blockLengths[data->m_FirstUsedBlock*NativeQueueData.IntsPerCacheLine] != data->m_BlockSize)
-					throw new InvalidOperationException("Trying to dequeue from an empty queue");
+				{
+					item = default(T);
+					return false;
+				}
 				blockLengths[data->m_FirstUsedBlock*NativeQueueData.IntsPerCacheLine] = 0;
 				for (int tls = 0; tls < JobsUtility.MaxJobThreadCount; ++tls)
 				{
@@ -403,7 +413,10 @@ namespace Unity.Collections
 				data->m_CurrentReadIndexInBlock = 0;
 			}
 			if (blockLengths[data->m_FirstUsedBlock*NativeQueueData.IntsPerCacheLine] == 0)
-				throw new InvalidOperationException("Trying to dequeue from an empty queue");
+			{
+				item = default(T);
+				return false;
+			}
 
 			if (data->m_FreeCount <= 0)
 				data->m_FreeCount = 1;
@@ -412,7 +425,8 @@ namespace Unity.Collections
 
             int idx = data->m_FirstUsedBlock * data->m_BlockSize + data->m_CurrentReadIndexInBlock;
 			data->m_CurrentReadIndexInBlock++;
-			return UnsafeUtility.ReadArrayElement<T>(data->m_Data, idx);
+			item = UnsafeUtility.ReadArrayElement<T>(data->m_Data, idx);
+			return true;
 		}
 
 		unsafe public void Clear()

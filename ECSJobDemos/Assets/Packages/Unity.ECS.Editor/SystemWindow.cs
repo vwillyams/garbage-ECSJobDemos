@@ -11,7 +11,7 @@ namespace UnityEditor.ECS
 	public class SystemWindow : EditorWindow
 	{
 		private readonly Rect kStartPosition = new Rect(0f, 0f, 1f, 1f);
-		private const float kArrowSize = 10f;
+		private const float kArrowSize = 11f;
 		private const float kLineWidth = 2f;
 		
 		[System.Serializable]
@@ -21,6 +21,7 @@ namespace UnityEditor.ECS
 			public string fullName;
 			public Rect position;
 			public List<int> updateAfter;
+			public List<int> updateBefore;
 
 			public SystemViewData(string name, string fullName, Rect position)
 			{
@@ -34,7 +35,7 @@ namespace UnityEditor.ECS
 				get
 				{
 					var center = (Vector3)position.center;
-					center.z = -5f;
+					center.z = -kArrowSize;
 					return center;
 				}
 			}
@@ -61,6 +62,7 @@ namespace UnityEditor.ECS
 						systemViewIndex = systemViews.Count - 1;
 					}
 					systemViews[systemViewIndex].updateAfter = new List<int>();
+					systemViews[systemViewIndex].updateBefore = new List<int>();
 					systemViewIndicesByType.Add(type, systemViewIndex);
 				}
 				foreach (var systemType in systemTypes)
@@ -70,6 +72,10 @@ namespace UnityEditor.ECS
 					foreach (var updateAfterType in ScriptBehaviourUpdateOrder.dependencyGraph[systemType].updateAfter)
 					{
 						systemView.updateAfter.Add(systemViewIndicesByType[updateAfterType]);
+					}
+					foreach (var updateBeforeType in ScriptBehaviourUpdateOrder.dependencyGraph[systemType].updateBefore)
+					{
+						systemView.updateBefore.Add(systemViewIndicesByType[updateBeforeType]);
 					}
 				}
 			}
@@ -118,17 +124,11 @@ namespace UnityEditor.ECS
 			{
 				foreach (var typeIndex in systemView.updateAfter)
 				{
-					var arrowDirection = systemViews[typeIndex].Center - systemView.Center;
-					if (arrowDirection == Vector3.zero)
-						continue;
-					Handles.color = Color.black;
-					var lineTexture = (Texture2D)EditorGUIUtility.LoadRequired("AALineRetina.png");
-					var startPos = ExteriorPointFromOtherPoint(systemView.position, systemViews[typeIndex].Center);
-					var endPos = ExteriorPointFromOtherPoint(systemViews[typeIndex].position, systemView.Center);
-					endPos -= (endPos - startPos).normalized * 0.6f*kArrowSize;
-					Handles.DrawAAPolyLine(lineTexture, EditorGUIUtility.pixelsPerPoint*kLineWidth, startPos, endPos);
-					var rotation = Quaternion.LookRotation(arrowDirection, Vector3.forward);
-					Handles.ConeHandleCap(0, endPos, rotation, kArrowSize, Event.current.type);
+					DrawArrowBetweenBoxes(systemView, systemViews[typeIndex]);
+				}
+				foreach (var typeIndex in systemView.updateBefore)
+				{
+					DrawArrowBetweenBoxes(systemViews[typeIndex], systemView);
 				}
 			}
 
@@ -141,6 +141,21 @@ namespace UnityEditor.ECS
 			}
 			
 			EndWindows();
+		}
+
+		private void DrawArrowBetweenBoxes(SystemViewData fromView, SystemViewData toView)
+		{
+			var arrowDirection = toView.Center - fromView.Center;
+			if (arrowDirection == Vector3.zero)
+				return;
+			Handles.color = EditorStyles.label.normal.textColor;
+			var lineTexture = (Texture2D) EditorGUIUtility.LoadRequired("AALineRetina.png");
+			var startPos = ExteriorPointFromOtherPoint(fromView.position, toView.Center);
+			var endPos = ExteriorPointFromOtherPoint(toView.position, fromView.Center);
+			endPos -= (endPos - startPos).normalized * 0.6f * kArrowSize;
+			Handles.DrawAAPolyLine(lineTexture, EditorGUIUtility.pixelsPerPoint * kLineWidth, startPos, endPos);
+			var rotation = Quaternion.LookRotation(arrowDirection, Vector3.forward);
+			Handles.ConeHandleCap(0, endPos, rotation, kArrowSize, Event.current.type);
 		}
 
 		static Vector3 ExteriorPointFromOtherPoint(Rect rect, Vector2 other)

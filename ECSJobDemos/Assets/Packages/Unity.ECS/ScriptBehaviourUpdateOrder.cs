@@ -486,7 +486,7 @@ namespace UnityEngine.ECS
 		static void MarkSchedulingAndWaitingJobs(Dictionary<Type, DependantBehavior> dependencyGraph)
 		{
 			// @TODO: sync rules for read-only
-			HashSet<DependantBehavior> schedulers;
+			HashSet<DependantBehavior> schedulers = new HashSet<DependantBehavior>();
 			foreach (var systemKeyValue in dependencyGraph)
 			{
 				var system = systemKeyValue.Value;

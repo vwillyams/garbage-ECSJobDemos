@@ -113,6 +113,24 @@ namespace UnityEditor.ECS
 				ShowNoSystemsNotification();
 				return;
 			}
+			
+			foreach (var systemView in systemViews)
+			{
+				foreach (var typeIndex in systemView.updateAfter)
+				{
+					var arrowDirection = systemViews[typeIndex].Center - systemView.Center;
+					if (arrowDirection == Vector3.zero)
+						continue;
+					Handles.color = Color.black;
+					var lineTexture = (Texture2D)EditorGUIUtility.LoadRequired("AALineRetina.png");
+					var startPos = ExteriorPointFromOtherPoint(systemView.position, systemViews[typeIndex].Center);
+					var endPos = ExteriorPointFromOtherPoint(systemViews[typeIndex].position, systemView.Center);
+					endPos -= (endPos - startPos).normalized * 0.6f*kArrowSize;
+					Handles.DrawAAPolyLine(lineTexture, EditorGUIUtility.pixelsPerPoint*kLineWidth, startPos, endPos);
+					var rotation = Quaternion.LookRotation(arrowDirection, Vector3.forward);
+					Handles.ConeHandleCap(0, endPos, rotation, kArrowSize, Event.current.type);
+				}
+			}
 
 			BeginWindows();
 			
@@ -123,21 +141,6 @@ namespace UnityEditor.ECS
 			}
 			
 			EndWindows();
-			
-			foreach (var systemView in systemViews)
-			{
-				foreach (var typeIndex in systemView.updateAfter)
-				{
-					Handles.color = Color.black;
-					var lineTexture = (Texture2D)EditorGUIUtility.LoadRequired("AALineRetina.png");
-					var startPos = ExteriorPointFromOtherPoint(systemView.position, systemViews[typeIndex].Center);
-					var endPos = ExteriorPointFromOtherPoint(systemViews[typeIndex].position, systemView.Center);
-					endPos -= (endPos - startPos).normalized * 0.5f*kArrowSize;
-					Handles.DrawAAPolyLine(lineTexture, EditorGUIUtility.pixelsPerPoint*kLineWidth, startPos, endPos);
-					var rotation = Quaternion.LookRotation(systemViews[typeIndex].Center - systemView.Center, Vector3.forward);
-					Handles.ConeHandleCap(0, endPos, rotation, kArrowSize, Event.current.type);
-				}
-			}
 		}
 
 		static Vector3 ExteriorPointFromOtherPoint(Rect rect, Vector2 other)

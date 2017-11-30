@@ -5,7 +5,7 @@ ECSJobDemos/Temp
 ECSJobDemos/obj
 
 
-ECSJobDemos/UnityPackageManager/com.unity.burst/*
+ECSJobDemos/UnityPackageManager/com.unity.burst*
 
 
 UnstablePrototypes/BlobificationPrototype/Library

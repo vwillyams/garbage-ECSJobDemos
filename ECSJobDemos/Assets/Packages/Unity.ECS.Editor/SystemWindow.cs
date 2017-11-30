@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.ECS;
@@ -42,6 +43,16 @@ namespace UnityEditor.ECS
 		}
 
 		[SerializeField] private List<SystemViewData> systemViews;
+		
+		Type[] systemTypes {
+			get {
+				if (DependencyManager.Root == null)
+					return null;
+				return  (from s in DependencyManager.Root.BehaviourManagers
+					where s is ComponentSystem
+					select s.GetType() ).ToArray();
+			}
+		}
 
 		void Initialize()
 		{
@@ -50,9 +61,8 @@ namespace UnityEditor.ECS
 			
 			var systemViewIndicesByType = new Dictionary<Type, int>();
 
-			if (ScriptBehaviourUpdateOrder.dependencyGraph != null)
+			if (systemTypes != null)
 			{
-				var systemTypes = (from t in ScriptBehaviourUpdateOrder.dependencyGraph.Keys select t).ToArray();
 				foreach (var type in systemTypes)
 				{
 					var systemViewIndex = systemViews.FindIndex(x => x.fullName == type.FullName);
@@ -67,15 +77,21 @@ namespace UnityEditor.ECS
 				}
 				foreach (var systemType in systemTypes)
 				{
-					var systemViewIndex = systemViewIndicesByType[systemType];
-					var systemView = systemViews[systemViewIndex];
-					foreach (var updateAfterType in ScriptBehaviourUpdateOrder.dependencyGraph[systemType].updateAfter)
+					var systemView = systemViews[systemViewIndicesByType[systemType]];
+					foreach (var attribute in systemType.GetCustomAttributesData())
 					{
-						systemView.updateAfter.Add(systemViewIndicesByType[updateAfterType]);
-					}
-					foreach (var updateBeforeType in ScriptBehaviourUpdateOrder.dependencyGraph[systemType].updateBefore)
-					{
-						systemView.updateBefore.Add(systemViewIndicesByType[updateBeforeType]);
+						if (attribute.AttributeType == typeof(UpdateAfter))
+						{
+							var type = attribute.ConstructorArguments[0].Value as Type;
+							if (systemViewIndicesByType.ContainsKey(type))
+								systemView.updateAfter.Add(systemViewIndicesByType[type]);
+						}
+						if (attribute.AttributeType == typeof(UpdateBefore))
+						{
+							var type = attribute.ConstructorArguments[0].Value as Type;
+							if (systemViewIndicesByType.ContainsKey(type))
+								systemView.updateBefore.Add(systemViewIndicesByType[type]);
+						}
 					}
 				}
 			}

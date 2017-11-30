@@ -76,6 +76,29 @@ namespace BoidSimulations
 			}
 		}
 
+		[ComputeJobOptimizationAttribute(Accuracy.Med, Support.Relaxed)]
+		struct PrepareBoidsJob : IJob
+		{
+			[ReadOnly]
+			public ComponentDataArray<BoidData> 						src;
+
+			public NativeArray<BoidData> 								dst;
+
+			public NativeMultiHashMap<int, int> 						outputCells;
+
+			public float 												cellRadius;
+
+			public void Execute()
+			{
+				for (int i = 0;i != src.Length;i++)
+				{
+					var boidData = src[i];
+					dst[i] = boidData;
+
+					BoidSimulationSettings.AddHashCell(boidData, i, cellRadius, outputCells);
+				}
+			}
+		}
         [ComputeJobOptimization(Accuracy.Med, Support.Relaxed)]
         struct SimulateBoidsJob : IJobParallelFor
 		{
@@ -154,19 +177,31 @@ namespace BoidSimulations
 			for (int i = 0; i != m_Targets.Length; i++)
 				simulateJob.targetPositions[i] = m_Targets.transforms[i].position;
 
-			var prepareParallelJob = new PrepareParallelBoidsJob
+			JobHandle prepareJobHandle; 
+			bool concurrentHashmap = false;
+			if (concurrentHashmap)
 			{
-				src = m_Boids.boids,
-				dst = boids,
-				outputCells = m_Cells,
-				cellRadius = m_Settings.settings[0].cellRadius
-			};
-
-			int prepareBatchSize = 32;
-			//@TODO: Burst workaround
-			prepareBatchSize = boids.Length;
+				var prepareParallelJob = new PrepareParallelBoidsJob
+				{
+					src = m_Boids.boids,
+					dst = boids,
+					outputCells = m_Cells,
+					cellRadius = m_Settings.settings[0].cellRadius
+				};
+				prepareJobHandle = prepareParallelJob.Schedule(boids.Length, 32, inputDeps);
+			}
+			else
+			{
+				var prepareJob = new PrepareBoidsJob
+				{
+					src = m_Boids.boids,
+					dst = boids,
+					outputCells = m_Cells,
+					cellRadius = m_Settings.settings[0].cellRadius
+				};
+				prepareJobHandle = prepareJob.Schedule(inputDeps);
+			}
 			
-			var prepareJobHandle = prepareParallelJob.Schedule(boids.Length, prepareBatchSize, inputDeps);
 			return simulateJob.Schedule (boids.Length, 32, prepareJobHandle);
 		}
 

@@ -5,6 +5,8 @@ using UnityEngine.ECS;
 
 [UpdateAfter(typeof(DummySystemB))]
 public class DummySystemD : ComponentSystem {
-
-	
+	public override void OnUpdate()
+	{
+		
+	}
 }

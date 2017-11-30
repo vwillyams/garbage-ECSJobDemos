@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.ECS;
 
 public class DummySystemE : ComponentSystem {
-
-	
+	public override void OnUpdate()
+	{
+		
+	}
 }

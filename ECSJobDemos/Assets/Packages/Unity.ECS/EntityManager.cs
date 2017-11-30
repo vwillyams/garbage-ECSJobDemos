@@ -44,10 +44,12 @@ namespace UnityEngine.ECS
         unsafe ComponentType*             m_CachedComponentTypeArray;
         unsafe ComponentTypeInArchetype*  m_CachedComponentTypeInArchetypeArray;
 
+        protected sealed override void OnCreateManagerInternal(int capacity)
+        {
+        }
+
         unsafe protected override void OnCreateManager(int capacity)
         {
-            base.OnCreateManager(capacity);
-
             m_Entities.OnCreate();
             m_ArchetypeManager = new ArchetypeManager();
             m_JobSafetyManager = new ComponentJobSafetyManager();
@@ -61,8 +63,6 @@ namespace UnityEngine.ECS
 
         unsafe protected override void OnDestroyManager()
         {
-            base.OnDestroyManager();
-
             m_JobSafetyManager.Dispose(); m_JobSafetyManager = null;
             m_SharedComponentManager.Dispose(); m_SharedComponentManager = null;
             m_Entities.OnDestroy();
@@ -74,6 +74,10 @@ namespace UnityEngine.ECS
 
             UnsafeUtility.Free((IntPtr)m_CachedComponentTypeInArchetypeArray, Allocator.Persistent);
             m_CachedComponentTypeInArchetypeArray = null;
+        }
+
+        internal override void InternalUpdate()
+        {
         }
 
         unsafe public bool IsCreated { get { return (m_CachedComponentTypeArray != null); } }

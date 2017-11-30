@@ -9,31 +9,25 @@ using UnityEngine.ECS;
 namespace RotatorSamples
 {
 
-	class RotatorManagerMainThread : ScriptBehaviourManager
+	class RotatorManagerMainThread : ComponentSystem
 	{
 		List<Transform>			m_Transforms;
 		NativeList<float> 		m_Speeds;
 
 		protected override void OnCreateManager (int capacity)
 		{
-			base.OnCreateManager (capacity);
-
 			m_Transforms = new List<Transform> (capacity);
 			m_Speeds = new NativeList<float> (capacity, Allocator.Persistent);
 		}
 
 		protected override void OnDestroyManager()
 		{
-			base.OnDestroyManager ();
-
 			Assert.AreEqual(0, m_Speeds.Length);
 			m_Speeds.Dispose();		
 		}
 
 		public override void OnUpdate()
 		{
-			base.OnUpdate ();
-
 			float deltaTime = Time.deltaTime;
 			NativeArray<float> speeds = m_Speeds;
 			for (int i = 0; i != m_Transforms.Count; i++)

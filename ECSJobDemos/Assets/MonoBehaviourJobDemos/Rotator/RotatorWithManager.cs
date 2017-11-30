@@ -10,7 +10,7 @@ using UnityEngine.Jobs;
 namespace RotatorSamples
 {
 
-	class RotatorManager : ScriptBehaviourManager
+	class RotatorManager : ComponentSystem
 	{
 		TransformAccessArray 	m_Transforms;
 		NativeList<float> 		m_Speeds;
@@ -18,16 +18,12 @@ namespace RotatorSamples
 
 		protected override void OnCreateManager (int capacity)
 		{
-			base.OnCreateManager (capacity);
-
 			m_Transforms = new TransformAccessArray (capacity);
 			m_Speeds = new NativeList<float> (capacity, Allocator.Persistent);
 		}
 
 		protected override void OnDestroyManager()
 		{
-			base.OnDestroyManager ();
-
 			Assert.AreEqual(0, m_Speeds.Length);
 			m_Transforms.Dispose();
 			m_Speeds.Dispose();		
@@ -35,8 +31,6 @@ namespace RotatorSamples
 
 		public override void OnUpdate()
 		{
-			base.OnUpdate ();
-
 			m_Job.Complete ();
 
 			var jobData = new RotatorJob();

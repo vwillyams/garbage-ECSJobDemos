@@ -34,47 +34,71 @@ namespace UnityEngine.ECS.Tests
         {}
 
         [UpdateInGroup(typeof(RecursiveGroup3))]
-        class RecursiveSystem : ScriptBehaviourManager
+        [DisableAutoCreation]
+        class RecursiveSystem : ComponentSystem
         {
-            public void Update(){}
+            public override void OnUpdate()
+            {
+            }
         }
 
         [UpdateAfter(typeof(SimpleCircularSystem3))]
-        class SimpleCircularSystem1 : ScriptBehaviourManager
+        [DisableAutoCreation]
+        class SimpleCircularSystem1 : ComponentSystem
         {
-            public void Update(){}
+            public override void OnUpdate()
+            {
+            }
         }
         [UpdateAfter(typeof(SimpleCircularSystem1))]
-        class SimpleCircularSystem2 : ScriptBehaviourManager
+        [DisableAutoCreation]
+        class SimpleCircularSystem2 : ComponentSystem
         {
-            public void Update(){}
+            public override void OnUpdate()
+            {
+            }
         }
         [UpdateAfter(typeof(SimpleCircularSystem2))]
-        class SimpleCircularSystem3 : ScriptBehaviourManager
+        [DisableAutoCreation]
+        class SimpleCircularSystem3 : ComponentSystem
         {
-            public void Update(){}
+            public override void OnUpdate()
+            {
+            }
         }
         [UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.Update))]
         [UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.Initialization))]
-        class SimpleOverconstrainedSystem : ScriptBehaviourManager
+        [DisableAutoCreation]
+        class SimpleOverconstrainedSystem : ComponentSystem
         {
-            public void Update(){}
+            public override void OnUpdate()
+            {
+            }
         }
         [UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.Update))]
-        class OverconstrainedSystem1 : ScriptBehaviourManager
+        [DisableAutoCreation]
+        class OverconstrainedSystem1 : ComponentSystem
         {
-            public void Update(){}
+            public override void OnUpdate()
+            {
+            }
         }
         [UpdateAfter(typeof(OverconstrainedSystem1))]
         [UpdateBefore(typeof(OverconstrainedSystem3))]
-        class OverconstrainedSystem2 : ScriptBehaviourManager
+        [DisableAutoCreation]
+        class OverconstrainedSystem2 : ComponentSystem
         {
-            public void Update(){}
+            public override void OnUpdate()
+            {
+            }
         }
         [UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.Initialization))]
-        class OverconstrainedSystem3 : ScriptBehaviourManager
+        [DisableAutoCreation]
+        class OverconstrainedSystem3 : ComponentSystem
         {
-            public void Update(){}
+            public override void OnUpdate()
+            {
+            }
         }
 
         [Test]

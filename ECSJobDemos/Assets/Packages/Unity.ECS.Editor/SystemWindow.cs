@@ -14,6 +14,8 @@ namespace UnityEditor.ECS
 		private readonly Rect kStartPosition = new Rect(0f, 0f, 1f, 1f);
 		private const float kArrowSize = 11f;
 		private const float kLineWidth = 2f;
+		private const float kLayerHeight = 50f;
+		private const float kHorizontalSpacing = 200f;
 		
 		[System.Serializable]
 		public class SystemViewData
@@ -96,6 +98,23 @@ namespace UnityEditor.ECS
 				}
 			}
 		}
+
+		void Layout()
+		{
+			var rowLength = Mathf.RoundToInt(Mathf.Sqrt(systemViews.Count));
+			if (rowLength == 0f)
+				return;
+			var x = 0;
+			var y = 0;
+			foreach (var systemView in systemViews)
+			{
+				systemView.position.position = new Vector2(x*kHorizontalSpacing, y*kLayerHeight);
+				++x;
+				x = x % rowLength;
+				if (x == 0)
+					++y;
+			}
+		}
 		
 		[MenuItem("Window/Systems", false, 2017)]
 		static void Open()
@@ -124,6 +143,11 @@ namespace UnityEditor.ECS
 			
 			GUILayout.BeginHorizontal();
 			GUILayout.FlexibleSpace();
+			if (GUILayout.Button("Layout"))
+			{
+				Layout();
+			}
+			GUILayout.Space(5f);
 			if (GUILayout.Button("Clear"))
 			{
 				systemViews.Clear();

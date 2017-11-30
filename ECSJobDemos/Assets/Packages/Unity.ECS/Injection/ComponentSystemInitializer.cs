@@ -7,10 +7,11 @@ namespace UnityEngine.ECS
 {
     class ComponentSystemInitializer
     {
-        static void GetBehaviourManagerAndLogException(Type type)
+        static void GetBehaviourManagerAndLogException(World world, Type type)
         {
             try
             {
+                //@TODO: use instance methods...
                 World.GetBehaviourManager(type);
             }
             catch (Exception e)
@@ -19,9 +20,29 @@ namespace UnityEngine.ECS
             }        
         }
 
+        static World m_CreatedWorld; 
+        static void DomainUnloadShutdown()
+        {
+            if (World.Active == m_CreatedWorld)
+            {
+                World.Active.Dispose ();
+                World.Active = null;
+            }
+            else
+            {
+                Debug.LogError("World has already been destroyed");
+            }
+        }
+        
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void Initialize()
         {
+            World world = new World();
+            World.Active = world;
+            m_CreatedWorld = world;
+            
+            PlayerLoopManager.RegisterDomainUnload (DomainUnloadShutdown);
+
             foreach (var ass in AppDomain.CurrentDomain.GetAssemblies())
             {
                 var allTypes = ass.GetTypes();
@@ -30,7 +51,7 @@ namespace UnityEngine.ECS
                 var systemTypes = allTypes.Where(t => t.IsSubclassOf(typeof(ComponentSystemBase)) && !t.IsAbstract && !t.ContainsGenericParameters && t.GetCustomAttributes(typeof(DisableAutoCreationAttribute), true).Length == 0);
                 foreach (var type in systemTypes)
                 {
-                    GetBehaviourManagerAndLogException(type);
+                    GetBehaviourManagerAndLogException(world, type);
                 }
 
                 // Create All IAutoComponentSystemJob
@@ -51,12 +72,12 @@ namespace UnityEngine.ECS
                     if (genericTypes.Count == 2)
                     {
                         var type = typeof(GenericProcessComponentSystem<,>).MakeGenericType(genericTypes.ToArray());
-                        GetBehaviourManagerAndLogException(type);
+                        GetBehaviourManagerAndLogException(world, type);
                     }
                     else if (genericTypes.Count == 3)
                     {
                         var type = typeof(GenericProcessComponentSystem<,,>).MakeGenericType(genericTypes.ToArray());
-                        GetBehaviourManagerAndLogException(type);
+                        GetBehaviourManagerAndLogException(world, type);
                     }
                     else
                     {

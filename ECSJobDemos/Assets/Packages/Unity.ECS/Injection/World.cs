@@ -52,34 +52,17 @@ namespace UnityEngine.ECS
 			}
 			set
 			{
+				ms_Active = value;
+
 				if (!ms_DidInitialize)
 				{
-					PlayerLoopManager.RegisterDomainUnload (DomainUnloadShutdown);
 					ms_DidInitialize = true; 
 				}
 
-				ms_Active = value;
 			}
 		}
 
-		static World AutoActive
-		{
-			get
-			{
-				if (ms_Active == null)
-					Active = new World();
-				return ms_Active;
-			}
-		}
 
-		static void DomainUnloadShutdown()
-		{
-			if (Active != null)
-			{
-				Active.Dispose ();
-				Active = null;
-			}
-		}
 
 		int GetCapacityForType(Type type)
 		{
@@ -88,18 +71,18 @@ namespace UnityEngine.ECS
 
 		public static void SetDefaultCapacity(int value)
 		{
-			AutoActive.ms_DefaultCapacity = value;
+			Active.ms_DefaultCapacity = value;
 		}
 
         public World()
         {
-//          Debug.Log("Create World");
+//			Debug.Log("Create World");
         }
 
 
 		public void Dispose()
 		{
-//          Debug.Log("Dispose World");
+//			Debug.Log("Dispose World");
 
 			// Destruction should happen in reverse order to construction
 			ms_BehaviourManagers.Reverse();
@@ -150,7 +133,7 @@ namespace UnityEngine.ECS
 
 		public static ScriptBehaviourManager GetBehaviourManager (System.Type type)
 		{
-			var root = AutoActive;
+			var root = Active;
 			ScriptBehaviourManager manager;
 			if (root.ms_BehaviourManagerLookup.TryGetValue(type, out manager))
 				return manager;
@@ -222,7 +205,7 @@ namespace UnityEngine.ECS
 
 		internal static void DependencyInject(ScriptBehaviourManager manager)
 		{
-			var deps = AutoActive.PrepareDependendencyInjectionStatic (manager);
+			var deps = Active.PrepareDependendencyInjectionStatic (manager);
 		
 			if (deps != null)
 			{

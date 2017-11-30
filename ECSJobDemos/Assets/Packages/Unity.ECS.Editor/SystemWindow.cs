@@ -51,7 +51,7 @@ namespace UnityEditor.ECS
 				if (DependencyManager.Root == null)
 					return null;
 				return  (from s in DependencyManager.Root.BehaviourManagers
-					where s is ComponentSystem
+					where s is ComponentSystemBase
 					select s.GetType() ).ToArray();
 			}
 		}

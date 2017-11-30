@@ -12,12 +12,11 @@ namespace UnityEditor.ECS
     public class EntityWindow : EditorWindow {
         
         const float kResizerWidth = 5f;
-        [SerializeField]
         const int kDefaultSystemListWidth = 300;
         const float kMinListWidth = 200f;
         const float kSystemListHeight = 100f;
 
-        public ComponentSystem CurrentSystemSelection {
+        public ComponentSystemBase CurrentSystemSelection {
             get { return currentSystemSelection; }
             set {
                 currentSystemSelection = value;
@@ -26,7 +25,7 @@ namespace UnityEditor.ECS
                 InitEntityList();
             }
         }
-        ComponentSystem currentSystemSelection;
+        ComponentSystemBase currentSystemSelection;
 
         void InitComponentGroupList()
         {
@@ -109,13 +108,13 @@ namespace UnityEditor.ECS
             }
         }
 
-        ComponentSystem[] systems {
+        ComponentSystemBase[] systems {
             get {
                 if (DependencyManager.Root == null)
                     return null;
                 return  (from s in DependencyManager.Root.BehaviourManagers
-                        where s is ComponentSystem
-                        select s as ComponentSystem).ToArray();
+                        where s is ComponentSystemBase
+                        select s as ComponentSystemBase).ToArray();
             }
         }
 

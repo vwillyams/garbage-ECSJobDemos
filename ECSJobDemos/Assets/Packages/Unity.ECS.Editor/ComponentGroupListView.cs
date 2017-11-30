@@ -13,12 +13,12 @@ namespace UnityEditor.ECS
         
         Dictionary<int, ComponentGroup> componentGroupsById;
 
-        ComponentSystem currentSystem;
+        ComponentSystemBase currentSystem;
 
         EntityWindow window;
 
 
-        public static TreeViewState GetStateForSystem(ComponentSystem system, ref List<TreeViewState> states, ref List<string> stateNames)
+        public static TreeViewState GetStateForSystem(ComponentSystemBase system, ref List<TreeViewState> states, ref List<string> stateNames)
         {
             if (system == null)
                 return new TreeViewState();
@@ -48,7 +48,7 @@ namespace UnityEditor.ECS
             return stateForCurrentSystem;
         }
 
-        public ComponentGroupListView(TreeViewState state, EntityWindow window, ComponentSystem system) : base(state)
+        public ComponentGroupListView(TreeViewState state, EntityWindow window, ComponentSystemBase system) : base(state)
         {
             this.window = window;
             currentSystem = system;

@@ -8,8 +8,8 @@ namespace UnityEditor.ECS
 {
     public class SystemListView : TreeView {
         
-        Dictionary<string, List<ComponentSystem>> managersByNamespace;
-        Dictionary<int, ComponentSystem> managersByID;
+        Dictionary<string, List<ComponentSystemBase>> managersByNamespace;
+        Dictionary<int, ComponentSystemBase> managersByID;
 
         EntityWindow window;
 
@@ -19,15 +19,15 @@ namespace UnityEditor.ECS
             Reload();
         }
 
-        public void SetManagers(ComponentSystem[] managers)
+        public void SetManagers(ComponentSystemBase[] managers)
         {
-            managersByNamespace = new Dictionary<string, List<ComponentSystem>>();
-            managersByID = new Dictionary<int, ComponentSystem>();
+            managersByNamespace = new Dictionary<string, List<ComponentSystemBase>>();
+            managersByID = new Dictionary<int, ComponentSystemBase>();
             foreach (var manager in managers)
             {
                 var ns = manager.GetType().Namespace ?? "global";
                 if (!managersByNamespace.ContainsKey(ns))
-                    managersByNamespace[ns] = new List<ComponentSystem>{manager};
+                    managersByNamespace[ns] = new List<ComponentSystemBase>{manager};
                 else
                     managersByNamespace[ns].Add(manager);
             }

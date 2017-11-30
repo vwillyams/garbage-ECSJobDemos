@@ -1,9 +1,6 @@
 ﻿using System;
 using Unity.Collections.LowLevel.Unsafe;
 
-//@TODO: ZERO TEST COVERAGE!!!
-// * Doesn't handle all cases of how a NativeFreeList can be reallocate / invalidated etc
-
 namespace UnityEngine.ECS
 {
 

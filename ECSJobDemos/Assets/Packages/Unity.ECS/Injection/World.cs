@@ -102,6 +102,7 @@ namespace UnityEngine.ECS
 			if (!m_AllowGetManager)
 				throw new System.ArgumentException("During destruction of a system you are not allowed to create more systems.");
 
+			//@TODO: disallow creating managers during constructor. Only possible after constructor has been called.
 			var manager = Activator.CreateInstance(type, constructorArgumnents) as ScriptBehaviourManager;
 
 			m_BehaviourManagers.Add (manager);

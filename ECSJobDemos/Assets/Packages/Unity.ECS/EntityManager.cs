@@ -2,7 +2,6 @@
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using System;
-using System.Runtime.InteropServices;
 
 namespace UnityEngine.ECS
 {

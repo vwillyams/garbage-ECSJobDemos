@@ -84,7 +84,7 @@ namespace RotatorSamples
 
 		void OnEnable()
 		{
-            m_Manager = World.GetBehaviourManager<RotatorManagerMainThread>();
+            m_Manager = World.Active.GetOrCreateManager<RotatorManagerMainThread>();
 			m_Index = m_Manager.Add(transform, m_Speed);
 		}
 

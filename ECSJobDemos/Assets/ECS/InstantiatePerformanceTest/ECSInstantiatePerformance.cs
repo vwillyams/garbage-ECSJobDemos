@@ -213,10 +213,10 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		{
 			oldRoot = World.Active;
 			World.Active = new World();
-			World.SetDefaultCapacity(PerformanceTestConfiguration.InstanceCount * 2);
+			World.Active.SetDefaultCapacity(PerformanceTestConfiguration.InstanceCount * 2);
 		}
 
-		var entityManager = World.GetBehaviourManager<EntityManager>();
+		var entityManager = World.Active.GetOrCreateManager<EntityManager>();
 
 		setupSampler.End();
 		

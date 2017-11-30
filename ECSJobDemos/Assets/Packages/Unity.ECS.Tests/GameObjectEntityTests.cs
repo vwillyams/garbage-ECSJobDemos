@@ -26,7 +26,7 @@ namespace UnityEngine.ECS.Tests
         [Test]
         public void ComponentDataAndTransformArray()
         {
-            var entityMan = World.GetBehaviourManager<EntityManager> ();
+            var entityMan = World.GetOrCreateManager<EntityManager> ();
 
             var go = new GameObject ();
             go.AddComponent<EcsTestComponent> ();
@@ -48,7 +48,7 @@ namespace UnityEngine.ECS.Tests
         [Test]
         public void RigidbodyComponentArray()
         {
-            var entityMan = World.GetBehaviourManager<EntityManager>();
+            var entityMan = World.GetOrCreateManager<EntityManager>();
 
             var go = new GameObject();
             go.AddComponent<Rigidbody>();
@@ -89,7 +89,7 @@ namespace UnityEngine.ECS.Tests
         [Test]
         unsafe public void ComponentEnumerator()
         {
-            var entityManager = World.GetBehaviourManager<EntityManager>();
+            var entityManager = World.GetOrCreateManager<EntityManager>();
 
             var go = new GameObject();
             go.AddComponent<Rigidbody>();

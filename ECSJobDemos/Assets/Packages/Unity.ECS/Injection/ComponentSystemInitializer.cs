@@ -11,8 +11,7 @@ namespace UnityEngine.ECS
         {
             try
             {
-                //@TODO: use instance methods...
-                World.GetBehaviourManager(type);
+                world.GetOrCreateManager(type);
             }
             catch (Exception e)
             {

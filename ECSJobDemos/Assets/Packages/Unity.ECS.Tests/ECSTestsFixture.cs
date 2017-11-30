@@ -5,16 +5,17 @@ namespace UnityEngine.ECS.Tests
 {
 	public class ECSTestsFixture
 	{
-        protected World MPreviousWorld;
+		protected World 			m_PreviousWorld;
+		protected World 			World;
 		protected EntityManager     m_Manager;
 
         [SetUp]
 		public void Setup()
 		{
-			MPreviousWorld = World.Active;
-			World.Active = new World ();
+			m_PreviousWorld = World.Active;
+			World = World.Active = new World ();
 
-			m_Manager = World.GetBehaviourManager<EntityManager> ();
+			m_Manager = World.GetOrCreateManager<EntityManager> ();
 		}
 
 		[TearDown]
@@ -22,9 +23,11 @@ namespace UnityEngine.ECS.Tests
 		{
             if (m_Manager != null)
             {
-                World.Active.Dispose();
-                World.Active = MPreviousWorld;
-                MPreviousWorld = null;
+	            World.Dispose();
+	            World = null;
+	            
+                World.Active = m_PreviousWorld;
+                m_PreviousWorld = null;
                 m_Manager = null;
             }
 		}

@@ -68,7 +68,7 @@ namespace UnityEngine.ECS.Tests
 		[Test]
         public void ReadOnlyComponentDataArray()
         {
-            var readOnlySystem = World.GetBehaviourManager<PureReadOnlySystem> ();
+            var readOnlySystem = World.GetOrCreateManager<PureReadOnlySystem> ();
 
             var go = m_Manager.CreateEntity (new ComponentType[0]);
             m_Manager.AddComponent (go, new EcsTestData(2));
@@ -81,7 +81,7 @@ namespace UnityEngine.ECS.Tests
 		[Test]
         public void SubtractiveComponent()
         {
-            var subtractiveSystem = World.GetBehaviourManager<SubtractiveSystem> ();
+            var subtractiveSystem = World.GetOrCreateManager<SubtractiveSystem> ();
 
             var go = m_Manager.CreateEntity (new ComponentType[0]);
             m_Manager.AddComponent (go, new EcsTestData(2));
@@ -97,7 +97,7 @@ namespace UnityEngine.ECS.Tests
         [Test]
         public void RemoveComponentGroupTracking()
         {
-            var pureSystem = World.GetBehaviourManager<PureEcsTestSystem> ();
+            var pureSystem = World.GetOrCreateManager<PureEcsTestSystem> ();
 
             var go0 = m_Manager.CreateEntity (new ComponentType[0]);
             m_Manager.AddComponent (go0, new EcsTestData(10));
@@ -124,7 +124,7 @@ namespace UnityEngine.ECS.Tests
         [Test]
         public void EntityGroupTracking()
         {
-            var pureSystem = World.GetBehaviourManager<PureEcsTestSystem> ();
+            var pureSystem = World.GetOrCreateManager<PureEcsTestSystem> ();
 
             var go = m_Manager.CreateEntity (new ComponentType[0]);
             m_Manager.AddComponent (go, new EcsTestData(2));
@@ -181,7 +181,7 @@ namespace UnityEngine.ECS.Tests
 		[Test]
 		public void FromEntitySystemIncrementInJobWorks()
 		{
-			var system = World.GetBehaviourManager<FromEntitySystemIncrementInJob> ();
+			var system = World.GetOrCreateManager<FromEntitySystemIncrementInJob> ();
 
 			var entity = m_Manager.CreateEntity (typeof(EcsTestData), ComponentType.FixedArray(typeof(int), 5));
 			system.entity = entity;
@@ -233,7 +233,7 @@ namespace UnityEngine.ECS.Tests
 		public void OnDestroyManagerJobsHaveCompleted()
 		{
 			m_Manager.CreateEntity (typeof(EcsTestData));
-			World.GetBehaviourManager<OnDestroyManagerJobsHaveCompletedJobSystem>();
+			World.GetOrCreateManager<OnDestroyManagerJobsHaveCompletedJobSystem>();
 			TearDown();
 		}
 
@@ -264,7 +264,7 @@ namespace UnityEngine.ECS.Tests
 		{
 			var entity = m_Manager.CreateEntity (typeof(EcsTestData));
 			m_Manager.SetComponent(entity, new EcsTestData(42));
-			World.GetBehaviourManager<OnCreateManagerComponentGroupInjectionSystem>();
+			World.GetOrCreateManager<OnCreateManagerComponentGroupInjectionSystem>();
 		}
 	}
 
@@ -377,8 +377,8 @@ namespace UnityEngine.ECS.Tests
 		{
 			var entity = m_Manager.CreateEntity (typeof(EcsTestData));
 			m_Manager.SetComponent(entity, new EcsTestData(42));
-			ReadSystem1 rs1 = World.GetBehaviourManager<ReadSystem1>();
-			ReadSystem2 rs2 = World.GetBehaviourManager<ReadSystem2>();
+			ReadSystem1 rs1 = World.GetOrCreateManager<ReadSystem1>();
+			ReadSystem2 rs2 = World.GetOrCreateManager<ReadSystem2>();
 
 			rs2.returnWrongJob = true;
 
@@ -391,8 +391,8 @@ namespace UnityEngine.ECS.Tests
 		{
 			var entity = m_Manager.CreateEntity (typeof(EcsTestData));
 			m_Manager.SetComponent(entity, new EcsTestData(42));
-			ReadSystem1 rs1 = World.GetBehaviourManager<ReadSystem1>();
-			ReadSystem2 rs2 = World.GetBehaviourManager<ReadSystem2>();
+			ReadSystem1 rs1 = World.GetOrCreateManager<ReadSystem1>();
+			ReadSystem2 rs2 = World.GetOrCreateManager<ReadSystem2>();
 
 			rs2.ignoreInputDeps = true;
 
@@ -405,8 +405,8 @@ namespace UnityEngine.ECS.Tests
 		{
 			var entity = m_Manager.CreateEntity (typeof(EcsTestData));
 			m_Manager.SetComponent(entity, new EcsTestData(42));
-			ReadSystem1 rs1 = World.GetBehaviourManager<ReadSystem1>();
-			ReadSystem3 rs3 = World.GetBehaviourManager<ReadSystem3>();
+			ReadSystem1 rs1 = World.GetOrCreateManager<ReadSystem1>();
+			ReadSystem3 rs3 = World.GetOrCreateManager<ReadSystem3>();
 
 			rs1.InternalUpdate();
 			rs3.InternalUpdate();

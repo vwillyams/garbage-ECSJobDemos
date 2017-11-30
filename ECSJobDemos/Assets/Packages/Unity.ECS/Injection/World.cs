@@ -13,9 +13,6 @@ using UnityEngine.ECS;
 
 namespace UnityEngine.ECS
 {
-	//@TODO: Checks to ensure base override is always called.
-
-
 	public class World : IDisposable
 	{
 		class Dependencies
@@ -33,45 +30,29 @@ namespace UnityEngine.ECS
 		{
 			get
             {
-				return new ReadOnlyCollection<ScriptBehaviourManager>(ms_BehaviourManagers);
+				return new ReadOnlyCollection<ScriptBehaviourManager>(m_BehaviourManagers);
 			}
 		}
-		List<ScriptBehaviourManager> 	ms_BehaviourManagers = new List<ScriptBehaviourManager> ();
-		Dictionary<Type, ScriptBehaviourManager> 	ms_BehaviourManagerLookup = new Dictionary<Type, ScriptBehaviourManager> ();
-		Dictionary<Type, Dependencies> 	ms_InstanceDependencies = new Dictionary<Type, Dependencies>();
-		int 							ms_DefaultCapacity = 10;
+		List<ScriptBehaviourManager> 				m_BehaviourManagers = new List<ScriptBehaviourManager> ();
+		//@TODO: What about multiple managers of the same type...
+		Dictionary<Type, ScriptBehaviourManager> 	m_BehaviourManagerLookup = new Dictionary<Type, ScriptBehaviourManager> ();
+		Dictionary<Type, Dependencies> 				m_InstanceDependencies = new Dictionary<Type, Dependencies>();
+		int 										m_DefaultCapacity = 10;
 
-		static World 					ms_Active = null;
-		static bool  					ms_DidInitialize = false;
+		bool 										m_AllowGetManager = true;
 
-		static public World Active
-		{
-			get
-			{
-				return ms_Active;
-			}
-			set
-			{
-				ms_Active = value;
-
-				if (!ms_DidInitialize)
-				{
-					ms_DidInitialize = true; 
-				}
-
-			}
-		}
+		public static World 				        Active { get; set; }
 
 
-
+		
 		int GetCapacityForType(Type type)
 		{
-			return ms_DefaultCapacity;
+			return m_DefaultCapacity;
 		}
 
-		public static void SetDefaultCapacity(int value)
+		public void SetDefaultCapacity(int value)
 		{
-			Active.ms_DefaultCapacity = value;
+			m_DefaultCapacity = value;
 		}
 
         public World()
@@ -85,20 +66,21 @@ namespace UnityEngine.ECS
 //			Debug.Log("Dispose World");
 
 			// Destruction should happen in reverse order to construction
-			ms_BehaviourManagers.Reverse();
+			m_BehaviourManagers.Reverse();
 
 			///@TODO: Crazy hackery to make EntityManager be destroyed last.
-			foreach (var behaviourManager in ms_BehaviourManagers)
+			foreach (var behaviourManager in m_BehaviourManagers)
 			{
 				if (behaviourManager is EntityManager)
 				{
-					ms_BehaviourManagers.Remove(behaviourManager);
-					ms_BehaviourManagers.Add(behaviourManager);
+					m_BehaviourManagers.Remove(behaviourManager);
+					m_BehaviourManagers.Add(behaviourManager);
 					break;
 				}
 			}
 
-			foreach (var behaviourManager in ms_BehaviourManagers)
+			m_AllowGetManager = false;
+			foreach (var behaviourManager in m_BehaviourManagers)
 			{
 				try
 				{
@@ -109,49 +91,71 @@ namespace UnityEngine.ECS
 					Debug.LogException(e);
 				}
 			}
+			m_AllowGetManager = true;
 
-			ms_BehaviourManagers.Clear();
-			ms_BehaviourManagerLookup.Clear();
+			m_BehaviourManagers.Clear();
+			m_BehaviourManagerLookup.Clear();
 		}
 
-		ScriptBehaviourManager CreateAndRegisterManager (System.Type type, int capacity)
+		ScriptBehaviourManager CreateManagerInternal (System.Type type, int capacity, object[] constructorArgumnents)
 		{
-			var manager = Activator.CreateInstance(type) as ScriptBehaviourManager;
+			if (!m_AllowGetManager)
+				throw new System.ArgumentException("During destruction of a system you are not allowed to create more systems.");
 
-			ms_BehaviourManagers.Add (manager);
-			ms_BehaviourManagerLookup.Add(type, manager);
+			var manager = Activator.CreateInstance(type, constructorArgumnents) as ScriptBehaviourManager;
+
+			m_BehaviourManagers.Add (manager);
+			m_BehaviourManagerLookup.Add(type, manager);
 
 			ScriptBehaviourManager.CreateInstance (manager, capacity);
 
 			return manager;
 		}
-
-		public static T GetBehaviourManager<T> () where T : ScriptBehaviourManager
+		
+		ScriptBehaviourManager GetOrCreateManagerInternal (System.Type type)
 		{
-			return (T)GetBehaviourManager (typeof(T));
-		}
-
-		public static ScriptBehaviourManager GetBehaviourManager (System.Type type)
-		{
-			var root = Active;
+			if (!m_AllowGetManager)
+				throw new System.ArgumentException("During destruction of a system you are not allowed to get or create more systems.");
+			
 			ScriptBehaviourManager manager;
-			if (root.ms_BehaviourManagerLookup.TryGetValue(type, out manager))
+			if (m_BehaviourManagerLookup.TryGetValue(type, out manager))
 				return manager;
-			foreach(var behaviourManager in root.ms_BehaviourManagers)
+			foreach(var behaviourManager in m_BehaviourManagers)
 			{
 				if (behaviourManager.GetType() == type || behaviourManager.GetType().IsSubclassOf(type))
 				{
 					// We will never create a new or more specialized version of this since this is the only place creating managers
-					root.ms_BehaviourManagerLookup.Add(type, behaviourManager);
+					m_BehaviourManagerLookup.Add(type, behaviourManager);
 					return behaviourManager;
 				}
 			}
 
 			//@TODO: Check that type inherit from ScriptBehaviourManager
-			var obj = root.CreateAndRegisterManager(type, root.GetCapacityForType(type));
+			var obj = CreateManagerInternal(type, GetCapacityForType(type), null);
 
 			return obj;
 		}
+		
+		public ScriptBehaviourManager CreateManager(System.Type type, params object[] constructorArgumnents)
+		{
+			return CreateManagerInternal(type, GetCapacityForType(type), constructorArgumnents);
+		}
+
+		public ScriptBehaviourManager CreateManager<T>(params object[] constructorArgumnents) where T : ScriptBehaviourManager
+		{
+			return CreateManagerInternal(typeof(T), GetCapacityForType(typeof(T)), constructorArgumnents);
+		}
+		
+		public T GetOrCreateManager<T> () where T : ScriptBehaviourManager
+		{
+			return (T)GetOrCreateManagerInternal (typeof(T));
+		}
+
+		public ScriptBehaviourManager GetOrCreateManager(System.Type type)
+		{
+			return GetOrCreateManagerInternal (type);
+		}
+
 
         static void ValidateNoStaticInjectDependency(Type type)
         {
@@ -167,7 +171,7 @@ namespace UnityEngine.ECS
 #endif
         }
 
-		static Dependencies CreateDependencyInjection(Type type)
+		Dependencies CreateDependencyInjection(Type type)
 		{
 			var managers = new List<Dependencies.Manager>();
 
@@ -180,7 +184,7 @@ namespace UnityEngine.ECS
 					if (field.FieldType.IsSubclassOf(typeof(ScriptBehaviourManager)))
 					{
 						var manager = new Dependencies.Manager();
-						manager.manager = GetBehaviourManager(field.FieldType);
+						manager.manager = GetOrCreateManager(field.FieldType);
 						manager.field = field;
 						managers.Add(manager);
 					}
@@ -218,10 +222,10 @@ namespace UnityEngine.ECS
 		{
 			var type = behaviour.GetType ();
 			Dependencies deps;
-			if (!ms_InstanceDependencies.TryGetValue (type, out deps))
+			if (!m_InstanceDependencies.TryGetValue (type, out deps))
 			{
 				deps = CreateDependencyInjection (type);
-				ms_InstanceDependencies.Add (type, deps);
+				m_InstanceDependencies.Add (type, deps);
 			}
 
 			return deps;

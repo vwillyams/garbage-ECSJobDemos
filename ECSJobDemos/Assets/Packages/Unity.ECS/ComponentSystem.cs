@@ -27,7 +27,7 @@ namespace UnityEngine.ECS
 	    
         protected ComponentSystemBase()
         {
-            m_EntityManager = World.GetBehaviourManager<EntityManager>();
+            m_EntityManager = World.Active.GetOrCreateManager<EntityManager>();
         }
 
     	protected override void OnCreateManagerInternal(int capacity)

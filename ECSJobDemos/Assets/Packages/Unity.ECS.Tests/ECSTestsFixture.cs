@@ -11,8 +11,8 @@ namespace UnityEngine.ECS.Tests
         [SetUp]
 		public void Setup()
 		{
-			MPreviousWorld = World.Root;
-			World.Root = new World ();
+			MPreviousWorld = World.Active;
+			World.Active = new World ();
 
 			m_Manager = World.GetBehaviourManager<EntityManager> ();
 		}
@@ -22,8 +22,8 @@ namespace UnityEngine.ECS.Tests
 		{
             if (m_Manager != null)
             {
-                World.Root.Dispose();
-                World.Root = MPreviousWorld;
+                World.Active.Dispose();
+                World.Active = MPreviousWorld;
                 MPreviousWorld = null;
                 m_Manager = null;
             }

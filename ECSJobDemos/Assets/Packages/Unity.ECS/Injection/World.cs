@@ -41,43 +41,43 @@ namespace UnityEngine.ECS
 		Dictionary<Type, Dependencies> 	ms_InstanceDependencies = new Dictionary<Type, Dependencies>();
 		int 							ms_DefaultCapacity = 10;
 
-		static World m_Root = null;
-		static bool 			 m_DidInitialize = false;
+		static World 					ms_Active = null;
+		static bool  					ms_DidInitialize = false;
 
-		static public World Root
+		static public World Active
 		{
 			get
 			{
-				return m_Root;
+				return ms_Active;
 			}
 			set
 			{
-				if (!m_DidInitialize)
+				if (!ms_DidInitialize)
 				{
 					PlayerLoopManager.RegisterDomainUnload (DomainUnloadShutdown);
-					m_DidInitialize = true; 
+					ms_DidInitialize = true; 
 				}
 
-				m_Root = value;
+				ms_Active = value;
 			}
 		}
 
-		static World AutoRoot
+		static World AutoActive
 		{
 			get
 			{
-				if (m_Root == null)
-					Root = new World();
-				return m_Root;
+				if (ms_Active == null)
+					Active = new World();
+				return ms_Active;
 			}
 		}
 
 		static void DomainUnloadShutdown()
 		{
-			if (Root != null)
+			if (Active != null)
 			{
-				Root.Dispose ();
-				Root = null;
+				Active.Dispose ();
+				Active = null;
 			}
 		}
 
@@ -88,7 +88,7 @@ namespace UnityEngine.ECS
 
 		public static void SetDefaultCapacity(int value)
 		{
-			AutoRoot.ms_DefaultCapacity = value;
+			AutoActive.ms_DefaultCapacity = value;
 		}
 
         public World()
@@ -133,7 +133,7 @@ namespace UnityEngine.ECS
 
 		ScriptBehaviourManager CreateAndRegisterManager (System.Type type, int capacity)
 		{
-			var manager = Activator.CreateInstance(type) as ScriptBehaviourManager;;
+			var manager = Activator.CreateInstance(type) as ScriptBehaviourManager;
 
 			ms_BehaviourManagers.Add (manager);
 			ms_BehaviourManagerLookup.Add(type, manager);
@@ -150,7 +150,7 @@ namespace UnityEngine.ECS
 
 		public static ScriptBehaviourManager GetBehaviourManager (System.Type type)
 		{
-			var root = AutoRoot;
+			var root = AutoActive;
 			ScriptBehaviourManager manager;
 			if (root.ms_BehaviourManagerLookup.TryGetValue(type, out manager))
 				return manager;
@@ -222,7 +222,7 @@ namespace UnityEngine.ECS
 
 		internal static void DependencyInject(ScriptBehaviourManager manager)
 		{
-			var deps = AutoRoot.PrepareDependendencyInjectionStatic (manager);
+			var deps = AutoActive.PrepareDependendencyInjectionStatic (manager);
 		
 			if (deps != null)
 			{

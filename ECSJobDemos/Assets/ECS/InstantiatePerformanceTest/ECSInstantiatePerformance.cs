@@ -211,8 +211,8 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		World oldRoot = null;
 		if (PerformanceTestConfiguration.CleanManagers)
 		{
-			oldRoot = World.Root;
-			World.Root = new World();
+			oldRoot = World.Active;
+			World.Active = new World();
 			World.SetDefaultCapacity(PerformanceTestConfiguration.InstanceCount * 2);
 		}
 
@@ -259,8 +259,8 @@ public class ECSInstantiatePerformance : MonoBehaviour
 	    
 		if (oldRoot != null)
 		{
-			World.Root.Dispose();
-			World.Root = oldRoot;
+			World.Active.Dispose();
+			World.Active = oldRoot;
 		}
 		setupSampler.End();
 	}

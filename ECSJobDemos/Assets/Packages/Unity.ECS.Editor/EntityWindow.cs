@@ -110,10 +110,10 @@ namespace UnityEditor.ECS
 
         ComponentSystemBase[] systems {
             get {
-                if (World.Root == null)
+                if (World.Active == null)
                     return null;
 
-                return  (from s in World.Root.BehaviourManagers
+                return  (from s in World.Active.BehaviourManagers
                         where s is ComponentSystemBase
                         select s as ComponentSystemBase).ToArray();
             }

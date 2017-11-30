@@ -16,6 +16,7 @@ namespace UnityEngine.ECS
 	
 	public abstract class ScriptBehaviourManager
 	{
+		//@TODO: So wrong... remove it
 		private static HashSet<ScriptBehaviourManager> s_ActiveManagers = new HashSet<ScriptBehaviourManager>();
 
 		internal static void CreateInstance(ScriptBehaviourManager manager, int capacity)
@@ -24,6 +25,7 @@ namespace UnityEngine.ECS
 
 			World.DependencyInject(manager);
 
+			//@TODO: So wrong, move this to upper layer / delay calling it until many systems have been created...
 			UpdatePlayerLoop();
 
 			manager.OnCreateManagerInternal(capacity);
@@ -37,9 +39,6 @@ namespace UnityEngine.ECS
 			UpdatePlayerLoop();
 			inst.OnDestroyManager();
 		}
-
-		// NOTE: The comments for behaviour below are how it is supposed to work.
-		//       In this prototype several things don't work that way yet...
 
 		protected abstract void OnCreateManagerInternal(int capacity);
 

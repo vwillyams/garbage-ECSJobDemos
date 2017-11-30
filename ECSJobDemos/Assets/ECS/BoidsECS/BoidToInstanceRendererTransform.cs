@@ -1,5 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
+using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.ECS;
 using UnityEngine.ECS.Rendering;
@@ -57,15 +58,24 @@ namespace BoidSimulations
         }
     }
 
+    //[DisableAutoCreation]
+    [ComputeJobOptimizationAttribute(Accuracy.Med, Support.Relaxed)]
     struct BoidToInstanceRendererTransform : IJobProcessComponentData<BoidData, InstanceRendererTransform>, IAutoComponentSystemJob
     {
+        // @TODO: Remove after burst fixes
+        float burstWorkaround;
+        
         public void Prepare()
         {
         }
 
         public void Execute(ref BoidData boid, ref InstanceRendererTransform transform)
         {
-            transform.matrix = matrix_math_util.LookRotationToMatrix(boid.position, boid.forward, Vector3.up);
+            transform.matrix = matrix_math_util.LookRotationToMatrix(boid.position, boid.forward, new float3(0, 1, 0));
+            
+            // To see burst compile failure, replace with line below
+            // transform.matrix = matrix_math_util.LookRotationToMatrix(boid.position, boid.forward, new Vector3(0, 1, 0));
         }
     }
+
 }

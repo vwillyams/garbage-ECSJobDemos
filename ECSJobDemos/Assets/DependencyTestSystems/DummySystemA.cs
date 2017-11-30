@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.ECS;
 
-[UpdateBefore(typeof(DummySystemB))]
-public class DummySystemA : ComponentSystem {
-	public override void OnUpdate()
-	{
+namespace Unity.ECS.Tests
+{
+	[UpdateBefore(typeof(DummySystemB))]
+	public class DummySystemA : ComponentSystem {
+		public override void OnUpdate()
+		{
 		
+		}
 	}
 }

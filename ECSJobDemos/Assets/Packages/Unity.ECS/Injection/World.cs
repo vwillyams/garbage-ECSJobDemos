@@ -15,11 +15,8 @@ namespace UnityEngine.ECS
 {
 	//@TODO: Checks to ensure base override is always called.
 
-	public class InjectDependencyAttribute : System.Attribute
-	{}
 
-
-	public class DependencyManager : IDisposable
+	public class World : IDisposable
 	{
 		class Dependencies
 		{
@@ -44,10 +41,10 @@ namespace UnityEngine.ECS
 		Dictionary<Type, Dependencies> 	ms_InstanceDependencies = new Dictionary<Type, Dependencies>();
 		int 							ms_DefaultCapacity = 10;
 
-		static DependencyManager m_Root = null;
+		static World m_Root = null;
 		static bool 			 m_DidInitialize = false;
 
-		static public DependencyManager Root
+		static public World Root
 		{
 			get
 			{
@@ -65,12 +62,12 @@ namespace UnityEngine.ECS
 			}
 		}
 
-		static DependencyManager AutoRoot
+		static World AutoRoot
 		{
 			get
 			{
 				if (m_Root == null)
-					Root = new DependencyManager();
+					Root = new World();
 				return m_Root;
 			}
 		}
@@ -94,15 +91,15 @@ namespace UnityEngine.ECS
 			AutoRoot.ms_DefaultCapacity = value;
 		}
 
-        public DependencyManager()
+        public World()
         {
-//          Debug.Log("Create DependencyManager");
+//          Debug.Log("Create World");
         }
 
 
 		public void Dispose()
 		{
-//          Debug.Log("Dispose DependencyManager");
+//          Debug.Log("Dispose World");
 
 			// Destruction should happen in reverse order to construction
 			ms_BehaviourManagers.Reverse();
@@ -180,7 +177,7 @@ namespace UnityEngine.ECS
 
             foreach (var field in fields)
             {
-                var hasInject = field.GetCustomAttributes(typeof(InjectDependencyAttribute), true).Length != 0;
+                var hasInject = field.GetCustomAttributes(typeof(InjectAttribute), true).Length != 0;
                 if (hasInject && field.GetValue(null) == null)
                     Debug.LogError(string.Format("{0}.{1} InjectDependency may not be used on static variables", type, field.Name));
             }
@@ -194,7 +191,7 @@ namespace UnityEngine.ECS
 			var fields = type.GetFields (BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 			foreach (var field in fields)
 			{
-				var hasInject = field.GetCustomAttributes (typeof(InjectDependencyAttribute), true).Length != 0;
+				var hasInject = field.GetCustomAttributes (typeof(InjectAttribute), true).Length != 0;
 				if (hasInject)
 				{
 					if (field.FieldType.IsSubclassOf(typeof(ScriptBehaviourManager)))

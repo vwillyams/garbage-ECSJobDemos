@@ -11,7 +11,7 @@ namespace UnityEngine.ECS
         {
             try
             {
-                DependencyManager.GetBehaviourManager(type);
+                World.GetBehaviourManager(type);
             }
             catch (Exception e)
             {

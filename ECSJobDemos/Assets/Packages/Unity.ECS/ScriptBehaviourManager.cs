@@ -22,7 +22,7 @@ namespace UnityEngine.ECS
 		{
 			s_ActiveManagers.Add(manager);
 
-			DependencyManager.DependencyInject(manager);
+			World.DependencyInject(manager);
 
 			UpdatePlayerLoop();
 

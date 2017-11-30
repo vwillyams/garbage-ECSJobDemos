@@ -10,7 +10,7 @@ namespace UnityEngine.ECS.Tests
         [Test]
         public void GetComponentObjectReturnsTheCorrectType()
         {
-            var entityMan = DependencyManager.GetBehaviourManager<EntityManager>();
+            var entityMan = World.GetBehaviourManager<EntityManager>();
 
             var go = new GameObject();
             go.AddComponent<EcsTestComponent>();
@@ -27,7 +27,7 @@ namespace UnityEngine.ECS.Tests
         [Test]
         public void GetComponentObjectThrowsIfComponentDoesNotExist()
         {
-            var entityMan = DependencyManager.GetBehaviourManager<EntityManager>();
+            var entityMan = World.GetBehaviourManager<EntityManager>();
 
             var go = new GameObject();
             go.AddComponent<EcsTestComponent>();

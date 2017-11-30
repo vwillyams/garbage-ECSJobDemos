@@ -90,7 +90,7 @@ namespace UnityEngine.ECS
             var components = GetComponents<Component>();
             ComponentType[] types = new ComponentType[components.Length - 1];
 
-            m_EntityManager = DependencyManager.GetBehaviourManager(typeof(EntityManager)) as EntityManager;
+            m_EntityManager = World.GetBehaviourManager(typeof(EntityManager)) as EntityManager;
 
             t = 0;
             for (int i = 0; i != components.Length; i++)

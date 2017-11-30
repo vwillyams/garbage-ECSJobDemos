@@ -208,15 +208,15 @@ public class ECSInstantiatePerformance : MonoBehaviour
 	unsafe void TestEntities()
 	{
 		setupSampler.Begin();
-		DependencyManager oldRoot = null;
+		World oldRoot = null;
 		if (PerformanceTestConfiguration.CleanManagers)
 		{
-			oldRoot = DependencyManager.Root;
-			DependencyManager.Root = new DependencyManager();
-			DependencyManager.SetDefaultCapacity(PerformanceTestConfiguration.InstanceCount * 2);
+			oldRoot = World.Root;
+			World.Root = new World();
+			World.SetDefaultCapacity(PerformanceTestConfiguration.InstanceCount * 2);
 		}
 
-		var entityManager = DependencyManager.GetBehaviourManager<EntityManager>();
+		var entityManager = World.GetBehaviourManager<EntityManager>();
 
 		setupSampler.End();
 		
@@ -259,8 +259,8 @@ public class ECSInstantiatePerformance : MonoBehaviour
 	    
 		if (oldRoot != null)
 		{
-			DependencyManager.Root.Dispose();
-			DependencyManager.Root = oldRoot;
+			World.Root.Dispose();
+			World.Root = oldRoot;
 		}
 		setupSampler.End();
 	}

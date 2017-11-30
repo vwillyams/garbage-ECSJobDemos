@@ -22,15 +22,15 @@ public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
 
 	void Update()
 	{
-        DependencyManager oldRoot = null;
+        World oldRoot = null;
         if (PerformanceTestConfiguration.CleanManagers)
         {
-            oldRoot = DependencyManager.Root;
-            DependencyManager.Root = new DependencyManager();
-            DependencyManager.SetDefaultCapacity(PerformanceTestConfiguration.InstanceCount);
+            oldRoot = World.Root;
+            World.Root = new World();
+            World.SetDefaultCapacity(PerformanceTestConfiguration.InstanceCount);
         }
 
-		var m_EntityManager = DependencyManager.GetBehaviourManager<EntityManager>();
+		var m_EntityManager = World.GetBehaviourManager<EntityManager>();
 
 		m_EntityManager.CreateComponentGroup (typeof(Component128Bytes));
 		m_EntityManager.CreateComponentGroup (typeof(Component12Bytes));
@@ -64,8 +64,8 @@ public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
 
         if (oldRoot != null)
         {
-            DependencyManager.Root.Dispose();
-            DependencyManager.Root = oldRoot;
+            World.Root.Dispose();
+            World.Root = oldRoot;
         }
 	}
 }

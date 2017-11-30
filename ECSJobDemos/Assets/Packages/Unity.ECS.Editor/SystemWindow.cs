@@ -46,11 +46,13 @@ namespace UnityEditor.ECS
 
 		[SerializeField] private List<SystemViewData> systemViews;
 		
-		Type[] systemTypes {
-			get {
-				if (DependencyManager.Root == null)
+		Type[] systemTypes
+		{
+			get
+			{
+				if (World.Root == null)
 					return null;
-				return  (from s in DependencyManager.Root.BehaviourManagers
+				return  (from s in World.Root.BehaviourManagers
 					where s is ComponentSystemBase
 					select s.GetType() ).ToArray();
 			}

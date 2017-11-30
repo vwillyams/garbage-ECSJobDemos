@@ -3,6 +3,7 @@ using UnityEngine.ECS;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace UnityEditor.ECS
 {
@@ -31,6 +32,10 @@ namespace UnityEditor.ECS
                 else
                     managersByNamespace[ns].Add(manager);
             }
+            foreach (var managerSet in managersByNamespace.Values)
+            {
+                managerSet.Sort((x, y) => string.Compare(x.GetType().Name, y.GetType().Name));
+            }
             Reload();
             SelectionChanged(GetSelection());
         }
@@ -45,7 +50,7 @@ namespace UnityEditor.ECS
             }
             else
             {
-                foreach (var ns in managersByNamespace.Keys)
+                foreach (var ns in (from ns in managersByNamespace.Keys orderby ns select ns))
                 {
                     var nsItem = new TreeViewItem { id = currentID++, displayName = ns };
                     root.AddChild(nsItem);

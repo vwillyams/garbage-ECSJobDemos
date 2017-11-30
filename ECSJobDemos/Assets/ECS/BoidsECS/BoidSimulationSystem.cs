@@ -162,7 +162,11 @@ namespace BoidSimulations
 				cellRadius = m_Settings.settings[0].cellRadius
 			};
 
-			var prepareJobHandle = prepareParallelJob.Schedule(boids.Length, 32, inputDeps);
+			int prepareBatchSize = 32;
+			//@TODO: Burst workaround
+			prepareBatchSize = boids.Length;
+			
+			var prepareJobHandle = prepareParallelJob.Schedule(boids.Length, prepareBatchSize, inputDeps);
 			return simulateJob.Schedule (boids.Length, 32, prepareJobHandle);
 		}
 

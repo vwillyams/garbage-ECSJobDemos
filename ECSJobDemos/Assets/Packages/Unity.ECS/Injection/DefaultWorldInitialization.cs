@@ -5,8 +5,25 @@ using System.Reflection;
 
 namespace UnityEngine.ECS
 {
-    class ComponentSystemInitializer
+    class DefaultWorldInitialization
     {
+        static World m_CreatedWorld; 
+
+        static void DomainUnloadShutdown()
+        {
+            if (World.Active == m_CreatedWorld)
+            {
+                World.Active.Dispose ();
+                World.Active = null;
+                
+                World.UpdatePlayerLoop(null);
+            }
+            else
+            {
+                Debug.LogError("World has already been destroyed");
+            }
+        }
+        
         static void GetBehaviourManagerAndLogException(World world, Type type)
         {
             try
@@ -19,22 +36,8 @@ namespace UnityEngine.ECS
             }        
         }
 
-        static World m_CreatedWorld; 
-        static void DomainUnloadShutdown()
-        {
-            if (World.Active == m_CreatedWorld)
-            {
-                World.Active.Dispose ();
-                World.Active = null;
-            }
-            else
-            {
-                Debug.LogError("World has already been destroyed");
-            }
-        }
-        
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        static void Initialize()
+
+        public static void Initialize()
         {
             World world = new World();
             World.Active = world;
@@ -84,6 +87,8 @@ namespace UnityEngine.ECS
                     }
                 }
             }
+
+            World.UpdatePlayerLoop(world);
         }
     }
 }

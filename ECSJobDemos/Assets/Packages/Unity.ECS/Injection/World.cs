@@ -233,5 +233,22 @@ namespace UnityEngine.ECS
 
 			return deps;
 		}
+
+
+		//@TODO: This should take an array of worlds...
+		public static void UpdatePlayerLoop(World world)
+		{
+			var defaultLoop = UnityEngine.Experimental.LowLevel.PlayerLoop.GetDefaultPlayerLoop();
+
+			if (world != null)
+			{
+				var ecsLoop = ScriptBehaviourUpdateOrder.InsertManagersInPlayerLoop(world.m_BehaviourManagers, defaultLoop);
+				UnityEngine.Experimental.LowLevel.PlayerLoop.SetPlayerLoop(ecsLoop);
+			}
+			else
+			{
+				UnityEngine.Experimental.LowLevel.PlayerLoop.SetPlayerLoop(defaultLoop);
+			}
+		}
 	}
 }

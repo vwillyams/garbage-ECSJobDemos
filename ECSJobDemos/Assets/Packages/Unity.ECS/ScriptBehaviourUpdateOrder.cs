@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-
+using System.Linq;
 using UnityEngine.Experimental.LowLevel;
 
 namespace UnityEngine.ECS
@@ -328,7 +328,7 @@ namespace UnityEngine.ECS
 			}
 		}
 
-		static Dictionary<Type, DependantBehavior> BuildSystemGraph(HashSet<ScriptBehaviourManager> activeManagers, PlayerLoopSystem defaultPlayerLoop)
+		static Dictionary<Type, DependantBehavior> BuildSystemGraph(IEnumerable<ScriptBehaviourManager> activeManagers, PlayerLoopSystem defaultPlayerLoop)
 		{
 			// Collect all groups and create empty dependency data
 			Dictionary<Type, ScriptBehaviourGroup> allGroups = new Dictionary<Type, ScriptBehaviourGroup>();
@@ -536,9 +536,9 @@ namespace UnityEngine.ECS
 			}
 		}
 
-		public static PlayerLoopSystem InsertManagersInPlayerLoop(HashSet<ScriptBehaviourManager> activeManagers, PlayerLoopSystem defaultPlayerLoop)
+		public static PlayerLoopSystem InsertManagersInPlayerLoop(IEnumerable<ScriptBehaviourManager> activeManagers, PlayerLoopSystem defaultPlayerLoop)
 		{
-			if (activeManagers.Count == 0)
+			if (activeManagers.Count() == 0)
 				return defaultPlayerLoop;
 			Dictionary<Type, DependantBehavior> dependencyGraph = BuildSystemGraph(activeManagers, defaultPlayerLoop);
 

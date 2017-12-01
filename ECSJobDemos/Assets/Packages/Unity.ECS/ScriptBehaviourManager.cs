@@ -11,17 +11,9 @@ namespace UnityEngine.ECS
 	
 	public abstract class ScriptBehaviourManager
 	{
-		//@TODO: So wrong... remove it
-		private static HashSet<ScriptBehaviourManager> s_ActiveManagers = new HashSet<ScriptBehaviourManager>();
-
 		internal static void CreateInstance(ScriptBehaviourManager manager, int capacity)
 		{
-			s_ActiveManagers.Add(manager);
-
 			World.DependencyInject(manager);
-
-			//@TODO: So wrong, move this to upper layer / delay calling it until many systems have been created...
-			UpdatePlayerLoop();
 
 			manager.OnCreateManagerInternal(capacity);
 
@@ -30,8 +22,6 @@ namespace UnityEngine.ECS
 
 		internal static void DestroyInstance(ScriptBehaviourManager inst)
 		{
-			s_ActiveManagers.Remove(inst);
-			UpdatePlayerLoop();
 			inst.OnDestroyManager();
 		}
 
@@ -61,12 +51,5 @@ namespace UnityEngine.ECS
 		/// Execute the manager immediately.
 		/// </summary>
 		public void Update() { InternalUpdate(); }
-
-		private static void UpdatePlayerLoop()
-		{
-			var defaultLoop = UnityEngine.Experimental.LowLevel.PlayerLoop.GetDefaultPlayerLoop();
-			var ecsLoop = ScriptBehaviourUpdateOrder.InsertManagersInPlayerLoop(s_ActiveManagers, defaultLoop);
-			UnityEngine.Experimental.LowLevel.PlayerLoop.SetPlayerLoop(ecsLoop);
-		}
 	}
 }

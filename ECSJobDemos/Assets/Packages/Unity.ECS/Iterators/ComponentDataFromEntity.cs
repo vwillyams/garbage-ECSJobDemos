@@ -20,7 +20,7 @@ namespace UnityEngine.ECS
             m_Entities = entityData;
         }
 #else
-        internal ComponentDataArrayFromEntity(int typeIndex, EntityDataManager entityData)
+        internal ComponentDataFromEntity(int typeIndex, EntityDataManager entityData)
         {
             m_TypeIndex = typeIndex;
             m_Entities = entityData;

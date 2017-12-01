@@ -24,7 +24,7 @@ namespace UnityEngine.ECS
 		#if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal unsafe FixedArrayArray(ComponentChunkIterator iterator, int length, AtomicSafetyHandle safety)
 		#else
-        internal unsafe ComponentDataFixedArray(ComponentChunkIterator iterator, int length)
+        internal unsafe FixedArrayArray(ComponentChunkIterator iterator, int length)
 		#endif
 		{
             m_Length = length;

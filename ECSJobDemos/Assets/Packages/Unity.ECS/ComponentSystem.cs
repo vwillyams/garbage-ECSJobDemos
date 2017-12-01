@@ -2,7 +2,6 @@
 using Unity.Collections;
 using Unity.Jobs;
 using System.Collections.Generic;
-using UnityEditor;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs.LowLevel.Unsafe;
 
@@ -87,6 +86,13 @@ namespace UnityEngine.ECS
 
         protected EntityManager EntityManager { get { return m_EntityManager; }  }
 
+        // TODO: this should be made part of UnityEngine?
+        static void ArrayUtilityAdd<T>(ref T[] array, T item)
+        {
+            System.Array.Resize(ref array, array.Length + 1);
+            array[array.Length - 1] = item;
+        }
+
 	    public ComponentGroupArray<T> GetEntities<T>() where T : struct
 	    {
 		    for (int i = 0; i != m_CachedComponentGroupEnumerables.Length; i++)
@@ -97,8 +103,9 @@ namespace UnityEngine.ECS
 		    }
 
 		    var res = new ComponentGroupArray<T>(EntityManager);
-		    ArrayUtility.Add(ref m_CachedComponentGroupEnumerables, res);
-		    ArrayUtility.Add(ref m_ComponentGroups, res.ComponentGroup);
+
+		    ArrayUtilityAdd(ref m_CachedComponentGroupEnumerables, res);
+		    ArrayUtilityAdd(ref m_ComponentGroups, res.ComponentGroup);
 		    
 		    RecalculateTypesFromComponentGroups();
 

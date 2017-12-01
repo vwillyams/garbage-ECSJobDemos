@@ -317,7 +317,7 @@ namespace UnityEngine.ECS
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             return new FixedArrayArray<T>(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex, false));
 #else
-			return new ComponentDataFixedArray<T>(cache, length);
+			return new FixedArrayArray<T>(cache, length);
 #endif
         }
 

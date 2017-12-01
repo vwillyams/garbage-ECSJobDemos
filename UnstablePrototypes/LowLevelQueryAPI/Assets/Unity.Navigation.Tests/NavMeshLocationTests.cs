@@ -12,6 +12,7 @@ namespace Unity.Navigation.Tests
     public class NavMeshInstancesFixture
     {
         NavMeshData m_NavMeshData;
+        internal NavMeshData m_NavMeshDataRobot;
         List<NavMeshDataInstance> m_NavMeshInstances;
         internal NavMeshLinkInstance m_LinkInstance;
         internal NavMeshQuery m_NavMeshQuery;
@@ -19,6 +20,7 @@ namespace Unity.Navigation.Tests
         internal const int k_AreaSliding = 5;
         internal Int32 m_TestedAreaMask = 0;
         internal Int32 m_TestedAgentTypeId = -10;
+        internal NavMeshBuildSettings m_BuildSettingsRobot;
         internal const float k_Height = 0.3f;
 
         [SetUp]
@@ -43,6 +45,9 @@ namespace Unity.Navigation.Tests
             var settings = NavMesh.GetSettingsByID(0);
             m_NavMeshData = NavMeshBuilder.BuildNavMeshData(settings, sources, bounds, Vector3.zero, Quaternion.identity);
 
+            m_BuildSettingsRobot = NavMesh.CreateSettings();
+            m_NavMeshDataRobot = NavMeshBuilder.BuildNavMeshData(m_BuildSettingsRobot, sources, bounds, Vector3.zero, Quaternion.identity);
+
             m_NavMeshInstances = new List<NavMeshDataInstance>
             {
                 NavMesh.AddNavMeshData(m_NavMeshData),
@@ -66,6 +71,9 @@ namespace Unity.Navigation.Tests
             }
             m_NavMeshInstances.Clear();
             m_LinkInstance.Remove();
+
+            NavMesh.RemoveSettings(m_BuildSettingsRobot.agentTypeID);
+
             Object.DestroyImmediate(m_NavMeshData);
         }
     }
@@ -78,6 +86,18 @@ namespace Unity.Navigation.Tests
             var nmLocation = new NavMeshLocation();
 
             Assert.IsFalse(m_NavMeshQuery.IsValid(nmLocation));
+        }
+
+        [Test]
+        public void NavMeshLocation_WhenCreatedWithPositionOutsidePolygon_Throws()
+        {
+            var insidePos = new Vector3(1.0f, 0.5f, 2.0f);
+            var outsidePos = new Vector3(738.0f, 619.5f, 354.0f);
+            var validLocation = m_NavMeshQuery.MapLocation(insidePos, Vector3.one, m_TestedAgentTypeId, m_TestedAreaMask);
+            Assert.Throws<ArgumentException>(() => { var outsidePosition = new NavMeshLocation(outsidePos, validLocation.polygon); });
+            Assert.Throws<ArgumentException>(() => { var nullPolygon = new NavMeshLocation(insidePos, new PolygonID()); });
+            Assert.DoesNotThrow(() => { var samePosAndPoly = new NavMeshLocation(validLocation.position, validLocation.polygon); });
+            Assert.DoesNotThrow(() => { var posInTheSamePoly = new NavMeshLocation( validLocation.position + new Vector3(0.1f, 0, 0), validLocation.polygon); });
         }
 
         [Test]
@@ -103,6 +123,27 @@ namespace Unity.Navigation.Tests
             Assert.IsFalse(m_NavMeshQuery.IsValid(nmLocation), "MapLocation() didn't return an invalid location\n"
                 + " for a position outside the NavMesh" +
                 " endPos=" + nmLocation.position);
+        }
+
+        [Test]
+        public void MapNavMeshLocation_OnOverlappingSurfaces_ReturnsPolygonFromDesiredSurface()
+        {
+            Assert.AreNotEqual(0, m_BuildSettingsRobot.agentTypeID, "Expected non-zero as non-humanoid agent type id");
+
+            var robotNavMesh = NavMesh.AddNavMeshData(m_NavMeshDataRobot);
+            var robotLocation = m_NavMeshQuery.MapLocation(Vector3.zero, Vector3.one, m_BuildSettingsRobot.agentTypeID, m_TestedAreaMask);
+            Assert.IsTrue(m_NavMeshQuery.IsValid(robotLocation.polygon), "MapLocation() didn't return a valid location inside the NavMesh for the specified agent type");
+
+            var humanLocation = m_NavMeshQuery.MapLocation(Vector3.zero, Vector3.one, 0, m_TestedAreaMask);
+            Assert.IsTrue(m_NavMeshQuery.IsValid(humanLocation.polygon), "MapLocation() didn't return a valid location inside the NavMesh for the Human agent");
+
+            var agentTypeForRobotPoly = m_NavMeshQuery.GetAgentTypeIdForPolygon(robotLocation.polygon);
+            Assert.AreEqual(m_BuildSettingsRobot.agentTypeID, agentTypeForRobotPoly);
+
+            var agentTypeForHumanPoly = m_NavMeshQuery.GetAgentTypeIdForPolygon(humanLocation.polygon);
+            Assert.AreNotEqual(agentTypeForHumanPoly, agentTypeForRobotPoly);
+
+            robotNavMesh.Remove();
         }
 
         [Test]

@@ -24,18 +24,24 @@ namespace UnityEngine.ECS.Tests
         }
 
         [Test]
+        public void GameObjectEntityNotAdded()
+        {
+            var go = new GameObject("test", typeof(GameObjectEntity));
+            var entity = GameObjectEntity.AddToEntityManager(m_Manager, go);
+            Assert.IsFalse(m_Manager.HasComponent<GameObjectEntity>(entity));
+        }
+        
+        [Test]
         public void ComponentDataAndTransformArray()
         {
-            var go = new GameObject ();
-            go.AddComponent<EcsTestComponent> ();
-            // Execute in edit mode is not enabled so this has to be called manually right now
-            go.GetComponent<GameObjectEntity>().OnEnable();
-
-            m_Manager.SetComponent(go.GetComponent<GameObjectEntity>().Entity, new EcsTestData(5));
-
+            var go = new GameObject("test", typeof(EcsTestComponent));
+            var entity = GameObjectEntity.AddToEntityManager(m_Manager, go);
+            
+            m_Manager.SetComponent(entity, new EcsTestData(5));
+            
 			var grp = m_Manager.CreateComponentGroup(typeof(Transform), typeof(EcsTestData));
-
 			var arr = grp.GetComponentArray<Transform>();
+            
 			Assert.AreEqual(1, arr.Length);
             Assert.AreEqual(go.transform, arr[0]);
             Assert.AreEqual(5, grp.GetComponentDataArray<EcsTestData>()[0].value);
@@ -46,10 +52,8 @@ namespace UnityEngine.ECS.Tests
         [Test]
         public void RigidbodyComponentArray()
         {
-            var go = new GameObject();
-            go.AddComponent<Rigidbody>();
-            // Execute in edit mode is not enabled so this has to be called manually right now
-            go.AddComponent<GameObjectEntity>().OnEnable();
+            var go = new GameObject("test", typeof(Rigidbody));
+            var entity = GameObjectEntity.AddToEntityManager(m_Manager, go);
 
             var grp = m_Manager.CreateComponentGroup(typeof(Rigidbody));
 
@@ -85,13 +89,9 @@ namespace UnityEngine.ECS.Tests
         [Test]
         unsafe public void ComponentEnumerator()
         {
-            var go = new GameObject();
-            go.AddComponent<Rigidbody>();
-            go.AddComponent<Light>();
-            // Execute in edit mode is not enabled so this has to be called manually right now
-            go.AddComponent<GameObjectEntity>().OnEnable();
+            var go = new GameObject("test", typeof(Rigidbody), typeof(Light));
+            var entity = GameObjectEntity.AddToEntityManager(m_Manager, go);
 
-            var entity = go.GetComponent<GameObjectEntity>().Entity;
             m_Manager.AddComponent(entity, new EcsTestData(5));
             m_Manager.AddComponent(entity, new EcsTestData2(6));
 

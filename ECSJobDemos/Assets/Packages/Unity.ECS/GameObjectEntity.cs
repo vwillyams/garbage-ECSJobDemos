@@ -84,13 +84,13 @@ namespace UnityEngine.ECS
 
         public Entity Entity { get { return m_Entity; } }
 
-        public void OnEnable()
+        static public Entity AddToEntityManager(EntityManager entityManager, GameObject gameObject)
         {
             int t;
-            var components = GetComponents<Component>();
-            ComponentType[] types = new ComponentType[components.Length - 1];
-
-            m_EntityManager = World.Active.GetOrCreateManager<EntityManager>();
+            var gameObjectEntityComponent = gameObject.GetComponent<GameObjectEntity>();
+            var components = gameObject.GetComponents<Component>();
+            var componentCount = (gameObjectEntityComponent == null) ? (components.Length) : (components.Length - 1);            
+            ComponentType[] types = new ComponentType[componentCount];
 
             t = 0;
             for (int i = 0; i != components.Length; i++)
@@ -99,13 +99,13 @@ namespace UnityEngine.ECS
                 var componentData = com as ComponentDataWrapperBase;
 
                 if (componentData != null)
-                    types[t++] = componentData.GetComponentType(m_EntityManager);
+                    types[t++] = componentData.GetComponentType(entityManager);
                 else if (!(com is GameObjectEntity))
                     types[t++] = com.GetType();
             }
 
-            var archetype = m_EntityManager.CreateArchetype(types);
-            m_Entity = m_EntityManager.CreateEntity(archetype);
+            var archetype = entityManager.CreateArchetype(types);
+            var entity = entityManager.CreateEntity(archetype);
             t = 0;
             for (int i = 0; i != components.Length; i++)
             {
@@ -114,15 +114,22 @@ namespace UnityEngine.ECS
 
                 if (componentDataWrapper != null)
                 {
-                    componentDataWrapper.UpdateComponentData(m_EntityManager, m_Entity);
+                    componentDataWrapper.UpdateComponentData(entityManager, entity);
                     t++;
                 }
                 else if (!(com is GameObjectEntity))
                 {
-                    m_EntityManager.SetComponentObject(m_Entity, types[t], com);
+                    entityManager.SetComponentObject(entity, types[t], com);
                     t++;
                 }
             }
+            return entity;
+        }
+
+        public void OnEnable()
+        {
+            m_EntityManager = World.Active.GetOrCreateManager<EntityManager>();
+            m_Entity = AddToEntityManager(m_EntityManager, gameObject);
         }
 
         public void OnDisable()

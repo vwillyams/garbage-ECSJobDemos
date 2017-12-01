@@ -119,7 +119,7 @@ public class PathQueryQueue
                 m_Current.end = m_Query.MapLocation(req.end, 10.0f * Vector3.one, 0, -1);
 
                 // TODO: check the status returned by InitSlicedFindPath()
-                m_Query.InitSlicedFindPath(m_Current.start, m_Current.end, 0, m_Costs, -1);
+                m_Query.InitSlicedFindPath(m_Current.start, m_Current.end, m_Costs, -1);
             }
 
             if (m_Current.handle.valid)

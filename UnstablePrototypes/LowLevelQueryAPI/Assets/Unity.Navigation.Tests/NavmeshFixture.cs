@@ -52,8 +52,8 @@ namespace Unity.Navigation.Tests
 		    var costs = new NativeArray<float>(32, Allocator.Persistent);
 		    for (int i = 0; i < costs.Length; i++)
 			    costs[i] = 1.0F;
-		    
-		    Assert.AreEqual(PathQueryStatus.InProgress, pathQuery.InitSlicedFindPath(startLocation, endLocation, 0, costs));
+
+		    Assert.AreEqual(PathQueryStatus.InProgress, pathQuery.InitSlicedFindPath(startLocation, endLocation, costs));
 		    int iterationsPerformed;
 		    Assert.AreEqual(PathQueryStatus.Success, pathQuery.UpdateSlicedFindPath(1000, out iterationsPerformed));
 		    int pathSize;

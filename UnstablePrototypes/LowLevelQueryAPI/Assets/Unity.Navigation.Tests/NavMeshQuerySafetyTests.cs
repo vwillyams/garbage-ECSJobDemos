@@ -110,7 +110,7 @@ namespace Unity.Navigation.Tests
 			for (var i = 0; i < costs.Length; i++)
 				costs[i] = 1.0F;
 
-			Assert.Throws<InvalidOperationException>(() => { queryWithoutBuffer.InitSlicedFindPath(startLocation, endLocation, 0, costs); });
+			Assert.Throws<InvalidOperationException>(() => { queryWithoutBuffer.InitSlicedFindPath(startLocation, endLocation, costs); });
 			Assert.Throws<InvalidOperationException>(() => { queryWithoutBuffer.UpdateSlicedFindPath(100, out iterations); });
 			Assert.Throws<InvalidOperationException>(() => { queryWithoutBuffer.FinalizeSlicedFindPath(out pathSize); });
 			Assert.Throws<InvalidOperationException>(() => { queryWithoutBuffer.GetPathResult(path); });
@@ -135,7 +135,7 @@ namespace Unity.Navigation.Tests
 			for (var i = 0; i < costs.Length; i++)
 				costs[i] = 1.0F;
 
-			Assert.DoesNotThrow(() => { pathQuery.InitSlicedFindPath(startLocation, endLocation, 0, costs); });
+			Assert.DoesNotThrow(() => { pathQuery.InitSlicedFindPath(startLocation, endLocation, costs); });
 			Assert.DoesNotThrow(() => { pathQuery.UpdateSlicedFindPath(100, out iterations); });
 			Assert.DoesNotThrow(() => { pathQuery.FinalizeSlicedFindPath(out pathSize); });
 			Assert.DoesNotThrow(() => { pathQuery.GetPathResult(path); });

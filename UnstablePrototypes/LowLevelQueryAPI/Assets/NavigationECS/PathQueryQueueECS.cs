@@ -257,7 +257,7 @@ public struct PathQueryQueueEcs
                     end = endLoc
                 };
 
-                var status = m_Query.InitSlicedFindPath(startLoc, endLoc, 0, m_Costs, request.mask);
+                var status = m_Query.InitSlicedFindPath(startLoc, endLoc, m_Costs, request.mask);
                 if (!status.IsFailure())
                 {
                     state.currentAgentIndex = request.agentIndex;

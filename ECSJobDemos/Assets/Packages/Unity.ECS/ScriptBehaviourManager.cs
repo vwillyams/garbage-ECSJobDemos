@@ -1,10 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Unity.Collections;
-using UnityEngine;
-using System.Reflection;
+﻿using System.Collections.Generic;
 using System;
-using UnityEngine.Assertions;
 
 namespace UnityEngine.ECS
 {
@@ -61,10 +56,11 @@ namespace UnityEngine.ECS
 		{
 		}
 
-		/// <summary>
-		/// Called once per frame
-		/// </summary>
 		internal abstract void InternalUpdate();
+		/// <summary>
+		/// Execute the manager immediately.
+		/// </summary>
+		public void Update() { InternalUpdate(); }
 
 		private static void UpdatePlayerLoop()
 		{

@@ -54,8 +54,7 @@ namespace UnityEngine.ECS
 
 			public void TriggerUpdate()
 			{
-				manager.InternalUpdate();
-				Unity.Jobs.JobHandle.ScheduleBatchedJobs();
+				manager.Update();
 			}
 		}
 

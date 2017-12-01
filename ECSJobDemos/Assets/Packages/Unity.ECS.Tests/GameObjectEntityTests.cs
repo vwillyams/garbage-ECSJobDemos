@@ -26,16 +26,14 @@ namespace UnityEngine.ECS.Tests
         [Test]
         public void ComponentDataAndTransformArray()
         {
-            var entityMan = World.GetOrCreateManager<EntityManager> ();
-
             var go = new GameObject ();
             go.AddComponent<EcsTestComponent> ();
             // Execute in edit mode is not enabled so this has to be called manually right now
             go.GetComponent<GameObjectEntity>().OnEnable();
 
-            entityMan.SetComponent(go.GetComponent<GameObjectEntity>().Entity, new EcsTestData(5));
+            m_Manager.SetComponent(go.GetComponent<GameObjectEntity>().Entity, new EcsTestData(5));
 
-			var grp = entityMan.CreateComponentGroup(typeof(Transform), typeof(EcsTestData));
+			var grp = m_Manager.CreateComponentGroup(typeof(Transform), typeof(EcsTestData));
 
 			var arr = grp.GetComponentArray<Transform>();
 			Assert.AreEqual(1, arr.Length);
@@ -48,14 +46,12 @@ namespace UnityEngine.ECS.Tests
         [Test]
         public void RigidbodyComponentArray()
         {
-            var entityMan = World.GetOrCreateManager<EntityManager>();
-
             var go = new GameObject();
             go.AddComponent<Rigidbody>();
             // Execute in edit mode is not enabled so this has to be called manually right now
             go.AddComponent<GameObjectEntity>().OnEnable();
 
-            var grp = entityMan.CreateComponentGroup(typeof(Rigidbody));
+            var grp = m_Manager.CreateComponentGroup(typeof(Rigidbody));
 
             var arr = grp.GetComponentArray<Rigidbody>();
             Assert.AreEqual(1, arr.Length);
@@ -89,8 +85,6 @@ namespace UnityEngine.ECS.Tests
         [Test]
         unsafe public void ComponentEnumerator()
         {
-            var entityManager = World.GetOrCreateManager<EntityManager>();
-
             var go = new GameObject();
             go.AddComponent<Rigidbody>();
             go.AddComponent<Light>();
@@ -98,11 +92,11 @@ namespace UnityEngine.ECS.Tests
             go.AddComponent<GameObjectEntity>().OnEnable();
 
             var entity = go.GetComponent<GameObjectEntity>().Entity;
-            entityManager.AddComponent(entity, new EcsTestData(5));
-            entityManager.AddComponent(entity, new EcsTestData2(6));
+            m_Manager.AddComponent(entity, new EcsTestData(5));
+            m_Manager.AddComponent(entity, new EcsTestData2(6));
 
             int iterations = 0;
-            var enumerator = new ComponentGroupArray<MyEntity>(entityManager);
+            var enumerator = new ComponentGroupArray<MyEntity>(m_Manager);
             foreach (var e in enumerator)
             {
                 Assert.AreEqual(5, e.testData->value);

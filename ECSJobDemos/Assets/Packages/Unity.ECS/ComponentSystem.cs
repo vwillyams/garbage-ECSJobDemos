@@ -135,6 +135,8 @@ namespace UnityEngine.ECS
 		    UpdateInjectedComponentGroups ();
 
 		    OnUpdate();
+		    
+		    JobHandle.ScheduleBatchedJobs();
 	    }
 
 		protected sealed override void OnCreateManagerInternal(int capacity)
@@ -163,6 +165,8 @@ namespace UnityEngine.ECS
 
 			JobHandle input = GetDependency();
 			JobHandle output = OnUpdate(input);
+			
+			JobHandle.ScheduleBatchedJobs();
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (JobsUtility.GetJobDebuggerEnabled())
@@ -256,14 +260,8 @@ namespace UnityEngine.ECS
 		}
 #endif
 
-		private unsafe JobHandle GetDependency ()
+		unsafe JobHandle GetDependency ()
 		{
-	        if (m_SafetyManager == null)
-	        {
-		        Debug.DebugBreak();
-		        return new JobHandle();
-	        }
-
 			fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
 			{
 				return m_SafetyManager.GetDependency(readersPtr, m_JobDependencyForReadingManagers.Length, writersPtr, m_JobDependencyForWritingManagers.Length);

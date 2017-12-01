@@ -1,15 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Unity.Collections;
-using UnityEngine;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using System;
 using System.Collections.ObjectModel;
-using System.Runtime.CompilerServices;
-using UnityEngine.Assertions;
-using UnityEngine.ECS;
-
-[assembly:InternalsVisibleTo("Unity.ECS.Tests")]
 
 namespace UnityEngine.ECS
 {
@@ -97,11 +89,19 @@ namespace UnityEngine.ECS
 			m_BehaviourManagerLookup.Clear();
 		}
 
-		ScriptBehaviourManager CreateManagerInternal (System.Type type, int capacity, object[] constructorArgumnents)
+		ScriptBehaviourManager CreateManagerInternal (Type type, int capacity, object[] constructorArgumnents)
 		{
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (!m_AllowGetManager)
-				throw new System.ArgumentException("During destruction of a system you are not allowed to create more systems.");
+				throw new ArgumentException("During destruction of a system you are not allowed to create more systems.");
 
+			if (constructorArgumnents != null && constructorArgumnents.Length != 0)
+			{
+				var constructors = type.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+				if (constructors.Length == 1 && constructors[0].IsPrivate)
+					throw new MissingMethodException($"Constructing {type} failed because the constructor was private, it must be public.");
+			}
+#endif			
 			//@TODO: disallow creating managers during constructor. Only possible after constructor has been called.
 			var manager = Activator.CreateInstance(type, constructorArgumnents) as ScriptBehaviourManager;
 
@@ -113,10 +113,12 @@ namespace UnityEngine.ECS
 			return manager;
 		}
 		
-		ScriptBehaviourManager GetOrCreateManagerInternal (System.Type type)
+		ScriptBehaviourManager GetOrCreateManagerInternal (Type type)
 		{
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (!m_AllowGetManager)
-				throw new System.ArgumentException("During destruction of a system you are not allowed to get or create more systems.");
+				throw new ArgumentException("During destruction of a system you are not allowed to get or create more systems.");
+#endif
 			
 			ScriptBehaviourManager manager;
 			if (m_BehaviourManagerLookup.TryGetValue(type, out manager))
@@ -137,14 +139,14 @@ namespace UnityEngine.ECS
 			return obj;
 		}
 		
-		public ScriptBehaviourManager CreateManager(System.Type type, params object[] constructorArgumnents)
+		public ScriptBehaviourManager CreateManager(Type type, params object[] constructorArgumnents)
 		{
 			return CreateManagerInternal(type, GetCapacityForType(type), constructorArgumnents);
 		}
 
-		public ScriptBehaviourManager CreateManager<T>(params object[] constructorArgumnents) where T : ScriptBehaviourManager
+		public T CreateManager<T>(params object[] constructorArgumnents) where T : ScriptBehaviourManager
 		{
-			return CreateManagerInternal(typeof(T), GetCapacityForType(typeof(T)), constructorArgumnents);
+			return (T)CreateManagerInternal(typeof(T), GetCapacityForType(typeof(T)), constructorArgumnents);
 		}
 		
 		public T GetOrCreateManager<T> () where T : ScriptBehaviourManager
@@ -152,7 +154,7 @@ namespace UnityEngine.ECS
 			return (T)GetOrCreateManagerInternal (typeof(T));
 		}
 
-		public ScriptBehaviourManager GetOrCreateManager(System.Type type)
+		public ScriptBehaviourManager GetOrCreateManager(Type type)
 		{
 			return GetOrCreateManagerInternal (type);
 		}

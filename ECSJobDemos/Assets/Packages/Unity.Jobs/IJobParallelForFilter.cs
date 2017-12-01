@@ -6,6 +6,7 @@ using Unity.Mathematics;
 
 namespace Unity.Jobs
 {
+    [JobProducerType(typeof(JobParallelIndexListExtensions.JobStructProduce<>))]
     public interface IJobParallelForFilter
     {
         bool Execute(int index);
@@ -13,7 +14,7 @@ namespace Unity.Jobs
 
     public static class JobParallelIndexListExtensions
     {
-        struct JobStructProduce<T> where T : struct, IJobParallelForFilter
+        public struct JobStructProduce<T> where T : struct, IJobParallelForFilter
         {
             public struct JobDataWithFiltering
             {

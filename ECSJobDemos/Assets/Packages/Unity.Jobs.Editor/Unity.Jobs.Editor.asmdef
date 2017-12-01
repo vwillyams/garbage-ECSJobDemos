@@ -1,6 +1,8 @@
 {
     "name": "Unity.Jobs.Editor",
-    "references": [],
+    "references": [
+        "Unity.Jobs"
+    ],
     "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor"

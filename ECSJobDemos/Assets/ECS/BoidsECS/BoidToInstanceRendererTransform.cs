@@ -62,9 +62,6 @@ namespace BoidSimulations
     [ComputeJobOptimizationAttribute(Accuracy.Med, Support.Relaxed)]
     struct BoidToInstanceRendererTransform : IJobProcessComponentData<BoidData, InstanceRendererTransform>, IAutoComponentSystemJob
     {
-        // @TODO: Remove after burst fixes
-        float burstWorkaround;
-        
         public void Prepare()
         {
         }
@@ -72,9 +69,6 @@ namespace BoidSimulations
         public void Execute(ref BoidData boid, ref InstanceRendererTransform transform)
         {
             transform.matrix = matrix_math_util.LookRotationToMatrix(boid.position, boid.forward, new float3(0, 1, 0));
-            
-            // To see burst compile failure, replace with line below
-            // transform.matrix = matrix_math_util.LookRotationToMatrix(boid.position, boid.forward, new Vector3(0, 1, 0));
         }
     }
 

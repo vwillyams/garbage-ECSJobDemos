@@ -7,17 +7,6 @@ namespace UnityEngine.ECS
 {
 	public class World : IDisposable
 	{
-		class Dependencies
-		{
-			public struct Manager
-			{
-				public ScriptBehaviourManager 	manager;
-				public FieldInfo 				field;
-			}
-
-			public Manager[] 				managers;
-		}
-
 		public ReadOnlyCollection<ScriptBehaviourManager> BehaviourManagers
 		{
 			get
@@ -28,7 +17,6 @@ namespace UnityEngine.ECS
 		List<ScriptBehaviourManager> 				m_BehaviourManagers = new List<ScriptBehaviourManager> ();
 		//@TODO: What about multiple managers of the same type...
 		Dictionary<Type, ScriptBehaviourManager> 	m_BehaviourManagerLookup = new Dictionary<Type, ScriptBehaviourManager> ();
-		Dictionary<Type, Dependencies> 				m_InstanceDependencies = new Dictionary<Type, Dependencies>();
 		int 										m_DefaultCapacity = 10;
 
 		bool 										m_AllowGetManager = true;
@@ -76,7 +64,7 @@ namespace UnityEngine.ECS
 			{
 				try
 				{
-					ScriptBehaviourManager.DestroyInstance (behaviourManager);
+					behaviourManager.DestroyInstance ();
 				}
 				catch (Exception e)
 				{
@@ -108,7 +96,7 @@ namespace UnityEngine.ECS
 			m_BehaviourManagers.Add (manager);
 			m_BehaviourManagerLookup.Add(type, manager);
 
-			ScriptBehaviourManager.CreateInstance (manager, capacity);
+			manager.CreateInstance (this, capacity);
 
 			return manager;
 		}
@@ -158,82 +146,6 @@ namespace UnityEngine.ECS
 		{
 			return GetOrCreateManagerInternal (type);
 		}
-
-
-        static void ValidateNoStaticInjectDependency(Type type)
-        {
-#if UNITY_EDITOR
-            var fields = type.GetFields(BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic);
-
-            foreach (var field in fields)
-            {
-                var hasInject = field.GetCustomAttributes(typeof(InjectAttribute), true).Length != 0;
-                if (hasInject && field.GetValue(null) == null)
-                    Debug.LogError(string.Format("{0}.{1} InjectDependency may not be used on static variables", type, field.Name));
-            }
-#endif
-        }
-
-		Dependencies CreateDependencyInjection(Type type)
-		{
-			var managers = new List<Dependencies.Manager>();
-
-			var fields = type.GetFields (BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-			foreach (var field in fields)
-			{
-				var hasInject = field.GetCustomAttributes (typeof(InjectAttribute), true).Length != 0;
-				if (hasInject)
-				{
-					if (field.FieldType.IsSubclassOf(typeof(ScriptBehaviourManager)))
-					{
-						var manager = new Dependencies.Manager();
-						manager.manager = GetOrCreateManager(field.FieldType);
-						manager.field = field;
-						managers.Add(manager);
-					}
-					else
-					{
-						Debug.LogErrorFormat("[InjectDependency] can not be applied to type: {0}", field.FieldType);
-					}
-				}
-			}
-
-            ValidateNoStaticInjectDependency(type);
-
-			if (managers.Count != 0)
-			{
-				var deps = new Dependencies ();
-				deps.managers = managers.ToArray ();
-				return deps;
-			}
-			else
-				return null;
-		}
-
-		internal static void DependencyInject(ScriptBehaviourManager manager)
-		{
-			var deps = Active.PrepareDependendencyInjectionStatic (manager);
-		
-			if (deps != null)
-			{
-				for (int i = 0; i != deps.managers.Length; i++)
-					deps.managers[i].field.SetValue (manager, deps.managers[i].manager);
-			}
-		}
-
-		Dependencies PrepareDependendencyInjectionStatic(object behaviour)
-		{
-			var type = behaviour.GetType ();
-			Dependencies deps;
-			if (!m_InstanceDependencies.TryGetValue (type, out deps))
-			{
-				deps = CreateDependencyInjection (type);
-				m_InstanceDependencies.Add (type, deps);
-			}
-
-			return deps;
-		}
-
 
 		//@TODO: This should take an array of worlds...
 		public static void UpdatePlayerLoop(World world)

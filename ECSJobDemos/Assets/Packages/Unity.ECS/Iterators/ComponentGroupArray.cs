@@ -58,9 +58,9 @@ namespace UnityEngine.ECS
 #endif
             }
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            if (componentTypesBuilder.Count + componentDataTypesBuilder.Count > ComponentGroupStream.kMaxStream)
+            if (componentTypesBuilder.Count + componentDataTypesBuilder.Count > ComponentGroupArrayData.kMaxStream)
             {
-                throw new System.ArgumentException($"{type} has too many component references. A ComponentGroup Array can have up to {ComponentGroupStream.kMaxStream}.");
+                throw new System.ArgumentException($"{type} has too many component references. A ComponentGroup Array can have up to {ComponentGroupArrayData.kMaxStream}.");
             }
 #endif
 
@@ -75,31 +75,110 @@ namespace UnityEngine.ECS
         }
     }
     
-    unsafe struct ComponentGroupStream
-    {
-        public byte*     CachedPtr;
-        public int       SizeOf;
-        public ushort    FieldOffset;
-        public ushort    TypeIndexInArchetype;
-        
-        public const int kMaxStream = 6;
-    }
-
     unsafe struct ComponentGroupArrayData
     {
-        fixed byte                  m_Caches[16 * ComponentGroupStream.kMaxStream];
+        public const int kMaxStream = 6;
+
+        struct ComponentGroupStream
+        {
+            public byte*     CachedPtr;
+            public int       SizeOf;
+            public ushort    FieldOffset;
+            public ushort    TypeIndexInArchetype;
+        }
+    
+        fixed byte                  m_Caches[16 * kMaxStream];
 
         int                         m_ComponentDataCount;
         int                         m_ComponentCount;
 
-        int                         m_Index;
-        int                         m_Length;
-    
-        int                         m_CacheBeginIndex;
-        int                         m_CacheEndIndex;
+        public int                  Length;
+        public int                  CacheBeginIndex;
+        public int                  CacheEndIndex;
 
         ComponentChunkIterator      m_ChunkIterator;
-        fixed int                   m_ComponentTypes[ComponentGroupStream.kMaxStream];
+        fixed int                   m_ComponentTypes[kMaxStream];
+
+        ArchetypeManager            m_ArchetypeManager;
+
+        public ComponentGroupArrayData(int length, ComponentGroupArrayStaticCache staticCache, ComponentChunkIterator chunkIterator, ArchetypeManager archetypeManager)
+        {
+            Length = length;
+            CacheBeginIndex = 0;
+            CacheEndIndex = 0;
+            m_ArchetypeManager = archetypeManager;
+
+            m_ChunkIterator = chunkIterator;
+
+            m_ComponentDataCount = staticCache.ComponentDataCount;
+            m_ComponentCount = staticCache.ComponentCount;
+
+            fixed (int* componentTypes = m_ComponentTypes)
+            {
+                fixed (byte* cacheBytes = m_Caches)
+                {
+                    ComponentGroupStream* streams = (ComponentGroupStream*)cacheBytes;
+                        
+                    for (int i = 0; i < staticCache.ComponentDataCount + staticCache.ComponentCount; i++)
+                    {
+                        componentTypes[i] = staticCache.ComponentTypes[i].typeIndex;
+                        streams[i].FieldOffset = (ushort)staticCache.ComponentFieldOffsets[i];
+                    }
+                }
+            }
+        }
+
+        public void UpdateCache(int index)
+        {
+            ComponentChunkCache cache;
+            m_ChunkIterator.UpdateCache(index, out cache);
+
+            CacheBeginIndex = cache.CachedBeginIndex;
+            CacheEndIndex = cache.CachedEndIndex;
+
+            fixed (int* componentTypes = m_ComponentTypes)
+            {
+                fixed (byte* cacheBytes = m_Caches)
+                {
+                    ComponentGroupStream* streams = (ComponentGroupStream*)cacheBytes;
+                    int totalCount = m_ComponentDataCount + m_ComponentCount;
+                    for (int i = 0; i < totalCount; i++)
+                    {
+                        int indexInArcheType;
+                        m_ChunkIterator.GetCacheForType(componentTypes[i], out cache, out indexInArcheType);
+                        streams[i].SizeOf = cache.CachedSizeOf;
+                        streams[i].CachedPtr = (byte*)cache.CachedPtr;
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                        if (indexInArcheType > ushort.MaxValue)
+                            throw new System.ArgumentException($"There is a maximum of {ushort.MaxValue} components on one entity.");
+#endif
+                        streams[i].TypeIndexInArchetype = (ushort)indexInArcheType;
+                    }
+                }
+            }        
+        }
+
+        public void PatchPtrs(int index, byte* valuePtr)
+        {
+            fixed (byte* cacheBytes = m_Caches)
+            {
+                ComponentGroupStream* streams = (ComponentGroupStream*)cacheBytes;
+                for (int i = 0; i != m_ComponentDataCount; i++)
+                {
+                    void* componentPtr = (void*)(streams[i].CachedPtr + (streams[i].SizeOf * index));
+                    void** valuePtrOffsetted = (void**)(valuePtr + streams[i].FieldOffset);
+
+                    *valuePtrOffsetted = componentPtr;
+                }
+
+                for (int i = m_ComponentDataCount; i != m_ComponentDataCount + m_ComponentCount; i++)
+                {
+                    var component = m_ChunkIterator.GetManagedObject(m_ArchetypeManager, streams[i].TypeIndexInArchetype, CacheBeginIndex, index);
+                    var valuePtrOffsetted = (valuePtr + streams[i].FieldOffset);
+                    UnsafeUtility.CopyObjectAddressToPtr(component, (IntPtr)valuePtrOffsetted);
+                }
+            }
+        }
     }
 
     public class ComponentGroupArray<T> : IDisposable where T : struct 
@@ -133,48 +212,13 @@ namespace UnityEngine.ECS
         //@TODO: Container & safety...
         public unsafe struct ComponentGroupEnumerator<T> : IEnumerator<T> where T : struct
         {
-            fixed byte                  m_Caches[16 * ComponentGroupStream.kMaxStream];
-
-            int                         m_ComponentDataCount;
-            int                         m_ComponentCount;
-
+            ComponentGroupArrayData     m_Data;
             int                         m_Index;
-            int                         m_Length;
-    
-            int                         m_CacheBeginIndex;
-            int                         m_CacheEndIndex;
-
-            ComponentChunkIterator      m_ChunkIterator;
-            fixed int                   m_ComponentTypes[ComponentGroupStream.kMaxStream];
-            [NativeSetClassTypeToNullOnSchedule]
-            ArchetypeManager		    m_ArchetypeManager;
     
             internal ComponentGroupEnumerator(int length, ComponentGroupArrayStaticCache staticCache, ComponentChunkIterator chunkIterator, ArchetypeManager archetypeManager)
             {
-                m_Length = length;
+                m_Data = new ComponentGroupArrayData(length, staticCache, chunkIterator, archetypeManager);
                 m_Index = -1;
-                m_CacheBeginIndex = 0;
-                m_CacheEndIndex = 0;
-                m_ArchetypeManager = archetypeManager;
-
-                m_ChunkIterator = chunkIterator;
-
-                m_ComponentDataCount = staticCache.ComponentDataCount;
-                m_ComponentCount = staticCache.ComponentCount;
-
-                fixed (int* componentTypes = m_ComponentTypes)
-                {
-                    fixed (byte* cacheBytes = m_Caches)
-                    {
-                        ComponentGroupStream* streams = (ComponentGroupStream*)cacheBytes;
-                        
-                        for (int i = 0; i < staticCache.ComponentDataCount + staticCache.ComponentCount; i++)
-                        {
-                            componentTypes[i] = staticCache.ComponentTypes[i].typeIndex;
-                            streams[i].FieldOffset = (ushort)staticCache.ComponentFieldOffsets[i];
-                        }
-                    }
-                }
             }
 
             public void Dispose()
@@ -182,48 +226,17 @@ namespace UnityEngine.ECS
                 //@TODO: Prevent multiple instances (error checks)... because of ComponentChunkIterator[] being reused from ComponentGroupEnumerable
             }
 
-            public int Length { get { return m_Length; } }
+            public int Length { get { return m_Data.Length; } }
 
-            unsafe void UpdateCache()
-            {
-                ComponentChunkCache cache;
-                m_ChunkIterator.UpdateCache(m_Index, out cache);
-
-                m_CacheBeginIndex = cache.CachedBeginIndex;
-                m_CacheEndIndex = cache.CachedEndIndex;
-
-                fixed (int* componentTypes = m_ComponentTypes)
-                {
-                    fixed (byte* cacheBytes = m_Caches)
-                    {
-                        ComponentGroupStream* streams = (ComponentGroupStream*)cacheBytes;
-                        int totalCount = m_ComponentDataCount + m_ComponentCount;
-                        for (int i = 0; i < totalCount; i++)
-                        {
-                            int indexInArcheType;
-                            m_ChunkIterator.GetCacheForType(componentTypes[i], out cache, out indexInArcheType);
-                            streams[i].SizeOf = cache.CachedSizeOf;
-                            streams[i].CachedPtr = (byte*)cache.CachedPtr;
-                            #if ENABLE_UNITY_COLLECTIONS_CHECKS
-                            if (indexInArcheType > ushort.MaxValue)
-                                throw new System.ArgumentException($"There is a maximum of {ushort.MaxValue} components on one entity.");
-                            #endif
-                            streams[i].TypeIndexInArchetype = (ushort)indexInArcheType;
-                        }
-                    }
-                }
-            }
-    
             public bool MoveNext()
             {
                 m_Index++;
     
-                if (m_Index < m_CacheBeginIndex || m_Index >= m_CacheEndIndex)
+                if (m_Index < m_Data.CacheBeginIndex || m_Index >= m_Data.CacheEndIndex)
                 {
-                    if (m_Index >= m_Length)
+                    if (m_Index >= m_Data.Length)
                         return false;
-                    
-                    UpdateCache();
+                    m_Data.UpdateCache(m_Index);
                     return true;
                 }
                 else
@@ -243,26 +256,7 @@ namespace UnityEngine.ECS
                 {
                     var value = default(T);
                     byte* valuePtr = (byte*)UnsafeUtility.AddressOf(ref value);
-
-                    fixed (byte* cacheBytes = m_Caches)
-                    {
-                        ComponentGroupStream* streams = (ComponentGroupStream*)cacheBytes;
-                        for (int i = 0; i != m_ComponentDataCount; i++)
-                        {
-                            void* componentPtr = (void*)(streams[i].CachedPtr + (streams[i].SizeOf * m_Index));
-                            void** valuePtrOffsetted = (void**)(valuePtr + streams[i].FieldOffset);
-
-                            *valuePtrOffsetted = componentPtr;
-                        }
-
-                        for (int i = m_ComponentDataCount; i != m_ComponentDataCount + m_ComponentCount; i++)
-                        {
-                            var component = m_ChunkIterator.GetManagedObject(m_ArchetypeManager, streams[i].TypeIndexInArchetype, m_CacheBeginIndex, m_Index);
-                            var valuePtrOffsetted = (valuePtr + streams[i].FieldOffset);
-                            UnsafeUtility.CopyObjectAddressToPtr(component, (IntPtr)valuePtrOffsetted);
-                        }
-                    }
-
+                    m_Data.PatchPtrs(m_Index, valuePtr);
                     return value;
                 }
             }
@@ -279,8 +273,8 @@ namespace UnityEngine.ECS
 #endif
 
                     m_Index = index;
-                    if (m_Index < m_CacheBeginIndex || m_Index >= m_CacheEndIndex)
-                        UpdateCache();
+                    if (m_Index < m_Data.CacheBeginIndex || m_Index >= m_Data.CacheEndIndex)
+                        m_Data.UpdateCache(m_Index);
 
                     return Current;
                 }

@@ -101,14 +101,14 @@ namespace UnityEngine.ECS
 			return manager;
 		}
 		
-		ScriptBehaviourManager GetOrCreateManagerInternal (Type type)
+		ScriptBehaviourManager GetExistingManagerInternal (Type type)
 		{
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (!m_AllowGetManager)
 				throw new ArgumentException("During destruction of a system you are not allowed to get or create more systems.");
 #endif
 			
-			ScriptBehaviourManager manager;
+			ScriptBehaviourManager manager = null;
 			if (m_BehaviourManagerLookup.TryGetValue(type, out manager))
 				return manager;
 			foreach(var behaviourManager in m_BehaviourManagers)
@@ -121,12 +121,34 @@ namespace UnityEngine.ECS
 				}
 			}
 
-			//@TODO: Check that type inherit from ScriptBehaviourManager
-			var obj = CreateManagerInternal(type, GetCapacityForType(type), null);
-
-			return obj;
+			return null;
 		}
 		
+		ScriptBehaviourManager GetOrCreateManagerInternal (Type type)
+		{
+			var manager = GetExistingManagerInternal(type);
+
+			if (manager != null)
+				return manager;
+			else
+				return  CreateManagerInternal(type, GetCapacityForType(type), null);
+		}
+		
+		void DestroyManagerInteral(ScriptBehaviourManager manager)
+		{
+			if (!m_BehaviourManagers.Remove(manager))
+				throw new System.ArgumentException($"manager does not exist in the world");
+
+			var type = manager.GetType();
+			while (type != typeof(ScriptBehaviourManager))
+			{
+				m_BehaviourManagerLookup.Remove(type);
+				type = type.BaseType;
+			}
+
+			manager.DestroyInstance();	
+		}
+
 		public ScriptBehaviourManager CreateManager(Type type, params object[] constructorArgumnents)
 		{
 			return CreateManagerInternal(type, GetCapacityForType(type), constructorArgumnents);
@@ -145,6 +167,21 @@ namespace UnityEngine.ECS
 		public ScriptBehaviourManager GetOrCreateManager(Type type)
 		{
 			return GetOrCreateManagerInternal (type);
+		}
+
+		public T GetExistingManager<T> () where T : ScriptBehaviourManager
+		{
+			return (T)GetExistingManagerInternal (typeof(T));
+		}
+
+		public ScriptBehaviourManager GetExistingManager(Type type)
+		{
+			return GetExistingManagerInternal (type);
+		}
+
+		public void DestroyManager(ScriptBehaviourManager manager)
+		{
+			DestroyManagerInteral(manager);
 		}
 
 		//@TODO: This should take an array of worlds...

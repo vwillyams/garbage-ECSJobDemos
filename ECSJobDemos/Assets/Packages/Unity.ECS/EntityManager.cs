@@ -27,7 +27,10 @@ namespace UnityEngine.ECS
         public override bool Equals(object compare) { return this == (Entity)compare; }
         public override int GetHashCode() { return index; }
 
-        //@TODO: Manager index for debugging?
+        public static Entity Null
+        {
+            get { return new Entity(); }
+        }
     }
 
     public class EntityManager : ScriptBehaviourManager

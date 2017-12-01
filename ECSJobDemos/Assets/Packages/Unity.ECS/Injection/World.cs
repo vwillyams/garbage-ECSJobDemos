@@ -7,17 +7,6 @@ namespace UnityEngine.ECS
 {
 	public class World : IDisposable
 	{
-		class Dependencies
-		{
-			public struct Manager
-			{
-				public ScriptBehaviourManager 	manager;
-				public FieldInfo 				field;
-			}
-
-			public Manager[] 				managers;
-		}
-
 		public ReadOnlyCollection<ScriptBehaviourManager> BehaviourManagers
 		{
 			get
@@ -28,7 +17,6 @@ namespace UnityEngine.ECS
 		List<ScriptBehaviourManager> 				m_BehaviourManagers = new List<ScriptBehaviourManager> ();
 		//@TODO: What about multiple managers of the same type...
 		Dictionary<Type, ScriptBehaviourManager> 	m_BehaviourManagerLookup = new Dictionary<Type, ScriptBehaviourManager> ();
-		Dictionary<Type, Dependencies> 				m_InstanceDependencies = new Dictionary<Type, Dependencies>();
 		int 										m_DefaultCapacity = 10;
 
 		bool 										m_AllowGetManager = true;
@@ -76,7 +64,7 @@ namespace UnityEngine.ECS
 			{
 				try
 				{
-					ScriptBehaviourManager.DestroyInstance (behaviourManager);
+					behaviourManager.DestroyInstance ();
 				}
 				catch (Exception e)
 				{
@@ -108,19 +96,19 @@ namespace UnityEngine.ECS
 			m_BehaviourManagers.Add (manager);
 			m_BehaviourManagerLookup.Add(type, manager);
 
-			ScriptBehaviourManager.CreateInstance (manager, capacity);
+			manager.CreateInstance (this, capacity);
 
 			return manager;
 		}
 		
-		ScriptBehaviourManager GetOrCreateManagerInternal (Type type)
+		ScriptBehaviourManager GetExistingManagerInternal (Type type)
 		{
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (!m_AllowGetManager)
 				throw new ArgumentException("During destruction of a system you are not allowed to get or create more systems.");
 #endif
 			
-			ScriptBehaviourManager manager;
+			ScriptBehaviourManager manager = null;
 			if (m_BehaviourManagerLookup.TryGetValue(type, out manager))
 				return manager;
 			foreach(var behaviourManager in m_BehaviourManagers)
@@ -133,12 +121,34 @@ namespace UnityEngine.ECS
 				}
 			}
 
-			//@TODO: Check that type inherit from ScriptBehaviourManager
-			var obj = CreateManagerInternal(type, GetCapacityForType(type), null);
-
-			return obj;
+			return null;
 		}
 		
+		ScriptBehaviourManager GetOrCreateManagerInternal (Type type)
+		{
+			var manager = GetExistingManagerInternal(type);
+
+			if (manager != null)
+				return manager;
+			else
+				return  CreateManagerInternal(type, GetCapacityForType(type), null);
+		}
+		
+		void DestroyManagerInteral(ScriptBehaviourManager manager)
+		{
+			if (!m_BehaviourManagers.Remove(manager))
+				throw new System.ArgumentException($"manager does not exist in the world");
+
+			var type = manager.GetType();
+			while (type != typeof(ScriptBehaviourManager))
+			{
+				m_BehaviourManagerLookup.Remove(type);
+				type = type.BaseType;
+			}
+
+			manager.DestroyInstance();	
+		}
+
 		public ScriptBehaviourManager CreateManager(Type type, params object[] constructorArgumnents)
 		{
 			return CreateManagerInternal(type, GetCapacityForType(type), constructorArgumnents);
@@ -159,81 +169,20 @@ namespace UnityEngine.ECS
 			return GetOrCreateManagerInternal (type);
 		}
 
-
-        static void ValidateNoStaticInjectDependency(Type type)
-        {
-#if UNITY_EDITOR
-            var fields = type.GetFields(BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic);
-
-            foreach (var field in fields)
-            {
-                var hasInject = field.GetCustomAttributes(typeof(InjectAttribute), true).Length != 0;
-                if (hasInject && field.GetValue(null) == null)
-                    Debug.LogError(string.Format("{0}.{1} InjectDependency may not be used on static variables", type, field.Name));
-            }
-#endif
-        }
-
-		Dependencies CreateDependencyInjection(Type type)
+		public T GetExistingManager<T> () where T : ScriptBehaviourManager
 		{
-			var managers = new List<Dependencies.Manager>();
-
-			var fields = type.GetFields (BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-			foreach (var field in fields)
-			{
-				var hasInject = field.GetCustomAttributes (typeof(InjectAttribute), true).Length != 0;
-				if (hasInject)
-				{
-					if (field.FieldType.IsSubclassOf(typeof(ScriptBehaviourManager)))
-					{
-						var manager = new Dependencies.Manager();
-						manager.manager = GetOrCreateManager(field.FieldType);
-						manager.field = field;
-						managers.Add(manager);
-					}
-					else
-					{
-						Debug.LogErrorFormat("[InjectDependency] can not be applied to type: {0}", field.FieldType);
-					}
-				}
-			}
-
-            ValidateNoStaticInjectDependency(type);
-
-			if (managers.Count != 0)
-			{
-				var deps = new Dependencies ();
-				deps.managers = managers.ToArray ();
-				return deps;
-			}
-			else
-				return null;
+			return (T)GetExistingManagerInternal (typeof(T));
 		}
 
-		internal static void DependencyInject(ScriptBehaviourManager manager)
+		public ScriptBehaviourManager GetExistingManager(Type type)
 		{
-			var deps = Active.PrepareDependendencyInjectionStatic (manager);
-		
-			if (deps != null)
-			{
-				for (int i = 0; i != deps.managers.Length; i++)
-					deps.managers[i].field.SetValue (manager, deps.managers[i].manager);
-			}
+			return GetExistingManagerInternal (type);
 		}
 
-		Dependencies PrepareDependendencyInjectionStatic(object behaviour)
+		public void DestroyManager(ScriptBehaviourManager manager)
 		{
-			var type = behaviour.GetType ();
-			Dependencies deps;
-			if (!m_InstanceDependencies.TryGetValue (type, out deps))
-			{
-				deps = CreateDependencyInjection (type);
-				m_InstanceDependencies.Add (type, deps);
-			}
-
-			return deps;
+			DestroyManagerInteral(manager);
 		}
-
 
 		//@TODO: This should take an array of worlds...
 		public static void UpdatePlayerLoop(World world)

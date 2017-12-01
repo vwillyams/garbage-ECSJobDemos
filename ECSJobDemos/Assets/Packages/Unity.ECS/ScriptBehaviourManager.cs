@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System;
+using System.Reflection;
 
 namespace UnityEngine.ECS
 {
@@ -10,19 +11,54 @@ namespace UnityEngine.ECS
 	}
 	
 	public abstract class ScriptBehaviourManager
-	{
-		internal static void CreateInstance(ScriptBehaviourManager manager, int capacity)
+	{	
+		static void ValidateNoStaticInjectDependencies(Type type)
+        {
+#if UNITY_EDITOR
+            var fields = type.GetFields(BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic);
+
+            foreach (var field in fields)
+            {
+                var hasInject = field.GetCustomAttributes(typeof(InjectAttribute), true).Length != 0;
+                if (hasInject && field.GetValue(null) == null)
+                    Debug.LogError(string.Format("{0}.{1} InjectDependency may not be used on static variables", type, field.Name));
+            }
+#endif
+        }
+
+		void InjectConstructorDependencies(World world)
 		{
-			World.DependencyInject(manager);
-
-			manager.OnCreateManagerInternal(capacity);
-
-			manager.OnCreateManager(capacity);
+			var type = GetType();
+			var fields = type.GetFields (BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+			foreach (var field in fields)
+			{
+				var hasInject = field.GetCustomAttributes (typeof(InjectAttribute), true).Length != 0;
+				if (hasInject)
+				{
+					if (field.FieldType.IsSubclassOf(typeof(ScriptBehaviourManager)))
+					{
+						field.SetValue(this, world.GetOrCreateManager(field.FieldType));
+					}
+					else
+					{
+						Debug.LogErrorFormat("[Inject] can not be applied to type: {0}", field.FieldType);
+					}
+				}
+			}
 		}
 
-		internal static void DestroyInstance(ScriptBehaviourManager inst)
+		internal void CreateInstance(World world, int capacity)
 		{
-			inst.OnDestroyManager();
+			InjectConstructorDependencies(world);
+			ValidateNoStaticInjectDependencies(GetType());
+			
+			OnCreateManagerInternal(capacity);
+			OnCreateManager(capacity);
+		}
+
+		internal void DestroyInstance()
+		{
+			OnDestroyManager();
 		}
 
 		protected abstract void OnCreateManagerInternal(int capacity);

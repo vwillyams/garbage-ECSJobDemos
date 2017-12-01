@@ -60,7 +60,6 @@ namespace UnityEngine.ECS.Tests
             var test = World.CreateManager<TestSystem>();
             var system = World.CreateManager<AttributeInjectionSystem>();
             Assert.AreEqual(test, system.test);
-
         }
     }
 }

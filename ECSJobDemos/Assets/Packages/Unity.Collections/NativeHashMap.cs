@@ -187,7 +187,7 @@ namespace Unity.Collections
 				if (idx < 0)
 				{
 					// Try to refill local cache
-					data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine] = -2;
+					Interlocked.Exchange(ref data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine], -2);
 					// If it failed try to get one from the never-allocated array
 					if (data->allocatedIndexLength < data->capacity)
 					{
@@ -201,11 +201,11 @@ namespace Unity.Collections
 							}
 							nextPtrs[idx+count - 1] = -1;
 							nextPtrs[idx] = -1;
-							data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine] = idx + 1;
+							Interlocked.Exchange(ref data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine], idx + 1);
 							return idx;
 						}
 					}
-					data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine] = -1;
+					Interlocked.Exchange(ref data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine], -1);
 					// Failed to get any, try to get one from another free list
 					bool again = true;
 					while (again)
@@ -263,9 +263,9 @@ namespace Unity.Collections
 						// Put back the entry in the free list if someone else added it while trying to add
 						do
 						{
-							nextPtrs[idx] = data->firstFreeTLS[threadIndex];
+							nextPtrs[idx] = data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine];
 						} 
-						while (Interlocked.CompareExchange(ref data->firstFreeTLS[threadIndex], idx, nextPtrs[idx]) != nextPtrs[idx]);
+						while (Interlocked.CompareExchange(ref data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine], idx, nextPtrs[idx]) != nextPtrs[idx]);
 
 						return false;
 					}

@@ -41,15 +41,16 @@ namespace Unity.Collections
 			}
 			if (data->m_FreeCount > 0)
 			{
-				data->m_FreeCountTLS[threadIndex * IntsPerCacheLine] = -0xffff;
+				Interlocked.Exchange(ref data->m_FreeCountTLS[threadIndex * IntsPerCacheLine], -0xffff);
 				// Grab some data from the shared cache
 				int count = Interlocked.Add(ref data->m_FreeCount, -16) + 16;
 				count = Math.Min(16, count);
 				if (count > 0)
 				{
-					data->m_FreeCountTLS[threadIndex * IntsPerCacheLine] = count-1;
+					Interlocked.Exchange(ref data->m_FreeCountTLS[threadIndex * IntsPerCacheLine], count-1);
 					return true;
 				}
+				Interlocked.Exchange(ref data->m_FreeCountTLS[threadIndex * IntsPerCacheLine], 0);
 			}
 			// Try to steal a single item from another worker
 			bool again = true;

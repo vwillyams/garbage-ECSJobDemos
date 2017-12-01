@@ -33,6 +33,7 @@ namespace UnityEngine.ECS.Tests
             }
         }
 
+        [DisableAutoCreation]
         public class ReadSystem2 : JobComponentSystem
         {
             public struct Inputs

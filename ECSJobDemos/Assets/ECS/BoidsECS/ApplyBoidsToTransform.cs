@@ -35,7 +35,7 @@ namespace BoidSimulations
 			}
 		}
 
-		public override JobHandle OnUpdate(JobHandle inputDeps)
+		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
 			WriteBoidsToTransformsJob writeJob;
 			writeJob.boidData = m_Boids.boids;
@@ -43,9 +43,4 @@ namespace BoidSimulations
 			return writeJob.Schedule(m_Boids.transforms, inputDeps);
 		}
 	}
-}
-
-struct Blah : IComponentData
-{
-    
 }

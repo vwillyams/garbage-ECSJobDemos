@@ -154,7 +154,7 @@ namespace UnityEngine.ECS
 		/// <summary>
 		/// Called once per frame on the main thread.
 		/// </summary>
-		public abstract void OnUpdate();
+		protected abstract void OnUpdate();
 	}
 
 	public abstract class JobComponentSystem : ComponentSystemBase
@@ -219,7 +219,7 @@ namespace UnityEngine.ECS
 			m_PreviousFrameDependencies.Dispose();
 		}
 
-	    public virtual JobHandle OnUpdate(JobHandle inputDeps)
+	    protected virtual JobHandle OnUpdate(JobHandle inputDeps)
 	    {
 		    return inputDeps;
 	    }

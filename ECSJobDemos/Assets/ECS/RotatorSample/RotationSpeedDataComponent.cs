@@ -60,7 +60,7 @@ namespace RotatorSamples
 		[InjectComponentGroup]
 		Group m_Rotators;
 		
-		public override JobHandle OnUpdate(JobHandle inputDeps)
+		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
 			var job = new Job();
 			job.dt = Time.deltaTime;

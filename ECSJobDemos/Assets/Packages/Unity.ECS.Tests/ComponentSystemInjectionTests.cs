@@ -8,7 +8,7 @@ namespace UnityEngine.ECS.Tests
         [DisableAutoCreation]
         class TestSystem : ComponentSystem
         {
-            public override void OnUpdate()
+            protected override void OnUpdate()
             {
             }
         }
@@ -19,7 +19,7 @@ namespace UnityEngine.ECS.Tests
             [Inject] 
             public TestSystem test;
 
-            public override void OnUpdate()
+            protected override void OnUpdate()
             {
             }
         }
@@ -34,7 +34,7 @@ namespace UnityEngine.ECS.Tests
                 this.test = value;
             }
 
-            public override void OnUpdate()
+            protected override void OnUpdate()
             {
             }
         }

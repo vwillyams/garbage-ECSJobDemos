@@ -25,7 +25,7 @@ namespace UnityEngine.ECS.Rendering
         }
 
 
-        public override void  OnUpdate()
+        protected override void OnUpdate()
 		{
             var uniqueRendererTypes = new NativeList<ComponentType>(10, Allocator.TempJob);
             EntityManager.GetAllUniqueSharedComponents(typeof(InstanceRenderer), uniqueRendererTypes);

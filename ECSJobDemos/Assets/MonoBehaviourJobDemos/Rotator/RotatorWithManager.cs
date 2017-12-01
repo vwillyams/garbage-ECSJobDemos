@@ -29,7 +29,7 @@ namespace RotatorSamples
 			m_Speeds.Dispose();		
 		}
 
-		public override void OnUpdate()
+		protected override void OnUpdate()
 		{
 			m_Job.Complete ();
 

@@ -9,7 +9,7 @@ namespace UnityEngine.ECS.Tests
         {
             public bool Created = false;
             
-            public override void OnUpdate()
+            protected override void OnUpdate()
             {
             }
 
@@ -27,7 +27,7 @@ namespace UnityEngine.ECS.Tests
         [DisableAutoCreation]
         class DerivedTestSystem : TestSystem
         {
-            public override void OnUpdate()
+            protected override void OnUpdate()
             {
             }
         }

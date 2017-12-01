@@ -26,7 +26,7 @@ namespace RotatorSamples
 			m_Speeds.Dispose();		
 		}
 
-		public override void OnUpdate()
+		protected override void OnUpdate()
 		{
 			float deltaTime = Time.deltaTime;
 			NativeArray<float> speeds = m_Speeds;

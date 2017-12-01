@@ -17,7 +17,7 @@ namespace RotatorSamples
 			public RotationSpeedComponent   rotation;
 		}
 
-		public override void OnUpdate()
+		protected override void OnUpdate()
 		{
 			float dt = Time.deltaTime;
 			foreach(var e in GetEntities<Group>())

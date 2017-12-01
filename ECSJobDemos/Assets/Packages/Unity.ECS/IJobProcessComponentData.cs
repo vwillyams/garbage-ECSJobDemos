@@ -146,7 +146,7 @@ namespace UnityEngine.ECS
         [InjectComponentGroup]
         private DataGroup m_Group;
 
-        public override JobHandle OnUpdate(JobHandle inputDeps)
+        protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
             int batchSize = 32;
 
@@ -171,7 +171,7 @@ namespace UnityEngine.ECS
         [InjectComponentGroup]
         private DataGroup m_Group;
 
-        public override JobHandle OnUpdate(JobHandle inputDeps)
+        protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
             int batchSize = 32;
 

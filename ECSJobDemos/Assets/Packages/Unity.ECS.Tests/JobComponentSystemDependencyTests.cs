@@ -27,7 +27,7 @@ namespace UnityEngine.ECS.Tests
                 }
             }
 
-            public override JobHandle OnUpdate(JobHandle input)
+            protected override JobHandle OnUpdate(JobHandle input)
             {
                 return new ReadJob() { wat = m_Inputs.data }.Schedule(input);
             }
@@ -57,7 +57,7 @@ namespace UnityEngine.ECS.Tests
                 }
             }
 
-            public override JobHandle OnUpdate(JobHandle input)
+            protected override JobHandle OnUpdate(JobHandle input)
             {
                 JobHandle h;
 
@@ -87,7 +87,7 @@ namespace UnityEngine.ECS.Tests
 
             [InjectComponentGroup] private Inputs m_Inputs;
 
-            public override JobHandle OnUpdate(JobHandle input)
+            protected override JobHandle OnUpdate(JobHandle input)
             {
                 return input;
             }
@@ -103,7 +103,7 @@ namespace UnityEngine.ECS.Tests
 
             [InjectComponentGroup] private Inputs m_Inputs;
 
-            public override JobHandle OnUpdate(JobHandle input)
+            protected override JobHandle OnUpdate(JobHandle input)
             {
                 return input;
             }

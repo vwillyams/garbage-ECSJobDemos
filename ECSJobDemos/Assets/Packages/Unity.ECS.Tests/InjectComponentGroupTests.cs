@@ -24,7 +24,7 @@ namespace UnityEngine.ECS.Tests
 			[InjectComponentGroup] 
 			public DataAndEntites Group;
 
-			public override void OnUpdate()
+			protected override void OnUpdate()
 			{
 			}
 		}
@@ -41,7 +41,7 @@ namespace UnityEngine.ECS.Tests
 			[InjectComponentGroup] 
 			public Datas Group;
 
-			public override void OnUpdate()
+			protected override void OnUpdate()
 			{
 			}
 		}
@@ -58,7 +58,7 @@ namespace UnityEngine.ECS.Tests
 			[InjectComponentGroup] 
 			public Datas Group;
 
-			public override void OnUpdate()
+			protected override void OnUpdate()
 			{
 			}
 		}
@@ -167,7 +167,7 @@ namespace UnityEngine.ECS.Tests
 
 			public Entity entity;
 			
-			public override JobHandle OnUpdate(JobHandle inputDeps)
+			protected override JobHandle OnUpdate(JobHandle inputDeps)
 			{
 				var job = new IncrementValueJob();
 				job.entity = entity;

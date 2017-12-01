@@ -134,7 +134,7 @@ namespace BoidSimulations
 			}
 		}
 
-		override public JobHandle OnUpdate(JobHandle inputDeps)
+		override protected JobHandle OnUpdate(JobHandle inputDeps)
 		{
 			if (m_Boids.Length == 0)
 				return inputDeps;

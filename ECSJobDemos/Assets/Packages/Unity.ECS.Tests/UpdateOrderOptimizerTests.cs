@@ -37,7 +37,7 @@ namespace UnityEngine.ECS.Tests
         [DisableAutoCreation]
         class RecursiveSystem : ComponentSystem
         {
-            public override void OnUpdate()
+            protected override void OnUpdate()
             {
             }
         }
@@ -46,7 +46,7 @@ namespace UnityEngine.ECS.Tests
         [DisableAutoCreation]
         class SimpleCircularSystem1 : ComponentSystem
         {
-            public override void OnUpdate()
+            protected override void OnUpdate()
             {
             }
         }
@@ -54,7 +54,7 @@ namespace UnityEngine.ECS.Tests
         [DisableAutoCreation]
         class SimpleCircularSystem2 : ComponentSystem
         {
-            public override void OnUpdate()
+            protected override void OnUpdate()
             {
             }
         }
@@ -62,7 +62,7 @@ namespace UnityEngine.ECS.Tests
         [DisableAutoCreation]
         class SimpleCircularSystem3 : ComponentSystem
         {
-            public override void OnUpdate()
+            protected override void OnUpdate()
             {
             }
         }
@@ -71,7 +71,7 @@ namespace UnityEngine.ECS.Tests
         [DisableAutoCreation]
         class SimpleOverconstrainedSystem : ComponentSystem
         {
-            public override void OnUpdate()
+            protected override void OnUpdate()
             {
             }
         }
@@ -79,7 +79,7 @@ namespace UnityEngine.ECS.Tests
         [DisableAutoCreation]
         class OverconstrainedSystem1 : ComponentSystem
         {
-            public override void OnUpdate()
+            protected override void OnUpdate()
             {
             }
         }
@@ -88,7 +88,7 @@ namespace UnityEngine.ECS.Tests
         [DisableAutoCreation]
         class OverconstrainedSystem2 : ComponentSystem
         {
-            public override void OnUpdate()
+            protected override void OnUpdate()
             {
             }
         }
@@ -96,7 +96,7 @@ namespace UnityEngine.ECS.Tests
         [DisableAutoCreation]
         class OverconstrainedSystem3 : ComponentSystem
         {
-            public override void OnUpdate()
+            protected override void OnUpdate()
             {
             }
         }

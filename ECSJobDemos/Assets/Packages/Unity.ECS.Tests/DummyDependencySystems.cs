@@ -9,7 +9,7 @@ namespace Unity.ECS.Tests
 	[DisableAutoCreation]
 	public class DummySystemA : ComponentSystem
 	{
-		public override void OnUpdate()
+		protected override void OnUpdate()
 		{
 		
 		}
@@ -18,7 +18,7 @@ namespace Unity.ECS.Tests
 	[DisableAutoCreation]
 	public class DummySystemB : ComponentSystem
 	{
-		public override void OnUpdate()
+		protected override void OnUpdate()
 		{
 
 		}
@@ -28,7 +28,7 @@ namespace Unity.ECS.Tests
 	[DisableAutoCreation]
 	public class DummySystemC : ComponentSystem
 	{
-		public override void OnUpdate()
+		protected override void OnUpdate()
 		{
 
 		}
@@ -38,7 +38,7 @@ namespace Unity.ECS.Tests
 	[DisableAutoCreation]
 	public class DummySystemD : ComponentSystem
 	{
-		public override void OnUpdate()
+		protected override void OnUpdate()
 		{
 
 		}
@@ -47,7 +47,7 @@ namespace Unity.ECS.Tests
 	[DisableAutoCreation]
 	public class DummySystemE : ComponentSystem
 	{
-		public override void OnUpdate()
+		protected override void OnUpdate()
 		{
 
 		}
@@ -58,7 +58,7 @@ namespace Unity.ECS.Tests
 	[DisableAutoCreation]
 	public class DummySystemF : ComponentSystem
 	{
-		public override void OnUpdate()
+		protected override void OnUpdate()
 		{
 
 		}
@@ -68,7 +68,7 @@ namespace Unity.ECS.Tests
 	[DisableAutoCreation]
 	public class DummySystemG : ComponentSystem
 	{
-		public override void OnUpdate()
+		protected override void OnUpdate()
 		{
 
 		}
@@ -78,7 +78,7 @@ namespace Unity.ECS.Tests
 	[DisableAutoCreation]
 	public class DummySystemH : ComponentSystem
 	{
-		public override void OnUpdate()
+		protected override void OnUpdate()
 		{
 
 		}

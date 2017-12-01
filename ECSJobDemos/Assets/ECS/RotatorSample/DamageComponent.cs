@@ -42,7 +42,7 @@ namespace RotatorSamples
 		[InjectComponentGroup] 
 		Rotators m_Rotators;
 		
-		public override JobHandle OnUpdate(JobHandle inputDeps)
+		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
 			// Extract positions for both damage and rotations in two arrays
 			// so that our N * N loop isn't doing complex calls and has tight data

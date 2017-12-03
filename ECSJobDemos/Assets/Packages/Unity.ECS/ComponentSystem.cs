@@ -176,7 +176,7 @@ namespace UnityEngine.ECS
 			JobHandle.ScheduleBatchedJobs();
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-			if (JobsUtility.GetJobDebuggerEnabled())
+			if (JobsUtility.JobDebuggerEnabled)
 			{
 				// Check that all reading and writing jobs are a dependency of the output job, to
 				// catch systems that forget to add one of their jobs to the dependency graph.

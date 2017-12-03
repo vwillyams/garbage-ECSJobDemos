@@ -7,7 +7,6 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using System;
 using Unity.Jobs.LowLevel.Unsafe;
-using UnityEngine.Assertions;
 
 // 64 + 16 + 12 + 128 = 220 bytes
 
@@ -307,14 +306,14 @@ public class ECSInstantiatePerformance : MonoBehaviour
 
 	unsafe void Update()
     {
-	    var wasEnabled = JobsUtility.GetJobDebuggerEnabled();
-	    JobsUtility.SetJobDebuggerEnabled(false);
+	    var wasEnabled = JobsUtility.JobDebuggerEnabled;
+	    JobsUtility.JobDebuggerEnabled = false;
 
 	    TestUnsafePtr();
 	    TestManagedArray();
 	    TestNativeArray();
 	    TestEntities();
 	    
-	    JobsUtility.SetJobDebuggerEnabled(wasEnabled);
+	    JobsUtility.JobDebuggerEnabled = wasEnabled;
     }
 }

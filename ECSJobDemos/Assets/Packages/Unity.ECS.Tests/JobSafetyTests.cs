@@ -16,7 +16,7 @@ namespace UnityEngine.ECS.Tests
 	{
         public JobSafetyTests()
         {
-            Assert.IsTrue(Unity.Jobs.LowLevel.Unsafe.JobsUtility.GetJobDebuggerEnabled(), "JobDebugger must be enabled for these tests");
+            Assert.IsTrue(Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobDebuggerEnabled, "JobDebugger must be enabled for these tests");
         }
 
         struct TestIncrementJob : IJob

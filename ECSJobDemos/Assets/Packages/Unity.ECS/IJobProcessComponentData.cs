@@ -1,4 +1,4 @@
-﻿//#define PROCESS_LOOP_OPT
+﻿#define PROCESS_LOOP_BURST_WORKAROUND
 
 using System;
 using Unity.Jobs;
@@ -70,7 +70,7 @@ namespace UnityEngine.ECS
 
             public delegate void ExecuteJobFunction(ref JobStruct<T, U0> data, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
-            #if PROCESS_LOOP_OPT
+            #if PROCESS_LOOP_BURST_WORKAROUND
             public unsafe static void Execute(ref JobStruct<T, U0> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
                 int begin;
@@ -168,7 +168,7 @@ namespace UnityEngine.ECS
 
             public delegate void ExecuteJobFunction(ref JobStruct<T, U0, U1> data, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
-            #if PROCESS_LOOP_OPT
+            #if PROCESS_LOOP_BURST_WORKAROUND
             public unsafe static void Execute(ref JobStruct<T, U0, U1> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
                 int begin;

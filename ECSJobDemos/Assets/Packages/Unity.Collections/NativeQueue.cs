@@ -240,11 +240,12 @@ namespace Unity.Collections
     [NativeContainer]
     public struct NativeQueue<T> where T : struct
     {
-
+	    [NativeDisableUnsafePtrRestriction]
         System.IntPtr m_Buffer;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         AtomicSafetyHandle m_Safety;
+	    [NativeSetClassTypeToNullOnSchedule]
         DisposeSentinel m_DisposeSentinel;
 #endif
 
@@ -471,6 +472,7 @@ namespace Unity.Collections
 		[NativeContainerNeedsThreadIndex]
 		public struct Concurrent
 		{
+			[NativeDisableUnsafePtrRestriction]
 			IntPtr 	m_Buffer;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS

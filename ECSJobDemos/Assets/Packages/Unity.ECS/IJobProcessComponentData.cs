@@ -4,6 +4,7 @@ using System;
 using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Collections;
 
 namespace UnityEngine.ECS
 {

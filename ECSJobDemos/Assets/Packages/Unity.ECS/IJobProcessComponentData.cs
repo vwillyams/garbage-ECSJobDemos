@@ -1,4 +1,6 @@
-﻿using System;
+﻿//#define PROCESS_LOOP_OPT
+
+using System;
 using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Collections.LowLevel.Unsafe;
@@ -37,6 +39,18 @@ namespace UnityEngine.ECS
             return JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray.Length, innerloopBatchCount);
         }
 
+        static public void Run<T, U0>(this T jobData, ComponentDataArray<U0> componentDataArray)
+            where T : struct, IJobProcessComponentData<U0>
+            where U0 : struct, IComponentData
+        {
+            JobStruct<T, U0> fullData;
+            fullData.data = jobData;
+            fullData.componentDataArray = componentDataArray;
+
+            var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct<T, U0>.Initialize(), new JobHandle(), ScheduleMode.Run);
+            JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray.Length, componentDataArray.Length);
+        }
+        
         struct JobStruct<T, U0>
             where T : struct, IJobProcessComponentData<U0>
             where U0 : struct, IComponentData
@@ -56,6 +70,7 @@ namespace UnityEngine.ECS
 
             public delegate void ExecuteJobFunction(ref JobStruct<T, U0> data, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
+            #if PROCESS_LOOP_OPT
             public unsafe static void Execute(ref JobStruct<T, U0> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
                 int begin;
@@ -67,12 +82,38 @@ namespace UnityEngine.ECS
                         //@TODO: Optimize into two loops to avoid branches inside indexer...
                         //@TODO: use ref returns to pass by ref instead of double copy
 
-                        U0 value = jobData.componentDataArray[i];
+                        var value = jobData.componentDataArray[i];
                         jobData.data.Execute(ref value);
                         jobData.componentDataArray[i] = value;
                     }
                 }
             }
+            #else
+            //@TODO: Fastpath which removes innerloop checks...
+            public unsafe static void Execute(ref JobStruct<T, U0> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
+            {
+                int begin;
+                int end;
+                while (JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
+                {
+                    while (begin != end)
+                    {
+                        var array = jobData.componentDataArray.GetChunkArray(begin, end - begin);
+                        
+                        //@TODO: Why unity crashes when using end here instead of length...
+                        for (int i = 0; i != array.Length; i++)
+                        {
+                            //@TODO: use ref returns to pass by ref instead of double copy
+                            var value = array[i];
+                            jobData.data.Execute(ref value);
+                            array[i] = value;
+                        }
+
+                        begin += array.Length;
+                    }
+                }
+            }            
+            #endif
         }
     }
 
@@ -90,6 +131,20 @@ namespace UnityEngine.ECS
 
             var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct<T, U0, U1>.Initialize(), dependsOn, ScheduleMode.Batched);
             return JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray0.Length, innerloopBatchCount);
+        }
+        
+        static public void Run<T, U0, U1>(this T jobData, ComponentDataArray<U0> componentDataArray0, ComponentDataArray<U1> componentDataArray1)
+            where T : struct, IJobProcessComponentData<U0, U1>
+            where U0 : struct, IComponentData
+            where U1 : struct, IComponentData
+        {
+            JobStruct<T, U0, U1> fullData;
+            fullData.data = jobData;
+            fullData.componentDataArray0 = componentDataArray0;
+            fullData.componentDataArray1 = componentDataArray1;
+
+            var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct<T, U0, U1>.Initialize(), new JobHandle(), ScheduleMode.Run);
+            JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray0.Length, componentDataArray0.Length);
         }
 
         struct JobStruct<T, U0, U1>
@@ -113,6 +168,7 @@ namespace UnityEngine.ECS
 
             public delegate void ExecuteJobFunction(ref JobStruct<T, U0, U1> data, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
+            #if PROCESS_LOOP_OPT
             public unsafe static void Execute(ref JobStruct<T, U0, U1> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
                 int begin;
@@ -121,17 +177,43 @@ namespace UnityEngine.ECS
                 {
                     for (int i = begin; i != end; i++)
                     {
-                        //@TODO: Optimize into two loops to avoid branches inside indexer...
                         //@TODO: use ref returns to pass by ref instead of double copy
-
-                        U0 value0 = jobData.componentDataArray0[i];
-                        U1 value1 = jobData.componentDataArray1[i];
+                        var value0 = jobData.componentDataArray0[i];
+                        var value1 = jobData.componentDataArray1[i];
                         jobData.data.Execute(ref value0, ref value1);
                         jobData.componentDataArray0[i] = value0;
                         jobData.componentDataArray1[i] = value1;
                     }
                 }
             }
+    #else
+            public unsafe static void Execute(ref JobStruct<T, U0, U1> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
+            {
+                int begin;
+                int end;
+                while (JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
+                {
+                    while (begin != end)
+                    {
+                        var array0 = jobData.componentDataArray0.GetChunkArray(begin, end - begin);
+                        var array1 = jobData.componentDataArray1.GetChunkArray(begin, end - begin);
+                        
+                        //@TODO: Why unity crashes when using end here instead of length...
+                        for (int i = 0; i != array0.Length; i++)
+                        {
+                            //@TODO: use ref returns to pass by ref instead of double copy
+                            var value0 = array0[i];
+                            var value1 = array1[i];
+                            jobData.data.Execute(ref value0, ref value1);
+                            array0[i] = value0;
+                            array1[i] = value1;
+                        }
+
+                        begin += array0.Length;
+                    }
+                }
+            }     
+    #endif
         }
     }
 

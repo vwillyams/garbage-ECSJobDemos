@@ -55,6 +55,7 @@ namespace UnityEngine.ECS
             where T : struct, IJobProcessComponentData<U0>
             where U0 : struct, IComponentData
         {
+            [NativeMatchesParallelForLength]
             public ComponentDataArray<U0>  componentDataArray;
             public T                       data;
 
@@ -79,9 +80,7 @@ namespace UnityEngine.ECS
                 {
                     for (int i = begin; i != end; i++)
                     {
-                        //@TODO: Optimize into two loops to avoid branches inside indexer...
                         //@TODO: use ref returns to pass by ref instead of double copy
-
                         var value = jobData.componentDataArray[i];
                         jobData.data.Execute(ref value);
                         jobData.componentDataArray[i] = value;
@@ -89,7 +88,6 @@ namespace UnityEngine.ECS
                 }
             }
             #else
-            //@TODO: Fastpath which removes innerloop checks...
             public unsafe static void Execute(ref JobStruct<T, U0> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
                 int begin;
@@ -142,7 +140,7 @@ namespace UnityEngine.ECS
             fullData.data = jobData;
             fullData.componentDataArray0 = componentDataArray0;
             fullData.componentDataArray1 = componentDataArray1;
-
+            
             var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct<T, U0, U1>.Initialize(), new JobHandle(), ScheduleMode.Run);
             JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray0.Length, componentDataArray0.Length);
         }
@@ -152,7 +150,9 @@ namespace UnityEngine.ECS
             where U0 : struct, IComponentData
             where U1 : struct, IComponentData
         {
+            [NativeMatchesParallelForLength]
             public ComponentDataArray<U0>  componentDataArray0;
+            [NativeMatchesParallelForLength]
             public ComponentDataArray<U1>  componentDataArray1;
             public T                       data;
 

@@ -8,7 +8,7 @@ using Unity.Mathematics;
 using System;
 using Unity.Jobs.LowLevel.Unsafe;
 
-// 64 + 16 + 12 + 128 = 220 bytes
+// 64 + 16 + 12 + 128 + 4 + 4 = 228 bytes
 
 struct Component64Bytes : IComponentData
 {

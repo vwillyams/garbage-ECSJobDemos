@@ -1,6 +1,5 @@
 This project is meant to work with code from the native branch `scripting/jobsystem/make-public/demo` .\
-Revision needed: **cabd5a46f6d3** (2017-11-29 13:23:53 +0100)\
-Good build: not available currently
+Revision needed: **5e513c77a8f0** (2017-12-04 17:19:13 +0100)\
 
 Example scenes:
 
@@ -64,6 +63,7 @@ Exclusive API featured:
 
         IsValid(PolygonID polygon)
         IsValid(NavMeshLocation location)
+        GetAgentTypeIdForPolygon()
         MapLocation()
         GetPortalPoints()
         MoveLocations()

@@ -184,7 +184,7 @@ public partial class CrowdSystem : JobComponentSystem
 #endif
     }
 
-    public override JobHandle OnUpdateForJob(JobHandle inputDeps)
+    protected override JobHandle OnUpdate(JobHandle inputDeps)
     {
         //
         // Prepare data on the main thread

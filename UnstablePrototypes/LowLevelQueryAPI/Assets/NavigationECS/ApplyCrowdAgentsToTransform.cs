@@ -36,7 +36,7 @@ class CrowdAgentsToTransformSystem : JobComponentSystem
         }
     }
 
-    public override JobHandle OnUpdateForJob(JobHandle inputDeps)
+    protected override JobHandle OnUpdate(JobHandle inputDeps)
     {
         WriteCrowdAgentsToTransformsJob writeJob;
         writeJob.crowdAgents = m_Crowd.agents;

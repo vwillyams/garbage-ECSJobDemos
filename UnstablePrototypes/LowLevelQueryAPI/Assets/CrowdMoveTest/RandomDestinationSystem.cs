@@ -36,7 +36,7 @@ public class RandomDestinationSystem : JobComponentSystem
         m_NavMeshQuery.Dispose();
     }
 
-    public override JobHandle OnUpdateForJob(JobHandle inputDeps)
+    protected override JobHandle OnUpdate(JobHandle inputDeps)
     {
         if (m_Crowd.agents.Length == 0)
             return inputDeps;

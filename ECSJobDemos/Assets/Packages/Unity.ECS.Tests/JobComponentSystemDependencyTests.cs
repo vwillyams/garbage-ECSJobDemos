@@ -137,7 +137,7 @@ namespace UnityEngine.ECS.Tests
             Assert.Throws<System.InvalidOperationException>(() => { rs2.Update(); });
         }
 
-        [Test]
+        [Ignore("Unclear how to reason about the dependencies.")] [Test]
         public void NotUsingDataIsHarmless()
         {
             var entity = m_Manager.CreateEntity (typeof(EcsTestData));

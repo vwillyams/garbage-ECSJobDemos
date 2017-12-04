@@ -135,18 +135,21 @@ namespace UnityEngine.ECS
         public JobHandle GetDependency(int* readerTypes, int readerTypesCount, int* writerTypes, int writerTypesCount)
         {
             m_JobDependencyCombineList.Clear();
-            
-            for (int i = 0; i != writerTypesCount; i++)
-                m_JobDependencyCombineList.Add(m_ComponentSafetyHandles[writerTypes[i]].writeFence);
-            
+
             for (int i = 0; i != readerTypesCount; i++)
             {
-                int readerType = readerTypes[i];
-                m_JobDependencyCombineList.Add(m_ComponentSafetyHandles[readerType ].writeFence);
+                m_JobDependencyCombineList.Add(m_ComponentSafetyHandles[readerTypes[i]].writeFence);
+            }
+            
+            for (int i = 0; i != writerTypesCount; i++)
+            {
+                int writerType = writerTypes[i];
                 
-                int numReadFences = m_ComponentSafetyHandles[readerType ].numReadFences;
+                m_JobDependencyCombineList.Add(m_ComponentSafetyHandles[writerType].writeFence);
+                
+                int numReadFences = m_ComponentSafetyHandles[writerType].numReadFences;
                 for (int j = 0; j != numReadFences; j++)
-                    m_JobDependencyCombineList.Add(m_ReadJobFences[readerType * kMaxReadJobHandles + j]);
+                    m_JobDependencyCombineList.Add(m_ReadJobFences[writerType * kMaxReadJobHandles + j]);
             }
             
             return JobHandle.CombineDependencies(m_JobDependencyCombineList);

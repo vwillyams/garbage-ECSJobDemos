@@ -157,10 +157,8 @@ namespace UnityEngine.ECS
 
         public void AddDependency(int* readerTypes, int readerTypesCount, int* writerTypes, int writerTypesCount, JobHandle dependency)
         {
-            
             for (int i = 0; i != writerTypesCount; i++)
             {
-                //@TODO: Check that it depends on all previous dependencies...
                 int writer = writerTypes[i];
                 m_ComponentSafetyHandles[writer].writeFence = dependency;
             }
@@ -213,12 +211,11 @@ namespace UnityEngine.ECS
 
         void CombineReadDependencies(int type)
         {
-            //@TODO: blah...
-            var readFencesSlice = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<JobHandle>((IntPtr)(m_ReadJobFences + type * kMaxReadJobHandles), m_ComponentSafetyHandles[type].numReadFences, Allocator.Invalid);
+            var readFences = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<JobHandle>((IntPtr)(m_ReadJobFences + type * kMaxReadJobHandles), m_ComponentSafetyHandles[type].numReadFences, Allocator.Invalid);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref readFencesSlice, m_TempSafety);
+            NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref readFences, m_TempSafety);
 #endif
-            m_ReadJobFences[type * kMaxReadJobHandles] = JobHandle.CombineDependencies(readFencesSlice);
+            m_ReadJobFences[type * kMaxReadJobHandles] = JobHandle.CombineDependencies(readFences);
             m_ComponentSafetyHandles[type].numReadFences = 1;
         }
     }

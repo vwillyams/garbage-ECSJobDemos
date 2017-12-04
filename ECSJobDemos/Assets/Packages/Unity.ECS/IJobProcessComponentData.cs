@@ -99,7 +99,6 @@ namespace UnityEngine.ECS
                     {
                         var array = jobData.componentDataArray.GetChunkArray(begin, end - begin);
                         
-                        //@TODO: Why unity crashes when using end here instead of length...
                         for (int i = 0; i != array.Length; i++)
                         {
                             //@TODO: use ref returns to pass by ref instead of double copy
@@ -199,7 +198,6 @@ namespace UnityEngine.ECS
                         var array0 = jobData.componentDataArray0.GetChunkArray(begin, end - begin);
                         var array1 = jobData.componentDataArray1.GetChunkArray(begin, end - begin);
                         
-                        //@TODO: Why unity crashes when using end here instead of length...
                         for (int i = 0; i != array0.Length; i++)
                         {
                             //@TODO: use ref returns to pass by ref instead of double copy

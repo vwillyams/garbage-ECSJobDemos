@@ -1,13 +1,6 @@
 ﻿using NUnit.Framework;
 using Unity.Jobs;
 using Unity.Collections;
-using UnityEngine.TestTools;
-
-//@TODO: We should really design systems / jobs / exceptions / errors 
-//       so that an error in one system does not affect the next system.
-//       Right now failure to set dependencies correctly in one system affects other code,
-//       this makes the error messages significantly less useful...
-//       So need to redo all tests accordingly
 
 namespace UnityEngine.ECS.Tests
 {
@@ -31,7 +24,7 @@ namespace UnityEngine.ECS.Tests
 		struct TestReadOnlyJob : IJob
 		{
 			public ComponentGroupArray<TestEntityReadOnly> entities;
-			unsafe public void Execute()
+			public void Execute()
 			{
 				foreach (var e in entities)
 					;

@@ -4,12 +4,6 @@ using Unity.Jobs;
 using Unity.Collections;
 using UnityEngine.TestTools;
 
-//@TODO: We should really design systems / jobs / exceptions / errors 
-//       so that an error in one system does not affect the next system.
-//       Right now failure to set dependencies correctly in one system affects other code,
-//       this makes the error messages significantly less useful...
-//       So need to redo all tests accordingly
-
 namespace UnityEngine.ECS.Tests
 {
     public class JobSafetyTests : ECSTestsFixture
@@ -130,16 +124,6 @@ namespace UnityEngine.ECS.Tests
             Assert.Throws<System.InvalidOperationException>(() => { m_Manager.GetComponent<EcsTestData>(entity); });
 
             jobHandle.Complete();
-        }
-
-
-        [Test]
-        [Ignore("TODO")]
-        public void ForgetAddJobDependencyIsCaughtInComponentSystem()
-        {
-            throw new System.NotImplementedException();
-            // * Give error immediately about missing AddDependency call?
-            // * Sync against other job even if it was forgotten.
         }
     }
 }

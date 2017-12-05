@@ -95,9 +95,11 @@ namespace UnityEngine.ECS.Tests
             m_Manager.AddComponent(entity, new EcsTestData(5));
             m_Manager.AddComponent(entity, new EcsTestData2(6));
 
+            var cache = new ComponentGroupArrayStaticCache(typeof(MyEntity), m_Manager);
+            
+            var array = new ComponentGroupArray<MyEntity>(cache);
             int iterations = 0;
-            var enumerator = new ComponentGroupArray<MyEntity>(m_Manager);
-            foreach (var e in enumerator)
+            foreach (var e in array )
             {
                 Assert.AreEqual(5, e.testData->value);
                 Assert.AreEqual(6, e.testData2->value0);
@@ -107,6 +109,7 @@ namespace UnityEngine.ECS.Tests
             }
             Assert.AreEqual(1, iterations);
 
+            cache.Dispose();
             Object.DestroyImmediate(go);
         }
     }

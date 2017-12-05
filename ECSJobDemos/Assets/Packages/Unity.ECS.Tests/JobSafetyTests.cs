@@ -1,7 +1,7 @@
 ﻿using UnityEngine.ECS;
 using NUnit.Framework;
 using Unity.Jobs;
-using System;
+using Unity.Collections;
 using UnityEngine.TestTools;
 
 //@TODO: We should really design systems / jobs / exceptions / errors 
@@ -33,8 +33,10 @@ namespace UnityEngine.ECS.Tests
             }
         }
 
+		
+		
         [Test]
-        public void CoponentAccessAfterScheduledJobThrows()
+        public void ComponentAccessAfterScheduledJobThrows()
         {
             var group = m_Manager.CreateComponentGroup(typeof(EcsTestData));
             var entity = m_Manager.CreateEntity(typeof(EcsTestData));
@@ -45,12 +47,12 @@ namespace UnityEngine.ECS.Tests
             Assert.AreEqual(42, job.data[0].value);
 
             var fence = job.Schedule();
+            
             Assert.Throws<System.InvalidOperationException>(() => { var f = job.data[0].value; });
 
             fence.Complete();
             Assert.AreEqual(43, job.data[0].value);
         }
-
 
         [Test]
         public void GetComponentCompletesJob()
@@ -65,7 +67,6 @@ namespace UnityEngine.ECS.Tests
             // Implicit Wait for job, returns value after job has completed.
             Assert.AreEqual(1, m_Manager.GetComponent<EcsTestData>(entity).value);
         }
-
 
         [Test]
         public void DestroyEntityCompletesScheduledJobs()
@@ -85,7 +86,6 @@ namespace UnityEngine.ECS.Tests
             Assert.AreEqual(1, group.GetComponentDataArray<EcsTestData>().Length);
             Assert.AreEqual(1, group.GetComponentDataArray<EcsTestData>()[0].value);
         }
-
 
         [Test]
         public void EntityManagerDestructionDetectsUnregisteredJob()

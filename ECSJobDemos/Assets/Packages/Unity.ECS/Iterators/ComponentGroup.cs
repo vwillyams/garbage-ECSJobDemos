@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using UnityEngine.Jobs;
 
@@ -226,6 +227,11 @@ namespace UnityEngine.ECS
         bool IsReadOnly(int componentIndex)
         {
             return m_GroupData->requiredComponents[componentIndex].accessMode == ComponentType.AccessMode.ReadOnly;
+        }
+
+        internal AtomicSafetyHandle GetSafetyHandle(int componentType, bool isReadOnly)
+        {
+            return m_SafetyManager.GetSafetyHandle(componentType, isReadOnly);
         }
 
         internal static void AddReaderWriter(ComponentType type, List<int> reading, List<int> writing)

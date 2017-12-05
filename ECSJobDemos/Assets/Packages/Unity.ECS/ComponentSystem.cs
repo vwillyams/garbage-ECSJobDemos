@@ -12,7 +12,7 @@ namespace UnityEngine.ECS
 	    InjectComponentGroupData[] 			m_InjectedComponentGroups;
 	    InjectionData[] 					m_InjectedFromEntity;
 
-	    object[] 							m_CachedComponentGroupEnumerables;
+	    ComponentGroupArrayStaticCache[] 	m_CachedComponentGroupArrays;
 	    ComponentGroup[] 				    m_ComponentGroups;
 
 
@@ -39,7 +39,7 @@ namespace UnityEngine.ECS
 		    for (var i = 0; i < m_InjectedComponentGroups.Length; ++i)
 			    m_ComponentGroups [i] = m_InjectedComponentGroups[i].EntityGroup;
 
-		    m_CachedComponentGroupEnumerables = new object[0];
+		    m_CachedComponentGroupArrays = new ComponentGroupArrayStaticCache[0];
 		    
 		    RecalculateTypesFromComponentGroups();
 
@@ -72,6 +72,16 @@ namespace UnityEngine.ECS
 			    }
                 m_InjectedComponentGroups = null;
 		    }
+		    
+		    if (null != m_CachedComponentGroupArrays)
+		    {
+			    for (int i = 0; i != m_CachedComponentGroupArrays.Length; i++)
+			    {
+				    if (m_CachedComponentGroupArrays[i] != null)
+					    m_CachedComponentGroupArrays[i].Dispose();
+			    }
+			    m_CachedComponentGroupArrays = null;
+		    }
 
 		    for (int i = 0; i != m_ComponentGroups.Length; i++)
 		    {
@@ -79,7 +89,6 @@ namespace UnityEngine.ECS
 				    m_ComponentGroups[i].Dispose();
 		    }
 
-		    m_CachedComponentGroupEnumerables = null;
 			m_JobDependencyForReadingManagers = null;
 			m_JobDependencyForWritingManagers = null;
     	}
@@ -95,21 +104,20 @@ namespace UnityEngine.ECS
 
 	    public ComponentGroupArray<T> GetEntities<T>() where T : struct
 	    {
-		    for (int i = 0; i != m_CachedComponentGroupEnumerables.Length; i++)
+		    for (int i = 0; i != m_CachedComponentGroupArrays.Length; i++)
 		    {
-			    var enumerable = m_CachedComponentGroupEnumerables[i] as ComponentGroupArray<T>;
-			    if (enumerable != null)
-				    return enumerable;
+			    if (m_CachedComponentGroupArrays[i].CachedType == typeof(T))
+			        return new ComponentGroupArray<T>(m_CachedComponentGroupArrays[i]);
 		    }
+		    
+		    var cache = new ComponentGroupArrayStaticCache(typeof(T), EntityManager);
 
-		    var res = new ComponentGroupArray<T>(EntityManager);
-
-		    ArrayUtilityAdd(ref m_CachedComponentGroupEnumerables, res);
-		    ArrayUtilityAdd(ref m_ComponentGroups, res.ComponentGroup);
+		    ArrayUtilityAdd(ref m_CachedComponentGroupArrays, cache );
+		    ArrayUtilityAdd(ref m_ComponentGroups, cache.ComponentGroup);
 		    
 		    RecalculateTypesFromComponentGroups();
 
-		    return res;
+		    return new ComponentGroupArray<T>(cache);
 	    }
 
 	    public void UpdateInjectedComponentGroups()

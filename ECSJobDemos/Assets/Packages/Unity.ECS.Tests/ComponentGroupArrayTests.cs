@@ -50,7 +50,6 @@ namespace UnityEngine.ECS.Tests
 			public EcsTestData2* testData2;
 		}
 		
-		
 	    [Test]
 	    public void ComponentAccessAfterScheduledJobThrowsEntityArray()
 	    {
@@ -102,6 +101,23 @@ namespace UnityEngine.ECS.Tests
 			
 			JobHandle.CompleteAll(ref fence, ref fence2);
 			entityArrayCache.Dispose();
+		}
+
+		unsafe struct TestEntitySub2
+		{
+			public EcsTestData* testData;
+			public SubtractiveComponent<EcsTestData2> testData2;
+		}
+		
+		[Test]
+		public void ComponentGroupArraySubtractive()
+		{
+			var entityArrayCache = new ComponentGroupArrayStaticCache(typeof(TestEntitySub2), m_Manager);
+			var entity0 = m_Manager.CreateEntity(typeof(EcsTestData), typeof(EcsTestData2));
+			var entity1 = m_Manager.CreateEntity(typeof(EcsTestData));
+
+			var entities = new ComponentGroupArray<TestEntitySub2>(entityArrayCache);
+			Assert.AreEqual(1, entities.Length);
 		}
     }
 }

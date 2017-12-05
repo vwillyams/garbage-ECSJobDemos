@@ -60,7 +60,7 @@ namespace UnityEngine.ECS
                     componentFieldOffsetsBuilder.Add(offset);
                     componentTypesBuilder.Add(fieldType);
                 }
-                else if (fieldType.ContainsGenericParameters && fieldType.GetGenericTypeDefinition() == typeof(SubtractiveComponent<>))
+                else if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(SubtractiveComponent<>))
                 {
                     subtractiveComponentTypesBuilder.Add(ComponentType.Subtractive(fieldType.GetGenericArguments()[0]));
                 }

@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Collections;
@@ -263,15 +264,21 @@ namespace UnityEngine.ECS
                     *valuePtrOffsetted = componentPtr;
                 }
 
-                #if !MANGED_CLASS_BURST_WOKAROUND
-                for (int i = m_ComponentDataCount; i != m_ComponentDataCount + m_ComponentCount; i++)
-                {
-                    var component = m_ChunkIterator.GetManagedObject(m_ArchetypeManager, streams[i].TypeIndexInArchetype, CacheBeginIndex, index);
-                    var valuePtrOffsetted = (valuePtr + streams[i].FieldOffset);
-                    UnsafeUtility.CopyObjectAddressToPtr(component, (IntPtr)valuePtrOffsetted);
-                }
-                #endif
+                CopyManagedObjectPointers(index, valuePtr, streams);
             }
+        }
+
+        [Conditional("NOT_BURST_COMPILED")]
+        private unsafe void CopyManagedObjectPointers(int index, byte* valuePtr, ComponentGroupStream* streams)
+        {
+#if !MANGED_CLASS_BURST_WOKAROUND
+            for (int i = m_ComponentDataCount; i != m_ComponentDataCount + m_ComponentCount; i++)
+            {
+                var component = m_ChunkIterator.GetManagedObject(m_ArchetypeManager, streams[i].TypeIndexInArchetype, CacheBeginIndex, index);
+                var valuePtrOffsetted = (valuePtr + streams[i].FieldOffset);
+                UnsafeUtility.CopyObjectAddressToPtr(component, (IntPtr) valuePtrOffsetted);
+            }
+#endif
         }
     }
 

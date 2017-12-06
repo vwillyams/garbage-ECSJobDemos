@@ -49,11 +49,7 @@ namespace Unity.Navigation.Tests
 		    var startLocation = pathQuery.MapLocation(Vector3.zero, Vector3.one, 0);
 		    var endLocation = pathQuery.MapLocation(new Vector3(5, 0, 0), Vector3.one, 0);
 
-		    var costs = new NativeArray<float>(32, Allocator.Persistent);
-		    for (int i = 0; i < costs.Length; i++)
-			    costs[i] = 1.0F;
-
-		    Assert.AreEqual(PathQueryStatus.InProgress, pathQuery.InitSlicedFindPath(startLocation, endLocation, costs));
+		    Assert.AreEqual(PathQueryStatus.InProgress, pathQuery.InitSlicedFindPath(startLocation, endLocation));
 		    int iterationsPerformed;
 		    Assert.AreEqual(PathQueryStatus.Success, pathQuery.UpdateSlicedFindPath(1000, out iterationsPerformed));
 		    int pathSize;
@@ -67,7 +63,6 @@ namespace Unity.Navigation.Tests
 		    Assert.AreEqual(startLocation.polygon, res[0]);
 		    Assert.AreEqual(endLocation.polygon, res[1]);
 
-		    costs.Dispose();
 		    res.Dispose();
 	    }
 

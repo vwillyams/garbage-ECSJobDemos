@@ -1,5 +1,5 @@
 This project is meant to work with code from the native branch `scripting/jobsystem/make-public/demo` .\
-Revision needed: **5e513c77a8f0** (2017-12-04 17:19:13 +0100)\
+Revision needed: **8ba26ab3a6fb** (2017-12-06 11:53:40 +0100)\
 
 Example scenes:
 
@@ -30,6 +30,7 @@ Exclusive API featured:
         NavMeshLocation.position
         NavMeshLocation(Vector3, PolygonID)
     
+	[Flags]
     enum PathQueryStatus
         PathQueryStatus.Failure
         PathQueryStatus.Success

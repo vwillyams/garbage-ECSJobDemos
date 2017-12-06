@@ -105,17 +105,12 @@ namespace Unity.Navigation.Tests
 			int iterations;
 			int pathSize;
 			var path = new NativeArray<PolygonID>(100, Allocator.Persistent);
-			var costs = new NativeArray<float>(32, Allocator.Persistent);
 
-			for (var i = 0; i < costs.Length; i++)
-				costs[i] = 1.0F;
-
-			Assert.Throws<InvalidOperationException>(() => { queryWithoutBuffer.InitSlicedFindPath(startLocation, endLocation, costs); });
+			Assert.Throws<InvalidOperationException>(() => { queryWithoutBuffer.InitSlicedFindPath(startLocation, endLocation); });
 			Assert.Throws<InvalidOperationException>(() => { queryWithoutBuffer.UpdateSlicedFindPath(100, out iterations); });
 			Assert.Throws<InvalidOperationException>(() => { queryWithoutBuffer.FinalizeSlicedFindPath(out pathSize); });
 			Assert.Throws<InvalidOperationException>(() => { queryWithoutBuffer.GetPathResult(path); });
 
-			costs.Dispose();
 			path.Dispose();
 			queryWithoutBuffer.Dispose();
 		}
@@ -130,12 +125,8 @@ namespace Unity.Navigation.Tests
 			var iterations = 0;
 			var pathSize = 0;
 			var path = new NativeArray<PolygonID>(100, Allocator.Persistent);
-			var costs = new NativeArray<float>(32, Allocator.Persistent);
 
-			for (var i = 0; i < costs.Length; i++)
-				costs[i] = 1.0F;
-
-			Assert.DoesNotThrow(() => { pathQuery.InitSlicedFindPath(startLocation, endLocation, costs); });
+			Assert.DoesNotThrow(() => { pathQuery.InitSlicedFindPath(startLocation, endLocation); });
 			Assert.DoesNotThrow(() => { pathQuery.UpdateSlicedFindPath(100, out iterations); });
 			Assert.DoesNotThrow(() => { pathQuery.FinalizeSlicedFindPath(out pathSize); });
 			Assert.DoesNotThrow(() => { pathQuery.GetPathResult(path); });
@@ -143,7 +134,6 @@ namespace Unity.Navigation.Tests
 			Assert.NotZero(pathSize);
 			Assert.NotZero(path.Length);
 
-			costs.Dispose();
 			path.Dispose();
 			pathQuery.Dispose();
 		}

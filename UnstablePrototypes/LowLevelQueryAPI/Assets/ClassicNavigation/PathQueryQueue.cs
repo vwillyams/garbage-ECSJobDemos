@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Experimental.AI;
 
 public struct PolygonPath
@@ -119,7 +120,7 @@ public class PathQueryQueue
                 m_Current.end = m_Query.MapLocation(req.end, 10.0f * Vector3.one, 0, -1);
 
                 // TODO: check the status returned by InitSlicedFindPath()
-                m_Query.InitSlicedFindPath(m_Current.start, m_Current.end, m_Costs, -1);
+                m_Query.InitSlicedFindPath(m_Current.start, m_Current.end, NavMesh.AllAreas, m_Costs);
             }
 
             if (m_Current.handle.valid)

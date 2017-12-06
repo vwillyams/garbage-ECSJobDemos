@@ -26,21 +26,21 @@ namespace Unity.Navigation.Tests
         [SetUp]
         public void Setup()
         {
-            var boxSource1 = new NavMeshBuildSource
+            var ground = new NavMeshBuildSource
             {
                 shape = NavMeshBuildSourceShape.Box,
                 size = new Vector3(10, k_Height, 10),
                 area = k_AreaWalking,
                 transform = Matrix4x4.identity
             };
-            var boxSource2 = new NavMeshBuildSource
+            var areaPatch = new NavMeshBuildSource
             {
-                shape = NavMeshBuildSourceShape.Box,
-                size = new Vector3(11, k_Height, 1),
+                shape = NavMeshBuildSourceShape.ModifierBox,
+                size = new Vector3(11, 1, 1),
                 area = k_AreaSliding,
                 transform = Matrix4x4.TRS(-3 * Vector3.forward, Quaternion.identity, Vector3.one)
             };
-            var sources = new List<NavMeshBuildSource> { boxSource1, boxSource2 };
+            var sources = new List<NavMeshBuildSource> { ground, areaPatch };
             var bounds = new Bounds(Vector3.zero, 100.0f * Vector3.one);
             var settings = NavMesh.GetSettingsByID(0);
             m_NavMeshData = NavMeshBuilder.BuildNavMeshData(settings, sources, bounds, Vector3.zero, Quaternion.identity);
@@ -56,7 +56,7 @@ namespace Unity.Navigation.Tests
             };
 
             m_TestedAgentTypeId = settings.agentTypeID;
-            m_TestedAreaMask = 1 << boxSource1.area;
+            m_TestedAreaMask = 1 << ground.area;
 
             m_NavMeshQuery = new NavMeshQuery(NavMeshWorld.GetDefaultWorld(), Allocator.Persistent);
         }

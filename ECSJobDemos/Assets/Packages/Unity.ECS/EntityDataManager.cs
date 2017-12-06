@@ -170,9 +170,12 @@ namespace UnityEngine.ECS
         }
 #endif
 
-
         public void AllocateEntities(Archetype* arch, Chunk* chunk, int baseIndex, int count, Entity* outputEntities)
         {
+            int offset = chunk->archetype->offsets[0];
+            int stride = chunk->archetype->strides[0];
+            Entity* entityInChunkStart = (Entity*)(chunk->buffer + offset + (stride * baseIndex));
+
             for (int i = 0; i != count; i++)
             {
                 EntityData* entity = m_Entities + m_EntitiesFreeIndex;
@@ -180,7 +183,8 @@ namespace UnityEngine.ECS
                 outputEntities[i].index = m_EntitiesFreeIndex;
                 outputEntities[i].version = entity->version;
 
-                Entity* entityInChunk = (Entity*)ChunkDataUtility.GetComponentData(chunk, baseIndex + i, 0);
+                Entity* entityInChunk = entityInChunkStart + i;                
+
                 entityInChunk->index = m_EntitiesFreeIndex;
                 entityInChunk->version = entity->version;
 

@@ -4,6 +4,7 @@ using System.CodeDom;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using Unity.Burst.LowLevel;
 using Unity.Jobs;
 using UnityEditor;
@@ -34,6 +35,11 @@ namespace Unity.Jobs.Editor
         /// Generated disassembly
         /// </summary>
         public string disassembly;
+
+        /// <summary>
+        /// Set to true if burst compilation is possible.
+        /// </summary>
+        public bool supportsBurst;
     }
 
     public class BurstInspectorGUI : EditorWindow
@@ -123,6 +129,11 @@ namespace Unity.Jobs.Editor
                     if (type.GetCustomAttributes(typeof(ComputeJobOptimizationAttribute), false).Length == 0)
                     {
                         target.disassembly = "Not flagged for ComputeJobOptimization.";
+                        target.supportsBurst = false;
+                    }
+                    else
+                    {
+                        target.supportsBurst = true;
                     }
 
                     result.Add(target);
@@ -137,6 +148,12 @@ namespace Unity.Jobs.Editor
         }
 
         private Vector2 scrollPos;
+
+        [SerializeField]
+        private bool m_SafetyChecks = true;
+
+        [SerializeField]
+        private bool m_Optimizations = true;
 
         GUIStyle m_FixedFontStyle = null;
 
@@ -175,24 +192,42 @@ namespace Unity.Jobs.Editor
                 int id = selection[0];
                 var target = m_Targets[id - 1];
 
+                GUILayout.BeginHorizontal();
+
+                m_SafetyChecks = GUILayout.Toggle(m_SafetyChecks, "Safety Checks");
+                m_Optimizations = GUILayout.Toggle(m_Optimizations, "Optimizations");
+                EditorGUI.BeginDisabledGroup(!target.supportsBurst);
+                bool doRefresh = GUILayout.Button("Refresh Disassembly");
+                EditorGUI.EndDisabledGroup();
+
+                GUILayout.EndHorizontal();
+
                 string disasm = target.disassembly;
-                if (disasm == null)
+
+                if (doRefresh)
                 {
-                    if (GUILayout.Button("Compile"))
+                    try
                     {
-                        try
+                        StringBuilder options = new StringBuilder();
+                        if (!m_SafetyChecks)
                         {
-                            string result = BurstCompilerService.GetDisassembly(target.method);
-                            target.disassembly = result;
-                            Debug.Log($"Got {result.Length} chars");
+                            options.Append(" -disable-safety-checks");
                         }
-                        catch (Exception e)
+                        if (!m_Optimizations)
                         {
-                            target.disassembly = $"Failed to compile\n{e.ToString()}";
+                            options.Append(" -disable-optimizations");
                         }
+                        string result = BurstCompilerService.GetDisassembly(target.method, options.ToString().Trim(' '));
+                        target.disassembly = result;
+                        disasm = result;
+                    }
+                    catch (Exception e)
+                    {
+                        target.disassembly = $"Failed to compile\n{e.ToString()}";
                     }
                 }
-                else
+
+                if (disasm != null)
                 {
 
                     scrollPos = GUILayout.BeginScrollView(scrollPos);
@@ -238,6 +273,15 @@ namespace Unity.Jobs.Editor
             SetupParentsAndChildrenFromDepths(root, allItems);
 
             return root;
+        }
+
+        protected override void RowGUI(RowGUIArgs args)
+        {
+            var target = Targets[args.item.id - 1];
+            bool wasEnabled = GUI.enabled;
+            GUI.enabled = target.supportsBurst;
+            base.RowGUI(args);
+            GUI.enabled = wasEnabled;
         }
 
         protected override bool CanMultiSelect(TreeViewItem item)

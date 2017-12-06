@@ -1,0 +1,9 @@
+{
+    "name": "DebugTools",
+    "references": [
+        "UnityEngine.ECS"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": []
+}

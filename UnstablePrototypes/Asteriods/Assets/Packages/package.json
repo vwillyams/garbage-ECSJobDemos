@@ -1,0 +1,10 @@
+{
+  "name": "com.unity.debug_overlay",
+  "version": "0.0.1",
+  "unity": "2018.1",
+  "description": "Unity Debug Overlay Bundle",
+  "keywords": [
+    "unity"
+  ],
+  "category": "AssetStore/Unity"
+}

@@ -18,9 +18,18 @@ UnstablePrototypes/LowLevelQueryAPI/Temp
 UnstablePrototypes/LowLevelQueryAPI/obj
 UnstablePrototypes/LowLevelQueryAPI/.editorconfig
 
+UnstablePrototypes/Asteriods/.vscode
+UnstablePrototypes/Asteriods/Assets/Plugins*
+UnstablePrototypes/Asteriods/Library
+UnstablePrototypes/Asteriods/Temp
+UnstablePrototypes/Asteriods/obj
+UnstablePrototypes/Asteriods/.editorconfig
+
+
 *.idea
 *.csproj
 *.sln
 *.suo
 *.userprefs
 *.app
+*.VC.*

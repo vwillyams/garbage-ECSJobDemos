@@ -21,8 +21,9 @@
     - [ ] 15k+ objects synchronized - client move + draw / server handling collisions.
     - [ ] state and command synchronization using snapshot interpolation with delta compression. (e.g playable with 100ms and 2% pkt loss)
 
-### todo
-- current milestone: naive networked
+## todo
+### current milestone: naive networked
+
 
 - misc
   - [x] back of the envelope calculations for whats technically doable on a 1GB line.
@@ -42,8 +43,8 @@
     then we can send 11k 1500bit pkts running @ 60hz
 ```
 
-- ecs
-  [ ] make it possible to certain systems with a different framerate
+- ecs  
+  - [ ] make it possible to certain systems with a different framerate
 
 - editor
   - [ ] think of how seperation should be done for client / server code

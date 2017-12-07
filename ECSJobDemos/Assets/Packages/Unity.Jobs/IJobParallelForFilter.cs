@@ -29,6 +29,8 @@ namespace Unity.Jobs
             public static IntPtr Initialize()
             {
                 if (jobReflectionData == IntPtr.Zero)
+                    // @TODO: Use parallel for job... (Need to expose combine jobs)
+
                     jobReflectionData = JobsUtility.CreateJobReflectionData(typeof(JobDataWithFiltering), typeof(T), JobType.Single, (ExecuteJobFunction)Execute);
 
                 return jobReflectionData;

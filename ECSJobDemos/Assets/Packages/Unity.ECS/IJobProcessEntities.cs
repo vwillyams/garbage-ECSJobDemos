@@ -19,10 +19,10 @@ namespace UnityEngine.ECS
         {
             JobStruct<T, U0> fullData;
             fullData.data = jobData;
-            fullData.array = array;
+            fullData.array = array.m_Data;
 
             var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct<T, U0>.Initialize(), dependsOn, ScheduleMode.Batched);
-            return JobsUtility.ScheduleParallelFor(ref scheduleParams, fullData.array.Length, innerloopBatchCount);
+            return JobsUtility.ScheduleParallelFor(ref scheduleParams, array.Length, innerloopBatchCount);
         }
 
         static public void Run<T, U0>(this T jobData, ComponentGroupArray<U0> array)
@@ -31,10 +31,10 @@ namespace UnityEngine.ECS
         {
             JobStruct<T, U0> fullData;
             fullData.data = jobData;
-            fullData.array = array;
+            fullData.array = array.m_Data;
 
             var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct<T, U0>.Initialize(), new JobHandle(), ScheduleMode.Run);
-            int entityCount = fullData.array.Length;
+            int entityCount = array.Length;
             JobsUtility.ScheduleParallelFor(ref scheduleParams, entityCount , entityCount);
         }
         
@@ -42,8 +42,8 @@ namespace UnityEngine.ECS
             where T : struct, IJobProcessEntities<U0>
             where U0 : struct
         {
-            public ComponentGroupArray<U0>   array;
-            public T                         data;
+            public ComponentGroupArrayData       array;
+            public T                             data;
 
             static public IntPtr jobReflectionData;
 
@@ -61,14 +61,23 @@ namespace UnityEngine.ECS
             {
                 int begin;
                 int end;
+                var entity = default(U0);
                 while (JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
                 {
-                    for (int i = begin; i != end; i++)
+                    while (begin != end)
                     {
-                        //@TODO: Optimize into two loops to avoid branches inside indexer...
-                        //@TODO: use ref returns to pass by ref instead of double copy
-                        U0 value = jobData.array[i];
-                        jobData.data.Execute(value);
+                        if (begin < jobData.array.CacheBeginIndex || begin >= jobData.array.CacheEndIndex)
+                            jobData.array.UpdateCache(begin);
+
+                        int endLoop = Math.Min(end, jobData.array.CacheEndIndex); 
+                        
+                        for (int i = begin; i != endLoop; i++)
+                        {
+                            jobData.array.PatchPtrs(i, (byte*)UnsafeUtility.AddressOf(ref entity));
+                            jobData.data.Execute(entity);
+                        }
+
+                        begin = endLoop;
                     }
                 }
             }

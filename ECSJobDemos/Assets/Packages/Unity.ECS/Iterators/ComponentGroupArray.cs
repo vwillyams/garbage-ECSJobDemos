@@ -266,19 +266,21 @@ namespace UnityEngine.ECS
 
                     *valuePtrOffsetted = componentPtr;
                 }
-
-                CopyManagedObjectPointers(index, valuePtr, streams);
             }
         }
 
         [Conditional("NOT_BURST_COMPILED")]
-        private unsafe void CopyManagedObjectPointers(int index, byte* valuePtr, ComponentGroupStream* streams)
+        public unsafe void PatchManagedPtrs(int index, byte* valuePtr)
         {
-            for (int i = m_ComponentDataCount; i != m_ComponentDataCount + m_ComponentCount; i++)
+            fixed (byte* cacheBytes = m_Caches)
             {
-                var component = m_ChunkIterator.GetManagedObject(m_ArchetypeManager, streams[i].TypeIndexInArchetype, CacheBeginIndex, index);
-                var valuePtrOffsetted = (valuePtr + streams[i].FieldOffset);
-                UnsafeUtility.CopyObjectAddressToPtr(component, (IntPtr) valuePtrOffsetted);
+                ComponentGroupStream* streams = (ComponentGroupStream*)cacheBytes;
+                for (int i = m_ComponentDataCount; i != m_ComponentDataCount + m_ComponentCount; i++)
+                {
+                    var component = m_ChunkIterator.GetManagedObject(m_ArchetypeManager, streams[i].TypeIndexInArchetype, CacheBeginIndex, index);
+                    var valuePtrOffsetted = (valuePtr + streams[i].FieldOffset);
+                    UnsafeUtility.CopyObjectAddressToPtr(component, (IntPtr) valuePtrOffsetted);
+                }
             }
         }
         
@@ -302,7 +304,7 @@ namespace UnityEngine.ECS
 
     public struct ComponentGroupArray<T> : IDisposable where T : struct 
     {
-        ComponentGroupArrayData     m_Data;
+        internal ComponentGroupArrayData     m_Data;
 
         public ComponentGroupArray(ComponentGroupArrayStaticCache cache)
         {
@@ -332,6 +334,7 @@ namespace UnityEngine.ECS
                 var value = default(T);
                 byte* valuePtr = (byte*)UnsafeUtility.AddressOf(ref value);
                 m_Data.PatchPtrs(index, valuePtr);
+                m_Data.PatchManagedPtrs(index, valuePtr);
                 return value;
             }
         }        
@@ -392,6 +395,7 @@ namespace UnityEngine.ECS
                     var value = default(T);
                     byte* valuePtr = (byte*)UnsafeUtility.AddressOf(ref value);
                     m_Data.PatchPtrs(m_Index, valuePtr);
+                    m_Data.PatchManagedPtrs(m_Index, valuePtr);
                     return value;
                 }
             }

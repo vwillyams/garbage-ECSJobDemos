@@ -1,10 +1,11 @@
-﻿#define PROCESS_LOOP_BURST_WORKAROUND
+﻿//#define PROCESS_LOOP_BURST_WORKAROUND
 
 using System;
 using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Collections;
+using UnityEngine.Assertions;
 
 namespace UnityEngine.ECS
 {
@@ -98,13 +99,14 @@ namespace UnityEngine.ECS
                     while (begin != end)
                     {
                         var array = jobData.componentDataArray.GetChunkArray(begin, end - begin);
-                        
+                        var ptr = array.GetUnsafePtr();                    
+    
                         for (int i = 0; i != array.Length; i++)
                         {
                             //@TODO: use ref returns to pass by ref instead of double copy
-                            var value = array[i];
+                            var value = UnsafeUtility.ReadArrayElement<U0>(ptr, i);
                             jobData.data.Execute(ref value);
-                            array[i] = value;
+                            UnsafeUtility.WriteArrayElement<U0>(ptr, i, value);
                         }
 
                         begin += array.Length;
@@ -197,15 +199,21 @@ namespace UnityEngine.ECS
                     {
                         var array0 = jobData.componentDataArray0.GetChunkArray(begin, end - begin);
                         var array1 = jobData.componentDataArray1.GetChunkArray(begin, end - begin);
+                        Assert.AreEqual(array0.Length, array1.Length);
+                        
+                        var ptr0 = array0.GetUnsafePtr();                    
+                        var ptr1 = array1.GetUnsafePtr();                    
                         
                         for (int i = 0; i != array0.Length; i++)
                         {
                             //@TODO: use ref returns to pass by ref instead of double copy
-                            var value0 = array0[i];
-                            var value1 = array1[i];
+                            var value0 = UnsafeUtility.ReadArrayElement<U0>(ptr0, i);
+                            var value1 = UnsafeUtility.ReadArrayElement<U1>(ptr1, i);
+
                             jobData.data.Execute(ref value0, ref value1);
-                            array0[i] = value0;
-                            array1[i] = value1;
+                            
+                            UnsafeUtility.WriteArrayElement(ptr0, i, value0);
+                            UnsafeUtility.WriteArrayElement(ptr1, i, value1);
                         }
 
                         begin += array0.Length;

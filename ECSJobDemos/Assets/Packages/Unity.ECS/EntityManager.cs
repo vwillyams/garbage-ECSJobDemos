@@ -52,7 +52,7 @@ namespace UnityEngine.ECS
 
         unsafe protected override void OnCreateManager(int capacity)
         {
-            m_Entities.OnCreate();
+            m_Entities.OnCreate(capacity);
             m_ArchetypeManager = new ArchetypeManager();
             m_JobSafetyManager = new ComponentJobSafetyManager();
             m_GroupManager = new EntityGroupManager(m_JobSafetyManager);

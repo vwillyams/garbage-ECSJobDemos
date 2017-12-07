@@ -65,7 +65,7 @@ namespace UnityEngine.ECS
             public static IntPtr Initialize()
             {
                 if (jobReflectionData == IntPtr.Zero)
-                    jobReflectionData = JobsUtility.CreateJobReflectionData(typeof(JobStruct<T, U0>), typeof(T), (ExecuteJobFunction)Execute);
+                    jobReflectionData = JobsUtility.CreateJobReflectionData(typeof(JobStruct<T, U0>), typeof(T), JobType.ParallelFor, (ExecuteJobFunction)Execute);
 
                 return jobReflectionData;
             }
@@ -161,7 +161,7 @@ namespace UnityEngine.ECS
             public static IntPtr Initialize()
             {
                 if (jobReflectionData == IntPtr.Zero)
-                    jobReflectionData = JobsUtility.CreateJobReflectionData(typeof(JobStruct<T, U0, U1>), typeof(T), (ExecuteJobFunction)Execute);
+                    jobReflectionData = JobsUtility.CreateJobReflectionData(typeof(JobStruct<T, U0, U1>), typeof(T), JobType.ParallelFor, (ExecuteJobFunction)Execute);
 
                 return jobReflectionData;
             }

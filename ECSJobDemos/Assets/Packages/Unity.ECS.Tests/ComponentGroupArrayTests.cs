@@ -21,6 +21,14 @@ namespace UnityEngine.ECS.Tests
 			}
 		}
 	    
+		struct TestCopy1To2ProcessEntityJob : IJobProcessEntities<TestEntity>
+		{
+			unsafe public void Execute(TestEntity e)
+			{
+				e.testData2->value0 = e.testData->value; 
+			}
+		}
+		
 		struct TestReadOnlyJob : IJob
 		{
 			public ComponentGroupArray<TestEntityReadOnly> entities;
@@ -30,6 +38,7 @@ namespace UnityEngine.ECS.Tests
 					;
 			}
 		}
+		
 		
 	    //@TODO: Test for Entity setup with same component twice...
 	    //@TODO: Test for subtractive components
@@ -68,6 +77,28 @@ namespace UnityEngine.ECS.Tests
 	        fence.Complete();
 	    }
 
+		[Test]
+		public void IJobProcessEntitiesWorks()
+		{
+			var entityArrayCache = new ComponentGroupArrayStaticCache(typeof(TestEntity), m_Manager);
+
+			var entities = new NativeArray<Entity>(100, Allocator.Persistent);
+			var arch = m_Manager.CreateArchetype(typeof(EcsTestData), typeof(EcsTestData2));
+			m_Manager.CreateEntity(arch, entities);
+			for (int i = 0; i < entities.Length; i++)
+				m_Manager.SetComponent(entities[i], new EcsTestData(i));
+
+			var job = new TestCopy1To2ProcessEntityJob();
+			job.Schedule(new ComponentGroupArray<TestEntity>(entityArrayCache), 1).Complete();
+
+			// not sure why this works. Shouldn't schedule throw an exception because parallelFor restriction
+			for (int i = 0; i < entities.Length; i++)
+				Assert.AreEqual(i, m_Manager.GetComponent<EcsTestData2>(entities[i]).value0);;
+			
+			entities.Dispose();
+			entityArrayCache.Dispose();
+		}
+			
 	    [Test]
 	    public void ComponentGroupArrayJobScheduleDetectsWriteDependency()
 	    {
@@ -113,8 +144,8 @@ namespace UnityEngine.ECS.Tests
 		public void ComponentGroupArraySubtractive()
 		{
 			var entityArrayCache = new ComponentGroupArrayStaticCache(typeof(TestEntitySub2), m_Manager);
-			var entity0 = m_Manager.CreateEntity(typeof(EcsTestData), typeof(EcsTestData2));
-			var entity1 = m_Manager.CreateEntity(typeof(EcsTestData));
+			m_Manager.CreateEntity(typeof(EcsTestData), typeof(EcsTestData2));
+			m_Manager.CreateEntity(typeof(EcsTestData));
 
 			var entities = new ComponentGroupArray<TestEntitySub2>(entityArrayCache);
 			Assert.AreEqual(1, entities.Length);

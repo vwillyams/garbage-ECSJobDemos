@@ -1,6 +1,4 @@
-﻿//#define MANGED_CLASS_BURST_WOKAROUND
-
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -33,8 +31,6 @@ namespace UnityEngine.ECS
             var componentDataTypesBuilder = new List<ComponentType>();
             
             var subtractiveComponentTypesBuilder = new List<ComponentType>();
-
-            //@TODO: Read only / write only...
             
             foreach(var field in fields)
             {
@@ -105,6 +101,7 @@ namespace UnityEngine.ECS
     
     //@TODO: This is wrong place... will create strange error messages...
     [NativeContainer]
+    [NativeContainerSupportsMinMaxWriteRestriction]
     unsafe struct ComponentGroupArrayData
     {
         public const int kMaxStream = 6;
@@ -122,7 +119,11 @@ namespace UnityEngine.ECS
         int                         m_ComponentDataCount;
         int                         m_ComponentCount;
 
-        public int                  Length;
+        public int                  m_Length;
+        
+        public int                  m_MinIndex;
+        public int                  m_MaxIndex;
+        
         public int                  CacheBeginIndex;
         public int                  CacheEndIndex;
 
@@ -131,17 +132,17 @@ namespace UnityEngine.ECS
 
         int                         m_SafetyReadOnlyCount;
         int                         m_SafetyReadWriteCount;
+#pragma warning disable 414
         AtomicSafetyHandle          m_Safety0;
         AtomicSafetyHandle          m_Safety1;
         AtomicSafetyHandle          m_Safety2;
         AtomicSafetyHandle          m_Safety3;
         AtomicSafetyHandle          m_Safety4;
         AtomicSafetyHandle          m_Safety5;
+#pragma warning restore
 
-        #if !MANGED_CLASS_BURST_WOKAROUND
         [NativeSetClassTypeToNullOnSchedule]
         ArchetypeManager            m_ArchetypeManager;
-        #endif
 
         public ComponentGroupArrayData(ComponentGroupArrayStaticCache staticCache)
         {
@@ -149,13 +150,15 @@ namespace UnityEngine.ECS
             int componentIndex;
             var chunkIterator = staticCache.ComponentGroup.GetComponentChunkIterator(staticCache.ComponentTypes[0].typeIndex, out length, out componentIndex);
             
-            Length = length;
+            m_Length = length;
+            m_MinIndex = 0;
+            m_MaxIndex = length-1;
+            
             CacheBeginIndex = 0;
             CacheEndIndex = 0;
-            #if !MANGED_CLASS_BURST_WOKAROUND
             m_ArchetypeManager = staticCache.ComponentGroup.GetArchetypeManager();
-            #endif
-
+            
+            
             m_ChunkIterator = chunkIterator;
 
             m_ComponentDataCount = staticCache.ComponentDataCount;
@@ -271,15 +274,30 @@ namespace UnityEngine.ECS
         [Conditional("NOT_BURST_COMPILED")]
         private unsafe void CopyManagedObjectPointers(int index, byte* valuePtr, ComponentGroupStream* streams)
         {
-#if !MANGED_CLASS_BURST_WOKAROUND
             for (int i = m_ComponentDataCount; i != m_ComponentDataCount + m_ComponentCount; i++)
             {
                 var component = m_ChunkIterator.GetManagedObject(m_ArchetypeManager, streams[i].TypeIndexInArchetype, CacheBeginIndex, index);
                 var valuePtrOffsetted = (valuePtr + streams[i].FieldOffset);
                 UnsafeUtility.CopyObjectAddressToPtr(component, (IntPtr) valuePtrOffsetted);
             }
-#endif
         }
+        
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+        public void FailOutOfRangeError(int index)
+        {
+            /*
+            //@TODO: Make error message utility and share with NativeArray...
+            if (index < Length && (m_MinIndex != 0 || m_MaxIndex != Length - 1))
+                throw new IndexOutOfRangeException(string.Format(
+                    "Index {0} is out of restricted IJobParallelFor range [{1}...{2}] in ReadWriteBuffer.\n" +
+                    "ReadWriteBuffers are restricted to only read & write the element at the job index. " +
+                    "You can use double buffering strategies to avoid race conditions due to " +
+                    "reading & writing in parallel to the same elements from a job.",
+                    index, m_MinIndex, m_MaxIndex));
+*/
+            throw new IndexOutOfRangeException(string.Format("Index {0} is out of range of '{1}' Length.", index, m_Length));
+        }
+#endif
     }
 
     public struct ComponentGroupArray<T> : IDisposable where T : struct 
@@ -296,7 +314,7 @@ namespace UnityEngine.ECS
 
         }
 
-        public int Length { get { return m_Data.Length; } }
+        public int Length { get { return m_Data.m_Length; } }
 
         public unsafe T this[int index]
         {
@@ -304,9 +322,8 @@ namespace UnityEngine.ECS
             {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 m_Data.CheckAccess();
-//                  if (index < m_MinIndex || index > m_MaxIndex)
-                if (index < 0 || index >= m_Data.Length)
-                      FailOutOfRangeError(index);
+                if (index < m_Data.m_MinIndex || index > m_Data.m_MaxIndex)
+                    m_Data.FailOutOfRangeError(index);
 #endif
 
                 if (index < m_Data.CacheBeginIndex || index >= m_Data.CacheEndIndex)
@@ -319,29 +336,11 @@ namespace UnityEngine.ECS
             }
         }        
         
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-        void FailOutOfRangeError(int index)
-        {
-            /*
-            //@TODO: Make error message utility and share with NativeArray...
-            if (index < Length && (m_MinIndex != 0 || m_MaxIndex != Length - 1))
-                throw new IndexOutOfRangeException(string.Format(
-                    "Index {0} is out of restricted IJobParallelFor range [{1}...{2}] in ReadWriteBuffer.\n" +
-                    "ReadWriteBuffers are restricted to only read & write the element at the job index. " +
-                    "You can use double buffering strategies to avoid race conditions due to " +
-                    "reading & writing in parallel to the same elements from a job.",
-                    index, m_MinIndex, m_MaxIndex));
-*/
-            throw new IndexOutOfRangeException(string.Format("Index {0} is out of range of '{1}' Length.", index, Length));
-        }
-#endif
-        
         public ComponentGroupEnumerator<T> GetEnumerator()
         {
             return new ComponentGroupEnumerator<T>(m_Data);
         }
 
-        //@TODO: Container & safety...
         public unsafe struct ComponentGroupEnumerator<T> : IEnumerator<T> where T : struct
         {
             ComponentGroupArrayData     m_Data;
@@ -361,7 +360,7 @@ namespace UnityEngine.ECS
     
                 if (m_Index < m_Data.CacheBeginIndex || m_Index >= m_Data.CacheEndIndex)
                 {
-                    if (m_Index >= m_Data.Length)
+                    if (m_Index >= m_Data.m_Length)
                         return false;
 
                     m_Data.CheckAccess();
@@ -384,6 +383,11 @@ namespace UnityEngine.ECS
                 get
                 {
                     m_Data.CheckAccess();
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS                    
+                    if (m_Index < m_Data.m_MinIndex || m_Index > m_Data.m_MaxIndex)
+                        m_Data.FailOutOfRangeError(m_Index);
+#endif
 
                     var value = default(T);
                     byte* valuePtr = (byte*)UnsafeUtility.AddressOf(ref value);

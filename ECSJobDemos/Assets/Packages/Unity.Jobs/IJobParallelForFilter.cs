@@ -29,7 +29,7 @@ namespace Unity.Jobs
             public static IntPtr Initialize()
             {
                 if (jobReflectionData == IntPtr.Zero)
-                    jobReflectionData = JobsUtility.CreateJobReflectionData(typeof(JobDataWithFiltering), typeof(T), (ExecuteJobFunction)Execute);
+                    jobReflectionData = JobsUtility.CreateJobReflectionData(typeof(JobDataWithFiltering), typeof(T), JobType.ParallelFor, (ExecuteJobFunction)Execute);
 
                 return jobReflectionData;
             }

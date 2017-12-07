@@ -155,6 +155,9 @@ namespace Unity.Jobs.Editor
         [SerializeField]
         private bool m_Optimizations = true;
 
+        [SerializeField]
+        private int m_CodeGenOption = 2;
+
         GUIStyle m_FixedFontStyle = null;
 
         public void OnGUI()
@@ -197,6 +200,7 @@ namespace Unity.Jobs.Editor
                 m_SafetyChecks = GUILayout.Toggle(m_SafetyChecks, "Safety Checks");
                 m_Optimizations = GUILayout.Toggle(m_Optimizations, "Optimizations");
                 EditorGUI.BeginDisabledGroup(!target.supportsBurst);
+                m_CodeGenOption = EditorGUILayout.Popup(m_CodeGenOption, s_CodeGenOptions);
                 bool doRefresh = GUILayout.Button("Refresh Disassembly");
                 EditorGUI.EndDisabledGroup();
 
@@ -217,6 +221,7 @@ namespace Unity.Jobs.Editor
                         {
                             options.Append(" -disable-optimizations");
                         }
+                        options.Append($" -simd={s_CodeGenOptions[m_CodeGenOption]}");
                         string result = BurstCompilerService.GetDisassembly(target.method, options.ToString().Trim(' '));
                         target.disassembly = result;
                         disasm = result;
@@ -240,6 +245,16 @@ namespace Unity.Jobs.Editor
 
             GUILayout.EndHorizontal();
         }
+
+        private static readonly string[] s_CodeGenOptions = new string[]
+        {
+            "none",
+            "sse2",
+            "sse4",
+            "avx",
+            "avx2",
+            "avx512",
+        };
     }
 
     internal class BurstMethodTreeView : TreeView

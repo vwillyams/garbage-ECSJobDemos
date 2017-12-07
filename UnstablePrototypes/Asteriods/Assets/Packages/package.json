@@ -1,8 +1,8 @@
 {
-  "name": "com.unity.debug_overlay",
+  "name": "com.unity.gamecode",
   "version": "0.0.1",
   "unity": "2018.1",
-  "description": "Unity Debug Overlay Bundle",
+  "description": "Unity Game Code Bundle",
   "keywords": [
     "unity"
   ],

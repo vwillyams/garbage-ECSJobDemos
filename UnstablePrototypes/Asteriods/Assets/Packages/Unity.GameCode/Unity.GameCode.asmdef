@@ -1,0 +1,9 @@
+{
+    "name": "Unity.GameCode",
+    "references": [
+        "UnityEngine.ECS"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": []
+}

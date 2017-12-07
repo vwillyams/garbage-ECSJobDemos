@@ -4,8 +4,14 @@
   - deliverables
     - [ ] multiplayer packet - integrate with the "new" raw udp socket library, bit/byte writer
     - [ ] guideline document - seperation of client / server and shared code.
-    - [ ] ~1k objects synchronized - client move + draw / server handling collisions.
+    - [ ] ~1k objects synchronized
+      - client sends input to server, and draws objects
+      - server handles collisions and inputs from clients.
     - [ ] state and command synchronization (e.g. should be roughly playable on lan)
+
+  - test for completion
+    - you should be able to start a server through a player/editor and connect multiple clients (also using player/editor).
+    - you should be able to spawn up to ~ 1k objects on the server (asteroids) that will be synchronized on each connected client.
 
 ### snapshot interpolation
   - deliverables
@@ -54,12 +60,14 @@
 - game code
   - [ ] make collision detection more scalable, look at boids demo!
   - [ ] move away from game objects!
-    - [ ] remove sprite renderer
+    - [ ] remove sprite renderer (timj)
   - [ ] add a follow cam
   - [ ] decide on map size and maybe even make it wrap.
   - [ ] add health component to all objects?
   - [ ] make sure we can spawn 5k objects on the map now within reasonoble time and run them without drop in framerate.
   - [ ] divide into server/server and common code.
+
+  - [ ] add multiple worlds for faster prototyping for client / server
 
 - debug tools
   - console system

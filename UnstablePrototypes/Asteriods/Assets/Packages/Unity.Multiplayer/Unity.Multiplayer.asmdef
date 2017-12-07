@@ -1,0 +1,9 @@
+{
+    "name": "Unity.Multiplayer",
+    "references": [
+        "UnityEngine.ECS"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": []
+}

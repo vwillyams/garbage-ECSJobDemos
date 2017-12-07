@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.IMGUI.Controls;
 using UnityEngine.ECS;
 
 namespace UnityEditor.ECS
@@ -45,6 +46,8 @@ namespace UnityEditor.ECS
 		}
 
 		[SerializeField] private List<SystemViewData> systemViews;
+		[SerializeField] private TreeViewState playerLoopListState;
+		private PlayerLoopListView playerLoopListView;
 		
 		Type[] systemTypes
 		{
@@ -57,6 +60,8 @@ namespace UnityEditor.ECS
 					select s.GetType() ).ToArray();
 			}
 		}
+		
+		
 
 		void Initialize()
 		{
@@ -99,9 +104,11 @@ namespace UnityEditor.ECS
 					}
 				}
 			}
+			if (playerLoopListView == null)
+				playerLoopListView = new PlayerLoopListView(playerLoopListState);
 		}
 
-		void Layout()
+		void GraphLayout()
 		{
 			var rowLength = Mathf.RoundToInt(Mathf.Sqrt(systemViews.Count));
 			if (rowLength == 0f)
@@ -141,13 +148,17 @@ namespace UnityEditor.ECS
 		{
 			Initialize();
 
+			GUILayout.BeginHorizontal();
+
+			GUILayout.BeginVertical();
+			
 			GUILayout.FlexibleSpace();
 			
 			GUILayout.BeginHorizontal();
 			GUILayout.FlexibleSpace();
 			if (GUILayout.Button("Layout"))
 			{
-				Layout();
+				GraphLayout();
 			}
 			GUILayout.Space(5f);
 			if (GUILayout.Button("Clear"))
@@ -183,6 +194,19 @@ namespace UnityEditor.ECS
 			}
 			
 			EndWindows();
+			
+			GUILayout.EndVertical();
+			
+			GUILayout.BeginVertical(GUILayout.Width(300f));
+			playerLoopListView.OnGUI(GetExpandingRect());
+			GUILayout.EndVertical();
+			
+			GUILayout.EndHorizontal();
+		}
+
+		Rect GetExpandingRect()
+		{
+			return GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
 		}
 
 		private void DrawArrowBetweenBoxes(SystemViewData fromView, SystemViewData toView)

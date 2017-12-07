@@ -10,7 +10,7 @@
 ### snapshot interpolation
   - deliverables
     - [ ] multiplayer packet - reliability layer, snapshot code, time/frame synchronization
-    - [ ] guideline document - snapshot interpolations
+    - [ ] guideline document - snapshot interpolations, server / client seperation handling and startup.
     - [ ] 5k objects synchronized - client move + draw / server handling collisions.
     - [ ] state and command synchronization using snapshot interpolation. (e.g playable with 100ms and 2% pkt loss)
 
@@ -45,6 +45,12 @@
 - ecs
   [ ] make it possible to certain systems with a different framerate
 
+- editor
+  - [ ] think of how seperation should be done for client / server code
+    - questions:
+      - should we go the sample game path? e.g. PostProcess and SceneStripping
+      - how to handle spawning of client and server instances?
+
 - game code
   - [ ] make collision detection more scalable, look at boids demo!
   - [ ] move away from game objects!
@@ -55,8 +61,9 @@
   - [ ] make sure we can spawn 5k objects on the map now within reasonoble time and run them without drop in framerate.
   - [ ] divide into server/server and common code.
 
-- console system
-  - [ ] move over from monobehavior -> systems?
+- debug tools
+  - console system
+    - [ ] move over from monobehavior -> systems?
 
 - networking
   - [ ] add sockets

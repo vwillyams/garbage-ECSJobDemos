@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.ECS;
 
 using Unity.Collections;
+using Unity.Mathematics;
 
 namespace Asteriods.Server
 {
@@ -10,7 +11,9 @@ namespace Asteriods.Server
         struct Colliders
         {
             public int Length;
-            public ComponentArray<SpriteRenderer> renderers;
+            public ComponentDataArray<CollisionSphereComponentData> spheres;
+            public ComponentArray<Transform> transform;
+
             public EntityArray entities;
         }
 
@@ -43,26 +46,33 @@ namespace Asteriods.Server
             for (int i = 0; i < colliders.Length; ++i)
             {
                 var first = colliders.entities[i];
-                var firstBounds = colliders.renderers[i].bounds;
+                var firstRadius = colliders.spheres[i].radius;
+                float2 firstPos = LineRenderSystem.screenPosFromTransform(colliders.transform[i].position);
+
 
                 for (int j = 0; j < colliders.Length; ++j)
                 {
                     var second = colliders.entities[j];
-                    var secondBounds = colliders.renderers[j].bounds;
+                    var secondRadius = colliders.spheres[j].radius;
+                    float2 secondPos = LineRenderSystem.screenPosFromTransform(colliders.transform[j].position);
 
                     if (first == second)
                         continue;
 
+                    float2 diff = firstPos-secondPos;
+                    float distSq = math.dot(diff, diff);
+                    bool intersects = distSq <= (firstRadius+secondRadius)*(firstRadius+secondRadius);
+
                     if (EntityManager.HasComponent<PlayerTagComponentData>(first) &&
                         EntityManager.HasComponent<AsteroidTagComponentData>(second) &&
-                        firstBounds.Intersects(secondBounds))
+                        intersects)
                     {
                         damageQueue.Enqueue(first);
                     }
 
                     if (EntityManager.HasComponent<BulletTagComponentData>(first) &&
                         EntityManager.HasComponent<AsteroidTagComponentData>(second) &&
-                        firstBounds.Intersects(secondBounds))
+                        intersects)
                     {
                         damageQueue.Enqueue(first);
                         damageQueue.Enqueue(second);
@@ -70,7 +80,7 @@ namespace Asteriods.Server
 
                     if (EntityManager.HasComponent<AsteroidTagComponentData>(first) &&
                         EntityManager.HasComponent<AsteroidTagComponentData>(second) &&
-                        firstBounds.Intersects(secondBounds))
+                        intersects)
                     {
                         // TODO (michalb): make them bounce off
                     }

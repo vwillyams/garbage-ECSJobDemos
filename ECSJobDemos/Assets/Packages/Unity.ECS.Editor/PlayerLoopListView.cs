@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEditor.ECS;
 using UnityEditor.IMGUI.Controls;
@@ -10,10 +11,11 @@ using UnityEngine.Experimental.LowLevel;
 public class PlayerLoopListView : TreeView
 {
 
-	protected HashSet<string> systemNames;
-	protected Dictionary<int, PlayerLoopSystem> playerLoopSystemsByListID;
-	protected HashSet<int> systemSubtreeIDs;
-	
+	private HashSet<string> systemNames;
+	private Dictionary<int, PlayerLoopSystem> playerLoopSystemsByListID;
+	private HashSet<int> systemSubtreeIDs;
+	private static readonly string kPlayerlooplistviewItemId = "PlayerLoopListView Item ID";
+
 	public PlayerLoopListView(TreeViewState state, HashSet<string> systemNames) : base(state)
 	{
 		this.systemNames = systemNames;
@@ -26,8 +28,8 @@ public class PlayerLoopListView : TreeView
 		TreeViewItem root;
 		playerLoopSystemsByListID = new Dictionary<int, PlayerLoopSystem>();
 		systemSubtreeIDs = new HashSet<int>();
-		if (ScriptBehaviourUpdateOrder.LastPlayerLoopSystem.subSystemList == null ||
-		    ScriptBehaviourUpdateOrder.LastPlayerLoopSystem.subSystemList.Length == 0)
+		if (World.LastPlayerLoopSystem.subSystemList == null ||
+		    World.LastPlayerLoopSystem.subSystemList.Length == 0)
 		{
 			root = new TreeViewItem {id = currentID++, depth = -1, displayName = "Root"};
 			root.AddChild(new TreeViewItem {id = currentID++, displayName = "No Player Loop Loaded"});
@@ -35,13 +37,13 @@ public class PlayerLoopListView : TreeView
 		else
 		{
 			bool dummy;
-			AddCallsDepthFirst(ScriptBehaviourUpdateOrder.LastPlayerLoopSystem, ref currentID, out root, out dummy);
+			CreateItemsForLoopSystem(World.LastPlayerLoopSystem, ref currentID, out root, out dummy);
 		}
 		SetupDepthsFromParentsAndChildren(root);
 		return root;
 	}
 
-	protected void AddCallsDepthFirst(PlayerLoopSystem system, ref int currentID, out TreeViewItem parent, out bool hasSystems)
+	protected void CreateItemsForLoopSystem(PlayerLoopSystem system, ref int currentID, out TreeViewItem parent, out bool hasSystems)
 	{
 		parent = new TreeViewItem
 		{
@@ -58,7 +60,7 @@ public class PlayerLoopListView : TreeView
 			{
 				TreeViewItem child;
 				bool childHasSystems;
-				AddCallsDepthFirst(subSystem, ref currentID, out child, out childHasSystems);
+				CreateItemsForLoopSystem(subSystem, ref currentID, out child, out childHasSystems);
 				parent.AddChild(child);
 				hasSystems |= childHasSystems;
 			}
@@ -67,6 +69,86 @@ public class PlayerLoopListView : TreeView
 		{
 			systemSubtreeIDs.Add(parent.id);
 		}
+	}
+
+	protected void RecreatePlayerLoop()
+	{
+		var playerLoop = BuildSystemFromList(rootItem);
+		World.SetPlayerLoop(playerLoop);
+		Reload();
+	}
+
+	protected PlayerLoopSystem BuildSystemFromList(TreeViewItem parent)
+	{
+		var parentSystem = playerLoopSystemsByListID[parent.id];
+		if (parent.hasChildren)
+		{
+			var childSystems = new PlayerLoopSystem[parent.children.Count];
+			for (var i = 0; i < childSystems.Length; ++i)
+			{
+				childSystems[i] = BuildSystemFromList(parent.children[i]);
+			}
+			parentSystem.subSystemList = childSystems;
+		}
+		return parentSystem;
+	}
+
+	protected override bool CanStartDrag(CanStartDragArgs args)
+	{
+		return systemSubtreeIDs.Contains(args.draggedItem.id) && systemNames.Contains(playerLoopSystemsByListID[args.draggedItem.id].type.FullName);
+	}
+
+	protected override void SetupDragAndDrop(SetupDragAndDropArgs args)
+	{
+		var itemId = args.draggedItemIDs[0];
+		var item = FindItem(itemId, rootItem);
+		DragAndDrop.PrepareStartDrag();
+		DragAndDrop.SetGenericData(kPlayerlooplistviewItemId, itemId);
+		DragAndDrop.StartDrag(item.displayName);
+	}
+
+	protected override DragAndDropVisualMode HandleDragAndDrop(DragAndDropArgs args)
+	{
+		var dropData = DragAndDrop.GetGenericData(kPlayerlooplistviewItemId);
+		if (dropData == null)
+		{
+			return DragAndDropVisualMode.None;
+		}
+		
+		switch (args.dragAndDropPosition)
+		{
+			case DragAndDropPosition.OutsideItems:
+			case DragAndDropPosition.UponItem:
+				return DragAndDropVisualMode.None;
+			case DragAndDropPosition.BetweenItems:
+				if (args.performDrop)
+				{
+					var itemId = (int)dropData;
+					var item = FindItem(itemId, rootItem);
+					if (item.parent == args.parentItem && item.parent.children.IndexOf(item) < args.insertAtIndex)
+						--args.insertAtIndex;
+					item.parent.children.Remove(item);
+					item.parent = args.parentItem;
+					args.parentItem.children.Insert(args.insertAtIndex, item);
+					RecreatePlayerLoop();
+				}
+				break;
+			default:
+				throw new ArgumentException("Unrecognized DragAndDropPosition");
+							
+		}
+		
+		return DragAndDropVisualMode.Move;
+	}
+
+	protected override bool CanMultiSelect(TreeViewItem item)
+	{
+		return false;
+	}
+
+	protected override bool CanBeParent(TreeViewItem item)
+	{
+		return false;
 	}
 
 	protected override void RowGUI(RowGUIArgs args)

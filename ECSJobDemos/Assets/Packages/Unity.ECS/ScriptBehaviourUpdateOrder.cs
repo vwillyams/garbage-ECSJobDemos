@@ -536,8 +536,6 @@ namespace UnityEngine.ECS
 			}
 		}
 
-		public static PlayerLoopSystem LastPlayerLoopSystem;
-
 		public static PlayerLoopSystem InsertManagersInPlayerLoop(IEnumerable<ScriptBehaviourManager> activeManagers, PlayerLoopSystem defaultPlayerLoop)
 		{
 			if (activeManagers.Count() == 0)
@@ -755,8 +753,6 @@ namespace UnityEngine.ECS
 				}
 				currentPos = lastPos;
 			}
-
-			LastPlayerLoopSystem = ecsPlayerLoop;
 			
 			return ecsPlayerLoop;
 		}

@@ -2,6 +2,7 @@
 using System.Reflection;
 using System;
 using System.Collections.ObjectModel;
+using UnityEngine.Experimental.LowLevel;
 
 namespace UnityEngine.ECS
 {
@@ -183,7 +184,7 @@ namespace UnityEngine.ECS
 		{
 			DestroyManagerInteral(manager);
 		}
-
+		
 		//@TODO: This should take an array of worlds...
 		public static void UpdatePlayerLoop(World world)
 		{
@@ -192,12 +193,21 @@ namespace UnityEngine.ECS
 			if (world != null)
 			{
 				var ecsLoop = ScriptBehaviourUpdateOrder.InsertManagersInPlayerLoop(world.m_BehaviourManagers, defaultLoop);
-				UnityEngine.Experimental.LowLevel.PlayerLoop.SetPlayerLoop(ecsLoop);
+				LastPlayerLoopSystem = ecsLoop;
+				SetPlayerLoop(ecsLoop);
 			}
 			else
 			{
-				UnityEngine.Experimental.LowLevel.PlayerLoop.SetPlayerLoop(defaultLoop);
+				SetPlayerLoop(defaultLoop);
 			}
+		}
+		
+		public static PlayerLoopSystem LastPlayerLoopSystem;
+
+		public static void SetPlayerLoop(PlayerLoopSystem playerLoop)
+		{
+			LastPlayerLoopSystem = playerLoop;
+			UnityEngine.Experimental.LowLevel.PlayerLoop.SetPlayerLoop(playerLoop);
 		}
 	}
 }

@@ -100,7 +100,7 @@
 				alpha = max(alpha, startCapDist);
 				alpha = max(alpha, endCapDist);
 
-				alpha -= i.linePos.z+0.5;
+				alpha -= (i.linePos.z-0.5);
 				color.a *= 1-saturate(alpha);
 
 				return fixed4(color);

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.ECS;
 
+using Unity.Collections;
 using Unity.Mathematics;
 
 namespace Asteriods.Server
@@ -8,54 +9,74 @@ namespace Asteriods.Server
     [UpdateAfter(typeof(Asteriods.Client.InputSystem))]
     public class SteeringSystem : ComponentSystem
     {
+        public NativeQueue<PlayerInputComponentData> playerInputQueue;
+
         static float force = 0.1f;
         static float displacement = 2.0f;
         struct Spaceships
         {
             public int Length;
-            public ComponentDataArray<SteeringComponentData> steering;
-            public ComponentDataArray<PlayerInputComponentData> input;
-            public ComponentArray<Transform> transform;
+            public ComponentDataArray<VelocityComponentData> steering;
+            public ComponentDataArray<PositionComponentData> positions;
+            public ComponentDataArray<RotationComponentData> rotations;
+
         }
 
         [InjectComponentGroup]
         Spaceships spaceships;
 
+        override protected void OnCreateManager(int capacity)
+        {
+            base.OnCreateManager(capacity);
+
+            playerInputQueue = new NativeQueue<PlayerInputComponentData>(128, Allocator.Persistent);
+            Debug.Assert(playerInputQueue.IsCreated);
+        }
+
+        override protected void OnDestroyManager()
+        {
+            if (playerInputQueue.IsCreated)
+                playerInputQueue.Dispose();
+        }
+
         override protected void OnUpdate()
         {
             if (spaceships.Length <= 0)
                 return;
+
             float dt = Time.deltaTime;
 
-            float angle = spaceships.steering[0].angle;
+            var rot = spaceships.rotations[0];
+            float angle = rot.angle;//;spaceships.steering[0].angle;
             float dx = spaceships.steering[0].dx;
             float dy = spaceships.steering[0].dy;
 
-            PlayerInputComponentData input = spaceships.input[0];
-
-            if (input.left == 1)
+            if (playerInputQueue.Count > 0)
             {
-                angle += displacement;
-            }
-            if (input.right == 1)
-            {
-                angle -= displacement;
-            }
-            if (input.thrust == 1)
-            {
-                dy += math.sin(math.radians(angle + 90)) * force * dt;
-                dx += math.cos(math.radians(angle + 90)) * force * dt;
+                PlayerInputComponentData input = playerInputQueue.Dequeue();
+                Debug.Log("input in steering ssytem");
+
+                if (input.left == 1)
+                {
+                    angle += displacement;
+                }
+                if (input.right == 1)
+                {
+                    angle -= displacement;
+                }
+                if (input.thrust == 1)
+                {
+                    dy += math.sin(math.radians(angle + 90)) * force * dt;
+                    dx += math.cos(math.radians(angle + 90)) * force * dt;
+                }
             }
 
-            spaceships.steering[0] = new SteeringComponentData(angle, dx, dy);
+            var pos = spaceships.positions[0];
 
-            for (int i = 0; i < spaceships.transform.Length; i++)
-            {
-                var pos = spaceships.transform[i].position;
+            spaceships.positions[0] = new PositionComponentData(pos.x + dx, pos.y + dy);
+            spaceships.rotations[0] = new RotationComponentData(angle);
+            spaceships.steering[0] = new VelocityComponentData(dx, dy);
 
-                spaceships.transform[i].position = new Vector3(pos.x + spaceships.steering[i].dx, pos.y + spaceships.steering[i].dy, 0);
-                spaceships.transform[i].rotation = Quaternion.Euler(0f, 0f, spaceships.steering[i].angle);
-            }
         }
     }
 }

@@ -1,6 +1,7 @@
 using UnityEngine.ECS;
 using UnityEngine;
 
+using Unity.Collections;
 using Unity.Mathematics;
 
 namespace Asteriods.Server
@@ -25,9 +26,21 @@ namespace Asteriods.Server
         [InjectComponentGroup]
         Asteroid asteroids;
 
+
+        public NativeQueue<SpawnCommand> spawnQueue;
+
         override protected void OnCreateManager(int capacity)
         {
             base.OnCreateManager(capacity);
+
+            spawnQueue = new NativeQueue<SpawnCommand>(128, Allocator.Persistent);
+            Debug.Assert(spawnQueue.IsCreated);
+        }
+
+        override protected void OnDestroyManager()
+        {
+            if (spawnQueue.IsCreated)
+                spawnQueue.Dispose();
         }
 
         override protected void OnUpdate()
@@ -35,10 +48,18 @@ namespace Asteriods.Server
             if (player.players.Length == 0)
             {
                 Debug.Log("SpawnSystem inside Server");
-                EntityManager.CreateEntity(GameSettings.Instance().playerArchetype);
+                var e = EntityManager.CreateEntity(GameSettings.Instance().playerArchetype);
 
-                // queue command to client;
-                Asteriods.Client.SpawnSystem.spawnQueue.Enqueue(new SpawnCommand());
+                var pos = new PositionComponentData(5f, 5f);
+                var rot = new RotationComponentData(90f);
+
+                EntityManager.SetComponent<PositionComponentData>(e, pos);
+                EntityManager.SetComponent<RotationComponentData>(e, rot);
+                EntityManager.SetComponent<VelocityComponentData>(e, new VelocityComponentData(0, 0));
+
+                int id = 0;
+                spawnQueue.Enqueue(
+                    new SpawnCommand(id, (int)SpawnType.Ship, pos, rot));
             }
 
             for (int i = asteroids.Length; i < 2; i++)
@@ -49,11 +70,11 @@ namespace Asteriods.Server
                         Random.Range(-15.0f, 15.0f), 0),
                     Quaternion.Euler(0, 0, angle));
 
-                float dy = (float)(math.sin(math.radians(angle + 90)) * 0.005);
-                float dx = (float)(math.cos(math.radians(angle + 90)) * 0.005);
+                float dy = (float)(math.sin(math.radians(angle + 90)) * 0.015);
+                float dx = (float)(math.cos(math.radians(angle + 90)) * 0.015);
 
-                var steering = new SteeringComponentData(angle, dx, dy);
-                EntityManager.SetComponent<SteeringComponentData>(obj.GetComponent<GameObjectEntity>().Entity, steering);
+                var steering = new VelocityComponentData(dx, dy);
+                EntityManager.SetComponent<VelocityComponentData>(obj.GetComponent<GameObjectEntity>().Entity, steering);
             }
         }
     }

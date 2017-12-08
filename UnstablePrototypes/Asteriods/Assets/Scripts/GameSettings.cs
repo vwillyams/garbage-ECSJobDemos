@@ -27,6 +27,6 @@ public class GameSettings : MonoBehaviour
             typeof(PositionComponentData), 
             typeof(RotationComponentData),
             typeof(PlayerTagComponentData),
-            typeof(SteeringComponentData));
+            typeof(VelocityComponentData));
     }
 }

@@ -69,11 +69,12 @@
   - [ ] make sure we can spawn 5k objects on the map now within reasonoble time and run them without drop in framerate.
 
   - [ ] divide into server/server and common code. (michalb)
-    - seperate into proper folders
+    - ~seperate into proper folders~
     - divide client / server code from the systems
     - move server code into pure ecs.
     - start seperate worlds for client and server
     - introduce state and cmd structures
+    - fix respawning
 
   - [ ] add multiple worlds for faster prototyping for client / server
 

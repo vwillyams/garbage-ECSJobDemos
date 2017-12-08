@@ -11,7 +11,6 @@ namespace Asteriods.Client
             public ComponentDataArray<PlayerInputComponentData> input;
         }
 
-
         [InjectComponentGroup]
         Player player;
 

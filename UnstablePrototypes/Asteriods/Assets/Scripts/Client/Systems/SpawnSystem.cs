@@ -8,7 +8,7 @@ namespace Asteriods.Client
 {
     public class SpawnSystem : ComponentSystem
     {
-        public static NativeQueue<SpawnCommand> spawnQueue;
+        public NativeQueue<SpawnCommand> spawnQueue;
         struct Player
         {
             public int Length;
@@ -26,7 +26,6 @@ namespace Asteriods.Client
 
         [InjectComponentGroup]
         Asteroid asteroids;
-
 
         override protected void OnCreateManager(int capacity)
         {
@@ -48,7 +47,19 @@ namespace Asteriods.Client
             {
                 var cmd = spawnQueue.Dequeue();
                 Debug.Log("SpawnSystem inside Client" + cmd);
-                var obj = GameObject.Instantiate(GameSettings.Instance().playerPrefab, Vector3.zero, Quaternion.identity);
+
+                switch((SpawnType)cmd.type)
+                {
+                    case SpawnType.Asteroid:
+                    case SpawnType.Bullet:
+                    case SpawnType.Ship:
+                    {
+                        var obj = GameObject.Instantiate(
+                            GameSettings.Instance().playerPrefab, 
+                            new Vector3(cmd.position.x, cmd.position.y, 0), 
+                            Quaternion.EulerAngles(0f, 0f, cmd.rotation.angle));
+                    } break;
+                }
             }
         }
     }

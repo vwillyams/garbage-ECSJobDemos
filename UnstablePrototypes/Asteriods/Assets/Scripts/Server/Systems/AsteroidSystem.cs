@@ -11,7 +11,7 @@ namespace Asteriods.Server
         struct Asteroids
         {
             public int Length;
-            public ComponentDataArray<SteeringComponentData> steering;
+            public ComponentDataArray<VelocityComponentData> steering;
             public ComponentArray<Transform> transform;
 
             ComponentDataArray<AsteroidTagComponentData> _tag;
@@ -27,7 +27,6 @@ namespace Asteriods.Server
             if (asteroids.Length <= 0)
                 return;
 
-            displacement++;
             float dt = Time.deltaTime;
 
             for (int i = 0; i < asteroids.transform.Length; i++)
@@ -35,7 +34,7 @@ namespace Asteriods.Server
                 var pos = asteroids.transform[i].position;
 
                 asteroids.transform[i].position = new Vector3(pos.x + asteroids.steering[i].dx, pos.y + asteroids.steering[i].dy, 0);
-                asteroids.transform[i].rotation = Quaternion.Euler(0f, 0f, asteroids.steering[i].angle + displacement);
+                asteroids.transform[i].rotation = Quaternion.Euler(0f, 0f, asteroids.transform[i].rotation.eulerAngles.z + 2);
             }
         }
     }

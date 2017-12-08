@@ -15,34 +15,34 @@ public class PlayerLoopListView : TreeView
 	protected override TreeViewItem BuildRoot()
 	{
 		var currentID = 0;
-		var root  = new TreeViewItem { id = currentID++, depth = -1, displayName = "Root" };
+		TreeViewItem root;
 		if (ScriptBehaviourUpdateOrder.LastPlayerLoopSystem.subSystemList == null ||
 		    ScriptBehaviourUpdateOrder.LastPlayerLoopSystem.subSystemList.Length == 0)
 		{
+			root = new TreeViewItem {id = currentID++, depth = -1, displayName = "Root"};
 			root.AddChild(new TreeViewItem {id = currentID++, displayName = "No Player Loop Loaded"});
-			SetupDepthsFromParentsAndChildren(root);
 		}
 		else
 		{
-			AddCallsDepthFirst(ScriptBehaviourUpdateOrder.LastPlayerLoopSystem, root, 0, ref currentID);
-			SetupDepthsFromParentsAndChildren(root);
+			root = AddCallsDepthFirst(ScriptBehaviourUpdateOrder.LastPlayerLoopSystem, ref currentID);
 		}
+		SetupDepthsFromParentsAndChildren(root);
 		return root;
 	}
 
-	protected void AddCallsDepthFirst(PlayerLoopSystem system, TreeViewItem root, int depth, ref int currentID)
+	protected TreeViewItem AddCallsDepthFirst(PlayerLoopSystem system, ref int currentID)
 	{
-		var child = new TreeViewItem
+		var parent = new TreeViewItem
 		{
 			id = currentID++,
-			depth = depth,
+			depth = -1,
 			displayName = system.type == null ? "null" : system.type.Name
 		};
-		root.AddChild(child);
 		if (system.subSystemList != null)
 		{
 			foreach (var subSystem in system.subSystemList)
-				AddCallsDepthFirst(subSystem, child, depth + 1, ref currentID);
+				parent.AddChild(AddCallsDepthFirst(subSystem, ref currentID));
 		}
+		return parent;
 	}
 }

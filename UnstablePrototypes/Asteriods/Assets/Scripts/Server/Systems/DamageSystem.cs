@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.ECS;
 
+using Unity.Collections;
+
 namespace Asteriods.Server
 {
     [UpdateAfter(typeof(CollisionSystem))]
@@ -13,7 +15,8 @@ namespace Asteriods.Server
         {
             public int Length;
             public ComponentDataArray<DamageCompmonentData> damage;
-            public ComponentArray<Transform> transforms;
+            //public ComponentArray<Transform> transforms;
+            public EntityArray refs;
         }
 
         [InjectComponentGroup]
@@ -26,18 +29,19 @@ namespace Asteriods.Server
 
         override protected void OnUpdate()
         {
-            List<GameObject> remove = new List<GameObject>();
+            NativeList<Entity> delete = new NativeList<Entity>(Allocator.Temp);
 
             if (entities.Length > 0)
             {
                 for (int i = 0; i < entities.Length; ++i)
-                    if (entities.transforms[i].gameObject != null)
-                        remove.Add(entities.transforms[i].gameObject);
-                //GameObject.Destroy(entities.transforms[i].gameObject);
+                    delete.Add(entities.refs[i]);
             }
 
-            foreach (var go in remove)
-                GameObject.Destroy(go);
+            for (int i = 0; i < delete.Length; i++)
+            {
+                EntityManager.DestroyEntity(delete[i]);
+            }
+            delete.Dispose();
         }
     }
 

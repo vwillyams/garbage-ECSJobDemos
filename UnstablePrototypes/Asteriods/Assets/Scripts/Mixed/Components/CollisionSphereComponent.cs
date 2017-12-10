@@ -6,6 +6,11 @@ public struct CollisionSphereComponentData : IComponentData
 {
     [SerializeField]
     public float radius;
+
+    public CollisionSphereComponentData(float radius)
+    {
+        this.radius = radius;
+    }
 }
 
-public class CollisionSphereComponent: ComponentDataWrapper<CollisionSphereComponentData> { }
+public class CollisionSphereComponent : ComponentDataWrapper<CollisionSphereComponentData> { }

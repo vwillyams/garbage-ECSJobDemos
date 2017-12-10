@@ -12,7 +12,7 @@ namespace Asteriods.Server
         {
             public int Length;
             public ComponentDataArray<CollisionSphereComponentData> spheres;
-            public ComponentArray<Transform> transform;
+            public ComponentDataArray<PositionComponentData> positions;
 
             public EntityArray entities;
         }
@@ -47,14 +47,13 @@ namespace Asteriods.Server
             {
                 var first = colliders.entities[i];
                 var firstRadius = colliders.spheres[i].radius;
-                float2 firstPos = LineRenderSystem.screenPosFromTransform(colliders.transform[i].position);
-
+                float2 firstPos = new float2(colliders.positions[i].x, colliders.positions[i].y);
 
                 for (int j = 0; j < colliders.Length; ++j)
                 {
                     var second = colliders.entities[j];
                     var secondRadius = colliders.spheres[j].radius;
-                    float2 secondPos = LineRenderSystem.screenPosFromTransform(colliders.transform[j].position);
+                    float2 secondPos = new float2(colliders.positions[j].x, colliders.positions[j].y);
 
                     if (first == second)
                         continue;

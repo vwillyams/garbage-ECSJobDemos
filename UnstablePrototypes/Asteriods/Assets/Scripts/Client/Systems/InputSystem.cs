@@ -39,6 +39,8 @@ namespace Asteriods.Client
             if (Input.GetKey("space"))
                 shoot = 1;
 
+            //Debug.LogFormat("left {0}, right {1}, up {2}, space {3}", left, right, thrust, shoot);
+
             player.input[0] = new PlayerInputComponentData(left, right, thrust, shoot);
         }
     }

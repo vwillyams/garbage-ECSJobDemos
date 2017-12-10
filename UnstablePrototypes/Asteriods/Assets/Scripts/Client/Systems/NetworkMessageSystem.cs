@@ -34,7 +34,6 @@ namespace Asteriods.Client
                     data.input[i].shoot == 0 && 
                     data.input[i].thrust == 0)
                     continue;
-                Debug.Log("input system passed to network message system");
                 Asteriods.Server.NetworkEventSystem.inputEventQueue.Enqueue(data.input[0]);
             }
         }

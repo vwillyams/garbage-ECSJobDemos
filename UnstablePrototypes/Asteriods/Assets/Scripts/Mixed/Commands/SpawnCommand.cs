@@ -1,3 +1,7 @@
+public struct DespawnCommand
+{
+    public int id;
+}
 public struct SpawnCommand
 {
     public int id;

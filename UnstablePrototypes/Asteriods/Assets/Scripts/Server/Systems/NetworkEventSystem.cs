@@ -30,7 +30,6 @@ namespace Asteriods.Server
         {
             for (int i = 0, c = inputEventQueue.Count; i < c; ++i)
             {
-                Debug.Log("network event system input");
                 m_SteeringSystem.playerInputQueue.Enqueue(inputEventQueue.Dequeue());
             }
         }

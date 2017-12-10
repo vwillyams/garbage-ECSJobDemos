@@ -38,6 +38,7 @@ public class ShipRenderSystem : ComponentSystem
 
         for (int ship = 0; ship < spaceships.Length; ++ship)
         {
+
             float2 pos = LineRenderSystem.screenPosFromTransform(spaceships.transform[ship].position);
             var rot = spaceships.transform[ship].rotation;
 

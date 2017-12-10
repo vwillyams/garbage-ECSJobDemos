@@ -7,14 +7,12 @@ namespace Asteriods.Server
 {
     public class AsteroidSystem : ComponentSystem
     {
-        static float force = 0.01f;
         struct Asteroids
         {
             public int Length;
             public ComponentDataArray<VelocityComponentData> steering;
             public ComponentArray<Transform> transform;
-
-            ComponentDataArray<AsteroidTagComponentData> _tag;
+            public ComponentDataArray<AsteroidTagComponentData> _tag;
         }
 
         [InjectComponentGroup]

@@ -26,7 +26,6 @@ namespace Asteriods.Server
         [InjectComponentGroup]
         Asteroid asteroids;
 
-
         public NativeQueue<SpawnCommand> spawnQueue;
 
         override protected void OnCreateManager(int capacity)
@@ -47,7 +46,6 @@ namespace Asteriods.Server
         {
             if (player.players.Length == 0)
             {
-                Debug.Log("SpawnSystem inside Server");
                 var e = EntityManager.CreateEntity(GameSettings.Instance().playerArchetype);
 
                 var pos = new PositionComponentData(5f, 5f);
@@ -56,6 +54,8 @@ namespace Asteriods.Server
                 EntityManager.SetComponent<PositionComponentData>(e, pos);
                 EntityManager.SetComponent<RotationComponentData>(e, rot);
                 EntityManager.SetComponent<VelocityComponentData>(e, new VelocityComponentData(0, 0));
+                EntityManager.SetComponent<CollisionSphereComponentData>(
+                    e, new CollisionSphereComponentData(GameSettings.Instance().playerRadius));
 
                 int id = 0;
                 spawnQueue.Enqueue(
@@ -64,17 +64,26 @@ namespace Asteriods.Server
 
             for (int i = asteroids.Length; i < 2; i++)
             {
-                var angle = Random.Range(-0.0f, 359.0f);
-                var obj = GameObject.Instantiate(GameSettings.Instance().asteroidPrefab,
-                    new Vector3(Random.Range(-21.0f, 21.0f),
-                        Random.Range(-15.0f, 15.0f), 0),
-                    Quaternion.Euler(0, 0, angle));
+                ///*
+                var pos = new PositionComponentData(Random.Range(-21.0f, 21.0f), Random.Range(-15.0f, 15f));
+                var rot = new RotationComponentData(Random.Range(-0.0f, 359.0f));
 
-                float dy = (float)(math.sin(math.radians(angle + 90)) * 0.015);
-                float dx = (float)(math.cos(math.radians(angle + 90)) * 0.015);
+                float dy = (float)(math.sin(math.radians(rot.angle + 90)) * 0.015);
+                float dx = (float)(math.cos(math.radians(rot.angle + 90)) * 0.015);
 
-                var steering = new VelocityComponentData(dx, dy);
-                EntityManager.SetComponent<VelocityComponentData>(obj.GetComponent<GameObjectEntity>().Entity, steering);
+                var e = EntityManager.CreateEntity(GameSettings.Instance().asteroidArchetype);
+
+                EntityManager.SetComponent<PositionComponentData>(e, pos);
+                EntityManager.SetComponent<RotationComponentData>(e, rot);
+                EntityManager.SetComponent<VelocityComponentData>(e, new VelocityComponentData(dx, dy));
+                EntityManager.SetComponent<CollisionSphereComponentData>(
+                    e, new CollisionSphereComponentData(GameSettings.Instance().asteroidRadius));
+
+                int id = 0;
+                spawnQueue.Enqueue(
+                    new SpawnCommand(id, (int)SpawnType.Asteroid, pos, rot));
+                //*/
+                //EntityManager.SetComponent<VelocityComponentData>(obj.GetComponent<GameObjectEntity>().Entity, steering);
             }
         }
     }

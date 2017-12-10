@@ -12,6 +12,7 @@ namespace Asteriods.Server
             public int Length;
             public ComponentDataArray<PositionComponentData> positions;
             public ComponentDataArray<RotationComponentData> rotations;
+            ComponentDataArray<PlayerTagComponentData> __tag;
         }
 
         [InjectComponentGroup]

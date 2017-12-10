@@ -145,6 +145,9 @@ MonoBehaviour:
     type: 2}
   asteroidPrefab: {fileID: 1714215462347460, guid: 487ab7d8f6006534baf9a155acae340f,
     type: 2}
+  asteroidRadius: 0
+  playerRadius: 0
+  bulletRadius: 0
 --- !u!4 &83804743
 Transform:
   m_ObjectHideFlags: 0
@@ -166,7 +169,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 83804741}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e2c747dff5cf15b4497b268bfebdcb09, type: 3}
+  m_Script: {fileID: 11500000, guid: f028aece26ebffb4a990a14976f846f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1032912726

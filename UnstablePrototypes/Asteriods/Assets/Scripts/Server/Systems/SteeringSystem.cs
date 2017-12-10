@@ -19,7 +19,7 @@ namespace Asteriods.Server
             public ComponentDataArray<VelocityComponentData> steering;
             public ComponentDataArray<PositionComponentData> positions;
             public ComponentDataArray<RotationComponentData> rotations;
-
+            public ComponentDataArray<PlayerTagComponentData> _tag;
         }
 
         [InjectComponentGroup]
@@ -54,7 +54,6 @@ namespace Asteriods.Server
             if (playerInputQueue.Count > 0)
             {
                 PlayerInputComponentData input = playerInputQueue.Dequeue();
-                Debug.Log("input in steering ssytem");
 
                 if (input.left == 1)
                 {
@@ -76,7 +75,6 @@ namespace Asteriods.Server
             spaceships.positions[0] = new PositionComponentData(pos.x + dx, pos.y + dy);
             spaceships.rotations[0] = new RotationComponentData(angle);
             spaceships.steering[0] = new VelocityComponentData(dx, dy);
-
         }
     }
 }

@@ -125,10 +125,23 @@ namespace UnityEngine.ECS
 		    if (null == m_InjectedComponentGroups)
 			    return;
 
-    		foreach (var group in m_InjectedComponentGroups)
-			    group.UpdateInjection (this);
+		    IntPtr pinnedSystemPtr;
+		    ulong gchandle;
+		    UnsafeUtility.PinGCObjectAndGetAddress(this, out gchandle, out pinnedSystemPtr);
+			
+		    try
+		    {
+			    foreach (var group in m_InjectedComponentGroups)
+				    group.UpdateInjection (pinnedSystemPtr);
 		    
-		    InjectFromEntityData.UpdateInjection(this, EntityManager, m_InjectedFromEntity);
+			    InjectFromEntityData.UpdateInjection(pinnedSystemPtr, EntityManager, m_InjectedFromEntity);
+		    }
+		    catch
+		    {
+			    UnsafeUtility.ReleaseGCObject(gchandle);
+			    throw;
+		    }
+		    UnsafeUtility.ReleaseGCObject(gchandle);
     	}
 
         internal unsafe void CompleteDependencyInternal()

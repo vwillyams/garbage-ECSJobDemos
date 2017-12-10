@@ -1,6 +1,4 @@
-﻿//#define PROCESS_LOOP_BURST_WORKAROUND
-
-using System;
+﻿using System;
 using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Collections.LowLevel.Unsafe;
@@ -73,23 +71,6 @@ namespace UnityEngine.ECS
 
             public delegate void ExecuteJobFunction(ref JobStruct<T, U0> data, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
-            #if PROCESS_LOOP_BURST_WORKAROUND
-            public unsafe static void Execute(ref JobStruct<T, U0> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
-            {
-                int begin;
-                int end;
-                while (JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
-                {
-                    for (int i = begin; i != end; i++)
-                    {
-                        //@TODO: use ref returns to pass by ref instead of double copy
-                        var value = jobData.componentDataArray[i];
-                        jobData.data.Execute(ref value);
-                        jobData.componentDataArray[i] = value;
-                    }
-                }
-            }
-            #else
             public unsafe static void Execute(ref JobStruct<T, U0> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
                 int begin;
@@ -113,7 +94,6 @@ namespace UnityEngine.ECS
                     }
                 }
             }            
-            #endif
         }
     }
 
@@ -170,25 +150,6 @@ namespace UnityEngine.ECS
 
             public delegate void ExecuteJobFunction(ref JobStruct<T, U0, U1> data, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
-            #if PROCESS_LOOP_BURST_WORKAROUND
-            public unsafe static void Execute(ref JobStruct<T, U0, U1> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
-            {
-                int begin;
-                int end;
-                while (JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
-                {
-                    for (int i = begin; i != end; i++)
-                    {
-                        //@TODO: use ref returns to pass by ref instead of double copy
-                        var value0 = jobData.componentDataArray0[i];
-                        var value1 = jobData.componentDataArray1[i];
-                        jobData.data.Execute(ref value0, ref value1);
-                        jobData.componentDataArray0[i] = value0;
-                        jobData.componentDataArray1[i] = value1;
-                    }
-                }
-            }
-    #else
             public unsafe static void Execute(ref JobStruct<T, U0, U1> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
                 int begin;
@@ -199,7 +160,8 @@ namespace UnityEngine.ECS
                     {
                         var array0 = jobData.componentDataArray0.GetChunkArray(begin, end - begin);
                         var array1 = jobData.componentDataArray1.GetChunkArray(begin, end - begin);
-                        Assert.AreEqual(array0.Length, array1.Length);
+                        //@TODO: Currently Assert.AreEqual doens't compile in burst. Need to find out why...
+                        // Assert.AreEqual(array0.Length, array1.Length);
                         
                         var ptr0 = array0.GetUnsafePtr();                    
                         var ptr1 = array1.GetUnsafePtr();                    
@@ -220,7 +182,6 @@ namespace UnityEngine.ECS
                     }
                 }
             }     
-    #endif
         }
     }
 

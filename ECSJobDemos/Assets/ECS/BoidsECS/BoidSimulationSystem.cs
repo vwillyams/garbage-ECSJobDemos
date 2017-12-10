@@ -170,7 +170,7 @@ namespace BoidSimulations
 		{
 			base.OnCreateManager(capacity);
 			m_Cells = new NativeMultiHashMap<int, int>(capacity, Allocator.Persistent);
-			m_CellOffsetsTable = new NativeArray<int>(HashUtility.cellOffsets, Allocator.TempJob);
+			m_CellOffsetsTable = new NativeArray<int>(HashUtility.cellOffsets, Allocator.Persistent);
 		}
 
 		protected override void OnDestroyManager()

@@ -53,8 +53,10 @@ namespace BoidSimulations
 		}
 		[InjectComponentGroup] BoidObstacles m_BoidObstacles;
 
-		NativeMultiHashMap<int, int> 				m_Cells;
-
+		NativeMultiHashMap<int, int> 		 m_Cells;
+		NativeArray<int> 					 m_CellOffsetsTable;
+		
+		
 		[ComputeJobOptimizationAttribute(Accuracy.Med, Support.Relaxed)]
 		struct PrepareParallelBoidsJob : IJobParallelFor
 		{
@@ -100,7 +102,6 @@ namespace BoidSimulations
 			public NativeMultiHashMap<int, int>   					    cells;
 
 			[ReadOnly]
-			[DeallocateOnJobCompletionAttribute]
 			public NativeArray<int> 									cellOffsetsTable;
 
 			public void Execute(int index)
@@ -122,18 +123,17 @@ namespace BoidSimulations
 			m_Cells.Capacity = math.max (m_Cells.Capacity, m_Boids.Length);
 			m_Cells.Clear ();
 
-			var boids = new NativeArray<BoidData> (m_Boids.Length, Allocator.TempJob);
-			var cellOffsetsTable = new NativeArray<int>(HashUtility.cellOffsets, Allocator.TempJob);
+			var boids = new NativeArray<BoidData> (m_Boids.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 			
 			// Simulation
 			var simulateJob = new SimulateBoidsJob
 			{
 				boids = boids,
 				cells = m_Cells,
-				cellOffsetsTable = cellOffsetsTable,
+				cellOffsetsTable = m_CellOffsetsTable,
 				simulationSettings = m_Settings.settings[0],
 				outputBoids = m_Boids.boids,
-				obstacles = new NativeArray<BoidObstacle> (m_BoidObstacles.Length, Allocator.TempJob),
+				obstacles = new NativeArray<BoidObstacle> (m_BoidObstacles.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory)
 			};
 
 			simulateJob.simulationState.deltaTime = Time.deltaTime;
@@ -150,7 +150,7 @@ namespace BoidSimulations
 			if (m_Ground.Length >= 1)
 				simulateJob.simulationState.ground = m_Ground.transforms[0].position;
 
-			simulateJob.targetPositions = new NativeArray<float3> (m_Targets.Length, Allocator.TempJob);
+			simulateJob.targetPositions = new NativeArray<float3> (m_Targets.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 			for (int i = 0; i != m_Targets.Length; i++)
 				simulateJob.targetPositions[i] = m_Targets.transforms[i].position;
 
@@ -170,12 +170,14 @@ namespace BoidSimulations
 		{
 			base.OnCreateManager(capacity);
 			m_Cells = new NativeMultiHashMap<int, int>(capacity, Allocator.Persistent);
+			m_CellOffsetsTable = new NativeArray<int>(HashUtility.cellOffsets, Allocator.Persistent);
 		}
 
 		protected override void OnDestroyManager()
 		{
 			base.OnDestroyManager();
 			m_Cells.Dispose ();
+			m_CellOffsetsTable.Dispose();
 		}
 	}
 }

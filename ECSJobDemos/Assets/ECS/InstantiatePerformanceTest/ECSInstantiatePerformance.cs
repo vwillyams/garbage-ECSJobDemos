@@ -71,7 +71,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		}
 	}
 	
-	//[ComputeJobOptimization]
+	[ComputeJobOptimization]
 	struct Iterate_ProcessEntities : IJobProcessEntities<EntityIter>
 	{
 		unsafe public void Execute(EntityIter entity)
@@ -80,6 +80,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		}
 	}
 	
+	//@TODO: Burst can't do this yet
 	//[ComputeJobOptimization]
 	struct Iterate_ForEachEntities : IJob
 	{

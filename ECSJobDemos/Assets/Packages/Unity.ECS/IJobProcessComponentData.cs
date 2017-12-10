@@ -1,10 +1,9 @@
-﻿#define PROCESS_LOOP_BURST_WORKAROUND
-
-using System;
+﻿using System;
 using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Collections;
+using UnityEngine.Assertions;
 
 namespace UnityEngine.ECS
 {
@@ -72,23 +71,6 @@ namespace UnityEngine.ECS
 
             public delegate void ExecuteJobFunction(ref JobStruct<T, U0> data, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
-            #if PROCESS_LOOP_BURST_WORKAROUND
-            public unsafe static void Execute(ref JobStruct<T, U0> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
-            {
-                int begin;
-                int end;
-                while (JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
-                {
-                    for (int i = begin; i != end; i++)
-                    {
-                        //@TODO: use ref returns to pass by ref instead of double copy
-                        var value = jobData.componentDataArray[i];
-                        jobData.data.Execute(ref value);
-                        jobData.componentDataArray[i] = value;
-                    }
-                }
-            }
-            #else
             public unsafe static void Execute(ref JobStruct<T, U0> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
                 int begin;
@@ -98,20 +80,20 @@ namespace UnityEngine.ECS
                     while (begin != end)
                     {
                         var array = jobData.componentDataArray.GetChunkArray(begin, end - begin);
-                        
+                        var ptr = array.GetUnsafePtr();                    
+    
                         for (int i = 0; i != array.Length; i++)
                         {
                             //@TODO: use ref returns to pass by ref instead of double copy
-                            var value = array[i];
+                            var value = UnsafeUtility.ReadArrayElement<U0>(ptr, i);
                             jobData.data.Execute(ref value);
-                            array[i] = value;
+                            UnsafeUtility.WriteArrayElement<U0>(ptr, i, value);
                         }
 
                         begin += array.Length;
                     }
                 }
             }            
-            #endif
         }
     }
 
@@ -168,25 +150,6 @@ namespace UnityEngine.ECS
 
             public delegate void ExecuteJobFunction(ref JobStruct<T, U0, U1> data, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
-            #if PROCESS_LOOP_BURST_WORKAROUND
-            public unsafe static void Execute(ref JobStruct<T, U0, U1> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
-            {
-                int begin;
-                int end;
-                while (JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
-                {
-                    for (int i = begin; i != end; i++)
-                    {
-                        //@TODO: use ref returns to pass by ref instead of double copy
-                        var value0 = jobData.componentDataArray0[i];
-                        var value1 = jobData.componentDataArray1[i];
-                        jobData.data.Execute(ref value0, ref value1);
-                        jobData.componentDataArray0[i] = value0;
-                        jobData.componentDataArray1[i] = value1;
-                    }
-                }
-            }
-    #else
             public unsafe static void Execute(ref JobStruct<T, U0, U1> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
                 int begin;
@@ -197,22 +160,28 @@ namespace UnityEngine.ECS
                     {
                         var array0 = jobData.componentDataArray0.GetChunkArray(begin, end - begin);
                         var array1 = jobData.componentDataArray1.GetChunkArray(begin, end - begin);
+                        //@TODO: Currently Assert.AreEqual doens't compile in burst. Need to find out why...
+                        // Assert.AreEqual(array0.Length, array1.Length);
+                        
+                        var ptr0 = array0.GetUnsafePtr();                    
+                        var ptr1 = array1.GetUnsafePtr();                    
                         
                         for (int i = 0; i != array0.Length; i++)
                         {
                             //@TODO: use ref returns to pass by ref instead of double copy
-                            var value0 = array0[i];
-                            var value1 = array1[i];
+                            var value0 = UnsafeUtility.ReadArrayElement<U0>(ptr0, i);
+                            var value1 = UnsafeUtility.ReadArrayElement<U1>(ptr1, i);
+
                             jobData.data.Execute(ref value0, ref value1);
-                            array0[i] = value0;
-                            array1[i] = value1;
+                            
+                            UnsafeUtility.WriteArrayElement(ptr0, i, value0);
+                            UnsafeUtility.WriteArrayElement(ptr1, i, value1);
                         }
 
                         begin += array0.Length;
                     }
                 }
             }     
-    #endif
         }
     }
 

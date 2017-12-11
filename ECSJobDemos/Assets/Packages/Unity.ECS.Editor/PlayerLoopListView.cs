@@ -11,21 +11,21 @@ using UnityEngine.Experimental.LowLevel;
 public class PlayerLoopListView : TreeView
 {
 
-	private HashSet<string> systemNames;
+	private HashSet<string> systemNames = new HashSet<string>();
 	private Dictionary<int, PlayerLoopSystem> playerLoopSystemsByListID;
 	private HashSet<int> systemSubtreeIDs;
 	private static readonly string kPlayerlooplistviewItemId = "PlayerLoopListView Item ID";
 	private PlayerLoopSystem playerLoop;
 
-	public PlayerLoopListView(TreeViewState state, HashSet<string> systemNames) : base(state)
+	public PlayerLoopListView(TreeViewState state) : base(state)
 	{
-		this.systemNames = systemNames;
 		Reload();
 	}
 
-	public void UpdatePlayerLoop(PlayerLoopSystem playerLoop)
+	public void UpdatePlayerLoop(PlayerLoopSystem playerLoop, HashSet<string> systemNames)
 	{
 		this.playerLoop = playerLoop;
+		this.systemNames = systemNames;
 		Reload();
 	}
 
@@ -72,7 +72,7 @@ public class PlayerLoopListView : TreeView
 				hasSystems |= childHasSystems;
 			}
 		}
-		if (hasSystems && !systemSubtreeIDs.Contains(parent.id))
+		if (hasSystems)
 		{
 			systemSubtreeIDs.Add(parent.id);
 		}

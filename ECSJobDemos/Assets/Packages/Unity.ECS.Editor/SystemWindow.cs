@@ -68,8 +68,6 @@ namespace UnityEditor.ECS
 				systemViews = new List<SystemViewData>();
 			
 			var systemViewIndicesByType = new Dictionary<Type, int>();
-
-			var systemNames = new HashSet<string>();
 			
 			if (systemTypes != null)
 			{
@@ -81,7 +79,6 @@ namespace UnityEditor.ECS
 						systemViews.Add(new SystemViewData(type.Name, type.FullName, kStartPosition));
 						systemViewIndex = systemViews.Count - 1;
 					}
-					systemNames.Add(type.FullName);
 					systemViews[systemViewIndex].updateAfter = new List<int>();
 					systemViews[systemViewIndex].updateBefore = new List<int>();
 					systemViewIndicesByType.Add(type, systemViewIndex);
@@ -107,7 +104,7 @@ namespace UnityEditor.ECS
 				}
 			}
 			if (playerLoopListView == null)
-				playerLoopListView = new PlayerLoopListView(playerLoopListState, systemNames);
+				playerLoopListView = new PlayerLoopListView(playerLoopListState);
 		}
 
 		void GraphLayout()
@@ -135,7 +132,7 @@ namespace UnityEditor.ECS
 
 		void OnSetPlayerLoop(PlayerLoopSystem playerLoop)
 		{
-			playerLoopListView.UpdatePlayerLoop(playerLoop);
+			playerLoopListView.UpdatePlayerLoop(playerLoop, new HashSet<string>(from v in systemViews select v.fullName));
 		}
 
 		void OnEnable()

@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine.ECS;
+using UnityEngine.Experimental.LowLevel;
 
 namespace UnityEditor.ECS
 {
@@ -60,8 +61,6 @@ namespace UnityEditor.ECS
 					select s.GetType() ).ToArray();
 			}
 		}
-		
-		
 
 		void Initialize()
 		{
@@ -133,6 +132,22 @@ namespace UnityEditor.ECS
 		{
 			EditorWindow.GetWindow<SystemWindow>("Systems");
 		}
+
+		void OnSetPlayerLoop(PlayerLoopSystem playerLoop)
+		{
+			playerLoopListView.UpdatePlayerLoop(playerLoop);
+		}
+
+		void OnEnable()
+		{
+			Initialize();
+			World.OnSetPlayerLoop += OnSetPlayerLoop;
+		}
+
+		void OnDisable()
+		{
+			World.OnSetPlayerLoop -= OnSetPlayerLoop;
+		}
 		
 		void ShowNoSystemsNotification()
 		{
@@ -150,7 +165,7 @@ namespace UnityEditor.ECS
 		void OnGUI()
 		{
 			Initialize();
-
+			
 			GUILayout.BeginHorizontal();
 
 			GUILayout.BeginVertical();

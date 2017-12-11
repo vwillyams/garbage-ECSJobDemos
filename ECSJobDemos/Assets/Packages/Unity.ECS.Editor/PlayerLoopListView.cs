@@ -15,10 +15,17 @@ public class PlayerLoopListView : TreeView
 	private Dictionary<int, PlayerLoopSystem> playerLoopSystemsByListID;
 	private HashSet<int> systemSubtreeIDs;
 	private static readonly string kPlayerlooplistviewItemId = "PlayerLoopListView Item ID";
+	private PlayerLoopSystem playerLoop;
 
 	public PlayerLoopListView(TreeViewState state, HashSet<string> systemNames) : base(state)
 	{
 		this.systemNames = systemNames;
+		Reload();
+	}
+
+	public void UpdatePlayerLoop(PlayerLoopSystem playerLoop)
+	{
+		this.playerLoop = playerLoop;
 		Reload();
 	}
 
@@ -28,8 +35,8 @@ public class PlayerLoopListView : TreeView
 		TreeViewItem root;
 		playerLoopSystemsByListID = new Dictionary<int, PlayerLoopSystem>();
 		systemSubtreeIDs = new HashSet<int>();
-		if (World.LastPlayerLoopSystem.subSystemList == null ||
-		    World.LastPlayerLoopSystem.subSystemList.Length == 0)
+		if (playerLoop.subSystemList == null ||
+		    playerLoop.subSystemList.Length == 0)
 		{
 			root = new TreeViewItem {id = currentID++, depth = -1, displayName = "Root"};
 			root.AddChild(new TreeViewItem {id = currentID++, displayName = "No Player Loop Loaded"});
@@ -37,7 +44,7 @@ public class PlayerLoopListView : TreeView
 		else
 		{
 			bool dummy;
-			CreateItemsForLoopSystem(World.LastPlayerLoopSystem, ref currentID, out root, out dummy);
+			CreateItemsForLoopSystem(playerLoop, ref currentID, out root, out dummy);
 		}
 		SetupDepthsFromParentsAndChildren(root);
 		return root;
@@ -74,7 +81,7 @@ public class PlayerLoopListView : TreeView
 	protected void RecreatePlayerLoop()
 	{
 		var playerLoop = BuildSystemFromList(rootItem);
-		World.SetPlayerLoop(playerLoop);
+		World.SetPlayerLoopAndNotify(playerLoop);
 		Reload();
 	}
 

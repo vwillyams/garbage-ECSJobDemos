@@ -193,21 +193,20 @@ namespace UnityEngine.ECS
 			if (world != null)
 			{
 				var ecsLoop = ScriptBehaviourUpdateOrder.InsertManagersInPlayerLoop(world.m_BehaviourManagers, defaultLoop);
-				LastPlayerLoopSystem = ecsLoop;
-				SetPlayerLoop(ecsLoop);
+				SetPlayerLoopAndNotify(ecsLoop);
 			}
 			else
 			{
-				SetPlayerLoop(defaultLoop);
+				SetPlayerLoopAndNotify(defaultLoop);
 			}
 		}
 		
-		public static PlayerLoopSystem LastPlayerLoopSystem;
+		public static event System.Action<PlayerLoopSystem> OnSetPlayerLoop;
 
-		public static void SetPlayerLoop(PlayerLoopSystem playerLoop)
+		public static void SetPlayerLoopAndNotify(PlayerLoopSystem playerLoop)
 		{
-			LastPlayerLoopSystem = playerLoop;
 			UnityEngine.Experimental.LowLevel.PlayerLoop.SetPlayerLoop(playerLoop);
+			OnSetPlayerLoop(playerLoop);
 		}
 	}
 }

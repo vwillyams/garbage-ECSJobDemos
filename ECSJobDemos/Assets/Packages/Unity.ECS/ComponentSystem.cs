@@ -155,8 +155,6 @@ namespace UnityEngine.ECS
 
 	public abstract class ComponentSystem : ComponentSystemBase
 	{
-		private NativeList<JobHandle> m_PreviousFrameDependencies;
-
 	    internal sealed override void InternalUpdate()
 	    {
 		    CompleteDependencyInternal();
@@ -180,7 +178,7 @@ namespace UnityEngine.ECS
 
 	public abstract class JobComponentSystem : ComponentSystemBase
 	{
-		private NativeList<JobHandle> m_PreviousFrameDependencies;
+		JobHandle m_PreviousFrameDependency;
 
 		internal sealed override void InternalUpdate()
 		{
@@ -188,12 +186,11 @@ namespace UnityEngine.ECS
 
 			// We need to wait on all previous frame dependencies, otherwise it is possible that we create infinitely long dependency chains
 			// without anyone ever waiting on it
-			JobHandle.CompleteAll(m_PreviousFrameDependencies);
-			m_PreviousFrameDependencies.Clear();
+			m_PreviousFrameDependency.Complete();
 
 			JobHandle input = GetDependency();
 			JobHandle output = OnUpdate(input);
-			
+
 			JobHandle.ScheduleBatchedJobs();
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -226,18 +223,17 @@ namespace UnityEngine.ECS
 			}
 #endif
 			AddDependencyInternal(output);
+			m_PreviousFrameDependency = output;
 		}
 
 		override sealed protected void OnCreateManagerInternal(int capacity)
 		{
 			base.OnCreateManagerInternal(capacity);
-			m_PreviousFrameDependencies = new NativeList<JobHandle>(1, Allocator.Persistent);
 		}
 
 		override protected void OnDestroyManager()
 		{
 			base.OnDestroyManager();
-			m_PreviousFrameDependencies.Dispose();
 		}
 
 	    protected virtual JobHandle OnUpdate(JobHandle inputDeps)
@@ -297,9 +293,7 @@ namespace UnityEngine.ECS
 		}
 
 		protected unsafe void AddDependencyInternal(JobHandle dependency)
-		{
-			m_PreviousFrameDependencies.Add(dependency);
-			
+		{			
 			fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
 			{
 				m_SafetyManager.AddDependency(readersPtr, m_JobDependencyForReadingManagers.Length, writersPtr, m_JobDependencyForWritingManagers.Length, dependency);

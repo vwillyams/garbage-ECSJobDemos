@@ -26,9 +26,9 @@ namespace UnityEngine.ECS
         #if ENABLE_UNITY_COLLECTIONS_CHECKS
         AtomicSafetyHandle      m_TempSafety;
         #endif
-        
-        NativeList<JobHandle>   m_JobDependencyCombineList;
 
+        JobHandle*              m_JobDependencyCombineBuffer;
+        int                     m_JobDependencyCombineBufferCount;
 
         //@TODO: Check against too many types created...
 
@@ -43,7 +43,8 @@ namespace UnityEngine.ECS
             m_ComponentSafetyHandles = (ComponentSafetyHandle*)UnsafeUtility.Malloc(sizeof(ComponentSafetyHandle) * kMaxTypes, 16, Allocator.Persistent);
             UnsafeUtility.MemClear((IntPtr)m_ComponentSafetyHandles, sizeof(ComponentSafetyHandle) * kMaxTypes);
 
-            m_JobDependencyCombineList = new NativeList<JobHandle>(Allocator.Persistent);
+            m_JobDependencyCombineBufferCount = 4 * 1024;
+            m_JobDependencyCombineBuffer = (JobHandle*) UnsafeUtility.Malloc(sizeof(ComponentSafetyHandle) * m_JobDependencyCombineBufferCount, 16, Allocator.Persistent);
             
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             for (int i = 0; i != kMaxTypes;i++)
@@ -95,7 +96,6 @@ namespace UnityEngine.ECS
 
         public void Dispose()
         {
-            m_JobDependencyCombineList.Dispose();
             
             for (int i = 0; i < kMaxTypes;i++)
                 m_ComponentSafetyHandles[i].writeFence.Complete();
@@ -116,6 +116,9 @@ namespace UnityEngine.ECS
 
             AtomicSafetyHandle.Release(m_TempSafety);
 #endif
+            
+            UnsafeUtility.Free((IntPtr)m_JobDependencyCombineBuffer, Allocator.Persistent);
+
             UnsafeUtility.Free((IntPtr)m_ComponentSafetyHandles, Allocator.Persistent);
             m_ComponentSafetyHandles = null;
 
@@ -134,25 +137,29 @@ namespace UnityEngine.ECS
 
         public JobHandle GetDependency(int* readerTypes, int readerTypesCount, int* writerTypes, int writerTypesCount)
         {
-            m_JobDependencyCombineList.Clear();
-
+            #if ENABLE_UNITY_COLLECTIONS_CHECKS
+            if (readerTypesCount * kMaxReadJobHandles + writerTypesCount > m_JobDependencyCombineBufferCount)
+                throw new System.ArgumentException("Too many readers & writers in GetDependency");    
+            #endif
+                
+            int count = 0;
             for (int i = 0; i != readerTypesCount; i++)
             {
-                m_JobDependencyCombineList.Add(m_ComponentSafetyHandles[readerTypes[i]].writeFence);
+                m_JobDependencyCombineBuffer[count++] = m_ComponentSafetyHandles[readerTypes[i]].writeFence;
             }
             
             for (int i = 0; i != writerTypesCount; i++)
             {
                 int writerType = writerTypes[i];
-                
-                m_JobDependencyCombineList.Add(m_ComponentSafetyHandles[writerType].writeFence);
+
+                m_JobDependencyCombineBuffer[count++] = m_ComponentSafetyHandles[writerType].writeFence; 
                 
                 int numReadFences = m_ComponentSafetyHandles[writerType].numReadFences;
                 for (int j = 0; j != numReadFences; j++)
-                    m_JobDependencyCombineList.Add(m_ReadJobFences[writerType * kMaxReadJobHandles + j]);
+                    m_JobDependencyCombineBuffer[count++] = m_ReadJobFences[writerType * kMaxReadJobHandles + j]; 
             }
             
-            return JobHandle.CombineDependencies(m_JobDependencyCombineList);
+            return Unity.Jobs.LowLevel.Unsafe.JobHandleUnsafeUtility.CombineDependencies(m_JobDependencyCombineBuffer, count);
         }
 
         public void AddDependency(int* readerTypes, int readerTypesCount, int* writerTypes, int writerTypesCount, JobHandle dependency)
@@ -211,11 +218,9 @@ namespace UnityEngine.ECS
 
         void CombineReadDependencies(int type)
         {
-            var readFences = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<JobHandle>((IntPtr)(m_ReadJobFences + type * kMaxReadJobHandles), m_ComponentSafetyHandles[type].numReadFences, Allocator.Invalid);
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref readFences, m_TempSafety);
-#endif
-            m_ReadJobFences[type * kMaxReadJobHandles] = JobHandle.CombineDependencies(readFences);
+            var combined = Unity.Jobs.LowLevel.Unsafe.JobHandleUnsafeUtility.CombineDependencies(m_ReadJobFences + type * kMaxReadJobHandles, m_ComponentSafetyHandles[type].numReadFences);
+            
+            m_ReadJobFences[type * kMaxReadJobHandles] = combined;
             m_ComponentSafetyHandles[type].numReadFences = 1;
         }
     }

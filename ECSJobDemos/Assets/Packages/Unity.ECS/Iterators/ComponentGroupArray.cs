@@ -130,6 +130,7 @@ namespace UnityEngine.ECS
         ComponentChunkIterator      m_ChunkIterator;
         fixed int                   m_ComponentTypes[kMaxStream];
 
+        #if ENABLE_UNITY_COLLECTIONS_CHECKS
         int                         m_SafetyReadOnlyCount;
         int                         m_SafetyReadWriteCount;
 #pragma warning disable 414
@@ -140,6 +141,7 @@ namespace UnityEngine.ECS
         AtomicSafetyHandle          m_Safety4;
         AtomicSafetyHandle          m_Safety5;
 #pragma warning restore
+        #endif
 
         [NativeSetClassTypeToNullOnSchedule]
         ArchetypeManager            m_ArchetypeManager;
@@ -178,6 +180,7 @@ namespace UnityEngine.ECS
                 }
             }
             
+            #if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_Safety0 = new AtomicSafetyHandle();
             m_Safety1 = new AtomicSafetyHandle();
             m_Safety2 = new AtomicSafetyHandle();
@@ -210,6 +213,7 @@ namespace UnityEngine.ECS
                     }
                 }
             }
+            #endif
         }
 
         public void UpdateCache(int index)
@@ -244,6 +248,7 @@ namespace UnityEngine.ECS
 
         public void CheckAccess()
         {
+            #if ENABLE_UNITY_COLLECTIONS_CHECKS
             fixed (AtomicSafetyHandle* safety = &m_Safety0)
             {
                 for (int i = 0;i < m_SafetyReadOnlyCount;i++)
@@ -252,6 +257,7 @@ namespace UnityEngine.ECS
                 for (int i = m_SafetyReadOnlyCount;i < m_SafetyReadOnlyCount + m_SafetyReadWriteCount;i++)
                     AtomicSafetyHandle.CheckWriteAndThrow(safety[i]);
             }
+            #endif
         }
 
         public void PatchPtrs(int index, byte* valuePtr)

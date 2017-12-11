@@ -229,10 +229,12 @@ namespace UnityEngine.ECS
             return m_GroupData->requiredComponents[componentIndex].accessMode == ComponentType.AccessMode.ReadOnly;
         }
 
+        #if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal AtomicSafetyHandle GetSafetyHandle(int componentType, bool isReadOnly)
         {
             return m_SafetyManager.GetSafetyHandle(componentType, isReadOnly);
         }
+        #endif
 
         internal static void AddReaderWriter(ComponentType type, List<int> reading, List<int> writing)
         {

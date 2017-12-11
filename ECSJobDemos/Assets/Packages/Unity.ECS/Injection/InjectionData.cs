@@ -1,17 +1,17 @@
 ﻿using System.Reflection;
 using System;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.ECS
 {
     interface IUpdateInjection
     {
-        void UpdateInjection(object targetObject, EntityManager entityManager, ComponentGroup group, InjectionData injection);
+        unsafe void UpdateInjection(void* targetObject, EntityManager entityManager, ComponentGroup group, InjectionData injection);
     }
     
     struct InjectionData
     {
-        public FieldInfo           field;
-        public Type                containerType;
+        public int                 fieldOffset;
         public Type                genericType;
         public bool                isReadOnly;
 
@@ -19,8 +19,7 @@ namespace UnityEngine.ECS
 
         public InjectionData(FieldInfo field, Type containerType, Type genericType, bool isReadOnly)
         {
-            this.field = field;
-            this.containerType = containerType;
+            this.fieldOffset = UnsafeUtility.GetFieldOffset(field);
             this.genericType = genericType;
             this.isReadOnly = isReadOnly;
             this.injection = null;

@@ -307,7 +307,7 @@ namespace UnityEngine.ECS
             int componentIndex;
             int typeIndex = TypeManager.GetTypeIndex<T>();
 
-            var cache = GetComponentChunkIterator(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
+            var cache = GetComponentChunkIterator(typeIndex, out length, out componentIndex);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             return new ComponentDataArray<T>(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex, IsReadOnly(componentIndex)));
 #else

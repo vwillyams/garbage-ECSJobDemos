@@ -16,19 +16,19 @@ namespace UnityEngine.ECS
 	{
 		class UpdateInjectionComponentDataFromEntity<T> : IUpdateInjection where T : struct, IComponentData
 		{
-			public void UpdateInjection(object targetObject, EntityManager entityManager, ComponentGroup group, InjectionData injection)
+			unsafe public void UpdateInjection(void* targetObject, EntityManager entityManager, ComponentGroup group, InjectionData injection)
 			{
 				var array = entityManager.GetComponentDataArrayFromEntity<T>(injection.isReadOnly);
-				UnsafeUtility.SetFieldStruct(targetObject, injection.field, ref array);
+				UnsafeUtility.CopyStructureToPtr(ref array, (IntPtr)targetObject + injection.fieldOffset);
 			}
 		}
 
 		class UpdateInjectionFixedArrayFromEntity<T> : IUpdateInjection where T : struct
 		{
-			public void UpdateInjection(object targetObject, EntityManager entityManager, ComponentGroup group, InjectionData injection)
+			unsafe public void UpdateInjection(void* targetObject, EntityManager entityManager, ComponentGroup group, InjectionData injection)
 			{
 				var array = entityManager.GetFixedArrayFromEntity<T>(injection.isReadOnly);
-				UnsafeUtility.SetFieldStruct(targetObject, injection.field, ref array);
+				UnsafeUtility.CopyStructureToPtr(ref array, (IntPtr)targetObject + injection.fieldOffset);
 			}
 		}
 
@@ -58,10 +58,10 @@ namespace UnityEngine.ECS
 			}
 		}
 
-		public static void UpdateInjection(object system, EntityManager entityManager, InjectionData[] injections)
+		public unsafe static void UpdateInjection(IntPtr pinnedSystemPtr, EntityManager entityManager, InjectionData[] injections)
 		{
 			foreach(var injection in injections)
-				injection.injection.UpdateInjection(system, entityManager, null, injection);
+				injection.injection.UpdateInjection((void*)pinnedSystemPtr, entityManager, null, injection);
 		}
 
 		internal static void ExtractJobDependencyTypes(InjectionData[] injections, List<int> reading, List<int> writing)

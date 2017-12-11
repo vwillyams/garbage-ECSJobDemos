@@ -1,6 +1,10 @@
 public struct DespawnCommand
 {
     public int id;
+    public DespawnCommand(int id)
+    {
+        this.id = id;
+    }
 }
 public struct SpawnCommand
 {

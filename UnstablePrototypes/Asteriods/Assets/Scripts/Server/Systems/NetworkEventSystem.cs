@@ -5,6 +5,7 @@ using Unity.Collections;
 
 namespace Asteriods.Server
 {
+    [UpdateAfter(typeof(DamageSystem))]
     public class NetworkEventSystem : ComponentSystem
     {
         // HACK (2017-12-08, lifetime 4 weeks or until proper protocol implemented.)
@@ -12,6 +13,9 @@ namespace Asteriods.Server
 
         [Inject]
         SteeringSystem m_SteeringSystem;
+
+        [Inject]
+        SpawnSystem m_SpawnSystem;
 
         override protected void OnCreateManager(int capacity)
         {
@@ -30,7 +34,13 @@ namespace Asteriods.Server
         {
             for (int i = 0, c = inputEventQueue.Count; i < c; ++i)
             {
-                m_SteeringSystem.playerInputQueue.Enqueue(inputEventQueue.Dequeue());
+                var e = inputEventQueue.Dequeue();
+                m_SteeringSystem.playerInputQueue.Enqueue(e);
+
+                if (e.shoot == 1)
+                {
+                    m_SpawnSystem.IncommingSpawnQueue.Enqueue(new SpawnCommand(0, (int)SpawnType.Bullet, default(PositionComponentData), default(RotationComponentData)));
+                }
             }
         }
     }

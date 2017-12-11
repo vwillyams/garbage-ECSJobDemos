@@ -33,6 +33,7 @@ public class GameSettings : MonoBehaviour
             typeof(RotationComponentData),
             typeof(PlayerTagComponentData),
             typeof(CollisionSphereComponentData),
+            typeof(NetworkIdCompmonentData),
             typeof(VelocityComponentData));
 
         asteroidArchetype = m_EntityManager.CreateArchetype(
@@ -40,6 +41,7 @@ public class GameSettings : MonoBehaviour
             typeof(RotationComponentData),
             typeof(AsteroidTagComponentData),
             typeof(CollisionSphereComponentData),
+            typeof(NetworkIdCompmonentData),
             typeof(VelocityComponentData));
 
         bulletArchetype = m_EntityManager.CreateArchetype(
@@ -47,6 +49,7 @@ public class GameSettings : MonoBehaviour
             typeof(RotationComponentData),
             typeof(BulletTagComponentData),
             typeof(CollisionSphereComponentData),
+            typeof(NetworkIdCompmonentData),
             typeof(VelocityComponentData));
 
             asteroidRadius = 1.5f;

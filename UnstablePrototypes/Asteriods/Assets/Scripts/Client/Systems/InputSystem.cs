@@ -7,8 +7,9 @@ namespace Asteriods.Client
     {
         struct Player
         {
-            public ComponentDataArray<PlayerTagComponentData> self;
-            public ComponentDataArray<PlayerInputComponentData> input;
+            public int Length;
+            public ComponentDataArray<PlayerInputComponentData> inputs;
+            ComponentDataArray<PlayerTagComponentData> tags;
         }
 
         [InjectComponentGroup]
@@ -21,8 +22,10 @@ namespace Asteriods.Client
 
         override protected void OnUpdate()
         {
-            if (player.self.Length == 0)
+            if (player.Length == 0)
                 return;
+
+            Debug.Assert(player.Length == 1);
 
             byte left = 0;
             byte right = 0;
@@ -41,7 +44,7 @@ namespace Asteriods.Client
 
             //Debug.LogFormat("left {0}, right {1}, up {2}, space {3}", left, right, thrust, shoot);
 
-            player.input[0] = new PlayerInputComponentData(left, right, thrust, shoot);
+            player.inputs[0] = new PlayerInputComponentData(left, right, thrust, shoot);
         }
     }
 

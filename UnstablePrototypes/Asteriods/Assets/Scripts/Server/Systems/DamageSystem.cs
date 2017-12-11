@@ -15,16 +15,23 @@ namespace Asteriods.Server
         {
             public int Length;
             public ComponentDataArray<DamageCompmonentData> damage;
-            //public ComponentArray<Transform> transforms;
+            public ComponentDataArray<NetworkIdCompmonentData> ids;
             public EntityArray refs;
         }
 
         [InjectComponentGroup]
         DamagedEntities entities;
 
+        [Inject]
+        NetworkMessageSystem m_NetworkMessageSystem;
+
         override protected void OnCreateManager(int capacity)
         {
             base.OnCreateManager(capacity);
+        }
+
+        override protected void OnDestroyManager()
+        {
         }
 
         override protected void OnUpdate()
@@ -34,13 +41,17 @@ namespace Asteriods.Server
             if (entities.Length > 0)
             {
                 for (int i = 0; i < entities.Length; ++i)
+                {
                     delete.Add(entities.refs[i]);
+                    m_NetworkMessageSystem.DespawnQueue.Enqueue(new DespawnCommand(entities.ids[i].id));
+                }
             }
 
             for (int i = 0; i < delete.Length; i++)
             {
                 EntityManager.DestroyEntity(delete[i]);
             }
+
             delete.Dispose();
         }
     }

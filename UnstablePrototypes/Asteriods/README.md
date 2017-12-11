@@ -70,11 +70,12 @@
 
   - [ ] divide into server/server and common code. (michalb)
     - ~seperate into proper folders~
-    - divide client / server code from the systems
+    - ~divide client / server code from the systems~
     - move server code into pure ecs.
     - start seperate worlds for client and server
     - introduce state and cmd structures
     - fix respawning
+    - find out why we are getting an exception in Client.SpawnSystem:110
 
   - [ ] add multiple worlds for faster prototyping for client / server
 
@@ -85,3 +86,7 @@
 - networking
   - [ ] add sockets
   - [ ] byte writer / reader
+
+
+#### notes
+- would be nice to see all entities in the world

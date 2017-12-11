@@ -19,7 +19,7 @@ namespace Asteriods.Server
             public ComponentDataArray<VelocityComponentData> steering;
             public ComponentDataArray<PositionComponentData> positions;
             public ComponentDataArray<RotationComponentData> rotations;
-            public ComponentDataArray<PlayerTagComponentData> _tag;
+            ComponentDataArray<PlayerTagComponentData> tags;
         }
 
         [InjectComponentGroup]

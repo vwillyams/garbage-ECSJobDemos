@@ -10,15 +10,14 @@ namespace Asteriods.Server
         struct Asteroids
         {
             public int Length;
-            public ComponentDataArray<VelocityComponentData> steering;
-            public ComponentArray<Transform> transform;
-            public ComponentDataArray<AsteroidTagComponentData> _tag;
+            public ComponentDataArray<VelocityComponentData> velocities;
+            public ComponentDataArray<PositionComponentData> positions;
+            public ComponentDataArray<RotationComponentData> rotations;
+            ComponentDataArray<AsteroidTagComponentData> tags;
         }
 
         [InjectComponentGroup]
         Asteroids asteroids;
-
-        int displacement;
 
         override protected void OnUpdate()
         {
@@ -27,12 +26,13 @@ namespace Asteriods.Server
 
             float dt = Time.deltaTime;
 
-            for (int i = 0; i < asteroids.transform.Length; i++)
+            for (int i = 0; i < asteroids.Length; i++)
             {
-                var pos = asteroids.transform[i].position;
+                var pos = asteroids.positions[i];
+                var rot = asteroids.rotations[i];
 
-                asteroids.transform[i].position = new Vector3(pos.x + asteroids.steering[i].dx, pos.y + asteroids.steering[i].dy, 0);
-                asteroids.transform[i].rotation = Quaternion.Euler(0f, 0f, asteroids.transform[i].rotation.eulerAngles.z + 2);
+                asteroids.positions[i] = new PositionComponentData(pos.x + asteroids.velocities[i].dx, pos.y + asteroids.velocities[i].dy);
+                asteroids.rotations[i] = new RotationComponentData(rot.angle + 2);
             }
         }
     }

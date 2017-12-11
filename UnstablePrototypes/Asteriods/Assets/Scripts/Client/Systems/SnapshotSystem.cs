@@ -5,45 +5,44 @@ using Unity.Collections;
 
 namespace Asteriods.Client
 {
+    [UpdateAfter(typeof(SpawnSystem))]
     public class SnapshotSystem : ComponentSystem
     {
-        public NativeQueue<MovementData> movementUpdates;
-        struct Spaceships
-        {
-            public int Length;
-            public ComponentDataArray<PlayerTagComponentData> input;
-            public ComponentArray<Transform> transform;
-        }
+        [Inject]
+        SpawnSystem m_SpawnSystem;
 
-        [InjectComponentGroup]
-        Spaceships spaceships;
+        public NativeQueue<MovementData> MovementUpdates;
 
         override protected void OnCreateManager(int capacity)
         {
             base.OnCreateManager(capacity);
 
-            movementUpdates = new NativeQueue<MovementData>(128, Allocator.Persistent);
-            Debug.Assert(movementUpdates.IsCreated);
+            MovementUpdates = new NativeQueue<MovementData>(128, Allocator.Persistent);
+            Debug.Assert(MovementUpdates.IsCreated);
         }
 
         override protected void OnDestroyManager()
         {
-            if (movementUpdates.IsCreated)
-                movementUpdates.Dispose();
+            if (MovementUpdates.IsCreated)
+                MovementUpdates.Dispose();
         }
 
         override protected void OnUpdate()
         {
-            if (movementUpdates.Count < 1)
-                return;
-            for (int i = 0; i < spaceships.transform.Length; i++)
+            for (int i = 0, c = MovementUpdates.Count; i < c; ++i)
             {
-                var data = movementUpdates.Dequeue();
-                var pos = new Vector3(data.position.x, data.position.y, 0);
-                var rot = new Vector3(0f, 0f, data.rotation.angle);
+                var update = MovementUpdates.Dequeue();
+                Entity e;
+                if (m_SpawnSystem.NetworkIdLookup.TryGetValue(update.id, out e) && EntityManager.Exists(e))
+                {
+                    var pos = new Vector3(update.position.x, update.position.y, 0);
+                    var rot = new Vector3(0f, 0f, update.rotation.angle);
 
-                spaceships.transform[i].position = pos;
-                spaceships.transform[i].rotation = Quaternion.Euler(rot);
+                    var transform = EntityManager.GetComponentObject<Transform>(e);
+
+                    transform.position = pos;
+                    transform.rotation = Quaternion.Euler(rot);
+                }
             }
         }
     }

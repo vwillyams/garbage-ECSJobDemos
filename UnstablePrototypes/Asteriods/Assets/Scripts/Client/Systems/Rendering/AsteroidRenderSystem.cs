@@ -16,7 +16,10 @@ public class AsteroidRenderSystem : ComponentSystem
         public int Length;
         [ReadOnly]
         public ComponentDataArray<AsteroidTagComponentData> tag;
-        public ComponentArray<Transform> transform;
+        [ReadOnly]
+        public ComponentDataArray<PositionComponentData> position;
+        [ReadOnly]
+        public ComponentDataArray<RotationComponentData> rotation;
     }
 
     [InjectComponentGroup]
@@ -53,12 +56,12 @@ public class AsteroidRenderSystem : ComponentSystem
 
         for (int asteroid = 0; asteroid < asteroids.Length; ++asteroid)
         {
-            float2 pos = LineRenderSystem.screenPosFromTransform(asteroids.transform[asteroid].position);
-            var rot = asteroids.transform[asteroid].rotation;
-            var rotTL = pos+LineRenderSystem.rotatePos(astrTL, rot)*pulse;
-            var rotTR = pos+LineRenderSystem.rotatePos(astrTR, rot)*pulse;
-            var rotBL = pos+LineRenderSystem.rotatePos(astrBL, rot)*pulse;
-            var rotBR = pos+LineRenderSystem.rotatePos(astrBR, rot)*pulse;
+            float2 pos = new float2(asteroids.position[asteroid].x, asteroids.position[asteroid].y);
+            var rot = asteroids.rotation[asteroid].angle;
+            var rotTL = pos+RotationComponentData.rotate(astrTL, rot)*pulse;
+            var rotTR = pos+RotationComponentData.rotate(astrTR, rot)*pulse;
+            var rotBL = pos+RotationComponentData.rotate(astrBL, rot)*pulse;
+            var rotBR = pos+RotationComponentData.rotate(astrBR, rot)*pulse;
             lines.Add(new LineRenderSystem.Line(rotTL, rotTR, astrColor, astrLineWidth));
             lines.Add(new LineRenderSystem.Line(rotTL, rotBL, astrColor, astrLineWidth));
             lines.Add(new LineRenderSystem.Line(rotTR, rotBR, astrColor, astrLineWidth));

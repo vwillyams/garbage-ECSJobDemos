@@ -10,7 +10,6 @@ namespace Asteriods.Server
 {
     public class SpawnSystem : ComponentSystem
     {
-        static float force = 1f;
         int m_SpawnId;
         struct Player
         {
@@ -59,7 +58,7 @@ namespace Asteriods.Server
                 var e = EntityManager.CreateEntity(GameSettings.Instance().playerArchetype);
 
                 var id = m_SpawnId++;
-                var pos = new PositionComponentData(5f, 5f);
+                var pos = new PositionComponentData(GameSettings.Instance().mapWidth / 2, GameSettings.Instance().mapHeight / 2);
                 var rot = new RotationComponentData(90f);
 
                 EntityManager.SetComponent<PositionComponentData>(e, pos);
@@ -76,11 +75,11 @@ namespace Asteriods.Server
             for (int i = asteroids.Length; i < 2; i++)
             {
                 var id = m_SpawnId++;
-                var pos = new PositionComponentData(Random.Range(-21.0f, 21.0f), Random.Range(-15.0f, 15f));
+                var pos = new PositionComponentData(Random.Range(0, GameSettings.Instance().mapWidth), Random.Range(0, GameSettings.Instance().mapHeight));
                 var rot = new RotationComponentData(Random.Range(-0.0f, 359.0f));
 
-                float dy = (float)(math.sin(math.radians(rot.angle + 90)) * 0.015);
-                float dx = (float)(math.cos(math.radians(rot.angle + 90)) * 0.015);
+                float dx = (float)(-math.sin(math.radians(rot.angle)) * GameSettings.Instance().asteroidVelocity);
+                float dy = (float)(math.cos(math.radians(rot.angle)) * GameSettings.Instance().asteroidVelocity);
 
                 var e = EntityManager.CreateEntity(GameSettings.Instance().asteroidArchetype);
 
@@ -124,8 +123,8 @@ namespace Asteriods.Server
                 float dx = 0;
                 float dy = 0;
 
-                dy += math.sin(math.radians(angle + 90)) * force;
-                dx += math.cos(math.radians(angle + 90)) * force;
+                dx -= math.sin(math.radians(angle)) * GameSettings.Instance().bulletVelocity;
+                dy += math.cos(math.radians(angle)) * GameSettings.Instance().bulletVelocity;
 
                 EntityManager.SetComponent<VelocityComponentData>(e, new VelocityComponentData(dx, dy));
                 EntityManager.SetComponent<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(id));

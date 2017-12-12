@@ -34,8 +34,8 @@ public class ParticleRenderSystem : ComponentSystem
             var position = particles.position[i];
             float2 pos = new float2(position.x, position.y);
             float2 dir = new float2(0, particle.length);
-            dir = LineRenderSystem.rotatePos(dir, Quaternion.Euler(0, 0, particles.rotation[i].angle));
-            lines.Add(new LineRenderSystem.Line(pos, pos + dir, particle.color, particle.width));
+            dir = RotationComponentData.rotate(dir, particles.rotation[i].angle);
+            lines.Add(new LineRenderSystem.Line(pos, pos - dir, particle.color, particle.width));
         }
     }
 }

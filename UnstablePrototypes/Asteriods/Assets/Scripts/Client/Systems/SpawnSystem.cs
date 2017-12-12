@@ -47,6 +47,8 @@ namespace Asteriods.Client
 
                         var e = go.GetComponent<GameObjectEntity>().Entity;
                         EntityManager.SetComponent<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(cmd.id));
+                        EntityManager.AddComponent(e, new PositionComponentData(cmd.position.x, cmd.position.y));
+                        EntityManager.AddComponent(e, new RotationComponentData(cmd.rotation.angle));
                         NetworkIdLookup.TryAdd(cmd.id, e);
                     } break;
                     case SpawnType.Bullet:
@@ -58,6 +60,8 @@ namespace Asteriods.Client
 
                         var e = go.GetComponent<GameObjectEntity>().Entity;
                         EntityManager.SetComponent<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(cmd.id));
+                        EntityManager.AddComponent(e, new PositionComponentData(cmd.position.x, cmd.position.y));
+                        EntityManager.AddComponent(e, new RotationComponentData(cmd.rotation.angle));
                         NetworkIdLookup.TryAdd(cmd.id, e);
                         GameObject.Destroy(go, 1.5f);
 
@@ -71,6 +75,8 @@ namespace Asteriods.Client
 
                         var e = go.GetComponent<GameObjectEntity>().Entity;
                         EntityManager.SetComponent<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(cmd.id));
+                        EntityManager.AddComponent(e, new PositionComponentData(cmd.position.x, cmd.position.y));
+                        EntityManager.AddComponent(e, new RotationComponentData(cmd.rotation.angle));
                         NetworkIdLookup.TryAdd(cmd.id, e);
                     } break;
                 }

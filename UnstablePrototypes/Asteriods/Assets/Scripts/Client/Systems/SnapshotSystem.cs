@@ -35,13 +35,8 @@ namespace Asteriods.Client
                 Entity e;
                 if (m_SpawnSystem.NetworkIdLookup.TryGetValue(update.id, out e) && EntityManager.Exists(e))
                 {
-                    var pos = new Vector3(update.position.x, update.position.y, 0);
-                    var rot = new Vector3(0f, 0f, update.rotation.angle);
-
-                    var transform = EntityManager.GetComponentObject<Transform>(e);
-
-                    transform.position = pos;
-                    transform.rotation = Quaternion.Euler(rot);
+                    EntityManager.SetComponent(e, new PositionComponentData(update.position.x, update.position.y));
+                    EntityManager.SetComponent(e, new RotationComponentData(update.rotation.angle));
                 }
             }
         }

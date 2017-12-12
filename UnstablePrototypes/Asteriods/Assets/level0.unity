@@ -148,6 +148,11 @@ MonoBehaviour:
   asteroidRadius: 0
   playerRadius: 0
   bulletRadius: 0
+  asteroidVelocity: 0.15
+  playerForce: 1
+  bulletVelocity: 10
+  mapWidth: 1024
+  mapHeight: 1024
 --- !u!4 &83804743
 Transform:
   m_ObjectHideFlags: 0

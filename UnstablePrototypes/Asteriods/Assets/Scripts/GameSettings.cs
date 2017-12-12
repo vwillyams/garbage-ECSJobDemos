@@ -11,6 +11,13 @@ public class GameSettings : MonoBehaviour
     public float playerRadius;
     public float bulletRadius;
 
+    public float asteroidVelocity;
+    public float playerForce;
+    public float bulletVelocity;
+
+    public int mapWidth;
+    public int mapHeight;
+
     public EntityArchetype playerArchetype;
     public EntityArchetype asteroidArchetype;
     public EntityArchetype bulletArchetype;
@@ -52,8 +59,12 @@ public class GameSettings : MonoBehaviour
             typeof(NetworkIdCompmonentData),
             typeof(VelocityComponentData));
 
-            asteroidRadius = 1.5f;
-            playerRadius = 1.0f;
-            bulletRadius = 0.1f;
+            asteroidRadius = 15f;
+            playerRadius = 10f;
+            bulletRadius = 1.0f;
+
+            // TODO: temp hack
+            mapWidth = Screen.width;
+            mapHeight = Screen.height;
     }
 }

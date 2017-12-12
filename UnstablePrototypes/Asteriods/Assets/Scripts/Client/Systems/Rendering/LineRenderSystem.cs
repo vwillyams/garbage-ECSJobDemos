@@ -37,7 +37,7 @@ public class LineRenderSystem : ComponentSystem
         NativeArray<Line> lines = m_LineList;
         m_Material.SetFloat("screenWidth", Screen.width);
         m_Material.SetFloat("screenHeight", Screen.height);
-        m_Material.SetBuffer("lines", m_ComputeBuffer);       
+        m_Material.SetBuffer("lines", m_ComputeBuffer);
         m_ComputeBuffer.SetData(lines);
         m_CommandBuffer.Clear();
         m_CommandBuffer.DrawProcedural(Matrix4x4.identity, m_Material, -1, MeshTopology.Triangles, m_LineList.Length*6);
@@ -71,19 +71,4 @@ public class LineRenderSystem : ComponentSystem
 
     public NativeList<Line> LineList { get { return m_LineList; } }
 
-    public static float2 rotatePos(float2 pos, Quaternion rot)
-    {
-        var result = rot * new Vector3(pos.x, -pos.y, 0);
-        return new float2(result.x, -result.y);
-    }
-
-    public static float2 screenPosFromTransform(Vector3 transPos)
-    {
-        float posXOffset = ((float)Camera.main.orthographicSize*(float)Screen.width)/(float)Screen.height;
-        float posYOffset = (float)Camera.main.orthographicSize;
-        float posXScale = (float)Screen.height/(float)(Camera.main.orthographicSize*2);
-        float posYScale = (float)Screen.height/(float)(Camera.main.orthographicSize*2);
-
-        return new float2((transPos.x+posXOffset)*posXScale,(posYOffset-transPos.y)*posYScale);
-    }
 }

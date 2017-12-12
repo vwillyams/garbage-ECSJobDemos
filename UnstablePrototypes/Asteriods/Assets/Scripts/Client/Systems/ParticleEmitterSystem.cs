@@ -15,13 +15,12 @@ public class ParticleEmitterSystem : ComponentSystem
         public int Length;
         [ReadOnly]
         public ComponentDataArray<ParticleEmitterComponentData> emitter;
-        //[ReadOnly]
-        //public ComponentDataArray<PositionComponentData> position;
-        //[ReadOnly]
-        //public ComponentDataArray<RotationComponentData> rotation;
+        [ReadOnly]
+        public ComponentDataArray<PositionComponentData> position;
+        [ReadOnly]
+        public ComponentDataArray<RotationComponentData> rotation;
         //[ReadOnly]
         //public ComponentDataArray<VelocityComponentData> velocity;
-        public ComponentArray<Transform> transform;
     }
 
     [InjectComponentGroup]
@@ -43,8 +42,8 @@ public class ParticleEmitterSystem : ComponentSystem
             {
                 var spawner = new ParticleSpawner();
                 spawner.emitter = emitters.emitter[em];
-                spawner.position = LineRenderSystem.screenPosFromTransform(emitters.transform[em].position);//new float2(emitters.position[em].x, emitters.position[em].y);
-                spawner.rotation = emitters.transform[em].eulerAngles.z;//emitters.rotation[em].angle;
+                spawner.position = new float2(emitters.position[em].x, emitters.position[em].y);
+                spawner.rotation = emitters.rotation[em].angle;
                 spawner.velocity = new float2(0,0);//new float2(emitters.velocity[em].dx, emitters.velocity[em].dy);
                 spawners.Add(spawner);
             }
@@ -52,13 +51,13 @@ public class ParticleEmitterSystem : ComponentSystem
         for (int em = 0; em < spawners.Length; ++em)
         {
             int particles = (int)(Time.deltaTime * spawners[em].emitter.particlesPerSecond + 0.5f);
-            float2 spawnOffset = LineRenderSystem.rotatePos(spawners[em].emitter.spawnOffset, Quaternion.Euler(0,0,spawners[em].rotation));
+            float2 spawnOffset = RotationComponentData.rotate(spawners[em].emitter.spawnOffset, spawners[em].rotation);
             for (int i = 0; i < particles; ++i)
             {
                 float particleRot = spawners[em].rotation + Random.Range(-spawners[em].emitter.angleSpread, spawners[em].emitter.angleSpread);
                 float particleVelocity = spawners[em].emitter.velocityBase + Random.Range(0, spawners[em].emitter.velocityRandom);
                 float2 particleDir = new float2(0, particleVelocity);
-                particleDir = LineRenderSystem.rotatePos(particleDir, Quaternion.Euler(0,0,particleRot));
+                particleDir = RotationComponentData.rotate(particleDir, particleRot);
                 particleDir += spawners[em].velocity;
                 var particle = m_EntityManager.CreateEntity();
                 m_EntityManager.AddComponent(particle, new ParticleComponentData(spawners[em].emitter.startLength, spawners[em].emitter.startWidth, spawners[em].emitter.startColor));

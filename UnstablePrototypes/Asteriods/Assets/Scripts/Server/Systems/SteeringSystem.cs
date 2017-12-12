@@ -11,7 +11,6 @@ namespace Asteriods.Server
     {
         public NativeQueue<PlayerInputComponentData> playerInputQueue;
 
-        static float force = 0.1f;
         static float displacement = 2.0f;
         struct Spaceships
         {
@@ -57,16 +56,16 @@ namespace Asteriods.Server
 
                 if (input.left == 1)
                 {
-                    angle += displacement;
+                    angle -= displacement;
                 }
                 if (input.right == 1)
                 {
-                    angle -= displacement;
+                    angle += displacement;
                 }
                 if (input.thrust == 1)
                 {
-                    dy += math.sin(math.radians(angle + 90)) * force * dt;
-                    dx += math.cos(math.radians(angle + 90)) * force * dt;
+                    dx -= math.sin(math.radians(angle)) * GameSettings.Instance().playerForce * dt;
+                    dy += math.cos(math.radians(angle)) * GameSettings.Instance().playerForce * dt;
                 }
             }
 

@@ -102,12 +102,12 @@ MonoBehaviour:
   m_SerializedData:
     particlesPerSecond: 600
     angleSpread: 30
-    velocityBase: 25
-    velocityRandom: 25
+    velocityBase: -50
+    velocityRandom: -25
     spawnOffset:
       x: 0
-      y: 10
-    spawnSpread: 2
+      y: -10
+    spawnSpread: 0
     particleLifetime: 0.5
     startLength: 1
     startWidth: 1
@@ -116,7 +116,7 @@ MonoBehaviour:
       y: 0.25
       z: 0
       w: 0.75
-    endLength: 5
+    endLength: 2
     endWidth: 10
     endColor:
       x: 1

@@ -23,6 +23,7 @@ GameObject:
   - component: {fileID: 114734546016870786}
   - component: {fileID: 114553045084771706}
   - component: {fileID: 114574229310413172}
+  - component: {fileID: 114990342543840932}
   m_Layer: 0
   m_Name: Ship
   m_TagString: Untagged
@@ -87,3 +88,39 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c90bdefb8c17dc418c424a165e0892b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &114990342543840932
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1326261091582206}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f113d302a6ce4fe4b9117231e18ee0ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SerializedData:
+    particlesPerSecond: 600
+    angleSpread: 30
+    velocityBase: 50
+    velocityRandom: 0
+    spawnOffset:
+      x: 0
+      y: 10
+    spawnSpread: 2
+    particleLifetime: 0.5
+    startLength: 1
+    startWidth: 1
+    startColor:
+      x: 1
+      y: 0.25
+      z: 0
+      w: 0.75
+    endLength: 5
+    endWidth: 10
+    endColor:
+      x: 1
+      y: 1
+      z: 0.5
+      w: 0
+    active: 1

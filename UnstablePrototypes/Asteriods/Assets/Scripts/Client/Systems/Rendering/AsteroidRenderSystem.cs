@@ -14,6 +14,7 @@ public class AsteroidRenderSystem : ComponentSystem
     struct Asteroid
     {
         public int Length;
+        [ReadOnly]
         public ComponentDataArray<AsteroidTagComponentData> tag;
         public ComponentArray<Transform> transform;
     }

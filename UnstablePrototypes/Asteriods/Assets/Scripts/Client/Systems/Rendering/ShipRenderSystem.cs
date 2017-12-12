@@ -5,6 +5,32 @@ using UnityEngine;
 using UnityEngine.ECS;
 using Unity.Mathematics;
 
+[UpdateBefore(typeof(ParticleEmitterSystem))]
+public class ShipThrustParticleSystem : ComponentSystem
+{
+    struct Spaceships
+    {
+        public int Length;
+        [ReadOnly]
+        public ComponentDataArray<PlayerTagComponentData> self;
+        [ReadOnly]
+        public ComponentDataArray<PlayerInputComponentData> input;
+        public ComponentDataArray<ParticleEmitterComponentData> emitter;
+    }
+    [InjectComponentGroup]
+    Spaceships spaceships;
+
+    override protected void OnUpdate()
+    {
+        for (int i = 0; i < spaceships.Length; ++i)
+        {
+            var emitter = spaceships.emitter[i];
+            emitter.active = spaceships.input[i].thrust;
+            spaceships.emitter[i] = emitter;
+        }
+    }
+}
+
 [UpdateBefore(typeof(LineRenderSystem))]
 public class ShipRenderSystem : ComponentSystem
 {
@@ -14,7 +40,9 @@ public class ShipRenderSystem : ComponentSystem
     struct Spaceships
     {
         public int Length;
+        [ReadOnly]
         public ComponentDataArray<PlayerTagComponentData> self;
+        [ReadOnly]
         public ComponentDataArray<PlayerInputComponentData> input;
         public ComponentArray<Transform> transform;
     }
@@ -41,20 +69,6 @@ public class ShipRenderSystem : ComponentSystem
 
             float2 pos = LineRenderSystem.screenPosFromTransform(spaceships.transform[ship].position);
             var rot = spaceships.transform[ship].rotation;
-
-            if (spaceships.input[ship].thrust > 0)
-            {
-                var rotTS = pos+LineRenderSystem.rotatePos(thrustStart, rot);
-                var rotTE = pos+LineRenderSystem.rotatePos(thrustEnd, rot);
-                float2 rotME = rotTS + (rotTE - rotTS)*0.5f;
-                for (int i = 0; i < 3; ++i)
-                {
-                    float2 midOfs = new float2(Random.Range(-5, 5), Random.Range(-5, 5));
-                    float2 endOfs = new float2(Random.Range(-2, 2), Random.Range(-2, 2));
-                    lines.Add(new LineRenderSystem.Line(rotTS, rotME+midOfs, new float4(1, 1, 0.5f, 1), 1));
-                    lines.Add(new LineRenderSystem.Line(rotME+midOfs, rotTE+endOfs, new float4(1, 1, 0.5f, 1), 1));
-                }
-            }
 
             var rotTop = pos+LineRenderSystem.rotatePos(shipTop, rot);
             var rotBL = pos+LineRenderSystem.rotatePos(shipBL, rot);

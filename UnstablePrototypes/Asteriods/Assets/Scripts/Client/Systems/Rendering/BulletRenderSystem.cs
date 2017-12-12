@@ -14,6 +14,7 @@ public class BulletRenderSystem : ComponentSystem
     struct Bullet
     {
         public int Length;
+        [ReadOnly]
         public ComponentDataArray<BulletTagComponentData> tag;
         public ComponentArray<Transform> transform;
     }
@@ -26,8 +27,8 @@ public class BulletRenderSystem : ComponentSystem
         NativeList<LineRenderSystem.Line> lines = m_LineRenderSystem.LineList;
         float bulletWidth = 2;
         float bulletLength = 2;
-        float trailWidth = 1;
-        float trailLength = 10;
+        float trailWidth = 4;
+        float trailLength = 4;
         float4 bulletColor = new float4((float)0xfc / (float)255, (float)0x0f / (float)255, (float)0xc0 / (float)255, 1);
         float4 trailColor = new float4((float)0xfc / (float)255, (float)0x0f / (float)255, (float)0xc0 / (float)255, 0.25f);
         float2 bulletTop = new float2(0,-bulletLength/2);

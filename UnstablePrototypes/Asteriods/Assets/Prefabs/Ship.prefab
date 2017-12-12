@@ -102,8 +102,8 @@ MonoBehaviour:
   m_SerializedData:
     particlesPerSecond: 600
     angleSpread: 30
-    velocityBase: 50
-    velocityRandom: 0
+    velocityBase: 25
+    velocityRandom: 25
     spawnOffset:
       x: 0
       y: 10

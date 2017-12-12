@@ -10,6 +10,9 @@ namespace Asteriods.Client
     public class DespawnSystem : ComponentSystem
     {
         [Inject]
+        EntityManager m_EntityManager;
+
+        [Inject]
         SpawnSystem m_SpawnSystem;
 
         public NativeQueue<int> DespawnQueue;
@@ -37,9 +40,7 @@ namespace Asteriods.Client
                 if (m_SpawnSystem.NetworkIdLookup.TryGetValue(id, out e) && EntityManager.Exists(e))
                 {
                     Debug.Log("despawn for " + id + " received");
-                    var transform = EntityManager.GetComponentObject<Transform>(e);
-                    GameObject.Destroy(transform.gameObject);
-                    //EntityManager.DestroyEntity(e);
+                    m_EntityManager.DestroyEntity(e);
                 }
             }
         }

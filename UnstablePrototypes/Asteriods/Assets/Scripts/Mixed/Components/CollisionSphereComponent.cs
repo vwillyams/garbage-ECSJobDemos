@@ -12,5 +12,3 @@ public struct CollisionSphereComponentData : IComponentData
         this.radius = radius;
     }
 }
-
-public class CollisionSphereComponent : ComponentDataWrapper<CollisionSphereComponentData> { }

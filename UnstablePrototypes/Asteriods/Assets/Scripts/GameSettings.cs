@@ -4,8 +4,6 @@ using UnityEngine.ECS;
 public class GameSettings : MonoBehaviour
 {
     public GameObject playerPrefab;
-    public GameObject bulletPrefab;
-    public GameObject asteroidPrefab;
 
     public float asteroidRadius;
     public float playerRadius;
@@ -21,6 +19,9 @@ public class GameSettings : MonoBehaviour
     public EntityArchetype playerArchetype;
     public EntityArchetype asteroidArchetype;
     public EntityArchetype bulletArchetype;
+    public EntityArchetype playerClientArchetype;
+    public EntityArchetype asteroidClientArchetype;
+    public EntityArchetype bulletClientArchetype;
     EntityManager m_EntityManager;
 
     static GameSettings m_Instance;
@@ -36,7 +37,7 @@ public class GameSettings : MonoBehaviour
         m_EntityManager = World.Active.GetOrCreateManager<EntityManager>();
 
         playerArchetype = m_EntityManager.CreateArchetype(
-            typeof(PositionComponentData), 
+            typeof(PositionComponentData),
             typeof(RotationComponentData),
             typeof(PlayerTagComponentData),
             typeof(CollisionSphereComponentData),
@@ -44,7 +45,7 @@ public class GameSettings : MonoBehaviour
             typeof(VelocityComponentData));
 
         asteroidArchetype = m_EntityManager.CreateArchetype(
-            typeof(PositionComponentData), 
+            typeof(PositionComponentData),
             typeof(RotationComponentData),
             typeof(AsteroidTagComponentData),
             typeof(CollisionSphereComponentData),
@@ -52,12 +53,33 @@ public class GameSettings : MonoBehaviour
             typeof(VelocityComponentData));
 
         bulletArchetype = m_EntityManager.CreateArchetype(
-            typeof(PositionComponentData), 
+            typeof(PositionComponentData),
             typeof(RotationComponentData),
             typeof(BulletTagComponentData),
+            typeof(BulletAgeComponentData),
             typeof(CollisionSphereComponentData),
             typeof(NetworkIdCompmonentData),
             typeof(VelocityComponentData));
+
+        playerClientArchetype = m_EntityManager.CreateArchetype(
+            typeof(PositionComponentData),
+            typeof(RotationComponentData),
+            typeof(PlayerTagComponentData),
+            typeof(PlayerInputComponentData),
+            typeof(NetworkIdCompmonentData),
+            typeof(ParticleEmitterComponentData));
+
+        asteroidClientArchetype = m_EntityManager.CreateArchetype(
+            typeof(PositionComponentData),
+            typeof(RotationComponentData),
+            typeof(AsteroidTagComponentData),
+            typeof(NetworkIdCompmonentData));
+
+        bulletClientArchetype = m_EntityManager.CreateArchetype(
+            typeof(PositionComponentData),
+            typeof(RotationComponentData),
+            typeof(BulletTagComponentData),
+            typeof(NetworkIdCompmonentData));
 
             asteroidRadius = 15f;
             playerRadius = 10f;

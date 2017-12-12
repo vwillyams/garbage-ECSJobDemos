@@ -10,4 +10,3 @@ public struct NetworkIdCompmonentData : IComponentData
         this.id = id;
     }
 }
-public class NetworkIdComponent : ComponentDataWrapper<NetworkIdCompmonentData> { }

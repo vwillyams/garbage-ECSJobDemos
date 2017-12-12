@@ -40,43 +40,28 @@ namespace Asteriods.Client
                 {
                     case SpawnType.Asteroid:
                     {
-                        var go = GameObject.Instantiate(
-                            GameSettings.Instance().asteroidPrefab, 
-                            new Vector3(cmd.position.x, cmd.position.y, 0), 
-                            Quaternion.Euler(0f, 0f, cmd.rotation.angle));
-
-                        var e = go.GetComponent<GameObjectEntity>().Entity;
+                        Entity e = EntityManager.CreateEntity(GameSettings.Instance().asteroidClientArchetype);
                         EntityManager.SetComponent<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(cmd.id));
-                        EntityManager.AddComponent(e, new PositionComponentData(cmd.position.x, cmd.position.y));
-                        EntityManager.AddComponent(e, new RotationComponentData(cmd.rotation.angle));
+                        EntityManager.SetComponent(e, new PositionComponentData(cmd.position.x, cmd.position.y));
+                        EntityManager.SetComponent(e, new RotationComponentData(cmd.rotation.angle));
                         NetworkIdLookup.TryAdd(cmd.id, e);
                     } break;
                     case SpawnType.Bullet:
                     {
-                        var go = GameObject.Instantiate(
-                            GameSettings.Instance().bulletPrefab, 
-                            new Vector3(cmd.position.x, cmd.position.y, 0), 
-                            Quaternion.Euler(0f, 0f, cmd.rotation.angle));
-
-                        var e = go.GetComponent<GameObjectEntity>().Entity;
+                        Entity e = EntityManager.CreateEntity(GameSettings.Instance().bulletClientArchetype);
                         EntityManager.SetComponent<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(cmd.id));
-                        EntityManager.AddComponent(e, new PositionComponentData(cmd.position.x, cmd.position.y));
-                        EntityManager.AddComponent(e, new RotationComponentData(cmd.rotation.angle));
+                        EntityManager.SetComponent(e, new PositionComponentData(cmd.position.x, cmd.position.y));
+                        EntityManager.SetComponent(e, new RotationComponentData(cmd.rotation.angle));
                         NetworkIdLookup.TryAdd(cmd.id, e);
-                        GameObject.Destroy(go, 1.5f);
 
                     } break;
                     case SpawnType.Ship:
                     {
-                        var go = GameObject.Instantiate(
-                            GameSettings.Instance().playerPrefab, 
-                            new Vector3(cmd.position.x, cmd.position.y, 0), 
-                            Quaternion.Euler(0f, 0f, cmd.rotation.angle));
-
-                        var e = go.GetComponent<GameObjectEntity>().Entity;
+                        Entity e = EntityManager.CreateEntity(GameSettings.Instance().playerClientArchetype);
                         EntityManager.SetComponent<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(cmd.id));
-                        EntityManager.AddComponent(e, new PositionComponentData(cmd.position.x, cmd.position.y));
-                        EntityManager.AddComponent(e, new RotationComponentData(cmd.rotation.angle));
+                        EntityManager.SetComponent(e, new PositionComponentData(cmd.position.x, cmd.position.y));
+                        EntityManager.SetComponent(e, new RotationComponentData(cmd.rotation.angle));
+                        EntityManager.SetComponent(e, GameSettings.Instance().playerPrefab.GetComponent<ParticleEmitterComponent>().Value);
                         NetworkIdLookup.TryAdd(cmd.id, e);
                     } break;
                 }

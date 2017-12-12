@@ -12,5 +12,3 @@ public struct VelocityComponentData : IComponentData
         this.dy = y;
     }
 }
-
-public class VelocityComponent : ComponentDataWrapper<VelocityComponentData> { }

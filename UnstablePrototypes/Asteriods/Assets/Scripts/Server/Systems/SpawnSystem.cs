@@ -126,6 +126,7 @@ namespace Asteriods.Server
                 dx -= math.sin(math.radians(angle)) * GameSettings.Instance().bulletVelocity;
                 dy += math.cos(math.radians(angle)) * GameSettings.Instance().bulletVelocity;
 
+                EntityManager.SetComponent(e, new BulletAgeComponentData(1.5f));
                 EntityManager.SetComponent<VelocityComponentData>(e, new VelocityComponentData(dx, dy));
                 EntityManager.SetComponent<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(id));
                 EntityManager.SetComponent<CollisionSphereComponentData>(

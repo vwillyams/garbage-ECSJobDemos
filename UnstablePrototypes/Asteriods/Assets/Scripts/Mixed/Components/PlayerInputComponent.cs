@@ -17,4 +17,3 @@ public struct PlayerInputComponentData : IComponentData
     }
 }
 
-public class PlayerInputComponent : ComponentDataWrapper<PlayerInputComponentData> { }

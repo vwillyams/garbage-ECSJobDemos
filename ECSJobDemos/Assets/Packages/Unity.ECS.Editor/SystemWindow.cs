@@ -22,8 +22,8 @@ namespace UnityEditor.ECS
 		[System.Serializable]
 		public class SystemViewData
 		{
-			public string name;
-			public string fullName;
+			public readonly string name;
+			public readonly string fullName;
 			public Rect position;
 			public List<int> updateAfter;
 			public List<int> updateBefore;
@@ -90,13 +90,13 @@ namespace UnityEditor.ECS
 					{
 						if (attribute.AttributeType == typeof(UpdateAfter))
 						{
-							var type = attribute.ConstructorArguments[0].Value as Type;
+							var type = (Type)attribute.ConstructorArguments[0].Value;
 							if (systemViewIndicesByType.ContainsKey(type))
 								systemView.updateAfter.Add(systemViewIndicesByType[type]);
 						}
 						if (attribute.AttributeType == typeof(UpdateBefore))
 						{
-							var type = attribute.ConstructorArguments[0].Value as Type;
+							var type = (Type)attribute.ConstructorArguments[0].Value;
 							if (systemViewIndicesByType.ContainsKey(type))
 								systemView.updateBefore.Add(systemViewIndicesByType[type]);
 						}

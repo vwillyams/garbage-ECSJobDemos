@@ -206,7 +206,7 @@ namespace UnityEngine.ECS
 		public static void SetPlayerLoopAndNotify(PlayerLoopSystem playerLoop)
 		{
 			UnityEngine.Experimental.LowLevel.PlayerLoop.SetPlayerLoop(playerLoop);
-			OnSetPlayerLoop(playerLoop);
+			OnSetPlayerLoop?.Invoke(playerLoop);
 		}
 	}
 }

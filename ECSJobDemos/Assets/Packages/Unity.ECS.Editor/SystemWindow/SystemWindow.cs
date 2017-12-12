@@ -33,7 +33,6 @@ namespace UnityEditor.ECS
 		{
 			if (systemGraphView == null)
 				systemGraphView = new SystemGraphView();
-			systemGraphView.SetSystems(systemTypes, ref systemViews);
 			
 			if (playerLoopListView == null)
 				playerLoopListView = new PlayerLoopListView(playerLoopListState);
@@ -48,6 +47,7 @@ namespace UnityEditor.ECS
 
 		void OnSetPlayerLoop(PlayerLoopSystem playerLoop)
 		{
+		    systemGraphView.SetSystems(systemTypes, ref systemViews);
 			playerLoopListView.UpdatePlayerLoop(playerLoop, new HashSet<string>(from v in systemViews select v.fullName));
 		}
 

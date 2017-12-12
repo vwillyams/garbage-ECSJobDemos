@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Security.Cryptography;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
@@ -22,6 +21,7 @@ namespace UnityEditor.ECS
 		[System.Serializable]
 		public class SystemViewData
 		{
+			[SerializeField]
 			public string name;
 			public string fullName;
 			public Rect position;
@@ -110,7 +110,7 @@ namespace UnityEditor.ECS
 		void GraphLayout()
 		{
 			var rowLength = Mathf.RoundToInt(Mathf.Sqrt(systemViews.Count));
-			if (rowLength == 0f)
+			if (rowLength == 0)
 				return;
 			var x = 0;
 			var y = 0;

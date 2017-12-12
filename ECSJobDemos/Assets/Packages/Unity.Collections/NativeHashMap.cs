@@ -466,7 +466,7 @@ namespace Unity.Collections
 			NativeHashMapData.AllocateHashMap<TKey, TValue> (capacity, capacity*2, label, out m_Buffer);
 
 			#if ENABLE_UNITY_COLLECTIONS_CHECKS
-			DisposeSentinel.Create(m_Buffer, label, out m_Safety, out m_DisposeSentinel, 0, NativeHashMapData.DeallocateHashMap);
+			DisposeSentinel.Create(out m_Safety, out m_DisposeSentinel, 0);
 			#endif
 
 			Clear();
@@ -636,7 +636,7 @@ namespace Unity.Collections
 			NativeHashMapData.AllocateHashMap<TKey, TValue> (capacity, capacity*2, label, out m_Buffer);
 
 			#if ENABLE_UNITY_COLLECTIONS_CHECKS
-			DisposeSentinel.Create(m_Buffer, label, out m_Safety, out m_DisposeSentinel, 0, NativeHashMapData.DeallocateHashMap);
+			DisposeSentinel.Create(out m_Safety, out m_DisposeSentinel, 0);
 			#endif
 
 			Clear();

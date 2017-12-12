@@ -135,7 +135,7 @@ namespace Unity.Collections
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 
-            DisposeSentinel.Create(m_Buffer, i_label, out m_Safety, out m_DisposeSentinel, stackDepth, NativeListData.DeallocateList);
+            DisposeSentinel.Create(out m_Safety, out m_DisposeSentinel, stackDepth);
 #endif
 		}
 

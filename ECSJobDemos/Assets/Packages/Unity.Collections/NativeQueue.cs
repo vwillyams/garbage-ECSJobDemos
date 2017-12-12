@@ -262,7 +262,7 @@ namespace Unity.Collections
 			NativeQueueData.AllocateQueue<T>(capacity, label, out m_Buffer);
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-			DisposeSentinel.Create(m_Buffer, label, out m_Safety, out m_DisposeSentinel, 0, NativeQueueData.DeallocateQueue);
+			DisposeSentinel.Create(out m_Safety, out m_DisposeSentinel, 0);
 #endif
 		}
 

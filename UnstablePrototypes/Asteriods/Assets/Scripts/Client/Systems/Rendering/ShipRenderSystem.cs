@@ -61,9 +61,6 @@ public class ShipRenderSystem : ComponentSystem
         float2 shipBL = new float2(-shipWidth/2,shipHeight/2);
         float2 shipBR = new float2(shipWidth/2,shipHeight/2);
 
-        float2 thrustStart = new float2(0, shipHeight/2);
-        float2 thrustEnd = new float2(0, shipHeight/2 + 20);
-
         for (int ship = 0; ship < spaceships.Length; ++ship)
         {
 

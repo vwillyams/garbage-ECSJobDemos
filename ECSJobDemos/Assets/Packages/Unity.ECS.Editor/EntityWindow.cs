@@ -119,23 +119,18 @@ namespace UnityEditor.ECS
             }
         }
 
-        Rect GetExpandingRect()
-        {
-            return GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
-        }
-
         void SystemList(bool systemsWereNull)
         {
             if (systemsWereNull)
                 systemListView.SetManagers(systems);
-            systemListView.OnGUI(GetExpandingRect());
+            systemListView.OnGUI(GUIHelpers.GetExpandingRect());
         }
 
         void ComponentGroupList()
         {
             if (CurrentSystemSelection != null)
             {
-                _componentGroupListView.OnGUI(GetExpandingRect());
+                _componentGroupListView.OnGUI(GUIHelpers.GetExpandingRect());
             }
         }
 
@@ -144,19 +139,8 @@ namespace UnityEditor.ECS
             if (currentComponentGroupSelection != null)
             {
                 entityListView.PrepareData();
-                entityListView.OnGUI(GetExpandingRect());
+                entityListView.OnGUI(GUIHelpers.GetExpandingRect());
             }
-        }
-
-        void ShowNoSystemsNotification()
-        {
-            GUILayout.FlexibleSpace();
-            GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            GUILayout.Label("No ComponentSystems loaded. (Try pushing Play)");
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
-            GUILayout.FlexibleSpace();
         }
 
         void OnGUI ()
@@ -166,7 +150,7 @@ namespace UnityEditor.ECS
             systemsNull = systems == null;
             if (systemsNull)
             {
-                ShowNoSystemsNotification();
+                GUIHelpers.ShowCenteredNotification(new Rect(Vector2.zero, position.size), "No ComponentSystems loaded. (Try pushing Play)");
                 return;
             }
 

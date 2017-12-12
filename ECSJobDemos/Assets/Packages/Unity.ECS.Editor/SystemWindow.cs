@@ -22,8 +22,8 @@ namespace UnityEditor.ECS
 		[System.Serializable]
 		public class SystemViewData
 		{
-			public readonly string name;
-			public readonly string fullName;
+			public string name;
+			public string fullName;
 			public Rect position;
 			public List<int> updateAfter;
 			public List<int> updateBefore;

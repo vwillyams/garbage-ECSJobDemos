@@ -9,7 +9,6 @@ using UnityEngine.Experimental.LowLevel;
 
 namespace UnityEditor.ECS
 {
-
 	public class SystemWindow : EditorWindow
 	{
 		private readonly Rect kStartPosition = new Rect(0f, 0f, 1f, 1f);
@@ -47,7 +46,7 @@ namespace UnityEditor.ECS
 		}
 
 		[SerializeField] private List<SystemViewData> systemViews;
-		[SerializeField] private TreeViewState playerLoopListState;
+		[SerializeField] private TreeViewState playerLoopListState = new TreeViewState();
 		private PlayerLoopListView playerLoopListView;
 		
 		Type[] systemTypes
@@ -105,6 +104,7 @@ namespace UnityEditor.ECS
 			}
 			if (playerLoopListView == null)
 				playerLoopListView = new PlayerLoopListView(playerLoopListState);
+			OnSetPlayerLoop(PlayerLoopHelper.currentPlayerLoop);
 		}
 
 		void GraphLayout()
@@ -138,12 +138,12 @@ namespace UnityEditor.ECS
 		void OnEnable()
 		{
 			Initialize();
-			World.OnSetPlayerLoop += OnSetPlayerLoop;
+			PlayerLoopHelper.OnUpdatePlayerLoop += OnSetPlayerLoop;
 		}
 
 		void OnDisable()
 		{
-			World.OnSetPlayerLoop -= OnSetPlayerLoop;
+			PlayerLoopHelper.OnUpdatePlayerLoop -= OnSetPlayerLoop;
 		}
 		
 		void ShowNoSystemsNotification()
@@ -161,8 +161,6 @@ namespace UnityEditor.ECS
 
 		void OnGUI()
 		{
-			Initialize();
-			
 			GUILayout.BeginHorizontal();
 
 			GUILayout.BeginVertical();

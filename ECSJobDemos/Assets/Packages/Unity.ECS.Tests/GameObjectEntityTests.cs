@@ -1,7 +1,9 @@
-﻿    using UnityEngine.ECS;
+﻿using UnityEngine.ECS;
 using NUnit.Framework;
 using Unity.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 
 namespace UnityEngine.ECS.Tests
@@ -22,20 +24,24 @@ namespace UnityEngine.ECS.Tests
         }
 
         [Test]
+        public void GameObjectEntityNotAdded()
+        {
+            var go = new GameObject("test", typeof(GameObjectEntity));
+            var entity = GameObjectEntity.AddToEntityManager(m_Manager, go);
+            Assert.IsFalse(m_Manager.HasComponent<GameObjectEntity>(entity));
+        }
+        
+        [Test]
         public void ComponentDataAndTransformArray()
         {
-            var entityMan = DependencyManager.GetBehaviourManager<EntityManager> ();
-
-            var go = new GameObject ();
-            go.AddComponent<EcsTestComponent> ();
-            // Execute in edit mode is not enabled so this has to be called manually right now
-            go.GetComponent<GameObjectEntity>().OnEnable();
-
-            entityMan.SetComponent(go.GetComponent<GameObjectEntity>().Entity, new EcsTestData(5));
-
-			var grp = entityMan.CreateComponentGroup(typeof(Transform), typeof(EcsTestData));
-
+            var go = new GameObject("test", typeof(EcsTestComponent));
+            var entity = GameObjectEntity.AddToEntityManager(m_Manager, go);
+            
+            m_Manager.SetComponent(entity, new EcsTestData(5));
+            
+			var grp = m_Manager.CreateComponentGroup(typeof(Transform), typeof(EcsTestData));
 			var arr = grp.GetComponentArray<Transform>();
+            
 			Assert.AreEqual(1, arr.Length);
             Assert.AreEqual(go.transform, arr[0]);
             Assert.AreEqual(5, grp.GetComponentDataArray<EcsTestData>()[0].value);
@@ -46,19 +52,64 @@ namespace UnityEngine.ECS.Tests
         [Test]
         public void RigidbodyComponentArray()
         {
-            var entityMan = DependencyManager.GetBehaviourManager<EntityManager>();
+            var go = new GameObject("test", typeof(Rigidbody));
+            var entity = GameObjectEntity.AddToEntityManager(m_Manager, go);
 
-            var go = new GameObject();
-            go.AddComponent<Rigidbody>();
-            // Execute in edit mode is not enabled so this has to be called manually right now
-            go.AddComponent<GameObjectEntity>().OnEnable();
-
-            var grp = entityMan.CreateComponentGroup(typeof(Rigidbody));
+            var grp = m_Manager.CreateComponentGroup(typeof(Rigidbody));
 
             var arr = grp.GetComponentArray<Rigidbody>();
             Assert.AreEqual(1, arr.Length);
             Assert.AreEqual(go.GetComponent<UnityEngine.Rigidbody>(), arr[0]);
 
+            Object.DestroyImmediate(go);
+        }
+
+        unsafe struct MyEntity
+        {
+            public Light              light;
+            public Rigidbody          rigidbody;
+            
+            public EcsTestData*       testData;
+            public EcsTestData2*      testData2;
+        }
+
+        [Test]
+        [Ignore("TODO")]
+        public void ComponentEnumeratorInvalidChecks()
+        {
+            //* Check for string in MyEntity and other illegal constructs...
+        }
+
+        [Test]
+        [Ignore("TODO")]
+        public void AddComponentDuringForeachProtection()
+        {
+            //* Check for string in MyEntity and other illegal constructs...
+        }
+        [Test]
+        unsafe public void ComponentEnumerator()
+        {
+            var go = new GameObject("test", typeof(Rigidbody), typeof(Light));
+            var entity = GameObjectEntity.AddToEntityManager(m_Manager, go);
+
+            m_Manager.AddComponent(entity, new EcsTestData(5));
+            m_Manager.AddComponent(entity, new EcsTestData2(6));
+
+            var cache = new ComponentGroupArrayStaticCache(typeof(MyEntity), m_Manager);
+            
+            var array = new ComponentGroupArray<MyEntity>(cache);
+            int iterations = 0;
+            foreach (var e in array )
+            {
+                Assert.AreEqual(5, e.testData->value);
+                Assert.AreEqual(6, e.testData2->value0);
+                Assert.AreEqual(go.GetComponent<Light>(), e.light);
+                Assert.AreEqual(go.GetComponent<Rigidbody>(), e.rigidbody);
+                iterations++;
+            }
+            Assert.AreEqual(1, iterations);
+
+            cache.Dispose();
             Object.DestroyImmediate(go);
         }
     }

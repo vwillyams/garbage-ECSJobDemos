@@ -2,7 +2,6 @@
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using System;
-using System.Runtime.InteropServices;
 
 namespace UnityEngine.ECS
 {
@@ -28,7 +27,10 @@ namespace UnityEngine.ECS
         public override bool Equals(object compare) { return this == (Entity)compare; }
         public override int GetHashCode() { return index; }
 
-        //@TODO: Manager index for debugging?
+        public static Entity Null
+        {
+            get { return new Entity(); }
+        }
     }
 
     public class EntityManager : ScriptBehaviourManager
@@ -44,11 +46,13 @@ namespace UnityEngine.ECS
         unsafe ComponentType*             m_CachedComponentTypeArray;
         unsafe ComponentTypeInArchetype*  m_CachedComponentTypeInArchetypeArray;
 
+        protected sealed override void OnCreateManagerInternal(int capacity)
+        {
+        }
+
         unsafe protected override void OnCreateManager(int capacity)
         {
-            base.OnCreateManager(capacity);
-
-            m_Entities.OnCreate();
+            m_Entities.OnCreate(capacity);
             m_ArchetypeManager = new ArchetypeManager();
             m_JobSafetyManager = new ComponentJobSafetyManager();
             m_GroupManager = new EntityGroupManager(m_JobSafetyManager);
@@ -61,8 +65,6 @@ namespace UnityEngine.ECS
 
         unsafe protected override void OnDestroyManager()
         {
-            base.OnDestroyManager();
-
             m_JobSafetyManager.Dispose(); m_JobSafetyManager = null;
             m_SharedComponentManager.Dispose(); m_SharedComponentManager = null;
             m_Entities.OnDestroy();
@@ -74,6 +76,10 @@ namespace UnityEngine.ECS
 
             UnsafeUtility.Free((IntPtr)m_CachedComponentTypeInArchetypeArray, Allocator.Persistent);
             m_CachedComponentTypeInArchetypeArray = null;
+        }
+
+        internal override void InternalUpdate()
+        {
         }
 
         unsafe public bool IsCreated { get { return (m_CachedComponentTypeArray != null); } }
@@ -363,13 +369,13 @@ namespace UnityEngine.ECS
 
         public unsafe T GetComponentObject<T>(Entity entity) where T : Component 
         {
-            int typeIndex = TypeManager.GetTypeIndex<T>();
-            m_Entities.AssertEntityHasComponent(entity, typeIndex);
+            ComponentType componentType = ComponentType.Create<T>();
+            m_Entities.AssertEntityHasComponent(entity, componentType.typeIndex);
 
             Chunk* chunk;
             int chunkIndex;
             m_Entities.GetComponentChunk(entity, out chunk, out chunkIndex);
-            return m_ArchetypeManager.GetManagedObject(chunk, typeIndex, chunkIndex) as T;
+            return m_ArchetypeManager.GetManagedObject(chunk, componentType, chunkIndex) as T;
         }
 
         /// Shared component data

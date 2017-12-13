@@ -41,15 +41,16 @@ namespace Unity.Collections
 			}
 			if (data->m_FreeCount > 0)
 			{
-				data->m_FreeCountTLS[threadIndex * IntsPerCacheLine] = -0xffff;
+				Interlocked.Exchange(ref data->m_FreeCountTLS[threadIndex * IntsPerCacheLine], -0xffff);
 				// Grab some data from the shared cache
 				int count = Interlocked.Add(ref data->m_FreeCount, -16) + 16;
 				count = Math.Min(16, count);
 				if (count > 0)
 				{
-					data->m_FreeCountTLS[threadIndex * IntsPerCacheLine] = count-1;
+					Interlocked.Exchange(ref data->m_FreeCountTLS[threadIndex * IntsPerCacheLine], count-1);
 					return true;
 				}
+				Interlocked.Exchange(ref data->m_FreeCountTLS[threadIndex * IntsPerCacheLine], 0);
 			}
 			// Try to steal a single item from another worker
 			bool again = true;
@@ -239,11 +240,12 @@ namespace Unity.Collections
     [NativeContainer]
     public struct NativeQueue<T> where T : struct
     {
-
+	    [NativeDisableUnsafePtrRestriction]
         System.IntPtr m_Buffer;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         AtomicSafetyHandle m_Safety;
+	    [NativeSetClassTypeToNullOnSchedule]
         DisposeSentinel m_DisposeSentinel;
 #endif
 
@@ -260,7 +262,7 @@ namespace Unity.Collections
 			NativeQueueData.AllocateQueue<T>(capacity, label, out m_Buffer);
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-			DisposeSentinel.Create(m_Buffer, label, out m_Safety, out m_DisposeSentinel, 0, NativeQueueData.DeallocateQueue);
+			DisposeSentinel.Create(out m_Safety, out m_DisposeSentinel, 0);
 #endif
 		}
 
@@ -380,6 +382,13 @@ namespace Unity.Collections
 
 		unsafe public T Dequeue()
 		{
+			T item;
+			if (!TryDequeue(out item))
+				throw new InvalidOperationException("Trying to dequeue from an empty queue");
+			return item;
+		}
+		unsafe public bool TryDequeue(out T item)
+		{
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
@@ -390,7 +399,10 @@ namespace Unity.Collections
 			{
 				int nextUsedBlock = (data->m_FirstUsedBlock+1) % data->m_NumBlocks;
 				if (blockLengths[nextUsedBlock*NativeQueueData.IntsPerCacheLine] == 0 && blockLengths[data->m_FirstUsedBlock*NativeQueueData.IntsPerCacheLine] != data->m_BlockSize)
-					throw new InvalidOperationException("Trying to dequeue from an empty queue");
+				{
+					item = default(T);
+					return false;
+				}
 				blockLengths[data->m_FirstUsedBlock*NativeQueueData.IntsPerCacheLine] = 0;
 				for (int tls = 0; tls < JobsUtility.MaxJobThreadCount; ++tls)
 				{
@@ -403,7 +415,10 @@ namespace Unity.Collections
 				data->m_CurrentReadIndexInBlock = 0;
 			}
 			if (blockLengths[data->m_FirstUsedBlock*NativeQueueData.IntsPerCacheLine] == 0)
-				throw new InvalidOperationException("Trying to dequeue from an empty queue");
+			{
+				item = default(T);
+				return false;
+			}
 
 			if (data->m_FreeCount <= 0)
 				data->m_FreeCount = 1;
@@ -412,7 +427,8 @@ namespace Unity.Collections
 
             int idx = data->m_FirstUsedBlock * data->m_BlockSize + data->m_CurrentReadIndexInBlock;
 			data->m_CurrentReadIndexInBlock++;
-			return UnsafeUtility.ReadArrayElement<T>(data->m_Data, idx);
+			item = UnsafeUtility.ReadArrayElement<T>(data->m_Data, idx);
+			return true;
 		}
 
 		unsafe public void Clear()
@@ -456,6 +472,7 @@ namespace Unity.Collections
 		[NativeContainerNeedsThreadIndex]
 		public struct Concurrent
 		{
+			[NativeDisableUnsafePtrRestriction]
 			IntPtr 	m_Buffer;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS

@@ -69,18 +69,17 @@ namespace UnityEngine.ECS
             }
         }
 
-
         public static void ClearComponents(Chunk* dstChunk, int dstIndex, int count)
         {
             Archetype* arch = dstChunk->archetype;
 
-            for (int e = 0; e < count;e++)
+            for (int t = 1; t != arch->typesCount; t++)
             {
-                for (int t = 1; t != arch->typesCount; t++)
-                {
-                    IntPtr dst = GetComponentData(dstChunk, dstIndex + e, t);
-                    UnsafeUtility.MemClear(dst, arch->sizeOfs[t]);
-                }
+                int offset = dstChunk->archetype->offsets[t];
+                int stride = dstChunk->archetype->strides[t];
+                IntPtr dst = dstChunk->buffer + (offset + stride * dstIndex);
+
+                UnsafeUtility.MemClear(dst, stride * count);
             }
         }
 

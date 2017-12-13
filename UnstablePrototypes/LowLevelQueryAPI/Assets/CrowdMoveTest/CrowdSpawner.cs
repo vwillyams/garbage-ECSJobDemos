@@ -14,7 +14,7 @@ public class CrowdSpawner : MonoBehaviour
 
     void Update()
     {
-        var entityManager = DependencyManager.GetBehaviourManager<EntityManager>();
+        var entityManager = World.Active.GetOrCreateManager<EntityManager>();
         for (var i = 0; i < newAgents; ++i)
         {
             var pos = new Vector3(Random.Range(-range, range), 0, Random.Range(-range, range));

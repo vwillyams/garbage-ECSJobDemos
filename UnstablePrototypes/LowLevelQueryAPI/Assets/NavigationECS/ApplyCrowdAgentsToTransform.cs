@@ -1,4 +1,5 @@
 using Unity.Collections;
+using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Jobs;
@@ -35,12 +36,10 @@ class CrowdAgentsToTransformSystem : JobComponentSystem
         }
     }
 
-    public override void OnUpdate()
+    protected override JobHandle OnUpdate(JobHandle inputDeps)
     {
-        base.OnUpdate();
-
         WriteCrowdAgentsToTransformsJob writeJob;
         writeJob.crowdAgents = m_Crowd.agents;
-        AddDependency(writeJob.Schedule(m_Crowd.agentTransforms, GetDependency()));
+        return writeJob.Schedule(m_Crowd.agentTransforms, inputDeps);
     }
 }

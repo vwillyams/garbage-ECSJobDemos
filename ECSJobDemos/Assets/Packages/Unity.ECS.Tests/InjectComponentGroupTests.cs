@@ -2,7 +2,10 @@
 using NUnit.Framework;
 using Unity.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Threading;
 using Unity.Jobs;
+using UnityEngine.Jobs;
 
 namespace UnityEngine.ECS.Tests
 {
@@ -21,7 +24,9 @@ namespace UnityEngine.ECS.Tests
 			[InjectComponentGroup] 
 			public DataAndEntites Group;
 
-			public override void OnUpdate() { base.OnUpdate (); }
+			protected override void OnUpdate()
+			{
+			}
 		}
 
 		[DisableAutoCreation]
@@ -36,7 +41,26 @@ namespace UnityEngine.ECS.Tests
 			[InjectComponentGroup] 
 			public Datas Group;
 
-			public override void OnUpdate() { base.OnUpdate (); }
+			protected override void OnUpdate()
+			{
+			}
+		}
+
+		[DisableAutoCreation]
+		public class SubtractiveSystem : ComponentSystem
+		{
+			public struct Datas
+			{
+				public ComponentDataArray<EcsTestData> Data;
+				public SubtractiveComponent<EcsTestData2> Data2;
+			}
+
+			[InjectComponentGroup] 
+			public Datas Group;
+
+			protected override void OnUpdate()
+			{
+			}
 		}
 
 		
@@ -44,20 +68,36 @@ namespace UnityEngine.ECS.Tests
 		[Test]
         public void ReadOnlyComponentDataArray()
         {
-            var readOnlySystem = DependencyManager.GetBehaviourManager<PureReadOnlySystem> ();
+            var readOnlySystem = World.GetOrCreateManager<PureReadOnlySystem> ();
 
             var go = m_Manager.CreateEntity (new ComponentType[0]);
             m_Manager.AddComponent (go, new EcsTestData(2));
 
-            readOnlySystem.OnUpdate ();
+            readOnlySystem.Update ();
             Assert.AreEqual (2, readOnlySystem.Group.Data[0].value);
             Assert.Throws<System.InvalidOperationException>(()=> { readOnlySystem.Group.Data[0] = new EcsTestData(); });
+        }
+
+		[Test]
+        public void SubtractiveComponent()
+        {
+            var subtractiveSystem = World.GetOrCreateManager<SubtractiveSystem> ();
+
+            var go = m_Manager.CreateEntity (new ComponentType[0]);
+            m_Manager.AddComponent (go, new EcsTestData(2));
+
+            subtractiveSystem.Update ();
+            Assert.AreEqual (1, subtractiveSystem.Group.Data.Length);
+            Assert.AreEqual (2, subtractiveSystem.Group.Data[0].value);
+            m_Manager.AddComponent (go, new EcsTestData2());
+            subtractiveSystem.Update ();
+            Assert.AreEqual (0, subtractiveSystem.Group.Data.Length);
         }
         
         [Test]
         public void RemoveComponentGroupTracking()
         {
-            var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
+            var pureSystem = World.GetOrCreateManager<PureEcsTestSystem> ();
 
             var go0 = m_Manager.CreateEntity (new ComponentType[0]);
             m_Manager.AddComponent (go0, new EcsTestData(10));
@@ -65,31 +105,31 @@ namespace UnityEngine.ECS.Tests
             var go1 = m_Manager.CreateEntity ();
             m_Manager.AddComponent (go1, new EcsTestData(20));
 
-            pureSystem.OnUpdate ();
+            pureSystem.Update ();
             Assert.AreEqual (2, pureSystem.Group.Length);
             Assert.AreEqual (10, pureSystem.Group.Data[0].value);
             Assert.AreEqual (20, pureSystem.Group.Data[1].value);
 
             m_Manager.RemoveComponent<EcsTestData> (go0);
 
-            pureSystem.OnUpdate ();
+            pureSystem.Update ();
             Assert.AreEqual (1, pureSystem.Group.Length);
             Assert.AreEqual (20, pureSystem.Group.Data[0].value);
 
             m_Manager.RemoveComponent<EcsTestData> (go1);
-            pureSystem.OnUpdate ();
+            pureSystem.Update ();
             Assert.AreEqual (0, pureSystem.Group.Length);
         }
 
         [Test]
         public void EntityGroupTracking()
         {
-            var pureSystem = DependencyManager.GetBehaviourManager<PureEcsTestSystem> ();
+            var pureSystem = World.GetOrCreateManager<PureEcsTestSystem> ();
 
             var go = m_Manager.CreateEntity (new ComponentType[0]);
             m_Manager.AddComponent (go, new EcsTestData(2));
 
-            pureSystem.OnUpdate ();
+            pureSystem.Update ();
             Assert.AreEqual (1, pureSystem.Group.Length);
             Assert.AreEqual (1, pureSystem.Group.Data.Length);
             Assert.AreEqual (1, pureSystem.Group.Entities.Length);
@@ -127,33 +167,31 @@ namespace UnityEngine.ECS.Tests
 
 			public Entity entity;
 			
-			public override void OnUpdate()
+			protected override JobHandle OnUpdate(JobHandle inputDeps)
 			{
-				base.OnUpdate ();
-				
 				var job = new IncrementValueJob();
 				job.entity = entity;
 				job.ecsTestDataFromEntity = ecsTestDataFromEntity;
 				job.intArrayFromEntity = intArrayFromEntity;
 
-				AddDependency(job.Schedule(GetDependency()));
+				return job.Schedule(inputDeps);
 			}
 		}
 		
 		[Test]
 		public void FromEntitySystemIncrementInJobWorks()
 		{
-			var system = DependencyManager.GetBehaviourManager<FromEntitySystemIncrementInJob> ();
+			var system = World.GetOrCreateManager<FromEntitySystemIncrementInJob> ();
 
 			var entity = m_Manager.CreateEntity (typeof(EcsTestData), ComponentType.FixedArray(typeof(int), 5));
 			system.entity = entity;
-			system.OnUpdate ();
-			system.OnUpdate ();
+			system.Update();
+			system.Update();
 
 			Assert.AreEqual(2, m_Manager.GetComponent<EcsTestData>(entity).value);
 			Assert.AreEqual(2, m_Manager.GetFixedArray<int>(entity)[0]);
 		}
-	    
+
 		[DisableAutoCreation]
 	    public class OnDestroyManagerJobsHaveCompletedJobSystem : JobComponentSystem
 	    {
@@ -181,7 +219,7 @@ namespace UnityEngine.ECS.Tests
 		        
 	            var job = new Job();
 	            job.data = group.Data;
-	            AddDependency(job.Schedule());
+	            AddDependencyInternal(job.Schedule());
 
 	            base.OnDestroyManager();
             
@@ -190,12 +228,12 @@ namespace UnityEngine.ECS.Tests
 	            Assert.AreEqual(42, group.Data[0].value);   
 	        }
 	    }
-		
+
 		[Test]
 		public void OnDestroyManagerJobsHaveCompleted()
 		{
 			m_Manager.CreateEntity (typeof(EcsTestData));
-			DependencyManager.GetBehaviourManager<OnDestroyManagerJobsHaveCompletedJobSystem>();
+			World.GetOrCreateManager<OnDestroyManagerJobsHaveCompletedJobSystem>();
 			TearDown();
 		}
 
@@ -226,7 +264,7 @@ namespace UnityEngine.ECS.Tests
 		{
 			var entity = m_Manager.CreateEntity (typeof(EcsTestData));
 			m_Manager.SetComponent(entity, new EcsTestData(42));
-			DependencyManager.GetBehaviourManager<OnCreateManagerComponentGroupInjectionSystem>();
+			World.GetOrCreateManager<OnCreateManagerComponentGroupInjectionSystem>();
 		}
 	}
 }

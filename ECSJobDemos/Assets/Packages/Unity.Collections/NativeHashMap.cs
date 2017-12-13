@@ -187,7 +187,7 @@ namespace Unity.Collections
 				if (idx < 0)
 				{
 					// Try to refill local cache
-					data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine] = -2;
+					Interlocked.Exchange(ref data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine], -2);
 					// If it failed try to get one from the never-allocated array
 					if (data->allocatedIndexLength < data->capacity)
 					{
@@ -201,11 +201,11 @@ namespace Unity.Collections
 							}
 							nextPtrs[idx+count - 1] = -1;
 							nextPtrs[idx] = -1;
-							data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine] = idx + 1;
+							Interlocked.Exchange(ref data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine], idx + 1);
 							return idx;
 						}
 					}
-					data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine] = -1;
+					Interlocked.Exchange(ref data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine], -1);
 					// Failed to get any, try to get one from another free list
 					bool again = true;
 					while (again)
@@ -263,9 +263,9 @@ namespace Unity.Collections
 						// Put back the entry in the free list if someone else added it while trying to add
 						do
 						{
-							nextPtrs[idx] = data->firstFreeTLS[threadIndex];
+							nextPtrs[idx] = data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine];
 						} 
-						while (Interlocked.CompareExchange(ref data->firstFreeTLS[threadIndex], idx, nextPtrs[idx]) != nextPtrs[idx]);
+						while (Interlocked.CompareExchange(ref data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine], idx, nextPtrs[idx]) != nextPtrs[idx]);
 
 						return false;
 					}
@@ -448,10 +448,12 @@ namespace Unity.Collections
 		where TKey : struct, System.IEquatable<TKey>
 		where TValue : struct
 	{
+		[NativeDisableUnsafePtrRestriction]
 		System.IntPtr 			m_Buffer;
 
 		#if ENABLE_UNITY_COLLECTIONS_CHECKS
 		AtomicSafetyHandle 		m_Safety;
+		[NativeSetClassTypeToNullOnSchedule]
 		DisposeSentinel			m_DisposeSentinel;
 		#endif
 
@@ -464,7 +466,7 @@ namespace Unity.Collections
 			NativeHashMapData.AllocateHashMap<TKey, TValue> (capacity, capacity*2, label, out m_Buffer);
 
 			#if ENABLE_UNITY_COLLECTIONS_CHECKS
-			DisposeSentinel.Create(m_Buffer, label, out m_Safety, out m_DisposeSentinel, 0, NativeHashMapData.DeallocateHashMap);
+			DisposeSentinel.Create(out m_Safety, out m_DisposeSentinel, 0);
 			#endif
 
 			Clear();
@@ -557,11 +559,13 @@ namespace Unity.Collections
 			m_Buffer = IntPtr.Zero;
 		}
 
+		
 		[NativeContainer]
 		[NativeContainerIsAtomicWriteOnly]
 		[NativeContainerNeedsThreadIndex]
 		public struct Concurrent
 		{
+			[NativeDisableUnsafePtrRestriction]
 			IntPtr 	m_Buffer;
 
 			#if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -597,6 +601,7 @@ namespace Unity.Collections
 				}
 			}
 
+			
 			unsafe public bool TryAdd(TKey key, TValue item)
 			{
 				#if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -613,10 +618,12 @@ namespace Unity.Collections
 		where TKey : struct, System.IEquatable<TKey>
 		where TValue : struct
 	{
+		[NativeDisableUnsafePtrRestriction]
 		System.IntPtr 			m_Buffer;
 
 		#if ENABLE_UNITY_COLLECTIONS_CHECKS
 		AtomicSafetyHandle 		m_Safety;
+		[NativeSetClassTypeToNullOnSchedule]
 		DisposeSentinel			m_DisposeSentinel;
 		#endif
 
@@ -629,7 +636,7 @@ namespace Unity.Collections
 			NativeHashMapData.AllocateHashMap<TKey, TValue> (capacity, capacity*2, label, out m_Buffer);
 
 			#if ENABLE_UNITY_COLLECTIONS_CHECKS
-			DisposeSentinel.Create(m_Buffer, label, out m_Safety, out m_DisposeSentinel, 0, NativeHashMapData.DeallocateHashMap);
+			DisposeSentinel.Create(out m_Safety, out m_DisposeSentinel, 0);
 			#endif
 
 			Clear();
@@ -750,6 +757,7 @@ namespace Unity.Collections
 		[NativeContainerNeedsThreadIndex]
 		public struct Concurrent
 		{
+			[NativeDisableUnsafePtrRestriction]
 			IntPtr 	m_Buffer;
 
 			#if ENABLE_UNITY_COLLECTIONS_CHECKS

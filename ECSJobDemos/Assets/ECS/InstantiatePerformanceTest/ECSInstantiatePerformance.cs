@@ -1,13 +1,14 @@
 ﻿using UnityEngine;
 using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine.ECS;
 using UnityEngine.Profiling;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using System;
-using UnityEngine.Assertions;
+using Unity.Jobs.LowLevel.Unsafe;
 
-// 64 + 16 + 12 + 128 = 220 bytes
+// 64 + 16 + 12 + 128 + 4 + 4 = 228 bytes
 
 struct Component64Bytes : IComponentData
 {
@@ -29,6 +30,16 @@ struct Component4Bytes : IComponentData
 	public float value;
 }
 
+struct Component4BytesDst : IComponentData
+{
+	public float value;
+
+	public Component4BytesDst(float v)
+	{
+		value = v;
+	}
+}
+
 struct Component128Bytes : IComponentData
 {
     float4x4 value0;
@@ -37,16 +48,132 @@ struct Component128Bytes : IComponentData
 
 public class ECSInstantiatePerformance : MonoBehaviour
 {
+	unsafe struct EntityIter
+	{
+		public Component4Bytes* 	src;
+		public Component4BytesDst* 	dst;
+	}
+	
+	[ComputeJobOptimization]
+	struct Iterate_ComponentDataArray : IJob
+	{
+		public ComponentDataArray<Component4Bytes> 		src;
+		public ComponentDataArray<Component4BytesDst> 	dst;
+		
+		public void Execute()
+		{
+			for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
+			{
+				//@TODO: Ref returns upgrade
+				for (int i = 0; i < src.Length; ++i)
+					dst[i] = new Component4BytesDst(src[i].value);
+			}
+		}
+	}
+	
+	[ComputeJobOptimization]
+	struct Iterate_ProcessEntities : IJobProcessEntities<EntityIter>
+	{
+		unsafe public void Execute(EntityIter entity)
+		{
+			entity.dst->value = entity.src->value;
+		}
+	}
+	
+	//@TODO: Burst can't do this yet
+	//[ComputeJobOptimization]
+	struct Iterate_ForEachEntities : IJob
+	{
+		public ComponentGroupArray<EntityIter> entities;
+
+		unsafe public void Execute()
+		{
+			foreach (var entity in entities)
+				entity.dst->value = entity.src->value;
+		}
+	}
+	
+	[ComputeJobOptimization]
+	struct Iterate_ProcessComponentData : IJobProcessComponentData<Component4Bytes, Component4BytesDst>
+	{
+		public void Execute(ref Component4Bytes src, ref Component4BytesDst dst)
+		{
+			dst.value = src.value;
+		}
+	}
+
+	[ComputeJobOptimization]
+	unsafe struct Iterate_FloatPointer : IJob
+	{
+		[NativeDisableUnsafePtrRestriction]
+		public float* 	src;
+		[NativeDisableUnsafePtrRestriction]
+		public float* 	dst;
+		public int 		length;
+		
+		public void Execute()
+		{
+			for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
+			{
+				for (int i = 0; i < length; ++i)
+					dst[i] = src[i];
+			}
+		}
+	}
+
+	[ComputeJobOptimization]
+	struct Iterate_NativeArrayParallelFor : IJobParallelFor
+	{
+		[NativeMatchesParallelForLength]
+		public NativeArray<float> 	src;
+		
+		[NativeMatchesParallelForLength]
+		public NativeArray<float> 	dst;
+		
+		public void Execute(int i)
+		{
+			dst[i] = src[i];
+		}
+	}
+	
+	[ComputeJobOptimization]
+	struct Iterate_NativeArray : IJob
+	{
+		public NativeArray<float> 	src;
+		public NativeArray<float> 	dst;
+		
+		public void Execute()
+		{
+			for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
+			{
+				for (int i = 0; i < dst.Length; ++i)
+					dst[i] = src[i];
+			}
+		}
+	}
+
+	[ComputeJobOptimization]
+	struct Iterate_NativeSlice : IJob
+	{
+		public NativeSlice<float> 	src;
+		public NativeSlice<float> 	dst;
+		
+		public void Execute()
+		{
+			for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
+			{
+				for (int i = 0; i < dst.Length; ++i)
+					dst[i] = src[i];
+			}
+		}
+	}
+	
 	CustomSampler setupSampler;
 	CustomSampler instantiateSampler;
 	CustomSampler destroySampler;
-	CustomSampler iterateSampler;
     CustomSampler memcpySampler;
 	CustomSampler instantiateMemcpySampler ;
-	CustomSampler iterateUnsafeSampler;
 	CustomSampler iterateArraySampler;
-	CustomSampler iterateNativeArraySampler;
-	CustomSampler iterateNativeSliceSampler;
 	 
     void Awake()
 	{
@@ -54,27 +181,22 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		instantiateSampler = CustomSampler.Create("InstantiateTest");
 		instantiateMemcpySampler = CustomSampler.Create("InstantiateTest - Memcpy");
 		destroySampler = CustomSampler.Create("DestroyTest");
-        iterateSampler = CustomSampler.Create("IterateTest - ComponentDataArray<Component4Bytes>");
         memcpySampler = CustomSampler.Create("Iterate - Memcpy");
-		iterateUnsafeSampler = CustomSampler.Create("Iterate - Unsafe Ptr float");
 		iterateArraySampler = CustomSampler.Create("Iterate - float[]");
-		iterateNativeArraySampler = CustomSampler.Create("Iterate - NativeArray<float>");
-		iterateNativeSliceSampler = CustomSampler.Create("Iterate - NativeSlice<float>");
     }
 
 	unsafe void TestManagedArray()
 	{
 		setupSampler.Begin();
-		var array = new float[PerformanceTestConfiguration.InstanceCount];
+		var src = new float[PerformanceTestConfiguration.InstanceCount];
+		var dst = new float[PerformanceTestConfiguration.InstanceCount];
 		setupSampler.End();
 
 		iterateArraySampler.Begin();
 		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
 		{
-			float sum = 0;
-			for (int i = 0; i != array.Length; i++)
-				sum += array[i];
-			Assert.AreEqual(0.0F, sum);
+			for (int i = 0; i != src.Length; i++)
+				dst[i] = src[i];
 		}
 		iterateArraySampler.End();
 	}
@@ -82,33 +204,23 @@ public class ECSInstantiatePerformance : MonoBehaviour
 	unsafe void TestNativeArray()
 	{
 		setupSampler.Begin();
-		var array = new NativeArray<float>(PerformanceTestConfiguration.InstanceCount, Allocator.Persistent);
+		var src = new NativeArray<float>(PerformanceTestConfiguration.InstanceCount, Allocator.Persistent);
+		var dst = new NativeArray<float>(PerformanceTestConfiguration.InstanceCount, Allocator.Persistent);
 		setupSampler.End();
 
-		iterateNativeArraySampler.Begin();
-		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations;iter++)
-		{
-			float sum = 0;
-			for (int i = 0; i != array.Length; i++)
-				sum += array[i];
-			Assert.AreEqual(0.0F, sum);
-		}
-		iterateNativeArraySampler.End();
-		
+		var jobArray = new Iterate_NativeArray() { src = src, dst = dst };
+		jobArray.Run();
 
-		iterateNativeSliceSampler.Begin();
-		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations;iter++)
-		{
-			var slice = new NativeSlice<float>(array);
-			float sum = 0;
-			for (int i = 0; i != slice.Length; i++)
-				sum += slice[i];
-			Assert.AreEqual(0.0F, sum);
-		}
-		iterateNativeSliceSampler.End();
+		var jobArrayParallellFor = new Iterate_NativeArrayParallelFor() { src = src, dst = dst };
+		for (int i = 0;i != PerformanceTestConfiguration.Iterations;i++)
+			jobArrayParallellFor.Run(src.Length);
+		
+		var jobSlice = new Iterate_NativeSlice() { src = src, dst = dst };
+		jobSlice.Run();
 
 		setupSampler.Begin();
-		array.Dispose();
+		src.Dispose();
+		dst.Dispose();
 		setupSampler.End();
 	}
 	
@@ -134,17 +246,8 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		}
 		memcpySampler.End();
 
-		iterateUnsafeSampler.Begin();
-		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
-		{
-			float* ptr = src;
-			float sum = 0;
-			int count = PerformanceTestConfiguration.InstanceCount;
-			for (int i = 0; i != count; i++)
-				sum += ptr[i];
-			Assert.AreEqual(0.0F, sum);
-		}
-		iterateUnsafeSampler.End();
+		var jobFloatPtr = new Iterate_FloatPointer() { src = src, dst = dst, length = PerformanceTestConfiguration.InstanceCount };
+		jobFloatPtr.Run();
 		
 		setupSampler.Begin();
 		UnsafeUtility.Free((IntPtr)src, Allocator.Persistent);
@@ -155,21 +258,21 @@ public class ECSInstantiatePerformance : MonoBehaviour
 	unsafe void TestEntities()
 	{
 		setupSampler.Begin();
-		DependencyManager oldRoot = null;
+		World oldRoot = null;
 		if (PerformanceTestConfiguration.CleanManagers)
 		{
-			oldRoot = DependencyManager.Root;
-			DependencyManager.Root = new DependencyManager();
-			DependencyManager.SetDefaultCapacity(PerformanceTestConfiguration.InstanceCount * 2);
+			oldRoot = World.Active;
+			World.Active = new World();
+			World.Active.SetDefaultCapacity(PerformanceTestConfiguration.InstanceCount * 2);
 		}
 
-		var entityManager = DependencyManager.GetBehaviourManager<EntityManager>();
+		var entityManager = World.Active.GetOrCreateManager<EntityManager>();
 
 		setupSampler.End();
 		
 		setupSampler.Begin();
-		var archetype = entityManager.CreateEntity(typeof(Component128Bytes), typeof(Component12Bytes), typeof(Component64Bytes), typeof(Component16Bytes), typeof(Component4Bytes));
-		var group = entityManager.CreateComponentGroup(typeof(Component4Bytes));
+		var archetype = entityManager.CreateEntity(typeof(Component128Bytes), typeof(Component12Bytes), typeof(Component64Bytes), typeof(Component16Bytes), typeof(Component4Bytes), typeof(Component4BytesDst));
+		var group = entityManager.CreateComponentGroup(typeof(Component4Bytes), typeof(Component4BytesDst));
 		setupSampler.End();		
 		
 		instantiateSampler.Begin ();
@@ -177,17 +280,30 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		entityManager.Instantiate (archetype, instances);
 		instantiateSampler.End();
 
-		iterateSampler.Begin ();
-		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
-		{
-			var array = group.GetComponentDataArray<Component4Bytes>();
-			float sum = 0;
-			for (int i = 0; i < array.Length; ++i)
-				sum += array[i].value;
-			Assert.AreEqual(0.0F, sum);
-		}
-		iterateSampler.End ();
+		var src = group.GetComponentDataArray<Component4Bytes>();
+		var dst = group.GetComponentDataArray<Component4BytesDst>();
 
+		var componentDataArrayJob = new Iterate_ComponentDataArray() { src = src, dst = dst };
+		componentDataArrayJob.Run();
+
+		var componentProcessDataJob = new Iterate_ProcessComponentData();
+		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
+			componentProcessDataJob.Run(src, dst);
+		
+		var entityArrayCache = new ComponentGroupArrayStaticCache(typeof(EntityIter), entityManager);
+		var entityArray = new ComponentGroupArray<EntityIter>(entityArrayCache);
+
+		var componentProcessEntities = new Iterate_ProcessEntities();
+		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
+			componentProcessEntities.Run(entityArray);
+
+		var componentForEachEntities = new Iterate_ForEachEntities();
+		componentForEachEntities.entities = entityArray;
+		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
+			componentForEachEntities.Run();
+
+		entityArrayCache.Dispose();
+		
 		destroySampler.Begin ();
 		entityManager.DestroyEntity (instances);
 		destroySampler.End ();
@@ -200,8 +316,8 @@ public class ECSInstantiatePerformance : MonoBehaviour
 	    
 		if (oldRoot != null)
 		{
-			DependencyManager.Root.Dispose();
-			DependencyManager.Root = oldRoot;
+			World.Active.Dispose();
+			World.Active = oldRoot;
 		}
 		setupSampler.End();
 	}
@@ -209,9 +325,14 @@ public class ECSInstantiatePerformance : MonoBehaviour
 
 	unsafe void Update()
     {
+	    var wasEnabled = JobsUtility.JobDebuggerEnabled;
+	    JobsUtility.JobDebuggerEnabled = false;
+
 	    TestUnsafePtr();
 	    TestManagedArray();
 	    TestNativeArray();
 	    TestEntities();
+	    
+	    JobsUtility.JobDebuggerEnabled = wasEnabled;
     }
 }

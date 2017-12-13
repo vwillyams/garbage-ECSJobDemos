@@ -1,0 +1,10 @@
+{
+  "name": "com.unity.gamecode",
+  "version": "0.0.1",
+  "unity": "2018.1",
+  "description": "Unity Game Code Bundle",
+  "keywords": [
+    "unity"
+  ],
+  "category": "AssetStore/Unity"
+}

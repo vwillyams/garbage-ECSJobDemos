@@ -3,6 +3,7 @@ using UnityEngine;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine.ECS;
+using UnityEngine.Experimental.AI;
 
 [UpdateAfter(typeof(CrowdSystem))]
 public class RandomDestinationSystem : JobComponentSystem
@@ -17,36 +18,37 @@ public class RandomDestinationSystem : JobComponentSystem
     [InjectComponentGroup]
     CrowdGroup m_Crowd;
 
+    NavMeshQuery m_NavMeshQuery;
+
     const int k_AgentsPerBatch = 100;
 
     protected override void OnCreateManager(int capacity)
     {
         base.OnCreateManager(capacity);
+
+        m_NavMeshQuery = new NavMeshQuery(NavMeshWorld.GetDefaultWorld(), Allocator.Persistent);
     }
 
     protected override void OnDestroyManager()
     {
         base.OnDestroyManager();
+
+        m_NavMeshQuery.Dispose();
     }
 
-    public override void OnUpdate()
+    protected override JobHandle OnUpdate(JobHandle inputDeps)
     {
-        base.OnUpdate();
-
         if (m_Crowd.agents.Length == 0)
-            return;
+            return inputDeps;
 
-        CompleteDependency();
-
-        var destinationJob = new SetDestinationJob { agents = m_Crowd.agents, agentNavigators = m_Crowd.agentNavigators, randomNumber = UnityEngine.Random.value };
-        var afterDestinationsSet = destinationJob.Schedule(m_Crowd.agents.Length, k_AgentsPerBatch);
-        JobHandle.ScheduleBatchedJobs();
-
-        AddDependency(afterDestinationsSet);
+        var destinationJob = new SetDestinationJob { query = m_NavMeshQuery, agents = m_Crowd.agents, agentNavigators = m_Crowd.agentNavigators, randomNumber = UnityEngine.Random.value };
+        return destinationJob.Schedule(m_Crowd.agents.Length, k_AgentsPerBatch, inputDeps);
     }
 
     public struct SetDestinationJob : IJobParallelFor
     {
+        [ReadOnly]
+        public NavMeshQuery query;
         [ReadOnly]
         public float randomNumber;
         [ReadOnly]
@@ -64,7 +66,7 @@ public class RandomDestinationSystem : JobComponentSystem
                 return;
 
             var agent = agents[index];
-            if (!agent.location.valid)
+            if (!query.IsValid(agent.location))
                 return;
 
             var agPos = agent.location.position;

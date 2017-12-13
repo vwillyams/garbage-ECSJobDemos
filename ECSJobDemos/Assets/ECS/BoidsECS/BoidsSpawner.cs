@@ -72,7 +72,7 @@ namespace BoidSimulations
 
 		void OnEnable()
 		{
-            m_EntityManager = DependencyManager.GetBehaviourManager<EntityManager>();
+            m_EntityManager = World.Active.GetOrCreateManager<EntityManager>();
 			Instantiate (initialCount);
 		}
 

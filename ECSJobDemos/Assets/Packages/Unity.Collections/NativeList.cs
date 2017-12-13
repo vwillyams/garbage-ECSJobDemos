@@ -28,10 +28,12 @@ namespace Unity.Collections
 	[NativeContainer]
 	public struct NativeList<T> where T : struct
 	{
+		[NativeDisableUnsafePtrRestriction]
 		internal System.IntPtr 			m_Buffer;
 		Allocator 						m_AllocatorLabel;
 		#if ENABLE_UNITY_COLLECTIONS_CHECKS
 		internal AtomicSafetyHandle 	m_Safety;
+		[NativeSetClassTypeToNullOnSchedule]
 		DisposeSentinel					m_DisposeSentinel;
 		#endif
 
@@ -133,7 +135,7 @@ namespace Unity.Collections
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 
-            DisposeSentinel.Create(m_Buffer, i_label, out m_Safety, out m_DisposeSentinel, stackDepth, NativeListData.DeallocateList);
+            DisposeSentinel.Create(out m_Safety, out m_DisposeSentinel, stackDepth);
 #endif
 		}
 

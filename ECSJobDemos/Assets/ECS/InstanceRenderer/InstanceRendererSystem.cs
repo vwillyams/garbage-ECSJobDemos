@@ -11,6 +11,8 @@ namespace UnityEngine.ECS.Rendering
 
         public unsafe static void CopyMatrices(ComponentDataArray<InstanceRendererTransform> transforms, int beginIndex, int length, Matrix4x4[] outMatrices)
         {
+	        // @TODO: This is only unsafe because the Unity DrawInstances API takes a Matrix4x4[] instead of NativeArray.
+	        ///       And we also want the code to be really fast.
             fixed (Matrix4x4* matricesPtr = outMatrices)
             {
                 UnityEngine.Assertions.Assert.AreEqual(sizeof(Matrix4x4), sizeof(InstanceRendererTransform));
@@ -23,10 +25,8 @@ namespace UnityEngine.ECS.Rendering
         }
 
 
-        public override void  OnUpdate()
+        protected override void OnUpdate()
 		{
-			base.OnUpdate();
-
             var uniqueRendererTypes = new NativeList<ComponentType>(10, Allocator.TempJob);
             EntityManager.GetAllUniqueSharedComponents(typeof(InstanceRenderer), uniqueRendererTypes);
 

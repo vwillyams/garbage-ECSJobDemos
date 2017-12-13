@@ -79,7 +79,7 @@ namespace UnityEngine.ECS
                 return typeIndex;
             else
             {
-                int componentSize = 4;
+                int componentSize = 0;
                 TypeCategory category;
                 
                 if (typeof(IComponentData).IsAssignableFrom(type))
@@ -102,7 +102,6 @@ namespace UnityEngine.ECS
 #endif
                     
                     category = TypeCategory.ISharedComponentData;
-                    componentSize = 0;
                 }
                 else if (type.IsValueType)
                 {

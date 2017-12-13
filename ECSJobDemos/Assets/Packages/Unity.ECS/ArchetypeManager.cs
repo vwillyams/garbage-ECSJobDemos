@@ -76,7 +76,7 @@ namespace UnityEngine.ECS
 			ComponentType type;
 			type.FixedArrayLength = FixedArrayLength;
 			type.typeIndex = typeIndex;
-			type.readOnly = 0;
+			type.accessMode = ComponentType.AccessMode.ReadWrite;
 			type.sharedComponentIndex = sharedComponentIndex;
 			return type.ToString();
 		}
@@ -194,7 +194,7 @@ namespace UnityEngine.ECS
 		
         public Archetype* GetArchetype(ComponentTypeInArchetype* types, int count, EntityGroupManager groupManager, SharedComponentDataManager sharedComponentManager)
 		{
-			uint hash = HashUtility.fletcher32((ushort*)types, count * sizeof(ComponentType) / sizeof(ushort));
+			uint hash = HashUtility.fletcher32((ushort*)types, count * sizeof(ComponentTypeInArchetype) / sizeof(ushort));
 			IntPtr typePtr;
 			Archetype* type;
 			NativeMultiHashMapIterator<uint> it;
@@ -364,7 +364,15 @@ namespace UnityEngine.ECS
             
         }*/
 
-		public object GetManagedObject(Chunk* chunk, int type, int index)
+        public object GetManagedObject(Chunk* chunk, ComponentType type, int index)
+        {
+            int typeOfs = ChunkDataUtility.GetIndexInTypeArray(chunk->archetype, type.typeIndex);
+            if (typeOfs < 0 || chunk->archetype->managedArrayOffset[typeOfs] < 0)
+                throw new InvalidOperationException("Trying to get managed object for non existing component");
+            return GetManagedObject(chunk, typeOfs, index);
+        }
+
+        internal object GetManagedObject(Chunk* chunk, int type, int index)
 		{
 			int managedStart = chunk->archetype->managedArrayOffset[type] * chunk->capacity;
 			return m_ManagedArrays[chunk->managedArrayIndex].managedArray[index + managedStart];

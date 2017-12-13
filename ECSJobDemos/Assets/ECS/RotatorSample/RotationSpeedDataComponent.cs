@@ -60,15 +60,13 @@ namespace RotatorSamples
 		[InjectComponentGroup]
 		Group m_Rotators;
 		
-		public override void OnUpdate()
+		protected override JobHandle OnUpdate(JobHandle inputDeps)
 		{
-			base.OnUpdate ();
-
 			var job = new Job();
 			job.dt = Time.deltaTime;
 			job.rotators = m_Rotators.rotators;
 
-            AddDependency(job.Schedule(m_Rotators.transforms, GetDependency()));
+            return job.Schedule(m_Rotators.transforms, inputDeps);
 		}
 
 		struct Job : IJobParallelForTransform

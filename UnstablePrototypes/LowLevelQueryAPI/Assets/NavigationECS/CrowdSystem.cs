@@ -20,7 +20,7 @@ public partial class CrowdSystem : JobComponentSystem
     {
         public ComponentDataArray<CrowdAgent> agents;
         public ComponentDataArray<CrowdAgentNavigator> agentNavigators;
-        public ComponentDataFixedArray<PolygonID> paths;
+        public FixedArrayArray<PolygonID> paths;
     }
 
     [InjectComponentGroup]
@@ -41,6 +41,7 @@ public partial class CrowdSystem : JobComponentSystem
     const int k_MaxQueryIterationsPerTick = 100;
     const int k_AgentsBatchSize = 50;
 
+    NavMeshQuery m_NavMeshQuery;
     PathQueryQueueEcs[] m_QueryQueues;
     bool[] m_IsEmptyQueryQueue;
     UpdateQueriesJob[] m_QueryJobs;
@@ -91,6 +92,7 @@ public partial class CrowdSystem : JobComponentSystem
         m_CurrentAgentIndex = new NativeArray<int>(1, Allocator.Persistent);
         m_CurrentAgentIndex[0] = 0;
 
+        m_NavMeshQuery = new NavMeshQuery(world, Allocator.Persistent);
         m_QueryQueues = new PathQueryQueueEcs[queryCount];
         m_QueryJobs = new UpdateQueriesJob[queryCount];
         m_AfterQueriesProcessed = new NativeArray<JobHandle>(queryCount, Allocator.Persistent);
@@ -122,6 +124,7 @@ public partial class CrowdSystem : JobComponentSystem
         m_PathRequestsRange.Dispose();
         m_UniqueIdStore.Dispose();
         m_CurrentAgentIndex.Dispose();
+        m_NavMeshQuery.Dispose();
     }
 
     public void OnAddElements(int numberOfAdded)
@@ -181,14 +184,11 @@ public partial class CrowdSystem : JobComponentSystem
 #endif
     }
 
-    public override void OnUpdate()
+    protected override JobHandle OnUpdate(JobHandle inputDeps)
     {
-        base.OnUpdate();
-
         //
         // Prepare data on the main thread
         //
-        CompleteDependency();
         m_AfterQueriesCleanup.Complete();
         m_AfterMovedRequestsForgotten.Complete();
 
@@ -203,7 +203,7 @@ public partial class CrowdSystem : JobComponentSystem
         }
 
         if (m_Crowd.agentNavigators.Length == 0)
-            return;
+            return inputDeps;
 
         var missingAgents = m_Crowd.agentNavigators.Length - m_PlanPathForAgent.Length;
         if (missingAgents > 0)
@@ -293,10 +293,11 @@ public partial class CrowdSystem : JobComponentSystem
         //    pathRequestIdForAgent = m_PathRequestIdForAgent,
         //    paths = m_AgentPaths.GetReadOnlyData()
         //};
-        //var afterPathNeedChecked = pathNeededJob.Schedule(m_Crowd.agents.Length, k_AgentsBatchSize, m_AfterQueriesCleanup);
+        //var afterPathNeedChecked = pathNeededJob.Schedule(m_Crowd.agents.Length, k_AgentsBatchSize, inputDeps);
 
         var makeRequestsJob = new MakePathRequestsJob
         {
+            query = m_NavMeshQuery,
             agents = m_Crowd.agents,
             agentNavigators = m_Crowd.agentNavigators,
             planPathForAgent = m_EmptyPlanPathForAgent,
@@ -306,7 +307,7 @@ public partial class CrowdSystem : JobComponentSystem
             currentAgentIndex = m_CurrentAgentIndex,
             uniqueIdStore = m_UniqueIdStore
         };
-        var afterRequestsCreated = makeRequestsJob.Schedule(m_AfterQueriesCleanup);
+        var afterRequestsCreated = makeRequestsJob.Schedule(inputDeps);
 
         var afterRequestsMovedToQueries = afterRequestsCreated;
         if (m_QueryQueues.Length > 0)
@@ -356,22 +357,21 @@ public partial class CrowdSystem : JobComponentSystem
         var totalCornersBuffer = m_Crowd.agents.Length * maxCornersPerAgent;
         var vel = new UpdateVelocityJob
         {
+            query = m_NavMeshQuery,
             agents = m_Crowd.agents,
             agentNavigators = m_Crowd.agentNavigators,
             paths = m_Crowd.paths,
             straightPath = new NativeArray<NavMeshLocation>(totalCornersBuffer, Allocator.TempJob),
-            straightPathFlags = new NativeArray<NavMeshStraightPathFlags>(totalCornersBuffer, Allocator.TempJob),
+            straightPathFlags = new NativeArray<StraightPathFlags>(totalCornersBuffer, Allocator.TempJob),
             vertexSide = new NativeArray<float>(totalCornersBuffer, Allocator.TempJob)
         };
         var afterVelocitiesUpdated = vel.Schedule(m_Crowd.agents.Length, k_AgentsBatchSize, afterPathsTrimmed);
 
-        var move = new MoveLocationsJob { agents = m_Crowd.agents, dt = Time.deltaTime };
+        var move = new MoveLocationsJob { query = m_NavMeshQuery, agents = m_Crowd.agents, dt = Time.deltaTime };
         var afterAgentsMoved = move.Schedule(m_Crowd.agents.Length, k_AgentsBatchSize, afterVelocitiesUpdated);
 
         //var arrivalJob = new CheckArrivalToDestinationJob { agents = m_Crowd.agents };
         //afterAgentsMoved = arrivalJob.Schedule(afterAgentsMoved);
-
-        AddDependency(afterAgentsMoved);
 
 #if DEBUG_CROWDSYSTEM_LOGS
         if (dbgPrintRequests)
@@ -392,10 +392,11 @@ public partial class CrowdSystem : JobComponentSystem
             cleanupFence = queryCleanupJob.Schedule(cleanupFence);
             m_AfterQueriesCleanup = cleanupFence;
         }
-        JobHandle.ScheduleBatchedJobs();
 
         // TODO: job safety for navmesh mutation
         // NavMeshManager.DidScheduleQueryJobs(afterAgentsMoved);
+
+        return afterAgentsMoved;
     }
 
     public void AddAgentResources(int n)

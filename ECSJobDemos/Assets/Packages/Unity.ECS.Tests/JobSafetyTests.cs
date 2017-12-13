@@ -1,14 +1,8 @@
 ﻿using UnityEngine.ECS;
 using NUnit.Framework;
 using Unity.Jobs;
-using System;
+using Unity.Collections;
 using UnityEngine.TestTools;
-
-//@TODO: We should really design systems / jobs / exceptions / errors 
-//       so that an error in one system does not affect the next system.
-//       Right now failure to set dependencies correctly in one system affects other code,
-//       this makes the error messages significantly less useful...
-//       So need to redo all tests accordingly
 
 namespace UnityEngine.ECS.Tests
 {
@@ -16,7 +10,7 @@ namespace UnityEngine.ECS.Tests
 	{
         public JobSafetyTests()
         {
-            Assert.IsTrue(Unity.Jobs.LowLevel.Unsafe.JobsUtility.GetJobDebuggerEnabled(), "JobDebugger must be enabled for these tests");
+            Assert.IsTrue(Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobDebuggerEnabled, "JobDebugger must be enabled for these tests");
         }
 
         struct TestIncrementJob : IJob
@@ -33,8 +27,10 @@ namespace UnityEngine.ECS.Tests
             }
         }
 
+		
+		
         [Test]
-        public void CoponentAccessAfterScheduledJobThrows()
+        public void ComponentAccessAfterScheduledJobThrows()
         {
             var group = m_Manager.CreateComponentGroup(typeof(EcsTestData));
             var entity = m_Manager.CreateEntity(typeof(EcsTestData));
@@ -45,12 +41,12 @@ namespace UnityEngine.ECS.Tests
             Assert.AreEqual(42, job.data[0].value);
 
             var fence = job.Schedule();
+            
             Assert.Throws<System.InvalidOperationException>(() => { var f = job.data[0].value; });
 
             fence.Complete();
             Assert.AreEqual(43, job.data[0].value);
         }
-
 
         [Test]
         public void GetComponentCompletesJob()
@@ -65,7 +61,6 @@ namespace UnityEngine.ECS.Tests
             // Implicit Wait for job, returns value after job has completed.
             Assert.AreEqual(1, m_Manager.GetComponent<EcsTestData>(entity).value);
         }
-
 
         [Test]
         public void DestroyEntityCompletesScheduledJobs()
@@ -85,7 +80,6 @@ namespace UnityEngine.ECS.Tests
             Assert.AreEqual(1, group.GetComponentDataArray<EcsTestData>().Length);
             Assert.AreEqual(1, group.GetComponentDataArray<EcsTestData>()[0].value);
         }
-
 
         [Test]
         public void EntityManagerDestructionDetectsUnregisteredJob()
@@ -130,16 +124,6 @@ namespace UnityEngine.ECS.Tests
             Assert.Throws<System.InvalidOperationException>(() => { m_Manager.GetComponent<EcsTestData>(entity); });
 
             jobHandle.Complete();
-        }
-
-
-        [Test]
-        [Ignore("TODO")]
-        public void ForgetAddJobDependencyIsCaughtInComponentSystem()
-        {
-            throw new System.NotImplementedException();
-            // * Give error immediately about missing AddDependency call?
-            // * Sync against other job even if it was forgotten.
         }
     }
 }

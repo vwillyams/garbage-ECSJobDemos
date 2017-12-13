@@ -1,6 +1,5 @@
-This project is meant to work with code from the native branch `scripting/jobsystem/navmesh` .\
-Revision needed: **e2785435e885** (2017-11-14 10:14:37 +0100)\
-Good build: not available currently
+This project is meant to work with code from the native branch `scripting/jobsystem/make-public/demo` .\
+Revision needed: **8ba26ab3a6fb** (2017-12-06 11:53:40 +0100)\
 
 Example scenes:
 
@@ -23,44 +22,53 @@ Example scenes:
 Exclusive API featured:
 
     namespace UnityEngine.Experimental.AI
+
     struct PolygonID
-        PolygonID.polygon
-        PolygonID.valid
 
     struct NavMeshLocation
         NavMeshLocation.polygon
         NavMeshLocation.position
-        NavMeshLocation.valid
+        NavMeshLocation(Vector3, PolygonID)
     
+	[Flags]
     enum PathQueryStatus
         PathQueryStatus.Failure
         PathQueryStatus.Success
         PathQueryStatus.InProgress
-
-    enum NavMeshStraightPathFlags
-        NavMeshStraightPathFlags.kStraightPathStart
-        NavMeshStraightPathFlags.kStraightPathEnd
-        NavMeshStraightPathFlags.kStraightPathOffMeshConnection
+        
+        PathQueryStatus.StatusDetailMask
+        PathQueryStatus.WrongMagic
+        PathQueryStatus.WrongVersion
+        PathQueryStatus.OutOfMemory
+        PathQueryStatus.InvalidParam
+        PathQueryStatus.BufferTooSmall
+        PathQueryStatus.OutOfNodes
+        PathQueryStatus.PartialResult
 
     enum NavMeshPolyTypes
-        NavMeshPolyTypes.kPolyTypeGround
-        NavMeshPolyTypes.kPolyTypeOffMeshConnection
+        NavMeshPolyTypes.Ground
+        NavMeshPolyTypes.OffMeshConnection
 
     struct NavMeshWorld
-        NavMeshWorld.IsValid()
+        IsValid()
+        AddDependency()
         NavMeshWorld.GetDefaultWorld()
 
-    struct NavMeshPathQuery
-        NavMeshPathQuery.InitSlicedFindPath()
-        NavMeshPathQuery.UpdateSlicedFindPath()
-        NavMeshPathQuery.FinalizeSlicedFindPath()
-        NavMeshPathQuery.GetPathResult()
-
     struct NavMeshQuery
-        NavMeshQuery.MapLocation()
-        NavMeshQuery.GetPortalPoints()
-        NavMeshQuery.MoveLocations()
-        NavMeshQuery.MoveLocation()
-        NavMeshQuery.PolygonLocalToWorldMatrix()
-        NavMeshQuery.PolygonWorldToLocalMatrix()
-        NavMeshQuery.GetPolygonType()
+        Dispose()
+
+        InitSlicedFindPath()
+        UpdateSlicedFindPath()
+        FinalizeSlicedFindPath()
+        GetPathResult()
+
+        IsValid(PolygonID polygon)
+        IsValid(NavMeshLocation location)
+        GetAgentTypeIdForPolygon()
+        MapLocation()
+        GetPortalPoints()
+        MoveLocations()
+        MoveLocation()
+        PolygonLocalToWorldMatrix()
+        PolygonWorldToLocalMatrix()
+        GetPolygonType()

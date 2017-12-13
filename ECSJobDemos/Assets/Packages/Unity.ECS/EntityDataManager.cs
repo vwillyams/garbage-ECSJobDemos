@@ -16,23 +16,42 @@ namespace UnityEngine.ECS
 
     unsafe struct EntityDataManager
     {
+        [NativeDisableUnsafePtrRestriction]
         internal EntityData* m_Entities;
         int m_EntitiesCapacity;
         int m_EntitiesFreeIndex;
 
-        public void OnCreate()
+        public void OnCreate( int capacity )
         {
-            m_EntitiesCapacity = 1000000;
+            m_EntitiesCapacity = capacity;
             m_Entities = (EntityData*)UnsafeUtility.Malloc(m_EntitiesCapacity * sizeof(EntityData), 64, Allocator.Persistent);
-            for (int i = 0; i != m_EntitiesCapacity - 1; i++)
+            m_EntitiesFreeIndex = 0;
+            InitializeAdditionalCapacity(0);
+        }
+
+        void InitializeAdditionalCapacity( int start )
+        {
+            for (int i = start; i != m_EntitiesCapacity - 1; i++)
             {
                 m_Entities[i].index = i + 1;
                 m_Entities[i].version = 1;
                 m_Entities[i].chunk = null;
             }
-
             m_Entities[m_EntitiesCapacity - 1].index = -1;
-            m_EntitiesFreeIndex = 0;
+        }
+
+        void IncreaseCapacity()
+        {
+            EntityData* newEntities = (EntityData*) UnsafeUtility.Malloc(m_EntitiesCapacity * 2 * sizeof(EntityData),
+                64, Allocator.Persistent);
+            UnsafeUtility.MemCpy( (IntPtr)newEntities, (IntPtr)m_Entities, m_EntitiesCapacity * sizeof(EntityData) );
+            UnsafeUtility.Free((IntPtr)m_Entities, Allocator.Persistent);
+
+            var startNdx = m_EntitiesCapacity - 1;
+            m_Entities = newEntities;
+            m_EntitiesCapacity *= 2;
+    
+            InitializeAdditionalCapacity(startNdx);
         }
 
         public void OnDestroy()
@@ -169,17 +188,26 @@ namespace UnityEngine.ECS
         }
 #endif
 
-
         public void AllocateEntities(Archetype* arch, Chunk* chunk, int baseIndex, int count, Entity* outputEntities)
         {
+            int offset = chunk->archetype->offsets[0];
+            int stride = chunk->archetype->strides[0];
+            Entity* entityInChunkStart = (Entity*)(chunk->buffer + offset + (stride * baseIndex));
+
             for (int i = 0; i != count; i++)
             {
                 EntityData* entity = m_Entities + m_EntitiesFreeIndex;
+                if (entity->index == -1)
+                {
+                    IncreaseCapacity();
+                    entity = m_Entities + m_EntitiesFreeIndex;
+                }                
 
                 outputEntities[i].index = m_EntitiesFreeIndex;
                 outputEntities[i].version = entity->version;
 
-                Entity* entityInChunk = (Entity*)ChunkDataUtility.GetComponentData(chunk, baseIndex + i, 0);
+                Entity* entityInChunk = entityInChunkStart + i;                
+
                 entityInChunk->index = m_EntitiesFreeIndex;
                 entityInChunk->version = entity->version;
 

@@ -1,20 +1,35 @@
 
+ECSJobDemos/Assets/Plugins*
 ECSJobDemos/Library
 ECSJobDemos/Temp
 ECSJobDemos/obj
-ECSJobDemos/.idea*
+
+
+ECSJobDemos/UnityPackageManager/com.unity.burst*
+
 
 UnstablePrototypes/BlobificationPrototype/Library
 UnstablePrototypes/BlobificationPrototype/Temp
 UnstablePrototypes/BlobificationPrototype/obj
 
+UnstablePrototypes/LowLevelQueryAPI/Assets/Plugins*
 UnstablePrototypes/LowLevelQueryAPI/Library
 UnstablePrototypes/LowLevelQueryAPI/Temp
 UnstablePrototypes/LowLevelQueryAPI/obj
 UnstablePrototypes/LowLevelQueryAPI/.editorconfig
 
+UnstablePrototypes/Asteriods/.vscode
+UnstablePrototypes/Asteriods/Assets/Plugins*
+UnstablePrototypes/Asteriods/Library
+UnstablePrototypes/Asteriods/Temp
+UnstablePrototypes/Asteriods/obj
+UnstablePrototypes/Asteriods/.editorconfig
+
+
+*.idea
 *.csproj
 *.sln
 *.suo
 *.userprefs
 *.app
+*.VC.*

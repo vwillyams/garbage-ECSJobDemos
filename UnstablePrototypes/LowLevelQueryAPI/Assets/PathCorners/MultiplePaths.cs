@@ -23,8 +23,9 @@ public class MultiplePaths : MonoBehaviour
     NativeArray<NavMeshLocation> m_OriginLocations;
     NativeArray<NavMeshLocation> m_TargetLocations;
     List<NativeArray<NavMeshLocation>> m_StraightPathCorners;
-    List<NativeArray<NavMeshStraightPathFlags>> m_StraightPathCornersFlags;
+    List<NativeArray<StraightPathFlags>> m_StraightPathCornersFlags;
 
+    NavMeshQuery m_NavMeshQuery;
     // Workaround for missing support for nested arrays
     List<PolygonPathEcs> m_Paths;
     PathQueryQueue m_QueryQueue;
@@ -42,8 +43,9 @@ public class MultiplePaths : MonoBehaviour
         m_OriginLocations = new NativeArray<NavMeshLocation>(originsCount, Allocator.Persistent);
         m_TargetLocations = new NativeArray<NavMeshLocation>(targetsCount, Allocator.Persistent);
         m_StraightPathCorners = new List<NativeArray<NavMeshLocation>>();
-        m_StraightPathCornersFlags = new List<NativeArray<NavMeshStraightPathFlags>>();
+        m_StraightPathCornersFlags = new List<NativeArray<StraightPathFlags>>();
 
+        m_NavMeshQuery = new NavMeshQuery(NavMeshWorld.GetDefaultWorld(), Allocator.Persistent);
         m_Paths = new List<PolygonPathEcs>(targetsCount);
         m_QueryQueue = new PathQueryQueue();
         m_PathRequestHandles = new NativeArray<PathQueryQueue.Handle>(targetsCount, Allocator.Persistent);
@@ -52,6 +54,7 @@ public class MultiplePaths : MonoBehaviour
 
     void OnDisable()
     {
+        m_NavMeshQuery.Dispose();
         m_Origins.Dispose();
         m_Targets.Dispose();
         m_OriginLocations.Dispose();
@@ -85,8 +88,8 @@ public class MultiplePaths : MonoBehaviour
 
         UpdatePositions();
 
-        var mapOrigins = new MapLocationsJob() { pos = m_Origins, loc = m_OriginLocations, extents = m_MappingExtents };
-        var mapTargets = new MapLocationsJob() { pos = m_Targets, loc = m_TargetLocations, extents = m_MappingExtents };
+        var mapOrigins = new MapLocationsJob() { query = m_NavMeshQuery, pos = m_Origins, loc = m_OriginLocations, extents = m_MappingExtents };
+        var mapTargets = new MapLocationsJob() { query = m_NavMeshQuery, pos = m_Targets, loc = m_TargetLocations, extents = m_MappingExtents };
 
         var mapOriginsFence = mapOrigins.Schedule(mapOrigins.pos.Length, 3);
         var mapTargetsFence = mapTargets.Schedule(mapTargets.pos.Length, 2);
@@ -106,20 +109,21 @@ public class MultiplePaths : MonoBehaviour
             }
             while (m_StraightPathCornersFlags.Count <= i)
             {
-                m_StraightPathCornersFlags.Add(new NativeArray<NavMeshStraightPathFlags>(pathsCount, Allocator.Persistent));
+                m_StraightPathCornersFlags.Add(new NativeArray<StraightPathFlags>(pathsCount, Allocator.Persistent));
             }
             if (m_StraightPathCorners[i].Length < m_Paths[i].size || m_StraightPathCornersFlags[i].Length < m_Paths[i].size)
             {
                 m_StraightPathCorners[i].Dispose();
                 m_StraightPathCornersFlags[i].Dispose();
                 m_StraightPathCorners[i] = new NativeArray<NavMeshLocation>(m_Paths[i].size + 1, Allocator.Persistent);
-                m_StraightPathCornersFlags[i] = new NativeArray<NavMeshStraightPathFlags>(m_Paths[i].size + 1, Allocator.Persistent);
+                m_StraightPathCornersFlags[i] = new NativeArray<StraightPathFlags>(m_Paths[i].size + 1, Allocator.Persistent);
             }
 
             if (m_Paths[i].size > 0)
             {
                 var findCorners = new FindWaypointsJob()
                 {
+                    query = m_NavMeshQuery,
                     path = m_Paths[i],
                     startPos = m_Paths[i].start.position + Random.insideUnitSphere,
                     straightPath = m_StraightPathCorners[i],
@@ -222,7 +226,7 @@ public class MultiplePaths : MonoBehaviour
             var oIdx = Math.Min(i, m_OriginLocations.Length - 1);
             if (m_Paths[i].size == 0 || !m_OriginLocations[oIdx].Equals(m_Paths[i].start) || !m_TargetLocations[i].Equals(m_Paths[i].end))
             {
-                if (m_OriginLocations[oIdx].valid && m_TargetLocations[i].valid)
+                if (m_NavMeshQuery.IsValid(m_OriginLocations[oIdx]) && m_NavMeshQuery.IsValid(m_TargetLocations[i]))
                 {
                     var src = m_OriginLocations[oIdx].position;
                     var dest = m_TargetLocations[i].position;
@@ -261,15 +265,18 @@ public class MultiplePaths : MonoBehaviour
         var k = 0;
         foreach (var corners in m_StraightPathCorners)
         {
+            var flags = m_StraightPathCornersFlags[k];
             for (var i = 0; i < corners.Length - 1; ++i)
             {
                 var loc1 = corners[i];
                 var loc2 = corners[i + 1];
-                if (loc1.polygon != 0 && loc2.polygon != 0)
+                if (!loc1.polygon.IsNull() && !loc2.polygon.IsNull())
                 {
-                    var color = m_StraightPathCornersFlags[k][i] == NavMeshStraightPathFlags.kStraightPathOffMeshConnection ? Color.yellow : Color.green;
+                    var color = flags[i] == StraightPathFlags.OffMeshConnection ? Color.yellow : Color.magenta;
                     Debug.DrawLine(loc1.position + offset, loc2.position + offset, color);
                 }
+                else
+                    break;
             }
 
             ++k;
@@ -279,13 +286,15 @@ public class MultiplePaths : MonoBehaviour
     public struct MapLocationsJob : IJobParallelFor
     {
         [ReadOnly]
+        public NavMeshQuery query;
+        [ReadOnly]
         public NativeArray<Vector3> pos;
         public NativeArray<NavMeshLocation> loc;
         public Vector3 extents;
 
         public void Execute(int index)
         {
-            loc[index] = NavMeshQuery.MapLocation(pos[index], extents, 0);
+            loc[index] = query.MapLocation(pos[index], extents, 0);
         }
     }
 
@@ -294,12 +303,14 @@ public class MultiplePaths : MonoBehaviour
         static bool s_UseFunneling = true;
 
         [ReadOnly]
+        public NavMeshQuery query;
+        [ReadOnly]
         public PolygonPathEcs path;
         [ReadOnly]
         public Vector3 startPos;
 
         public NativeArray<NavMeshLocation> straightPath;
-        public NativeArray<NavMeshStraightPathFlags> straightPathFlags;
+        public NativeArray<StraightPathFlags> straightPathFlags;
         [DeallocateOnJobCompletion]
         public NativeArray<float> vertexSide;
         public int maxStraightPath;
@@ -312,7 +323,7 @@ public class MultiplePaths : MonoBehaviour
                 {
                     var cornerCount = 0;
                     var maxCount = maxStraightPath > 1 ? maxStraightPath : straightPath.Length;
-                    PathUtils.FindStraightPath(path, ref straightPath, ref straightPathFlags, ref vertexSide, ref cornerCount, maxCount);
+                    PathUtils.FindStraightPath(query, path, ref straightPath, ref straightPathFlags, ref vertexSide, ref cornerCount, maxCount);
                     if (cornerCount < straightPath.Length)
                     {
                         straightPath[cornerCount] = new NavMeshLocation(); //empty terminator
@@ -323,11 +334,11 @@ public class MultiplePaths : MonoBehaviour
                     Vector3 left, right;
                     var p0 = path.polygons[0];
                     var p1 = path.polygons[1];
-                    if (NavMeshQuery.GetPortalPoints(p0, p1, out left, out right))
+                    if (query.GetPortalPoints(p0, p1, out left, out right))
                     {
                         float3 cpa1, cpa2;
                         GeometryUtils.SegmentSegmentCPA(out cpa1, out cpa2, left, right, startPos, path.end.position);
-                        straightPath[0] = NavMeshQuery.MapLocation(cpa1, Vector3.one, 0);
+                        straightPath[0] = query.MapLocation(cpa1, Vector3.one, 0);
                         const int cornerCount = 1;
                         if (cornerCount < straightPath.Length)
                         {

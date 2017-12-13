@@ -22,50 +22,50 @@ public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
 
 	void Update()
 	{
-        DependencyManager oldRoot = null;
+        World oldRoot = null;
         if (PerformanceTestConfiguration.CleanManagers)
         {
-            oldRoot = DependencyManager.Root;
-            DependencyManager.Root = new DependencyManager();
-            DependencyManager.SetDefaultCapacity(PerformanceTestConfiguration.InstanceCount);
+            oldRoot = World.Active;
+            World.Active = new World();
+            World.Active.SetDefaultCapacity(PerformanceTestConfiguration.InstanceCount);
         }
 
-		var m_EntityManager = DependencyManager.GetBehaviourManager<EntityManager>();
+		var entityManager = World.Active.GetOrCreateManager<EntityManager>();
 
-		m_EntityManager.CreateComponentGroup (typeof(Component128Bytes));
-		m_EntityManager.CreateComponentGroup (typeof(Component12Bytes));
-        m_EntityManager.CreateComponentGroup (typeof(Component128Bytes));
+		entityManager.CreateComponentGroup (typeof(Component128Bytes));
+        entityManager.CreateComponentGroup (typeof(Component12Bytes));
+        entityManager.CreateComponentGroup (typeof(Component128Bytes));
 
-        var archetype = m_EntityManager.CreateArchetype(typeof(Component128Bytes), typeof(Component12Bytes), typeof(Component64Bytes));
+        var archetype = entityManager.CreateArchetype(typeof(Component128Bytes), typeof(Component12Bytes), typeof(Component64Bytes));
         var entities = new NativeArray<Entity>(PerformanceTestConfiguration.InstanceCount, Allocator.Temp);
 
         instantiateSampler.Begin();
         for (int i = 0; i < entities.Length; i++)
-            entities[i] = m_EntityManager.CreateEntity (archetype);
+            entities[i] = entityManager.CreateEntity (archetype);
 
 		instantiateSampler.End();
 
         addSampler.Begin();
         for (int i = 0; i < entities.Length; i++)
-            m_EntityManager.AddComponent(entities[i], new Component16Bytes());
+            entityManager.AddComponent(entities[i], new Component16Bytes());
         addSampler.End();
 
         removeSampler.Begin();
 		for (int i = 0;i<entities.Length;i++)
-			m_EntityManager.RemoveComponent<Component16Bytes> (entities[i]);
+			entityManager.RemoveComponent<Component16Bytes> (entities[i]);
         removeSampler.End();
 
         destroySampler.Begin();
         for (int i = 0; i < entities.Length; i++)
-            m_EntityManager.DestroyEntity(entities[i]);
+            entityManager.DestroyEntity(entities[i]);
         destroySampler.End();
 
         entities.Dispose ();
 
         if (oldRoot != null)
         {
-            DependencyManager.Root.Dispose();
-            DependencyManager.Root = oldRoot;
+            World.Active.Dispose();
+            World.Active = oldRoot;
         }
 	}
 }

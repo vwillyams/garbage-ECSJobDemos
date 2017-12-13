@@ -5,16 +5,17 @@ namespace UnityEngine.ECS.Tests
 {
 	public class ECSTestsFixture
 	{
-        protected DependencyManager m_PreviousDependencyManager;
+		protected World 			m_PreviousWorld;
+		protected World 			World;
 		protected EntityManager     m_Manager;
 
         [SetUp]
 		public void Setup()
 		{
-			m_PreviousDependencyManager = DependencyManager.Root;
-			DependencyManager.Root = new DependencyManager ();
+			m_PreviousWorld = World.Active;
+			World = World.Active = new World ();
 
-			m_Manager = DependencyManager.GetBehaviourManager<EntityManager> ();
+			m_Manager = World.GetOrCreateManager<EntityManager> ();
 		}
 
 		[TearDown]
@@ -22,9 +23,11 @@ namespace UnityEngine.ECS.Tests
 		{
             if (m_Manager != null)
             {
-                DependencyManager.Root.Dispose();
-                DependencyManager.Root = m_PreviousDependencyManager;
-                m_PreviousDependencyManager = null;
+	            World.Dispose();
+	            World = null;
+	            
+                World.Active = m_PreviousWorld;
+                m_PreviousWorld = null;
                 m_Manager = null;
             }
 		}

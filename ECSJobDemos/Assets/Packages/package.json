@@ -1,0 +1,11 @@
+{
+  "name": "com.unity.ecs_bundle",
+  "version": "0.0.1",
+  "unity": "2018.1",
+  "description": "Unity ECS Bundle",
+  "keywords": [
+    "ads",
+    "unity"
+  ],
+  "category": "AssetStore/Unity"
+}

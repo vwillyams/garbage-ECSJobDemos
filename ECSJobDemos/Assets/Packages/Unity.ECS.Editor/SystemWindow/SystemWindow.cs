@@ -36,7 +36,7 @@ namespace UnityEditor.ECS
 			
 			if (playerLoopListView == null)
 				playerLoopListView = new PlayerLoopListView(playerLoopListState);
-			OnSetPlayerLoop(PlayerLoopHelper.currentPlayerLoop);
+			SetPlayerLoop(PlayerLoopHelper.currentPlayerLoop);
 		}
 		
 		[MenuItem("Window/Systems", false, 2017)]
@@ -45,7 +45,7 @@ namespace UnityEditor.ECS
 			EditorWindow.GetWindow<SystemWindow>("Systems");
 		}
 
-		void OnSetPlayerLoop(PlayerLoopSystem playerLoop)
+		void SetPlayerLoop(PlayerLoopSystem playerLoop)
 		{
 		    systemGraphView.SetSystems(systemTypes, ref systemViews);
 			playerLoopListView.UpdatePlayerLoop(playerLoop, new HashSet<string>(from v in systemViews select v.fullName));
@@ -54,12 +54,12 @@ namespace UnityEditor.ECS
 		void OnEnable()
 		{
 			Initialize();
-			PlayerLoopHelper.OnUpdatePlayerLoop += OnSetPlayerLoop;
+			PlayerLoopHelper.OnUpdatePlayerLoop += SetPlayerLoop;
 		}
 
 		void OnDisable()
 		{
-			PlayerLoopHelper.OnUpdatePlayerLoop -= OnSetPlayerLoop;
+			PlayerLoopHelper.OnUpdatePlayerLoop -= SetPlayerLoop;
 		}
 
 		void OnGUI()

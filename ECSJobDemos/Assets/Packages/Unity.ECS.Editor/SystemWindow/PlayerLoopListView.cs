@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEditor.ECS;
@@ -52,7 +54,7 @@ namespace UnityEditor.ECS
 			return root;
 		}
 	
-		protected void CreateItemsForLoopSystem(PlayerLoopSystem system, ref int currentID, out TreeViewItem parent, out bool hasSystems)
+		private void CreateItemsForLoopSystem(PlayerLoopSystem system, ref int currentID, out TreeViewItem parent, out bool hasSystems)
 		{
 			parent = new TreeViewItem
 			{
@@ -80,14 +82,14 @@ namespace UnityEditor.ECS
 			}
 		}
 	
-		protected void RecreatePlayerLoop()
+		private void RecreatePlayerLoop()
 		{
 			var newPlayerLoop = BuildSystemFromList(rootItem);
 			World.SetPlayerLoopAndNotify(newPlayerLoop);
 			Reload();
 		}
 	
-		protected PlayerLoopSystem BuildSystemFromList(TreeViewItem parent)
+		private PlayerLoopSystem BuildSystemFromList(TreeViewItem parent)
 		{
 			var parentSystem = playerLoopSystemsByListID[parent.id];
 			if (parent.hasChildren)
@@ -115,6 +117,43 @@ namespace UnityEditor.ECS
 			DragAndDrop.SetGenericData(kPlayerlooplistviewItemId, itemId);
 			DragAndDrop.StartDrag(item.displayName);
 		}
+
+	    private TreeViewItem Find(Predicate<TreeViewItem> predicate, TreeViewItem searchFromThisItem)
+	    {
+	        if (predicate(searchFromThisItem))
+	        {
+	            return searchFromThisItem;
+	        }
+	        else if (searchFromThisItem.hasChildren)
+	        {
+	            foreach (var child in searchFromThisItem.children)
+	            {
+	                var found = Find(predicate, child);
+	                if (found != null)
+	                    return found;
+	            }
+	        }
+	        return null;
+	    }
+
+	    private IEnumerable<Type> GetExpandedTypes()
+	    {
+	        var expandedIds = GetExpanded();
+	        return from x in playerLoopSystemsByListID.Keys where expandedIds.Contains(x) select playerLoopSystemsByListID[x].type;
+	    }
+
+	    private void SetExpandedFromTypes(IEnumerable<Type> expandedTypes)
+	    {	    
+	        SetExpanded((from x in playerLoopSystemsByListID.Keys
+	            where expandedTypes.Contains(playerLoopSystemsByListID[x].type)
+	            select x).ToList());
+	    }
+
+	    private void SetSelectionFromType(Type type)
+	    {
+	        var newItem = Find(x => playerLoopSystemsByListID[x.id].type == type, rootItem);
+	        SetSelection(new List<int>{newItem.id});
+	    }
 	
 		protected override DragAndDropVisualMode HandleDragAndDrop(DragAndDropArgs args)
 		{
@@ -130,6 +169,8 @@ namespace UnityEditor.ECS
 				case DragAndDropPosition.UponItem:
 					return DragAndDropVisualMode.None;
 				case DragAndDropPosition.BetweenItems:
+				    if (args.parentItem == rootItem)
+				        return DragAndDropVisualMode.None;
 					if (args.performDrop)
 					{
 						var itemId = (int)dropData;
@@ -139,7 +180,13 @@ namespace UnityEditor.ECS
 						item.parent.children.Remove(item);
 						item.parent = args.parentItem;
 						args.parentItem.children.Insert(args.insertAtIndex, item);
+					    var selectedType = playerLoopSystemsByListID[itemId].type;
+					    var expandedTypes = GetExpandedTypes();
+					    
 						RecreatePlayerLoop();
+
+					    SetExpandedFromTypes(expandedTypes);
+					    SetSelectionFromType(selectedType);
 					}
 					break;
 				default:

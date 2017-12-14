@@ -5,10 +5,10 @@ https://youtu.be/tGmnZdY5Y-E
 
 # unity build (compatible with "stable" branch)
 Required build: http://beta.unity3d.com/download/93dd73495c06/download.html
-unity source code branch: scripting/jobsystem/make-public/demo
+unity source code branch: scripting/jobsystem/combined
 
 # active development against master
-unity source code branch: scripting/jobsystem/make-public/demo
+unity source code branch: scripting/jobsystem/combined
 NOTE: (Navmesh & Raycast job API's is included in this branch)
 
 # ECSJobDemos

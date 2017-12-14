@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using Unity.Burst;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Collections;
 using UnityEngine.Assertions;
@@ -275,7 +276,7 @@ namespace UnityEngine.ECS
             }
         }
 
-        [Conditional("NOT_BURST_COMPILED")]
+        [BurstDiscard]
         public unsafe void PatchManagedPtrs(int index, byte* valuePtr)
         {
             fixed (byte* cacheBytes = m_Caches)

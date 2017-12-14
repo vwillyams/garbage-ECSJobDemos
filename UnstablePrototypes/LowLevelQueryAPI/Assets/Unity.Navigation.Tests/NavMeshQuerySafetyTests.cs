@@ -74,14 +74,14 @@ namespace Unity.Navigation.Tests
 		{
 			var pathQuery = new NavMeshQuery(NavMeshWorld.GetDefaultWorld(), Allocator.Persistent, 100);
 			pathQuery.Dispose();
-			NavMesh.RemoveAllNavmeshData();
+			NavMesh.RemoveAllNavMeshData();
 		}
 
 		[Test]
 		public void DestroyingNavmeshWorldInvalidatesQueries()
 		{
 			var pathQuery = new NavMeshQuery(NavMeshWorld.GetDefaultWorld(), Allocator.Persistent, 100);
-			NavMesh.RemoveAllNavmeshData();
+			NavMesh.RemoveAllNavMeshData();
 			Assert.Throws<InvalidOperationException>(() => { pathQuery.MapLocation(Vector3.zero, Vector3.one, 0); });
 			pathQuery.Dispose();
 		}

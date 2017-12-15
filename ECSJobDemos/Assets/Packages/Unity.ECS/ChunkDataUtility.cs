@@ -18,7 +18,7 @@ namespace UnityEngine.ECS
             return -1;
         }
 
-        public static void GetComponentDataWithTypeAndFixedArrayLength(Chunk* chunk, int index, int typeIndex, out IntPtr outPtr, out int outArrayLength)
+        public static void GetComponentDataWithTypeAndFixedArrayLength(Chunk* chunk, int index, int typeIndex, out byte* outPtr, out int outArrayLength)
         {
             int indexInTypeArray = GetIndexInTypeArray(chunk->archetype, typeIndex);
 
@@ -29,8 +29,8 @@ namespace UnityEngine.ECS
             outArrayLength = chunk->archetype->types[indexInTypeArray].FixedArrayLength;
         }
 
-        
-        public static IntPtr GetComponentDataWithType(Chunk* chunk, int index, int typeIndex)
+
+        public static byte* GetComponentDataWithType(Chunk* chunk, int index, int typeIndex)
         {
             int indexInTypeArray = GetIndexInTypeArray(chunk->archetype, typeIndex);
 
@@ -40,7 +40,7 @@ namespace UnityEngine.ECS
             return chunk->buffer + (offset + stride * index);
         }
 
-        public static IntPtr GetComponentData(Chunk* chunk, int index, int indexInTypeArray)
+        public static byte* GetComponentData(Chunk* chunk, int index, int indexInTypeArray)
         {
             int offset = chunk->archetype->offsets[indexInTypeArray];
             int stride = chunk->archetype->strides[indexInTypeArray];
@@ -55,8 +55,8 @@ namespace UnityEngine.ECS
 
             for (int i = 0; i != arch->typesCount; i++)
             {
-                IntPtr src = GetComponentData(srcChunk, srcIndex, i);
-                IntPtr dst = GetComponentData(dstChunk, dstIndex, i);
+                byte* src = GetComponentData(srcChunk, srcIndex, i);
+                byte* dst = GetComponentData(dstChunk, dstIndex, i);
                 UnsafeUtility.MemCpy(dst, src, arch->sizeOfs[i]);
             }
         }
@@ -77,7 +77,7 @@ namespace UnityEngine.ECS
             {
                 int offset = dstChunk->archetype->offsets[t];
                 int stride = dstChunk->archetype->strides[t];
-                IntPtr dst = dstChunk->buffer + (offset + stride * dstIndex);
+                byte* dst = dstChunk->buffer + (offset + stride * dstIndex);
 
                 UnsafeUtility.MemClear(dst, stride * count);
             }
@@ -90,8 +90,8 @@ namespace UnityEngine.ECS
 
             for (int t = 1; t != arch->typesCount; t++)
             {
-                IntPtr dst = GetComponentData(dstChunk, dstBaseIndex, t);
-                IntPtr src = GetComponentData(srcChunk, srcIndex, t);
+                byte* dst = GetComponentData(dstChunk, dstBaseIndex, t);
+                byte* src = GetComponentData(srcChunk, srcIndex, t);
                 UnsafeUtility.MemCpyReplicate(dst, src, arch->sizeOfs[t], count);
             }
         }
@@ -111,8 +111,8 @@ namespace UnityEngine.ECS
                     ++dstI;
                 else
                 {
-                    IntPtr src = srcChunk->buffer + srcArch->offsets[srcI] + srcIndex * srcArch->strides[srcI];
-                    IntPtr dst = dstChunk->buffer + dstArch->offsets[dstI] + dstIndex * dstArch->strides[dstI];
+                    byte* src = srcChunk->buffer + srcArch->offsets[srcI] + srcIndex * srcArch->strides[srcI];
+                    byte* dst = dstChunk->buffer + dstArch->offsets[dstI] + dstIndex * dstArch->strides[dstI];
                     UnsafeUtility.MemCpy(dst, src, srcArch->sizeOfs[srcI]);
                     ++srcI;
                     ++dstI;

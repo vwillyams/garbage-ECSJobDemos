@@ -11,24 +11,24 @@ namespace UnityEngine.ECS
 	{
 
 	}
-	
+
 	class InjectFromEntityData
 	{
 		class UpdateInjectionComponentDataFromEntity<T> : IUpdateInjection where T : struct, IComponentData
 		{
-			unsafe public void UpdateInjection(void* targetObject, EntityManager entityManager, ComponentGroup group, InjectionData injection)
+			unsafe public void UpdateInjection(byte* targetObject, EntityManager entityManager, ComponentGroup group, InjectionData injection)
 			{
 				var array = entityManager.GetComponentDataArrayFromEntity<T>(injection.isReadOnly);
-				UnsafeUtility.CopyStructureToPtr(ref array, (IntPtr)targetObject + injection.fieldOffset);
+				UnsafeUtility.CopyStructureToPtr(ref array, targetObject + injection.fieldOffset);
 			}
 		}
 
 		class UpdateInjectionFixedArrayFromEntity<T> : IUpdateInjection where T : struct
 		{
-			unsafe public void UpdateInjection(void* targetObject, EntityManager entityManager, ComponentGroup group, InjectionData injection)
+			unsafe public void UpdateInjection(byte* targetObject, EntityManager entityManager, ComponentGroup group, InjectionData injection)
 			{
 				var array = entityManager.GetFixedArrayFromEntity<T>(injection.isReadOnly);
-				UnsafeUtility.CopyStructureToPtr(ref array, (IntPtr)targetObject + injection.fieldOffset);
+				UnsafeUtility.CopyStructureToPtr(ref array, targetObject + injection.fieldOffset);
 			}
 		}
 
@@ -58,10 +58,10 @@ namespace UnityEngine.ECS
 			}
 		}
 
-		public unsafe static void UpdateInjection(IntPtr pinnedSystemPtr, EntityManager entityManager, InjectionData[] injections)
+		public unsafe static void UpdateInjection(byte* pinnedSystemPtr, EntityManager entityManager, InjectionData[] injections)
 		{
 			foreach(var injection in injections)
-				injection.injection.UpdateInjection((void*)pinnedSystemPtr, entityManager, null, injection);
+				injection.injection.UpdateInjection(pinnedSystemPtr, entityManager, null, injection);
 		}
 
 		internal static void ExtractJobDependencyTypes(InjectionData[] injections, List<int> reading, List<int> writing)

@@ -37,7 +37,7 @@ namespace UnityEngine.ECS
 
             return m_Entities.HasComponent(entity, m_TypeIndex);
         }
-        
+
         public unsafe NativeArray<T> this[Entity entity]
         {
             get
@@ -51,15 +51,15 @@ namespace UnityEngine.ECS
                 if (TypeManager.GetComponentType(m_TypeIndex).category != TypeManager.TypeCategory.OtherValueType)
                     throw new ArgumentException($"GetComponentFixedArray<{typeof(T)}> may not be IComponentData or ISharedComponentData");
 #endif
-        
-                IntPtr ptr;
+
+                byte* ptr;
                 int length;
                 m_Entities.GetComponentDataWithTypeAndFixedArrayLength (entity, m_TypeIndex, out ptr, out length);
 
                 var array = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(ptr, length, Allocator.Invalid);
-        
+
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-                NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref array, m_Safety); 
+                NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref array, m_Safety);
 #endif
 
                 return array;

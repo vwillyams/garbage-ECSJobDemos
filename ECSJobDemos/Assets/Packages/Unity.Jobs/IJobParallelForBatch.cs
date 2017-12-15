@@ -42,13 +42,13 @@ namespace Unity.Jobs
             }
         }
 
-        static public JobHandle ScheduleBatch<T>(this T jobData, int arrayLength, int minIndicesPerJobCount, JobHandle dependsOn = new JobHandle()) where T : struct, IJobParallelForBatch
+        unsafe static public JobHandle ScheduleBatch<T>(this T jobData, int arrayLength, int minIndicesPerJobCount, JobHandle dependsOn = new JobHandle()) where T : struct, IJobParallelForBatch
         {
             var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref jobData), ParallelForBatchJobStruct<T>.Initialize(), dependsOn, ScheduleMode.Batched);
             return JobsUtility.ScheduleParallelFor(ref scheduleParams, arrayLength, minIndicesPerJobCount);
         }
 
-        static public void RunBatch<T>(this T jobData, int arrayLength) where T : struct, IJobParallelForBatch
+        unsafe static public void RunBatch<T>(this T jobData, int arrayLength) where T : struct, IJobParallelForBatch
         {
             var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref jobData), ParallelForBatchJobStruct<T>.Initialize(), new JobHandle(), ScheduleMode.Run);
             JobsUtility.ScheduleParallelFor(ref scheduleParams, arrayLength, arrayLength);

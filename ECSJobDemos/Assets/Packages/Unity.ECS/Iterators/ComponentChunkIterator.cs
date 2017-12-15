@@ -10,10 +10,10 @@ namespace UnityEngine.ECS
         public ComponentDataArchetypeSegment* nextSegment;
     }
 
-    struct ComponentChunkCache
+    unsafe struct ComponentChunkCache
     {
         [NativeDisableUnsafePtrRestriction]
-        public IntPtr                          CachedPtr;
+        public void*                           CachedPtr;
         public int                             CachedBeginIndex;
         public int                             CachedEndIndex;
         public int                             CachedSizeOf;
@@ -46,12 +46,12 @@ namespace UnityEngine.ECS
         {
             return typeMan.GetManagedObject(m_CurrentChunk, typeIndexInArchetype, index - cachedBeginIndex);
         }
-        
+
         public object GetManagedObject(ArchetypeManager typeMan, int cachedBeginIndex, int index)
         {
             return typeMan.GetManagedObject(m_CurrentChunk, m_CurrentArchetypeSegment->typeIndexInArchetype, index - cachedBeginIndex);
         }
-        
+
         public object[] GetManagedObjectRange(ArchetypeManager typeMan, int cachedBeginIndex, int index, out int rangeStart, out int rangeLength)
         {
             var objs = typeMan.GetManagedObjectRange(m_CurrentChunk, m_CurrentArchetypeSegment->typeIndexInArchetype, out rangeStart, out rangeLength);
@@ -92,13 +92,13 @@ namespace UnityEngine.ECS
 
             var archetype = m_CurrentArchetypeSegment->archetype;
             var typeIndexInArchetype = m_CurrentArchetypeSegment->typeIndexInArchetype;
-            
+
             cache.CachedBeginIndex = m_CurrentChunkIndex + m_CurrentArchetypeIndex;
             cache.CachedEndIndex = cache.CachedBeginIndex + m_CurrentChunk->count;
             cache.CachedSizeOf = archetype->sizeOfs[typeIndexInArchetype];
             cache.CachedPtr = m_CurrentChunk->buffer + archetype->offsets[typeIndexInArchetype] - cache.CachedBeginIndex * cache.CachedSizeOf;
         }
-        
+
         public void GetCacheForType(int componentType, out ComponentChunkCache cache, out int typeIndexInArchetype)
         {
             var archetype = m_CurrentArchetypeSegment->archetype;

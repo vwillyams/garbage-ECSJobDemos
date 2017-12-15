@@ -44,20 +44,20 @@ namespace UnityEngine.ECS
         {
             EntityData* newEntities = (EntityData*) UnsafeUtility.Malloc(m_EntitiesCapacity * 2 * sizeof(EntityData),
                 64, Allocator.Persistent);
-            UnsafeUtility.MemCpy( (IntPtr)newEntities, (IntPtr)m_Entities, m_EntitiesCapacity * sizeof(EntityData) );
-            UnsafeUtility.Free((IntPtr)m_Entities, Allocator.Persistent);
+            UnsafeUtility.MemCpy(newEntities, m_Entities, m_EntitiesCapacity * sizeof(EntityData) );
+            UnsafeUtility.Free(m_Entities, Allocator.Persistent);
 
             var startNdx = m_EntitiesCapacity - 1;
             m_Entities = newEntities;
             m_EntitiesCapacity *= 2;
-    
+
             InitializeAdditionalCapacity(startNdx);
         }
 
         public void OnDestroy()
         {
-            UnsafeUtility.Free((IntPtr)m_Entities, Allocator.Persistent);
-            m_Entities = (EntityData*)IntPtr.Zero;
+            UnsafeUtility.Free(m_Entities, Allocator.Persistent);
+            m_Entities = null;
             m_EntitiesCapacity = 0;
         }
 
@@ -102,7 +102,7 @@ namespace UnityEngine.ECS
                     throw new System.ArgumentException("The component has not been added to the entity.");
             }
         }
-        
+
         public void DeallocateEnties(ArchetypeManager typeMan, Entity* entities, int count)
         {
             while (count != 0)
@@ -148,16 +148,16 @@ namespace UnityEngine.ECS
                     if (chunk->managedArrayIndex >= 0)
                         ChunkDataUtility.CopyManagedObjects(typeMan, chunk, chunk->count - batchCount, chunk, indexInChunk, batchCount);
                 }
-                
+
                 if (chunk->managedArrayIndex >= 0)
                     ChunkDataUtility.ClearManagedObjects(typeMan, chunk, chunk->count - batchCount, batchCount);
 
                 chunk->count -= batchCount;
                 chunk->archetype->entityCount -= batchCount;
-                
+
                 //@TODO: When Chunk reaches zero we should probably put the chunk back into a pool,
                 // as opposed to keeping it all linked up (which slows down iteration)
-                
+
                 entities += batchCount;
                 count -= batchCount;
             }
@@ -174,7 +174,7 @@ namespace UnityEngine.ECS
                 if (m_Entities[i].chunk != null)
                 {
                     aliveEntities++;
-                    
+
                     Assert.AreEqual(entityType, m_Entities[i].archetype->types[0].typeIndex);
                     Entity entity = *(Entity*)ChunkDataUtility.GetComponentData(m_Entities[i].chunk, m_Entities[i].index, 0);
                     Assert.AreEqual(i, entity.index);
@@ -201,12 +201,12 @@ namespace UnityEngine.ECS
                 {
                     IncreaseCapacity();
                     entity = m_Entities + m_EntitiesFreeIndex;
-                }                
+                }
 
                 outputEntities[i].index = m_EntitiesFreeIndex;
                 outputEntities[i].version = entity->version;
 
-                Entity* entityInChunk = entityInChunkStart + i;                
+                Entity* entityInChunk = entityInChunkStart + i;
 
                 entityInChunk->index = m_EntitiesFreeIndex;
                 entityInChunk->version = entity->version;
@@ -255,12 +255,12 @@ namespace UnityEngine.ECS
                 return ChunkDataUtility.GetIndexInTypeArray(archetype, type.typeIndex) != -1;
         }
 
-        public IntPtr GetComponentDataWithType(Entity entity, int typeIndex)
+        public byte* GetComponentDataWithType(Entity entity, int typeIndex)
         {
             return ChunkDataUtility.GetComponentDataWithType(m_Entities[entity.index].chunk, m_Entities[entity.index].index, typeIndex);
         }
 
-        public void GetComponentDataWithTypeAndFixedArrayLength(Entity entity, int typeIndex, out IntPtr ptr, out int fixedArrayLength)
+        public void GetComponentDataWithTypeAndFixedArrayLength(Entity entity, int typeIndex, out byte* ptr, out int fixedArrayLength)
         {
             ChunkDataUtility.GetComponentDataWithTypeAndFixedArrayLength(m_Entities[entity.index].chunk, m_Entities[entity.index].index, typeIndex, out ptr, out fixedArrayLength);
         }

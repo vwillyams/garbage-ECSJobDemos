@@ -21,9 +21,9 @@ namespace UnityEngine.ECS
         internal ComponentJobSafetyManager  m_SafetyManager;
         EntityManager                       m_EntityManager;
 
-	    
+
 	    public ComponentGroup[] 			ComponentGroups { get { return m_ComponentGroups; } }
-	    
+
         protected ComponentSystemBase()
         {
             m_EntityManager = World.Active.GetOrCreateManager<EntityManager>();
@@ -34,13 +34,13 @@ namespace UnityEngine.ECS
             m_SafetyManager = m_EntityManager.ComponentJobSafetyManager;
 
 		    ComponentSystemInjection.Inject(GetType(), m_EntityManager, out m_InjectedComponentGroups, out m_InjectedFromEntity);
-		    
+
 		    m_ComponentGroups = new ComponentGroup[m_InjectedComponentGroups.Length];
 		    for (var i = 0; i < m_InjectedComponentGroups.Length; ++i)
 			    m_ComponentGroups [i] = m_InjectedComponentGroups[i].EntityGroup;
 
 		    m_CachedComponentGroupArrays = new ComponentGroupArrayStaticCache[0];
-		    
+
 		    RecalculateTypesFromComponentGroups();
 
 		    UpdateInjectedComponentGroups();
@@ -50,10 +50,10 @@ namespace UnityEngine.ECS
 	    {
 		    var readingTypes = new List<int>();
 		    var writingTypes = new List<int>();
-		    
+
 		    ComponentGroup.ExtractJobDependencyTypes(ComponentGroups, readingTypes, writingTypes);
 		    InjectFromEntityData.ExtractJobDependencyTypes(m_InjectedFromEntity, readingTypes, writingTypes);
-		    
+
 		    m_JobDependencyForReadingManagers = readingTypes.ToArray();
 		    m_JobDependencyForWritingManagers = writingTypes.ToArray();
 	    }
@@ -72,7 +72,7 @@ namespace UnityEngine.ECS
 			    }
                 m_InjectedComponentGroups = null;
 		    }
-		    
+
 		    if (null != m_CachedComponentGroupArrays)
 		    {
 			    for (int i = 0; i != m_CachedComponentGroupArrays.Length; i++)
@@ -109,31 +109,30 @@ namespace UnityEngine.ECS
 			    if (m_CachedComponentGroupArrays[i].CachedType == typeof(T))
 			        return new ComponentGroupArray<T>(m_CachedComponentGroupArrays[i]);
 		    }
-		    
+
 		    var cache = new ComponentGroupArrayStaticCache(typeof(T), EntityManager);
 
 		    ArrayUtilityAdd(ref m_CachedComponentGroupArrays, cache );
 		    ArrayUtilityAdd(ref m_ComponentGroups, cache.ComponentGroup);
-		    
+
 		    RecalculateTypesFromComponentGroups();
 
 		    return new ComponentGroupArray<T>(cache);
 	    }
 
-	    public void UpdateInjectedComponentGroups()
+	    unsafe public void UpdateInjectedComponentGroups()
 	    {
 		    if (null == m_InjectedComponentGroups)
 			    return;
 
-		    IntPtr pinnedSystemPtr;
 		    ulong gchandle;
-		    UnsafeUtility.PinGCObjectAndGetAddress(this, out gchandle, out pinnedSystemPtr);
-			
+	        byte* pinnedSystemPtr = (byte*)UnsafeUtility.PinGCObjectAndGetAddress(this, out gchandle);
+
 		    try
 		    {
 			    foreach (var group in m_InjectedComponentGroups)
 				    group.UpdateInjection (pinnedSystemPtr);
-		    
+
 			    InjectFromEntityData.UpdateInjection(pinnedSystemPtr, EntityManager, m_InjectedFromEntity);
 		    }
 		    catch
@@ -161,7 +160,7 @@ namespace UnityEngine.ECS
 		    UpdateInjectedComponentGroups ();
 
 		    OnUpdate();
-		    
+
 		    JobHandle.ScheduleBatchedJobs();
 	    }
 
@@ -293,7 +292,7 @@ namespace UnityEngine.ECS
 		}
 
 		protected unsafe void AddDependencyInternal(JobHandle dependency)
-		{			
+		{
 			fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
 			{
 				m_SafetyManager.AddDependency(readersPtr, m_JobDependencyForReadingManagers.Length, writersPtr, m_JobDependencyForWritingManagers.Length, dependency);

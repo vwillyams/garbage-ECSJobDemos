@@ -58,12 +58,12 @@ namespace UnityEngine.ECS
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 					if (m_Cache.CachedSizeOf % UnsafeUtility.SizeOf<T>() != 0)
 					{
-						throw new System.InvalidOperationException("Fixed array size must be multiple of sizeof"); 
+						throw new System.InvalidOperationException("Fixed array size must be multiple of sizeof");
 					}
 #endif
 				}
 
-                IntPtr ptr = m_Cache.CachedPtr + index * m_Cache.CachedSizeOf;
+                void* ptr = (byte*)m_Cache.CachedPtr + index * m_Cache.CachedSizeOf;
                 var array = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(ptr, m_CachedFixedArrayLength, Allocator.Invalid);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref array, safety);

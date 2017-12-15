@@ -46,7 +46,7 @@ namespace UnityEngine.ECS
 #endif
                 m_Entities.AssertEntityHasComponent(entity, m_TypeIndex);
 
-                IntPtr ptr = m_Entities.GetComponentDataWithType(entity, m_TypeIndex);
+                void* ptr = m_Entities.GetComponentDataWithType(entity, m_TypeIndex);
                 T data;
                 UnsafeUtility.CopyPtrToStructure(ptr, out data);
 
@@ -59,7 +59,7 @@ namespace UnityEngine.ECS
 #endif
                 m_Entities.AssertEntityHasComponent(entity, m_TypeIndex);
 
-                IntPtr ptr = m_Entities.GetComponentDataWithType(entity, m_TypeIndex);
+                void* ptr = m_Entities.GetComponentDataWithType(entity, m_TypeIndex);
                 UnsafeUtility.CopyStructureToPtr(ref value, ptr);
 			}
 		}

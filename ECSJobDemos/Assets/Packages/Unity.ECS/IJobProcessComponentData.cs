@@ -27,7 +27,7 @@ namespace UnityEngine.ECS
 
     public static class JobProcessComponentDataExtension1
     {
-        static public JobHandle Schedule<T, U0>(this T jobData, ComponentDataArray<U0> componentDataArray, int innerloopBatchCount, JobHandle dependsOn = new JobHandle())
+        unsafe static public JobHandle Schedule<T, U0>(this T jobData, ComponentDataArray<U0> componentDataArray, int innerloopBatchCount, JobHandle dependsOn = new JobHandle())
             where T : struct, IJobProcessComponentData<U0>
             where U0 : struct, IComponentData
         {
@@ -39,7 +39,7 @@ namespace UnityEngine.ECS
             return JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray.Length, innerloopBatchCount);
         }
 
-        static public void Run<T, U0>(this T jobData, ComponentDataArray<U0> componentDataArray)
+        unsafe static public void Run<T, U0>(this T jobData, ComponentDataArray<U0> componentDataArray)
             where T : struct, IJobProcessComponentData<U0>
             where U0 : struct, IComponentData
         {
@@ -50,7 +50,7 @@ namespace UnityEngine.ECS
             var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct<T, U0>.Initialize(), new JobHandle(), ScheduleMode.Run);
             JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray.Length, componentDataArray.Length);
         }
-        
+
         struct JobStruct<T, U0>
             where T : struct, IJobProcessComponentData<U0>
             where U0 : struct, IComponentData
@@ -80,8 +80,8 @@ namespace UnityEngine.ECS
                     while (begin != end)
                     {
                         var array = jobData.componentDataArray.GetChunkArray(begin, end - begin);
-                        var ptr = array.GetUnsafePtr();                    
-    
+                        var ptr = array.GetUnsafePtr();
+
                         for (int i = 0; i != array.Length; i++)
                         {
                             //@TODO: use ref returns to pass by ref instead of double copy
@@ -93,13 +93,13 @@ namespace UnityEngine.ECS
                         begin += array.Length;
                     }
                 }
-            }            
+            }
         }
     }
 
     public static class JobProcessComponentDataExtension2
     {
-        static public JobHandle Schedule<T, U0, U1>(this T jobData, ComponentDataArray<U0> componentDataArray0, ComponentDataArray<U1> componentDataArray1, int innerloopBatchCount, JobHandle dependsOn = new JobHandle())
+        unsafe static public JobHandle Schedule<T, U0, U1>(this T jobData, ComponentDataArray<U0> componentDataArray0, ComponentDataArray<U1> componentDataArray1, int innerloopBatchCount, JobHandle dependsOn = new JobHandle())
             where T : struct, IJobProcessComponentData<U0, U1>
             where U0 : struct, IComponentData
             where U1 : struct, IComponentData
@@ -112,8 +112,8 @@ namespace UnityEngine.ECS
             var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct<T, U0, U1>.Initialize(), dependsOn, ScheduleMode.Batched);
             return JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray0.Length, innerloopBatchCount);
         }
-        
-        static public void Run<T, U0, U1>(this T jobData, ComponentDataArray<U0> componentDataArray0, ComponentDataArray<U1> componentDataArray1)
+
+        unsafe static public void Run<T, U0, U1>(this T jobData, ComponentDataArray<U0> componentDataArray0, ComponentDataArray<U1> componentDataArray1)
             where T : struct, IJobProcessComponentData<U0, U1>
             where U0 : struct, IComponentData
             where U1 : struct, IComponentData
@@ -122,7 +122,7 @@ namespace UnityEngine.ECS
             fullData.data = jobData;
             fullData.componentDataArray0 = componentDataArray0;
             fullData.componentDataArray1 = componentDataArray1;
-            
+
             var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct<T, U0, U1>.Initialize(), new JobHandle(), ScheduleMode.Run);
             JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray0.Length, componentDataArray0.Length);
         }
@@ -162,10 +162,10 @@ namespace UnityEngine.ECS
                         var array1 = jobData.componentDataArray1.GetChunkArray(begin, end - begin);
                         //@TODO: Currently Assert.AreEqual doens't compile in burst. Need to find out why...
                         // Assert.AreEqual(array0.Length, array1.Length);
-                        
-                        var ptr0 = array0.GetUnsafePtr();                    
-                        var ptr1 = array1.GetUnsafePtr();                    
-                        
+
+                        var ptr0 = array0.GetUnsafePtr();
+                        var ptr1 = array1.GetUnsafePtr();
+
                         for (int i = 0; i != array0.Length; i++)
                         {
                             //@TODO: use ref returns to pass by ref instead of double copy
@@ -173,7 +173,7 @@ namespace UnityEngine.ECS
                             var value1 = UnsafeUtility.ReadArrayElement<U1>(ptr1, i);
 
                             jobData.data.Execute(ref value0, ref value1);
-                            
+
                             UnsafeUtility.WriteArrayElement(ptr0, i, value0);
                             UnsafeUtility.WriteArrayElement(ptr1, i, value1);
                         }
@@ -181,11 +181,11 @@ namespace UnityEngine.ECS
                         begin += array0.Length;
                     }
                 }
-            }     
+            }
         }
     }
 
-    public class GenericProcessComponentSystem<TJob, TComponentData0> : JobComponentSystem 
+    public class GenericProcessComponentSystem<TJob, TComponentData0> : JobComponentSystem
         where TJob : struct, IAutoComponentSystemJob, IJobProcessComponentData<TComponentData0>
         where TComponentData0 : struct, IComponentData
     {

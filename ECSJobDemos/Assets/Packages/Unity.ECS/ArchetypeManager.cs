@@ -9,13 +9,13 @@ namespace UnityEngine.ECS
 	{
 		void OnManagedObjectModified();
 	}
-	
-	
-	
+
+
+
     unsafe struct Chunk
 	{
 		public Archetype*   archetype;
-        public IntPtr 		buffer;
+        public byte* 		buffer;
 
 		public int          managedArrayIndex;
 
@@ -57,7 +57,7 @@ namespace UnityEngine.ECS
 		{
 			return lhs.typeIndex != rhs.typeIndex ? lhs.typeIndex > rhs.typeIndex : lhs.sharedComponentIndex > rhs.sharedComponentIndex;
 		}
-		
+
 		public static unsafe bool CompareArray(ComponentTypeInArchetype* type1, int typeCount1, ComponentTypeInArchetype* type2, int typeCount2)
 		{
 			if (typeCount1 != typeCount2)
@@ -67,9 +67,9 @@ namespace UnityEngine.ECS
 				if (type1[i] != type2[i])
 					return false;
 			}
-			return true;		
+			return true;
 		}
-		
+
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 		public override string ToString()
 		{
@@ -109,7 +109,7 @@ namespace UnityEngine.ECS
 		// TODO: Linkage to other archetype via Add/Remove Component
 		public Archetype*       prevArchetype;
 	}
-	
+
     unsafe class ArchetypeManager : IDisposable
 	{
 		NativeMultiHashMap<uint, IntPtr>		m_TypeLookup;
@@ -143,7 +143,7 @@ namespace UnityEngine.ECS
 				while (m_LastArchetype->first != null)
 				{
 					Chunk* nextChunk = m_LastArchetype->first->next;
-					UnsafeUtility.Free((IntPtr)m_LastArchetype->first, Allocator.Persistent);
+					UnsafeUtility.Free(m_LastArchetype->first, Allocator.Persistent);
 					m_LastArchetype->first = nextChunk;
 				}
 				m_LastArchetype = m_LastArchetype->prevArchetype;
@@ -182,7 +182,7 @@ namespace UnityEngine.ECS
 				throw new System.ArgumentException($"Invalid component count");
 			if (types[0].typeIndex != TypeManager.GetTypeIndex<Entity>())
 				throw new System.ArgumentException($"The Entity ID must always be the first component");
-			
+
 			for (int i = 1; i < count; i++)
 			{
 				if (!TypeManager.IsValidComponentTypeForArchetype(types[i].typeIndex, types[i].IsFixedArray))
@@ -191,7 +191,7 @@ namespace UnityEngine.ECS
 					throw new ArgumentException($"It is not allowed to have two components of the same type on the same entity. ({types[i-1]} and {types[i]})");
 			}
 		}
-		
+
         public Archetype* GetArchetype(ComponentTypeInArchetype* types, int count, EntityGroupManager groupManager, SharedComponentDataManager sharedComponentManager)
 		{
 			uint hash = HashUtility.fletcher32((ushort*)types, count * sizeof(ComponentTypeInArchetype) / sizeof(ushort));
@@ -209,7 +209,7 @@ namespace UnityEngine.ECS
 			}
 
 			AssertArchetypeComponents(types, count);
-			
+
 			// This is a new archetype, allocate it and add it to the hash map
             type = (Archetype*)m_ArchetypeChunkAllocator.Allocate(sizeof(Archetype), 8);
 			type->typesCount = count;
@@ -299,14 +299,13 @@ namespace UnityEngine.ECS
 
         public Chunk* AllocateChunk(Archetype* archetype)
         {
-            IntPtr buffer = UnsafeUtility.Malloc(kChunkSize, 64, Allocator.Persistent);
+            byte* buffer = (byte*)UnsafeUtility.Malloc(kChunkSize, 64, Allocator.Persistent);
 
             int bufferOffset = (sizeof(Chunk) + 63) & ~63;
 
             var chunk = (Chunk*)buffer;
+            chunk->buffer = buffer + bufferOffset;
             chunk->archetype = archetype;
-
-            chunk->buffer = (IntPtr)(((byte*)chunk) + bufferOffset);
             chunk->count = 0;
             chunk->capacity = archetype->chunkCapacity;
 			chunk->next = null;
@@ -335,7 +334,7 @@ namespace UnityEngine.ECS
 	        {
 		        if (chunk->count != chunk->capacity)
 			        return chunk;
-		        
+
 		        chunk = chunk->next;
 	        }
 
@@ -361,7 +360,7 @@ namespace UnityEngine.ECS
 
         /*public void DeallocateChunk(Chunk* chunk)
         {
-            
+
         }*/
 
         public object GetManagedObject(Chunk* chunk, ComponentType type, int index)
@@ -386,7 +385,7 @@ namespace UnityEngine.ECS
 		public void SetManagedObject(Chunk* chunk, int type, int index, object val)
 		{
 			int managedStart = chunk->archetype->managedArrayOffset[type] * chunk->capacity;
-			m_ManagedArrays[chunk->managedArrayIndex].managedArray[index + managedStart] = val;			
+			m_ManagedArrays[chunk->managedArrayIndex].managedArray[index + managedStart] = val;
 
 			if (chunk->archetype->managedObjectListenerIndex >= 0)
 			{

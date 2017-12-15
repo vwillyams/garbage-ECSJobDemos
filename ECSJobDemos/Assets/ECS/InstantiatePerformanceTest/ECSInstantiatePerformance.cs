@@ -53,13 +53,13 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		public Component4Bytes* 	src;
 		public Component4BytesDst* 	dst;
 	}
-	
+
 	[ComputeJobOptimization]
 	struct Iterate_ComponentDataArray : IJob
 	{
 		public ComponentDataArray<Component4Bytes> 		src;
 		public ComponentDataArray<Component4BytesDst> 	dst;
-		
+
 		public void Execute()
 		{
 			for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
@@ -70,7 +70,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 			}
 		}
 	}
-	
+
 	[ComputeJobOptimization]
 	struct Iterate_ProcessEntities : IJobProcessEntities<EntityIter>
 	{
@@ -79,7 +79,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 			entity.dst->value = entity.src->value;
 		}
 	}
-	
+
 	//@TODO: Burst can't do this yet
 	//[ComputeJobOptimization]
 	struct Iterate_ForEachEntities : IJob
@@ -92,7 +92,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 				entity.dst->value = entity.src->value;
 		}
 	}
-	
+
 	[ComputeJobOptimization]
 	struct Iterate_ProcessComponentData : IJobProcessComponentData<Component4Bytes, Component4BytesDst>
 	{
@@ -110,7 +110,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		[NativeDisableUnsafePtrRestriction]
 		public float* 	dst;
 		public int 		length;
-		
+
 		public void Execute()
 		{
 			for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
@@ -126,22 +126,22 @@ public class ECSInstantiatePerformance : MonoBehaviour
 	{
 		[NativeMatchesParallelForLength]
 		public NativeArray<float> 	src;
-		
+
 		[NativeMatchesParallelForLength]
 		public NativeArray<float> 	dst;
-		
+
 		public void Execute(int i)
 		{
 			dst[i] = src[i];
 		}
 	}
-	
+
 	[ComputeJobOptimization]
 	struct Iterate_NativeArray : IJob
 	{
 		public NativeArray<float> 	src;
 		public NativeArray<float> 	dst;
-		
+
 		public void Execute()
 		{
 			for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
@@ -157,7 +157,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 	{
 		public NativeSlice<float> 	src;
 		public NativeSlice<float> 	dst;
-		
+
 		public void Execute()
 		{
 			for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
@@ -167,14 +167,14 @@ public class ECSInstantiatePerformance : MonoBehaviour
 			}
 		}
 	}
-	
+
 	CustomSampler setupSampler;
 	CustomSampler instantiateSampler;
 	CustomSampler destroySampler;
     CustomSampler memcpySampler;
 	CustomSampler instantiateMemcpySampler ;
 	CustomSampler iterateArraySampler;
-	 
+
     void Awake()
 	{
 		setupSampler = CustomSampler.Create("Setup");
@@ -200,7 +200,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		}
 		iterateArraySampler.End();
 	}
-	
+
 	unsafe void TestNativeArray()
 	{
 		setupSampler.Begin();
@@ -214,7 +214,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		var jobArrayParallellFor = new Iterate_NativeArrayParallelFor() { src = src, dst = dst };
 		for (int i = 0;i != PerformanceTestConfiguration.Iterations;i++)
 			jobArrayParallellFor.Run(src.Length);
-		
+
 		var jobSlice = new Iterate_NativeSlice() { src = src, dst = dst };
 		jobSlice.Run();
 
@@ -223,35 +223,35 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		dst.Dispose();
 		setupSampler.End();
 	}
-	
+
 	unsafe void TestUnsafePtr()
 	{
 		setupSampler.Begin();
 		int size = sizeof(Component4Bytes) + sizeof(Component16Bytes)  + sizeof(Component64Bytes) + sizeof(Component12Bytes) + sizeof(Component128Bytes) + sizeof(Entity);
 		size *= PerformanceTestConfiguration.InstanceCount;
 		var src = (float*)UnsafeUtility.Malloc(size, 64, Allocator.Persistent);
-		UnsafeUtility.MemClear((IntPtr)src, size);
-		
+		UnsafeUtility.MemClear(src, size);
+
 		var dst = (float*)UnsafeUtility.Malloc(size, 64, Allocator.Persistent);
 		setupSampler.End();
 
 		instantiateMemcpySampler.Begin();
-		UnsafeUtility.MemCpy((IntPtr)dst, (IntPtr)src, size);
+		UnsafeUtility.MemCpy(dst, src, size);
 		instantiateMemcpySampler.End();
 
 		memcpySampler.Begin();
 		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
 		{
-			UnsafeUtility.MemCpy((IntPtr)dst, (IntPtr)src, sizeof(float) * PerformanceTestConfiguration.InstanceCount);
+			UnsafeUtility.MemCpy(dst, src, sizeof(float) * PerformanceTestConfiguration.InstanceCount);
 		}
 		memcpySampler.End();
 
 		var jobFloatPtr = new Iterate_FloatPointer() { src = src, dst = dst, length = PerformanceTestConfiguration.InstanceCount };
 		jobFloatPtr.Run();
-		
+
 		setupSampler.Begin();
-		UnsafeUtility.Free((IntPtr)src, Allocator.Persistent);
-		UnsafeUtility.Free((IntPtr)dst, Allocator.Persistent);
+		UnsafeUtility.Free(src, Allocator.Persistent);
+		UnsafeUtility.Free(dst, Allocator.Persistent);
 		setupSampler.End();
 	}
 
@@ -269,12 +269,12 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		var entityManager = World.Active.GetOrCreateManager<EntityManager>();
 
 		setupSampler.End();
-		
+
 		setupSampler.Begin();
 		var archetype = entityManager.CreateEntity(typeof(Component128Bytes), typeof(Component12Bytes), typeof(Component64Bytes), typeof(Component16Bytes), typeof(Component4Bytes), typeof(Component4BytesDst));
 		var group = entityManager.CreateComponentGroup(typeof(Component4Bytes), typeof(Component4BytesDst));
-		setupSampler.End();		
-		
+		setupSampler.End();
+
 		instantiateSampler.Begin ();
 		var instances = new NativeArray<Entity>(PerformanceTestConfiguration.InstanceCount - 1, Allocator.Temp);
 		entityManager.Instantiate (archetype, instances);
@@ -289,7 +289,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		var componentProcessDataJob = new Iterate_ProcessComponentData();
 		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
 			componentProcessDataJob.Run(src, dst);
-		
+
 		var entityArrayCache = new ComponentGroupArrayStaticCache(typeof(EntityIter), entityManager);
 		var entityArray = new ComponentGroupArray<EntityIter>(entityArrayCache);
 
@@ -303,17 +303,17 @@ public class ECSInstantiatePerformance : MonoBehaviour
 			componentForEachEntities.Run();
 
 		entityArrayCache.Dispose();
-		
+
 		destroySampler.Begin ();
 		entityManager.DestroyEntity (instances);
 		destroySampler.End ();
 
 		setupSampler.Begin();
 		entityManager.DestroyEntity (archetype);
-	    
+
 		instances.Dispose ();
 		group.Dispose();
-	    
+
 		if (oldRoot != null)
 		{
 			World.Active.Dispose();
@@ -332,7 +332,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 	    TestManagedArray();
 	    TestNativeArray();
 	    TestEntities();
-	    
+
 	    JobsUtility.JobDebuggerEnabled = wasEnabled;
     }
 }

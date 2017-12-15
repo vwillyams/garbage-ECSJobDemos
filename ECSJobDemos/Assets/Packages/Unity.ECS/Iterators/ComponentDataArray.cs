@@ -27,7 +27,7 @@ namespace UnityEngine.ECS
         {
             m_Iterator = iterator;
 	        m_Cache = default(ComponentChunkCache);
-	        
+
             m_Length = length;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_MinIndex = 0;
@@ -46,14 +46,14 @@ namespace UnityEngine.ECS
 	        else if (startIndex + maxCount > m_MaxIndex + 1)
 		        FailOutOfRangeError(startIndex + maxCount);
 #endif
-            
+
             m_Iterator.UpdateCache(startIndex, out m_Cache);
-            
-            IntPtr ptr = m_Cache.CachedPtr + startIndex * m_Cache.CachedSizeOf;
+
+            void* ptr = (byte*)m_Cache.CachedPtr + startIndex * m_Cache.CachedSizeOf;
             int count = Math.Min(maxCount, m_Cache.CachedEndIndex - startIndex);
 
 	        var arr = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(ptr, count, Allocator.Invalid);
-            
+
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref arr, m_Safety);
 #endif

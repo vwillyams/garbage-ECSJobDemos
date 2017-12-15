@@ -7,7 +7,7 @@ namespace UnityEngine.ECS
 {
     class DefaultWorldInitialization
     {
-        static World m_CreatedWorld; 
+        static World m_CreatedWorld;
 
         static void DomainUnloadShutdown()
         {
@@ -15,15 +15,15 @@ namespace UnityEngine.ECS
             {
                 World.Active.Dispose ();
                 World.Active = null;
-                
-                World.UpdatePlayerLoop(null);
+
+                World.UpdatePlayerLoop();
             }
             else
             {
                 Debug.LogError("World has already been destroyed");
             }
         }
-        
+
         static void GetBehaviourManagerAndLogException(World world, Type type)
         {
             try
@@ -33,7 +33,7 @@ namespace UnityEngine.ECS
             catch (Exception e)
             {
                 Debug.LogException(e);
-            }        
+            }
         }
 
 
@@ -42,7 +42,7 @@ namespace UnityEngine.ECS
             World world = new World();
             World.Active = world;
             m_CreatedWorld = world;
-            
+
             PlayerLoopManager.RegisterDomainUnload (DomainUnloadShutdown);
 
             foreach (var ass in AppDomain.CurrentDomain.GetAssemblies())
@@ -83,7 +83,7 @@ namespace UnityEngine.ECS
                     }
                     else
                     {
-                        Debug.LogError(string.Format("{0} implements the IAutoComponentSystemJob interface, for it to run, you also need to IJobProcessComponentData", jobType));   
+                        Debug.LogError(string.Format("{0} implements the IAutoComponentSystemJob interface, for it to run, you also need to IJobProcessComponentData", jobType));
                     }
                 }
             }

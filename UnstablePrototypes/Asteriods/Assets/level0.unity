@@ -121,6 +121,7 @@ GameObject:
   - component: {fileID: 83804743}
   - component: {fileID: 83804742}
   - component: {fileID: 83804744}
+  - component: {fileID: 83804745}
   m_Layer: 0
   m_Name: GameSettings
   m_TagString: Untagged
@@ -140,10 +141,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerPrefab: {fileID: 1326261091582206, guid: 0915f26a59168714ebf47d5ea08b959a,
-    type: 2}
-  bulletPrefab: {fileID: 1347542988333870, guid: ff3296fe076e36b4298b229aac2e3d28,
-    type: 2}
-  asteroidPrefab: {fileID: 1714215462347460, guid: 487ab7d8f6006534baf9a155acae340f,
     type: 2}
   asteroidRadius: 0
   playerRadius: 0
@@ -175,6 +172,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f028aece26ebffb4a990a14976f846f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &83804745
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 83804741}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cb7a43ad46ba444fa1c5050ea3aaecc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1032912726

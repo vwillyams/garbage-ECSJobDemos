@@ -184,15 +184,15 @@ namespace UnityEngine.ECS
 		{
 			DestroyManagerInteral(manager);
 		}
-		
+
 		//@TODO: This should take an array of worlds...
-		public static void UpdatePlayerLoop(World world)
+		public static void UpdatePlayerLoop(params World[] worlds)
 		{
 			var defaultLoop = UnityEngine.Experimental.LowLevel.PlayerLoop.GetDefaultPlayerLoop();
 
-			if (world != null)
+			if (worlds.Length > 0)
 			{
-				var ecsLoop = ScriptBehaviourUpdateOrder.InsertManagersInPlayerLoop(world.m_BehaviourManagers, defaultLoop);
+				var ecsLoop = ScriptBehaviourUpdateOrder.InsertWorldManagersInPlayerLoop(defaultLoop, worlds);
 				SetPlayerLoopAndNotify(ecsLoop);
 			}
 			else

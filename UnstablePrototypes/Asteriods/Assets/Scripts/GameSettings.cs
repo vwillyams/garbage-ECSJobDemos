@@ -22,7 +22,6 @@ public class GameSettings : MonoBehaviour
     public EntityArchetype playerClientArchetype;
     public EntityArchetype asteroidClientArchetype;
     public EntityArchetype bulletClientArchetype;
-    EntityManager m_EntityManager;
 
     static GameSettings m_Instance;
     public static GameSettings Instance()
@@ -34,9 +33,10 @@ public class GameSettings : MonoBehaviour
     {
         m_Instance = this;
 
-        m_EntityManager = World.Active.GetOrCreateManager<EntityManager>();
+        // HACK:
+        var manager = LocalWorldBootstrap.serverWorld.GetOrCreateManager<EntityManager>();
 
-        playerArchetype = m_EntityManager.CreateArchetype(
+        playerArchetype = manager.CreateArchetype(
             typeof(PositionComponentData),
             typeof(RotationComponentData),
             typeof(PlayerTagComponentData),
@@ -44,7 +44,7 @@ public class GameSettings : MonoBehaviour
             typeof(NetworkIdCompmonentData),
             typeof(VelocityComponentData));
 
-        asteroidArchetype = m_EntityManager.CreateArchetype(
+        asteroidArchetype = manager.CreateArchetype(
             typeof(PositionComponentData),
             typeof(RotationComponentData),
             typeof(AsteroidTagComponentData),
@@ -52,7 +52,7 @@ public class GameSettings : MonoBehaviour
             typeof(NetworkIdCompmonentData),
             typeof(VelocityComponentData));
 
-        bulletArchetype = m_EntityManager.CreateArchetype(
+        bulletArchetype = manager.CreateArchetype(
             typeof(PositionComponentData),
             typeof(RotationComponentData),
             typeof(BulletTagComponentData),
@@ -61,7 +61,9 @@ public class GameSettings : MonoBehaviour
             typeof(NetworkIdCompmonentData),
             typeof(VelocityComponentData));
 
-        playerClientArchetype = m_EntityManager.CreateArchetype(
+        manager = LocalWorldBootstrap.clientWorld.GetOrCreateManager<EntityManager>();
+
+        playerClientArchetype = manager.CreateArchetype(
             typeof(PositionComponentData),
             typeof(RotationComponentData),
             typeof(PlayerTagComponentData),
@@ -69,13 +71,13 @@ public class GameSettings : MonoBehaviour
             typeof(NetworkIdCompmonentData),
             typeof(ParticleEmitterComponentData));
 
-        asteroidClientArchetype = m_EntityManager.CreateArchetype(
+        asteroidClientArchetype = manager.CreateArchetype(
             typeof(PositionComponentData),
             typeof(RotationComponentData),
             typeof(AsteroidTagComponentData),
             typeof(NetworkIdCompmonentData));
 
-        bulletClientArchetype = m_EntityManager.CreateArchetype(
+        bulletClientArchetype = manager.CreateArchetype(
             typeof(PositionComponentData),
             typeof(RotationComponentData),
             typeof(BulletTagComponentData),

@@ -39,7 +39,6 @@ namespace Asteriods.Client
                 Entity e;
                 if (m_SpawnSystem.NetworkIdLookup.TryGetValue(id, out e) && EntityManager.Exists(e))
                 {
-                    Debug.Log("despawn for " + id + " received");
                     m_EntityManager.DestroyEntity(e);
                 }
             }

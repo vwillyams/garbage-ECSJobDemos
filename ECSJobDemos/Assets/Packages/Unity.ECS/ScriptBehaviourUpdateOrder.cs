@@ -195,7 +195,7 @@ namespace UnityEngine.ECS
 						if (target.minInsertPos < pos)
 							target.minInsertPos = pos;
 						if (target.maxInsertPos == 0 || target.maxInsertPos > pos)
-							target.maxInsertPos = pos;						
+							target.maxInsertPos = pos;
 					}
 					else
 					{
@@ -346,7 +346,7 @@ namespace UnityEngine.ECS
 				}
 
 				DependantBehavior dep = new DependantBehavior(manager);
-				dependencies.Add(manager.GetType(), dep);				
+				dependencies.Add(manager.GetType(), dep);
 			}
 
 			// @TODO: apply additional sideloaded constraints here
@@ -425,7 +425,7 @@ namespace UnityEngine.ECS
 				{
 					ValidateAndFixSingleChainMinPos(system, dependencyGraph, system.minInsertPos);
 				}
-			}	
+			}
 		}
 		static void ValidateAndFixSingleChainMinPos(DependantBehavior system, Dictionary<Type, DependantBehavior> dependencyGraph, int minInsertPos)
 		{
@@ -536,10 +536,29 @@ namespace UnityEngine.ECS
 			}
 		}
 
+		public static PlayerLoopSystem InsertWorldManagersInPlayerLoop(PlayerLoopSystem defaultPlayerLoop, params World[] worlds)
+        {
+            List<InsertionBucket> systemList = new List<InsertionBucket>();
+            foreach (var world in worlds)
+            {
+                if (world.BehaviourManagers.Count() == 0)
+                    continue;
+                systemList.AddRange(CreateSystemDependencyList(world.BehaviourManagers, defaultPlayerLoop));
+            }
+            return CreatePlayerLoop(systemList, defaultPlayerLoop);
+        }
+
 		public static PlayerLoopSystem InsertManagersInPlayerLoop(IEnumerable<ScriptBehaviourManager> activeManagers, PlayerLoopSystem defaultPlayerLoop)
-		{
+        {
 			if (activeManagers.Count() == 0)
 				return defaultPlayerLoop;
+
+            var list = CreateSystemDependencyList(activeManagers, defaultPlayerLoop);
+            return CreatePlayerLoop(list, defaultPlayerLoop);
+        }
+
+        static List<InsertionBucket> CreateSystemDependencyList(IEnumerable<ScriptBehaviourManager> activeManagers, PlayerLoopSystem defaultPlayerLoop)
+		{
 			Dictionary<Type, DependantBehavior> dependencyGraph = BuildSystemGraph(activeManagers, defaultPlayerLoop);
 
 			MarkSchedulingAndWaitingJobs(dependencyGraph);
@@ -699,8 +718,11 @@ namespace UnityEngine.ECS
 				depsToAdd.Clear();
 				++processedChainLength;
 			}
+            return new List<InsertionBucket>(insertionBucketDict.Values);
+		}
 
-			List<InsertionBucket> insertionBuckets = new List<InsertionBucket>(insertionBucketDict.Values);
+        static PlayerLoopSystem CreatePlayerLoop(List<InsertionBucket> insertionBuckets, PlayerLoopSystem defaultPlayerLoop)
+        {
 			insertionBuckets.Sort();
 
 			// Insert the buckets at the appropriate place
@@ -753,9 +775,9 @@ namespace UnityEngine.ECS
 				}
 				currentPos = lastPos;
 			}
-			
+
 			return ecsPlayerLoop;
-		}
-		
+        }
+
     }
 }

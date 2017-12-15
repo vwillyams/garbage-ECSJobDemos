@@ -61,23 +61,26 @@
 - game code
   - [ ] make collision detection more scalable, look at boids demo!
     - move collision detection to server and use only circle for now. (michalb)
-  - [ ] move away from game objects!
-    - [ ] remove sprite renderer (timj)
+  - [x] move away from game objects!
+    - [x] remove sprite renderer (timj)
   - [ ] add a follow cam
   - [ ] decide on map size and maybe even make it wrap.
   - [ ] add health component to all objects?
   - [ ] make sure we can spawn 5k objects on the map now within reasonoble time and run them without drop in framerate.
 
-  - [ ] divide into server/server and common code. (michalb)
+  - [x] divide into server/server and common code. (michalb)
     - ~seperate into proper folders~
     - ~divide client / server code from the systems~
-    - move server code into pure ecs.
-    - start seperate worlds for client and server
-    - introduce state and cmd structures
-    - fix respawning
-    - find out why we are getting an exception in Client.SpawnSystem:110
+    - ~move server code into pure ecs.~
+    - ~start seperate worlds for client and server~
+    - ~introduce state and cmd structures~
+    - ~fix respawning~
+    - ~find out why we are getting an exception in Client.SpawnSystem:110~
+  - [x] add multiple worlds for faster prototyping for client / server
 
-  - [ ] add multiple worlds for faster prototyping for client / server
+  - [ ] misc fixes that is still missing for multiple worlds
+    - add attributes for client / server code and remove the namespace hack in GameMain
+    - GameSettings and archetypes need to have their respective owners set properly. e.g. remvoe hack
 
 - debug tools
   - console system

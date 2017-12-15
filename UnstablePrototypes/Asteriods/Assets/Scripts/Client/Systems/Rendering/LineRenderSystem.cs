@@ -37,6 +37,11 @@ namespace Asteriods.Client
         {
             if (Camera.main.GetCommandBuffers(CameraEvent.AfterEverything).Length == 0)
                 Camera.main.AddCommandBuffer(CameraEvent.AfterEverything, m_CommandBuffer);
+            if (m_LineList.Length > MaxLines)
+            {
+                Debug.LogWarning("Trying to render " + m_LineList.Length + " but limit is " + MaxLines);
+                m_LineList.ResizeUninitialized(MaxLines);
+            }
             NativeArray<Line> lines = m_LineList;
             m_Material.SetFloat("screenWidth", Screen.width);
             m_Material.SetFloat("screenHeight", Screen.height);

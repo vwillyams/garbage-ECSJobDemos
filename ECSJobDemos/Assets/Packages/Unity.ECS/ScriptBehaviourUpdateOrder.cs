@@ -119,27 +119,35 @@ namespace UnityEngine.ECS
 				}
 			}
 
-			public void AddUpdateBeforeToAllChildBehaviours(Type dep, Dictionary<Type, DependantBehavior> dependencies)
+			public void AddUpdateBeforeToAllChildBehaviours(DependantBehavior target, Dictionary<Type, DependantBehavior> dependencies)
 			{
+                Type dep = target.manager.GetType();
 				foreach (var manager in managers)
 				{
 					DependantBehavior managerDep;
 					if (dependencies.TryGetValue(manager, out managerDep))
+                    {
+                        target.updateAfter.Add(manager);
 						managerDep.updateBefore.Add(dep);
+                    }
 				}
 				foreach (var group in groups)
-					group.AddUpdateBeforeToAllChildBehaviours(dep, dependencies);
+					group.AddUpdateBeforeToAllChildBehaviours(target, dependencies);
 			}
-			public void AddUpdateAfterToAllChildBehaviours(Type dep, Dictionary<Type, DependantBehavior> dependencies)
+			public void AddUpdateAfterToAllChildBehaviours(DependantBehavior target, Dictionary<Type, DependantBehavior> dependencies)
 			{
+                Type dep = target.manager.GetType();
 				foreach (var manager in managers)
 				{
 					DependantBehavior managerDep;
 					if (dependencies.TryGetValue(manager, out managerDep))
+                    {
+                        target.updateBefore.Add(manager);
 						managerDep.updateAfter.Add(dep);
+                    }
 				}
 				foreach (var group in groups)
-					group.AddUpdateAfterToAllChildBehaviours(dep, dependencies);
+					group.AddUpdateAfterToAllChildBehaviours(target, dependencies);
 			}
 
 			public Type groupType;
@@ -252,8 +260,7 @@ namespace UnityEngine.ECS
 				}
 				else if (allGroups.TryGetValue(attribDep.SystemType, out otherGroup))
 				{
-					targetSystem.updateAfter.Add(attribDep.SystemType);
-					otherGroup.AddUpdateBeforeToAllChildBehaviours(target, dependencies);
+					otherGroup.AddUpdateBeforeToAllChildBehaviours(targetSystem, dependencies);
 				}
 				else
 				{
@@ -273,8 +280,7 @@ namespace UnityEngine.ECS
 				}
 				else if (allGroups.TryGetValue(attribDep.SystemType, out otherGroup))
 				{
-					targetSystem.updateBefore.Add(attribDep.SystemType);
-					otherGroup.AddUpdateAfterToAllChildBehaviours(target, dependencies);
+					otherGroup.AddUpdateAfterToAllChildBehaviours(targetSystem, dependencies);
 				}
 				else
 				{
@@ -299,8 +305,7 @@ namespace UnityEngine.ECS
 						}
 						else if (allGroups.TryGetValue(dep, out otherGroup))
 						{
-							targetSystem.updateAfter.Add(dep);
-							otherGroup.AddUpdateBeforeToAllChildBehaviours(target, dependencies);
+							otherGroup.AddUpdateBeforeToAllChildBehaviours(targetSystem, dependencies);
 						}
 						else
 						{
@@ -316,8 +321,7 @@ namespace UnityEngine.ECS
 						}
 						else if (allGroups.TryGetValue(dep, out otherGroup))
 						{
-							targetSystem.updateBefore.Add(dep);
-							otherGroup.AddUpdateAfterToAllChildBehaviours(target, dependencies);
+							otherGroup.AddUpdateAfterToAllChildBehaviours(targetSystem, dependencies);
 						}
 						else
 						{

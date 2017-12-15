@@ -7,7 +7,7 @@ using Unity.Mathematics;
 
 namespace Asteriods.Client
 {
-
+    [UpdateBefore(typeof(ParticleUpdateSystemGroup))]
     public class ParticleEmitterSystem : ComponentSystem
     {
         [Inject]
@@ -55,6 +55,29 @@ namespace Asteriods.Client
             {
                 int particles = (int)(Time.deltaTime * spawners[em].emitter.particlesPerSecond + 0.5f);
                 float2 spawnOffset = RotationComponentData.rotate(spawners[em].emitter.spawnOffset, spawners[em].rotation);
+
+                bool colorTrans = math.any(spawners[em].emitter.startColor != spawners[em].emitter.endColor);
+                bool sizeTrans = spawners[em].emitter.startLength != spawners[em].emitter.endLength || spawners[em].emitter.startWidth != spawners[em].emitter.endWidth;
+                EntityArchetype particleArchetype;
+                if (colorTrans && sizeTrans)
+                    particleArchetype = m_EntityManager.CreateArchetype(typeof(ParticleComponentData),
+                        typeof(ParticleAgeComponentData), typeof(ParticleVelocityComponentData),
+                        typeof(PositionComponentData), typeof(RotationComponentData),
+                        typeof(ParticleColorTransitionComponentData), typeof(ParticleSizeTransitionComponentData));
+                else if (colorTrans)
+                    particleArchetype = m_EntityManager.CreateArchetype(typeof(ParticleComponentData),
+                        typeof(ParticleAgeComponentData), typeof(ParticleVelocityComponentData),
+                        typeof(PositionComponentData), typeof(RotationComponentData),
+                        typeof(ParticleColorTransitionComponentData));
+                else if (sizeTrans)
+                    particleArchetype = m_EntityManager.CreateArchetype(typeof(ParticleComponentData),
+                        typeof(ParticleAgeComponentData), typeof(ParticleVelocityComponentData),
+                        typeof(PositionComponentData), typeof(RotationComponentData),
+                        typeof(ParticleSizeTransitionComponentData));
+                else
+                    particleArchetype = m_EntityManager.CreateArchetype(typeof(ParticleComponentData),
+                        typeof(ParticleAgeComponentData), typeof(ParticleVelocityComponentData),
+                        typeof(PositionComponentData), typeof(RotationComponentData));
                 for (int i = 0; i < particles; ++i)
                 {
                     float particleRot = spawners[em].rotation + Random.Range(-spawners[em].emitter.angleSpread, spawners[em].emitter.angleSpread);
@@ -62,20 +85,20 @@ namespace Asteriods.Client
                     float2 particleDir = new float2(0, particleVelocity);
                     particleDir = RotationComponentData.rotate(particleDir, particleRot);
                     particleDir += spawners[em].velocity;
-                    var particle = m_EntityManager.CreateEntity();
-                    m_EntityManager.AddComponent(particle, new ParticleComponentData(spawners[em].emitter.startLength, spawners[em].emitter.startWidth, spawners[em].emitter.startColor));
-                    m_EntityManager.AddComponent(particle, new ParticleAgeComponentData(spawners[em].emitter.particleLifetime));
+                    var particle = m_EntityManager.CreateEntity(particleArchetype);
+                    m_EntityManager.SetComponent(particle, new ParticleComponentData(spawners[em].emitter.startLength, spawners[em].emitter.startWidth, spawners[em].emitter.startColor));
+                    m_EntityManager.SetComponent(particle, new ParticleAgeComponentData(spawners[em].emitter.particleLifetime));
                     // TODO: only if velocity is > epsilon
-                    m_EntityManager.AddComponent(particle, new ParticleVelocityComponentData(particleDir));
-                    m_EntityManager.AddComponent(particle, new PositionComponentData(spawners[em].position.x + spawnOffset.x +
+                    m_EntityManager.SetComponent(particle, new ParticleVelocityComponentData(particleDir));
+                    m_EntityManager.SetComponent(particle, new PositionComponentData(spawners[em].position.x + spawnOffset.x +
                         Random.Range(-spawners[em].emitter.spawnSpread, spawners[em].emitter.spawnSpread), spawners[em].position.y + spawnOffset.y +
                         Random.Range(-spawners[em].emitter.spawnSpread, spawners[em].emitter.spawnSpread)));
-                    m_EntityManager.AddComponent(particle, new RotationComponentData(particleRot));
-                    if (math.any(spawners[em].emitter.startColor != spawners[em].emitter.endColor))
-                        m_EntityManager.AddComponent(particle,
+                    m_EntityManager.SetComponent(particle, new RotationComponentData(particleRot));
+                    if (colorTrans)
+                        m_EntityManager.SetComponent(particle,
                             new ParticleColorTransitionComponentData(spawners[em].emitter.startColor, spawners[em].emitter.endColor));
-                    if (spawners[em].emitter.startLength != spawners[em].emitter.endLength || spawners[em].emitter.startWidth != spawners[em].emitter.endWidth)
-                        m_EntityManager.AddComponent(particle,
+                    if (sizeTrans)
+                        m_EntityManager.SetComponent(particle,
                             new ParticleSizeTransitionComponentData(spawners[em].emitter.startLength,
                             spawners[em].emitter.endLength, spawners[em].emitter.startWidth, spawners[em].emitter.endWidth));
                 }

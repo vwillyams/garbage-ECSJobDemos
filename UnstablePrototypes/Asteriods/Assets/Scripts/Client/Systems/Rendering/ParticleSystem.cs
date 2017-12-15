@@ -7,7 +7,11 @@ using Unity.Mathematics;
 
 namespace Asteriods.Client
 {
+    public class ParticleUpdateSystemGroup
+    {}
+
     [UpdateBefore(typeof(LineRenderSystem))]
+    [UpdateInGroup(typeof(ParticleUpdateSystemGroup))]
     public class ParticleRenderSystem : ComponentSystem
     {
         [Inject]
@@ -43,6 +47,7 @@ namespace Asteriods.Client
     }
 
     [UpdateBefore(typeof(ParticleRenderSystem))]
+    [UpdateInGroup(typeof(ParticleUpdateSystemGroup))]
     public class ParticleAgeSystem : ComponentSystem
     {
         [Inject]
@@ -76,6 +81,7 @@ namespace Asteriods.Client
     }
 
     [UpdateBefore(typeof(ParticleRenderSystem))]
+    [UpdateInGroup(typeof(ParticleUpdateSystemGroup))]
     public class ParticleMoveSystem : ComponentSystem
     {
         struct Particles
@@ -102,6 +108,7 @@ namespace Asteriods.Client
     }
     [UpdateBefore(typeof(ParticleRenderSystem))]
     [UpdateAfter(typeof(ParticleAgeSystem))]
+    [UpdateInGroup(typeof(ParticleUpdateSystemGroup))]
     public class ParticleColorTransitionSystem : ComponentSystem
     {
         struct Particles
@@ -132,6 +139,7 @@ namespace Asteriods.Client
     }
     [UpdateBefore(typeof(ParticleRenderSystem))]
     [UpdateAfter(typeof(ParticleAgeSystem))]
+    [UpdateInGroup(typeof(ParticleUpdateSystemGroup))]
     public class ParticleSizeTransitionSystem : ComponentSystem
     {
         struct Particles

@@ -55,7 +55,7 @@ using UnityEngine.ECS;
     {
         public static World FindAndCreateWorldFromNamespace(string name)
         {
-            var world = new World("World of " + name);
+            var world = new World();
             World.Active = world;
 
             foreach (var ass in AppDomain.CurrentDomain.GetAssemblies())

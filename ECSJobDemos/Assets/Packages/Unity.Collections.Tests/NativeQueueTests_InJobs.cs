@@ -12,7 +12,7 @@ public class NativeQueueTests_InJobs
 	{
 		public NativeQueue<int>.Concurrent queue;
 		public NativeArray<int> result;
-		
+
 		public void Execute(int index)
 		{
 			result[index] = 1;
@@ -58,7 +58,7 @@ public class NativeQueueTests_InJobs
 	public void Enqueue_Full()
 	{
 		const int queueSize = 1024;
-		const int iterationCount = 1024;
+		const int iterationCount = 32;
 		var queue = new NativeQueue<int>(queueSize/2, Allocator.Temp);
 		var writeStatus = new NativeArray<int>(queueSize, Allocator.Temp);
 
@@ -78,7 +78,7 @@ public class NativeQueueTests_InJobs
 				if (writeStatus[i] != 1)
 					++failCount;
 				else
-				{					
+				{
 					int enqueued = queue.Dequeue();
 					Assert.IsTrue(enqueued >= 0 && enqueued < queueSize, "Job enqueued invalid value");
 					Assert.IsTrue(allValues.Add(enqueued), "Job enqueued same value multiple times");

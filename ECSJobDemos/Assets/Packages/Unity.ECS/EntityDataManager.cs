@@ -152,8 +152,8 @@ namespace UnityEngine.ECS
                 if (chunk->managedArrayIndex >= 0)
                     ChunkDataUtility.ClearManagedObjects(typeMan, chunk, chunk->count - batchCount, batchCount);
 
-                chunk->count -= batchCount;
                 chunk->archetype->entityCount -= batchCount;
+                typeMan.SetChunkCount(chunk, chunk->count - batchCount);
 
                 //@TODO: When Chunk reaches zero we should probably put the chunk back into a pool,
                 // as opposed to keeping it all linked up (which slows down iteration)
@@ -305,7 +305,7 @@ namespace UnityEngine.ECS
             if (oldChunk->managedArrayIndex >= 0)
                 ChunkDataUtility.ClearManagedObjects(typeMan, oldChunk, lastIndex, 1);
 
-            oldChunk->count = lastIndex;
+            typeMan.SetChunkCount(oldChunk, lastIndex);
         }
     }
 }

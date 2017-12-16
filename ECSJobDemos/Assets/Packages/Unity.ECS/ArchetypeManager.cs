@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using UnityEngine.Assertions;
 
 namespace UnityEngine.ECS
 {
@@ -71,7 +72,10 @@ namespace UnityEngine.ECS
 
     unsafe struct Chunk
     {
+        public const int kChunkSize = 16 * 1024;
+
         public LinkedListNode  chunkListNode;
+        public LinkedListNode  chunkListWithEmptySlotsNode;
 
         public Archetype*      archetype;
         public byte* 		   buffer;
@@ -85,6 +89,7 @@ namespace UnityEngine.ECS
 	unsafe struct Archetype
 	{
 	    public LinkedListNode   chunkList;
+	    public LinkedListNode   chunkListWithEmptySlots;
 
 		public int              entityCount;
 		public int              chunkCapacity;
@@ -102,8 +107,6 @@ namespace UnityEngine.ECS
 
 		public int              managedObjectListenerIndex;
 
-		// TODO: preferred stride/stream layout
-		// TODO: Linkage to other archetype via Add/Remove Component
 		public Archetype*       prevArchetype;
 	}
 
@@ -113,11 +116,14 @@ namespace UnityEngine.ECS
 		ChunkAllocator                     m_ArchetypeChunkAllocator;
 		internal Archetype*                m_LastArchetype;
 
+	    public LinkedListNode*             m_EmptyChunkPool;
+
+
 		unsafe struct ManagedArrayStorage
 		{
 			// For patching when we start releasing chunks
-			public Chunk* chunk;
-			public object[] managedArray;
+			public Chunk*    chunk;
+			public object[]  managedArray;
 		}
 		List<ManagedArrayStorage> m_ManagedArrays = new List<ManagedArrayStorage>();
 		struct ManagedArrayListeners
@@ -130,6 +136,8 @@ namespace UnityEngine.ECS
 		public ArchetypeManager()
 		{
 			m_TypeLookup = new NativeMultiHashMap<uint, IntPtr>(256, Allocator.Persistent);
+		    m_EmptyChunkPool = (LinkedListNode*)UnsafeUtility.Malloc(sizeof(LinkedListNode), UnsafeUtility.AlignOf<LinkedListNode>(), Allocator.Persistent);
+		    LinkedListNode.InitializeList(m_EmptyChunkPool);
 		}
 
 		public void Dispose()
@@ -145,6 +153,17 @@ namespace UnityEngine.ECS
 				}
 				m_LastArchetype = m_LastArchetype->prevArchetype;
 			}
+
+		    // And all pooled chunks
+		    while (!m_EmptyChunkPool->IsEmpty)
+		    {
+		        var chunk = m_EmptyChunkPool->begin();
+		        chunk->Remove();
+		        UnsafeUtility.Free(chunk, Allocator.Persistent);
+		    }
+
+		    UnsafeUtility.Free(m_EmptyChunkPool, Allocator.Persistent);
+
 			m_TypeLookup.Dispose();
 			m_ArchetypeChunkAllocator.Dispose();
 		}
@@ -211,7 +230,6 @@ namespace UnityEngine.ECS
             type = (Archetype*)m_ArchetypeChunkAllocator.Allocate(sizeof(Archetype), 8);
 			type->typesCount = count;
             type->types = (ComponentTypeInArchetype*)m_ArchetypeChunkAllocator.Construct(sizeof(ComponentTypeInArchetype) * count, 4, types);
-
 			type->entityCount = 0;
 
             int chunkDataSize = GetChunkBufferSize();
@@ -274,6 +292,7 @@ namespace UnityEngine.ECS
 			m_LastArchetype = type;
 
 			LinkedListNode.InitializeList(&type->chunkList);
+		    LinkedListNode.InitializeList(&type->chunkListWithEmptySlots);
 
 			m_TypeLookup.Add(hash, (IntPtr)type);
 
@@ -283,29 +302,47 @@ namespace UnityEngine.ECS
 			return type;
 		}
 
-        const int kChunkSize = 16 * 1024;
 
         public static int GetChunkBufferSize()
         {
             int bufferOffset = (sizeof(Chunk) + 63) & ~63;
-            int bufferSize = kChunkSize - bufferOffset;
+            int bufferSize = Chunk.kChunkSize - bufferOffset;
 
             return bufferSize;
         }
 
-        unsafe public Chunk* AllocateChunk(Archetype* archetype)
-        {
-            byte* buffer = (byte*)UnsafeUtility.Malloc(kChunkSize, 64, Allocator.Persistent);
+	    public static Chunk* GetChunkFromEmptySlotNode(LinkedListNode* node)
+	    {
+	        return (Chunk*) (node - 1);
+	    }
 
+	    unsafe public Chunk* AllocateChunk(Archetype* archetype)
+	    {
+	        byte* buffer = (byte*)UnsafeUtility.Malloc(Chunk.kChunkSize, 64, Allocator.Persistent);
+	        var chunk = (Chunk*)buffer;
+	        ConstructChunk(archetype, chunk);
+	        return chunk;
+	    }
+
+	    unsafe public void ConstructChunk(Archetype* archetype, Chunk* chunk)
+        {
             int bufferOffset = (sizeof(Chunk) + 63) & ~63;
 
-            var chunk = (Chunk*)buffer;
-            chunk->buffer = buffer + bufferOffset;
+            chunk->buffer = (byte*)chunk + bufferOffset;
             chunk->archetype = archetype;
             chunk->count = 0;
             chunk->capacity = archetype->chunkCapacity;
             chunk->chunkListNode = new LinkedListNode();
+            chunk->chunkListWithEmptySlotsNode = new LinkedListNode();
+
             archetype->chunkList.push_back(&chunk->chunkListNode);
+            archetype->chunkListWithEmptySlots.push_back(&chunk->chunkListWithEmptySlotsNode);
+
+            Assert.IsTrue(!archetype->chunkList.IsEmpty);
+            Assert.IsTrue(!archetype->chunkListWithEmptySlots.IsEmpty);
+
+            Assert.IsTrue(chunk == (Chunk*)(archetype->chunkList.back()));
+            Assert.IsTrue(chunk == GetChunkFromEmptySlotNode(archetype->chunkListWithEmptySlots.back()));
 
 			if (archetype->numManagedArrays > 0)
 			{
@@ -317,42 +354,85 @@ namespace UnityEngine.ECS
 			}
 			else
 				chunk->managedArrayIndex = -1;
-			return chunk;
         }
 
         public Chunk* GetChunkWithEmptySlots(Archetype* archetype)
         {
-            for (var i = archetype->chunkList.begin(); i != archetype->chunkList.end(); i = i->next)
+            // Try existing archetype chunks
+            if (!archetype->chunkListWithEmptySlots.IsEmpty)
             {
-                var chunk = (Chunk*) i;
-                if (chunk->count != chunk->capacity)
-                    return chunk;
+                var chunk = GetChunkFromEmptySlotNode(archetype->chunkListWithEmptySlots.begin());
+                Assert.AreNotEqual(chunk->count, chunk->capacity);
+                return chunk;
             }
+            // Try empty chunk pool
+            else if (!m_EmptyChunkPool->IsEmpty)
+            {
+                Chunk* pooledChunk = (Chunk*)m_EmptyChunkPool->begin();
+                pooledChunk->chunkListNode.Remove();
 
-	        return AllocateChunk (archetype);
+                ConstructChunk(archetype, pooledChunk);
+                return pooledChunk;
+            }
+            else
+            {
+                // Allocate new chunk
+                return AllocateChunk (archetype);
+            }
         }
 
-        public static int AllocateIntoChunk (Chunk* chunk, int count, out int outIndex)
+        public int AllocateIntoChunk (Chunk* chunk, int count, out int outIndex)
         {
             int allocatedCount = Math.Min(chunk->capacity - chunk->count, count);
             outIndex = chunk->count;
-            chunk->count += allocatedCount;
+            SetChunkCount(chunk, chunk->count + allocatedCount);
 			chunk->archetype->entityCount += allocatedCount;
             return allocatedCount;
         }
 
-        public static int AllocateIntoChunk(Chunk* chunk)
+        public int AllocateIntoChunk(Chunk* chunk)
         {
             Assertions.Assert.AreNotEqual(chunk->capacity, chunk->count);
+
+            int chunkCount = chunk->count;
+            SetChunkCount(chunk, chunkCount  + 1);
+
 			++chunk->archetype->entityCount;
-            return chunk->count++;
+            return chunkCount;
         }
 
-
-        /*public void DeallocateChunk(Chunk* chunk)
+        public void SetChunkCount(Chunk* chunk, int newCount)
         {
+            Assert.AreNotEqual(newCount, chunk->count);
+            int capacity = chunk->capacity;
 
-        }*/
+            // Chunk released to empty chunk pool
+            if (newCount == 0)
+            {
+                //@TODO: Support pooling when there are managed arrays...
+                if (chunk->archetype->numManagedArrays == 0)
+                {
+                    chunk->chunkListNode.Remove();
+                    chunk->chunkListWithEmptySlotsNode.Remove();
+
+                    m_EmptyChunkPool->push_back(&chunk->chunkListNode);
+                }
+            }
+            // Chunk is now full
+            else if (newCount == capacity)
+            {
+                chunk->chunkListWithEmptySlotsNode.Remove();
+            }
+            // Chunk is no longer full
+            else if (chunk->count == capacity)
+            {
+                Assert.IsTrue(newCount < chunk->count);
+
+                chunk->archetype->chunkListWithEmptySlots.push_back(&chunk->chunkListWithEmptySlotsNode);
+            }
+
+            chunk->count = newCount;
+        }
 
         public object GetManagedObject(Chunk* chunk, ComponentType type, int index)
         {
@@ -367,6 +447,7 @@ namespace UnityEngine.ECS
 			int managedStart = chunk->archetype->managedArrayOffset[type] * chunk->capacity;
 			return m_ManagedArrays[chunk->managedArrayIndex].managedArray[index + managedStart];
 		}
+
 		public object[] GetManagedObjectRange(Chunk* chunk, int type, out int rangeStart, out int rangeLength)
 		{
 			rangeStart = chunk->archetype->managedArrayOffset[type] * chunk->capacity;

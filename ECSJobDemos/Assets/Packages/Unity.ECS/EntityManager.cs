@@ -2,6 +2,7 @@
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using System;
+using UnityEngine.Profiling;
 
 namespace UnityEngine.ECS
 {
@@ -46,6 +47,11 @@ namespace UnityEngine.ECS
         unsafe ComponentType*             m_CachedComponentTypeArray;
         unsafe ComponentTypeInArchetype*  m_CachedComponentTypeInArchetypeArray;
 
+
+        CustomSampler m_AlocateChunkSampler;
+        CustomSampler m_ReplicateComponentsSampler;
+        CustomSampler m_AllocateEntitiesSampler;
+
         protected sealed override void OnCreateManagerInternal(int capacity)
         {
         }
@@ -61,6 +67,10 @@ namespace UnityEngine.ECS
 
             m_CachedComponentTypeArray = (ComponentType*)UnsafeUtility.Malloc(sizeof(ComponentType) * 32 * 1024, 16, Allocator.Persistent);
             m_CachedComponentTypeInArchetypeArray = (ComponentTypeInArchetype*)UnsafeUtility.Malloc(sizeof(ComponentTypeInArchetype) * 32 * 1024, 16, Allocator.Persistent);
+
+            m_AlocateChunkSampler = CustomSampler.Create("EntityManager.AllocateCunk");
+            m_ReplicateComponentsSampler = CustomSampler.Create("EntityManager.ReplicateComponents");
+            m_AllocateEntitiesSampler = CustomSampler.Create("EntityManager.AllocateEntities");
         }
 
         unsafe protected override void OnDestroyManager()
@@ -139,7 +149,7 @@ namespace UnityEngine.ECS
             {
                 Chunk* chunk = m_ArchetypeManager.GetChunkWithEmptySlots(archetype.archetype);
                 int allocatedIndex;
-                int allocatedCount = ArchetypeManager.AllocateIntoChunk(chunk, count, out allocatedIndex);
+                int allocatedCount = m_ArchetypeManager.AllocateIntoChunk(chunk, count, out allocatedIndex);
                 m_Entities.AllocateEntities(archetype.archetype, chunk, allocatedIndex, allocatedCount, entities);
                 ChunkDataUtility.ClearComponents(chunk, allocatedIndex, allocatedCount);
 
@@ -218,6 +228,7 @@ namespace UnityEngine.ECS
             InstantiateInternal(srcEntity, (Entity*)outputEntities.GetUnsafePtr(), outputEntities.Length);
         }
 
+
         unsafe void InstantiateInternal(Entity srcEntity, Entity* outputEntities, int count)
         {
             m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
@@ -231,14 +242,19 @@ namespace UnityEngine.ECS
 
             while (count != 0)
             {
+                m_AlocateChunkSampler.Begin();
                 Chunk* chunk = m_ArchetypeManager.GetChunkWithEmptySlots(srcArchetype);
                 int indexInChunk;
-                int allocatedCount = ArchetypeManager.AllocateIntoChunk(chunk, count, out indexInChunk);
+                int allocatedCount = m_ArchetypeManager.AllocateIntoChunk(chunk, count, out indexInChunk);
+                m_AlocateChunkSampler.End();
 
+                m_ReplicateComponentsSampler.Begin();
                 ChunkDataUtility.ReplicateComponents(srcChunk, srcIndex, chunk, indexInChunk, allocatedCount);
+                m_ReplicateComponentsSampler.End();
 
+                m_AllocateEntitiesSampler.Begin();
                 m_Entities.AllocateEntities(srcArchetype, chunk, indexInChunk, allocatedCount, outputEntities);
-
+                m_AllocateEntitiesSampler.End();
                 outputEntities += allocatedCount;
                 count -= allocatedCount;
             }
@@ -269,7 +285,7 @@ namespace UnityEngine.ECS
             Archetype* newType = m_ArchetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, archetype->typesCount + 1, m_GroupManager, m_SharedComponentManager);
             Chunk* newChunk = m_ArchetypeManager.GetChunkWithEmptySlots(newType);
 
-            int newChunkIndex = ArchetypeManager.AllocateIntoChunk(newChunk);
+            int newChunkIndex = m_ArchetypeManager.AllocateIntoChunk(newChunk);
             m_Entities.SetArchetype(m_ArchetypeManager, entity, newType, newChunk, newChunkIndex);
         }
 
@@ -296,7 +312,7 @@ namespace UnityEngine.ECS
             Archetype* newType = m_ArchetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, archtype->typesCount - removedTypes, m_GroupManager, m_SharedComponentManager);
 
             Chunk* newChunk = m_ArchetypeManager.GetChunkWithEmptySlots(newType);
-            int newChunkIndex = ArchetypeManager.AllocateIntoChunk(newChunk);
+            int newChunkIndex = m_ArchetypeManager.AllocateIntoChunk(newChunk);
             m_Entities.SetArchetype(m_ArchetypeManager, entity, newType, newChunk, newChunkIndex);
         }
 

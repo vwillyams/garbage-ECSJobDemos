@@ -15,7 +15,13 @@ namespace UnityEngine.ECS
 
         public bool IsEmpty
         {
-            get { return prev == next; }
+            get
+            {
+                fixed (LinkedListNode* list = &this)
+                {
+                    return list == next;
+                }
+            }
         }
 
 
@@ -23,6 +29,12 @@ namespace UnityEngine.ECS
         {
             return next;
         }
+
+        unsafe public LinkedListNode* back()
+        {
+            return prev;
+        }
+
 
         unsafe public LinkedListNode* end()
         {
@@ -54,12 +66,13 @@ namespace UnityEngine.ECS
 
         unsafe public void Remove()
         {
-            Assert.IsTrue(IsInList());
-
-            prev->next = next;
-            next->prev = prev;
-            prev = null;
-            next = null;
+            if (prev != null)
+            {
+                prev->next = next;
+                next->prev = prev;
+                prev = null;
+                next = null;
+            }
         }
 
         unsafe bool IsInList()

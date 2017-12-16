@@ -36,7 +36,7 @@ namespace UnityEngine.ECS
             m_CurrentArchetypeSegment = data;
             m_CurrentArchetypeIndex = 0;
             if (length > 0)
-                m_CurrentChunk = data->archetype->first;
+                m_CurrentChunk = (Chunk*)data->archetype->chunkList.begin();
             else
                 m_CurrentChunk = null;
             m_CurrentChunkIndex = 0;
@@ -66,7 +66,7 @@ namespace UnityEngine.ECS
             {
                 m_CurrentArchetypeSegment = m_FirstArchetypeSegment;
                 m_CurrentArchetypeIndex = 0;
-                m_CurrentChunk = m_CurrentArchetypeSegment->archetype->first;
+                m_CurrentChunk = (Chunk*)m_CurrentArchetypeSegment->archetype->chunkList.begin();
                 m_CurrentChunkIndex = 0;
             }
 
@@ -74,20 +74,20 @@ namespace UnityEngine.ECS
             {
                 m_CurrentArchetypeIndex += m_CurrentArchetypeSegment->archetype->entityCount;
                 m_CurrentArchetypeSegment = m_CurrentArchetypeSegment->nextSegment;
-                m_CurrentChunk = m_CurrentArchetypeSegment->archetype->first;
+                m_CurrentChunk = (Chunk*)m_CurrentArchetypeSegment->archetype->chunkList.begin();
                 m_CurrentChunkIndex = 0;
             }
             index -= m_CurrentArchetypeIndex;
             if (index < m_CurrentChunkIndex)
             {
-                m_CurrentChunk = m_CurrentArchetypeSegment->archetype->first;
+                m_CurrentChunk = (Chunk*)m_CurrentArchetypeSegment->archetype->chunkList.begin();
                 m_CurrentChunkIndex = 0;
             }
 
             while (index >= m_CurrentChunkIndex + m_CurrentChunk->count)
             {
                 m_CurrentChunkIndex += m_CurrentChunk->count;
-                m_CurrentChunk = m_CurrentChunk->next;
+                m_CurrentChunk = (Chunk*)m_CurrentChunk->chunkListNode.next;
             }
 
             var archetype = m_CurrentArchetypeSegment->archetype;

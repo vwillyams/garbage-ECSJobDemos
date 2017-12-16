@@ -10,21 +10,6 @@ namespace UnityEngine.ECS
 		void OnManagedObjectModified();
 	}
 
-
-
-    unsafe struct Chunk
-	{
-		public Archetype*   archetype;
-        public byte* 		buffer;
-
-		public int          managedArrayIndex;
-
-        public int 		    count;
-        public int 		    capacity;
-
-		public Chunk*  	    next;
-	}
-
 	struct ComponentTypeInArchetype
 	{
 		public int typeIndex;
@@ -84,10 +69,22 @@ namespace UnityEngine.ECS
 
 	}
 
+    unsafe struct Chunk
+    {
+        public LinkedListNode  chunkListNode;
+
+        public Archetype*      archetype;
+        public byte* 		   buffer;
+
+        public int             managedArrayIndex;
+
+        public int 		       count;
+        public int 		       capacity;
+    }
+
 	unsafe struct Archetype
 	{
-		public Chunk*           first;
-		public Chunk*           last;
+	    public LinkedListNode   chunkList;
 
 		public int              entityCount;
 		public int              chunkCapacity;
@@ -112,9 +109,9 @@ namespace UnityEngine.ECS
 
     unsafe class ArchetypeManager : IDisposable
 	{
-		NativeMultiHashMap<uint, IntPtr>		m_TypeLookup;
-		ChunkAllocator m_ArchetypeChunkAllocator;
-		internal Archetype* m_LastArchetype;
+		NativeMultiHashMap<uint, IntPtr>   m_TypeLookup;
+		ChunkAllocator                     m_ArchetypeChunkAllocator;
+		internal Archetype*                m_LastArchetype;
 
 		unsafe struct ManagedArrayStorage
 		{
@@ -140,11 +137,11 @@ namespace UnityEngine.ECS
 			// Free all allocated chunks for all allocated archetypes
 			while (m_LastArchetype != null)
 			{
-				while (m_LastArchetype->first != null)
+				while (!m_LastArchetype->chunkList.IsEmpty)
 				{
-					Chunk* nextChunk = m_LastArchetype->first->next;
-					UnsafeUtility.Free(m_LastArchetype->first, Allocator.Persistent);
-					m_LastArchetype->first = nextChunk;
+				    var chunk = m_LastArchetype->chunkList.begin();
+				    chunk->Remove();
+					UnsafeUtility.Free(chunk, Allocator.Persistent);
 				}
 				m_LastArchetype = m_LastArchetype->prevArchetype;
 			}
@@ -276,8 +273,7 @@ namespace UnityEngine.ECS
 			type->prevArchetype = m_LastArchetype;
 			m_LastArchetype = type;
 
-			type->first = null;
-			type->last = null;
+			LinkedListNode.InitializeList(&type->chunkList);
 
 			m_TypeLookup.Add(hash, (IntPtr)type);
 
@@ -297,7 +293,7 @@ namespace UnityEngine.ECS
             return bufferSize;
         }
 
-        public Chunk* AllocateChunk(Archetype* archetype)
+        unsafe public Chunk* AllocateChunk(Archetype* archetype)
         {
             byte* buffer = (byte*)UnsafeUtility.Malloc(kChunkSize, 64, Allocator.Persistent);
 
@@ -308,12 +304,9 @@ namespace UnityEngine.ECS
             chunk->archetype = archetype;
             chunk->count = 0;
             chunk->capacity = archetype->chunkCapacity;
-			chunk->next = null;
-			if (archetype->last != null)
-				archetype->last->next = chunk;
-			else
-				archetype->first = chunk;
-			archetype->last = chunk;
+            chunk->chunkListNode = new LinkedListNode();
+            archetype->chunkList.push_back(&chunk->chunkListNode);
+
 			if (archetype->numManagedArrays > 0)
 			{
 				chunk->managedArrayIndex = m_ManagedArrays.Count;
@@ -329,14 +322,12 @@ namespace UnityEngine.ECS
 
         public Chunk* GetChunkWithEmptySlots(Archetype* archetype)
         {
-            Chunk* chunk = archetype->first;
-	        while (chunk != null)
-	        {
-		        if (chunk->count != chunk->capacity)
-			        return chunk;
-
-		        chunk = chunk->next;
-	        }
+            for (var i = archetype->chunkList.begin(); i != archetype->chunkList.end(); i = i->next)
+            {
+                var chunk = (Chunk*) i;
+                if (chunk->count != chunk->capacity)
+                    return chunk;
+            }
 
 	        return AllocateChunk (archetype);
         }

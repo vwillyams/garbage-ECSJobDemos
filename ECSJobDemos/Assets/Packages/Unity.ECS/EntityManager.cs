@@ -47,11 +47,6 @@ namespace UnityEngine.ECS
         unsafe ComponentType*             m_CachedComponentTypeArray;
         unsafe ComponentTypeInArchetype*  m_CachedComponentTypeInArchetypeArray;
 
-
-        CustomSampler m_AlocateChunkSampler;
-        CustomSampler m_ReplicateComponentsSampler;
-        CustomSampler m_AllocateEntitiesSampler;
-
         protected sealed override void OnCreateManagerInternal(int capacity)
         {
         }
@@ -67,10 +62,6 @@ namespace UnityEngine.ECS
 
             m_CachedComponentTypeArray = (ComponentType*)UnsafeUtility.Malloc(sizeof(ComponentType) * 32 * 1024, 16, Allocator.Persistent);
             m_CachedComponentTypeInArchetypeArray = (ComponentTypeInArchetype*)UnsafeUtility.Malloc(sizeof(ComponentTypeInArchetype) * 32 * 1024, 16, Allocator.Persistent);
-
-            m_AlocateChunkSampler = CustomSampler.Create("EntityManager.AllocateCunk");
-            m_ReplicateComponentsSampler = CustomSampler.Create("EntityManager.ReplicateComponents");
-            m_AllocateEntitiesSampler = CustomSampler.Create("EntityManager.AllocateEntities");
         }
 
         unsafe protected override void OnDestroyManager()
@@ -242,19 +233,14 @@ namespace UnityEngine.ECS
 
             while (count != 0)
             {
-                m_AlocateChunkSampler.Begin();
                 Chunk* chunk = m_ArchetypeManager.GetChunkWithEmptySlots(srcArchetype);
                 int indexInChunk;
                 int allocatedCount = m_ArchetypeManager.AllocateIntoChunk(chunk, count, out indexInChunk);
-                m_AlocateChunkSampler.End();
 
-                m_ReplicateComponentsSampler.Begin();
                 ChunkDataUtility.ReplicateComponents(srcChunk, srcIndex, chunk, indexInChunk, allocatedCount);
-                m_ReplicateComponentsSampler.End();
 
-                m_AllocateEntitiesSampler.Begin();
                 m_Entities.AllocateEntities(srcArchetype, chunk, indexInChunk, allocatedCount, outputEntities);
-                m_AllocateEntitiesSampler.End();
+
                 outputEntities += allocatedCount;
                 count -= allocatedCount;
             }

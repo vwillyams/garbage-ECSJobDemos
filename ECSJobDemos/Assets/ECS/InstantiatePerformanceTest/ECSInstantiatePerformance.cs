@@ -8,20 +8,28 @@ using Unity.Jobs.LowLevel.Unsafe;
 public class ECSInstantiatePerformance : MonoBehaviour
 {
 	CustomSampler setupSampler;
-	CustomSampler instantiateSampler;
-	CustomSampler destroySampler;
-    CustomSampler memcpySampler;
+    CustomSampler instantiateSamplerBatch;
+    CustomSampler destroySamplerBatch;
+
+    CustomSampler instantiateSamplerSingle;
+    CustomSampler destroySamplerSingle;
+
+
     CustomSampler instantiateMemcpySampler ;
     CustomSampler instantiateMemcpyReplicateSampler ;
 
     void Awake()
 	{
 		setupSampler = CustomSampler.Create("Setup");
-		instantiateSampler = CustomSampler.Create("InstantiateTest");
+
+	    instantiateSamplerBatch = CustomSampler.Create("InstantiateTest (Batch)");
+	    destroySamplerBatch = CustomSampler.Create("DestroyTest (Batch)");
+
+	    instantiateSamplerSingle = CustomSampler.Create("InstantiateTest (Single)");
+	    destroySamplerSingle = CustomSampler.Create("DestroyTest (Single)");
+
 	    instantiateMemcpySampler = CustomSampler.Create("InstantiateTest - Memcpy");
 	    instantiateMemcpyReplicateSampler = CustomSampler.Create("InstantiateTest - MemcpyReplicate");
-		destroySampler = CustomSampler.Create("DestroyTest");
-        memcpySampler = CustomSampler.Create("Iterate - Memcpy");
     }
 
     unsafe void TestUnsafePtr()
@@ -91,13 +99,27 @@ public class ECSInstantiatePerformance : MonoBehaviour
 
 	    for (int i = 0; i < PerformanceTestConfiguration.Iterations; i++)
 	    {
-	        instantiateSampler.Begin ();
+	        instantiateSamplerBatch.Begin ();
 	        entityManager.Instantiate (archetype, instances);
-	        instantiateSampler.End();
+	        instantiateSamplerBatch.End();
 
-	        destroySampler.Begin ();
+	        destroySamplerBatch.Begin ();
 	        entityManager.DestroyEntity (instances);
-	        destroySampler.End ();
+	        destroySamplerBatch.End ();
+	    }
+
+
+	    for (int i = 0; i < PerformanceTestConfiguration.Iterations; i++)
+	    {
+	        instantiateSamplerSingle.Begin ();
+	        for (int k=0;k != instances.Length;k++)
+	            instances[k] = entityManager.Instantiate (archetype);
+	        instantiateSamplerSingle.End();
+
+	        destroySamplerSingle.Begin ();
+	        for (int k=0;k != instances.Length;k++)
+	            entityManager.DestroyEntity (instances[k]);
+	        destroySamplerSingle.End ();
 	    }
 
 		setupSampler.Begin();

@@ -136,11 +136,10 @@ namespace UnityEngine.ECS
                 if (chunk->count != indexInChunk + batchCount)
                 {
                     // updates EntitityData->index to point to where the components will be moved to
+                    Assert.IsTrue(chunk->archetype->sizeOfs[0] == sizeof(Entity) && chunk->archetype->offsets[0] == 0);
+                    Entity* movedEntities = (Entity*)(chunk->buffer) + (chunk->count - batchCount);
                     for (int i = 0; i != batchCount;i++)
-                    {
-                        Entity* lastEntity = (Entity*)ChunkDataUtility.GetComponentData(chunk, chunk->count - batchCount + i, 0);
-                        m_Entities[lastEntity->index].index = indexInChunk + i;
-                    }
+                        m_Entities[movedEntities[i].index].index = indexInChunk + i;
 
                     // Move component data from the end to where we deleted components
                     ChunkDataUtility.Copy(chunk, chunk->count - batchCount, chunk, indexInChunk, batchCount);

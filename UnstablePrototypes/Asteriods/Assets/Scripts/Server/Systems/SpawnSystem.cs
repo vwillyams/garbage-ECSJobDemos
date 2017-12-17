@@ -111,7 +111,7 @@ namespace Asteriods.Server
                 }
                 catch(Exception ex)
                 {
-                    Debug.Log(ex);
+                    Debug.LogException(ex);
                 }
 
                 var e = EntityManager.CreateEntity(GameSettings.Instance().bulletArchetype);

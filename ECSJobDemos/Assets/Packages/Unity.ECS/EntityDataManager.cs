@@ -5,7 +5,6 @@ using UnityEngine.Assertions;
 
 namespace UnityEngine.ECS
 {
-
     unsafe struct EntityData
     {
         public int version;
@@ -17,11 +16,11 @@ namespace UnityEngine.ECS
     unsafe struct EntityDataManager
     {
         [NativeDisableUnsafePtrRestriction]
-        internal EntityData* m_Entities;
-        int m_EntitiesCapacity;
-        int m_EntitiesFreeIndex;
+        internal EntityData*    m_Entities;
+        int                     m_EntitiesCapacity;
+        int                     m_EntitiesFreeIndex;
 
-        public void OnCreate( int capacity )
+        public void OnCreate(int capacity)
         {
             m_EntitiesCapacity = capacity;
             m_Entities = (EntityData*)UnsafeUtility.Malloc(m_EntitiesCapacity * sizeof(EntityData), 64, Allocator.Persistent);
@@ -29,7 +28,7 @@ namespace UnityEngine.ECS
             InitializeAdditionalCapacity(0);
         }
 
-        void InitializeAdditionalCapacity( int start )
+        void InitializeAdditionalCapacity(int start)
         {
             for (int i = start; i != m_EntitiesCapacity - 1; i++)
             {

@@ -187,9 +187,10 @@ namespace UnityEngine.ECS
 
         public void AllocateEntities(Archetype* arch, Chunk* chunk, int baseIndex, int count, Entity* outputEntities)
         {
-            int offset = chunk->archetype->offsets[0];
-            int stride = chunk->archetype->strides[0];
-            Entity* entityInChunkStart = (Entity*)(chunk->buffer + offset + (stride * baseIndex));
+            Assert.AreEqual(chunk->archetype->offsets[0], 0);
+            Assert.AreEqual(chunk->archetype->sizeOfs[0], sizeof(Entity));
+
+            Entity* entityInChunkStart = (Entity*)(chunk->buffer) + baseIndex;
 
             for (int i = 0; i != count; i++)
             {
@@ -294,7 +295,7 @@ namespace UnityEngine.ECS
                 Entity* lastEntity = (Entity*)ChunkDataUtility.GetComponentData(oldChunk, lastIndex, 0);
                 m_Entities[lastEntity->index].index = oldChunkIndex;
 
-                ChunkDataUtility.Copy (oldChunk, lastIndex, oldChunk, oldChunkIndex);
+                ChunkDataUtility.Copy (oldChunk, lastIndex, oldChunk, oldChunkIndex, 1);
                 if (oldChunk->managedArrayIndex >= 0)
                     ChunkDataUtility.CopyManagedObjects(typeMan, oldChunk, lastIndex, oldChunk, oldChunkIndex, 1);
             }

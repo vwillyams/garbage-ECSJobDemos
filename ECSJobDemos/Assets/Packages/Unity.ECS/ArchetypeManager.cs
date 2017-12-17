@@ -101,7 +101,6 @@ namespace UnityEngine.ECS
 
 		// Index matches archetype types
         public int*   	                    offsets;
-        public int*                         strides;
         public int*                         sizeOfs;
 
         public int*                         managedArrayOffset;
@@ -239,8 +238,7 @@ namespace UnityEngine.ECS
 
             // FIXME: proper alignment
             type->offsets = (int*)m_ArchetypeChunkAllocator.Allocate(sizeof(int) * count, 4);
-			type->strides = (int*)m_ArchetypeChunkAllocator.Allocate(sizeof(int) * count, 4);
-            type->sizeOfs = (int*)m_ArchetypeChunkAllocator.Allocate(sizeof(int) * count, 4);
+			type->sizeOfs = (int*)m_ArchetypeChunkAllocator.Allocate(sizeof(int) * count, 4);
 
             int bytesPerInstance = 0;
 
@@ -261,7 +259,6 @@ namespace UnityEngine.ECS
                 int sizeOf = type->sizeOfs[i];
 
                 type->offsets[i] = usedBytes;
-                type->strides[i] = sizeOf;
 
                 usedBytes += sizeOf * type->chunkCapacity;
             }

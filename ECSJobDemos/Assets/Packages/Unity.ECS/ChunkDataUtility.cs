@@ -1,5 +1,6 @@
 ﻿using System;
 using Unity.Collections.LowLevel.Unsafe;
+using UnityEngine.Assertions;
 
 namespace UnityEngine.ECS
 {
@@ -23,9 +24,9 @@ namespace UnityEngine.ECS
             int indexInTypeArray = GetIndexInTypeArray(chunk->archetype, typeIndex);
 
             int offset = chunk->archetype->offsets[indexInTypeArray];
-            int stride = chunk->archetype->strides[indexInTypeArray];
+            int sizeOf = chunk->archetype->sizeOfs[indexInTypeArray];
 
-            outPtr = chunk->buffer + (offset + stride * index);
+            outPtr = chunk->buffer + (offset + sizeOf * index);
             outArrayLength = chunk->archetype->types[indexInTypeArray].FixedArrayLength;
         }
 
@@ -35,37 +36,38 @@ namespace UnityEngine.ECS
             int indexInTypeArray = GetIndexInTypeArray(chunk->archetype, typeIndex);
 
             int offset = chunk->archetype->offsets[indexInTypeArray];
-            int stride = chunk->archetype->strides[indexInTypeArray];
+            int sizeOf = chunk->archetype->sizeOfs[indexInTypeArray];
 
-            return chunk->buffer + (offset + stride * index);
+            return chunk->buffer + (offset + sizeOf * index);
         }
 
         public static byte* GetComponentData(Chunk* chunk, int index, int indexInTypeArray)
         {
             int offset = chunk->archetype->offsets[indexInTypeArray];
-            int stride = chunk->archetype->strides[indexInTypeArray];
+            int sizeOf = chunk->archetype->sizeOfs[indexInTypeArray];
 
-            return chunk->buffer + (offset + stride * index);
-        }
-
-
-        public static void Copy(Chunk* srcChunk, int srcIndex, Chunk* dstChunk, int dstIndex)
-        {
-            Archetype* arch = srcChunk->archetype;
-
-            for (int i = 0; i != arch->typesCount; i++)
-            {
-                byte* src = GetComponentData(srcChunk, srcIndex, i);
-                byte* dst = GetComponentData(dstChunk, dstIndex, i);
-                UnsafeUtility.MemCpy(dst, src, arch->sizeOfs[i]);
-            }
+            return chunk->buffer + (offset + sizeOf * index);
         }
 
         public static void Copy(Chunk* srcChunk, int srcIndex, Chunk* dstChunk, int dstIndex, int count)
         {
-            for (int i = 0; i < count;i++)
+            Assert.IsTrue(srcChunk->archetype == dstChunk->archetype);
+
+            Archetype* arch = srcChunk->archetype;
+            byte* srcBuffer = srcChunk->buffer;
+            byte* dstBuffer = dstChunk->buffer;
+            int* offsets = arch->offsets;
+            int* sizeOfs = arch->sizeOfs;
+            int typesCount = arch->typesCount;
+
+            for (int t = 0; t < typesCount; t++)
             {
-                Copy(srcChunk, srcIndex + i, dstChunk, dstIndex + i);
+                int offset = offsets[t];
+                int sizeOf = sizeOfs[t];
+                byte* src = srcBuffer + (offset + sizeOf * srcIndex);
+                byte* dst = dstBuffer + (offset + sizeOf * dstIndex);
+
+                UnsafeUtility.MemCpy(dst, src, sizeOf * count);
             }
         }
 
@@ -73,26 +75,40 @@ namespace UnityEngine.ECS
         {
             Archetype* arch = dstChunk->archetype;
 
-            for (int t = 1; t != arch->typesCount; t++)
-            {
-                int offset = dstChunk->archetype->offsets[t];
-                int stride = dstChunk->archetype->strides[t];
-                byte* dst = dstChunk->buffer + (offset + stride * dstIndex);
+            int* offsets = arch->offsets;
+            int* sizeOfs = arch->sizeOfs;
+            byte* dstBuffer = dstChunk->buffer;
+            int typesCount = arch->typesCount;
 
-                UnsafeUtility.MemClear(dst, stride * count);
+            for (int t = 1; t != typesCount; t++)
+            {
+                int offset = offsets[t];
+                int sizeOf = sizeOfs[t];
+                byte* dst = dstBuffer + (offset + sizeOf * dstIndex);
+
+                UnsafeUtility.MemClear(dst, sizeOf * count);
             }
         }
 
         public static void ReplicateComponents(Chunk* srcChunk, int srcIndex, Chunk* dstChunk, int dstBaseIndex, int count)
         {
-            Archetype* arch = srcChunk->archetype;
-            // type[0] is always Entity, and will be patched up later, so just skip
+            Assert.IsTrue(srcChunk->archetype == dstChunk->archetype);
 
-            for (int t = 1; t != arch->typesCount; t++)
+            Archetype* arch = srcChunk->archetype;
+            byte* srcBuffer = srcChunk->buffer;
+            byte* dstBuffer = dstChunk->buffer;
+            int* offsets = arch->offsets;
+            int* sizeOfs = arch->sizeOfs;
+            int typesCount = arch->typesCount;
+            // type[0] is always Entity, and will be patched up later, so just skip
+            for (int t = 1; t != typesCount; t++)
             {
-                byte* dst = GetComponentData(dstChunk, dstBaseIndex, t);
-                byte* src = GetComponentData(srcChunk, srcIndex, t);
-                UnsafeUtility.MemCpyReplicate(dst, src, arch->sizeOfs[t], count);
+                int offset = offsets[t];
+                int sizeOf = sizeOfs[t];
+                byte* src = srcBuffer + (offset + sizeOf * srcIndex);
+                byte* dst = dstBuffer + (offset + sizeOf * dstBaseIndex);
+
+                UnsafeUtility.MemCpyReplicate(dst, src, sizeOf, count);
             }
         }
 
@@ -111,8 +127,8 @@ namespace UnityEngine.ECS
                     ++dstI;
                 else
                 {
-                    byte* src = srcChunk->buffer + srcArch->offsets[srcI] + srcIndex * srcArch->strides[srcI];
-                    byte* dst = dstChunk->buffer + dstArch->offsets[dstI] + dstIndex * dstArch->strides[dstI];
+                    byte* src = srcChunk->buffer + srcArch->offsets[srcI] + srcIndex * srcArch->sizeOfs[srcI];
+                    byte* dst = dstChunk->buffer + dstArch->offsets[dstI] + dstIndex * dstArch->sizeOfs[dstI];
                     UnsafeUtility.MemCpy(dst, src, srcArch->sizeOfs[srcI]);
                     ++srcI;
                     ++dstI;

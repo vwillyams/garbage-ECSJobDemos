@@ -2,12 +2,16 @@
 
 namespace UnityEngine.ECS
 {
-    unsafe struct LinkedListNode
+    // IMPORTANT NOTE:
+    // UnsafeLinkedListNode may NOT be put into any memory owned by a class.
+    // The memory containing it must ALWAYS be allocated with malloc instead, also it can never be on the stack.
+    // it takes pointers to other nodes and thus can't handle a moving GC if the data was on a class
+    unsafe struct UnsafeLinkedListNode
     {
-        public LinkedListNode*     prev;
-        public LinkedListNode*     next;
+        public UnsafeLinkedListNode*     prev;
+        public UnsafeLinkedListNode*     next;
 
-        unsafe static public void InitializeList(LinkedListNode* list)
+        unsafe static public void InitializeList(UnsafeLinkedListNode* list)
         {
             list->prev = list;
             list->next = list;
@@ -17,42 +21,41 @@ namespace UnityEngine.ECS
         {
             get
             {
-                fixed (LinkedListNode* list = &this)
+                fixed (UnsafeLinkedListNode* list = &this)
                 {
                     return list == next;
                 }
             }
         }
 
-
-        unsafe public LinkedListNode* begin()
+        unsafe public UnsafeLinkedListNode* Begin()
         {
             return next;
         }
 
-        unsafe public LinkedListNode* back()
+        unsafe public UnsafeLinkedListNode* Back()
         {
             return prev;
         }
 
 
-        unsafe public LinkedListNode* end()
+        unsafe public UnsafeLinkedListNode* End()
         {
-            fixed (LinkedListNode* list = &this)
+            fixed (UnsafeLinkedListNode* list = &this)
             {
                 return list;
             }
         }
 
-        unsafe public void push_back(LinkedListNode* node)
+        unsafe public void Add(UnsafeLinkedListNode* node)
         {
-            fixed (LinkedListNode* list = &this)
+            fixed (UnsafeLinkedListNode* list = &this)
             {
                 InsertBefore(list, node);
             }
         }
 
-        unsafe static public void InsertBefore(LinkedListNode* pos, LinkedListNode* node)
+        unsafe static public void InsertBefore(UnsafeLinkedListNode* pos, UnsafeLinkedListNode* node)
         {
             Assert.IsTrue(node != pos);
             Assert.IsFalse(node->IsInList());

@@ -155,9 +155,6 @@ namespace UnityEngine.ECS
                 chunk->archetype->entityCount -= batchCount;
                 typeMan.SetChunkCount(chunk, chunk->count - batchCount);
 
-                //@TODO: When Chunk reaches zero we should probably put the chunk back into a pool,
-                // as opposed to keeping it all linked up (which slows down iteration)
-
                 entities += batchCount;
                 count -= batchCount;
             }
@@ -294,9 +291,8 @@ namespace UnityEngine.ECS
             // No need to replace with ourselves
             if (lastIndex != oldChunkIndex)
             {
-                Entity lastEntity;
-                UnsafeUtility.CopyPtrToStructure (ChunkDataUtility.GetComponentData(oldChunk, lastIndex, 0), out lastEntity);
-                m_Entities[lastEntity.index].index = oldChunkIndex;
+                Entity* lastEntity = (Entity*)ChunkDataUtility.GetComponentData(oldChunk, lastIndex, 0);
+                m_Entities[lastEntity->index].index = oldChunkIndex;
 
                 ChunkDataUtility.Copy (oldChunk, lastIndex, oldChunk, oldChunkIndex);
                 if (oldChunk->managedArrayIndex >= 0)

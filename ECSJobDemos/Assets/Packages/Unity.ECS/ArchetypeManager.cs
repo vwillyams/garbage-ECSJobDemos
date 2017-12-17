@@ -74,49 +74,51 @@ namespace UnityEngine.ECS
     {
         public const int kChunkSize = 16 * 1024;
 
-        public LinkedListNode  chunkListNode;
-        public LinkedListNode  chunkListWithEmptySlotsNode;
+        public UnsafeLinkedListNode  chunkListNode;
+        public UnsafeLinkedListNode  chunkListWithEmptySlotsNode;
 
         public Archetype*      archetype;
         public byte* 		   buffer;
 
         public int             managedArrayIndex;
 
+        // This is meant as read-only.
+        // ArchetypeManager.SetChunkCount should be used to change the count.
         public int 		       count;
         public int 		       capacity;
     }
 
 	unsafe struct Archetype
 	{
-	    public LinkedListNode   chunkList;
-	    public LinkedListNode   chunkListWithEmptySlots;
+	    public UnsafeLinkedListNode         chunkList;
+	    public UnsafeLinkedListNode         chunkListWithEmptySlots;
 
-		public int              entityCount;
-		public int              chunkCapacity;
+		public int                          entityCount;
+		public int                          chunkCapacity;
 
-        public ComponentTypeInArchetype*   types;
-        public int              		   typesCount;
+        public ComponentTypeInArchetype*    types;
+        public int              		    typesCount;
 
 		// Index matches archetype types
-        public int*   	        offsets;
-        public int*             strides;
-        public int*             sizeOfs;
+        public int*   	                    offsets;
+        public int*                         strides;
+        public int*                         sizeOfs;
 
-        public int*             managedArrayOffset;
-		public int              numManagedArrays;
+        public int*                         managedArrayOffset;
+		public int                          numManagedArrays;
 
-		public int              managedObjectListenerIndex;
+		public int                          managedObjectListenerIndex;
 
-		public Archetype*       prevArchetype;
+		public Archetype*                   prevArchetype;
 	}
 
     unsafe class ArchetypeManager : IDisposable
 	{
-		NativeMultiHashMap<uint, IntPtr>   m_TypeLookup;
-		ChunkAllocator                     m_ArchetypeChunkAllocator;
-		internal Archetype*                m_LastArchetype;
+		NativeMultiHashMap<uint, IntPtr>    m_TypeLookup;
+		ChunkAllocator                      m_ArchetypeChunkAllocator;
+		internal Archetype*                 m_LastArchetype;
 
-	    public LinkedListNode*             m_EmptyChunkPool;
+	    public UnsafeLinkedListNode*        m_EmptyChunkPool;
 
 
 		unsafe struct ManagedArrayStorage
@@ -136,8 +138,8 @@ namespace UnityEngine.ECS
 		public ArchetypeManager()
 		{
 			m_TypeLookup = new NativeMultiHashMap<uint, IntPtr>(256, Allocator.Persistent);
-		    m_EmptyChunkPool = (LinkedListNode*)UnsafeUtility.Malloc(sizeof(LinkedListNode), UnsafeUtility.AlignOf<LinkedListNode>(), Allocator.Persistent);
-		    LinkedListNode.InitializeList(m_EmptyChunkPool);
+		    m_EmptyChunkPool = (UnsafeLinkedListNode*)UnsafeUtility.Malloc(sizeof(UnsafeLinkedListNode), UnsafeUtility.AlignOf<UnsafeLinkedListNode>(), Allocator.Persistent);
+		    UnsafeLinkedListNode.InitializeList(m_EmptyChunkPool);
 		}
 
 		public void Dispose()
@@ -147,7 +149,7 @@ namespace UnityEngine.ECS
 			{
 				while (!m_LastArchetype->chunkList.IsEmpty)
 				{
-				    var chunk = m_LastArchetype->chunkList.begin();
+				    var chunk = m_LastArchetype->chunkList.Begin();
 				    chunk->Remove();
 					UnsafeUtility.Free(chunk, Allocator.Persistent);
 				}
@@ -157,7 +159,7 @@ namespace UnityEngine.ECS
 		    // And all pooled chunks
 		    while (!m_EmptyChunkPool->IsEmpty)
 		    {
-		        var chunk = m_EmptyChunkPool->begin();
+		        var chunk = m_EmptyChunkPool->Begin();
 		        chunk->Remove();
 		        UnsafeUtility.Free(chunk, Allocator.Persistent);
 		    }
@@ -291,8 +293,8 @@ namespace UnityEngine.ECS
 			type->prevArchetype = m_LastArchetype;
 			m_LastArchetype = type;
 
-			LinkedListNode.InitializeList(&type->chunkList);
-		    LinkedListNode.InitializeList(&type->chunkListWithEmptySlots);
+			UnsafeLinkedListNode.InitializeList(&type->chunkList);
+		    UnsafeLinkedListNode.InitializeList(&type->chunkListWithEmptySlots);
 
 			m_TypeLookup.Add(hash, (IntPtr)type);
 
@@ -311,7 +313,7 @@ namespace UnityEngine.ECS
             return bufferSize;
         }
 
-	    public static Chunk* GetChunkFromEmptySlotNode(LinkedListNode* node)
+	    public static Chunk* GetChunkFromEmptySlotNode(UnsafeLinkedListNode* node)
 	    {
 	        return (Chunk*) (node - 1);
 	    }
@@ -332,17 +334,17 @@ namespace UnityEngine.ECS
             chunk->archetype = archetype;
             chunk->count = 0;
             chunk->capacity = archetype->chunkCapacity;
-            chunk->chunkListNode = new LinkedListNode();
-            chunk->chunkListWithEmptySlotsNode = new LinkedListNode();
+            chunk->chunkListNode = new UnsafeLinkedListNode();
+            chunk->chunkListWithEmptySlotsNode = new UnsafeLinkedListNode();
 
-            archetype->chunkList.push_back(&chunk->chunkListNode);
-            archetype->chunkListWithEmptySlots.push_back(&chunk->chunkListWithEmptySlotsNode);
+            archetype->chunkList.Add(&chunk->chunkListNode);
+            archetype->chunkListWithEmptySlots.Add(&chunk->chunkListWithEmptySlotsNode);
 
             Assert.IsTrue(!archetype->chunkList.IsEmpty);
             Assert.IsTrue(!archetype->chunkListWithEmptySlots.IsEmpty);
 
-            Assert.IsTrue(chunk == (Chunk*)(archetype->chunkList.back()));
-            Assert.IsTrue(chunk == GetChunkFromEmptySlotNode(archetype->chunkListWithEmptySlots.back()));
+            Assert.IsTrue(chunk == (Chunk*)(archetype->chunkList.Back()));
+            Assert.IsTrue(chunk == GetChunkFromEmptySlotNode(archetype->chunkListWithEmptySlots.Back()));
 
 			if (archetype->numManagedArrays > 0)
 			{
@@ -361,14 +363,14 @@ namespace UnityEngine.ECS
             // Try existing archetype chunks
             if (!archetype->chunkListWithEmptySlots.IsEmpty)
             {
-                var chunk = GetChunkFromEmptySlotNode(archetype->chunkListWithEmptySlots.begin());
+                var chunk = GetChunkFromEmptySlotNode(archetype->chunkListWithEmptySlots.Begin());
                 Assert.AreNotEqual(chunk->count, chunk->capacity);
                 return chunk;
             }
             // Try empty chunk pool
             else if (!m_EmptyChunkPool->IsEmpty)
             {
-                Chunk* pooledChunk = (Chunk*)m_EmptyChunkPool->begin();
+                Chunk* pooledChunk = (Chunk*)m_EmptyChunkPool->Begin();
                 pooledChunk->chunkListNode.Remove();
 
                 ConstructChunk(archetype, pooledChunk);
@@ -415,7 +417,7 @@ namespace UnityEngine.ECS
                     chunk->chunkListNode.Remove();
                     chunk->chunkListWithEmptySlotsNode.Remove();
 
-                    m_EmptyChunkPool->push_back(&chunk->chunkListNode);
+                    m_EmptyChunkPool->Add(&chunk->chunkListNode);
                 }
             }
             // Chunk is now full
@@ -428,7 +430,7 @@ namespace UnityEngine.ECS
             {
                 Assert.IsTrue(newCount < chunk->count);
 
-                chunk->archetype->chunkListWithEmptySlots.push_back(&chunk->chunkListWithEmptySlotsNode);
+                chunk->archetype->chunkListWithEmptySlots.Add(&chunk->chunkListWithEmptySlotsNode);
             }
 
             chunk->count = newCount;

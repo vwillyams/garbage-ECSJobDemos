@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.ECS;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
@@ -12,7 +13,7 @@ namespace UnityEditor.ECS
         Dictionary<string, List<ComponentSystemBase>> managersByNamespace;
         Dictionary<int, ComponentSystemBase> managersByID;
 
-        EntityWindow window;
+        readonly EntityWindow window;
 
         public SystemListView(TreeViewState state, EntityWindow window) : base(state)
         {
@@ -34,7 +35,7 @@ namespace UnityEditor.ECS
             }
             foreach (var managerSet in managersByNamespace.Values)
             {
-                managerSet.Sort((x, y) => string.Compare(x.GetType().Name, y.GetType().Name));
+                managerSet.Sort((x, y) => String.CompareOrdinal(x.GetType().Name, y.GetType().Name));
             }
             Reload();
             SelectionChanged(GetSelection());
@@ -66,7 +67,7 @@ namespace UnityEditor.ECS
             return root;
         }
 
-        override protected void SelectionChanged(IList<int> selectedIds)
+        protected override void SelectionChanged(IList<int> selectedIds)
         {
             if (selectedIds.Count > 0 && managersByID.ContainsKey(selectedIds[0]))
             {
@@ -78,7 +79,7 @@ namespace UnityEditor.ECS
             }
         }
 
-        override protected bool CanMultiSelect(TreeViewItem item)
+        protected override bool CanMultiSelect(TreeViewItem item)
         {
             return false;
         }

@@ -599,6 +599,7 @@ namespace UnityEngine.ECS
 					break;
 				foreach (var dep in depsToAdd)
 					earlyUpdates.Add(dep);
+                depsToAdd.Clear();
 			}
 			while (true)
 			{
@@ -615,6 +616,7 @@ namespace UnityEngine.ECS
 					break;
 				foreach (var dep in depsToAdd)
 					lateUpdates.Add(dep);
+                depsToAdd.Clear();
 			}
 
 			int defaultPos = 0;

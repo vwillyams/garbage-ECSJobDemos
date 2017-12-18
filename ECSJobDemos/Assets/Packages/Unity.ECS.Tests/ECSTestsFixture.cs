@@ -13,7 +13,7 @@ namespace UnityEngine.ECS.Tests
 		public void Setup()
 		{
 			m_PreviousWorld = World.Active;
-			World = World.Active = new World ();
+			World = World.Active = new World ("Test World");
 
 			m_Manager = World.GetOrCreateManager<EntityManager> ();
 		}

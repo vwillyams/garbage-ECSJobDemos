@@ -8,10 +8,11 @@ namespace UnityEngine.ECS.Tests
 {
     public class EntityManagerTests
     {
+        private const string worldName = "GetComponentTest";
         [Test]
         public void GetComponentObjectReturnsTheCorrectType()
         {
-            var world = new World ();
+            var world = new World (worldName);
             var entityMan = world.CreateManager<EntityManager>();
             World.Active = world;
 
@@ -32,7 +33,7 @@ namespace UnityEngine.ECS.Tests
         [Test]
         public void GetComponentObjectThrowsIfComponentDoesNotExist()
         {
-            var world = new World ();
+            var world = new World (worldName);
             var entityMan = world.CreateManager<EntityManager>();
             World.Active = world;
 
@@ -49,7 +50,7 @@ namespace UnityEngine.ECS.Tests
         [Test]
         public void IncreaseEntityCapacity()
         {
-            var world = new World ();
+            var world = new World (worldName);
             world.SetDefaultCapacity(3);
             var entityMan = world.CreateManager<EntityManager>();
             World.Active = world;

@@ -276,7 +276,7 @@ public class ECSIteratePerformance : MonoBehaviour
 		if (PerformanceTestConfiguration.CleanManagers)
 		{
 			oldRoot = World.Active;
-			World.Active = new World();
+			World.Active = new World("IteratePerformance");
 			World.Active.SetDefaultCapacity(PerformanceTestConfiguration.InstanceCount * 2);
 		}
 

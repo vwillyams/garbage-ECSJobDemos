@@ -83,7 +83,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		if (PerformanceTestConfiguration.CleanManagers)
 		{
 			oldRoot = World.Active;
-			World.Active = new World();
+			World.Active = new World("InstantiatePerformance");
 			World.Active.SetDefaultCapacity(PerformanceTestConfiguration.InstanceCount * 2);
 		}
 

@@ -26,7 +26,7 @@ public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
         if (PerformanceTestConfiguration.CleanManagers)
         {
             oldRoot = World.Active;
-            World.Active = new World();
+            World.Active = new World("AddRemoveComponentNonBatchPerformance");
             World.Active.SetDefaultCapacity(PerformanceTestConfiguration.InstanceCount);
         }
 

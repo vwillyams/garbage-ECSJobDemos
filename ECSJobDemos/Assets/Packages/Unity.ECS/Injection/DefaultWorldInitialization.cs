@@ -7,6 +7,7 @@ namespace UnityEngine.ECS
 {
     class DefaultWorldInitialization
     {
+        private const string defaultWorldName = "Default World";
         static World m_CreatedWorld;
 
         static void DomainUnloadShutdown()
@@ -39,7 +40,7 @@ namespace UnityEngine.ECS
 
         public static void Initialize()
         {
-            World world = new World();
+            World world = new World(defaultWorldName);
             World.Active = world;
             m_CreatedWorld = world;
 

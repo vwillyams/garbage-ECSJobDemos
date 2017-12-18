@@ -507,22 +507,24 @@ namespace UnityEngine.ECS
 				// @TODO: attribute for sync
 				if (!(system.manager is ComponentSystem))
 					continue;
-				HashSet<Type> waitComponent = new HashSet<Type>();
-				foreach (var componentGroup in (system.manager as ComponentSystem).ComponentGroups)
+				var waitComponent = new HashSet<Type>();
+				foreach (var componentGroup in ((ComponentSystem) system.manager).ComponentGroups)
 				{
 					foreach (var type in componentGroup.Types)
 						waitComponent.Add(type);
 				}
 				foreach (var scheduler in schedulers)
 				{
+				    if (!(scheduler.manager is ComponentSystem))
+				        continue;
 					// Check if the component groups overlaps
-					HashSet<Type> scheduleComponent = new HashSet<Type>();
-					foreach (var componentGroup in (scheduler.manager as ComponentSystem).ComponentGroups)
+					var scheduleComponent = new HashSet<Type>();
+					foreach (var componentGroup in ((ComponentSystem) scheduler.manager).ComponentGroups)
 					{
 						foreach (var type in componentGroup.Types)
 							scheduleComponent.Add(type);
 					}
-					bool overlap = false;
+					var overlap = false;
 					foreach (var waitComp in waitComponent)
 					{
 						if (scheduleComponent.Contains(waitComp))

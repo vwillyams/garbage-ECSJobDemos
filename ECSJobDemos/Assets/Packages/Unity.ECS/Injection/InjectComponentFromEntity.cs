@@ -18,7 +18,7 @@ namespace UnityEngine.ECS
 		{
 			unsafe public void UpdateInjection(byte* targetObject, EntityManager entityManager, ComponentGroup group, InjectionData injection)
 			{
-				var array = entityManager.GetComponentDataArrayFromEntity<T>(injection.isReadOnly);
+				var array = entityManager.GetComponentDataFromEntity<T>(injection.isReadOnly);
 				UnsafeUtility.CopyStructureToPtr(ref array, targetObject + injection.fieldOffset);
 			}
 		}

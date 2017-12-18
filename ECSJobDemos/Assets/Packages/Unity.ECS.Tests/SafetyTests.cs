@@ -111,7 +111,7 @@ namespace UnityEngine.ECS.Tests
             var destroyedEntity = m_Manager.CreateEntity(typeof(EcsTestData));
             m_Manager.DestroyEntity(destroyedEntity);
 
-            var data = m_Manager.GetComponentDataArrayFromEntity<EcsTestData2>();
+            var data = m_Manager.GetComponentDataFromEntity<EcsTestData2>();
 
             Assert.Throws<System.ArgumentException>(() => { data[entity] = new EcsTestData2(); });
             Assert.Throws<System.ArgumentException>(() => { data[destroyedEntity] = new EcsTestData2(); });

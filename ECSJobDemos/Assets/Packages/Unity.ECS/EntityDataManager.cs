@@ -253,18 +253,27 @@ namespace UnityEngine.ECS
 
         public byte* GetComponentDataWithType(Entity entity, int typeIndex)
         {
-            return ChunkDataUtility.GetComponentDataWithType(m_Entities[entity.index].chunk, m_Entities[entity.index].index, typeIndex);
+            var entityData = m_Entities + entity.index;
+            return ChunkDataUtility.GetComponentDataWithType(entityData->chunk, entityData->index, typeIndex);
+        }
+
+        public byte* GetComponentDataWithType(Entity entity, int typeIndex, ref int typeLookupCache)
+        {
+            var entityData = m_Entities + entity.index;
+            return ChunkDataUtility.GetComponentDataWithType(entityData->chunk, entityData->index, typeIndex, ref typeLookupCache);
         }
 
         public void GetComponentDataWithTypeAndFixedArrayLength(Entity entity, int typeIndex, out byte* ptr, out int fixedArrayLength)
         {
-            ChunkDataUtility.GetComponentDataWithTypeAndFixedArrayLength(m_Entities[entity.index].chunk, m_Entities[entity.index].index, typeIndex, out ptr, out fixedArrayLength);
+            var entityData = m_Entities + entity.index;
+            ChunkDataUtility.GetComponentDataWithTypeAndFixedArrayLength(entityData->chunk, entityData->index, typeIndex, out ptr, out fixedArrayLength);
         }
 
         public void GetComponentChunk(Entity entity, out Chunk* chunk, out int chunkIndex)
         {
-            chunk = m_Entities[entity.index].chunk;
-            chunkIndex = m_Entities[entity.index].index;
+            var entityData = m_Entities + entity.index;
+            chunk = entityData->chunk;
+            chunkIndex = entityData->index;
         }
 
         public Archetype* GetArchetype(Entity entity)

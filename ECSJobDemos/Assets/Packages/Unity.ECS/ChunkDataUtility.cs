@@ -19,17 +19,51 @@ namespace UnityEngine.ECS
             return -1;
         }
 
-        public static void GetComponentDataWithTypeAndFixedArrayLength(Chunk* chunk, int index, int typeIndex, out byte* outPtr, out int outArrayLength)
+        static public void GetIndexInTypeArray(Archetype* archetype, int typeIndex, ref int typeLookupCache)
         {
-            int indexInTypeArray = GetIndexInTypeArray(chunk->archetype, typeIndex);
+            ComponentTypeInArchetype* types = archetype->types;
+            int typeCount = archetype->typesCount;
 
-            int offset = chunk->archetype->offsets[indexInTypeArray];
-            int sizeOf = chunk->archetype->sizeOfs[indexInTypeArray];
+            if (typeLookupCache < typeCount && types[typeLookupCache].typeIndex == typeIndex)
+                return;
 
-            outPtr = chunk->buffer + (offset + sizeOf * index);
-            outArrayLength = chunk->archetype->types[indexInTypeArray].FixedArrayLength;
+            for (int i = 0; i != typeCount; i++)
+            {
+                if (typeIndex == types[i].typeIndex)
+                {
+                    typeLookupCache = i;
+                    return;
+                }
+            }
+
+            #if ENABLE_UNITY_COLLECTIONS_CHECKS
+            throw new System.InvalidOperationException("Shouldn't happen");
+            #endif
         }
 
+        public static void GetComponentDataWithTypeAndFixedArrayLength(Chunk* chunk, int index, int typeIndex, out byte* outPtr, out int outArrayLength)
+        {
+            Archetype* archetype = chunk->archetype;
+            int indexInTypeArray = GetIndexInTypeArray(archetype, typeIndex);
+
+            int offset = archetype->offsets[indexInTypeArray];
+            int sizeOf = archetype->sizeOfs[indexInTypeArray];
+
+            outPtr = chunk->buffer + (offset + sizeOf * index);
+            outArrayLength = archetype->types[indexInTypeArray].FixedArrayLength;
+        }
+
+        public static byte* GetComponentDataWithType(Chunk* chunk, int index, int typeIndex, ref int typeLookupCache)
+        {
+            Archetype* archetype = chunk->archetype;
+            GetIndexInTypeArray(archetype, typeIndex, ref typeLookupCache);
+            int indexInTypeArray = typeLookupCache;
+
+            int offset = archetype->offsets[indexInTypeArray];
+            int sizeOf = archetype->sizeOfs[indexInTypeArray];
+
+            return chunk->buffer + (offset + sizeOf * index);
+        }
 
         public static byte* GetComponentDataWithType(Chunk* chunk, int index, int typeIndex)
         {

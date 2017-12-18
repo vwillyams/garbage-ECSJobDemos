@@ -313,7 +313,7 @@ namespace UnityEngine.ECS
             RemoveComponent(entity, ComponentType.Create<T>());
         }
 
-        public ComponentDataFromEntity<T> GetComponentDataArrayFromEntity<T>(bool isReadOnly = false) where T : struct, IComponentData
+        public ComponentDataFromEntity<T> GetComponentDataFromEntity<T>(bool isReadOnly = false) where T : struct, IComponentData
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
 

@@ -54,6 +54,27 @@ public class ECSIteratePerformance : MonoBehaviour
 	}
 
 	[ComputeJobOptimization]
+	struct Iterate_ComponentDataFromEntity : IJob
+	{
+		public NativeArray<Entity> 							entities;
+		public ComponentDataFromEntity<Component4Bytes> 	src;
+		public ComponentDataFromEntity<Component4BytesDst> 	dst;
+
+		public void Execute()
+		{
+			for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
+			{
+				//@TODO: Ref returns upgrade
+				for (int i = 0; i < entities.Length; ++i)
+				{
+					var entity = entities[i];
+					dst[entity] = new Component4BytesDst(src[entity].value);
+				}
+			}
+		}
+	}
+
+	[ComputeJobOptimization]
 	struct Iterate_ComponentDataArray : IJob
 	{
 		public ComponentDataArray<Component4Bytes> 		src;
@@ -274,6 +295,9 @@ public class ECSIteratePerformance : MonoBehaviour
 
 		var componentDataArrayJob = new Iterate_ComponentDataArray() { src = src, dst = dst };
 		componentDataArrayJob.Run();
+
+		var componentDataFromEntityJob = new Iterate_ComponentDataFromEntity() { src = entityManager.GetComponentDataFromEntity<Component4Bytes>(), dst = entityManager.GetComponentDataFromEntity<Component4BytesDst>(), entities = instances };
+		componentDataFromEntityJob.Run();
 
 		var componentProcessDataJob = new Iterate_ProcessComponentData();
 		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)

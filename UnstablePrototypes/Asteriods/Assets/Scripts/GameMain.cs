@@ -27,6 +27,9 @@ using UnityEngine.ECS;
         {
             if (clientWorld != null && serverWorld != null)
             {
+                ServerSettings.Instance().socket.Dispose();
+                ClientSettings.Instance().socket.Dispose();
+
                 serverWorld.Dispose();
                 clientWorld.Dispose();
                 World.UpdatePlayerLoop();
@@ -42,8 +45,15 @@ using UnityEngine.ECS;
         {
             PlayerLoopManager.RegisterDomainUnload(DomainUnloadShutdown);
 
-            serverWorld = WorldCreator.FindAndCreateWorldFromNamespace("Asteriods.Server");
-            clientWorld = WorldCreator.FindAndCreateWorldFromNamespace("Asteriods.Client");
+            serverWorld = new World();
+            clientWorld = new World();
+
+            ServerSettings.Create(serverWorld);
+            ClientSettings.Create(clientWorld);
+
+            WorldCreator.FindAndCreateWorldFromNamespace(serverWorld, "Asteriods.Server");
+            WorldCreator.FindAndCreateWorldFromNamespace(clientWorld, "Asteriods.Client");
+
             World.Active = null;
 
             World.UpdatePlayerLoop(serverWorld, clientWorld);
@@ -53,9 +63,8 @@ using UnityEngine.ECS;
 
     public class WorldCreator
     {
-        public static World FindAndCreateWorldFromNamespace(string name)
+        public static void FindAndCreateWorldFromNamespace(World world, string name)
         {
-            var world = new World();
             World.Active = world;
 
             foreach (var ass in AppDomain.CurrentDomain.GetAssemblies())
@@ -75,7 +84,6 @@ using UnityEngine.ECS;
                     GetBehaviourManagerAndLogException(world, type);
                 }
             }
-            return world;
         }
 
         public static void GetBehaviourManagerAndLogException(World world, Type type)
@@ -95,7 +103,5 @@ public class GameMain : MonoBehaviour
 {
     protected void OnEnable()
     {
-        Debug.Log("GameMain");
-        //World w = new World();
     }
 }

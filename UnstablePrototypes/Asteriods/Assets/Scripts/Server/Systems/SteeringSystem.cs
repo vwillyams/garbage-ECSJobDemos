@@ -64,8 +64,8 @@ namespace Asteriods.Server
                 }
                 if (input.thrust == 1)
                 {
-                    dx -= math.sin(math.radians(angle)) * GameSettings.Instance().playerForce * dt;
-                    dy += math.cos(math.radians(angle)) * GameSettings.Instance().playerForce * dt;
+                    dx -= math.sin(math.radians(angle)) * ServerSettings.Instance().playerForce * dt;
+                    dy += math.cos(math.radians(angle)) * ServerSettings.Instance().playerForce * dt;
                 }
             }
 

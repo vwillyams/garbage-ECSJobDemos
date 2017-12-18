@@ -1,19 +1,21 @@
+# README
+
 ## milestones
 
 ### naive networked (no prediction, no interpolation) poc
-  - deliverables
-    - [ ] multiplayer packet - integrate with the "new" raw udp socket library, bit/byte writer
-    - [ ] guideline document - seperation of client / server and shared code.
-    - [ ] ~1k objects synchronized
-      - client sends input to server, and draws objects
-      - server handles collisions and inputs from clients + moves the entities.
-    - [ ] state and command synchronization (e.g. should be roughly playable on lan)
+
+- deliverables
+  - [ ] multiplayer packet - integrate with the "new" raw udp socket library, bit/byte writer
+  - [ ] guideline document - seperation of client / server and shared code.
+  - [ ] ~1k objects synchronized
+    - client sends input to server, and draws objects
+    - server handles collisions and inputs from clients + moves the entities.
+  - [ ] state and command synchronization (e.g. should be roughly playable on lan)
 
   - test for completion
     - you should be able to start a server through a player/editor and connect multiple clients (also using player/editor and through lan).
     - you should be able to spawn up to ~ 1k objects on the server (asteroids) that will be synchronized on each connected client.
 
-### snapshot interpolation
   - deliverables
     - [ ] multiplayer packet - reliability layer, snapshot code, time/frame synchronization
     - [ ] guideline document - snapshot interpolations, server / client seperation handling and startup.
@@ -21,18 +23,20 @@
     - [ ] state and command synchronization using snapshot interpolation. (e.g playable with 100ms and 2% pkt loss)
 
 ### snapshot compression
-  - deliverables
-    - [ ] multiplayer packet - delta compression, area of interest / prioritization of packets
-    - [ ] guideline document - compression
-    - [ ] 15k+ objects synchronized - client move + draw / server handling collisions.
-    - [ ] state and command synchronization using snapshot interpolation with delta compression. (e.g playable with 100ms and 2% pkt loss)
+
+- deliverables
+  - [ ] multiplayer packet - delta compression, area of interest / prioritization of packets
+  - [ ] guideline document - compression
+  - [ ] 15k+ objects synchronized - client move + draw / server handling collisions.
+  - [ ] state and command synchronization using snapshot interpolation with delta compression. (e.g playable with 100ms and 2% pkt loss)
 
 ## todo
-### current milestone: naive networked
 
+### current milestone: naive networked
 
 - misc
   - [x] back of the envelope calculations for whats technically doable on a 1GB line.
+
 ```
     state = data * users
     total_transmission = state * users * hz
@@ -49,7 +53,7 @@
     then we can send 11k 1500bit pkts running @ 60hz
 ```
 
-- ecs  
+- ecs
   - [ ] make it possible to certain systems with a different framerate
 
 - editor
@@ -87,9 +91,12 @@
     - [ ] move over from monobehavior -> systems?
 
 - networking
-  - [ ] add sockets
+  - [x] add sockets
+  - [ ] serialize all data using packets
   - [ ] byte writer / reader
-
+    - write tests for bit reader & writer
+    - write tests for byte reader & writer
 
 #### notes
+
 - would be nice to see all entities in the world

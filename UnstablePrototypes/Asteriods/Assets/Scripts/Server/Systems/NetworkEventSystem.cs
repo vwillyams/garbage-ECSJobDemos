@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.ECS;
 
 using Unity.Collections;
+using Unity.Multiplayer;
 
 namespace Asteriods.Server
 {
@@ -17,12 +18,16 @@ namespace Asteriods.Server
         [Inject]
         SpawnSystem m_SpawnSystem;
 
+        GameSocket m_Socket;
+
         override protected void OnCreateManager(int capacity)
         {
             base.OnCreateManager(capacity);
 
             inputEventQueue = new NativeQueue<PlayerInputComponentData>(128, Allocator.Persistent);
             Debug.Assert(inputEventQueue.IsCreated);
+
+            m_Socket = ServerSettings.Instance().socket;
         }
 
         override protected void OnDestroyManager()
@@ -30,8 +35,20 @@ namespace Asteriods.Server
             if (inputEventQueue.IsCreated)
                 inputEventQueue.Dispose();
         }
+
         override protected void OnUpdate()
         {
+
+            NativeSlice<byte> outBuffer;
+            GameSocketEventType eventType;
+            int connectionId;
+
+            if ((eventType = m_Socket.ReceiveEvent(out outBuffer, out connectionId)) == GameSocketEventType.Connect)
+            {
+                Debug.Log("OnConnect: ConnectionId = " + connectionId);
+            }
+
+
             for (int i = 0, c = inputEventQueue.Count; i < c; ++i)
             {
                 var e = inputEventQueue.Dequeue();

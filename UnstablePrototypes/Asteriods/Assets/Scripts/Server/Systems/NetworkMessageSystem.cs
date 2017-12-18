@@ -44,22 +44,28 @@ namespace Asteriods.Server
 
         override protected void OnUpdate()
         {
+            Snapshot snapshot = new Snapshot(Allocator.Temp);
             // HACK (2017-12-11, lifetime 4 weeks or until proper protocol implemented.)
             for (int i = 0, c = m_SpawnSystem.OutgoingSpawnQueue.Count; i < c; ++i)
             {
+                //snapshot.SpawnCommands.Add(m_SpawnSystem.OutgoingSpawnQueue.Dequeue());
                 Asteriods.Client.NetworkEventSystem.SpawnEventQueue.Enqueue(m_SpawnSystem.OutgoingSpawnQueue.Dequeue());
             }
 
             for (int i = 0, c = networkedItems.Length; i < c; ++i)
             {
                 var m = new MovementData(networkedItems.ids[i].id, networkedItems.positions[i], networkedItems.rotations[i]);
+                //snapshot.MovementDatas.Add(m);
                 Asteriods.Client.NetworkEventSystem.MovementEventQueue.Enqueue(m);
             }
 
             for (int i = 0, c = DespawnQueue.Count; i < c; ++i)
             {
+                //snapshot.DespawnCommands.Add(DespawnQueue.Dequeue());
                 Asteriods.Client.NetworkEventSystem.DespawnEventQueue.Enqueue(DespawnQueue.Dequeue());
             }
+
+            snapshot.Dispose();
         }
     }
 }

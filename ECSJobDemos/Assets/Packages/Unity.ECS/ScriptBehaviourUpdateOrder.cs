@@ -496,7 +496,7 @@ namespace UnityEngine.ECS
 				var system = systemKeyValue.Value;
 				// @TODO: GenericProcessComponentSystem
 				// @TODO: attribute
-				if (!(system is JobComponentSystem))
+				if (!(system.manager is JobComponentSystem))
 					continue;
 				system.spawnsJobs = true;
 				schedulers.Add(system);
@@ -505,7 +505,7 @@ namespace UnityEngine.ECS
 			{
 				var system = systemKeyValue.Value;
 				// @TODO: attribute for sync
-				if (!(system is ComponentSystem))
+				if (!(system.manager is ComponentSystem))
 					continue;
 				HashSet<Type> waitComponent = new HashSet<Type>();
 				foreach (var componentGroup in (system.manager as ComponentSystem).ComponentGroups)

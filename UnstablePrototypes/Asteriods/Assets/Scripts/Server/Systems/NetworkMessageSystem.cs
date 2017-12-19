@@ -44,7 +44,7 @@ namespace Asteriods.Server
 
         override protected void OnUpdate()
         {
-            Snapshot snapshot = new Snapshot(Allocator.Temp);
+            Snapshot snapshot = new Snapshot(0, Allocator.Temp);
             // HACK (2017-12-11, lifetime 4 weeks or until proper protocol implemented.)
             for (int i = 0, c = m_SpawnSystem.OutgoingSpawnQueue.Count; i < c; ++i)
             {

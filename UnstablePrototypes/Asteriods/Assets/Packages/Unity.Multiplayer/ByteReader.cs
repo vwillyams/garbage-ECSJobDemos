@@ -15,6 +15,11 @@ namespace Unity.Multiplayer
             m_Reader = reader;
         }
 
+        public byte ReadByte()
+        {
+            return (byte)m_Reader.ReadBits(sizeof(byte) * 8);
+        }
+
         public short ReadShort()
         {
             return (short)m_Reader.ReadBits(sizeof(short) * 8);

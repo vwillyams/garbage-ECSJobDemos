@@ -32,6 +32,11 @@ namespace Unity.Multiplayer
             m_Writer = writer;
         }
 
+        public void Write(byte value)
+        {
+            m_Writer.WriteBits((uint)value, sizeof(byte) * 8);
+        }
+
         public void Write(short value)
         {
             m_Writer.WriteBits((uint)value, sizeof(short) * 8);

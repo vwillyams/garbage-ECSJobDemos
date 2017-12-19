@@ -11,13 +11,14 @@ public interface INetworkedMessage
 
 public struct Snapshot :  INetworkedMessage
 {
-    static int sequence;
+    int sequence;
     public NativeList<SpawnCommand> SpawnCommands;
     public NativeList<DespawnCommand> DespawnCommands;
     public NativeList<MovementData> MovementDatas;
 
-    public Snapshot(Allocator allocator)
+    public Snapshot(int sequence, Allocator allocator)
     {
+        this.sequence = sequence;
         SpawnCommands = new NativeList<SpawnCommand>(allocator);
         DespawnCommands = new NativeList<DespawnCommand>(allocator);
         MovementDatas = new NativeList<MovementData>(allocator);
@@ -35,6 +36,7 @@ public struct Snapshot :  INetworkedMessage
 
     public void Serialize(ref ByteWriter writer)
     {
+        writer.Write(sequence);
         writer.Write(SpawnCommands.Length);
         NativeArray<SpawnCommand> spawns = SpawnCommands;
         foreach(var command in spawns)
@@ -57,6 +59,7 @@ public struct Snapshot :  INetworkedMessage
 
     public void Deserialize(ref ByteReader reader)
     {
+        sequence = reader.ReadInt();
         int length = 0;
         length = reader.ReadShort();
         for (int i = 0; i < length; ++i)

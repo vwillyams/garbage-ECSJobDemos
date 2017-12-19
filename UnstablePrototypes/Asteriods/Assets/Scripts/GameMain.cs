@@ -45,8 +45,8 @@ using UnityEngine.ECS;
         {
             PlayerLoopManager.RegisterDomainUnload(DomainUnloadShutdown);
 
-            serverWorld = new World();
-            clientWorld = new World();
+            serverWorld = new World("Server");
+            clientWorld = new World("Client");
 
             ServerSettings.Create(serverWorld);
             ClientSettings.Create(clientWorld);

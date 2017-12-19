@@ -9,11 +9,42 @@ using System.Linq;
 namespace UnityEditor.ECS
 {
     public class SystemListView : TreeView {
-        
+
         Dictionary<string, List<ComponentSystemBase>> managersByNamespace;
         Dictionary<int, ComponentSystemBase> managersByID;
 
         readonly EntityWindow window;
+
+        public static TreeViewState GetStateForWorld(World world, ref List<TreeViewState> states,
+            ref List<string> stateNames)
+        {
+            if (world == null)
+                return new TreeViewState();
+
+            if (states == null)
+            {
+                states = new List<TreeViewState>();
+                stateNames = new List<string>();
+            }
+            var currentWorldName = world.GetType().Name.ToString();
+
+            TreeViewState stateForCurrentWorld = null;
+            for (var i = 0; i < states.Count; ++i)
+            {
+                if (stateNames[i] == currentWorldName)
+                {
+                    stateForCurrentWorld = states[i];
+                    break;
+                }
+            }
+            if (stateForCurrentWorld == null)
+            {
+                stateForCurrentWorld = new TreeViewState();
+                states.Add(stateForCurrentWorld);
+                stateNames.Add(currentWorldName);
+            }
+            return stateForCurrentWorld;
+        }
 
         public SystemListView(TreeViewState state, EntityWindow window) : base(state)
         {

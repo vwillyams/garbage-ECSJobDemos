@@ -7,6 +7,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Unity.Burst.LowLevel;
 using Unity.Jobs;
+using Unity.Jobs.LowLevel.Unsafe;
+
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;

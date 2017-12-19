@@ -340,16 +340,31 @@ namespace UnityEngine.ECS
             return bufferSize;
         }
 
-        public Chunk* AllocateChunk(Archetype* archetype)
-        {
-            IntPtr buffer = UnsafeUtility.Malloc(kChunkSize, 64, Allocator.Persistent);
+	    public static Chunk* GetChunkFromEmptySlotNode(UnsafeLinkedListNode* node)
+	    {
+	        return (Chunk*) (node - 1);
+	    }
 
-            int bufferOffset = GetBufferOffset(archetype->numSharedComponents);
+	    public static int* GetSharedComponentValueArray(Chunk* p)
+	    {
+	        return (int*)(((byte*)p) + sizeof(Chunk));
+	    }
 
-            var chunk = (Chunk*)buffer;
+	    unsafe public Chunk* AllocateChunk(Archetype* archetype)
+	    {
+	        byte* buffer = (byte*) UnsafeUtility.Malloc(Chunk.kChunkSize, 64, Allocator.Persistent);
+	        var chunk = (Chunk*)buffer;
+	        ConstructChunk(archetype, chunk);
+	        return chunk;
+	    }
+
+	    unsafe public void ConstructChunk(Archetype* archetype, Chunk* chunk)
+	    {
+	        int bufferOffset = GetBufferOffset(archetype->numSharedComponents);
+
+	        chunk->buffer = (byte*)chunk + bufferOffset;
             chunk->archetype = archetype;
 
-            chunk->buffer = (IntPtr)(((byte*)chunk) + bufferOffset);
             chunk->count = 0;
             chunk->capacity = archetype->chunkCapacity;
             chunk->chunkListNode = new UnsafeLinkedListNode();
@@ -378,20 +393,18 @@ namespace UnityEngine.ECS
 
             if (archetype->numSharedComponents > 0)
             {
-                int* sharedComponentValueArray = Chunk.GetSharedComponentValueArray(chunk);
+                int* sharedComponentValueArray = GetSharedComponentValueArray(chunk);
                 int numSharedComponents = chunk->archetype->numSharedComponents;
                 for (int i = 0; i < numSharedComponents; ++i)
                 {
                     sharedComponentValueArray[i] = 0;
                 }
             }
-
-			return chunk;
         }
 
 	    bool ChuckHasDefaultSharedComponents(Chunk* chunk)
 	    {
-	        int* sharedComponentValueArray = Chunk.GetSharedComponentValueArray(chunk);
+	        int* sharedComponentValueArray = GetSharedComponentValueArray(chunk);
 	        int numSharedComponents = chunk->archetype->numSharedComponents;
 	        for (int i = 0; i < numSharedComponents; ++i)
 	        {

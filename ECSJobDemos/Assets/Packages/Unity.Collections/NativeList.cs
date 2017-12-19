@@ -9,27 +9,27 @@ using System.Diagnostics;
 
 namespace Unity.Collections
 {
-	struct NativeListData
+	unsafe struct NativeListData
 	{
-		public System.IntPtr					list;
+		public void*                            list;
 		public int								length;
 		public int								capacity;
 
-		public unsafe static void DeallocateList(IntPtr buffer, Allocator allocation)
+		public unsafe static void DeallocateList(void* buffer, Allocator allocation)
 		{
 			NativeListData* data = (NativeListData*)buffer;
 			UnsafeUtility.Free (data->list, allocation);
-			data->list = IntPtr.Zero;
+			data->list = null;
 			UnsafeUtility.Free (buffer, allocation);
 		}
 	}
 
 	[StructLayout (LayoutKind.Sequential)]
 	[NativeContainer]
-	public struct NativeList<T> where T : struct
+	unsafe public struct NativeList<T> where T : struct
 	{
 		[NativeDisableUnsafePtrRestriction]
-		internal System.IntPtr 			m_Buffer;
+		internal NativeListData*        m_Buffer;
 		Allocator 						m_AllocatorLabel;
 		#if ENABLE_UNITY_COLLECTIONS_CHECKS
 		internal AtomicSafetyHandle 	m_Safety;
@@ -41,28 +41,24 @@ namespace Unity.Collections
 		{
 			get
 			{
-                NativeListData* data = (NativeListData*)m_Buffer;
-
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
-                if ((uint)index >= (uint)data->length)
-                    throw new System.IndexOutOfRangeException(string.Format("Index {0} is out of range in NativeList of '{1}' Length.", index, data->length));
+                if ((uint)index >= (uint)m_Buffer->length)
+                    throw new System.IndexOutOfRangeException(string.Format("Index {0} is out of range in NativeList of '{1}' Length.", index, m_Buffer->length));
 #endif
 
-                return UnsafeUtility.ReadArrayElement<T>(data->list, index);
+                return UnsafeUtility.ReadArrayElement<T>(m_Buffer->list, index);
 			}
 
 			set
 			{
-                NativeListData* data = (NativeListData*)m_Buffer;
-
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
-                if ((uint)index >= (uint)data->length)
-                    throw new System.IndexOutOfRangeException(string.Format("Index {0} is out of range in NativeList of '{1}' Length.", index, data->length));
+                if ((uint)index >= (uint)m_Buffer->length)
+                    throw new System.IndexOutOfRangeException(string.Format("Index {0} is out of range in NativeList of '{1}' Length.", index, m_Buffer->length));
 #endif
 
-                UnsafeUtility.WriteArrayElement<T>(data->list, index, value);
+                UnsafeUtility.WriteArrayElement<T>(m_Buffer->list, index, value);
 			}
 		}
 
@@ -74,8 +70,7 @@ namespace Unity.Collections
 				AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 				#endif
 
-				NativeListData* data = (NativeListData*)m_Buffer;
-				return data->length;
+				return m_Buffer->length;
 			}
 		}
 
@@ -87,8 +82,7 @@ namespace Unity.Collections
 				AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 				#endif
 
-				NativeListData* data = (NativeListData*)m_Buffer;
-				return data->capacity;
+				return m_Buffer->capacity;
 			}
 
 			set
@@ -97,15 +91,14 @@ namespace Unity.Collections
 				AtomicSafetyHandle.CheckWriteAndBumpSecondaryVersion(m_Safety);
 				#endif
 
-				NativeListData* data = (NativeListData*)m_Buffer;
-				if (data->capacity == value)
+				if (m_Buffer->capacity == value)
 					return;
 
-				IntPtr newData = UnsafeUtility.Malloc (value * UnsafeUtility.SizeOf<T>(), UnsafeUtility.AlignOf<T>(), m_AllocatorLabel);
-				UnsafeUtility.MemCpy (newData, data->list, data->length * UnsafeUtility.SizeOf<T>());
-				UnsafeUtility.Free (data->list, m_AllocatorLabel);
-				data->list = newData;
-				data->capacity = value;
+				void* newData = UnsafeUtility.Malloc (value * UnsafeUtility.SizeOf<T>(), UnsafeUtility.AlignOf<T>(), m_AllocatorLabel);
+				UnsafeUtility.MemCpy (newData, m_Buffer->list, m_Buffer->length * UnsafeUtility.SizeOf<T>());
+				UnsafeUtility.Free (m_Buffer->list, m_AllocatorLabel);
+			    m_Buffer->list = newData;
+			    m_Buffer->capacity = value;
 			}
 		}
 
@@ -119,8 +112,7 @@ namespace Unity.Collections
                 throw new ArgumentException(string.Format("{0} used in NativeList<{0}> must be blittable", typeof(T)));
 #endif
 
-            m_Buffer = UnsafeUtility.Malloc (sizeof(NativeListData), UnsafeUtility.AlignOf<NativeListData>(), i_label);
-			NativeListData* data = (NativeListData*)m_Buffer;
+            NativeListData* data  = (NativeListData*)UnsafeUtility.Malloc (sizeof(NativeListData), UnsafeUtility.AlignOf<NativeListData>(), i_label);
 
 			int elementSize = UnsafeUtility.SizeOf<T> ();
 
@@ -131,6 +123,7 @@ namespace Unity.Collections
 			data->length = 0;
 			data->capacity = capacity;
 
+		    m_Buffer = data;
 			m_AllocatorLabel = i_label;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -141,7 +134,7 @@ namespace Unity.Collections
 
 		unsafe public void Add(T element)
 		{
-			NativeListData* data = (NativeListData*)m_Buffer;
+			NativeListData* data = m_Buffer;
 			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckWriteAndBumpSecondaryVersion(m_Safety);
 			#endif
@@ -157,7 +150,7 @@ namespace Unity.Collections
         //@TODO: Test for AddRange
         unsafe public void AddRange(NativeArray<T> elements)
         {
-            NativeListData* data = (NativeListData*)m_Buffer;
+            NativeListData* data = m_Buffer;
             #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckWriteAndBumpSecondaryVersion(m_Safety);
             #endif
@@ -166,14 +159,14 @@ namespace Unity.Collections
                 Capacity = data->length + elements.Length * 2;
 
             int sizeOf = UnsafeUtility.SizeOf<T> ();
-            UnsafeUtility.MemCpy(data->list + data->length * sizeOf, elements.GetUnsafePtr(), sizeOf * elements.Length);
+            UnsafeUtility.MemCpy((byte*)data->list + data->length * sizeOf, elements.GetUnsafePtr(), sizeOf * elements.Length);
 
             data->length += elements.Length;
         }
 
 		unsafe public void RemoveAtSwapBack(int index)
 		{
-			NativeListData* data = (NativeListData*)m_Buffer;
+			NativeListData* data = m_Buffer;
 			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckWriteAndBumpSecondaryVersion(m_Safety);
 			#endif
@@ -185,7 +178,7 @@ namespace Unity.Collections
 
 		public bool IsCreated
 		{
-			get { return m_Buffer != IntPtr.Zero; }
+			get { return m_Buffer != null; }
 		}
 
 		unsafe public void Dispose()
@@ -195,7 +188,7 @@ namespace Unity.Collections
 			#endif
 
 			NativeListData.DeallocateList(m_Buffer, m_AllocatorLabel);
-			m_Buffer = IntPtr.Zero;
+			m_Buffer = null;
 		}
 
 		public void Clear()
@@ -252,7 +245,7 @@ namespace Unity.Collections.LowLevel.Unsafe
 {
 	public static class NativeListUnsafeUtility
 	{
-        public static unsafe IntPtr GetUnsafePtr<T>(this NativeList<T> nativeList) where T : struct
+        public static unsafe void* GetUnsafePtr<T>(this NativeList<T> nativeList) where T : struct
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckWriteAndThrow(nativeList.m_Safety);

@@ -10,10 +10,10 @@ namespace UnityEngine.ECS
     {
         void Execute(U0 entity);
     }
-    
+
     public static class ProcessEntityJobExtension1
     {
-        static public JobHandle Schedule<T, U0>(this T jobData, ComponentGroupArray<U0> array, int innerloopBatchCount, JobHandle dependsOn = new JobHandle())
+        unsafe static public JobHandle Schedule<T, U0>(this T jobData, ComponentGroupArray<U0> array, int innerloopBatchCount, JobHandle dependsOn = new JobHandle())
             where T : struct, IJobProcessEntities<U0>
             where U0 : struct
         {
@@ -25,7 +25,7 @@ namespace UnityEngine.ECS
             return JobsUtility.ScheduleParallelFor(ref scheduleParams, array.Length, innerloopBatchCount);
         }
 
-        static public void Run<T, U0>(this T jobData, ComponentGroupArray<U0> array)
+        unsafe static public void Run<T, U0>(this T jobData, ComponentGroupArray<U0> array)
             where T : struct, IJobProcessEntities<U0>
             where U0 : struct
         {
@@ -37,7 +37,7 @@ namespace UnityEngine.ECS
             int entityCount = array.Length;
             JobsUtility.ScheduleParallelFor(ref scheduleParams, entityCount , entityCount);
         }
-        
+
         struct JobStruct<T, U0>
             where T : struct, IJobProcessEntities<U0>
             where U0 : struct
@@ -69,8 +69,8 @@ namespace UnityEngine.ECS
                         if (begin < jobData.array.CacheBeginIndex || begin >= jobData.array.CacheEndIndex)
                             jobData.array.UpdateCache(begin);
 
-                        int endLoop = Math.Min(end, jobData.array.CacheEndIndex); 
-                        
+                        int endLoop = Math.Min(end, jobData.array.CacheEndIndex);
+
                         for (int i = begin; i != endLoop; i++)
                         {
                             jobData.array.PatchPtrs(i, (byte*)UnsafeUtility.AddressOf(ref entity));

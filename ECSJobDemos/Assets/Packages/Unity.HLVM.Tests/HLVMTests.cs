@@ -78,11 +78,11 @@ public class HLVMTests
 	[ComputeJobOptimization]
 	struct MallocTestJob : IJob
 	{
-		public void Execute()
+		unsafe public void Execute()
 		{
-			System.IntPtr allocated = UnsafeUtility.Malloc(UnsafeUtility.SizeOf<int>() * 100, 4, Allocator.Persistent);
+			void* allocated = UnsafeUtility.Malloc(UnsafeUtility.SizeOf<int>() * 100, 4, Allocator.Persistent);
 			UnsafeUtility.Free(allocated, Allocator.Persistent);
-		}            
+		}
 
 	}
 
@@ -182,7 +182,7 @@ public class HLVMTests
 		}
 
         void DoStuff(int value)
-        { 
+        {
             throw new System.InvalidOperationException(string.Format("Boing {0}", valuel));
         }
 	}

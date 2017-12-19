@@ -10,10 +10,10 @@ namespace UnityEngine.ECS
         public ComponentDataArchetypeSegment* nextSegment;
     }
 
-    struct ComponentChunkCache
+    unsafe struct ComponentChunkCache
     {
         [NativeDisableUnsafePtrRestriction]
-        public IntPtr                          CachedPtr;
+        public void*                           CachedPtr;
         public int                             CachedBeginIndex;
         public int                             CachedEndIndex;
         public int                             CachedSizeOf;
@@ -22,13 +22,13 @@ namespace UnityEngine.ECS
     unsafe struct ComponentChunkIterator
     {
         [NativeDisableUnsafePtrRestriction]
-        ComponentDataArchetypeSegment*  m_FirstArchetypeSegment;
+        ComponentDataArchetypeSegment*          m_FirstArchetypeSegment;
         [NativeDisableUnsafePtrRestriction]
-        ComponentDataArchetypeSegment*  m_CurrentArchetypeSegment;
-        int                             m_CurrentArchetypeIndex;
+        ComponentDataArchetypeSegment*          m_CurrentArchetypeSegment;
+        int                                     m_CurrentArchetypeIndex;
         [NativeDisableUnsafePtrRestriction]
-        Chunk*                          m_CurrentChunk;
-        int                             m_CurrentChunkIndex;
+        Chunk*                                  m_CurrentChunk;
+        int                                     m_CurrentChunkIndex;
 
         public ComponentChunkIterator(ComponentDataArchetypeSegment* data, int length)
         {
@@ -36,7 +36,7 @@ namespace UnityEngine.ECS
             m_CurrentArchetypeSegment = data;
             m_CurrentArchetypeIndex = 0;
             if (length > 0)
-                m_CurrentChunk = data->archetype->first;
+                m_CurrentChunk = (Chunk*)data->archetype->chunkList.Begin();
             else
                 m_CurrentChunk = null;
             m_CurrentChunkIndex = 0;
@@ -46,12 +46,12 @@ namespace UnityEngine.ECS
         {
             return typeMan.GetManagedObject(m_CurrentChunk, typeIndexInArchetype, index - cachedBeginIndex);
         }
-        
+
         public object GetManagedObject(ArchetypeManager typeMan, int cachedBeginIndex, int index)
         {
             return typeMan.GetManagedObject(m_CurrentChunk, m_CurrentArchetypeSegment->typeIndexInArchetype, index - cachedBeginIndex);
         }
-        
+
         public object[] GetManagedObjectRange(ArchetypeManager typeMan, int cachedBeginIndex, int index, out int rangeStart, out int rangeLength)
         {
             var objs = typeMan.GetManagedObjectRange(m_CurrentChunk, m_CurrentArchetypeSegment->typeIndexInArchetype, out rangeStart, out rangeLength);
@@ -66,7 +66,7 @@ namespace UnityEngine.ECS
             {
                 m_CurrentArchetypeSegment = m_FirstArchetypeSegment;
                 m_CurrentArchetypeIndex = 0;
-                m_CurrentChunk = m_CurrentArchetypeSegment->archetype->first;
+                m_CurrentChunk = (Chunk*)m_CurrentArchetypeSegment->archetype->chunkList.Begin();
                 m_CurrentChunkIndex = 0;
             }
 
@@ -74,31 +74,31 @@ namespace UnityEngine.ECS
             {
                 m_CurrentArchetypeIndex += m_CurrentArchetypeSegment->archetype->entityCount;
                 m_CurrentArchetypeSegment = m_CurrentArchetypeSegment->nextSegment;
-                m_CurrentChunk = m_CurrentArchetypeSegment->archetype->first;
+                m_CurrentChunk = (Chunk*)m_CurrentArchetypeSegment->archetype->chunkList.Begin();
                 m_CurrentChunkIndex = 0;
             }
             index -= m_CurrentArchetypeIndex;
             if (index < m_CurrentChunkIndex)
             {
-                m_CurrentChunk = m_CurrentArchetypeSegment->archetype->first;
+                m_CurrentChunk = (Chunk*)m_CurrentArchetypeSegment->archetype->chunkList.Begin();
                 m_CurrentChunkIndex = 0;
             }
 
             while (index >= m_CurrentChunkIndex + m_CurrentChunk->count)
             {
                 m_CurrentChunkIndex += m_CurrentChunk->count;
-                m_CurrentChunk = m_CurrentChunk->next;
+                m_CurrentChunk = (Chunk*)m_CurrentChunk->chunkListNode.next;
             }
 
             var archetype = m_CurrentArchetypeSegment->archetype;
             var typeIndexInArchetype = m_CurrentArchetypeSegment->typeIndexInArchetype;
-            
+
             cache.CachedBeginIndex = m_CurrentChunkIndex + m_CurrentArchetypeIndex;
             cache.CachedEndIndex = cache.CachedBeginIndex + m_CurrentChunk->count;
             cache.CachedSizeOf = archetype->sizeOfs[typeIndexInArchetype];
             cache.CachedPtr = m_CurrentChunk->buffer + archetype->offsets[typeIndexInArchetype] - cache.CachedBeginIndex * cache.CachedSizeOf;
         }
-        
+
         public void GetCacheForType(int componentType, out ComponentChunkCache cache, out int typeIndexInArchetype)
         {
             var archetype = m_CurrentArchetypeSegment->archetype;

@@ -11,6 +11,7 @@ namespace UnityEngine.ECS
 #endif
         EntityDataManager       m_Entities;
         int                     m_TypeIndex;
+        int                     m_TypeLookupCache;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal ComponentDataFromEntity(int typeIndex, EntityDataManager entityData, AtomicSafetyHandle safety)
@@ -18,6 +19,7 @@ namespace UnityEngine.ECS
             m_Safety = safety;
             m_TypeIndex = typeIndex;
             m_Entities = entityData;
+            m_TypeLookupCache = 0;
         }
 #else
         internal ComponentDataFromEntity(int typeIndex, EntityDataManager entityData)
@@ -46,7 +48,7 @@ namespace UnityEngine.ECS
 #endif
                 m_Entities.AssertEntityHasComponent(entity, m_TypeIndex);
 
-                IntPtr ptr = m_Entities.GetComponentDataWithType(entity, m_TypeIndex);
+                void* ptr = m_Entities.GetComponentDataWithType(entity, m_TypeIndex, ref m_TypeLookupCache);
                 T data;
                 UnsafeUtility.CopyPtrToStructure(ptr, out data);
 
@@ -59,7 +61,7 @@ namespace UnityEngine.ECS
 #endif
                 m_Entities.AssertEntityHasComponent(entity, m_TypeIndex);
 
-                IntPtr ptr = m_Entities.GetComponentDataWithType(entity, m_TypeIndex);
+                void* ptr = m_Entities.GetComponentDataWithType(entity, m_TypeIndex);
                 UnsafeUtility.CopyStructureToPtr(ref value, ptr);
 			}
 		}

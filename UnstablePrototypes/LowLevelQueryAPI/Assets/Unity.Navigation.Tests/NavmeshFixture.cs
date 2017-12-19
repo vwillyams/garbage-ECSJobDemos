@@ -30,10 +30,10 @@ namespace Unity.Navigation.Tests
             var settings = NavMesh.GetSettingsByID(0);
             m_NavMeshData = NavMeshBuilder.BuildNavMeshData(settings, sources, bounds, Vector3.zero, Quaternion.identity);
 
-	        NavMesh.RemoveAllNavmeshData();
-	        
+            NavMesh.RemoveAllNavMeshData();
+
 	        m_NavMeshInstance = NavMesh.AddNavMeshData(m_NavMeshData);
-	        
+
 	        //@TODO: Just temp workaround
 	        m_NavMeshInstance = NavMesh.AddNavMeshData(m_NavMeshData);
         }
@@ -55,7 +55,7 @@ namespace Unity.Navigation.Tests
 		    int pathSize;
 		    //@TODO: Return value seems a bit weird. It can return values not on the enum when it fails? ...
 		    Assert.AreEqual(PathQueryStatus.Success, pathQuery.FinalizeSlicedFindPath(out pathSize));
-			
+
 		    var res = new NativeArray<PolygonID>(pathSize, Allocator.Persistent);
 		    Assert.AreEqual(pathSize, pathQuery.GetPathResult(res));
 		    Assert.AreEqual(2, pathSize);

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using Unity.Burst;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Collections;
 using UnityEngine.Assertions;
@@ -19,36 +20,36 @@ namespace UnityEngine.ECS
         internal int                   ComponentDataCount;
         internal int                   ComponentCount;
         internal ComponentGroup        ComponentGroup;
-        
+
         public ComponentGroupArrayStaticCache(Type type, EntityManager entityManager)
         {
             var fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
             var componentFieldOffsetsBuilder = new List<int>();
             var componentTypesBuilder = new List<ComponentType>();
-            
+
             var componentDataFieldOffsetsBuilder = new List<int>();
             var componentDataTypesBuilder = new List<ComponentType>();
-            
+
             var subtractiveComponentTypesBuilder = new List<ComponentType>();
-            
+
             foreach(var field in fields)
             {
                 var fieldType = field.FieldType;
                 var offset = UnsafeUtility.GetFieldOffset(field);
-                
+
                 if (fieldType.IsPointer)
                 {
                     var isReadOnly = field.GetCustomAttributes(typeof(ReadOnlyAttribute), true).Length != 0;
                     var accessMode = isReadOnly ? ComponentType.AccessMode.ReadOnly : ComponentType.AccessMode.ReadWrite;
-                    
+
                     //@TODO: Find out if there is a non-string based version of doing this...
                     string pointerTypeFullName = fieldType.FullName;
                     Type valueType = fieldType.Assembly.GetType(pointerTypeFullName.Remove(pointerTypeFullName.Length - 1));
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                     if (!typeof(IComponentData).IsAssignableFrom(valueType))
                         throw new System.ArgumentException($"{type}.{field.Name} is a pointer type but not a IComponentData. Only IComponentData may be a pointer type for enumeration.");
-#endif                    
+#endif
                     componentDataFieldOffsetsBuilder.Add(offset);
                     componentDataTypesBuilder.Add(new ComponentType(valueType, accessMode));
                 }
@@ -78,10 +79,10 @@ namespace UnityEngine.ECS
                 throw new System.ArgumentException($"{type} has too many component references. A ComponentGroup Array can have up to {ComponentGroupArrayData.kMaxStream}.");
             }
 #endif
-            
+
             ComponentDataCount = componentDataTypesBuilder.Count;
             ComponentCount = componentTypesBuilder.Count;
-            
+
             componentDataTypesBuilder.AddRange(componentTypesBuilder);
             componentDataTypesBuilder.AddRange(subtractiveComponentTypesBuilder);
             ComponentTypes = componentDataTypesBuilder.ToArray();
@@ -98,7 +99,7 @@ namespace UnityEngine.ECS
             ComponentGroup.Dispose();
         }
     }
-    
+
     //@TODO: This is wrong place... will create strange error messages...
     [NativeContainer]
     [NativeContainerSupportsMinMaxWriteRestriction]
@@ -113,17 +114,17 @@ namespace UnityEngine.ECS
             public ushort    FieldOffset;
             public ushort    TypeIndexInArchetype;
         }
-    
+
         fixed byte                  m_Caches[16 * kMaxStream];
 
         int                         m_ComponentDataCount;
         int                         m_ComponentCount;
 
         public int                  m_Length;
-        
+
         public int                  m_MinIndex;
         public int                  m_MaxIndex;
-        
+
         public int                  CacheBeginIndex;
         public int                  CacheEndIndex;
 
@@ -151,16 +152,16 @@ namespace UnityEngine.ECS
             int length = 0;
             int componentIndex;
             var chunkIterator = staticCache.ComponentGroup.GetComponentChunkIterator(staticCache.ComponentTypes[0].typeIndex, out length, out componentIndex);
-            
+
             m_Length = length;
             m_MinIndex = 0;
             m_MaxIndex = length-1;
-            
+
             CacheBeginIndex = 0;
             CacheEndIndex = 0;
             m_ArchetypeManager = staticCache.ComponentGroup.GetArchetypeManager();
-            
-            
+
+
             m_ChunkIterator = chunkIterator;
 
             m_ComponentDataCount = staticCache.ComponentDataCount;
@@ -171,7 +172,7 @@ namespace UnityEngine.ECS
                 fixed (byte* cacheBytes = m_Caches)
                 {
                     ComponentGroupStream* streams = (ComponentGroupStream*)cacheBytes;
-                        
+
                     for (int i = 0; i < staticCache.ComponentDataCount + staticCache.ComponentCount; i++)
                     {
                         componentTypes[i] = staticCache.ComponentTypes[i].typeIndex;
@@ -179,7 +180,7 @@ namespace UnityEngine.ECS
                     }
                 }
             }
-            
+
             #if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_Safety0 = new AtomicSafetyHandle();
             m_Safety1 = new AtomicSafetyHandle();
@@ -188,28 +189,28 @@ namespace UnityEngine.ECS
             m_Safety4 = new AtomicSafetyHandle();
             m_Safety5 = new AtomicSafetyHandle();
             Assert.AreEqual(6, kMaxStream);
-            
+
             m_SafetyReadWriteCount = 0;
             m_SafetyReadOnlyCount = 0;
             fixed (AtomicSafetyHandle* safety = &m_Safety0)
             {
                 for (int i = 0; i != staticCache.ComponentTypes.Length; i++)
                 {
-                    var type = staticCache.ComponentTypes[i]; 
+                    var type = staticCache.ComponentTypes[i];
                     if (type.accessMode == ComponentType.AccessMode.ReadOnly)
                     {
                         safety[m_SafetyReadOnlyCount] = staticCache.ComponentGroup.GetSafetyHandle(type.typeIndex, true);
-                        m_SafetyReadOnlyCount++;                    
+                        m_SafetyReadOnlyCount++;
                     }
                 }
-            
+
                 for (int i = 0; i != staticCache.ComponentTypes.Length; i++)
                 {
-                    var type = staticCache.ComponentTypes[i]; 
+                    var type = staticCache.ComponentTypes[i];
                     if (type.accessMode == ComponentType.AccessMode.ReadWrite)
                     {
                         safety[m_SafetyReadOnlyCount + m_SafetyReadWriteCount] = staticCache.ComponentGroup.GetSafetyHandle(type.typeIndex, false);
-                        m_SafetyReadWriteCount++;                    
+                        m_SafetyReadWriteCount++;
                     }
                 }
             }
@@ -243,7 +244,7 @@ namespace UnityEngine.ECS
                         streams[i].TypeIndexInArchetype = (ushort)indexInArcheType;
                     }
                 }
-            }        
+            }
         }
 
         public void CheckAccess()
@@ -275,7 +276,7 @@ namespace UnityEngine.ECS
             }
         }
 
-        [Conditional("NOT_BURST_COMPILED")]
+        [BurstDiscard]
         public unsafe void PatchManagedPtrs(int index, byte* valuePtr)
         {
             fixed (byte* cacheBytes = m_Caches)
@@ -284,12 +285,12 @@ namespace UnityEngine.ECS
                 for (int i = m_ComponentDataCount; i != m_ComponentDataCount + m_ComponentCount; i++)
                 {
                     var component = m_ChunkIterator.GetManagedObject(m_ArchetypeManager, streams[i].TypeIndexInArchetype, CacheBeginIndex, index);
-                    var valuePtrOffsetted = (valuePtr + streams[i].FieldOffset);
-                    UnsafeUtility.CopyObjectAddressToPtr(component, (IntPtr) valuePtrOffsetted);
+                    var valuePtrOffsetted = valuePtr + streams[i].FieldOffset;
+                    UnsafeUtility.CopyObjectAddressToPtr(component, valuePtrOffsetted);
                 }
             }
         }
-        
+
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         public void FailOutOfRangeError(int index)
         {
@@ -308,7 +309,7 @@ namespace UnityEngine.ECS
 #endif
     }
 
-    public struct ComponentGroupArray<T> : IDisposable where T : struct 
+    public struct ComponentGroupArray<T> : IDisposable where T : struct
     {
         internal ComponentGroupArrayData     m_Data;
 
@@ -343,8 +344,8 @@ namespace UnityEngine.ECS
                 m_Data.PatchManagedPtrs(index, valuePtr);
                 return value;
             }
-        }        
-        
+        }
+
         public ComponentGroupEnumerator<T> GetEnumerator()
         {
             return new ComponentGroupEnumerator<T>(m_Data);
@@ -366,7 +367,7 @@ namespace UnityEngine.ECS
             public bool MoveNext()
             {
                 m_Index++;
-    
+
                 if (m_Index < m_Data.CacheBeginIndex || m_Index >= m_Data.CacheEndIndex)
                 {
                     if (m_Index >= m_Data.m_Length)
@@ -381,7 +382,7 @@ namespace UnityEngine.ECS
                     return true;
                 }
             }
-    
+
             public void Reset()
             {
                 m_Index = -1;
@@ -393,7 +394,7 @@ namespace UnityEngine.ECS
                 {
                     m_Data.CheckAccess();
 
-#if ENABLE_UNITY_COLLECTIONS_CHECKS                    
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
                     if (m_Index < m_Data.m_MinIndex || m_Index > m_Data.m_MaxIndex)
                         m_Data.FailOutOfRangeError(m_Index);
 #endif
@@ -405,7 +406,7 @@ namespace UnityEngine.ECS
                     return value;
                 }
             }
-            
+
             object IEnumerator.Current
             {
                 get { return Current; }

@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace UnityEngine.ECS
 {
-	class PlayerLoopManager
+	public class PlayerLoopManager
 	{
 	    private static List<CallbackFunction> s_DomainUnloadMethods = new List<CallbackFunction>();
 
@@ -37,7 +37,7 @@ namespace UnityEngine.ECS
 	            InvokeMethods(s_DomainUnloadMethods);
 	        }
 	    }
-			
+
 	    private static void InvokeMethods(List<CallbackFunction> callbacks)
 	    {
 	        foreach (var callback in callbacks)

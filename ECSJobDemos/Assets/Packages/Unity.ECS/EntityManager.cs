@@ -2,6 +2,7 @@
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using System;
+using UnityEngine.Profiling;
 
 namespace UnityEngine.ECS
 {
@@ -71,10 +72,10 @@ namespace UnityEngine.ECS
             m_ArchetypeManager.Dispose(); m_ArchetypeManager = null;
             m_GroupManager.Dispose(); m_GroupManager = null;
 
-            UnsafeUtility.Free((IntPtr)m_CachedComponentTypeArray, Allocator.Persistent);
+            UnsafeUtility.Free(m_CachedComponentTypeArray, Allocator.Persistent);
             m_CachedComponentTypeArray = null;
 
-            UnsafeUtility.Free((IntPtr)m_CachedComponentTypeInArchetypeArray, Allocator.Persistent);
+            UnsafeUtility.Free(m_CachedComponentTypeInArchetypeArray, Allocator.Persistent);
             m_CachedComponentTypeInArchetypeArray = null;
         }
 
@@ -139,7 +140,7 @@ namespace UnityEngine.ECS
             {
                 Chunk* chunk = m_ArchetypeManager.GetChunkWithEmptySlots(archetype.archetype);
                 int allocatedIndex;
-                int allocatedCount = ArchetypeManager.AllocateIntoChunk(chunk, count, out allocatedIndex);
+                int allocatedCount = m_ArchetypeManager.AllocateIntoChunk(chunk, count, out allocatedIndex);
                 m_Entities.AllocateEntities(archetype.archetype, chunk, allocatedIndex, allocatedCount, entities);
                 ChunkDataUtility.ClearComponents(chunk, allocatedIndex, allocatedCount);
 
@@ -218,6 +219,7 @@ namespace UnityEngine.ECS
             InstantiateInternal(srcEntity, (Entity*)outputEntities.GetUnsafePtr(), outputEntities.Length);
         }
 
+
         unsafe void InstantiateInternal(Entity srcEntity, Entity* outputEntities, int count)
         {
             m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
@@ -233,7 +235,7 @@ namespace UnityEngine.ECS
             {
                 Chunk* chunk = m_ArchetypeManager.GetChunkWithEmptySlots(srcArchetype);
                 int indexInChunk;
-                int allocatedCount = ArchetypeManager.AllocateIntoChunk(chunk, count, out indexInChunk);
+                int allocatedCount = m_ArchetypeManager.AllocateIntoChunk(chunk, count, out indexInChunk);
 
                 ChunkDataUtility.ReplicateComponents(srcChunk, srcIndex, chunk, indexInChunk, allocatedCount);
 
@@ -269,7 +271,7 @@ namespace UnityEngine.ECS
             Archetype* newType = m_ArchetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, archetype->typesCount + 1, m_GroupManager, m_SharedComponentManager);
             Chunk* newChunk = m_ArchetypeManager.GetChunkWithEmptySlots(newType);
 
-            int newChunkIndex = ArchetypeManager.AllocateIntoChunk(newChunk);
+            int newChunkIndex = m_ArchetypeManager.AllocateIntoChunk(newChunk);
             m_Entities.SetArchetype(m_ArchetypeManager, entity, newType, newChunk, newChunkIndex);
         }
 
@@ -296,7 +298,7 @@ namespace UnityEngine.ECS
             Archetype* newType = m_ArchetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, archtype->typesCount - removedTypes, m_GroupManager, m_SharedComponentManager);
 
             Chunk* newChunk = m_ArchetypeManager.GetChunkWithEmptySlots(newType);
-            int newChunkIndex = ArchetypeManager.AllocateIntoChunk(newChunk);
+            int newChunkIndex = m_ArchetypeManager.AllocateIntoChunk(newChunk);
             m_Entities.SetArchetype(m_ArchetypeManager, entity, newType, newChunk, newChunkIndex);
         }
 
@@ -311,7 +313,7 @@ namespace UnityEngine.ECS
             RemoveComponent(entity, ComponentType.Create<T>());
         }
 
-        public ComponentDataFromEntity<T> GetComponentDataArrayFromEntity<T>(bool isReadOnly = false) where T : struct, IComponentData
+        public ComponentDataFromEntity<T> GetComponentDataFromEntity<T>(bool isReadOnly = false) where T : struct, IComponentData
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
 
@@ -333,27 +335,27 @@ namespace UnityEngine.ECS
 #endif
         }
 
-        public T GetComponent<T>(Entity entity) where T : struct, IComponentData
+        unsafe public T GetComponent<T>(Entity entity) where T : struct, IComponentData
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
             m_Entities.AssertEntityHasComponent(entity, typeIndex);
             m_JobSafetyManager.CompleteWriteDependency(typeIndex);
 
-            IntPtr ptr = m_Entities.GetComponentDataWithType (entity, typeIndex);
+            byte* ptr = m_Entities.GetComponentDataWithType (entity, typeIndex);
 
             T value;
             UnsafeUtility.CopyPtrToStructure (ptr, out value);
             return value;
         }
 
-        public void SetComponent<T>(Entity entity, T componentData) where T: struct, IComponentData
+        unsafe public void SetComponent<T>(Entity entity, T componentData) where T: struct, IComponentData
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
             m_Entities.AssertEntityHasComponent(entity, typeIndex);
 
             m_JobSafetyManager.CompleteReadAndWriteDependency(typeIndex);
 
-            IntPtr ptr = m_Entities.GetComponentDataWithType (entity, typeIndex);
+            byte* ptr = m_Entities.GetComponentDataWithType (entity, typeIndex);
             UnsafeUtility.CopyStructureToPtr (ref componentData, ptr);
         }
 
@@ -408,7 +410,7 @@ namespace UnityEngine.ECS
             return m_SharedComponentManager.GetSharedComponentData<T>(archetype->types[indexInTypeArray].sharedComponentIndex);
         }
 
-        public NativeArray<T> GetFixedArray<T>(Entity entity) where T : struct
+        unsafe public NativeArray<T> GetFixedArray<T>(Entity entity) where T : struct
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -419,7 +421,7 @@ namespace UnityEngine.ECS
 
             m_JobSafetyManager.CompleteWriteDependency(typeIndex);
 
-            IntPtr ptr;
+            byte* ptr;
             int length;
             m_Entities.GetComponentDataWithTypeAndFixedArrayLength (entity, typeIndex, out ptr, out length);
 

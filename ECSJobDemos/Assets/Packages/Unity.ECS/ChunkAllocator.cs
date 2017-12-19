@@ -11,20 +11,20 @@ namespace UnityEngine.ECS
 		int m_LastChunkUsedSize;
 		const int ms_ChunkSize = 64 * 1024;
 		const int ms_ChunkAlignment = 64;
-		
+
         public void Dispose()
 		{
 			while (m_FirstChunk != null)
 			{
 				byte* nextChunk = ((byte**)m_FirstChunk)[0];
-				UnsafeUtility.Free((IntPtr)m_FirstChunk, Allocator.Persistent);
+				UnsafeUtility.Free(m_FirstChunk, Allocator.Persistent);
 				m_FirstChunk = nextChunk;
 			}
 			m_LastChunk = null;
 
 		}
 
-		public IntPtr Allocate(int size, int alignment)
+		public byte* Allocate(int size, int alignment)
 		{
 			int alignedChunkSize = (m_LastChunkUsedSize+alignment-1) & ~(alignment-1);
 			if (m_LastChunk == null || size > ms_ChunkSize - alignedChunkSize)
@@ -42,13 +42,13 @@ namespace UnityEngine.ECS
 			}
 			byte* ptr = m_LastChunk + alignedChunkSize;
 			m_LastChunkUsedSize = alignedChunkSize+size;
-			return (IntPtr)ptr;
+			return ptr;
 		}
 
-        public IntPtr Construct(int size, int alignment, void* src)
+        public byte* Construct(int size, int alignment, void* src)
         {
-            IntPtr res = Allocate(size, alignment);
-            UnsafeUtility.MemCpy(res, (IntPtr)src, size);
+            byte* res = Allocate(size, alignment);
+            UnsafeUtility.MemCpy(res, src, size);
             return res;
         }
 

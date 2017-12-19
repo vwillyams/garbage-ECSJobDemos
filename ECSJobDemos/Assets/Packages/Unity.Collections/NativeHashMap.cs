@@ -21,10 +21,10 @@ namespace Unity.Collections
 	[StructLayout (LayoutKind.Sequential)]
 	internal unsafe struct NativeHashMapData
 	{
-		public System.IntPtr	values;
-		public System.IntPtr	keys;
-		public System.IntPtr	next;
-		public System.IntPtr	buckets;
+		public byte*            values;
+		public byte*	        keys;
+		public byte*	        next;
+		public byte*            buckets;
 		public int				capacity;
 		public int				bucketCapacity;
 		// Add padding between fields to ensure they are on separate cache-lines
@@ -49,7 +49,7 @@ namespace Unity.Collections
 		}
 
 
-		public unsafe static void AllocateHashMap<TKey, TValue>(int length, int bucketLength, Allocator label, out IntPtr outBuf)
+		public unsafe static void AllocateHashMap<TKey, TValue>(int length, int bucketLength, Allocator label, out NativeHashMapData* outBuf)
 			where TKey : struct
 			where TValue : struct
 		{
@@ -60,20 +60,20 @@ namespace Unity.Collections
                 throw new ArgumentException(string.Format("{1} used in NativeHashMap<{0},{1}> must be blittable", typeof(TKey), typeof(TValue)));
 #endif
 
-			outBuf = UnsafeUtility.Malloc (sizeof(NativeHashMapData), UnsafeUtility.AlignOf<NativeHashMapData>(), label);
-
-			NativeHashMapData* data = (NativeHashMapData*)outBuf;
+		    NativeHashMapData* data = (NativeHashMapData*)UnsafeUtility.Malloc (sizeof(NativeHashMapData), UnsafeUtility.AlignOf<NativeHashMapData>(), label);
 
 			data->capacity = length;
 			data->bucketCapacity = bucketLength;
 
 			int keyOffset, nextOffset, bucketOffset;
 			int totalSize = CalculateDataSize<TKey, TValue>(length, bucketLength, out keyOffset, out nextOffset, out bucketOffset);
-			
-			data->values = UnsafeUtility.Malloc (totalSize, JobsUtility.CacheLineSize, label);
-			data->keys = (IntPtr)((byte*)data->values + keyOffset);
-			data->next = (IntPtr)((byte*)data->values + nextOffset);
-			data->buckets = (IntPtr)((byte*)data->values + bucketOffset);
+
+			data->values = (byte*)UnsafeUtility.Malloc (totalSize, JobsUtility.CacheLineSize, label);
+			data->keys = data->values + keyOffset;
+			data->next = data->values + nextOffset;
+			data->buckets = data->values + bucketOffset;
+
+		    outBuf = data;
 		}
 		public unsafe static void ReallocateHashMap<TKey, TValue>(NativeHashMapData* data, int newCapacity, int newBucketCapacity, Allocator label)
 			where TKey : struct
@@ -84,14 +84,14 @@ namespace Unity.Collections
 
 			if (data->capacity > newCapacity)
 				throw new System.Exception("Shrinking a hash map is not supported");
-		
+
 			int keyOffset, nextOffset, bucketOffset;
 			int totalSize = CalculateDataSize<TKey, TValue>(newCapacity, newBucketCapacity, out keyOffset, out nextOffset, out bucketOffset);
-			
-			IntPtr newData = UnsafeUtility.Malloc (totalSize, JobsUtility.CacheLineSize, label);
-			IntPtr newKeys = (IntPtr)((byte*)newData + keyOffset);
-			IntPtr newNext = (IntPtr)((byte*)newData + nextOffset);
-			IntPtr newBuckets = (IntPtr)((byte*)newData + bucketOffset);
+
+			byte* newData = (byte*)UnsafeUtility.Malloc (totalSize, JobsUtility.CacheLineSize, label);
+			byte* newKeys = newData + keyOffset;
+		    byte* newNext = newData + nextOffset;
+		    byte* newBuckets = newData + bucketOffset;
 
 			// The items are taken from a free-list and might not be tightly packed, copy all of the old capcity
 			UnsafeUtility.MemCpy (newData, data->values, data->capacity * UnsafeUtility.SizeOf<TValue>());
@@ -127,15 +127,14 @@ namespace Unity.Collections
 			data->capacity = newCapacity;
 			data->bucketCapacity = newBucketCapacity;
 		}
-		public unsafe static void DeallocateHashMap(IntPtr buffer, Allocator allocation)
+		public unsafe static void DeallocateHashMap(NativeHashMapData* data, Allocator allocation)
 		{
-			NativeHashMapData* data = (NativeHashMapData*)buffer;
 			UnsafeUtility.Free (data->values, allocation);
-			data->values = IntPtr.Zero;
-			data->keys = IntPtr.Zero;
-			data->next = IntPtr.Zero;
-			data->buckets = IntPtr.Zero;
-			UnsafeUtility.Free (buffer, allocation);
+			data->values = null;
+			data->keys = null;
+			data->next = null;
+			data->buckets = null;
+			UnsafeUtility.Free (data, allocation);
 		}
         static private int CalculateDataSize<TKey, TValue>(int length, int bucketLength, out int keyOffset, out int nextOffset, out int bucketOffset)
 			where TKey : struct
@@ -155,7 +154,7 @@ namespace Unity.Collections
 			bucketOffset -= bucketOffset % JobsUtility.CacheLineSize;
 
 			int totalSize = bucketOffset + UnsafeUtility.SizeOf<int>() * bucketLength;
-			return totalSize;			
+			return totalSize;
 		}
 	}
 
@@ -176,7 +175,7 @@ namespace Unity.Collections
 				data->firstFreeTLS[tls * NativeHashMapData.IntsPerCacheLine] = -1;
 			data->allocatedIndexLength = 0;
 		}
-		
+
 		static unsafe private int AllocEntry(NativeHashMapData* data, int threadIndex)
 		{
 			int idx;
@@ -264,7 +263,7 @@ namespace Unity.Collections
 						do
 						{
 							nextPtrs[idx] = data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine];
-						} 
+						}
 						while (Interlocked.CompareExchange(ref data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine], idx, nextPtrs[idx]) != nextPtrs[idx]);
 
 						return false;
@@ -405,7 +404,7 @@ namespace Unity.Collections
 			it.EntryIndex = it.NextEntryIndex = buckets[bucket];
 			return TryGetNextValueAtomic(data, out item, ref it);
 		}
-		
+
 		static unsafe public bool TryGetNextValueAtomic(NativeHashMapData* data, out TValue item, ref NativeMultiHashMapIterator<TKey> it)
 		{
 			int entryIdx = it.NextEntryIndex;
@@ -444,12 +443,12 @@ namespace Unity.Collections
 
 	[StructLayout (LayoutKind.Sequential)]
 	[NativeContainer]
-	public struct NativeHashMap<TKey, TValue>
+	public unsafe struct NativeHashMap<TKey, TValue>
 		where TKey : struct, System.IEquatable<TKey>
 		where TValue : struct
 	{
 		[NativeDisableUnsafePtrRestriction]
-		System.IntPtr 			m_Buffer;
+		NativeHashMapData*      m_Buffer;
 
 		#if ENABLE_UNITY_COLLECTIONS_CHECKS
 		AtomicSafetyHandle 		m_Safety;
@@ -518,7 +517,7 @@ namespace Unity.Collections
 			#endif
 			NativeHashMapBase<TKey, TValue>.Clear((NativeHashMapData*)m_Buffer);
 		}
-		
+
 		unsafe public bool TryAdd(TKey key, TValue item)
 		{
 			#if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -534,7 +533,7 @@ namespace Unity.Collections
 			#endif
 			NativeHashMapBase<TKey, TValue>.Remove((NativeHashMapData*)m_Buffer, key, false);
 		}
-		
+
 		unsafe public bool TryGetValue(TKey key, out TValue item)
 		{
 			NativeMultiHashMapIterator<TKey> tempIt;
@@ -546,27 +545,27 @@ namespace Unity.Collections
 
 		public bool IsCreated
 		{
-			get { return m_Buffer != IntPtr.Zero; }
+			get { return m_Buffer != null; }
 		}
 
 		public void Dispose()
 		{
-			#if ENABLE_UNITY_COLLECTIONS_CHECKS            
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS
             DisposeSentinel.Dispose(m_Safety, ref m_DisposeSentinel);
 			#endif
 
 			NativeHashMapData.DeallocateHashMap(m_Buffer, m_AllocatorLabel);
-			m_Buffer = IntPtr.Zero;
+			m_Buffer = null;
 		}
 
-		
+
 		[NativeContainer]
 		[NativeContainerIsAtomicWriteOnly]
 		[NativeContainerNeedsThreadIndex]
-		public struct Concurrent
+		unsafe public struct Concurrent
 		{
 			[NativeDisableUnsafePtrRestriction]
-			IntPtr 	m_Buffer;
+			NativeHashMapData* 	m_Buffer;
 
 			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle m_Safety;
@@ -601,7 +600,7 @@ namespace Unity.Collections
 				}
 			}
 
-			
+
 			unsafe public bool TryAdd(TKey key, TValue item)
 			{
 				#if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -611,15 +610,15 @@ namespace Unity.Collections
 			}
 		}
 	}
-		
+
 	[StructLayout (LayoutKind.Sequential)]
 	[NativeContainer]
-	public struct NativeMultiHashMap<TKey, TValue>
+	unsafe public struct NativeMultiHashMap<TKey, TValue>
 		where TKey : struct, System.IEquatable<TKey>
 		where TValue : struct
 	{
 		[NativeDisableUnsafePtrRestriction]
-		System.IntPtr 			m_Buffer;
+		NativeHashMapData*      m_Buffer;
 
 		#if ENABLE_UNITY_COLLECTIONS_CHECKS
 		AtomicSafetyHandle 		m_Safety;
@@ -739,26 +738,26 @@ namespace Unity.Collections
 
 		public bool IsCreated
 		{
-			get { return m_Buffer != IntPtr.Zero; }
+			get { return m_Buffer != null; }
 		}
 
 		unsafe public void Dispose()
 		{
-			#if ENABLE_UNITY_COLLECTIONS_CHECKS            
+			#if ENABLE_UNITY_COLLECTIONS_CHECKS
             DisposeSentinel.Dispose(m_Safety, ref m_DisposeSentinel);
 			#endif
 
 			NativeHashMapData.DeallocateHashMap(m_Buffer, m_AllocatorLabel);
-			m_Buffer = IntPtr.Zero;
+			m_Buffer = null;
 		}
 
 		[NativeContainer]
 		[NativeContainerIsAtomicWriteOnly]
 		[NativeContainerNeedsThreadIndex]
-		public struct Concurrent
+		unsafe public struct Concurrent
 		{
 			[NativeDisableUnsafePtrRestriction]
-			IntPtr 	m_Buffer;
+			NativeHashMapData* 	m_Buffer;
 
 			#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle m_Safety;

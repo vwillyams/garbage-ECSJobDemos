@@ -6,13 +6,13 @@ namespace Unity.Collections
 {
     public static class NativeSortExtension
     {
-        public static void Sort<T>(this NativeArray<T> array) where T : struct, IComparable<T>
+        unsafe public static void Sort<T>(this NativeArray<T> array) where T : struct, IComparable<T>
         {
             IntroSort<T>(array.GetUnsafePtr(), 0, array.Length - 1, (int)(2 * Math.Floor(Math.Log(array.Length, 2))));
         }
 
-        private const int k_IntrosortSizeThreshold = 16;
-        internal static void IntroSort<T>(IntPtr array, int lo, int hi, int depth) where T : struct, IComparable<T>
+        const int k_IntrosortSizeThreshold = 16;
+        unsafe static void IntroSort<T>(void* array, int lo, int hi, int depth) where T : struct, IComparable<T>
         {
             while (hi > lo)
             {
@@ -53,7 +53,7 @@ namespace Unity.Collections
             }
         }
 
-        internal static void InsertionSort<T>(IntPtr array, int lo, int hi) where T : struct, IComparable<T>
+        unsafe static void InsertionSort<T>(void* array, int lo, int hi) where T : struct, IComparable<T>
         {
             int i, j;
             T t;
@@ -70,7 +70,7 @@ namespace Unity.Collections
             }
         }
 
-        internal static int Partition<T>(IntPtr array, int lo, int hi) where T : struct, IComparable<T>
+        unsafe static int Partition<T>(void* array, int lo, int hi) where T : struct, IComparable<T>
         {
             int mid = lo + ((hi - lo) / 2);
             SwapIfGreaterWithItems<T>(array, lo, mid);
@@ -96,7 +96,7 @@ namespace Unity.Collections
             return left;
         }
 
-        internal static void HeapSort<T>(IntPtr array, int lo, int hi) where T : struct, IComparable<T>
+        unsafe static void HeapSort<T>(void* array, int lo, int hi) where T : struct, IComparable<T>
         {
             int n = hi - lo + 1;
 
@@ -112,7 +112,7 @@ namespace Unity.Collections
             }
         }
 
-        internal static void Heapify<T>(IntPtr array, int i, int n, int lo) where T : struct, IComparable<T>
+        unsafe static void Heapify<T>(void* array, int i, int n, int lo) where T : struct, IComparable<T>
         {
             T val = UnsafeUtility.ReadArrayElement<T>(array, lo + i - 1);
             int child;
@@ -132,14 +132,14 @@ namespace Unity.Collections
             UnsafeUtility.WriteArrayElement(array, lo + i - 1, val);
         }
 
-        internal static void Swap<T>(IntPtr array, int lhs, int rhs) where T : struct, IComparable<T>
+        unsafe static void Swap<T>(void* array, int lhs, int rhs) where T : struct, IComparable<T>
         {
             T val = UnsafeUtility.ReadArrayElement<T>(array, lhs);
             UnsafeUtility.WriteArrayElement<T>(array, lhs, UnsafeUtility.ReadArrayElement<T>(array, rhs));
             UnsafeUtility.WriteArrayElement<T>(array, rhs, val);
         }
 
-        internal static void SwapIfGreaterWithItems<T>(IntPtr array, int lhs, int rhs) where T : struct, IComparable<T>
+        unsafe static void SwapIfGreaterWithItems<T>(void* array, int lhs, int rhs) where T : struct, IComparable<T>
         {
             if (lhs != rhs)
             {

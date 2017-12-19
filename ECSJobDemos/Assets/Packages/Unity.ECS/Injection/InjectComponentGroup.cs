@@ -12,7 +12,7 @@ namespace UnityEngine.ECS
 	{
 
 	}
-	
+
 	class InjectComponentGroupData
     {
 	    int 				m_EntityArrayOffset;
@@ -25,32 +25,32 @@ namespace UnityEngine.ECS
 	    ComponentGroup 		m_EntityGroup;
 
 	    int 				m_GroupFieldOffset;
-	    
+
 
         class UpdateInjectionComponentDataArray<T> : IUpdateInjection where T : struct, IComponentData
         {
-	        unsafe public void UpdateInjection(void* groupData, EntityManager entityManager, ComponentGroup group, InjectionData injection)
+	        unsafe public void UpdateInjection(byte* groupData, EntityManager entityManager, ComponentGroup group, InjectionData injection)
             {
                 var array = group.GetComponentDataArray<T>();
-	            UnsafeUtility.CopyStructureToPtr(ref array, (IntPtr)groupData + injection.fieldOffset);
+	            UnsafeUtility.CopyStructureToPtr(ref array, groupData + injection.fieldOffset);
             }
         }
 
 	    class UpdateInjectionComponentDataFixedArray<T> : IUpdateInjection where T : struct
 	    {
-		    unsafe public void UpdateInjection(void* groupData, EntityManager entityManager, ComponentGroup group, InjectionData injection)
+		    unsafe public void UpdateInjection(byte* groupData, EntityManager entityManager, ComponentGroup group, InjectionData injection)
 		    {
 			    var array = group.GetFixedArrayArray<T>();
-			    UnsafeUtility.CopyStructureToPtr(ref array, (IntPtr)groupData + injection.fieldOffset);
+			    UnsafeUtility.CopyStructureToPtr(ref array, groupData + injection.fieldOffset);
 		    }
 	    }
-	    
+
         class UpdateInjectionComponentArray<T> : IUpdateInjection where T : UnityEngine.Component
         {
-            unsafe public void UpdateInjection(void* groupData, EntityManager entityManager, ComponentGroup group, InjectionData injection)
+            unsafe public void UpdateInjection(byte* groupData, EntityManager entityManager, ComponentGroup group, InjectionData injection)
             {
                 var array = group.GetComponentArray<T>();
-	            UnsafeUtility.CopyStructureToPtr(ref array, (IntPtr)groupData + injection.fieldOffset);
+	            UnsafeUtility.CopyStructureToPtr(ref array, groupData + injection.fieldOffset);
             }
         }
 
@@ -61,7 +61,7 @@ namespace UnityEngine.ECS
 
             for (int i = 0; i != componentInjections.Length; i++)
                 requiredComponentTypes[i] = new ComponentType(componentInjections[i].genericType, componentInjections[i].isReadOnly ? ComponentType.AccessMode.ReadOnly : ComponentType.AccessMode.ReadWrite);
-		    
+
 		    if (transformsCount != 0)
 		        requiredComponentTypes[componentInjections.Length] = typeof(Transform);
 
@@ -76,7 +76,7 @@ namespace UnityEngine.ECS
 				m_EntityArrayOffset = UnsafeUtility.GetFieldOffset(entityArrayInjection);
 			else
 				m_EntityArrayOffset = -1;
-			
+
 			if (lengthInjection != null)
 				m_LengthOffset = UnsafeUtility.GetFieldOffset(lengthInjection);
 			else
@@ -98,19 +98,19 @@ namespace UnityEngine.ECS
 
 		public ComponentGroup EntityGroup          { get { return m_EntityGroup; } }
 
-        public unsafe void UpdateInjection(IntPtr systemPtr)
+        public unsafe void UpdateInjection(byte* systemPtr)
         {
-	        IntPtr groupStructPtr = systemPtr + m_GroupFieldOffset;
-	        	        
+	        var groupStructPtr = systemPtr + m_GroupFieldOffset;
+
             for (var i = 0; i != m_ComponentInjections.Length; i++)
-                m_ComponentInjections[i].injection.UpdateInjection((void*)groupStructPtr, null, m_EntityGroup, m_ComponentInjections[i]);
+                m_ComponentInjections[i].injection.UpdateInjection(groupStructPtr, null, m_EntityGroup, m_ComponentInjections[i]);
 
 	        if (m_TransformAccessArrayOffset != -1)
 	        {
 		        var transformsArray = m_EntityGroup.GetTransformAccessArray();
 		        UnsafeUtility.CopyStructureToPtr(ref transformsArray, groupStructPtr + m_TransformAccessArrayOffset);
 	        }
-	        
+
             if (m_EntityArrayOffset != -1)
             {
                 var entityArray = m_EntityGroup.GetEntityArray();
@@ -141,7 +141,7 @@ namespace UnityEngine.ECS
 	    static string CollectInjectedGroup(Type injectedGroupType, out FieldInfo entityArrayField, out FieldInfo transformAccessArrayField, out FieldInfo lengthField, List<InjectionData> componentInjections, List<ComponentType> componentRequirements)
 	    {
 			//@TODO: Improved error messages... should include full struct pathname etc.
-		    
+
 		    var fields = injectedGroupType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 		    transformAccessArrayField = null;
 		    entityArrayField = null;
@@ -154,7 +154,7 @@ namespace UnityEngine.ECS
 			    if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(ComponentDataArray<>))
 			    {
 				    var injection = new InjectionData(field, typeof(ComponentDataArray<>), field.FieldType.GetGenericArguments()[0], isReadOnly);
-					
+
 				    var injectionType = typeof(UpdateInjectionComponentDataArray<>).MakeGenericType(injection.genericType);
 				    injection.injection = (IUpdateInjection)Activator.CreateInstance(injectionType);
 
@@ -167,7 +167,7 @@ namespace UnityEngine.ECS
 			    else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(FixedArrayArray<>))
 			    {
 				    var injection = new InjectionData(field, typeof(FixedArrayArray<>), field.FieldType.GetGenericArguments()[0], isReadOnly);
-					
+
 				    var injectionType = typeof(UpdateInjectionComponentDataFixedArray<>).MakeGenericType(injection.genericType);
 				    injection.injection = (IUpdateInjection)Activator.CreateInstance(injectionType);
 
@@ -179,10 +179,10 @@ namespace UnityEngine.ECS
 						return "[ReadOnly] may not be used on ComponentArray<>, it can only be used on ComponentDataArray<>";
 
 					var injection = new InjectionData(field, typeof(ComponentArray<>), field.FieldType.GetGenericArguments()[0], false);
-					
+
 					var injectionType = typeof(UpdateInjectionComponentArray<>).MakeGenericType(injection.genericType);
 					injection.injection = (IUpdateInjection)Activator.CreateInstance(injectionType);
-					
+
 					componentInjections.Add (injection);
 				}
 				else if (field.FieldType == typeof(TransformAccessArray))
@@ -200,7 +200,7 @@ namespace UnityEngine.ECS
 					// Error on multiple EntityArray
 					if (entityArrayField != null)
 						return "A [InjectComponentGroup] struct, may only contain a single EntityArray";
-					
+
 					entityArrayField = field;
 				}
 				else if (field.FieldType == typeof(int))

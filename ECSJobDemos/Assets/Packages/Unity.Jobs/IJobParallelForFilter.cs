@@ -95,7 +95,7 @@ namespace Unity.Jobs
             }
         }
 
-        static public JobHandle ScheduleAppend<T>(this T jobData, NativeList<int> indices, int arrayLength, int innerloopBatchCount, JobHandle dependsOn = new JobHandle()) where T : struct, IJobParallelForFilter
+        unsafe static public JobHandle ScheduleAppend<T>(this T jobData, NativeList<int> indices, int arrayLength, int innerloopBatchCount, JobHandle dependsOn = new JobHandle()) where T : struct, IJobParallelForFilter
         {
             JobStructProduce<T>.JobDataWithFiltering fullData;
             fullData.data = jobData;
@@ -107,7 +107,7 @@ namespace Unity.Jobs
             return JobsUtility.Schedule(ref scheduleParams);
         }
 
-        static public JobHandle ScheduleFilter<T>(this T jobData, NativeList<int> indices, int innerloopBatchCount, JobHandle dependsOn = new JobHandle()) where T : struct, IJobParallelForFilter
+        unsafe static public JobHandle ScheduleFilter<T>(this T jobData, NativeList<int> indices, int innerloopBatchCount, JobHandle dependsOn = new JobHandle()) where T : struct, IJobParallelForFilter
         {
             JobStructProduce<T>.JobDataWithFiltering fullData;
             fullData.data = jobData;

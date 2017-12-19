@@ -16,7 +16,7 @@ namespace UnityEngine.ECS.Rendering
             fixed (Matrix4x4* matricesPtr = outMatrices)
             {
                 UnityEngine.Assertions.Assert.AreEqual(sizeof(Matrix4x4), sizeof(InstanceRendererTransform));
-	            var matricesSlice = Unity.Collections.LowLevel.Unsafe.NativeSliceUnsafeUtility.ConvertExistingDataToNativeSlice<InstanceRendererTransform>((System.IntPtr) matricesPtr, sizeof(Matrix4x4), length);
+	            var matricesSlice = Unity.Collections.LowLevel.Unsafe.NativeSliceUnsafeUtility.ConvertExistingDataToNativeSlice<InstanceRendererTransform>(matricesPtr, sizeof(Matrix4x4), length);
 	            #if ENABLE_UNITY_COLLECTIONS_CHECKS
 	            Unity.Collections.LowLevel.Unsafe.NativeSliceUnsafeUtility.SetAtomicSafetyHandle(ref matricesSlice, AtomicSafetyHandle.GetTempUnsafePtrSliceHandle());
 	            #endif

@@ -22,8 +22,12 @@ namespace UnityEngine.ECS
 
 		bool 										m_AllowGetManager = true;
 
-		public static World 				        Active { get; set; }
+	    public string                               Name { get; }
 
+	    public static World 				        Active { get; set; }
+
+	    public static ReadOnlyCollection<World> AllWorlds => new ReadOnlyCollection<World>(allWorlds);
+	    static readonly List<World> allWorlds = new List<World>();
 
 		
 		int GetCapacityForType(Type type)
@@ -36,20 +40,24 @@ namespace UnityEngine.ECS
 			m_DefaultCapacity = value;
 		}
 
-        public World()
+        public World(string name)
         {
 //			Debug.Log("Create World");
+            Name = name;
+            allWorlds.Add(this);
         }
 
 
 		public void Dispose()
 		{
+		    if (allWorlds.Contains(this))
+		        allWorlds.Remove(this);
 //			Debug.Log("Dispose World");
 
 			// Destruction should happen in reverse order to construction
 			m_BehaviourManagers.Reverse();
 
-			///@TODO: Crazy hackery to make EntityManager be destroyed last.
+			//@TODO: Crazy hackery to make EntityManager be destroyed last.
 			foreach (var behaviourManager in m_BehaviourManagers)
 			{
 				if (behaviourManager is EntityManager)
@@ -184,15 +192,14 @@ namespace UnityEngine.ECS
 		{
 			DestroyManagerInteral(manager);
 		}
-		
-		//@TODO: This should take an array of worlds...
-		public static void UpdatePlayerLoop(World world)
+
+		public static void UpdatePlayerLoop(params World[] worlds)
 		{
 			var defaultLoop = UnityEngine.Experimental.LowLevel.PlayerLoop.GetDefaultPlayerLoop();
 
-			if (world != null)
+			if (worlds.Length > 0)
 			{
-				var ecsLoop = ScriptBehaviourUpdateOrder.InsertManagersInPlayerLoop(world.m_BehaviourManagers, defaultLoop);
+				var ecsLoop = ScriptBehaviourUpdateOrder.InsertWorldManagersInPlayerLoop(defaultLoop, worlds);
 				SetPlayerLoopAndNotify(ecsLoop);
 			}
 			else

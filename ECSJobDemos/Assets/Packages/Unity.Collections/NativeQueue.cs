@@ -9,7 +9,7 @@ namespace Unity.Collections
     [StructLayout(LayoutKind.Sequential)]
     internal unsafe struct NativeQueueData
     {
-        public System.IntPtr m_Data;
+        public byte* m_Data;
         public int m_NextFreeBlock;
         public int m_FirstUsedBlock;
 
@@ -28,7 +28,7 @@ namespace Unity.Collections
 
         public static int* GetBlockLengths<T>(NativeQueueData* data) where T : struct
         {
-            return (int*)(((Byte*)data->m_Data) + data->m_BlockSize * UnsafeUtility.SizeOf<T>() * data->m_NumBlocks);
+            return (int*)(data->m_Data + data->m_BlockSize * UnsafeUtility.SizeOf<T>() * data->m_NumBlocks);
         }
 
 		public static bool ReduceFreeCountMT(NativeQueueData* data, int threadIndex)
@@ -126,10 +126,9 @@ namespace Unity.Collections
             return currentWriteBlock;
         }
 
-        public unsafe static void AllocateQueue<T>(int capacity, Allocator label, out IntPtr outBuf) where T : struct
+        public unsafe static void AllocateQueue<T>(int capacity, Allocator label, out NativeQueueData* outBuf) where T : struct
         {
-            outBuf = UnsafeUtility.Malloc(UnsafeUtility.SizeOf<NativeQueueData>(), UnsafeUtility.AlignOf<NativeQueueData>(), label);
-            NativeQueueData* data = (NativeQueueData*)outBuf;
+            var data = (NativeQueueData*)UnsafeUtility.Malloc(UnsafeUtility.SizeOf<NativeQueueData>(), UnsafeUtility.AlignOf<NativeQueueData>(), label);
             data->m_NextFreeBlock = 0;
             data->m_FirstUsedBlock = 0;
             data->m_CurrentReadIndexInBlock = 0;
@@ -151,10 +150,12 @@ namespace Unity.Collections
 
             int totalSizeInBytes = (64 + data->m_BlockSize * UnsafeUtility.SizeOf<T>()) * data->m_NumBlocks;
 
-            data->m_Data = UnsafeUtility.Malloc(totalSizeInBytes, JobsUtility.CacheLineSize, label);
+            data->m_Data = (byte*)UnsafeUtility.Malloc(totalSizeInBytes, JobsUtility.CacheLineSize, label);
             int* blockLengths = GetBlockLengths<T>(data);
             for (int i = 0; i < data->m_NumBlocks; ++i)
                 blockLengths[i * IntsPerCacheLine] = 0;
+
+            outBuf = data;
         }
         public unsafe static void ReallocateQueue<T>(NativeQueueData* data, int newCapacity, Allocator label) where T : struct
         {
@@ -178,23 +179,23 @@ namespace Unity.Collections
             }
 
             int totalSizeInBytes = (64 + newBlockSize * UnsafeUtility.SizeOf<T>()) * newNumBlocks;
-            IntPtr newData = UnsafeUtility.Malloc(totalSizeInBytes, JobsUtility.CacheLineSize, label);
+            byte* newData = (byte*)UnsafeUtility.Malloc(totalSizeInBytes, JobsUtility.CacheLineSize, label);
 
             // Copy the data from the old buffer to the new while compacting it and tracking the size
             int count = 0;
             int* blockLengths = GetBlockLengths<T>(data);
             int i = data->m_FirstUsedBlock;
-            Byte* dstPtr = (Byte*)newData;
+            byte* dstPtr = newData;
             if (blockLengths[i * IntsPerCacheLine] != 0)
             {
-                Byte* srcPtr = ((Byte*)data->m_Data) + (i * data->m_BlockSize + data->m_CurrentReadIndexInBlock) * UnsafeUtility.SizeOf<T>();
+                byte* srcPtr = (data->m_Data) + (i * data->m_BlockSize + data->m_CurrentReadIndexInBlock) * UnsafeUtility.SizeOf<T>();
                 count = blockLengths[i * IntsPerCacheLine] - data->m_CurrentReadIndexInBlock;
-                UnsafeUtility.MemCpy((IntPtr)dstPtr, (IntPtr)srcPtr, count * UnsafeUtility.SizeOf<T>());
+                UnsafeUtility.MemCpy(dstPtr, srcPtr, count * UnsafeUtility.SizeOf<T>());
                 i = (i + 1) % data->m_NumBlocks;
                 while (i != data->m_NextFreeBlock)
                 {
-                    srcPtr = ((Byte*)data->m_Data) + i * data->m_BlockSize * UnsafeUtility.SizeOf<T>();
-                    UnsafeUtility.MemCpy((IntPtr)(dstPtr + count * UnsafeUtility.SizeOf<T>()), (IntPtr)srcPtr, blockLengths[i * IntsPerCacheLine] * UnsafeUtility.SizeOf<T>());
+                    srcPtr = (data->m_Data) + i * data->m_BlockSize * UnsafeUtility.SizeOf<T>();
+                    UnsafeUtility.MemCpy(dstPtr + count * UnsafeUtility.SizeOf<T>(), srcPtr, blockLengths[i * IntsPerCacheLine] * UnsafeUtility.SizeOf<T>());
                     count += blockLengths[i * IntsPerCacheLine];
                     i = (i + 1) % data->m_NumBlocks;
                 }
@@ -228,20 +229,19 @@ namespace Unity.Collections
                 count -= len;
             }
         }
-        public unsafe static void DeallocateQueue(IntPtr buffer, Allocator allocation)
+        public unsafe static void DeallocateQueue(NativeQueueData* data, Allocator allocation)
         {
-            NativeQueueData* data = (NativeQueueData*)buffer;
             UnsafeUtility.Free(data->m_Data, allocation);
-            data->m_Data = IntPtr.Zero;
-            UnsafeUtility.Free(buffer, allocation);
+            data->m_Data = null;
+            UnsafeUtility.Free(data, allocation);
         }
     }
     [StructLayout(LayoutKind.Sequential)]
     [NativeContainer]
-    public struct NativeQueue<T> where T : struct
+    unsafe public struct NativeQueue<T> where T : struct
     {
 	    [NativeDisableUnsafePtrRestriction]
-        System.IntPtr m_Buffer;
+        NativeQueueData* m_Buffer;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         AtomicSafetyHandle m_Safety;
@@ -253,7 +253,7 @@ namespace Unity.Collections
 
         public unsafe NativeQueue(int capacity, Allocator label)
         {
-#if ENABLE_UNITY_COLLECTIONS_CHECKS            
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             if (!UnsafeUtility.IsBlittable<T>())
                 throw new ArgumentException(string.Format("{0} used in NativeQueue<{0}> must be blittable", typeof(T)));
 #endif
@@ -273,15 +273,13 @@ namespace Unity.Collections
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 #endif
-
-				NativeQueueData* data = (NativeQueueData*)m_Buffer;
-				int count = data->m_Capacity;
-				if (data->m_FreeCount > 0)
-					count -= data->m_FreeCount;
+				int count = m_Buffer->m_Capacity;
+				if (m_Buffer->m_FreeCount > 0)
+					count -= m_Buffer->m_FreeCount;
 				for (int tls = 0; tls < JobsUtility.MaxJobThreadCount; ++tls)
 				{
-					if (data->m_FreeCountTLS[tls * NativeQueueData.IntsPerCacheLine] > 0)
-						count -= data->m_FreeCountTLS[tls * NativeQueueData.IntsPerCacheLine];
+					if (m_Buffer->m_FreeCountTLS[tls * NativeQueueData.IntsPerCacheLine] > 0)
+						count -= m_Buffer->m_FreeCountTLS[tls * NativeQueueData.IntsPerCacheLine];
 				}
 				return count;
 			}
@@ -294,8 +292,7 @@ namespace Unity.Collections
 				AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 #endif
 
-				NativeQueueData* data = (NativeQueueData*)m_Buffer;
-				return data->m_Capacity;
+				return m_Buffer->m_Capacity;
 			}
 			set
 			{
@@ -303,8 +300,7 @@ namespace Unity.Collections
 				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
 
-				NativeQueueData* data = (NativeQueueData*)m_Buffer;
-				NativeQueueData.ReallocateQueue<T>(data, value, m_AllocatorLabel);
+				NativeQueueData.ReallocateQueue<T>(m_Buffer, value, m_AllocatorLabel);
 			}
 		}
 
@@ -314,15 +310,14 @@ namespace Unity.Collections
 			AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 #endif
 
-			NativeQueueData* data = (NativeQueueData*)m_Buffer;
-			int* blockLengths = NativeQueueData.GetBlockLengths<T>(data);
+			int* blockLengths = NativeQueueData.GetBlockLengths<T>(m_Buffer);
 
-			int firstUsedBlock = data->m_FirstUsedBlock;
-			int readIndexInBlock = data->m_CurrentReadIndexInBlock;
-			if (data->m_CurrentReadIndexInBlock >= blockLengths[firstUsedBlock*NativeQueueData.IntsPerCacheLine] && blockLengths[firstUsedBlock*NativeQueueData.IntsPerCacheLine] > 0)
+			int firstUsedBlock = m_Buffer->m_FirstUsedBlock;
+			int readIndexInBlock = m_Buffer->m_CurrentReadIndexInBlock;
+			if (m_Buffer->m_CurrentReadIndexInBlock >= blockLengths[firstUsedBlock*NativeQueueData.IntsPerCacheLine] && blockLengths[firstUsedBlock*NativeQueueData.IntsPerCacheLine] > 0)
 			{
-				int nextUsedBlock = (firstUsedBlock+1) % data->m_NumBlocks;
-				if (blockLengths[nextUsedBlock*NativeQueueData.IntsPerCacheLine] == 0 && blockLengths[firstUsedBlock*NativeQueueData.IntsPerCacheLine] != data->m_BlockSize)
+				int nextUsedBlock = (firstUsedBlock+1) % m_Buffer->m_NumBlocks;
+				if (blockLengths[nextUsedBlock*NativeQueueData.IntsPerCacheLine] == 0 && blockLengths[firstUsedBlock*NativeQueueData.IntsPerCacheLine] != m_Buffer->m_BlockSize)
 					throw new InvalidOperationException("Trying to peek from an empty queue");
 				firstUsedBlock = nextUsedBlock;
 				readIndexInBlock = 0;
@@ -330,8 +325,8 @@ namespace Unity.Collections
 			if (blockLengths[firstUsedBlock*NativeQueueData.IntsPerCacheLine] == 0)
 				throw new InvalidOperationException("Trying to peek from an empty queue");
 
-			int idx = firstUsedBlock * data->m_BlockSize + readIndexInBlock;
-			return UnsafeUtility.ReadArrayElement<T>(data->m_Data, idx);
+			int idx = firstUsedBlock * m_Buffer->m_BlockSize + readIndexInBlock;
+			return UnsafeUtility.ReadArrayElement<T>(m_Buffer->m_Data, idx);
 		}
 
 		public static int GrowCapacity(int capacity)
@@ -346,7 +341,7 @@ namespace Unity.Collections
 			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
 
-			NativeQueueData* data = (NativeQueueData*)m_Buffer;
+			NativeQueueData* data = m_Buffer;
 			bool isFull = (data->m_FreeCount == 0);
 			for (int tls = 0; tls < JobsUtility.MaxJobThreadCount && isFull; ++tls)
 				isFull = (data->m_FreeCountTLS[tls * NativeQueueData.IntsPerCacheLine] == 0);
@@ -392,7 +387,7 @@ namespace Unity.Collections
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
-			NativeQueueData* data = (NativeQueueData*)m_Buffer;
+			NativeQueueData* data = m_Buffer;
 			int* blockLengths = NativeQueueData.GetBlockLengths<T>(data);
 
 			if (data->m_CurrentReadIndexInBlock >= blockLengths[data->m_FirstUsedBlock*NativeQueueData.IntsPerCacheLine] && blockLengths[data->m_FirstUsedBlock*NativeQueueData.IntsPerCacheLine] > 0)
@@ -436,7 +431,7 @@ namespace Unity.Collections
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
-			NativeQueueData* data = (NativeQueueData*)m_Buffer;
+			NativeQueueData* data = m_Buffer;
 			data->m_NextFreeBlock = 0;
 			data->m_FirstUsedBlock = 0;
 			data->m_CurrentReadIndexInBlock = 0;
@@ -455,7 +450,7 @@ namespace Unity.Collections
 
 		public bool IsCreated
 		{
-			get { return m_Buffer != IntPtr.Zero; }
+			get { return m_Buffer != null; }
 		}
 
 		public void Dispose()
@@ -465,15 +460,15 @@ namespace Unity.Collections
 #endif
 
 			NativeQueueData.DeallocateQueue(m_Buffer, m_AllocatorLabel);
-			m_Buffer = IntPtr.Zero;
+			m_Buffer = null;
 		}
 		[NativeContainer]
 		[NativeContainerIsAtomicWriteOnly]
 		[NativeContainerNeedsThreadIndex]
-		public struct Concurrent
+		unsafe public struct Concurrent
 		{
 			[NativeDisableUnsafePtrRestriction]
-			IntPtr 	m_Buffer;
+			NativeQueueData* 	m_Buffer;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle m_Safety;
@@ -503,8 +498,7 @@ namespace Unity.Collections
 					AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 #endif
 
-					NativeQueueData* data = (NativeQueueData*)m_Buffer;
-					return data->m_Capacity;
+					return m_Buffer->m_Capacity;
 				}
 			}
 			unsafe public void Enqueue(T entry)
@@ -512,7 +506,7 @@ namespace Unity.Collections
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
-				NativeQueueData* data = (NativeQueueData*)m_Buffer;
+				NativeQueueData* data = m_Buffer;
 
 				if (!NativeQueueData.ReduceFreeCountMT(data, m_ThreadIndex))
 					throw new InvalidOperationException("Queue full");

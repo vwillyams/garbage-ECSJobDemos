@@ -2,32 +2,13 @@
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using UnityEngine.Assertions;
 
 namespace UnityEngine.ECS
 {
 	interface IManagedObjectModificationListener
 	{
 		void OnManagedObjectModified();
-	}
-
-
-
-    unsafe struct Chunk
-	{
-		public Archetype*   archetype;
-        public IntPtr 		buffer;
-
-		public int          managedArrayIndex;
-
-        public int 		    count;
-        public int 		    capacity;
-
-		public Chunk*  	    next;
-
-	    public static int* GetSharedComponentValueArray(Chunk* p)
-	    {
-	        return (int*)(((byte*)p) + sizeof(Chunk));
-	    }
 	}
 
 	struct ComponentTypeInArchetype
@@ -89,46 +70,63 @@ namespace UnityEngine.ECS
 
 	}
 
+    unsafe struct Chunk
+    {
+        public const int kChunkSize = 16 * 1024;
+
+        public UnsafeLinkedListNode  chunkListNode;
+        public UnsafeLinkedListNode  chunkListWithEmptySlotsNode;
+
+        public Archetype*      archetype;
+        public byte* 		   buffer;
+
+        public int             managedArrayIndex;
+
+        // This is meant as read-only.
+        // ArchetypeManager.SetChunkCount should be used to change the count.
+        public int 		       count;
+        public int 		       capacity;
+    }
+
 	unsafe struct Archetype
 	{
-		public Chunk*           first;
-		public Chunk*           last;
+	    public UnsafeLinkedListNode         chunkList;
+	    public UnsafeLinkedListNode         chunkListWithEmptySlots;
 
-		public int              entityCount;
-		public int              chunkCapacity;
+		public int                          entityCount;
+		public int                          chunkCapacity;
 
-        public ComponentTypeInArchetype*   types;
-        public int              		   typesCount;
+        public ComponentTypeInArchetype*    types;
+        public int              		    typesCount;
 
 		// Index matches archetype types
-        public int*   	        offsets;
-        public int*             strides;
-        public int*             sizeOfs;
+        public int*   	                    offsets;
+        public int*                         sizeOfs;
 
-        public int*             managedArrayOffset;
-		public int              numManagedArrays;
+        public int*                         managedArrayOffset;
+		public int                          numManagedArrays;
 
-	    public int*             sharedComponentOffset;
-	    public int              numSharedComponents;
+	    public int*                         sharedComponentOffset;
+	    public int                          numSharedComponents;
+		public int                          managedObjectListenerIndex;
 
-		public int              managedObjectListenerIndex;
-
-		// TODO: preferred stride/stream layout
-		// TODO: Linkage to other archetype via Add/Remove Component
-		public Archetype*       prevArchetype;
+		public Archetype*                   prevArchetype;
 	}
 
     unsafe class ArchetypeManager : IDisposable
 	{
-		NativeMultiHashMap<uint, IntPtr>		m_TypeLookup;
-		ChunkAllocator m_ArchetypeChunkAllocator;
-		internal Archetype* m_LastArchetype;
+		NativeMultiHashMap<uint, IntPtr>    m_TypeLookup;
+		ChunkAllocator                      m_ArchetypeChunkAllocator;
+		internal Archetype*                 m_LastArchetype;
+
+	    public UnsafeLinkedListNode*        m_EmptyChunkPool;
+
 
 		unsafe struct ManagedArrayStorage
 		{
 			// For patching when we start releasing chunks
-			public Chunk* chunk;
-			public object[] managedArray;
+			public Chunk*    chunk;
+			public object[]  managedArray;
 		}
 		List<ManagedArrayStorage> m_ManagedArrays = new List<ManagedArrayStorage>();
 		struct ManagedArrayListeners
@@ -141,6 +139,8 @@ namespace UnityEngine.ECS
 		public ArchetypeManager()
 		{
 			m_TypeLookup = new NativeMultiHashMap<uint, IntPtr>(256, Allocator.Persistent);
+		    m_EmptyChunkPool = (UnsafeLinkedListNode*)UnsafeUtility.Malloc(sizeof(UnsafeLinkedListNode), UnsafeUtility.AlignOf<UnsafeLinkedListNode>(), Allocator.Persistent);
+		    UnsafeLinkedListNode.InitializeList(m_EmptyChunkPool);
 		}
 
 		public void Dispose()
@@ -148,14 +148,25 @@ namespace UnityEngine.ECS
 			// Free all allocated chunks for all allocated archetypes
 			while (m_LastArchetype != null)
 			{
-				while (m_LastArchetype->first != null)
+				while (!m_LastArchetype->chunkList.IsEmpty)
 				{
-					Chunk* nextChunk = m_LastArchetype->first->next;
-					UnsafeUtility.Free((IntPtr)m_LastArchetype->first, Allocator.Persistent);
-					m_LastArchetype->first = nextChunk;
+				    var chunk = m_LastArchetype->chunkList.Begin();
+				    chunk->Remove();
+					UnsafeUtility.Free(chunk, Allocator.Persistent);
 				}
 				m_LastArchetype = m_LastArchetype->prevArchetype;
 			}
+
+		    // And all pooled chunks
+		    while (!m_EmptyChunkPool->IsEmpty)
+		    {
+		        var chunk = m_EmptyChunkPool->Begin();
+		        chunk->Remove();
+		        UnsafeUtility.Free(chunk, Allocator.Persistent);
+		    }
+
+		    UnsafeUtility.Free(m_EmptyChunkPool, Allocator.Persistent);
+
 			m_TypeLookup.Dispose();
 			m_ArchetypeChunkAllocator.Dispose();
 		}
@@ -222,7 +233,6 @@ namespace UnityEngine.ECS
             type = (Archetype*)m_ArchetypeChunkAllocator.Allocate(sizeof(Archetype), 8);
 			type->typesCount = count;
             type->types = (ComponentTypeInArchetype*)m_ArchetypeChunkAllocator.Construct(sizeof(ComponentTypeInArchetype) * count, 4, types);
-
 			type->entityCount = 0;
 
 		    type->numSharedComponents = 0;
@@ -238,8 +248,7 @@ namespace UnityEngine.ECS
 
             // FIXME: proper alignment
             type->offsets = (int*)m_ArchetypeChunkAllocator.Allocate(sizeof(int) * count, 4);
-			type->strides = (int*)m_ArchetypeChunkAllocator.Allocate(sizeof(int) * count, 4);
-            type->sizeOfs = (int*)m_ArchetypeChunkAllocator.Allocate(sizeof(int) * count, 4);
+			type->sizeOfs = (int*)m_ArchetypeChunkAllocator.Allocate(sizeof(int) * count, 4);
 
             int bytesPerInstance = 0;
 
@@ -260,7 +269,6 @@ namespace UnityEngine.ECS
                 int sizeOf = type->sizeOfs[i];
 
                 type->offsets[i] = usedBytes;
-                type->strides[i] = sizeOf;
 
                 usedBytes += sizeOf * type->chunkCapacity;
             }
@@ -308,8 +316,8 @@ namespace UnityEngine.ECS
 			type->prevArchetype = m_LastArchetype;
 			m_LastArchetype = type;
 
-			type->first = null;
-			type->last = null;
+			UnsafeLinkedListNode.InitializeList(&type->chunkList);
+		    UnsafeLinkedListNode.InitializeList(&type->chunkListWithEmptySlots);
 
 			m_TypeLookup.Add(hash, (IntPtr)type);
 
@@ -319,19 +327,15 @@ namespace UnityEngine.ECS
 			return type;
 		}
 
-        const int kChunkSize = 16 * 1024;
-
-
-	    static int GetBufferOffset(int numSharedComponents)
+		static int GetBufferOffset(int numSharedComponents)
 	    {
 	        int headerSize = sizeof(Chunk) + numSharedComponents * sizeof(int);
 	        return (headerSize + 63) & ~63;
 	    }
-
         public static int GetChunkBufferSize(int numSharedComponents)
         {
             int bufferOffset = GetBufferOffset(numSharedComponents);
-            int bufferSize = kChunkSize - bufferOffset;
+            int bufferSize = Chunk.kChunkSize - bufferOffset;
 
             return bufferSize;
         }
@@ -348,12 +352,18 @@ namespace UnityEngine.ECS
             chunk->buffer = (IntPtr)(((byte*)chunk) + bufferOffset);
             chunk->count = 0;
             chunk->capacity = archetype->chunkCapacity;
-			chunk->next = null;
-			if (archetype->last != null)
-				archetype->last->next = chunk;
-			else
-				archetype->first = chunk;
-			archetype->last = chunk;
+            chunk->chunkListNode = new UnsafeLinkedListNode();
+            chunk->chunkListWithEmptySlotsNode = new UnsafeLinkedListNode();
+
+            archetype->chunkList.Add(&chunk->chunkListNode);
+            archetype->chunkListWithEmptySlots.Add(&chunk->chunkListWithEmptySlotsNode);
+
+            Assert.IsTrue(!archetype->chunkList.IsEmpty);
+            Assert.IsTrue(!archetype->chunkListWithEmptySlots.IsEmpty);
+
+            Assert.IsTrue(chunk == (Chunk*)(archetype->chunkList.Back()));
+            Assert.IsTrue(chunk == GetChunkFromEmptySlotNode(archetype->chunkListWithEmptySlots.Back()));
+
 			if (archetype->numManagedArrays > 0)
 			{
 				chunk->managedArrayIndex = m_ManagedArrays.Count;
@@ -395,39 +405,81 @@ namespace UnityEngine.ECS
 
         public Chunk* GetChunkWithEmptySlots(Archetype* archetype)
         {
-            Chunk* chunk = archetype->first;
-	        while (chunk != null)
-	        {
-	            if (chunk->count != chunk->capacity && (archetype->numSharedComponents == 0 || ChuckHasDefaultSharedComponents(chunk)))
-                    return chunk;
+            // Try existing archetype chunks
+            if (!archetype->chunkListWithEmptySlots.IsEmpty)
+            {
+                var chunk = GetChunkFromEmptySlotNode(archetype->chunkListWithEmptySlots.Begin());
+                Assert.AreNotEqual(chunk->count, chunk->capacity);
+                return chunk;
+            }
+            // Try empty chunk pool
+            else if (!m_EmptyChunkPool->IsEmpty)
+            {
+                Chunk* pooledChunk = (Chunk*)m_EmptyChunkPool->Begin();
+                pooledChunk->chunkListNode.Remove();
 
-	            chunk = chunk->next;
-	        }
-
-	        return AllocateChunk (archetype);
+                ConstructChunk(archetype, pooledChunk);
+                return pooledChunk;
+            }
+            else
+            {
+                // Allocate new chunk
+                return AllocateChunk (archetype);
+            }
         }
 
-        public static int AllocateIntoChunk (Chunk* chunk, int count, out int outIndex)
+        public int AllocateIntoChunk (Chunk* chunk, int count, out int outIndex)
         {
             int allocatedCount = Math.Min(chunk->capacity - chunk->count, count);
             outIndex = chunk->count;
-            chunk->count += allocatedCount;
+            SetChunkCount(chunk, chunk->count + allocatedCount);
 			chunk->archetype->entityCount += allocatedCount;
             return allocatedCount;
         }
 
-        public static int AllocateIntoChunk(Chunk* chunk)
+        public int AllocateIntoChunk(Chunk* chunk)
         {
             Assertions.Assert.AreNotEqual(chunk->capacity, chunk->count);
+
+            int chunkCount = chunk->count;
+            SetChunkCount(chunk, chunkCount  + 1);
+
 			++chunk->archetype->entityCount;
-            return chunk->count++;
+            return chunkCount;
         }
 
-
-        /*public void DeallocateChunk(Chunk* chunk)
+        public void SetChunkCount(Chunk* chunk, int newCount)
         {
+            Assert.AreNotEqual(newCount, chunk->count);
+            int capacity = chunk->capacity;
 
-        }*/
+            // Chunk released to empty chunk pool
+            if (newCount == 0)
+            {
+                //@TODO: Support pooling when there are managed arrays...
+                if (chunk->archetype->numManagedArrays == 0)
+                {
+                    chunk->chunkListNode.Remove();
+                    chunk->chunkListWithEmptySlotsNode.Remove();
+
+                    m_EmptyChunkPool->Add(&chunk->chunkListNode);
+                }
+            }
+            // Chunk is now full
+            else if (newCount == capacity)
+            {
+                chunk->chunkListWithEmptySlotsNode.Remove();
+            }
+            // Chunk is no longer full
+            else if (chunk->count == capacity)
+            {
+                Assert.IsTrue(newCount < chunk->count);
+
+                chunk->archetype->chunkListWithEmptySlots.Add(&chunk->chunkListWithEmptySlotsNode);
+            }
+
+            chunk->count = newCount;
+        }
 
         public object GetManagedObject(Chunk* chunk, ComponentType type, int index)
         {
@@ -442,6 +494,7 @@ namespace UnityEngine.ECS
 			int managedStart = chunk->archetype->managedArrayOffset[type] * chunk->capacity;
 			return m_ManagedArrays[chunk->managedArrayIndex].managedArray[index + managedStart];
 		}
+
 		public object[] GetManagedObjectRange(Chunk* chunk, int type, out int rangeStart, out int rangeLength)
 		{
 			rangeStart = chunk->archetype->managedArrayOffset[type] * chunk->capacity;

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.ECS;
 using Unity.Jobs;
@@ -11,10 +13,22 @@ namespace UnityEditor.ECS
 {
     public class EntityWindow : EditorWindow {
         
-        const float kResizerWidth = 5f;
-        const int kDefaultSystemListWidth = 300;
-        const float kMinListWidth = 200f;
         const float kSystemListHeight = 100f;
+
+        public World CurrentWorldSelection
+        {
+            get { return currentWorldSelection; }
+            set
+            {
+                currentWorldSelection = value;
+                currentSystemSelection = null;
+                currentComponentGroupSelection = null;
+                InitSystemList();
+                InitComponentGroupList();
+                InitEntityList();
+            }
+        }
+        World currentWorldSelection;
 
         public ComponentSystemBase CurrentSystemSelection {
             get { return currentSystemSelection; }
@@ -27,12 +41,6 @@ namespace UnityEditor.ECS
         }
         ComponentSystemBase currentSystemSelection;
 
-        void InitComponentGroupList()
-        {
-            var groupListState = ComponentGroupListView.GetStateForSystem(currentSystemSelection, ref componentGroupListStates, ref componentGroupListStateNames);
-            _componentGroupListView = new ComponentGroupListView(groupListState, this, currentSystemSelection);
-        }
-
         public ComponentGroup CurrentComponentGroupSelection {
             get { return currentComponentGroupSelection; }
             set {
@@ -41,6 +49,22 @@ namespace UnityEditor.ECS
             }
         }
         ComponentGroup currentComponentGroupSelection;
+
+        void InitSystemList()
+        {
+            if (currentWorldSelection == null)
+                return;
+            systemListView = new SystemListView(systemListState, this);
+            systemListView.SetManagers(systems);
+        }
+        
+        void InitComponentGroupList()
+        {
+            if (currentSystemSelection == null)
+                return;
+            var groupListState = ComponentGroupListView.GetStateForSystem(currentSystemSelection, ref componentGroupListStates, ref componentGroupListStateNames);
+            componentGroupListView = new ComponentGroupListView(groupListState, this, currentSystemSelection);
+        }
 
         void InitEntityList()
         {
@@ -52,12 +76,15 @@ namespace UnityEditor.ECS
             entityListView = new EntityListView(entityListState, header, currentComponentGroupSelection);
         }
 
+        [SerializeField] TreeViewState worldListState;
+        WorldListView worldListView;
+
         [SerializeField]
         TreeViewState systemListState;
 
         SystemListView systemListView;
 
-        ComponentGroupListView _componentGroupListView;
+        ComponentGroupListView componentGroupListView;
 
         [SerializeField]
         TreeViewState entityListState;
@@ -73,18 +100,17 @@ namespace UnityEditor.ECS
         [SerializeField]
         List<TreeViewState> componentGroupListStates;
 
-        [NonSerialized]
-        bool initialized;
-
-        [NonSerialized]
-        bool systemsNull = true;
-
-        Rect entityListRect { get { return new Rect(0f, kSystemListHeight, position.width, position.height - kSystemListHeight); } }
-
         [MenuItem ("Window/Entities", false, 2017)]
         static void Init ()
         {
             EditorWindow.GetWindow<EntityWindow>("Entities");
+        }
+
+        void OnEnable()
+        {
+            if (worldListState == null)
+                worldListState = new TreeViewState();
+            worldListView = new WorldListView(worldListState, this);
         }
 
         void OnFocus()
@@ -97,40 +123,33 @@ namespace UnityEditor.ECS
             SceneView.onSceneGUIDelegate -= OnSceneGUI;
         }
 
-        void InitIfNeeded()
+        private ReadOnlyCollection<World> Worlds => worlds ?? (worlds = World.AllWorlds);
+        private ReadOnlyCollection<World> worlds;
+        
+        ComponentSystemBase[] systems => (from s in CurrentWorldSelection.BehaviourManagers
+            where s is ComponentSystemBase
+            select s as ComponentSystemBase).ToArray();
+
+        void WorldList(bool worldsAppeared)
         {
-            if (!initialized)
+            if (worldsAppeared)
+                worldListView.SetWorlds(Worlds);
+            worldListView.OnGUI(GUIHelpers.GetExpandingRect());
+        }
+
+        void SystemList()
+        {
+            if (CurrentWorldSelection != null)
             {
-                if (systemListState == null)
-                    systemListState = new TreeViewState();
-                systemListView = new SystemListView(systemListState, this);
-                initialized = true;
+                systemListView.OnGUI(GUIHelpers.GetExpandingRect());
             }
-        }
-
-        ComponentSystemBase[] systems {
-            get {
-                if (World.Active == null)
-                    return null;
-
-                return  (from s in World.Active.BehaviourManagers
-                        where s is ComponentSystemBase
-                        select s as ComponentSystemBase).ToArray();
-            }
-        }
-
-        void SystemList(bool systemsWereNull)
-        {
-            if (systemsWereNull)
-                systemListView.SetManagers(systems);
-            systemListView.OnGUI(GUIHelpers.GetExpandingRect());
         }
 
         void ComponentGroupList()
         {
             if (CurrentSystemSelection != null)
             {
-                _componentGroupListView.OnGUI(GUIHelpers.GetExpandingRect());
+                componentGroupListView.OnGUI(GUIHelpers.GetExpandingRect());
             }
         }
 
@@ -143,12 +162,13 @@ namespace UnityEditor.ECS
             }
         }
 
+        private bool noWorlds = true;
+
         void OnGUI ()
         {
-            InitIfNeeded();
-            var systemsWereNull = systemsNull;
-            systemsNull = systems == null;
-            if (systemsNull)
+            var worldsAppeared = noWorlds && World.AllWorlds.Count > 0;
+            noWorlds = World.AllWorlds.Count == 0;
+            if (noWorlds)
             {
                 GUIHelpers.ShowCenteredNotification(new Rect(Vector2.zero, position.size), "No ComponentSystems loaded. (Try pushing Play)");
                 return;
@@ -157,7 +177,10 @@ namespace UnityEditor.ECS
             GUILayout.BeginHorizontal(GUILayout.Height(kSystemListHeight));
 
             GUILayout.BeginVertical();
-            SystemList(systemsWereNull);
+            WorldList(worldsAppeared);
+            GUILayout.EndVertical();
+            GUILayout.BeginVertical();
+            SystemList();
             GUILayout.EndVertical();
             GUILayout.BeginVertical();
             ComponentGroupList();
@@ -172,8 +195,7 @@ namespace UnityEditor.ECS
 
         void OnSceneGUI(SceneView sceneView)
         {
-            if (entityListView != null)
-                entityListView.DrawSelection();
+            entityListView?.DrawSelection();
 
             if (CurrentSystemSelection != null && EditorApplication.isPlaying)
                 Repaint();

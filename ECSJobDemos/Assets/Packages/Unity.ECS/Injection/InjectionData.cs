@@ -6,9 +6,9 @@ namespace UnityEngine.ECS
 {
     interface IUpdateInjection
     {
-        unsafe void UpdateInjection(void* targetObject, EntityManager entityManager, ComponentGroup group, InjectionData injection);
+        unsafe void UpdateInjection(byte* targetObject, EntityManager entityManager, ComponentGroup group, InjectionData injection);
     }
-    
+
     struct InjectionData
     {
         public int                 fieldOffset;

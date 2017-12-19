@@ -5,7 +5,6 @@ using UnityEngine.Assertions;
 
 namespace UnityEngine.ECS
 {
-
     unsafe struct EntityData
     {
         public int version;
@@ -17,11 +16,11 @@ namespace UnityEngine.ECS
     unsafe struct EntityDataManager
     {
         [NativeDisableUnsafePtrRestriction]
-        internal EntityData* m_Entities;
-        int m_EntitiesCapacity;
-        int m_EntitiesFreeIndex;
+        internal EntityData*    m_Entities;
+        int                     m_EntitiesCapacity;
+        int                     m_EntitiesFreeIndex;
 
-        public void OnCreate( int capacity )
+        public void OnCreate(int capacity)
         {
             m_EntitiesCapacity = capacity;
             m_Entities = (EntityData*)UnsafeUtility.Malloc(m_EntitiesCapacity * sizeof(EntityData), 64, Allocator.Persistent);
@@ -29,7 +28,7 @@ namespace UnityEngine.ECS
             InitializeAdditionalCapacity(0);
         }
 
-        void InitializeAdditionalCapacity( int start )
+        void InitializeAdditionalCapacity(int start)
         {
             for (int i = start; i != m_EntitiesCapacity - 1; i++)
             {
@@ -44,20 +43,20 @@ namespace UnityEngine.ECS
         {
             EntityData* newEntities = (EntityData*) UnsafeUtility.Malloc(m_EntitiesCapacity * 2 * sizeof(EntityData),
                 64, Allocator.Persistent);
-            UnsafeUtility.MemCpy( (IntPtr)newEntities, (IntPtr)m_Entities, m_EntitiesCapacity * sizeof(EntityData) );
-            UnsafeUtility.Free((IntPtr)m_Entities, Allocator.Persistent);
+            UnsafeUtility.MemCpy(newEntities, m_Entities, m_EntitiesCapacity * sizeof(EntityData) );
+            UnsafeUtility.Free(m_Entities, Allocator.Persistent);
 
             var startNdx = m_EntitiesCapacity - 1;
             m_Entities = newEntities;
             m_EntitiesCapacity *= 2;
-    
+
             InitializeAdditionalCapacity(startNdx);
         }
 
         public void OnDestroy()
         {
-            UnsafeUtility.Free((IntPtr)m_Entities, Allocator.Persistent);
-            m_Entities = (EntityData*)IntPtr.Zero;
+            UnsafeUtility.Free(m_Entities, Allocator.Persistent);
+            m_Entities = null;
             m_EntitiesCapacity = 0;
         }
 
@@ -102,7 +101,7 @@ namespace UnityEngine.ECS
                     throw new System.ArgumentException("The component has not been added to the entity.");
             }
         }
-        
+
         public void DeallocateEnties(ArchetypeManager typeMan, Entity* entities, int count)
         {
             while (count != 0)
@@ -137,27 +136,23 @@ namespace UnityEngine.ECS
                 if (chunk->count != indexInChunk + batchCount)
                 {
                     // updates EntitityData->index to point to where the components will be moved to
+                    Assert.IsTrue(chunk->archetype->sizeOfs[0] == sizeof(Entity) && chunk->archetype->offsets[0] == 0);
+                    Entity* movedEntities = (Entity*)(chunk->buffer) + (chunk->count - batchCount);
                     for (int i = 0; i != batchCount;i++)
-                    {
-                        Entity* lastEntity = (Entity*)ChunkDataUtility.GetComponentData(chunk, chunk->count - batchCount + i, 0);
-                        m_Entities[lastEntity->index].index = indexInChunk + i;
-                    }
+                        m_Entities[movedEntities[i].index].index = indexInChunk + i;
 
                     // Move component data from the end to where we deleted components
                     ChunkDataUtility.Copy(chunk, chunk->count - batchCount, chunk, indexInChunk, batchCount);
                     if (chunk->managedArrayIndex >= 0)
                         ChunkDataUtility.CopyManagedObjects(typeMan, chunk, chunk->count - batchCount, chunk, indexInChunk, batchCount);
                 }
-                
+
                 if (chunk->managedArrayIndex >= 0)
                     ChunkDataUtility.ClearManagedObjects(typeMan, chunk, chunk->count - batchCount, batchCount);
 
-                chunk->count -= batchCount;
                 chunk->archetype->entityCount -= batchCount;
-                
-                //@TODO: When Chunk reaches zero we should probably put the chunk back into a pool,
-                // as opposed to keeping it all linked up (which slows down iteration)
-                
+                typeMan.SetChunkCount(chunk, chunk->count - batchCount);
+
                 entities += batchCount;
                 count -= batchCount;
             }
@@ -174,7 +169,7 @@ namespace UnityEngine.ECS
                 if (m_Entities[i].chunk != null)
                 {
                     aliveEntities++;
-                    
+
                     Assert.AreEqual(entityType, m_Entities[i].archetype->types[0].typeIndex);
                     Entity entity = *(Entity*)ChunkDataUtility.GetComponentData(m_Entities[i].chunk, m_Entities[i].index, 0);
                     Assert.AreEqual(i, entity.index);
@@ -190,9 +185,10 @@ namespace UnityEngine.ECS
 
         public void AllocateEntities(Archetype* arch, Chunk* chunk, int baseIndex, int count, Entity* outputEntities)
         {
-            int offset = chunk->archetype->offsets[0];
-            int stride = chunk->archetype->strides[0];
-            Entity* entityInChunkStart = (Entity*)(chunk->buffer + offset + (stride * baseIndex));
+            Assert.AreEqual(chunk->archetype->offsets[0], 0);
+            Assert.AreEqual(chunk->archetype->sizeOfs[0], sizeof(Entity));
+
+            Entity* entityInChunkStart = (Entity*)(chunk->buffer) + baseIndex;
 
             for (int i = 0; i != count; i++)
             {
@@ -201,12 +197,12 @@ namespace UnityEngine.ECS
                 {
                     IncreaseCapacity();
                     entity = m_Entities + m_EntitiesFreeIndex;
-                }                
+                }
 
                 outputEntities[i].index = m_EntitiesFreeIndex;
                 outputEntities[i].version = entity->version;
 
-                Entity* entityInChunk = entityInChunkStart + i;                
+                Entity* entityInChunk = entityInChunkStart + i;
 
                 entityInChunk->index = m_EntitiesFreeIndex;
                 entityInChunk->version = entity->version;
@@ -255,20 +251,29 @@ namespace UnityEngine.ECS
                 return ChunkDataUtility.GetIndexInTypeArray(archetype, type.typeIndex) != -1;
         }
 
-        public IntPtr GetComponentDataWithType(Entity entity, int typeIndex)
+        public byte* GetComponentDataWithType(Entity entity, int typeIndex)
         {
-            return ChunkDataUtility.GetComponentDataWithType(m_Entities[entity.index].chunk, m_Entities[entity.index].index, typeIndex);
+            var entityData = m_Entities + entity.index;
+            return ChunkDataUtility.GetComponentDataWithType(entityData->chunk, entityData->index, typeIndex);
         }
 
-        public void GetComponentDataWithTypeAndFixedArrayLength(Entity entity, int typeIndex, out IntPtr ptr, out int fixedArrayLength)
+        public byte* GetComponentDataWithType(Entity entity, int typeIndex, ref int typeLookupCache)
         {
-            ChunkDataUtility.GetComponentDataWithTypeAndFixedArrayLength(m_Entities[entity.index].chunk, m_Entities[entity.index].index, typeIndex, out ptr, out fixedArrayLength);
+            var entityData = m_Entities + entity.index;
+            return ChunkDataUtility.GetComponentDataWithType(entityData->chunk, entityData->index, typeIndex, ref typeLookupCache);
+        }
+
+        public void GetComponentDataWithTypeAndFixedArrayLength(Entity entity, int typeIndex, out byte* ptr, out int fixedArrayLength)
+        {
+            var entityData = m_Entities + entity.index;
+            ChunkDataUtility.GetComponentDataWithTypeAndFixedArrayLength(entityData->chunk, entityData->index, typeIndex, out ptr, out fixedArrayLength);
         }
 
         public void GetComponentChunk(Entity entity, out Chunk* chunk, out int chunkIndex)
         {
-            chunk = m_Entities[entity.index].chunk;
-            chunkIndex = m_Entities[entity.index].index;
+            var entityData = m_Entities + entity.index;
+            chunk = entityData->chunk;
+            chunkIndex = entityData->index;
         }
 
         public Archetype* GetArchetype(Entity entity)
@@ -294,18 +299,17 @@ namespace UnityEngine.ECS
             // No need to replace with ourselves
             if (lastIndex != oldChunkIndex)
             {
-                Entity lastEntity;
-                UnsafeUtility.CopyPtrToStructure (ChunkDataUtility.GetComponentData(oldChunk, lastIndex, 0), out lastEntity);
-                m_Entities[lastEntity.index].index = oldChunkIndex;
+                Entity* lastEntity = (Entity*)ChunkDataUtility.GetComponentData(oldChunk, lastIndex, 0);
+                m_Entities[lastEntity->index].index = oldChunkIndex;
 
-                ChunkDataUtility.Copy (oldChunk, lastIndex, oldChunk, oldChunkIndex);
+                ChunkDataUtility.Copy (oldChunk, lastIndex, oldChunk, oldChunkIndex, 1);
                 if (oldChunk->managedArrayIndex >= 0)
                     ChunkDataUtility.CopyManagedObjects(typeMan, oldChunk, lastIndex, oldChunk, oldChunkIndex, 1);
             }
             if (oldChunk->managedArrayIndex >= 0)
                 ChunkDataUtility.ClearManagedObjects(typeMan, oldChunk, lastIndex, 1);
 
-            oldChunk->count = lastIndex;
+            typeMan.SetChunkCount(oldChunk, lastIndex);
         }
     }
 }

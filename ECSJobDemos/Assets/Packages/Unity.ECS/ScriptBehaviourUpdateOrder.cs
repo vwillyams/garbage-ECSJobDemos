@@ -119,27 +119,35 @@ namespace UnityEngine.ECS
 				}
 			}
 
-			public void AddUpdateBeforeToAllChildBehaviours(Type dep, Dictionary<Type, DependantBehavior> dependencies)
+			public void AddUpdateBeforeToAllChildBehaviours(DependantBehavior target, Dictionary<Type, DependantBehavior> dependencies)
 			{
+                Type dep = target.manager.GetType();
 				foreach (var manager in managers)
 				{
 					DependantBehavior managerDep;
 					if (dependencies.TryGetValue(manager, out managerDep))
+                    {
+                        target.updateAfter.Add(manager);
 						managerDep.updateBefore.Add(dep);
+                    }
 				}
 				foreach (var group in groups)
-					group.AddUpdateBeforeToAllChildBehaviours(dep, dependencies);
+					group.AddUpdateBeforeToAllChildBehaviours(target, dependencies);
 			}
-			public void AddUpdateAfterToAllChildBehaviours(Type dep, Dictionary<Type, DependantBehavior> dependencies)
+			public void AddUpdateAfterToAllChildBehaviours(DependantBehavior target, Dictionary<Type, DependantBehavior> dependencies)
 			{
+                Type dep = target.manager.GetType();
 				foreach (var manager in managers)
 				{
 					DependantBehavior managerDep;
 					if (dependencies.TryGetValue(manager, out managerDep))
+                    {
+                        target.updateBefore.Add(manager);
 						managerDep.updateAfter.Add(dep);
+                    }
 				}
 				foreach (var group in groups)
-					group.AddUpdateAfterToAllChildBehaviours(dep, dependencies);
+					group.AddUpdateAfterToAllChildBehaviours(target, dependencies);
 			}
 
 			public Type groupType;
@@ -195,7 +203,7 @@ namespace UnityEngine.ECS
 						if (target.minInsertPos < pos)
 							target.minInsertPos = pos;
 						if (target.maxInsertPos == 0 || target.maxInsertPos > pos)
-							target.maxInsertPos = pos;						
+							target.maxInsertPos = pos;
 					}
 					else
 					{
@@ -252,8 +260,7 @@ namespace UnityEngine.ECS
 				}
 				else if (allGroups.TryGetValue(attribDep.SystemType, out otherGroup))
 				{
-					targetSystem.updateAfter.Add(attribDep.SystemType);
-					otherGroup.AddUpdateBeforeToAllChildBehaviours(target, dependencies);
+					otherGroup.AddUpdateBeforeToAllChildBehaviours(targetSystem, dependencies);
 				}
 				else
 				{
@@ -273,8 +280,7 @@ namespace UnityEngine.ECS
 				}
 				else if (allGroups.TryGetValue(attribDep.SystemType, out otherGroup))
 				{
-					targetSystem.updateBefore.Add(attribDep.SystemType);
-					otherGroup.AddUpdateAfterToAllChildBehaviours(target, dependencies);
+					otherGroup.AddUpdateAfterToAllChildBehaviours(targetSystem, dependencies);
 				}
 				else
 				{
@@ -299,8 +305,7 @@ namespace UnityEngine.ECS
 						}
 						else if (allGroups.TryGetValue(dep, out otherGroup))
 						{
-							targetSystem.updateAfter.Add(dep);
-							otherGroup.AddUpdateBeforeToAllChildBehaviours(target, dependencies);
+							otherGroup.AddUpdateBeforeToAllChildBehaviours(targetSystem, dependencies);
 						}
 						else
 						{
@@ -316,8 +321,7 @@ namespace UnityEngine.ECS
 						}
 						else if (allGroups.TryGetValue(dep, out otherGroup))
 						{
-							targetSystem.updateBefore.Add(dep);
-							otherGroup.AddUpdateAfterToAllChildBehaviours(target, dependencies);
+							otherGroup.AddUpdateAfterToAllChildBehaviours(targetSystem, dependencies);
 						}
 						else
 						{
@@ -346,7 +350,7 @@ namespace UnityEngine.ECS
 				}
 
 				DependantBehavior dep = new DependantBehavior(manager);
-				dependencies.Add(manager.GetType(), dep);				
+				dependencies.Add(manager.GetType(), dep);
 			}
 
 			// @TODO: apply additional sideloaded constraints here
@@ -425,7 +429,7 @@ namespace UnityEngine.ECS
 				{
 					ValidateAndFixSingleChainMinPos(system, dependencyGraph, system.minInsertPos);
 				}
-			}	
+			}
 		}
 		static void ValidateAndFixSingleChainMinPos(DependantBehavior system, Dictionary<Type, DependantBehavior> dependencyGraph, int minInsertPos)
 		{
@@ -492,7 +496,7 @@ namespace UnityEngine.ECS
 				var system = systemKeyValue.Value;
 				// @TODO: GenericProcessComponentSystem
 				// @TODO: attribute
-				if (!(system is JobComponentSystem))
+				if (!(system.manager is JobComponentSystem))
 					continue;
 				system.spawnsJobs = true;
 				schedulers.Add(system);
@@ -501,24 +505,26 @@ namespace UnityEngine.ECS
 			{
 				var system = systemKeyValue.Value;
 				// @TODO: attribute for sync
-				if (!(system is ComponentSystem))
+				if (!(system.manager is ComponentSystem))
 					continue;
-				HashSet<Type> waitComponent = new HashSet<Type>();
-				foreach (var componentGroup in (system.manager as ComponentSystem).ComponentGroups)
+				var waitComponent = new HashSet<Type>();
+				foreach (var componentGroup in ((ComponentSystem) system.manager).ComponentGroups)
 				{
 					foreach (var type in componentGroup.Types)
 						waitComponent.Add(type);
 				}
 				foreach (var scheduler in schedulers)
 				{
+				    if (!(scheduler.manager is ComponentSystem))
+				        continue;
 					// Check if the component groups overlaps
-					HashSet<Type> scheduleComponent = new HashSet<Type>();
-					foreach (var componentGroup in (scheduler.manager as ComponentSystem).ComponentGroups)
+					var scheduleComponent = new HashSet<Type>();
+					foreach (var componentGroup in ((ComponentSystem) scheduler.manager).ComponentGroups)
 					{
 						foreach (var type in componentGroup.Types)
 							scheduleComponent.Add(type);
 					}
-					bool overlap = false;
+					var overlap = false;
 					foreach (var waitComp in waitComponent)
 					{
 						if (scheduleComponent.Contains(waitComp))
@@ -536,10 +542,29 @@ namespace UnityEngine.ECS
 			}
 		}
 
+		public static PlayerLoopSystem InsertWorldManagersInPlayerLoop(PlayerLoopSystem defaultPlayerLoop, params World[] worlds)
+        {
+            List<InsertionBucket> systemList = new List<InsertionBucket>();
+            foreach (var world in worlds)
+            {
+                if (world.BehaviourManagers.Count() == 0)
+                    continue;
+                systemList.AddRange(CreateSystemDependencyList(world.BehaviourManagers, defaultPlayerLoop));
+            }
+            return CreatePlayerLoop(systemList, defaultPlayerLoop);
+        }
+
 		public static PlayerLoopSystem InsertManagersInPlayerLoop(IEnumerable<ScriptBehaviourManager> activeManagers, PlayerLoopSystem defaultPlayerLoop)
-		{
+        {
 			if (activeManagers.Count() == 0)
 				return defaultPlayerLoop;
+
+            var list = CreateSystemDependencyList(activeManagers, defaultPlayerLoop);
+            return CreatePlayerLoop(list, defaultPlayerLoop);
+        }
+
+        static List<InsertionBucket> CreateSystemDependencyList(IEnumerable<ScriptBehaviourManager> activeManagers, PlayerLoopSystem defaultPlayerLoop)
+		{
 			Dictionary<Type, DependantBehavior> dependencyGraph = BuildSystemGraph(activeManagers, defaultPlayerLoop);
 
 			MarkSchedulingAndWaitingJobs(dependencyGraph);
@@ -574,6 +599,7 @@ namespace UnityEngine.ECS
 					break;
 				foreach (var dep in depsToAdd)
 					earlyUpdates.Add(dep);
+                depsToAdd.Clear();
 			}
 			while (true)
 			{
@@ -590,6 +616,7 @@ namespace UnityEngine.ECS
 					break;
 				foreach (var dep in depsToAdd)
 					lateUpdates.Add(dep);
+                depsToAdd.Clear();
 			}
 
 			int defaultPos = 0;
@@ -699,8 +726,11 @@ namespace UnityEngine.ECS
 				depsToAdd.Clear();
 				++processedChainLength;
 			}
+            return new List<InsertionBucket>(insertionBucketDict.Values);
+		}
 
-			List<InsertionBucket> insertionBuckets = new List<InsertionBucket>(insertionBucketDict.Values);
+        static PlayerLoopSystem CreatePlayerLoop(List<InsertionBucket> insertionBuckets, PlayerLoopSystem defaultPlayerLoop)
+        {
 			insertionBuckets.Sort();
 
 			// Insert the buckets at the appropriate place
@@ -753,9 +783,9 @@ namespace UnityEngine.ECS
 				}
 				currentPos = lastPos;
 			}
-			
+
 			return ecsPlayerLoop;
-		}
-		
+        }
+
     }
 }

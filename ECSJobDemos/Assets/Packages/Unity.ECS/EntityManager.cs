@@ -37,7 +37,7 @@ namespace UnityEngine.ECS
     {
         EntityDataManager m_Entities;
 
-        ArchetypeManager m_ArchetypeManager;
+        internal ArchetypeManager m_ArchetypeManager;
         EntityGroupManager m_GroupManager;
         ComponentJobSafetyManager m_JobSafetyManager;
 
@@ -99,10 +99,10 @@ namespace UnityEngine.ECS
                 SortingUtilities.InsertSorted(m_CachedComponentTypeInArchetypeArray, i + 1, requiredComponents[i]);
             return requiredComponents.Length + 1;
         }
-        
+
         unsafe public ComponentGroup CreateComponentGroup(params ComponentType[] requiredComponents)
         {
-            return m_GroupManager.CreateEntityGroup(m_ArchetypeManager, m_CachedComponentTypeArray, PopulatedCachedTypeArray(requiredComponents), new TransformAccessArray());
+            return m_GroupManager.CreateEntityGroup(this, m_CachedComponentTypeArray, PopulatedCachedTypeArray(requiredComponents), new TransformAccessArray());
         }
 
         unsafe public EntityArchetype CreateArchetype(params ComponentType[] types)
@@ -297,7 +297,7 @@ namespace UnityEngine.ECS
 
             Chunk* newChunk = m_ArchetypeManager.GetChunkWithEmptySlots(newType);
             int newChunkIndex = ArchetypeManager.AllocateIntoChunk(newChunk);
-            m_Entities.SetArchetype(m_ArchetypeManager, entity, newType, newChunk, newChunkIndex);     
+            m_Entities.SetArchetype(m_ArchetypeManager, entity, newType, newChunk, newChunkIndex);
         }
 
         public void AddComponent<T>(Entity entity, T componentData) where T : struct, IComponentData
@@ -321,7 +321,7 @@ namespace UnityEngine.ECS
             return new ComponentDataFromEntity<T>(typeIndex, m_Entities);
 #endif
         }
-        
+
         public FixedArrayFromEntity<T> GetFixedArrayFromEntity<T>(bool isReadOnly = false) where T : struct
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
@@ -332,7 +332,7 @@ namespace UnityEngine.ECS
             return new FixedArrayFromEntity<T>(typeIndex, m_Entities);
 #endif
         }
-        
+
         public T GetComponent<T>(Entity entity) where T : struct, IComponentData
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
@@ -367,7 +367,7 @@ namespace UnityEngine.ECS
             m_ArchetypeManager.SetManagedObject(chunk, componentType, chunkIndex, componentObject);
         }
 
-        public unsafe T GetComponentObject<T>(Entity entity) where T : Component 
+        public unsafe T GetComponentObject<T>(Entity entity) where T : Component
         {
             ComponentType componentType = ComponentType.Create<T>();
             m_Entities.AssertEntityHasComponent(entity, componentType.typeIndex);
@@ -394,7 +394,7 @@ namespace UnityEngine.ECS
 
         public T GetSharedComponentData<T>(ComponentType componentType) where T : struct, ISharedComponentData
         {
-            //@TODO: This really needs validation on if the compeont 
+            //@TODO: This really needs validation on if the compeont
             return m_SharedComponentManager.GetSharedComponentData<T>(componentType);
         }
 
@@ -416,7 +416,7 @@ namespace UnityEngine.ECS
             if (TypeManager.GetComponentType<T>().category != TypeManager.TypeCategory.OtherValueType)
                 throw new ArgumentException($"GetComponentFixedArray<{typeof(T)}> may not be IComponentData or ISharedComponentData");
 #endif
-            
+
             m_JobSafetyManager.CompleteWriteDependency(typeIndex);
 
             IntPtr ptr;
@@ -424,14 +424,14 @@ namespace UnityEngine.ECS
             m_Entities.GetComponentDataWithTypeAndFixedArrayLength (entity, typeIndex, out ptr, out length);
 
             var array = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(ptr, length, Allocator.Invalid);
-            
+
             #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref array, m_JobSafetyManager.GetSafetyHandle(typeIndex, false)); 
+            NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref array, m_JobSafetyManager.GetSafetyHandle(typeIndex, false));
             #endif
 
             return array;
         }
-        
+
         public void CompleteAllJobs()
         {
             ComponentJobSafetyManager.CompleteAllJobsAndInvalidateArrays();

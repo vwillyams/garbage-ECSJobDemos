@@ -9,9 +9,9 @@ namespace UnityEngine.ECS
 	{
 		void OnManagedObjectModified();
 	}
-	
-	
-	
+
+
+
     unsafe struct Chunk
 	{
 		public Archetype*   archetype;
@@ -23,6 +23,11 @@ namespace UnityEngine.ECS
         public int 		    capacity;
 
 		public Chunk*  	    next;
+
+	    public static int* GetSharedComponentValueArray(Chunk* p)
+	    {
+	        return (int*)(((byte*)p) + sizeof(Chunk));
+	    }
 	}
 
 	struct ComponentTypeInArchetype
@@ -57,7 +62,7 @@ namespace UnityEngine.ECS
 		{
 			return lhs.typeIndex != rhs.typeIndex ? lhs.typeIndex > rhs.typeIndex : lhs.sharedComponentIndex > rhs.sharedComponentIndex;
 		}
-		
+
 		public static unsafe bool CompareArray(ComponentTypeInArchetype* type1, int typeCount1, ComponentTypeInArchetype* type2, int typeCount2)
 		{
 			if (typeCount1 != typeCount2)
@@ -67,9 +72,9 @@ namespace UnityEngine.ECS
 				if (type1[i] != type2[i])
 					return false;
 			}
-			return true;		
+			return true;
 		}
-		
+
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 		public override string ToString()
 		{
@@ -103,13 +108,16 @@ namespace UnityEngine.ECS
         public int*             managedArrayOffset;
 		public int              numManagedArrays;
 
+	    public int*             sharedComponentOffset;
+	    public int              numSharedComponents;
+
 		public int              managedObjectListenerIndex;
 
 		// TODO: preferred stride/stream layout
 		// TODO: Linkage to other archetype via Add/Remove Component
 		public Archetype*       prevArchetype;
 	}
-	
+
     unsafe class ArchetypeManager : IDisposable
 	{
 		NativeMultiHashMap<uint, IntPtr>		m_TypeLookup;
@@ -182,7 +190,7 @@ namespace UnityEngine.ECS
 				throw new System.ArgumentException($"Invalid component count");
 			if (types[0].typeIndex != TypeManager.GetTypeIndex<Entity>())
 				throw new System.ArgumentException($"The Entity ID must always be the first component");
-			
+
 			for (int i = 1; i < count; i++)
 			{
 				if (!TypeManager.IsValidComponentTypeForArchetype(types[i].typeIndex, types[i].IsFixedArray))
@@ -191,7 +199,7 @@ namespace UnityEngine.ECS
 					throw new ArgumentException($"It is not allowed to have two components of the same type on the same entity. ({types[i-1]} and {types[i]})");
 			}
 		}
-		
+
         public Archetype* GetArchetype(ComponentTypeInArchetype* types, int count, EntityGroupManager groupManager, SharedComponentDataManager sharedComponentManager)
 		{
 			uint hash = HashUtility.fletcher32((ushort*)types, count * sizeof(ComponentTypeInArchetype) / sizeof(ushort));
@@ -209,7 +217,7 @@ namespace UnityEngine.ECS
 			}
 
 			AssertArchetypeComponents(types, count);
-			
+
 			// This is a new archetype, allocate it and add it to the hash map
             type = (Archetype*)m_ArchetypeChunkAllocator.Allocate(sizeof(Archetype), 8);
 			type->typesCount = count;
@@ -217,8 +225,16 @@ namespace UnityEngine.ECS
 
 			type->entityCount = 0;
 
-            int chunkDataSize = GetChunkBufferSize();
+		    type->numSharedComponents = 0;
+		    type->sharedComponentOffset = null;
 
+		    for (int i = 0; i < count; ++i)
+		    {
+		        if (TypeManager.GetComponentType(types[i].typeIndex).category == TypeManager.TypeCategory.ISharedComponentData)
+		            ++type->numSharedComponents;
+		    }
+
+            int chunkDataSize = GetChunkBufferSize(type->numSharedComponents);
 
             // FIXME: proper alignment
             type->offsets = (int*)m_ArchetypeChunkAllocator.Allocate(sizeof(int) * count, 4);
@@ -272,6 +288,22 @@ namespace UnityEngine.ECS
 				}
 			}
 
+
+
+		    if (type->numSharedComponents > 0)
+		    {
+		        type->sharedComponentOffset = (int*)m_ArchetypeChunkAllocator.Allocate (sizeof(int) * count, 4);
+		        int mi = 0;
+		        for (int i = 0; i < count; ++i)
+		        {
+		            TypeManager.ComponentType cType = TypeManager.GetComponentType(types[i].typeIndex);
+		            if (cType.category == TypeManager.TypeCategory.ISharedComponentData)
+		                type->sharedComponentOffset[i] = mi++;
+		            else
+		                type->sharedComponentOffset[i] = -1;
+		        }
+		    }
+
 			// Update the list of all created archetypes
 			type->prevArchetype = m_LastArchetype;
 			m_LastArchetype = type;
@@ -289,9 +321,16 @@ namespace UnityEngine.ECS
 
         const int kChunkSize = 16 * 1024;
 
-        public static int GetChunkBufferSize()
+
+	    static int GetBufferOffset(int numSharedComponents)
+	    {
+	        int headerSize = sizeof(Chunk) + numSharedComponents * sizeof(int);
+	        return (headerSize + 63) & ~63;
+	    }
+
+        public static int GetChunkBufferSize(int numSharedComponents)
         {
-            int bufferOffset = (sizeof(Chunk) + 63) & ~63;
+            int bufferOffset = GetBufferOffset(numSharedComponents);
             int bufferSize = kChunkSize - bufferOffset;
 
             return bufferSize;
@@ -301,7 +340,7 @@ namespace UnityEngine.ECS
         {
             IntPtr buffer = UnsafeUtility.Malloc(kChunkSize, 64, Allocator.Persistent);
 
-            int bufferOffset = (sizeof(Chunk) + 63) & ~63;
+            int bufferOffset = GetBufferOffset(archetype->numSharedComponents);
 
             var chunk = (Chunk*)buffer;
             chunk->archetype = archetype;
@@ -325,18 +364,44 @@ namespace UnityEngine.ECS
 			}
 			else
 				chunk->managedArrayIndex = -1;
+
+
+            if (archetype->numSharedComponents > 0)
+            {
+                int* sharedComponentValueArray = Chunk.GetSharedComponentValueArray(chunk);
+                int numSharedComponents = chunk->archetype->numSharedComponents;
+                for (int i = 0; i < numSharedComponents; ++i)
+                {
+                    sharedComponentValueArray[i] = 0;
+                }
+            }
+
 			return chunk;
         }
+
+	    bool ChuckHasDefaultSharedComponents(Chunk* chunk)
+	    {
+	        int* sharedComponentValueArray = Chunk.GetSharedComponentValueArray(chunk);
+	        int numSharedComponents = chunk->archetype->numSharedComponents;
+	        for (int i = 0; i < numSharedComponents; ++i)
+	        {
+	            if (sharedComponentValueArray[i] != 0)
+	            {
+	                return false;
+	            }
+	        }
+	        return true;
+	    }
 
         public Chunk* GetChunkWithEmptySlots(Archetype* archetype)
         {
             Chunk* chunk = archetype->first;
 	        while (chunk != null)
 	        {
-		        if (chunk->count != chunk->capacity)
-			        return chunk;
-		        
-		        chunk = chunk->next;
+	            if (chunk->count != chunk->capacity && (archetype->numSharedComponents == 0 || ChuckHasDefaultSharedComponents(chunk)))
+                    return chunk;
+
+	            chunk = chunk->next;
 	        }
 
 	        return AllocateChunk (archetype);
@@ -361,7 +426,7 @@ namespace UnityEngine.ECS
 
         /*public void DeallocateChunk(Chunk* chunk)
         {
-            
+
         }*/
 
         public object GetManagedObject(Chunk* chunk, ComponentType type, int index)
@@ -386,7 +451,7 @@ namespace UnityEngine.ECS
 		public void SetManagedObject(Chunk* chunk, int type, int index, object val)
 		{
 			int managedStart = chunk->archetype->managedArrayOffset[type] * chunk->capacity;
-			m_ManagedArrays[chunk->managedArrayIndex].managedArray[index + managedStart] = val;			
+			m_ManagedArrays[chunk->managedArrayIndex].managedArray[index + managedStart] = val;
 
 			if (chunk->archetype->managedObjectListenerIndex >= 0)
 			{

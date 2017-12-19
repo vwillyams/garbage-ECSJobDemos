@@ -13,11 +13,17 @@ namespace Asteriods.Client
 
     [UpdateBefore(typeof(LineRenderSystem))]
     [UpdateInGroup(typeof(ParticleUpdateSystemGroup))]
-    public class ParticleRenderSystem : ComponentSystem
+    public class ParticleRenderSystem : JobComponentSystem
     {
         [Inject]
         LineRenderSystem m_LineRenderSystem;
 
+        struct LineList
+        {
+            public ComponentDataArray<LineRendererComponentData> line;
+        }
+        [InjectComponentGroup]
+        LineList m_LineListComponent;
         struct Particles
         {
             public int Length;
@@ -32,24 +38,48 @@ namespace Asteriods.Client
         [InjectComponentGroup]
         Particles particles;
 
-        override protected void OnUpdate()
+        [ComputeJobOptimization]
+        struct ParticleRenderJob : IJobParallelFor
         {
-            NativeList<LineRenderSystem.Line> lines = m_LineRenderSystem.LineList;
-            for (int i = 0; i < particles.Length; ++i)
+            public NativeSlice<LineRenderSystem.Line> lines;
+            [ReadOnly]
+            public ComponentDataArray<ParticleComponentData> particles;
+            [ReadOnly]
+            public ComponentDataArray<PositionComponentData> positions;
+            [ReadOnly]
+            public ComponentDataArray<RotationComponentData> rotations;
+            public void Execute(int i)
             {
-                var particle = particles.particle[i];
-                var position = particles.position[i];
+                var particle = particles[i];
+                var position = positions[i];
                 float2 pos = new float2(position.x, position.y);
                 float2 dir = new float2(0, particle.length);
-                dir = RotationComponentData.rotate(dir, particles.rotation[i].angle);
-                lines.Add(new LineRenderSystem.Line(pos, pos - dir, particle.color, particle.width));
+                dir = RotationComponentData.rotate(dir, rotations[i].angle);
+                lines[i] = new LineRenderSystem.Line(pos, pos - dir, particle.color, particle.width);
             }
+        }
+        override protected JobHandle OnUpdate(JobHandle inputDep)
+        {
+            if (m_LineListComponent.line.Length != 1)
+                return inputDep;
+            NativeList<LineRenderSystem.Line> lines = m_LineRenderSystem.LineList;
+            var start = lines.Length;
+            lines.ResizeUninitialized(start + particles.Length);
+
+            NativeSlice<LineRenderSystem.Line> lineSubset = new NativeSlice<LineRenderSystem.Line>(lines, start, particles.Length);
+
+            var job = new ParticleRenderJob();
+            job.lines = lineSubset;
+            job.particles = particles.particle;
+            job.positions = particles.position;
+            job.rotations = particles.rotation;
+            return job.Schedule(particles.Length, 8, inputDep);
         }
     }
 
     [UpdateBefore(typeof(ParticleRenderSystem))]
     [UpdateInGroup(typeof(ParticleUpdateSystemGroup))]
-    public class ParticleAgeSystem : ComponentSystem
+    public class ParticleAgeSystem : JobComponentSystem
     {
         [Inject]
         EntityManager m_EntityManager;
@@ -65,6 +95,7 @@ namespace Asteriods.Client
         Particles particles;
 
 
+        [ComputeJobOptimization]
         struct ParticleAgeJob : IJobParallelFor
         {
             public float deltaTime;
@@ -77,26 +108,40 @@ namespace Asteriods.Client
             {
                 var age = ages[i];
                 age.age += deltaTime;
-                if (age.age > age.maxAge)
+                if (age.age >= age.maxAge)
+                {
+                    age.age = age.maxAge;
                     toDelete.Enqueue(entities[i]);
+                }
                 ages[i] = age;
             }
         }
-        override protected void OnUpdate()
+        NativeQueue<Entity> toDelete;
+
+        override protected void OnCreateManager(int capacity)
         {
-            NativeQueue<Entity> toDelete = new NativeQueue<Entity>(particles.Length, Allocator.TempJob);
-            var job = new ParticleAgeJob();
-            job.toDelete = toDelete;
-            job.deltaTime = Time.deltaTime;
-            job.ages = particles.age;
-            job.entities = particles.entities;
-            job.Schedule(particles.Length, 8).Complete();
+            toDelete = new NativeQueue<Entity>(10*1024, Allocator.Persistent);
+        }
+        override protected void OnDestroyManager()
+        {
+            toDelete.Dispose();
+        }
+        override protected JobHandle OnUpdate(JobHandle inputDep)
+        {
             Entity ent;
             while (toDelete.TryDequeue(out ent))
             {
                 m_EntityManager.DestroyEntity(ent);
             }
-            toDelete.Dispose();
+            UpdateInjectedComponentGroups();
+            toDelete.Capacity = System.Math.Max(toDelete.Capacity, particles.Length*2);
+
+            var job = new ParticleAgeJob();
+            job.toDelete = toDelete;
+            job.deltaTime = Time.deltaTime;
+            job.ages = particles.age;
+            job.entities = particles.entities;
+            return job.Schedule(particles.Length, 8, inputDep);
         }
     }
 
@@ -115,6 +160,7 @@ namespace Asteriods.Client
         [InjectComponentGroup]
         Particles particles;
 
+        [ComputeJobOptimization]
         struct ParticleMoveJob : IJobParallelFor
         {
             public float deltaTime;
@@ -157,6 +203,7 @@ namespace Asteriods.Client
         [InjectComponentGroup]
         Particles particles;
 
+        [ComputeJobOptimization]
         struct ParticleColorJob : IJobParallelFor
         {
             public ComponentDataArray<ParticleComponentData> particles;
@@ -188,7 +235,8 @@ namespace Asteriods.Client
     [UpdateInGroup(typeof(ParticleUpdateSystemGroup))]
     public class ParticleSizeTransitionSystem : JobComponentSystem
     {
-        struct Particles
+        [ComputeJobOptimization]
+        struct Particles : IJobParallelFor
         {
             public int Length;
             [ReadOnly]
@@ -196,36 +244,22 @@ namespace Asteriods.Client
             [ReadOnly]
             public ComponentDataArray<ParticleAgeComponentData> age;
             public ComponentDataArray<ParticleComponentData> particle;
+            public void Execute(int i)
+            {
+                var curpart = particle[i];
+                float sizeScale = age[i].age / age[i].maxAge;
+                curpart.length = size[i].startLength + (size[i].endLength - size[i].startLength) * sizeScale;
+                curpart.width = size[i].startWidth + (size[i].endWidth - size[i].startWidth) * sizeScale;
+                particle[i] = curpart;
+            }
         }
 
         [InjectComponentGroup]
         Particles particles;
 
-        struct ParticleSizeJob : IJobParallelFor
-        {
-            public ComponentDataArray<ParticleComponentData> particles;
-            [ReadOnly]
-            public ComponentDataArray<ParticleSizeTransitionComponentData> sizes;
-            [ReadOnly]
-            public ComponentDataArray<ParticleAgeComponentData> ages;
-            public void Execute(int i)
-            {
-                var particle = particles[i];
-                var size = sizes[i];
-                var age = ages[i];
-                float sizeScale = age.age / age.maxAge;
-                particle.length = size.startLength + (size.endLength - size.startLength) * sizeScale;
-                particle.width = size.startWidth + (size.endWidth - size.startWidth) * sizeScale;
-                particles[i] = particle;
-            }
-        }
         override protected JobHandle OnUpdate(JobHandle inputDep)
         {
-            var job = new ParticleSizeJob();
-            job.particles = particles.particle;
-            job.sizes = particles.size;
-            job.ages = particles.age;
-            return job.Schedule(particles.Length, 8, inputDep);
+            return particles.Schedule(particles.Length, 8, inputDep);
         }
     }
 }

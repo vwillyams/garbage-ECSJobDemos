@@ -5,10 +5,14 @@ using UnityEngine;
 using UnityEngine.ECS;
 using Unity.Mathematics;
 using UnityEngine.Rendering;
+using Unity.Jobs;
 
 
 namespace Asteriods.Client
 {
+    public struct LineRendererComponentData : IComponentData
+    {
+    }
     public class LineRenderSystem : ComponentSystem
     {
         public struct Line
@@ -25,6 +29,16 @@ namespace Asteriods.Client
             public float4 color;
             public float width;
         }
+        struct LineListComponents
+        {
+            public ComponentDataArray<LineRendererComponentData> line;
+        }
+        [InjectComponentGroup]
+        LineListComponents m_LineListComponent;
+        [Inject]
+        EntityManager m_EntityManager;
+		Entity m_SingletonEntity;
+
         NativeList<Line> m_LineList;
 
         // Rendering resources
@@ -32,24 +46,25 @@ namespace Asteriods.Client
         ComputeBuffer m_ComputeBuffer;
         CommandBuffer m_CommandBuffer;
 
-        const int MaxLines = 100 * 1024;
-        override protected void OnUpdate()
+        const int MaxLines = 1024 * 1024;
+         override protected void OnUpdate()
         {
+            var lineList = m_LineList;
             if (Camera.main.GetCommandBuffers(CameraEvent.AfterEverything).Length == 0)
                 Camera.main.AddCommandBuffer(CameraEvent.AfterEverything, m_CommandBuffer);
-            if (m_LineList.Length > MaxLines)
+            if (lineList.Length > MaxLines)
             {
-                Debug.LogWarning("Trying to render " + m_LineList.Length + " but limit is " + MaxLines);
-                m_LineList.ResizeUninitialized(MaxLines);
+                Debug.LogWarning("Trying to render " + lineList.Length + " but limit is " + MaxLines);
+                lineList.ResizeUninitialized(MaxLines);
             }
-            NativeArray<Line> lines = m_LineList;
+            NativeArray<Line> lines = lineList;
             m_Material.SetFloat("screenWidth", Screen.width);
             m_Material.SetFloat("screenHeight", Screen.height);
             m_Material.SetBuffer("lines", m_ComputeBuffer);
             m_ComputeBuffer.SetData(lines);
             m_CommandBuffer.Clear();
-            m_CommandBuffer.DrawProcedural(Matrix4x4.identity, m_Material, -1, MeshTopology.Triangles, m_LineList.Length * 6);
-            m_LineList.Clear();
+            m_CommandBuffer.DrawProcedural(Matrix4x4.identity, m_Material, -1, MeshTopology.Triangles, lineList.Length * 6);
+            lineList.Clear();
         }
 
         override protected void OnCreateManager(int capacity)
@@ -64,6 +79,11 @@ namespace Asteriods.Client
             m_Material = new Material(shader);
             m_ComputeBuffer = new ComputeBuffer(MaxLines, UnsafeUtility.SizeOf<Line>());
             m_CommandBuffer = new CommandBuffer();
+
+			// Fake singleton entity
+            m_SingletonEntity = m_EntityManager.CreateEntity();
+            m_EntityManager.AddComponent(m_SingletonEntity, new LineRendererComponentData());
+
             m_LineList = new NativeList<Line>(MaxLines, Allocator.Persistent);
 
             m_Material.SetBuffer("lines", m_ComputeBuffer);
@@ -71,6 +91,7 @@ namespace Asteriods.Client
         }
         override protected void OnDestroyManager()
         {
+			m_EntityManager.DestroyEntity(m_SingletonEntity);
             if (m_LineList.IsCreated)
                 m_LineList.Dispose();
             m_CommandBuffer.Release();

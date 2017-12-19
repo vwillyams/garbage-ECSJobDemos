@@ -55,8 +55,16 @@ namespace Asteriods.Client
         [InjectComponentGroup]
         Spaceships spaceships;
 
+        struct LineList
+        {
+            public ComponentDataArray<LineRendererComponentData> line;
+        }
+        [InjectComponentGroup]
+        LineList m_LineListComponent;
         override protected void OnUpdate()
         {
+            if (m_LineListComponent.line.Length != 1)
+                return;
             NativeList<LineRenderSystem.Line> lines = m_LineRenderSystem.LineList;
             float shipWidth = 10;
             float shipHeight = 20;

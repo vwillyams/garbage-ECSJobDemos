@@ -59,7 +59,7 @@ namespace UnityEditor.ECS
 		public void SetSystemsAndState(Type[] systemTypes, SystemGraphState savedState)
 		{
 		    state = savedState;
-		    
+
 			var systemViewIndicesByType = new Dictionary<Type, int>();
 
 			if (systemTypes != null)
@@ -145,11 +145,11 @@ namespace UnityEditor.ECS
 			if (arrowDirection == Vector3.zero)
 				return;
 			Handles.color = EditorStyles.label.normal.textColor;
-//			var lineTexture = (Texture2D) EditorGUIUtility.LoadRequired("AALineRetina.png");
+			var lineTexture = (Texture2D)AssetDatabase.LoadAssetAtPath("Packages/Unity.ECS.Editor/Resources/AALineRetina.png", typeof(Texture2D));
 			var startPos = ExteriorPointFromOtherPoint(fromView.position, toView.Center);
 			var endPos = ExteriorPointFromOtherPoint(toView.position, fromView.Center);
 			endPos -= (endPos - startPos).normalized * 0.6f * kArrowSize;
-			Handles.DrawAAPolyLine(null, EditorGUIUtility.pixelsPerPoint * kLineWidth, startPos, endPos);
+			Handles.DrawAAPolyLine(lineTexture, EditorGUIUtility.pixelsPerPoint * kLineWidth, startPos, endPos);
 			var rotation = Quaternion.LookRotation(arrowDirection, Vector3.forward);
 			Handles.ConeHandleCap(0, endPos, rotation, kArrowSize, Event.current.type);
 		}

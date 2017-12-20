@@ -11,9 +11,14 @@ using UnityEditor.IMGUI.Controls;
 
 namespace UnityEditor.ECS
 {
-    public class EntityWindow : EditorWindow {
+    public class EntityWindow : EditorWindow, IWorldSelectionWindow {
 
         const float kSystemListHeight = 100f;
+
+        public void SetWorldSelection(World world)
+        {
+            CurrentWorldSelection = world;
+        }
 
         public World CurrentWorldSelection
         {

@@ -15,9 +15,9 @@ namespace UnityEditor.ECS
 
         private Dictionary<int, World> worldsById;
 
-        readonly EntityWindow window;
+        readonly IWorldSelectionWindow window;
 
-        public WorldListView(TreeViewState state, EntityWindow window) : base(state)
+        public WorldListView(TreeViewState state, IWorldSelectionWindow window) : base(state)
         {
             this.window = window;
             Reload();
@@ -56,11 +56,11 @@ namespace UnityEditor.ECS
         {
             if (selectedIds.Count > 0 && worldsById.ContainsKey(selectedIds[0]))
             {
-                window.CurrentWorldSelection = worldsById[selectedIds[0]];
+                window.SetWorldSelection(worldsById[selectedIds[0]]);
             }
             else
             {
-                window.CurrentWorldSelection = null;
+                window.SetWorldSelection(null);
             }
         }
 

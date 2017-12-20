@@ -13,10 +13,10 @@ namespace UnityEditor.ECS
 	{
 		private PlayerLoopListView playerLoopListView;
 		[SerializeField] private TreeViewState playerLoopListState = new TreeViewState();
-		
+
 		private SystemGraphView systemGraphView;
 		[SerializeField] private List<SystemViewData> systemViews;
-		
+
 		Type[] systemTypes
 		{
 			get
@@ -33,12 +33,12 @@ namespace UnityEditor.ECS
 		{
 			if (systemGraphView == null)
 				systemGraphView = new SystemGraphView();
-			
+
 			if (playerLoopListView == null)
 				playerLoopListView = new PlayerLoopListView(playerLoopListState);
 			SetPlayerLoop(PlayerLoopHelper.currentPlayerLoop);
 		}
-		
+
 		[MenuItem("Window/Systems", false, 2017)]
 		static void Open()
 		{
@@ -67,9 +67,9 @@ namespace UnityEditor.ECS
 			GUILayout.BeginHorizontal();
 
 			GUILayout.BeginVertical();
-			
+
 			GUILayout.FlexibleSpace();
-			
+
 			GUILayout.BeginHorizontal();
 			GUILayout.FlexibleSpace();
 			if (GUILayout.Button("Layout"))
@@ -86,25 +86,26 @@ namespace UnityEditor.ECS
 			if (systemViews.Count == 0)
 			{
 				GUIHelpers.ShowCenteredNotification(new Rect(Vector2.zero, position.size), "No ComponentSystems loaded. (Try pushing Play)");
-				return;
 			}
-			
-			systemGraphView.OnGUIArrows();
+			else
+			{
+			    systemGraphView.OnGUIArrows();
 
-			BeginWindows();
+			    BeginWindows();
 
-			systemGraphView.OnGUIWindows();
-			
-			EndWindows();
-			
+			    systemGraphView.OnGUIWindows();
+
+			    EndWindows();
+			}
+
 			GUILayout.EndVertical();
-			
+
 			GUILayout.BeginVertical(GUILayout.Width(300f));
 			playerLoopListView.OnGUI(GUIHelpers.GetExpandingRect());
 			GUILayout.EndVertical();
-			
+
 			GUILayout.EndHorizontal();
 		}
 	}
-	
+
 }

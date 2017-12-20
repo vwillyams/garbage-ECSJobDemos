@@ -505,7 +505,7 @@ namespace UnityEngine.ECS
 			{
 				var system = systemKeyValue.Value;
 				// @TODO: attribute for sync
-				if (!(system.manager is ComponentSystem))
+				if (!(system.manager is ComponentSystem) || ((ComponentSystem) system.manager).ComponentGroups == null)
 					continue;
 				var waitComponent = new HashSet<Type>();
 				foreach (var componentGroup in ((ComponentSystem) system.manager).ComponentGroups)

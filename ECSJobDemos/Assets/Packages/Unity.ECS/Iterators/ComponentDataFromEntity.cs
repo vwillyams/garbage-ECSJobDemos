@@ -26,6 +26,7 @@ namespace UnityEngine.ECS
         {
             m_TypeIndex = typeIndex;
             m_Entities = entityData;
+            m_TypeLookupCache = 0;
         }
 #endif
 

@@ -37,7 +37,7 @@ namespace UnityEditor.ECS
             var root  = new TreeViewItem { id = currentID++, depth = -1, displayName = "Root" };
             if (worlds == null || worlds.Count == 0)
             {
-                root.AddChild(new TreeViewItem { id = currentID++, displayName = "No ComponentSystems Loaded"});
+                root.AddChild(new TreeViewItem { id = currentID++, displayName = "No Worlds Loaded"});
             }
             else
             {

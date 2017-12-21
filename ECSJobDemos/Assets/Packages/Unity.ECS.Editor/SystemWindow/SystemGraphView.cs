@@ -19,10 +19,12 @@ namespace UnityEditor.ECS
 
 
 		private SystemGraphState state;
+	    private readonly Texture2D lineTexture;
 
 	    public SystemGraphView(Vector2 windowOffset)
 	    {
 	        kStartPosition = new Rect(windowOffset, Vector2.one);
+	        lineTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.ecs_bundle/Unity.ECS.Editor/Resources/AALineRetina.png");
 	    }
 
 	    public static SystemGraphState GetStateForWorld(World world, ref List<SystemGraphState> stateForWorlds,
@@ -145,7 +147,6 @@ namespace UnityEditor.ECS
 			if (arrowDirection == Vector3.zero)
 				return;
 			Handles.color = EditorStyles.label.normal.textColor;
-			var lineTexture = (Texture2D)AssetDatabase.LoadAssetAtPath("Packages/Unity.ECS.Editor/Resources/AALineRetina.png", typeof(Texture2D));
 			var startPos = ExteriorPointFromOtherPoint(fromView.position, toView.Center);
 			var endPos = ExteriorPointFromOtherPoint(toView.position, fromView.Center);
 			endPos -= (endPos - startPos).normalized * 0.6f * kArrowSize;

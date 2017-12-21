@@ -28,7 +28,7 @@ namespace Asteriods.Server
         {
             base.OnCreateManager(capacity);
 
-            playerInputQueue = new NativeQueue<PlayerInputComponentData>(128, Allocator.Persistent);
+            playerInputQueue = new NativeQueue<PlayerInputComponentData>(Allocator.Persistent);
             Debug.Assert(playerInputQueue.IsCreated);
         }
 

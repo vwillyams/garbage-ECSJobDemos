@@ -31,7 +31,7 @@ public class NativeQueueTests_InJobs
 	public void Enqueue()
 	{
 		const int queueSize = 100*1024;
-		var queue = new NativeQueue<int>(queueSize, Allocator.Temp);
+		var queue = new NativeQueue<int>(Allocator.Temp);
 		var writeStatus = new NativeArray<int>(queueSize, Allocator.Temp);
 
 		var enqueueJob = new ConcurrentEnqueue();
@@ -48,44 +48,6 @@ public class NativeQueueTests_InJobs
 			int enqueued = queue.Dequeue();
 			Assert.IsTrue(enqueued >= 0 && enqueued < queueSize, "Job enqueued invalid value");
 			Assert.IsTrue(allValues.Add(enqueued), "Job enqueued same value multiple times");
-		}
-
-		queue.Dispose();
-		writeStatus.Dispose();
-	}
-
-	[Test]
-	public void Enqueue_Full()
-	{
-		const int queueSize = 1024;
-		const int iterationCount = 32;
-		var queue = new NativeQueue<int>(queueSize/2, Allocator.Temp);
-		var writeStatus = new NativeArray<int>(queueSize, Allocator.Temp);
-
-		for (int iteration = 0; iteration < iterationCount; ++iteration)
-		{
-			var enqueueJob = new ConcurrentEnqueue();
-			enqueueJob.queue = queue;
-			enqueueJob.result = writeStatus;
-
-			enqueueJob.Schedule(queueSize, 1).Complete();
-
-			Assert.AreEqual(queueSize/2, queue.Count, "Job enqueued the wrong number of values");
-			var allValues = new HashSet<int>();
-			int failCount = 0;
-			for (int i = 0; i < queueSize; ++i)
-			{
-				if (writeStatus[i] != 1)
-					++failCount;
-				else
-				{
-					int enqueued = queue.Dequeue();
-					Assert.IsTrue(enqueued >= 0 && enqueued < queueSize, "Job enqueued invalid value");
-					Assert.IsTrue(allValues.Add(enqueued), "Job enqueued same value multiple times");
-				}
-			}
-			Assert.AreEqual(0, queue.Count, "Job enqueued the wrong number of values");
-			Assert.AreEqual(queueSize/2, failCount, "Job enqueued the wrong number of values");
 		}
 
 		queue.Dispose();

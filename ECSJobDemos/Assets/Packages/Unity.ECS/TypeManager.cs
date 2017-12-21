@@ -81,7 +81,7 @@ namespace UnityEngine.ECS
             {
                 int componentSize = 0;
                 TypeCategory category;
-                
+
                 if (typeof(IComponentData).IsAssignableFrom(type))
                 {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -90,7 +90,7 @@ namespace UnityEngine.ECS
                     if (!UnsafeUtility.IsBlittable(type))
                         throw new System.ArgumentException($"{type} is an IComponentData, and thus must be blittable (No managed object is allowed on the struct).");
 #endif
-                    
+
                     category = TypeCategory.IComponentData;
                     componentSize = UnsafeUtility.SizeOf(type);
                 }
@@ -100,7 +100,7 @@ namespace UnityEngine.ECS
                     if (type.IsClass)
                         throw new System.ArgumentException($"{type} is an ISharedComponentData, and thus must be a struct.");
 #endif
-                    
+
                     category = TypeCategory.ISharedComponentData;
                 }
                 else if (type.IsValueType)
@@ -136,7 +136,7 @@ namespace UnityEngine.ECS
                 return m_Types.Count - 1;
             }
         }
-        
+
         public static bool IsValidComponentTypeForArchetype(int typeIndex, bool isArray)
         {
             if (m_Types[typeIndex].category == TypeCategory.OtherValueType)
@@ -154,7 +154,7 @@ namespace UnityEngine.ECS
         {
             return m_Types[GetTypeIndex<T>()];
         }
-        
+
         public static Type GetType(int typeIndex)
         {
             return m_Types[typeIndex].type;

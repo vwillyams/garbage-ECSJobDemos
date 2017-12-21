@@ -7,14 +7,14 @@ using System.ComponentModel;
 using UnityEngine.ECS;
 using UnityEngine.Jobs;
 
-namespace UnityEngine.ECS 
+namespace UnityEngine.ECS
 {
     public struct AddComponentPayload<T> where T : struct, IComponentData
     {
         public Entity entity;
         public T component;
     }
-    
+
     [UpdateBefore(typeof(UnityEngine.Experimental.PlayerLoop.Initialization))]
     public class DeferredEntityChangeSystem : ComponentSystem
     {
@@ -35,7 +35,7 @@ namespace UnityEngine.ECS
             {
                 if (queue.IsCreated)
                 {
-                    queue.Dispose();                    
+                    queue.Dispose();
                 }
             }
             public void Apply(EntityManager manager)
@@ -48,7 +48,7 @@ namespace UnityEngine.ECS
                     var component = payload.component;
                     if (!manager.HasComponent<T>(entity))
                     {
-                        manager.AddComponent(entity, component);          
+                        manager.AddComponent(entity, component);
                     }
                 }
             }
@@ -62,7 +62,7 @@ namespace UnityEngine.ECS
             {
                 if (queue.IsCreated)
                 {
-                    queue.Dispose();                    
+                    queue.Dispose();
                 }
             }
             public void Apply(EntityManager manager)
@@ -71,11 +71,11 @@ namespace UnityEngine.ECS
                 for (int i = 0; i < count; i++)
                 {
                     var entity = queue.Dequeue();
-                    manager.RemoveComponent<T>(entity);          
+                    manager.RemoveComponent<T>(entity);
                 }
             }
         }
-        
+
         public object[] m_AddComponentQueue;
         public object[] m_RemoveComponentQueue;
 
@@ -85,7 +85,7 @@ namespace UnityEngine.ECS
             if ((m_AddComponentQueue.Length <= index) || (m_AddComponentQueue[index] == null))
             {
                 var newOwner = new AddQueueOwner<T>();
-                newOwner.queue = new NativeQueue<AddComponentPayload<T>>(512*1024,Allocator.Persistent);
+                newOwner.queue = new NativeQueue<AddComponentPayload<T>>(Allocator.Persistent);
                 m_AddComponentQueue[index] = newOwner;
             }
             var owner = (AddQueueOwner<T>) m_AddComponentQueue[index];
@@ -98,13 +98,13 @@ namespace UnityEngine.ECS
             if ((m_RemoveComponentQueue.Length <= index) || (m_RemoveComponentQueue[index] == null))
             {
                 var newOwner = new RemoveQueueOwner<T>();
-                newOwner.queue = new NativeQueue<Entity>(512*1024,Allocator.Persistent);
+                newOwner.queue = new NativeQueue<Entity>(Allocator.Persistent);
                 m_RemoveComponentQueue[index] = newOwner;
             }
             var owner = (RemoveQueueOwner<T>) m_RemoveComponentQueue[index];
             return owner.queue;
         }
-        
+
         protected override void OnCreateManager(int capacity)
         {
             m_AddComponentQueue = new object[1024];
@@ -132,9 +132,9 @@ namespace UnityEngine.ECS
                 IDisposeQueue owner = m_RemoveComponentQueue[i] as IDisposeQueue;
                 owner.Dispose();
             }
-            
-        }        
-        
+
+        }
+
         protected override void OnUpdate()
         {
             EntityManager.CompleteAllJobs();

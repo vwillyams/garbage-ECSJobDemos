@@ -1,3 +1,4 @@
+//#define STRESS_TEST_PARTICLES
 using UnityEngine.ECS;
 using UnityEngine;
 
@@ -15,11 +16,27 @@ namespace Asteriods.Client
         {
             base.OnCreateManager(capacity);
 
-            SpawnQueue = new NativeQueue<SpawnCommand>(128, Allocator.Persistent);
+            SpawnQueue = new NativeQueue<SpawnCommand>(Allocator.Persistent);
             NetworkIdLookup = new NativeHashMap<int, Entity>(1024, Allocator.Persistent);
 
             Debug.Assert(SpawnQueue.IsCreated);
             Debug.Assert(NetworkIdLookup.IsCreated);
+			#if STRESS_TEST_PARTICLES
+            var emitterType = EntityManager.CreateArchetype(typeof(PositionComponentData), typeof(RotationComponentData), typeof(ParticleEmitterComponentData));
+            var emitterData = ClientSettings.Instance().playerPrefab.GetComponent<ParticleEmitterComponent>().Value;
+            int numEmitters = 0;
+            for (int yp = 0; yp < Screen.height; yp += 20)
+            {
+                for (int xp = 0; xp < Screen.width; xp += 100)
+                {
+                    Entity e = EntityManager.CreateEntity(emitterType);
+                    EntityManager.SetComponent(e, new PositionComponentData(xp, yp));
+                    EntityManager.SetComponent(e, emitterData);
+                    ++numEmitters;
+                }
+            }
+            Debug.Log("Running " + numEmitters + " systems, " + (numEmitters * emitterData.particlesPerSecond) + " particles / second");
+			#endif
         }
 
         override protected void OnDestroyManager()

@@ -120,7 +120,7 @@ namespace Asteriods.Client
 
         override protected void OnCreateManager(int capacity)
         {
-            toDelete = new NativeQueue<Entity>(10*1024, Allocator.Persistent);
+            toDelete = new NativeQueue<Entity>(Allocator.Persistent);
         }
         override protected void OnDestroyManager()
         {
@@ -134,7 +134,6 @@ namespace Asteriods.Client
                 m_EntityManager.DestroyEntity(ent);
             }
             UpdateInjectedComponentGroups();
-            toDelete.Capacity = System.Math.Max(toDelete.Capacity, particles.Length*2);
 
             var job = new ParticleAgeJob();
             job.toDelete = toDelete;

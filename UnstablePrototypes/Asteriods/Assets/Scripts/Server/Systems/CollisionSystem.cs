@@ -55,7 +55,7 @@ namespace Asteriods.Server
         {
             base.OnCreateManager(capacity);
 
-            damageQueue = new NativeQueue<Entity>(128, Allocator.Persistent);
+            damageQueue = new NativeQueue<Entity>(Allocator.Persistent);
             Debug.Assert(damageQueue.IsCreated);
         }
 

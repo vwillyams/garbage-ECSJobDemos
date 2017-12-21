@@ -24,7 +24,7 @@ namespace Asteriods.Server
         {
             base.OnCreateManager(capacity);
 
-            inputEventQueue = new NativeQueue<PlayerInputComponentData>(128, Allocator.Persistent);
+            inputEventQueue = new NativeQueue<PlayerInputComponentData>(Allocator.Persistent);
             Debug.Assert(inputEventQueue.IsCreated);
 
             m_Socket = ServerSettings.Instance().socket;

@@ -30,7 +30,7 @@ namespace Asteriods.Server
         {
             base.OnCreateManager(capacity);
 
-            DespawnQueue = new NativeQueue<DespawnCommand>(128, Allocator.Persistent);
+            DespawnQueue = new NativeQueue<DespawnCommand>(Allocator.Persistent);
             Debug.Assert(DespawnQueue.IsCreated);
         }
 

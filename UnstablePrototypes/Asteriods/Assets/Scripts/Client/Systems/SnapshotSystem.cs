@@ -17,7 +17,7 @@ namespace Asteriods.Client
         {
             base.OnCreateManager(capacity);
 
-            MovementUpdates = new NativeQueue<MovementData>(128, Allocator.Persistent);
+            MovementUpdates = new NativeQueue<MovementData>(Allocator.Persistent);
             Debug.Assert(MovementUpdates.IsCreated);
         }
 

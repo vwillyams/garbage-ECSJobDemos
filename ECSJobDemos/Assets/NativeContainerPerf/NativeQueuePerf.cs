@@ -11,20 +11,20 @@ public class NativeQueuePerf : MonoBehaviour
 	// Use this for initialization
 	void Start ()
 	{
-		m_queue = new NativeQueue<int>(1024*1024, Allocator.Persistent);
+		m_queue = new NativeQueue<int>(Allocator.Persistent);
 	}
 
 	void OnDisable()
 	{
 		m_queue.Dispose();
 	}
-	
+
 	struct NativeQueueEnqueue : IJobParallelFor
 	{
 		public NativeQueue<int>.Concurrent m_queue;
 		public void Execute(int index)
 		{
-			m_queue.Enqueue(index);			
+			m_queue.Enqueue(index);
 		}
 	}
 	// Update is called once per frame
@@ -32,18 +32,18 @@ public class NativeQueuePerf : MonoBehaviour
 	{
 		m_queue.Clear();
 		UnityEngine.Profiling.Profiler.BeginSample("QueueST");
-		for (int i = 0; i < m_queue.Capacity / 2; ++i)
+		for (int i = 0; i < 1024*1024; ++i)
 			m_queue.Enqueue(i);
 		UnityEngine.Profiling.Profiler.EndSample();
 		m_queue.Clear();
 		UnityEngine.Profiling.Profiler.BeginSample("QueueST.Concurrent");
 		NativeQueue<int>.Concurrent cq = m_queue;
-		for (int i = 0; i < cq.Capacity / 2; ++i)
+		for (int i = 0; i < 1024*1024; ++i)
 			cq.Enqueue(i);
 		UnityEngine.Profiling.Profiler.EndSample();
 		m_queue.Clear();
 		var qjob = new NativeQueueEnqueue();
 		qjob.m_queue = m_queue;
-		qjob.Schedule(m_queue.Capacity / 2, 16).Complete();
+		qjob.Schedule(1024*1024, 16).Complete();
 	}
 }

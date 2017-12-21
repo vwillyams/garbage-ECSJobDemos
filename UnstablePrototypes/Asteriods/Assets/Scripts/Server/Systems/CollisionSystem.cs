@@ -3,23 +3,50 @@ using UnityEngine.ECS;
 
 using Unity.Collections;
 using Unity.Mathematics;
+using Unity.Jobs;
 
 namespace Asteriods.Server
 {
     public class CollisionSystem : ComponentSystem
     {
-        struct Colliders
+        struct PlayerColliders
         {
             public int Length;
             public ComponentDataArray<CollisionSphereComponentData> spheres;
             public ComponentDataArray<PositionComponentData> positions;
+            public ComponentDataArray<PlayerTagComponentData> tag;
 
             public EntityArray entities;
         }
 
         [InjectComponentGroup]
-        Colliders colliders;
+        PlayerColliders playerColliders;
 
+        struct BulletColliders
+        {
+            public int Length;
+            public ComponentDataArray<CollisionSphereComponentData> spheres;
+            public ComponentDataArray<PositionComponentData> positions;
+            public ComponentDataArray<BulletTagComponentData> tag;
+
+            public EntityArray entities;
+        }
+
+        [InjectComponentGroup]
+        BulletColliders bulletColliders;
+
+        struct AsteroidColliders
+        {
+            public int Length;
+            public ComponentDataArray<CollisionSphereComponentData> spheres;
+            public ComponentDataArray<PositionComponentData> positions;
+            public ComponentDataArray<AsteroidTagComponentData> tag;
+
+            public EntityArray entities;
+        }
+
+        [InjectComponentGroup]
+        AsteroidColliders asteroidColliders;
 
         // NOTE (michalb): queue is needed because we cant add a component during iteration of the CompoenentGroup
         NativeQueue<Entity> damageQueue;
@@ -38,54 +65,84 @@ namespace Asteriods.Server
                 damageQueue.Dispose();
         }
 
-        override protected void OnUpdate()
+        struct AsteroidData
         {
-            if (colliders.Length <= 0)
-                return;
-
-            for (int i = 0; i < colliders.Length; ++i)
+            public AsteroidData(float x, float y, float r, Entity ent)
             {
-                var first = colliders.entities[i];
-                var firstRadius = colliders.spheres[i].radius;
-                float2 firstPos = new float2(colliders.positions[i].x, colliders.positions[i].y);
+                position = new float2(x, y);
+                radius = r;
+                entity = ent;
+            }
+            public float2 position;
+            public float radius;
+            public Entity entity;
+        }
 
-                for (int j = 0; j < colliders.Length; ++j)
+        struct CollisionJob : IJobParallelFor
+        {
+            [ReadOnly]
+            public BulletColliders bulletColliders;
+            [ReadOnly]
+            public NativeArray<AsteroidData> asteroidColliders;
+            public NativeQueue<Entity>.Concurrent damageQueue;
+
+            public void Execute(int i)
+            {
+                var firstRadius = bulletColliders.spheres[i].radius;
+                float2 firstPos = new float2(bulletColliders.positions[i].x, bulletColliders.positions[i].y);
+
+                for (int j = 0; j < asteroidColliders.Length; ++j)
                 {
-                    var second = colliders.entities[j];
-                    var secondRadius = colliders.spheres[j].radius;
-                    float2 secondPos = new float2(colliders.positions[j].x, colliders.positions[j].y);
+                    var secondRadius = asteroidColliders[j].radius;
+                    float2 secondPos = asteroidColliders[j].position;
 
-                    if (first == second)
-                        continue;
-
-                    float2 diff = firstPos-secondPos;
-                    float distSq = math.dot(diff, diff);
-                    bool intersects = distSq <= (firstRadius+secondRadius)*(firstRadius+secondRadius);
-
-                    if (EntityManager.HasComponent<PlayerTagComponentData>(first) &&
-                        EntityManager.HasComponent<AsteroidTagComponentData>(second) &&
-                        intersects)
+                    if (Intersect(firstRadius, secondRadius, firstPos, secondPos))
                     {
-                        damageQueue.Enqueue(first);
-                    }
-
-                    if (EntityManager.HasComponent<BulletTagComponentData>(first) &&
-                        EntityManager.HasComponent<AsteroidTagComponentData>(second) &&
-                        intersects)
-                    {
-                        damageQueue.Enqueue(first);
-                        damageQueue.Enqueue(second);
-                    }
-
-                    if (EntityManager.HasComponent<AsteroidTagComponentData>(first) &&
-                        EntityManager.HasComponent<AsteroidTagComponentData>(second) &&
-                        intersects)
-                    {
-                        // TODO (michalb): make them bounce off
+                        // Asteroid receives damage.
+                        damageQueue.Enqueue(asteroidColliders[j].entity);
                     }
                 }
-
             }
+        }
+
+        override protected void OnUpdate()
+        {
+            NativeQueue<Entity>.Concurrent concurrentDamageQueue = damageQueue;
+
+            var job = new CollisionJob();
+
+            job.bulletColliders = bulletColliders;
+            // Copy asteroids to a separate struct since the safety system is type based and detects false aliasing
+            var asteroidData = new NativeArray<AsteroidData>(asteroidColliders.Length, Allocator.Temp);
+            for (int i = 0; i < asteroidData.Length; ++i)
+            {
+                asteroidData[i] = new AsteroidData(asteroidColliders.positions[i].x, asteroidColliders.positions[i].y, asteroidColliders.spheres[i].radius, asteroidColliders.entities[i]);
+            }
+            job.asteroidColliders = asteroidData;
+            job.damageQueue = concurrentDamageQueue;
+            var jobHandle = job.Schedule(bulletColliders.Length, 8);
+
+            // check all asteroids against players (TODO: add asteroids VS. asteroids when required).
+            for (int i = 0; i < asteroidColliders.Length; ++i)
+            {
+                var firstRadius = asteroidColliders.spheres[i].radius;
+                float2 firstPos = new float2(asteroidColliders.positions[i].x, asteroidColliders.positions[i].y);
+
+                for (int j = 0; j < playerColliders.Length; ++j)
+                {
+                    var secondRadius = playerColliders.spheres[j].radius;
+                    float2 secondPos = new float2(playerColliders.positions[j].x, playerColliders.positions[j].y);
+
+                    if (Intersect(firstRadius, secondRadius, firstPos, secondPos))
+                    {
+                        // Player receives damage.
+                        concurrentDamageQueue.Enqueue(playerColliders.entities[j]);
+                    }
+                }
+            }
+
+            jobHandle.Complete();
+            asteroidData.Dispose();
 
             if (damageQueue.Count > 0)
             {
@@ -98,6 +155,13 @@ namespace Asteriods.Server
                 }
                 Debug.Assert(damageQueue.Count == 0);
             }
+        }
+        private static bool Intersect(float firstRadius, float secondRadius, float2 firstPos, float2 secondPos)
+        {
+            float2 diff = firstPos-secondPos;
+            float distSq = math.dot(diff, diff);
+
+            return distSq <= (firstRadius+secondRadius)*(firstRadius+secondRadius);
         }
     }
 }

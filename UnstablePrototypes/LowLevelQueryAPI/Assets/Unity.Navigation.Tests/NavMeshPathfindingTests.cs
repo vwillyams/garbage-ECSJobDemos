@@ -26,6 +26,8 @@ namespace Unity.Navigation.Tests
         [SetUp]
         public void Setup()
         {
+            NavMesh.RemoveAllNavMeshData();
+
             var ground = new NavMeshBuildSource
             {
                 shape = NavMeshBuildSourceShape.Box,
@@ -116,20 +118,20 @@ namespace Unity.Navigation.Tests
             PathQueryStatus status;
             if (costs.Length == 0)
             {
-                status = m_NavMeshQuery.InitSlicedFindPath(startLoc, endLoc, NavMesh.AllAreas);
+                status = m_NavMeshQuery.BeginFindPath(startLoc, endLoc, NavMesh.AllAreas);
             }
             else
             {
-                status = m_NavMeshQuery.InitSlicedFindPath(startLoc, endLoc, NavMesh.AllAreas, costs);
+                status = m_NavMeshQuery.BeginFindPath(startLoc, endLoc, NavMesh.AllAreas, costs);
             }
             Assert.That(status, Is.EqualTo(PathQueryStatus.InProgress));
 
             int iter;
-            status = m_NavMeshQuery.UpdateSlicedFindPath(100, out iter);
+            status = m_NavMeshQuery.UpdateFindPath(100, out iter);
             Assert.That(status, Is.EqualTo(PathQueryStatus.Success));
 
             int pathSize;
-            status = m_NavMeshQuery.FinalizeSlicedFindPath(out pathSize);
+            status = m_NavMeshQuery.EndFindPath(out pathSize);
             Assert.That(status, Is.EqualTo(PathQueryStatus.Success));
             Assert.That(pathSize, Is.EqualTo(expectedPathSize), failMsg);
 
@@ -190,6 +192,7 @@ namespace Unity.Navigation.Tests
             NavMesh.SetAreaCost(k_AreaSliding, originalCost);
         }
 
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
         [Test]
         public void Pathfinding_UsingInvalidAreaCost_Throws()
         {
@@ -201,10 +204,10 @@ namespace Unity.Navigation.Tests
             for (var i = 0; i < areaCosts.Length; i++)
                 areaCosts[i] = 1.0F;
 
-            Assert.DoesNotThrow(() => { m_NavMeshQuery.InitSlicedFindPath(start, end, NavMesh.AllAreas, areaCosts); });
+            Assert.DoesNotThrow(() => { m_NavMeshQuery.BeginFindPath(start, end, NavMesh.AllAreas, areaCosts); });
 
             areaCosts[9] = 0;
-            Assert.Throws<ArgumentException>(() => { m_NavMeshQuery.InitSlicedFindPath(start, end, NavMesh.AllAreas, areaCosts); });
+            Assert.Throws<ArgumentException>(() => { m_NavMeshQuery.BeginFindPath(start, end, NavMesh.AllAreas, areaCosts); });
 
             areaCosts.Dispose();
         }
@@ -222,9 +225,9 @@ namespace Unity.Navigation.Tests
             for (var i = 0; i < allNeededAreaCosts.Length; i++)
                 allNeededAreaCosts[i] = 1.0F;
 
-            Assert.Throws<ArgumentException>(() => { m_NavMeshQuery.InitSlicedFindPath(start, end, NavMesh.AllAreas, notEnoughAreaCosts); });
-            Assert.Throws<ArgumentException>(() => { m_NavMeshQuery.InitSlicedFindPath(start, end, NavMesh.AllAreas, tooManyAreaCosts); });
-            Assert.DoesNotThrow(() => { m_NavMeshQuery.InitSlicedFindPath(start, end, NavMesh.AllAreas, allNeededAreaCosts); });
+            Assert.Throws<ArgumentException>(() => { m_NavMeshQuery.BeginFindPath(start, end, NavMesh.AllAreas, notEnoughAreaCosts); });
+            Assert.Throws<ArgumentException>(() => { m_NavMeshQuery.BeginFindPath(start, end, NavMesh.AllAreas, tooManyAreaCosts); });
+            Assert.DoesNotThrow(() => { m_NavMeshQuery.BeginFindPath(start, end, NavMesh.AllAreas, allNeededAreaCosts); });
 
             notEnoughAreaCosts.Dispose();
             tooManyAreaCosts.Dispose();
@@ -239,7 +242,7 @@ namespace Unity.Navigation.Tests
             var humanStartLocation = m_NavMeshQuery.MapLocation(startPos, Vector3.one, m_BuildSettingsHuman.agentTypeID, m_TestedAreaMask);
             var robotEndLocation = m_NavMeshQuery.MapLocation(endPos, Vector3.one, m_BuildSettingsRobot.agentTypeID, m_TestedAreaMask);
 
-            Assert.Throws<ArgumentException>(() => { m_NavMeshQuery.InitSlicedFindPath(humanStartLocation, robotEndLocation); });
+            Assert.Throws<ArgumentException>(() => { m_NavMeshQuery.BeginFindPath(humanStartLocation, robotEndLocation); });
         }
 
         [Test]
@@ -259,8 +262,10 @@ namespace Unity.Navigation.Tests
 
             Assert.IsFalse(m_NavMeshQuery.IsValid(robotEndLocation));
 
-            Assert.Throws<ArgumentException>(() => { m_NavMeshQuery.InitSlicedFindPath(humanStartLocation, robotEndLocation); });
-            Assert.Throws<ArgumentException>(() => { m_NavMeshQuery.InitSlicedFindPath(robotEndLocation, humanStartLocation); });
+            Assert.Throws<ArgumentException>(() => { m_NavMeshQuery.BeginFindPath(humanStartLocation, robotEndLocation); });
+            Assert.Throws<ArgumentException>(() => { m_NavMeshQuery.BeginFindPath(robotEndLocation, humanStartLocation); });
         }
+
+#endif
     }
 }

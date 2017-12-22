@@ -10,14 +10,16 @@ namespace Unity.Navigation.Tests
 {
     public class NavMeshFixture
     {
-	    public NavMeshData 			m_NavMeshData;
-        public NavMeshDataInstance 	m_NavMeshInstance;
-        const int 					k_AreaWalking = 0;
-        internal const float 		k_Height = 0.3f;
+        public NavMeshData          m_NavMeshData;
+        public NavMeshDataInstance  m_NavMeshInstance;
+        const int                   k_AreaWalking = 0;
+        internal const float        k_Height = 0.3f;
 
         [SetUp]
         public void Setup()
         {
+            NavMesh.RemoveAllNavMeshData();
+
             var boxSource1 = new NavMeshBuildSource
             {
                 shape = NavMeshBuildSourceShape.Box,
@@ -30,46 +32,43 @@ namespace Unity.Navigation.Tests
             var settings = NavMesh.GetSettingsByID(0);
             m_NavMeshData = NavMeshBuilder.BuildNavMeshData(settings, sources, bounds, Vector3.zero, Quaternion.identity);
 
-            NavMesh.RemoveAllNavMeshData();
+            m_NavMeshInstance = NavMesh.AddNavMeshData(m_NavMeshData);
 
-	        m_NavMeshInstance = NavMesh.AddNavMeshData(m_NavMeshData);
-
-	        //@TODO: Just temp workaround
-	        m_NavMeshInstance = NavMesh.AddNavMeshData(m_NavMeshData);
+            //@TODO: Just temp workaround
+            m_NavMeshInstance = NavMesh.AddNavMeshData(m_NavMeshData);
         }
 
         public void ChangeNavMesh()
         {
-	        NavMesh.RemoveNavMeshData(m_NavMeshInstance);
-	        m_NavMeshInstance = NavMesh.AddNavMeshData(m_NavMeshData);
+            NavMesh.RemoveNavMeshData(m_NavMeshInstance);
+            m_NavMeshInstance = NavMesh.AddNavMeshData(m_NavMeshData);
         }
 
-	    public static void TestPathQuery(NavMeshQuery pathQuery)
-	    {
-		    var startLocation = pathQuery.MapLocation(Vector3.zero, Vector3.one, 0);
-		    var endLocation = pathQuery.MapLocation(new Vector3(5, 0, 0), Vector3.one, 0);
+        public static void TestPathQuery(NavMeshQuery pathQuery)
+        {
+            var startLocation = pathQuery.MapLocation(Vector3.zero, Vector3.one, 0);
+            var endLocation = pathQuery.MapLocation(new Vector3(5, 0, 0), Vector3.one, 0);
 
-		    Assert.AreEqual(PathQueryStatus.InProgress, pathQuery.InitSlicedFindPath(startLocation, endLocation));
-		    int iterationsPerformed;
-		    Assert.AreEqual(PathQueryStatus.Success, pathQuery.UpdateSlicedFindPath(1000, out iterationsPerformed));
-		    int pathSize;
-		    //@TODO: Return value seems a bit weird. It can return values not on the enum when it fails? ...
-		    Assert.AreEqual(PathQueryStatus.Success, pathQuery.FinalizeSlicedFindPath(out pathSize));
+            Assert.AreEqual(PathQueryStatus.InProgress, pathQuery.BeginFindPath(startLocation, endLocation));
+            int iterationsPerformed;
+            Assert.AreEqual(PathQueryStatus.Success, pathQuery.UpdateFindPath(1000, out iterationsPerformed));
+            int pathSize;
+            Assert.AreEqual(PathQueryStatus.Success, pathQuery.EndFindPath(out pathSize));
 
-		    var res = new NativeArray<PolygonID>(pathSize, Allocator.Persistent);
-		    Assert.AreEqual(pathSize, pathQuery.GetPathResult(res));
-		    Assert.AreEqual(2, pathSize);
+            var res = new NativeArray<PolygonID>(pathSize, Allocator.Persistent);
+            Assert.AreEqual(pathSize, pathQuery.GetPathResult(res));
+            Assert.AreEqual(2, pathSize);
 
-		    Assert.AreEqual(startLocation.polygon, res[0]);
-		    Assert.AreEqual(endLocation.polygon, res[1]);
+            Assert.AreEqual(startLocation.polygon, res[0]);
+            Assert.AreEqual(endLocation.polygon, res[1]);
 
-		    res.Dispose();
-	    }
+            res.Dispose();
+        }
 
         [TearDown]
         public void TearDown()
         {
-	        NavMesh.RemoveNavMeshData(m_NavMeshInstance);
+            NavMesh.RemoveNavMeshData(m_NavMeshInstance);
             Object.DestroyImmediate(m_NavMeshData);
         }
     }

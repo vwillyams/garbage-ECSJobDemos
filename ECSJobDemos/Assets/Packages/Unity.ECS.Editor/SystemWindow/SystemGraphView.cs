@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using GraphSharp.Algorithms.Layout.Simple.Hierarchical;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
@@ -102,20 +103,42 @@ namespace UnityEditor.ECS
 
 		public void GraphLayout()
 		{
-			var rowLength = Mathf.RoundToInt(Mathf.Sqrt(state.systemViews.Count));
-			if (rowLength == 0)
-				return;
-			var x = 0;
-			var y = 0;
-			foreach (var systemView in state.systemViews)
-			{
-				systemView.position.position = new Vector2(x*kHorizontalSpacing, y*kLayerHeight);
-				++x;
-				x = x % rowLength;
-				if (x == 0)
-					++y;
-			}
+		    var graphAdapter = new SystemGraphAdapter(state);
+		    var parameters = new EfficientSugiyamaLayoutParameters();
+		    parameters.LayerDistance = 50.0;
+		    var layout = new EfficientSugiyamaLayoutAlgorithm<SystemViewData, EdgeAdapter, SystemGraphAdapter>(graphAdapter,
+		        parameters, graphAdapter.vertexPositions, graphAdapter.vertexSizes);
+
+		    layout.Started += OnGraphSharpLayoutStarted;
+		    layout.Finished += OnGraphSharpLayoutFinished;
+		    layout.Compute();
 		}
+
+	    void OnGraphSharpLayoutStarted(object sender, EventArgs args)
+	    {
+
+	    }
+
+	    void OnGraphSharpLayoutFinished(object sender, EventArgs args)
+	    {
+	        var algorithm = (EfficientSugiyamaLayoutAlgorithm<SystemViewData, EdgeAdapter, SystemGraphAdapter>)sender;
+
+	        var minPosition = Vector2.zero;
+	        foreach (var position in algorithm.VertexPositions.Values)
+	        {
+	            if (position.X < minPosition.x)
+	                minPosition.x = (float) position.X;
+	            if (position.Y < minPosition.y)
+	                minPosition.y = (float) position.Y;
+	        }
+
+	        foreach (var systemView in state.systemViews)
+	        {
+	            var point = algorithm.VertexPositions[systemView];
+	            var vector = new Vector2((float) point.X, (float) point.Y);
+	            systemView.position.position = vector - minPosition + kStartPosition.position;
+	        }
+	    }
 
 		public void OnGUIArrows()
 		{

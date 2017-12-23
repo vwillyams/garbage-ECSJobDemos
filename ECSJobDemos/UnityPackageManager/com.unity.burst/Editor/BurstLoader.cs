@@ -45,13 +45,18 @@ namespace Unity.Burst.LowLevel
         public static bool ExtractBurstCompilerOptions(Type type, out string optimizationFlags)
         {
             bool shouldBurstCompile = false;
+            bool syncCompilation = false;
 
             foreach (var attr in type.GetCustomAttributes(true))
             {
+                var attrType = attr.GetType();
                 // Use resolution by name instead to avoid tighly coupled components
-                if (attr.GetType().FullName == "Unity.Jobs.ComputeJobOptimizationAttribute")
+                if (attrType.FullName == "Unity.Jobs.ComputeJobOptimizationAttribute")
                 {
                     shouldBurstCompile = true;
+
+                    syncCompilation = (bool)attrType.GetProperty("CompileSynchronously").GetValue(attr);
+
                     break;
                 }
             }
@@ -69,11 +74,14 @@ namespace Unity.Burst.LowLevel
             if (!EditorPrefs.GetBool(kEnableSafetyChecksPref))
                 AddOption(builder, "-disable-safety-checks");
 
+            if (syncCompilation)
+                AddOption(builder, "-enable-synchronous-compilation");
+
             //Debug.Log($"ExtractBurstCompilerOptions: {type} {optimizationFlags}");
 
             // AddOption(builder, "-enable-module-caching-debugger");
             // AddOption(builder, "-cache-directory=Library/BurstCache");
-            
+
             optimizationFlags = builder.ToString();
 
             return true;

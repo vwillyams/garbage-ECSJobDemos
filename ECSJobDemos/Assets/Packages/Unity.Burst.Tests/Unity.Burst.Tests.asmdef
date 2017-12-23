@@ -1,5 +1,5 @@
 {
-    "name": "Unity.HLVM.Tests",
+    "name": "Unity.Burst.Tests",
     "references": [
         "Unity.Collections",
         "Unity.Jobs"

@@ -1,13 +1,14 @@
-﻿using UnityEngine;
+﻿using System.Text.RegularExpressions;
+using UnityEngine;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using UnityEngine.TestTools;
 using NUnit.Framework;
 
-public class HLVMTests
+public class BurstTests
 {
-	[ComputeJobOptimization]
+	[ComputeJobOptimization(CompileSynchronously = true)]
 	public struct SimpleArrayAssignJob : IJob
 	{
 		public float value;
@@ -20,6 +21,7 @@ public class HLVMTests
 				output[i] = i + value + input[i];
 		}
 	}
+
 	[Test]
     public void SimpleFloatArrayAssignSimple()
     {
@@ -41,7 +43,7 @@ public class HLVMTests
         job.output.Dispose();
     }
 
-	[ComputeJobOptimization]
+	[ComputeJobOptimization(CompileSynchronously = true)]
 	public struct SimpleArrayAssignForJob : IJobParallelFor
 	{
 		public float value;
@@ -75,7 +77,7 @@ public class HLVMTests
     }
 
 
-	[ComputeJobOptimization]
+	[ComputeJobOptimization(CompileSynchronously = true)]
 	struct MallocTestJob : IJob
 	{
 		unsafe public void Execute()
@@ -94,7 +96,7 @@ public class HLVMTests
 	}
 
 
-	[ComputeJobOptimization]
+	[ComputeJobOptimization(CompileSynchronously = true)]
 	struct ListCapacityJob : IJob
 	{
         public NativeList<int> list;
@@ -118,7 +120,7 @@ public class HLVMTests
 	}
 
 
-	[ComputeJobOptimization]
+	[ComputeJobOptimization(CompileSynchronously = true)]
 	struct NativeListAssignValue : IJob
 	{
 		public NativeList<int> list;
@@ -142,7 +144,7 @@ public class HLVMTests
 		jobData.list.Dispose();
 	}
 
-	[ComputeJobOptimization]
+	[ComputeJobOptimization(CompileSynchronously = true)]
 	struct NativeListAddValue : IJob
 	{
 		public NativeList<int> list;
@@ -172,25 +174,24 @@ public class HLVMTests
 	}
 
 
-	[ComputeJobOptimization]
+	[ComputeJobOptimization(CompileSynchronously = true)]
 	struct ThrowExceptionJob : IJob
 	{
-        int valuel;
 		public void Execute()
 		{
-			DoStuff(valuel);
+			DoStuff();
 		}
 
-        void DoStuff(int value)
+        void DoStuff()
         {
-            throw new System.InvalidOperationException(string.Format("Boing {0}", valuel));
+            throw new System.ArgumentException("Blah");
         }
 	}
 
 	[Test]
 	public void ThrowException()
 	{
-        LogAssert.Expect(LogType.Exception, "InvalidOperationException: Boing 0");
+        LogAssert.Expect(LogType.Exception, new Regex("ArgumentException: Blah"));
 
         var jobData = new ThrowExceptionJob();
         jobData.Run();

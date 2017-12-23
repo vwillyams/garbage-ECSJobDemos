@@ -175,17 +175,12 @@ public class BurstTests
 
 
 	[ComputeJobOptimization(CompileSynchronously = true)]
-	struct ThrowExceptionJob : IJob
+	struct ThrowExceptionJob : IJobParallelFor
 	{
-		public void Execute()
+		public void Execute(int index)
 		{
-			DoStuff();
+		    throw new System.ArgumentException("Blah");
 		}
-
-        void DoStuff()
-        {
-            throw new System.ArgumentException("Blah");
-        }
 	}
 
 	[Test]
@@ -194,6 +189,6 @@ public class BurstTests
         LogAssert.Expect(LogType.Exception, new Regex("ArgumentException: Blah"));
 
         var jobData = new ThrowExceptionJob();
-        jobData.Run();
+        jobData.Schedule(100, 1).Complete();
 	}
 }

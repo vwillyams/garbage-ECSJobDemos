@@ -281,8 +281,11 @@ namespace UnityEngine.ECS
             return m_Entities[entity.index].archetype;
         }
 
-        public void SetArchetype(ArchetypeManager typeMan, Entity entity, Archetype* archetype, Chunk* chunk, int chunkIndex)
+        public void SetArchetype(ArchetypeManager typeMan, Entity entity, Archetype* archetype)
         {
+            Chunk* chunk = typeMan.GetChunkWithEmptySlots(archetype);
+            int chunkIndex = typeMan.AllocateIntoChunkImmediate(chunk);
+            
             Archetype* oldArchetype = m_Entities[entity.index].archetype;
             Chunk* oldChunk = m_Entities[entity.index].chunk;
             int oldChunkIndex = m_Entities[entity.index].index;
@@ -295,7 +298,6 @@ namespace UnityEngine.ECS
             m_Entities[entity.index].index = chunkIndex;
 
             int lastIndex = oldChunk->count - 1;
-            --oldArchetype->entityCount;
             // No need to replace with ourselves
             if (lastIndex != oldChunkIndex)
             {
@@ -309,6 +311,7 @@ namespace UnityEngine.ECS
             if (oldChunk->managedArrayIndex >= 0)
                 ChunkDataUtility.ClearManagedObjects(typeMan, oldChunk, lastIndex, 1);
 
+            --oldArchetype->entityCount;
             typeMan.SetChunkCount(oldChunk, lastIndex);
         }
     }

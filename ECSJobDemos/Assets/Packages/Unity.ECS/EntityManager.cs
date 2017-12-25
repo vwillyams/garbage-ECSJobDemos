@@ -36,13 +36,13 @@ namespace UnityEngine.ECS
 
     public class EntityManager : ScriptBehaviourManager
     {
-        EntityDataManager m_Entities;
+        EntityDataManager                 m_Entities;
 
-        ArchetypeManager m_ArchetypeManager;
-        EntityGroupManager m_GroupManager;
-        ComponentJobSafetyManager m_JobSafetyManager;
+        ArchetypeManager                  m_ArchetypeManager;
+        EntityGroupManager                m_GroupManager;
+        ComponentJobSafetyManager         m_JobSafetyManager;
 
-        SharedComponentDataManager m_SharedComponentManager;
+        SharedComponentDataManager        m_SharedComponentManager;
 
         unsafe ComponentType*             m_CachedComponentTypeArray;
         unsafe ComponentTypeInArchetype*  m_CachedComponentTypeInArchetypeArray;
@@ -147,11 +147,13 @@ namespace UnityEngine.ECS
                 entities += allocatedCount;
                 count -= allocatedCount;
             }
+            
+            m_ArchetypeManager.IntegrateChunks();
         }
 
         unsafe public void DestroyEntity(NativeArray<Entity> entities)
         {
-            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
+            CompleteAllJobsAndIntegrate();
 
             m_Entities.AssertEntitiesExist((Entity*)entities.GetUnsafeReadOnlyPtr(), entities.Length);
 
@@ -161,6 +163,8 @@ namespace UnityEngine.ECS
         unsafe public void DestroyEntity(Entity entity)
         {
             m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
+            m_ArchetypeManager.IntegrateChunks();
+            
             m_Entities.AssertEntitiesExist(&entity, 1);
 
             m_Entities.DeallocateEnties(m_ArchetypeManager, &entity, 1);
@@ -244,11 +248,13 @@ namespace UnityEngine.ECS
                 outputEntities += allocatedCount;
                 count -= allocatedCount;
             }
+            
+            m_ArchetypeManager.IntegrateChunks();
         }
 
         public unsafe void AddComponent(Entity entity, ComponentType type)
         {
-            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
+            CompleteAllJobsAndIntegrate();
 
             m_Entities.AssertEntitiesExist(&entity, 1);
 
@@ -268,16 +274,14 @@ namespace UnityEngine.ECS
                 m_CachedComponentTypeInArchetypeArray[t + 1] = archetype->types[t];
                 ++t;
             }
+            
             Archetype* newType = m_ArchetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, archetype->typesCount + 1, m_GroupManager, m_SharedComponentManager);
-            Chunk* newChunk = m_ArchetypeManager.GetChunkWithEmptySlots(newType);
-
-            int newChunkIndex = m_ArchetypeManager.AllocateIntoChunk(newChunk);
-            m_Entities.SetArchetype(m_ArchetypeManager, entity, newType, newChunk, newChunkIndex);
+            m_Entities.SetArchetype(m_ArchetypeManager, entity, newType);
         }
 
         public unsafe void RemoveComponent(Entity entity, ComponentType type)
         {
-            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
+            CompleteAllJobsAndIntegrate();
 
             var componentType = new ComponentTypeInArchetype(type);
 
@@ -296,10 +300,7 @@ namespace UnityEngine.ECS
             Assertions.Assert.AreNotEqual(-1, removedTypes);
 
             Archetype* newType = m_ArchetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, archtype->typesCount - removedTypes, m_GroupManager, m_SharedComponentManager);
-
-            Chunk* newChunk = m_ArchetypeManager.GetChunkWithEmptySlots(newType);
-            int newChunkIndex = m_ArchetypeManager.AllocateIntoChunk(newChunk);
-            m_Entities.SetArchetype(m_ArchetypeManager, entity, newType, newChunk, newChunkIndex);
+            m_Entities.SetArchetype(m_ArchetypeManager, entity, newType);
         }
 
         public void AddComponent<T>(Entity entity, T componentData) where T : struct, IComponentData
@@ -438,8 +439,16 @@ namespace UnityEngine.ECS
         {
             ComponentJobSafetyManager.CompleteAllJobsAndInvalidateArrays();
         }
-
+        
         internal ComponentJobSafetyManager ComponentJobSafetyManager { get { return m_JobSafetyManager; } }
+
+
+        void CompleteAllJobsAndIntegrate()
+        {
+            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
+            m_ArchetypeManager.IntegrateChunks();
+        }
+        
     }
 }
 

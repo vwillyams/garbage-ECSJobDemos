@@ -1,11 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Jobs;
 using UnityEditor;
 using UnityEngine.Assertions;
 using System.Runtime.InteropServices;
-using UnityEngine.Collections;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
+using Unity.Mathematics;
 
 namespace AnimationSampleCode
 {
@@ -87,7 +88,7 @@ namespace AnimationSampleCode
 
 	class AnimationSystem
 	{
-		
+
 		public static void ApplyToSkeleton(NativeArray<float> samples, AnimationToSkeletonBinding binding, LocalPoseData outputPose)
 		{
 			var outputTRSFloatBuffer = outputPose.pose.Slice().SliceConvert<float> ();
@@ -138,7 +139,7 @@ namespace AnimationSampleCode
 				outBindings.animationCurveToSkeletonIndex[i] = -1;
 
 				//@TODO: Need better NativeArray perf...
-				PropertyName* skeletonNodeNames = (PropertyName*)skeleton.nodeName.UnsafeReadOnlyPtr;
+				PropertyName* skeletonNodeNames = (PropertyName*)skeleton.nodeName.GetUnsafeReadOnlyPtr();
 				int skeletonNodeNamesLength = skeleton.nodeName.Length;
 				for (int s = 0; s != skeletonNodeNamesLength; s++)
 				{

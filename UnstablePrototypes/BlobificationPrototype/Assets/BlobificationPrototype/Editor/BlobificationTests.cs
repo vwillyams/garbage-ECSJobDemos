@@ -1,10 +1,8 @@
 ﻿using UnityEngine;
-using UnityEditor;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using UnityEngine.Jobs;
-using UnityEngine.Collections;
+using Unity.Collections;
+using Unity.Jobs;
 
 public class BlobTests
 {
@@ -69,7 +67,7 @@ public class BlobTests
 
 		Assert.AreEqual (1, root->nestedArray[0].Length);
 		Assert.AreEqual (2, root->nestedArray[1].Length);
-				
+
 		Assert.AreEqual (0, root->nestedArray[0][0]);
 		Assert.AreEqual (1, root->nestedArray[1][0]);
 		Assert.AreEqual (2, root->nestedArray[1][1]);

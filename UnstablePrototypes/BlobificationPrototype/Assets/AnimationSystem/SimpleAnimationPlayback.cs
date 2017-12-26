@@ -1,10 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+using Unity.Jobs;
 using UnityEngine.Jobs;
-using UnityEditor;
 using AnimationSampleCode;
-using UnityEngine.Collections;
+using Unity.Collections;
 
 class SimpleAnimationPlayback : MonoBehaviour
 {

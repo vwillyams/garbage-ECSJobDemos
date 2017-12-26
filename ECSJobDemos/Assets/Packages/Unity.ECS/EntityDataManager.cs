@@ -39,6 +39,7 @@ namespace UnityEngine.ECS
             m_Entities[m_EntitiesCapacity - 1].index = -1;
         }
 
+        //@TODO: This is not safe on creation job while iteration jobs are running...
         void IncreaseCapacity()
         {
             EntityData* newEntities = (EntityData*) UnsafeUtility.Malloc(m_EntitiesCapacity * 2 * sizeof(EntityData),
@@ -316,6 +317,3 @@ namespace UnityEngine.ECS
         }
     }
 }
-
-
-

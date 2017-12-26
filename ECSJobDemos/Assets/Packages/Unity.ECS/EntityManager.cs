@@ -2,6 +2,8 @@
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using System;
+using Unity.Jobs;
+using UnityEngine.Assertions;
 using UnityEngine.Profiling;
 
 namespace UnityEngine.ECS
@@ -134,7 +136,7 @@ namespace UnityEngine.ECS
 
         unsafe void CreateEntityInternal(EntityArchetype archetype, Entity* entities, int count)
         {
-            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
+            BeforeImmediateStructualTransaction();
 
             while (count != 0)
             {
@@ -148,12 +150,12 @@ namespace UnityEngine.ECS
                 count -= allocatedCount;
             }
             
-            m_ArchetypeManager.IntegrateChunks();
+            AfterImmediateStructuralTransaction();
         }
 
         unsafe public void DestroyEntity(NativeArray<Entity> entities)
         {
-            CompleteAllJobsAndIntegrate();
+            BeforeImmediateStructualTransaction();
 
             m_Entities.AssertEntitiesExist((Entity*)entities.GetUnsafeReadOnlyPtr(), entities.Length);
 
@@ -162,8 +164,7 @@ namespace UnityEngine.ECS
 
         unsafe public void DestroyEntity(Entity entity)
         {
-            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
-            m_ArchetypeManager.IntegrateChunks();
+            BeforeImmediateStructualTransaction();
             
             m_Entities.AssertEntitiesExist(&entity, 1);
 
@@ -226,7 +227,7 @@ namespace UnityEngine.ECS
 
         unsafe void InstantiateInternal(Entity srcEntity, Entity* outputEntities, int count)
         {
-            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
+            BeforeImmediateStructualTransaction();
 
             if (!m_Entities.Exists(srcEntity))
                 throw new System.ArgumentException("srcEntity is not a valid entity");
@@ -249,12 +250,12 @@ namespace UnityEngine.ECS
                 count -= allocatedCount;
             }
             
-            m_ArchetypeManager.IntegrateChunks();
+            AfterImmediateStructuralTransaction();
         }
 
         public unsafe void AddComponent(Entity entity, ComponentType type)
         {
-            CompleteAllJobsAndIntegrate();
+            BeforeImmediateStructualTransaction();
 
             m_Entities.AssertEntitiesExist(&entity, 1);
 
@@ -281,7 +282,7 @@ namespace UnityEngine.ECS
 
         public unsafe void RemoveComponent(Entity entity, ComponentType type)
         {
-            CompleteAllJobsAndIntegrate();
+            BeforeImmediateStructualTransaction();
 
             var componentType = new ComponentTypeInArchetype(type);
 
@@ -434,21 +435,58 @@ namespace UnityEngine.ECS
 
             return array;
         }
-
-        public void CompleteAllJobs()
-        {
-            ComponentJobSafetyManager.CompleteAllJobsAndInvalidateArrays();
-        }
         
         internal ComponentJobSafetyManager ComponentJobSafetyManager { get { return m_JobSafetyManager; } }
 
 
-        void CompleteAllJobsAndIntegrate()
+        public unsafe EntityTransaction BeginTransaction()
         {
-            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
+            fixed (EntityDataManager* data = &m_Entities)
+            {
+                return new EntityTransaction(m_ArchetypeManager, data);
+            }
+        }
+
+        public JobHandle GetCreationDependency()
+        {
+            return m_JobSafetyManager.CreationJob;
+        }
+
+        public void DidScheduleCreationJob(JobHandle jobHandle)
+        {
+            if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(m_JobSafetyManager.CreationJob, jobHandle))
+            {
+                //@TODO: IMPROVE ERRO
+                throw new System.ArgumentException("jobHandle does not depend on previous CreationJob");    
+            }
+            
+            m_JobSafetyManager.CreationJob = jobHandle;
+        }
+
+        void AfterImmediateStructuralTransaction()
+        {
             m_ArchetypeManager.IntegrateChunks();
         }
         
+        void BeforeImmediateStructualTransaction()
+        {
+            CommitTransaction();
+        }
+                
+        public void CommitTransaction()
+        {
+            // We are going to mutate ComponentGroup iteration state, so no iteration jobs may be running in parallel to this
+            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
+            // Creation is exclusive to one job or main thread at a time, thus make sure any creation jobs are done
+            m_JobSafetyManager.CreationJob.Complete();
+            // Ensure that all transaction state has been applied
+            m_ArchetypeManager.IntegrateChunks();
+        }
+        
+        public void CompleteAllJobs()
+        {
+            CommitTransaction();
+        }
     }
 }
 

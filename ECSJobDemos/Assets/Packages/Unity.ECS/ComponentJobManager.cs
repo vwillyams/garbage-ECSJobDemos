@@ -27,16 +27,24 @@ namespace UnityEngine.ECS
         AtomicSafetyHandle      m_TempSafety;
         #endif
 
+        public JobHandle               CreationJob;
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+        public AtomicSafetyHandle      CreationSafety;
+#endif
+                
         JobHandle*              m_JobDependencyCombineBuffer;
         int                     m_JobDependencyCombineBufferCount;
-
+        
         //@TODO: Check against too many types created...
 
         public ComponentJobSafetyManager()
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_TempSafety = AtomicSafetyHandle.Create();
+            CreationSafety = AtomicSafetyHandle.Create();
 #endif
+            
+            
             m_ReadJobFences = (JobHandle*)UnsafeUtility.Malloc(sizeof(JobHandle) * kMaxReadJobHandles * kMaxTypes, 16, Allocator.Persistent);
             UnsafeUtility.MemClear(m_ReadJobFences, sizeof(JobHandle) * kMaxReadJobHandles * kMaxTypes);
 

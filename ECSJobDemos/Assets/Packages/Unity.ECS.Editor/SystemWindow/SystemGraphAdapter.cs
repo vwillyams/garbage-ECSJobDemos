@@ -1,45 +1,57 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Windows;
+
+using Microsoft.Msagl.Core.Geometry;
+using Microsoft.Msagl.Core.Geometry.Curves;
+using Microsoft.Msagl.Core.Layout;
 using QuickGraph;
-using System.Linq;
-using UnityEngine;
-using UnityEditor.Experimental.UIElements.GraphView;
+using MsaglEdge = Microsoft.Msagl.Core.Layout.Edge;
+using MsaglNode = Microsoft.Msagl.Core.Layout.Node;
 
 namespace UnityEditor.ECS
 {
-    public class SystemGraphAdapter : BidirectionalGraph<SystemViewData, EdgeAdapter>
+    public class MsaglGraphAdapter
     {
-        public Dictionary<SystemViewData, Point> vertexPositions { get; set; }
-        public Dictionary<SystemViewData, Size> vertexSizes { get; set; }
+        public GeometryGraph resultGraph { get; } = new GeometryGraph();
 
-        public SystemGraphAdapter(SystemGraphState state)
+        public MsaglGraphAdapter(SystemGraphState state)
         {
-            vertexPositions = new Dictionary<SystemViewData, Point>();
-            vertexSizes = new Dictionary<SystemViewData, Size>();
+            var nodes = new List<MsaglNode>();
 
             state.systemViews.ForEach(node =>
             {
-                AddVertex(node);
-
-                var position = node.position.position;
-                vertexPositions[node] = new Point(position.x, position.y);
-
-                var size = node.position.size;
-                vertexSizes[node] = new Size(size.x, size.y);
+                nodes.Add(AddNode(node, state));
             });
 
-            state.systemViews.ForEach(node =>
+            for (var i = 0; i < state.systemViews.Count; ++i)
             {
-                node.updateAfter.ForEach(otherId =>
+                var view = state.systemViews[i];
+                var node = nodes[i];
+                view.updateAfter.ForEach(otherId =>
                 {
-                    AddEdge(new EdgeAdapter(Guid.NewGuid().ToString(), node, state.systemViews[otherId]));
+                    AddEdge(node, nodes[otherId]);
                 });
-                node.updateBefore.ForEach(otherId =>
+                view.updateBefore.ForEach(otherId =>
                 {
-                    AddEdge(new EdgeAdapter(Guid.NewGuid().ToString(), state.systemViews[otherId], node));
+                    AddEdge(nodes[otherId], node);
                 });
-            });
+            }
+        }
+
+        private MsaglNode AddNode(SystemViewData view, SystemGraphState state)
+        {
+            ICurve curve = CurveFactory.CreateRectangle(view.position.width, view.position.height, new Point());
+            MsaglNode newNode = new MsaglNode(curve, state.systemViews.IndexOf(view).ToString())
+            {
+                UserData = view
+            };
+            resultGraph.Nodes.Add(newNode);
+            return newNode;
+        }
+
+        private void AddEdge(MsaglNode outputNode, MsaglNode inputNode)
+        {
+            resultGraph.Edges.Add(new MsaglEdge(outputNode, inputNode));
         }
     }
 

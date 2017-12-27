@@ -2,6 +2,9 @@
 using System.Linq;
 using System.Collections.Generic;
 using GraphSharp.Algorithms.Layout.Simple.Hierarchical;
+using Microsoft.Msagl.Core.Geometry.Curves;
+using Microsoft.Msagl.Core.Routing;
+using Microsoft.Msagl.Layout.Layered;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
@@ -103,42 +106,31 @@ namespace UnityEditor.ECS
 
 		public void GraphLayout()
 		{
-		    var graphAdapter = new SystemGraphAdapter(state);
-		    var parameters = new EfficientSugiyamaLayoutParameters();
-		    parameters.LayerDistance = 50.0;
-		    var layout = new EfficientSugiyamaLayoutAlgorithm<SystemViewData, EdgeAdapter, SystemGraphAdapter>(graphAdapter,
-		        parameters, graphAdapter.vertexPositions, graphAdapter.vertexSizes);
+		    var graphAdapter = new MsaglGraphAdapter(state);
+		    var settings = new SugiyamaLayoutSettings()
+		    {
+		        Transformation = PlaneTransformation.Rotation(Math.PI / 2),
+		        EdgeRoutingSettings = {EdgeRoutingMode = EdgeRoutingMode.StraightLine}
+		    };
+		    var layout = new LayeredLayout(graphAdapter.resultGraph, settings);
+		    layout.Run();
 
-		    layout.Started += OnGraphSharpLayoutStarted;
-		    layout.Finished += OnGraphSharpLayoutFinished;
-		    layout.Compute();
+		    var minPosition = Vector2.zero;
+		    foreach (var node in graphAdapter.resultGraph.Nodes)
+		    {
+		        var position = node.BoundingBox.LeftTop;
+		        if (position.X < minPosition.x)
+		            minPosition.x = (float) position.X;
+		        if (position.Y < minPosition.y)
+		            minPosition.y = (float) position.Y;
+		    }
+		    foreach (var node in graphAdapter.resultGraph.Nodes)
+		    {
+		        var view = (SystemViewData) node.UserData;
+		        var vector = new Vector2((float)node.BoundingBox.Left, (float)node.BoundingBox.Top);
+		        view.position.position = vector - minPosition + kStartPosition.position;
+		    }
 		}
-
-	    void OnGraphSharpLayoutStarted(object sender, EventArgs args)
-	    {
-
-	    }
-
-	    void OnGraphSharpLayoutFinished(object sender, EventArgs args)
-	    {
-	        var algorithm = (EfficientSugiyamaLayoutAlgorithm<SystemViewData, EdgeAdapter, SystemGraphAdapter>)sender;
-
-	        var minPosition = Vector2.zero;
-	        foreach (var position in algorithm.VertexPositions.Values)
-	        {
-	            if (position.X < minPosition.x)
-	                minPosition.x = (float) position.X;
-	            if (position.Y < minPosition.y)
-	                minPosition.y = (float) position.Y;
-	        }
-
-	        foreach (var systemView in state.systemViews)
-	        {
-	            var point = algorithm.VertexPositions[systemView];
-	            var vector = new Vector2((float) point.X, (float) point.Y);
-	            systemView.position.position = vector - minPosition + kStartPosition.position;
-	        }
-	    }
 
 		public void OnGUIArrows()
 		{

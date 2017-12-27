@@ -47,8 +47,8 @@ namespace UnityEngine.ECS
                     string pointerTypeFullName = fieldType.FullName;
                     Type valueType = fieldType.Assembly.GetType(pointerTypeFullName.Remove(pointerTypeFullName.Length - 1));
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-                    if (!typeof(IComponentData).IsAssignableFrom(valueType))
-                        throw new System.ArgumentException($"{type}.{field.Name} is a pointer type but not a IComponentData. Only IComponentData may be a pointer type for enumeration.");
+                    if (!typeof(IComponentData).IsAssignableFrom(valueType) && valueType != typeof(Entity))
+                        throw new System.ArgumentException($"{type}.{field.Name} is a pointer type but not a IComponentData. Only IComponentData or Entity may be a pointer type for enumeration.");
 #endif
                     componentDataFieldOffsetsBuilder.Add(offset);
                     componentDataTypesBuilder.Add(new ComponentType(valueType, accessMode));

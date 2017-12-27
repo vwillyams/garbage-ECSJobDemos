@@ -186,7 +186,7 @@ namespace AnimationSampleCode
 			}
 		}
 
-		public unsafe static void AnimationClipToDenseClip(AnimationClip clip, out BlobRootPtr<DenseClip> outClip, out AnimationBinding outBindings)
+		public unsafe static void AnimationClipToDenseClip(AnimationClip clip, out BlobAssetReference<DenseClip> outClip, out AnimationBinding outBindings)
 		{
 			var bindings = AnimationUtility.GetCurveBindings (clip);
 
@@ -194,7 +194,7 @@ namespace AnimationSampleCode
 
 			int frameCount = Mathf.CeilToInt (clip.frameRate * clip.length);
 
-			var blobAllocator = new BlobAllocator (Allocator.Persistent, frameCount * bindings.Length * sizeof(float) + sizeof(DenseClip));
+			var blobAllocator = new BlobAllocator (-1);
 
 			var clipData = (DenseClip*)blobAllocator.ConstructRoot<DenseClip> ();
 			clipData->curveCount = bindings.Length;
@@ -218,10 +218,12 @@ namespace AnimationSampleCode
 				outputIndex++;
 			}
 
-			outClip = blobAllocator.Create<DenseClip> ();
+			outClip = blobAllocator.CreateBlobAssetReference<DenseClip> (Allocator.Persistent);
+
+		    blobAllocator.Dispose();
 		}
 
-		struct SkeletonBuilder
+	    struct SkeletonBuilder
 		{
 			public NativeList<int> 			parents;
 			public NativeList<PropertyName> nodeName;

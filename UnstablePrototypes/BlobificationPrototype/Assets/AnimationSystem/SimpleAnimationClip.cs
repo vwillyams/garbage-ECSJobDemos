@@ -9,7 +9,7 @@ class SimpleAnimationClip : ScriptableObject
 {
 	//@TODO: Need serialization & sensible lifecycle
 	//       to do Dispose at a time after which the data will no longer be serialized...
-	public BlobRootPtr<DenseClip> 	m_ClipData;
+	BlobAssetReference<DenseClip> 	m_ClipData;
 	public AnimationBinding			m_BindingData;
 
 	public static SimpleAnimationClip FromAnimationClip(AnimationClip clip)
@@ -24,9 +24,20 @@ class SimpleAnimationClip : ScriptableObject
 		AnimationSystem.AnimationClipToBinding (m_BindingData, skeleton, out binding);
 	}
 
+    public BlobAssetReference<DenseClip> ClipData
+    {
+        get { return m_ClipData; }
+        set
+        {
+            value.Retain();
+            m_ClipData.SafeRelease();
+            m_ClipData = value;
+        }
+    }
+
 	void OnDisable()
 	{
-		m_ClipData.Dispose();		
-		m_BindingData.Dispose();		
+		m_ClipData.Release();
+		m_BindingData.Dispose();
 	}
 }

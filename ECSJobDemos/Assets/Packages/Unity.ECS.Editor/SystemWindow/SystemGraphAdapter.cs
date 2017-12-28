@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using Microsoft.Msagl.Core.Geometry;
 using Microsoft.Msagl.Core.Geometry.Curves;
 using Microsoft.Msagl.Core.Layout;
-using QuickGraph;
 using MsaglEdge = Microsoft.Msagl.Core.Layout.Edge;
 using MsaglNode = Microsoft.Msagl.Core.Layout.Node;
 

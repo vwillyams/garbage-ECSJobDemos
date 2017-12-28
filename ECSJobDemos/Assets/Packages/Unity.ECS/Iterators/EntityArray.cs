@@ -1,5 +1,6 @@
 ﻿using System;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Collections;
 
 namespace UnityEngine.ECS
 {
@@ -63,6 +64,43 @@ namespace UnityEngine.ECS
 			throw new IndexOutOfRangeException(string.Format("Index {0} is out of range of '{1}' Length.", index, Length));
 		}
 #endif
+
+	    public NativeArray<Entity> GetChunkArray(int startIndex, int maxCount)
+	    {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
+
+	        if (startIndex < m_MinIndex)
+		        FailOutOfRangeError(startIndex);
+	        else if (startIndex + maxCount > m_MaxIndex + 1)
+		        FailOutOfRangeError(startIndex + maxCount);
+#endif
+
+	        m_Iterator.UpdateCache(startIndex, out m_Cache);
+
+	        void* ptr = (byte*)m_Cache.CachedPtr + startIndex * m_Cache.CachedSizeOf;
+	        int count = Math.Min(maxCount, m_Cache.CachedEndIndex - startIndex);
+
+	        var arr = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<Entity>(ptr, count, Allocator.Invalid);
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref arr, m_Safety);
+#endif
+
+	        return arr;
+	    }
+
+	    public void CopyTo(NativeSlice<Entity> dst, int startIndex = 0)
+	    {
+	        int copiedCount = 0;
+	        while (copiedCount < dst.Length)
+	        {
+	            var chunkArray = GetChunkArray(startIndex + copiedCount, dst.Length - copiedCount);
+	            dst.Slice(copiedCount, chunkArray.Length).CopyFrom(chunkArray);
+
+	            copiedCount += chunkArray.Length;
+	        }
+	    }
 
         public int Length { get { return m_Length; } }
 	}

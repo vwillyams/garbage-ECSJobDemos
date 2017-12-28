@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace UnityEngine.ECS
 {
-    
+
     //@TODO: This should be fully implemented in C++ for efficiency
     [RequireComponent(typeof(GameObjectEntity))]
     public abstract class ComponentDataWrapperBase : MonoBehaviour
@@ -26,7 +26,7 @@ namespace UnityEngine.ECS
         public T Value
         {
             get
-            { 
+            {
                 return m_SerializedData;
             }
             set
@@ -75,7 +75,7 @@ namespace UnityEngine.ECS
         {
         }
     }
-    
+
     [DisallowMultipleComponent]
     public class GameObjectEntity : MonoBehaviour
     {
@@ -84,15 +84,43 @@ namespace UnityEngine.ECS
 
         public Entity Entity { get { return m_Entity; } }
 
+        //@TODO: Very wrong error messages when creating entity with empty ComponentType array?
+
         static public Entity AddToEntityManager(EntityManager entityManager, GameObject gameObject)
         {
-            int t;
-            var gameObjectEntityComponent = gameObject.GetComponent<GameObjectEntity>();
-            var components = gameObject.GetComponents<Component>();
-            var componentCount = (gameObjectEntityComponent == null) ? (components.Length) : (components.Length - 1);            
-            ComponentType[] types = new ComponentType[componentCount];
+            ComponentType[] types;
+            Component[] components;
+            GetComponents(entityManager, gameObject, true, out types, out components);
 
-            t = 0;
+            var archetype = entityManager.CreateArchetype(types);
+            var entity = CreateEntity(entityManager, archetype, components, types);
+
+            return entity;
+        }
+
+        public static void GetComponents(EntityManager entityManager, GameObject gameObject, bool includeGameObjectComponents, out ComponentType[] types, out Component[] components)
+        {
+            components = gameObject.GetComponents<Component>();
+
+            int componentCount = 0;
+            if (includeGameObjectComponents)
+            {
+                var gameObjectEntityComponent = gameObject.GetComponent<GameObjectEntity>();
+                componentCount = (gameObjectEntityComponent == null) ? (components.Length) : (components.Length - 1);
+            }
+            else
+            {
+                for (int i = 0; i != components.Length; i++)
+                {
+                    if (components[i] is ComponentDataWrapperBase)
+                        componentCount++;
+
+                }
+            }
+
+            types = new ComponentType[componentCount];
+
+            int t = 0;
             for (int i = 0; i != components.Length; i++)
             {
                 var com = components[i];
@@ -100,13 +128,16 @@ namespace UnityEngine.ECS
 
                 if (componentData != null)
                     types[t++] = componentData.GetComponentType(entityManager);
-                else if (!(com is GameObjectEntity))
+                else if (includeGameObjectComponents && !(com is GameObjectEntity))
                     types[t++] = com.GetType();
             }
+        }
 
-            var archetype = entityManager.CreateArchetype(types);
+        static Entity CreateEntity(EntityManager entityManager, EntityArchetype archetype, Component[] components,
+            ComponentType[] types)
+        {
             var entity = entityManager.CreateEntity(archetype);
-            t = 0;
+            int t = 0;
             for (int i = 0; i != components.Length; i++)
             {
                 var com = components[i];
@@ -125,6 +156,7 @@ namespace UnityEngine.ECS
             }
             return entity;
         }
+
 
         public void OnEnable()
         {

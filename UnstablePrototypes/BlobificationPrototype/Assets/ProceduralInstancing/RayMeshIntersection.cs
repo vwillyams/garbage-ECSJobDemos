@@ -1,17 +1,41 @@
 ﻿using Unity.Mathematics;
-/*
-struct CollisionMeshData
-{
-	OffsetPointer<float3> vertices;
-	OffsetPointer<float3> indices;
-}
-*/
-
 using static Unity.Mathematics.math;
 
-static class GeometryUtility
+public struct CollisionMeshData
 {
-	static public bool RayIntersectsTriangle(
+	public BlobArray<float3> Vertices;
+    public BlobArray<int3>   Triangles;
+}
+
+static public class GeometryUtility
+{
+    public static bool CircleIntersectsRectangle(float2 circleCenter, float circleRadius, float2 rectMin, float2 rectMax)
+    {
+        var delta = circleCenter - max(rectMin, min(circleCenter, rectMax));
+        return dot(delta, delta) < (circleRadius * circleRadius);
+    }
+
+    static public bool RayIntersectsMesh(float3 rayOrigin, float3 rayVector, ref CollisionMeshData meshData, out float3 outIntersectionPoint)
+    {
+        for (int i = 0;i != meshData.Triangles.Length;i++)
+        {
+            //@TODO: Find closest triangle...
+            int3 tri = meshData.Triangles[i];
+
+            if (RayIntersectsTriangle(
+                rayOrigin, rayVector,
+                meshData.Vertices[tri.x], meshData.Vertices[tri.y], meshData.Vertices[tri.z],
+                out outIntersectionPoint))
+            {
+                return true;
+            }
+        }
+
+        outIntersectionPoint = new float3(0);
+        return false;
+    }
+
+    static public bool RayIntersectsTriangle(
 		float3 rayOrigin, float3 rayVector,
 		float3 vertex0, float3 vertex1, float3 vertex2,
 	    out float3 outIntersectionPoint)

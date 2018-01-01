@@ -21,7 +21,7 @@ namespace BoidcloudSimulation
 
 			[ReadOnly]
 			[DeallocateOnJobCompletionAttribute]
-			public NativeArray<int> 							cellOffsetsTable;
+			public NativeArray<int3> 							cellOffsetsTable;
 
 			public NativeArray<BoidData>						outputBoids;
 			public NativeMultiHashMap<int, int>.Concurrent	outputCells;
@@ -145,7 +145,7 @@ namespace BoidcloudSimulation
 			m_BoidsData0.Dispose ();
 			m_BoidsData1.Dispose ();
 		}
-			
+
 		NativeArray<BoidData> GetActiveBoidBuffer()
 		{
 			return m_FrameIndex ? m_BoidsData0 : m_BoidsData1;
@@ -178,7 +178,7 @@ namespace BoidcloudSimulation
 
 			boidsJob.boids = GetPreviousBoidBuffer();
 			boidsJob.cells = m_FrameIndex ? m_Cells1 : m_Cells0;
-			boidsJob.cellOffsetsTable = new NativeArray<int>(HashUtility.cellOffsets, Allocator.TempJob);
+			boidsJob.cellOffsetsTable = new NativeArray<int3>(HashUtility.cellOffsets, Allocator.TempJob);
 
 			boidsJob.simulationState.deltaTime = Time.deltaTime;
 

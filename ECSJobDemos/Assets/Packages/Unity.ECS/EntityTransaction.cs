@@ -8,17 +8,17 @@ namespace UnityEngine.ECS
     unsafe public struct EntityTransaction
     {
         AtomicSafetyHandle                 m_Safety;
-  
+
         [NativeDisableUnsafePtrRestriction]
         GCHandle                           m_ArchetypeManager;
 
         [NativeDisableUnsafePtrRestriction]
         EntityDataManager*                 m_Entities;
-        
+
         [NativeDisableUnsafePtrRestriction]
         ComponentTypeInArchetype*          m_CachedComponentTypeInArchetypeArray;
-        
-        
+
+
         internal EntityTransaction(ArchetypeManager archetypes, EntityDataManager* data)
         {
             m_Safety = new AtomicSafetyHandle();
@@ -26,7 +26,7 @@ namespace UnityEngine.ECS
             m_ArchetypeManager = GCHandle.Alloc(archetypes);
             m_CachedComponentTypeInArchetypeArray = (ComponentTypeInArchetype*)UnsafeUtility.Malloc(sizeof(ComponentTypeInArchetype) * 32 * 1024, 16, Allocator.Persistent);
         }
-        
+
         unsafe int PopulatedCachedTypeInArchetypeArray(ComponentType[] requiredComponents)
         {
             m_CachedComponentTypeInArchetypeArray[0] = new ComponentTypeInArchetype(ComponentType.Create<Entity>());
@@ -38,7 +38,7 @@ namespace UnityEngine.ECS
         unsafe public EntityArchetype CreateArchetype(params ComponentType[] types)
         {
             var archetypeManager = (ArchetypeManager)m_ArchetypeManager.Target;
-            
+
             EntityArchetype type;
             //@TODO: make dedicated function to only allow getting existing archetype
             type.archetype = archetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, PopulatedCachedTypeInArchetypeArray(types), null, null);
@@ -51,17 +51,22 @@ namespace UnityEngine.ECS
             int typeIndex = TypeManager.GetTypeIndex<T>();
             m_Entities->AssertEntityHasComponent(entity, typeIndex);
 
-            
+
             //@TODO: Prevent access to already created entities
             byte* ptr = m_Entities->GetComponentDataWithType (entity, typeIndex);
             UnsafeUtility.CopyStructureToPtr (ref componentData, ptr);
         }
-                
+
         unsafe public Entity CreateEntity(EntityArchetype archetype)
         {
             Entity entity;
             CreateEntityInternal(archetype, &entity, 1);
             return entity;
+        }
+
+        unsafe public void CreateEntity(EntityArchetype archetype, NativeArray<Entity> entities)
+        {
+            CreateEntityInternal(archetype, (Entity*)entities.GetUnsafePtr(), entities.Length);
         }
 
         unsafe public Entity CreateEntity(params ComponentType[] types)

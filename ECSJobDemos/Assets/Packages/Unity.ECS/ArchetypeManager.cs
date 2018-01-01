@@ -353,7 +353,6 @@ namespace UnityEngine.ECS
             chunk->chunkListNotYetIntegratedNode = new UnsafeLinkedListNode();
             chunk->notYetIntegratedCount = 0;
             
-//            m_NotIntegratedChunks->Add(&chunk->chunkListNotYetIntegratedNode);
             archetype->chunkListWithEmptySlots.Add(&chunk->chunkListWithEmptySlotsNode);
 
             Assert.IsTrue(!archetype->chunkListWithEmptySlots.IsEmpty);

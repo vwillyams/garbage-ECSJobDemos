@@ -13,6 +13,12 @@ namespace UnityEngine.ECS
     {
         public Entity entity;
         public T component;
+
+        public AddComponentPayload(Entity entity, T component)
+        {
+            this.entity = entity;
+            this.component = component;
+        }
     }
 
     [UpdateBefore(typeof(UnityEngine.Experimental.PlayerLoop.Initialization))]
@@ -79,7 +85,17 @@ namespace UnityEngine.ECS
         public object[] m_AddComponentQueue;
         public object[] m_RemoveComponentQueue;
 
-        public NativeQueue<AddComponentPayload<T>> AddComponentQueue<T>() where T : struct, IComponentData
+        public void AddComponent<T>(Entity entity, T componentData) where T : struct, IComponentData
+        {
+            GetAddComponentQueue<T>().Enqueue(new AddComponentPayload<T>(entity, componentData));
+        }
+
+        public void RemoveComponent<T>(Entity entity) where T : struct, IComponentData
+        {
+            GetRemoveComponentQueue<T>().Enqueue(entity);
+        }
+
+        public NativeQueue<AddComponentPayload<T>> GetAddComponentQueue<T>() where T : struct, IComponentData
         {
             int index = TypeManager.GetTypeIndex<T>();
             if ((m_AddComponentQueue.Length <= index) || (m_AddComponentQueue[index] == null))
@@ -92,7 +108,7 @@ namespace UnityEngine.ECS
             return owner.queue;
         }
 
-        public NativeQueue<Entity> RemoveComponentQueue<T>() where T : struct, IComponentData
+        public NativeQueue<Entity> GetRemoveComponentQueue<T>() where T : struct, IComponentData
         {
             int index = TypeManager.GetTypeIndex<T>();
             if ((m_RemoveComponentQueue.Length <= index) || (m_RemoveComponentQueue[index] == null))

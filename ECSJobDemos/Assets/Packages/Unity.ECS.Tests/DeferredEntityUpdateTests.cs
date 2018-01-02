@@ -95,7 +95,7 @@ namespace UnityEngine.ECS.Tests
                 Assert.AreEqual( expectedCount, Group.Length );
                 var addJob = new AddTest2Component();
                 addJob.entity = Group.entity;
-                addJob.addTest2UpdateQueue = deferredEntityChangeSystem.AddComponentQueue<EcsTestData2>();
+                addJob.addTest2UpdateQueue = deferredEntityChangeSystem.GetAddComponentQueue<EcsTestData2>();
 
                 var addJobHandle = addJob.Schedule(Group.Length, 1, depJobHandle);
                 return addJobHandle;
@@ -138,7 +138,7 @@ namespace UnityEngine.ECS.Tests
                 Assert.AreEqual( expectedCount, Group.Length );
                 var removeJob = new RemoveTest2Component();
                 removeJob.entity = Group.entity;
-                removeJob.removeTest2UpdateQueue = deferredEntityChangeSystem.RemoveComponentQueue<EcsTestData2>();
+                removeJob.removeTest2UpdateQueue = deferredEntityChangeSystem.GetRemoveComponentQueue<EcsTestData2>();
 
                 var addJobHandle = removeJob.Schedule(Group.Length, 1, depJobHandle);
                 return addJobHandle;

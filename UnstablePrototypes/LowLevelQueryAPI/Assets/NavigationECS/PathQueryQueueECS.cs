@@ -257,7 +257,7 @@ public struct PathQueryQueueEcs
                     end = endLoc
                 };
 
-                var status = m_Query.InitSlicedFindPath(startLoc, endLoc, request.mask, m_Costs);
+                var status = m_Query.BeginFindPath(startLoc, endLoc, request.mask, m_Costs);
                 if (!status.IsFailure())
                 {
                     state.currentAgentIndex = request.agentIndex;
@@ -271,13 +271,13 @@ public struct PathQueryQueueEcs
             {
                 // Continue existing query
                 var niter = 0;
-                var status = m_Query.UpdateSlicedFindPath(maxIter, out niter);
+                var status = m_Query.UpdateFindPath(maxIter, out niter);
                 maxIter -= niter;
 
                 if (status.IsSuccess())
                 {
                     var npath = 0;
-                    status = m_Query.FinalizeSlicedFindPath(out npath);
+                    status = m_Query.EndFindPath(out npath);
                     if (status.IsSuccess())
                     {
                         // TODO: Maybe add a method to get beforehand the number of result nodes and check if it will fit in the remaining space in m_ResultNodes [#adriant]

@@ -37,9 +37,9 @@ namespace Asteriods.Client
         {
             base.OnCreateManager(capacity);
 
-            SpawnEventQueue = new NativeQueue<SpawnCommand>(128, Allocator.Persistent);
-            MovementEventQueue = new NativeQueue<MovementData>(128, Allocator.Persistent);
-            DespawnEventQueue = new NativeQueue<DespawnCommand>(128, Allocator.Persistent);
+            SpawnEventQueue = new NativeQueue<SpawnCommand>(Allocator.Persistent);
+            MovementEventQueue = new NativeQueue<MovementData>(Allocator.Persistent);
+            DespawnEventQueue = new NativeQueue<DespawnCommand>(Allocator.Persistent);
             Debug.Assert(SpawnEventQueue.IsCreated);
             Debug.Assert(MovementEventQueue.IsCreated);
             Debug.Assert(DespawnEventQueue.IsCreated);

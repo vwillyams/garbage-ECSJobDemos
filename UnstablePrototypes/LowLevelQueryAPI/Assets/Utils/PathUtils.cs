@@ -53,7 +53,7 @@ public class PathUtils
 
                 float3 cpa1, cpa2;
                 GeometryUtils.SegmentSegmentCPA(out cpa1, out cpa2, l, r, straightPath[n - 1].position, termPos);
-                straightPath[n] = new NavMeshLocation(cpa1, path[k + 1]);
+                straightPath[n] = query.CreateLocation(cpa1, path[k + 1]);
 
                 // TODO maybe the flag should be additive with |=
                 straightPathFlags[n] = (type2 == NavMeshPolyTypes.OffMeshConnection) ? StraightPathFlags.OffMeshConnection : 0;
@@ -63,7 +63,7 @@ public class PathUtils
                 }
             }
         }
-        straightPath[n] = new NavMeshLocation(termPos, path[endIndex]);
+        straightPath[n] = query.CreateLocation(termPos, path[endIndex]);
         straightPathFlags[n] = query.GetPolygonType(path[endIndex]) == NavMeshPolyTypes.OffMeshConnection ? StraightPathFlags.OffMeshConnection : 0;
         return ++n;
     }
@@ -104,10 +104,7 @@ public class PathUtils
             return PathQueryStatus.Failure; // | kNavMeshInvalidParam;
         }
 
-        straightPath[0] = new NavMeshLocation(
-            startPos, // TODO make sure the start position is in this polygon?
-            path[0] // TODO search the polygon on the path where the start position is
-        );
+        straightPath[0] = query.CreateLocation(startPos, path[0]);
 
         straightPathFlags[0] = StraightPathFlags.Start;
 

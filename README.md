@@ -4,7 +4,7 @@ Talk about C# job system & Entity Component System at Unite Austin
 https://youtu.be/tGmnZdY5Y-E
 
 # unity build (compatible with "stable" branch)
-Required build: http://beta.unity3d.com/download/93dd73495c06/download.html
+Required build: http://beta.unity3d.com/download/3e37e1e9cfc6/download.html
 unity source code branch: scripting/jobsystem/combined
 
 # active development against master
@@ -20,4 +20,4 @@ Project folder for basic ECS dev & tests
 * NativeList, Nativehashmap and tests
 
 # AI Navigation & Batched raycasts
-Sandbox project for pathfinding: [LowLevelQueryAPI](UnstablePrototypes/LowLevelQueryAPI).\
+Sandbox project for pathfinding: [LowLevelQueryAPI](UnstablePrototypes/LowLevelQueryAPI).

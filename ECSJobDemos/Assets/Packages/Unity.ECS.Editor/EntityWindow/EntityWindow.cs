@@ -11,9 +11,14 @@ using UnityEditor.IMGUI.Controls;
 
 namespace UnityEditor.ECS
 {
-    public class EntityWindow : EditorWindow {
-        
+    public class EntityWindow : EditorWindow, IWorldSelectionWindow {
+
         const float kSystemListHeight = 100f;
+
+        public void SetWorldSelection(World world)
+        {
+            CurrentWorldSelection = world;
+        }
 
         public World CurrentWorldSelection
         {
@@ -54,10 +59,12 @@ namespace UnityEditor.ECS
         {
             if (currentWorldSelection == null)
                 return;
+            var systemListState = SystemListView.GetStateForWorld(currentWorldSelection, ref systemListStates,
+                ref systemListStateNames);
             systemListView = new SystemListView(systemListState, this);
             systemListView.SetManagers(systems);
         }
-        
+
         void InitComponentGroupList()
         {
             if (currentSystemSelection == null)
@@ -79,12 +86,21 @@ namespace UnityEditor.ECS
         [SerializeField] TreeViewState worldListState;
         WorldListView worldListView;
 
-        [SerializeField]
-        TreeViewState systemListState;
-
         SystemListView systemListView;
 
+        [SerializeField]
+        List<string> systemListStateNames;
+
+        [SerializeField]
+        List<TreeViewState> systemListStates;
+
         ComponentGroupListView componentGroupListView;
+
+        [SerializeField]
+        List<string> componentGroupListStateNames;
+
+        [SerializeField]
+        List<TreeViewState> componentGroupListStates;
 
         [SerializeField]
         TreeViewState entityListState;
@@ -93,12 +109,6 @@ namespace UnityEditor.ECS
 
         [SerializeField]
         List<MultiColumnHeaderState> entityColumnHeaderStates;
-
-        [SerializeField]
-        List<string> componentGroupListStateNames;
-
-        [SerializeField]
-        List<TreeViewState> componentGroupListStates;
 
         [MenuItem ("Window/Entities", false, 2017)]
         static void Init ()
@@ -125,7 +135,7 @@ namespace UnityEditor.ECS
 
         private ReadOnlyCollection<World> Worlds => worlds ?? (worlds = World.AllWorlds);
         private ReadOnlyCollection<World> worlds;
-        
+
         ComponentSystemBase[] systems => (from s in CurrentWorldSelection.BehaviourManagers
             where s is ComponentSystemBase
             select s as ComponentSystemBase).ToArray();

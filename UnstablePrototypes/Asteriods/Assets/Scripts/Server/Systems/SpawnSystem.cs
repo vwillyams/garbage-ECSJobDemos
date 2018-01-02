@@ -38,8 +38,8 @@ namespace Asteriods.Server
         override protected void OnCreateManager(int capacity)
         {
             base.OnCreateManager(capacity);
-            OutgoingSpawnQueue = new NativeQueue<SpawnCommand>(128, Allocator.Persistent);
-            IncommingSpawnQueue = new NativeQueue<SpawnCommand>(128, Allocator.Persistent);
+            OutgoingSpawnQueue = new NativeQueue<SpawnCommand>(Allocator.Persistent);
+            IncommingSpawnQueue = new NativeQueue<SpawnCommand>(Allocator.Persistent);
             Debug.Assert(OutgoingSpawnQueue.IsCreated);
         }
 

@@ -354,15 +354,12 @@ namespace UnityEngine.ECS
             return new ComponentArray<T>(cache, length, m_EntityManager.m_ArchetypeManager);
         }
 
-        public int Length
+        public unsafe int CalculateLength()
         {
-            get
-            {
-                int length;
-                int componentIndex;
-                GetComponentChunkIterator(TypeManager.GetTypeIndex<Entity>(), out length, out componentIndex);
-                return length;
-            }
+            int length;
+            int componentIndex;
+            GetComponentChunkIterator(TypeManager.GetTypeIndex<Entity>(), out length, out componentIndex);
+            return length;
         }
 
         public TransformAccessArray GetTransformAccessArray()

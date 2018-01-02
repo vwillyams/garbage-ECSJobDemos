@@ -154,14 +154,22 @@ namespace UnityEngine.ECS
 
 	public abstract class ComponentSystem : ComponentSystemBase
 	{
+	    void BeforeOnUpdate()
+	    {
+	        CompleteDependencyInternal();
+	        UpdateInjectedComponentGroups ();
+	    }
+
+	    void AfterOnUpdate()
+	    {
+	        JobHandle.ScheduleBatchedJobs();
+	    }
+
 	    internal sealed override void InternalUpdate()
 	    {
-		    CompleteDependencyInternal();
-		    UpdateInjectedComponentGroups ();
-
+	        BeforeOnUpdate();
 		    OnUpdate();
-
-		    JobHandle.ScheduleBatchedJobs();
+	        AfterOnUpdate();
 	    }
 
 		protected sealed override void OnCreateManagerInternal(int capacity)
@@ -179,53 +187,64 @@ namespace UnityEngine.ECS
 	{
 		JobHandle m_PreviousFrameDependency;
 
-		internal sealed override void InternalUpdate()
-		{
-			UpdateInjectedComponentGroups();
+	    JobHandle BeforeOnUpdate()
+	    {
+	        UpdateInjectedComponentGroups();
 
-			// We need to wait on all previous frame dependencies, otherwise it is possible that we create infinitely long dependency chains
-			// without anyone ever waiting on it
-			m_PreviousFrameDependency.Complete();
+	        // We need to wait on all previous frame dependencies, otherwise it is possible that we create infinitely long dependency chains
+	        // without anyone ever waiting on it
+	        m_PreviousFrameDependency.Complete();
 
-			JobHandle input = GetDependency();
-			JobHandle output = OnUpdate(input);
+	        return GetDependency();
+	    }
 
-			JobHandle.ScheduleBatchedJobs();
+	    void AfterOnUpdate(JobHandle outputJob)
+	    {
+	        JobHandle.ScheduleBatchedJobs();
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-			if (JobsUtility.JobDebuggerEnabled)
-			{
-				// Check that all reading and writing jobs are a dependency of the output job, to
-				// catch systems that forget to add one of their jobs to the dependency graph.
-				//
-				// Note that this check is not strictly needed as we would catch the mistake anyway later,
-				// but checking it here means we can flag the system that has the mistake, rather than some
-				// other (innocent) system that is doing things correctly.
+	        if (JobsUtility.JobDebuggerEnabled)
+	        {
+	            // Check that all reading and writing jobs are a dependency of the output job, to
+	            // catch systems that forget to add one of their jobs to the dependency graph.
+	            //
+	            // Note that this check is not strictly needed as we would catch the mistake anyway later,
+	            // but checking it here means we can flag the system that has the mistake, rather than some
+	            // other (innocent) system that is doing things correctly.
 
-				try
-				{
-					for (int i = 0; i < m_JobDependencyForReadingManagers.Length; ++i)
-					{
-						CheckJobDependencies(m_JobDependencyForReadingManagers[i], output);
-					}
+	            try
+	            {
+	                for (int i = 0; i < m_JobDependencyForReadingManagers.Length; ++i)
+	                {
+	                    CheckJobDependencies(m_JobDependencyForReadingManagers[i], outputJob);
+	                }
 
-					for (int i = 0; i < m_JobDependencyForWritingManagers.Length; ++i)
-					{
-						CheckJobDependencies(m_JobDependencyForWritingManagers[i], output);
-					}
-				}
-				catch (InvalidOperationException)
-				{
-					EmergencySyncAllJobs();
-					throw;
-				}
-			}
+	                for (int i = 0; i < m_JobDependencyForWritingManagers.Length; ++i)
+	                {
+	                    CheckJobDependencies(m_JobDependencyForWritingManagers[i], outputJob);
+	                }
+	            }
+	            catch (InvalidOperationException)
+	            {
+	                EmergencySyncAllJobs();
+	                throw;
+	            }
+	        }
 #endif
-			AddDependencyInternal(output);
-			m_PreviousFrameDependency = output;
-		}
+	        AddDependencyInternal(outputJob);
+	        m_PreviousFrameDependency = outputJob;
+	    }
 
-		override sealed protected void OnCreateManagerInternal(int capacity)
+	    internal sealed override void InternalUpdate()
+	    {
+	        var inputJob = BeforeOnUpdate();
+
+	        var outputJob = OnUpdate(inputJob);
+
+	        AfterOnUpdate(outputJob);
+	    }
+
+	    override sealed protected void OnCreateManagerInternal(int capacity)
 		{
 			base.OnCreateManagerInternal(capacity);
 		}

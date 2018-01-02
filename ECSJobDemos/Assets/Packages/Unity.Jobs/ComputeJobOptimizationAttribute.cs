@@ -16,19 +16,20 @@
 
     public class ComputeJobOptimizationAttribute : System.Attribute
     {
-        internal Support m_Support;
-        internal Accuracy m_Accuracy;
+        public Support  Support              { get; set; }
+        public Accuracy Accuracy             { get; set; }
+        public bool     CompileSynchronously { get; set; }
 
         public ComputeJobOptimizationAttribute()
         {
-            m_Support = Support.Strict;
-            m_Accuracy = Accuracy.Std;
+            Support = Support.Strict;
+            Accuracy = Accuracy.Std;
         }
 
         public ComputeJobOptimizationAttribute(Accuracy accuracy, Support support)
         {
-            m_Support = support;
-            m_Accuracy = accuracy;
+            Support = support;
+            Accuracy = accuracy;
         }
     }
 }

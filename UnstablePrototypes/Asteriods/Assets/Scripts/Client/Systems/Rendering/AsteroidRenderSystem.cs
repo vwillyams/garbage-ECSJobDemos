@@ -29,6 +29,13 @@ namespace Asteriods.Client
         [InjectComponentGroup]
         Asteroid asteroids;
 
+        struct LineList
+        {
+            public ComponentDataArray<LineRendererComponentData> line;
+        }
+        [InjectComponentGroup]
+        LineList m_LineListComponent;
+
         static float pulse = 1;
         static float pulseDelta = 1;
         static float pulseMax = 1.2f;
@@ -36,6 +43,8 @@ namespace Asteriods.Client
 
         override protected void OnUpdate()
         {
+            if (m_LineListComponent.line.Length != 1)
+                return;
             NativeList<LineRenderSystem.Line> lines = m_LineRenderSystem.LineList;
             float astrWidth = 30;
             float astrHeight = 30;

@@ -11,40 +11,76 @@ namespace UnityEditor.ECS
 {
 	public class SystemGraphView
 	{
-		private readonly Rect kStartPosition = new Rect(0f, 0f, 1f, 1f);
+		private readonly Rect kStartPosition;
 		public const float kArrowSize = 11f;
 		private const float kLineWidth = 2f;
 		private const float kLayerHeight = 50f;
 		private const float kHorizontalSpacing = 200f;
-		
 
-		private List<SystemViewData> systemViews;
 
-		public void SetSystems(Type[] systemTypes, ref List<SystemViewData> systemViews)
+		private SystemGraphState state;
+	    private readonly Texture2D lineTexture;
+
+	    public SystemGraphView(Vector2 windowOffset)
+	    {
+	        kStartPosition = new Rect(windowOffset, Vector2.one);
+	        lineTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.ecs_bundle/Unity.ECS.Editor/Resources/AALineRetina.png");
+	    }
+
+	    public static SystemGraphState GetStateForWorld(World world, ref List<SystemGraphState> stateForWorlds,
+	        ref List<string> worldNames)
+	    {
+	        if (world == null)
+	            return new SystemGraphState();
+
+	        if (stateForWorlds == null)
+	        {
+	            stateForWorlds = new List<SystemGraphState>();
+	            worldNames = new List<string>();
+	        }
+	        var currentWorldName = world.Name;
+
+	        SystemGraphState stateForCurrentWorld = null;
+	        for (var i = 0; i < stateForWorlds.Count; ++i)
+	        {
+	            if (worldNames[i] == currentWorldName)
+	            {
+	                stateForCurrentWorld = stateForWorlds[i];
+	                break;
+	            }
+	        }
+	        if (stateForCurrentWorld == null)
+	        {
+	            stateForCurrentWorld = new SystemGraphState();
+	            stateForWorlds.Add(stateForCurrentWorld);
+	            worldNames.Add(currentWorldName);
+	        }
+	        return stateForCurrentWorld;
+	    }
+
+		public void SetSystemsAndState(Type[] systemTypes, SystemGraphState savedState)
 		{
-			if (systemViews == null)
-				systemViews = new List<SystemViewData>();
-		    this.systemViews = systemViews;
-			
+		    state = savedState;
+
 			var systemViewIndicesByType = new Dictionary<Type, int>();
-			
+
 			if (systemTypes != null)
 			{
 				foreach (var type in systemTypes)
 				{
-					var systemViewIndex = systemViews.FindIndex(x => x.fullName == type.FullName);
+					var systemViewIndex = state.systemViews.FindIndex(x => x.fullName == type.FullName);
 					if (systemViewIndex < 0)
 					{
-						systemViews.Add(new SystemViewData(type.Name, type.FullName, kStartPosition));
-						systemViewIndex = systemViews.Count - 1;
+					    state.systemViews.Add(new SystemViewData(type.Name, type.FullName, kStartPosition));
+						systemViewIndex = state.systemViews.Count - 1;
 					}
-					systemViews[systemViewIndex].updateAfter = new List<int>();
-					systemViews[systemViewIndex].updateBefore = new List<int>();
+				    state.systemViews[systemViewIndex].updateAfter = new List<int>();
+				    state.systemViews[systemViewIndex].updateBefore = new List<int>();
 					systemViewIndicesByType.Add(type, systemViewIndex);
 				}
 				foreach (var systemType in systemTypes)
 				{
-					var systemView = systemViews[systemViewIndicesByType[systemType]];
+					var systemView = state.systemViews[systemViewIndicesByType[systemType]];
 					foreach (var attribute in systemType.GetCustomAttributesData())
 					{
 						if (attribute.AttributeType == typeof(UpdateAfter))
@@ -66,12 +102,12 @@ namespace UnityEditor.ECS
 
 		public void GraphLayout()
 		{
-			var rowLength = Mathf.RoundToInt(Mathf.Sqrt(systemViews.Count));
+			var rowLength = Mathf.RoundToInt(Mathf.Sqrt(state.systemViews.Count));
 			if (rowLength == 0)
 				return;
 			var x = 0;
 			var y = 0;
-			foreach (var systemView in systemViews)
+			foreach (var systemView in state.systemViews)
 			{
 				systemView.position.position = new Vector2(x*kHorizontalSpacing, y*kLayerHeight);
 				++x;
@@ -83,24 +119,24 @@ namespace UnityEditor.ECS
 
 		public void OnGUIArrows()
 		{
-			foreach (var systemView in systemViews)
+			foreach (var systemView in state.systemViews)
 			{
 				foreach (var typeIndex in systemView.updateAfter)
 				{
-					DrawArrowBetweenBoxes(systemView, systemViews[typeIndex]);
+					DrawArrowBetweenBoxes(systemView, state.systemViews[typeIndex]);
 				}
 				foreach (var typeIndex in systemView.updateBefore)
 				{
-					DrawArrowBetweenBoxes(systemViews[typeIndex], systemView);
+					DrawArrowBetweenBoxes(state.systemViews[typeIndex], systemView);
 				}
 			}
 		}
 
 	    public void OnGUIWindows()
 	    {
-	        for (var i = 0; i < systemViews.Count; ++i)
+	        for (var i = 0; i < state.systemViews.Count; ++i)
 	        {
-	            var view = systemViews[i];
+	            var view = state.systemViews[i];
 	            view.position = GUILayout.Window(i, view.position, WindowFunction, "", GUI.skin.box);
 	        }
 	    }
@@ -111,7 +147,6 @@ namespace UnityEditor.ECS
 			if (arrowDirection == Vector3.zero)
 				return;
 			Handles.color = EditorStyles.label.normal.textColor;
-			var lineTexture = (Texture2D) EditorGUIUtility.LoadRequired("AALineRetina.png");
 			var startPos = ExteriorPointFromOtherPoint(fromView.position, toView.Center);
 			var endPos = ExteriorPointFromOtherPoint(toView.position, fromView.Center);
 			endPos -= (endPos - startPos).normalized * 0.6f * kArrowSize;
@@ -142,15 +177,15 @@ namespace UnityEditor.ECS
 			ext.x *= Mathf.Sign(localOther.x)*(rect.width*0.5f);
 			ext.y *= Mathf.Sign(localOther.y)*(rect.height*0.5f);
 			ext += rect.center;
-			
+
 			return new Vector3(ext.x, ext.y, -5f);
 		}
 
 		void WindowFunction(int id)
 		{
 			GUI.DragWindow(new Rect(0f, 0f, 1000f, 1000f));
-			GUILayout.Label(new GUIContent(systemViews[id].name, systemViews[id].fullName));
+			GUILayout.Label(new GUIContent(state.systemViews[id].name, state.systemViews[id].fullName));
 		}
 	}
-	
+
 }

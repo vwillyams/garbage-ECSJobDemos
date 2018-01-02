@@ -119,7 +119,7 @@ namespace UnityEngine.ECS
 
 	        if (m_LengthOffset != -1)
 	        {
-		        int length = m_EntityGroup.Length;
+		        int length = m_EntityGroup.CalculateLength();
 		        UnsafeUtility.CopyStructureToPtr(ref length, groupStructPtr + m_LengthOffset);
 	        }
         }

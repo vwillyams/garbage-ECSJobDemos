@@ -1,11 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Jobs;
 using UnityEditor;
 using UnityEngine.Assertions;
 using System.Runtime.InteropServices;
-using UnityEngine.Collections;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
+using Unity.Mathematics;
 
 namespace AnimationSampleCode
 {
@@ -87,7 +88,7 @@ namespace AnimationSampleCode
 
 	class AnimationSystem
 	{
-		
+
 		public static void ApplyToSkeleton(NativeArray<float> samples, AnimationToSkeletonBinding binding, LocalPoseData outputPose)
 		{
 			var outputTRSFloatBuffer = outputPose.pose.Slice().SliceConvert<float> ();
@@ -138,7 +139,7 @@ namespace AnimationSampleCode
 				outBindings.animationCurveToSkeletonIndex[i] = -1;
 
 				//@TODO: Need better NativeArray perf...
-				PropertyName* skeletonNodeNames = (PropertyName*)skeleton.nodeName.UnsafeReadOnlyPtr;
+				PropertyName* skeletonNodeNames = (PropertyName*)skeleton.nodeName.GetUnsafeReadOnlyPtr();
 				int skeletonNodeNamesLength = skeleton.nodeName.Length;
 				for (int s = 0; s != skeletonNodeNamesLength; s++)
 				{
@@ -185,7 +186,7 @@ namespace AnimationSampleCode
 			}
 		}
 
-		public unsafe static void AnimationClipToDenseClip(AnimationClip clip, out BlobRootPtr<DenseClip> outClip, out AnimationBinding outBindings)
+		public unsafe static void AnimationClipToDenseClip(AnimationClip clip, out BlobAssetReference<DenseClip> outClip, out AnimationBinding outBindings)
 		{
 			var bindings = AnimationUtility.GetCurveBindings (clip);
 
@@ -193,7 +194,7 @@ namespace AnimationSampleCode
 
 			int frameCount = Mathf.CeilToInt (clip.frameRate * clip.length);
 
-			var blobAllocator = new BlobAllocator (Allocator.Persistent, frameCount * bindings.Length * sizeof(float) + sizeof(DenseClip));
+			var blobAllocator = new BlobAllocator (-1);
 
 			var clipData = (DenseClip*)blobAllocator.ConstructRoot<DenseClip> ();
 			clipData->curveCount = bindings.Length;
@@ -217,10 +218,12 @@ namespace AnimationSampleCode
 				outputIndex++;
 			}
 
-			outClip = blobAllocator.Create<DenseClip> ();
+			outClip = blobAllocator.CreateBlobAssetReference<DenseClip> (Allocator.Persistent);
+
+		    blobAllocator.Dispose();
 		}
 
-		struct SkeletonBuilder
+	    struct SkeletonBuilder
 		{
 			public NativeList<int> 			parents;
 			public NativeList<PropertyName> nodeName;

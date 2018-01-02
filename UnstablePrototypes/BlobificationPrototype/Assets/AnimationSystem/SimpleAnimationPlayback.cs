@@ -1,10 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+using Unity.Jobs;
 using UnityEngine.Jobs;
-using UnityEditor;
 using AnimationSampleCode;
-using UnityEngine.Collections;
+using Unity.Collections;
 
 class SimpleAnimationPlayback : MonoBehaviour
 {
@@ -29,7 +27,9 @@ class SimpleAnimationPlayback : MonoBehaviour
 
 	struct SampleAnimationClipJob : IJob
 	{
-		public BlobRootPtr<DenseClip> 		clip;
+	    //@TODO: SHould be unnecessary, type is marked immutable
+	    [ReadOnly]
+		public BlobAssetReference<DenseClip> 		clip;
 		public Skeleton 					skeleton;
 		public LocalPoseData				defaultPose;
 
@@ -45,7 +45,7 @@ class SimpleAnimationPlayback : MonoBehaviour
 
 			var sampledCurves = new NativeArray<float>(animationToSkeleton.animationCurveToSkeletonIndex.Length, Allocator.Temp);
 
-			DenseClip* denseClip = (DenseClip*)clip.UnsafeReadOnlyPtr;
+			DenseClip* denseClip = (DenseClip*)clip.GetUnsafeReadOnlyPtr();
 			AnimationSystem.SampleAnimation (ref *denseClip, time, sampledCurves);
 
 			AnimationSystem.CopyPose (defaultPose, outputPose);
@@ -80,7 +80,7 @@ class SimpleAnimationPlayback : MonoBehaviour
 		NativeLeakDetection.Mode = NativeLeakDetectionMode.Enabled;
 
 		var sampleClipJob = new SampleAnimationClipJob ();
-		sampleClipJob.clip = m_GeneratedClip.m_ClipData;
+		sampleClipJob.clip = m_GeneratedClip.ClipData;
 		sampleClipJob.skeleton = m_Skeleton;
 		sampleClipJob.defaultPose = m_DefaultPose;
 		sampleClipJob.animationToSkeleton = m_ClipToSkeletonBinding;

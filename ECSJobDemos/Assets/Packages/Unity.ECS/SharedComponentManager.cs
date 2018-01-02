@@ -17,27 +17,24 @@ namespace UnityEngine.ECS
             m_SharedComponentData = null;
         }
 
-        public void GetAllUniqueSharedComponents(System.Type componentType, NativeList<ComponentType> uniqueComponents)
-        {
-            int typeIndex = TypeManager.GetTypeIndex(componentType);
-            for (int i = 0; i != m_SharedComponentData.Count; i++)
-            {
-                object data = m_SharedComponentData[i];
-                if (data != null && data.GetType() == componentType)
-                    uniqueComponents.Add(GetComponentType(typeIndex, i));
-            }
-        }
+// TODO: how to handle this now
+//        public void GetAllUniqueSharedComponents(System.Type componentType, NativeList<ComponentType> uniqueComponents)
+//        {
+//            int typeIndex = TypeManager.GetTypeIndex(componentType);
+//            for (int i = 0; i != m_SharedComponentData.Count; i++)
+//            {
+//                object data = m_SharedComponentData[i];
+//                if (data != null && data.GetType() == componentType)
+//                    uniqueComponents.Add(GetComponentType(typeIndex, i));
+//            }
+//        }
 
         unsafe public void OnArchetypeAdded(ComponentTypeInArchetype* types, int count)
         {
-            for (int i = 0; i != count;i++)
-            {
-                if (types[i].sharedComponentIndex != -1)
-                    m_SharedComponentRefCount[types[i].sharedComponentIndex]++;
-            }
+            //TODO: still need this?
         }
 
-        public ComponentType InsertSharedComponent<T>(T newData) where T : struct
+        public int InsertSharedComponent<T>(T newData) where T : struct
         {
             for (int i = 0; i != m_SharedComponentData.Count; i++)
             {
@@ -47,7 +44,7 @@ namespace UnityEngine.ECS
                     if (newData.Equals(data))
                     {
                         m_SharedComponentRefCount[i]++;
-                        return GetComponentType(TypeManager.GetTypeIndex<T>(), i);
+                        return i;
                     }
                 }
             }
@@ -55,19 +52,13 @@ namespace UnityEngine.ECS
             m_SharedComponentData.Add(newData);
             m_SharedComponentRefCount.Add(1);
 
-            return GetComponentType(TypeManager.GetTypeIndex<T>(), m_SharedComponentData.Count - 1);
+            return m_SharedComponentData.Count - 1;
         }
 
         public T GetSharedComponentData<T>(int index)
         {
             return (T)m_SharedComponentData[index];
         }
-
-        public T GetSharedComponentData<T>(ComponentType component)
-        {
-            return (T)m_SharedComponentData[component.sharedComponentIndex];
-        }
-
 
         public void AdjustInstanceCount(int index, int count)
         {
@@ -77,17 +68,6 @@ namespace UnityEngine.ECS
             {
                 m_SharedComponentData[index] = null;
             }
-        }
-
-        ComponentType GetComponentType(int typeIndex, int sharedIndex)
-        {
-            ComponentType type;
-            type.sharedComponentIndex = sharedIndex;
-            type.typeIndex = typeIndex;
-            type.accessMode = ComponentType.AccessMode.ReadWrite;
-            type.FixedArrayLength = -1;
-            
-            return type;
         }
     }
 }

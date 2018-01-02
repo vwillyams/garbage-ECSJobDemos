@@ -28,33 +28,34 @@ namespace UnityEngine.ECS.Rendering
         protected override void OnUpdate()
 		{
             var uniqueRendererTypes = new NativeList<ComponentType>(10, Allocator.TempJob);
-            EntityManager.GetAllUniqueSharedComponents(typeof(InstanceRenderer), uniqueRendererTypes);
+		    // TODO:
+            //EntityManager.GetAllUniqueSharedComponents(typeof(InstanceRenderer), uniqueRendererTypes);
 
             //@TODO: Do cleanup when renderer type is no longer being used...
 
-            for (int i = 0;i != uniqueRendererTypes.Length;i++)
-            {
-                var uniqueType = uniqueRendererTypes[i];
-                var renderer = EntityManager.GetSharedComponentData<InstanceRenderer>(uniqueType);
-
-                var group = EntityManager.CreateComponentGroup(uniqueType, typeof(InstanceRendererTransform));
-
-                group.CompleteDependency();
-
-                var transforms = group.GetComponentDataArray<InstanceRendererTransform>();
-
-                int beginIndex = 0;
-                while (beginIndex < transforms.Length)
-                {
-                    int length = math.min(m_MatricesArray.Length, transforms.Length - beginIndex);
-                    CopyMatrices(transforms, beginIndex, length, m_MatricesArray);
-                    Graphics.DrawMeshInstanced(renderer.mesh, 0, renderer.material, m_MatricesArray, length, null, renderer.castShadows, renderer.receiveShadows);
-
-                    beginIndex += length;
-                }
-
-                group.Dispose();
-            }
+//            for (int i = 0;i != uniqueRendererTypes.Length;i++)
+//            {
+//                var uniqueType = uniqueRendererTypes[i];
+//                var renderer = EntityManager.GetSharedComponentData<InstanceRenderer>(uniqueType);
+//
+//                var group = EntityManager.CreateComponentGroup(uniqueType, typeof(InstanceRendererTransform));
+//
+//                group.CompleteDependency();
+//
+//                var transforms = group.GetComponentDataArray<InstanceRendererTransform>();
+//
+//                int beginIndex = 0;
+//                while (beginIndex < transforms.Length)
+//                {
+//                    int length = math.min(m_MatricesArray.Length, transforms.Length - beginIndex);
+//                    CopyMatrices(transforms, beginIndex, length, m_MatricesArray);
+//                    Graphics.DrawMeshInstanced(renderer.mesh, 0, renderer.material, m_MatricesArray, length, null, renderer.castShadows, renderer.receiveShadows);
+//
+//                    beginIndex += length;
+//                }
+//
+//                group.Dispose();
+//            }
 
             uniqueRendererTypes.Dispose();
 		}

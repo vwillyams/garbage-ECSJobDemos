@@ -116,10 +116,6 @@ namespace UnityEngine.ECS
                 if (hasComponent && archetype->types[typeI].typeIndex != group->requiredComponents[i].typeIndex)
                     hasComponent = false;
 
-                // We are looking for a specific shared type index and it doesn't match
-                if (hasComponent && group->requiredComponents[i].sharedComponentIndex != -1 && archetype->types[typeI].sharedComponentIndex != group->requiredComponents[i].sharedComponentIndex)
-                    hasComponent = false;
-
                 if (hasComponent && group->requiredComponents[i].accessMode == ComponentType.AccessMode.Subtractive)
                     return;
                 if (!hasComponent && group->requiredComponents[i].accessMode != ComponentType.AccessMode.Subtractive)

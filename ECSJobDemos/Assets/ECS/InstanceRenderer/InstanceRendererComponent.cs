@@ -16,5 +16,6 @@ namespace UnityEngine.ECS.Rendering
         public bool                 receiveShadows;
 	}
 
-	public class InstanceRendererComponent : SharedComponentDataWrapper<InstanceRenderer> { }
+    // TODO:
+	//public class InstanceRendererComponent : SharedComponentDataWrapper<InstanceRenderer> { }
 }

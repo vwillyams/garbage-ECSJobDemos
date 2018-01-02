@@ -380,34 +380,21 @@ namespace UnityEngine.ECS
             return m_ArchetypeManager.GetManagedObject(chunk, componentType, chunkIndex) as T;
         }
 
-        /// Shared component data
-        //@TODO: Shared component data
-        //@TODO: * Need to handle refcounting / destruction of archetypes, right now we just leak shared component types
-        //@TODO: * Integrate into add component / remove component (Should be generalized to build on top of general purpose SetArchetype(Entity entity); API)
-        public ComponentType CreateSharedComponentType<T>(T data) where T : struct, ISharedComponentData
-        {
-            return m_SharedComponentManager.InsertSharedComponent<T>(data);
-        }
-
-        public void GetAllUniqueSharedComponents(Type type, NativeList<ComponentType> types)
-        {
-            m_SharedComponentManager.GetAllUniqueSharedComponents(type, types);
-        }
-
-        public T GetSharedComponentData<T>(ComponentType componentType) where T : struct, ISharedComponentData
-        {
-            //@TODO: This really needs validation on if the compeont
-            return m_SharedComponentManager.GetSharedComponentData<T>(componentType);
-        }
+// TODO: remove?
+//        public void GetAllUniqueSharedComponents(Type type, NativeList<ComponentType> types)
+//        {
+//            m_SharedComponentManager.GetAllUniqueSharedComponents(type, types);
+//        }
 
         unsafe public T GetSharedComponentData<T>(Entity entity) where T : struct, ISharedComponentData
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
             m_Entities.AssertEntityHasComponent(entity, typeIndex);
-
-            Archetype* archetype = m_Entities.GetArchetype(entity);
+            var archetype = m_Entities.GetArchetype(entity);
             int indexInTypeArray = ChunkDataUtility.GetIndexInTypeArray(archetype, typeIndex);
-            return m_SharedComponentManager.GetSharedComponentData<T>(archetype->types[indexInTypeArray].sharedComponentIndex);
+
+            int sharedComponentIndex = m_Entities.GetSharedComponentDataIndex(entity, indexInTypeArray);
+            return m_SharedComponentManager.GetSharedComponentData<T>(sharedComponentIndex);
         }
 
 

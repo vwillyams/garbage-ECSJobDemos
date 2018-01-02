@@ -14,7 +14,6 @@ namespace UnityEngine.ECS
 	struct ComponentTypeInArchetype
 	{
 		public int typeIndex;
-		public int sharedComponentIndex;
 		public int FixedArrayLength;
 
 		public bool IsFixedArray 			   { get { return FixedArrayLength != -1; } }
@@ -23,25 +22,24 @@ namespace UnityEngine.ECS
 		public ComponentTypeInArchetype(ComponentType type)
 		{
 			typeIndex = type.typeIndex;
-			sharedComponentIndex = type.sharedComponentIndex;
 			FixedArrayLength = type.FixedArrayLength;
 		}
 
 		static public bool operator ==(ComponentTypeInArchetype lhs, ComponentTypeInArchetype rhs)
 		{
-			return lhs.typeIndex == rhs.typeIndex && lhs.sharedComponentIndex == rhs.sharedComponentIndex &&  lhs.FixedArrayLength == rhs.FixedArrayLength;
+			return lhs.typeIndex == rhs.typeIndex && lhs.FixedArrayLength == rhs.FixedArrayLength;
 		}
 		static public bool operator !=(ComponentTypeInArchetype lhs, ComponentTypeInArchetype rhs)
 		{
-			return lhs.typeIndex != rhs.typeIndex || lhs.sharedComponentIndex != rhs.sharedComponentIndex || lhs.FixedArrayLength != rhs.FixedArrayLength;
+			return lhs.typeIndex != rhs.typeIndex || lhs.FixedArrayLength != rhs.FixedArrayLength;
 		}
 		static public bool operator <(ComponentTypeInArchetype lhs, ComponentTypeInArchetype rhs)
 		{
-			return lhs.typeIndex != rhs.typeIndex ? lhs.typeIndex < rhs.typeIndex : lhs.sharedComponentIndex < rhs.sharedComponentIndex;
+			return lhs.typeIndex != rhs.typeIndex ? lhs.typeIndex < rhs.typeIndex : lhs.FixedArrayLength < rhs.FixedArrayLength;
 		}
 		static public bool operator >(ComponentTypeInArchetype lhs, ComponentTypeInArchetype rhs)
 		{
-			return lhs.typeIndex != rhs.typeIndex ? lhs.typeIndex > rhs.typeIndex : lhs.sharedComponentIndex > rhs.sharedComponentIndex;
+			return lhs.typeIndex != rhs.typeIndex ? lhs.typeIndex > rhs.typeIndex : lhs.FixedArrayLength > rhs.FixedArrayLength;
 		}
 
 		public static unsafe bool CompareArray(ComponentTypeInArchetype* type1, int typeCount1, ComponentTypeInArchetype* type2, int typeCount2)
@@ -63,7 +61,6 @@ namespace UnityEngine.ECS
 			type.FixedArrayLength = FixedArrayLength;
 			type.typeIndex = typeIndex;
 			type.accessMode = ComponentType.AccessMode.ReadWrite;
-			type.sharedComponentIndex = sharedComponentIndex;
 			return type.ToString();
 		}
 #endif

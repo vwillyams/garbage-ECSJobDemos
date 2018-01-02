@@ -231,15 +231,7 @@ namespace UnityEngine.ECS
 
             Archetype* archetype = m_Entities[entity.index].archetype;
 
-            if (type.sharedComponentIndex != -1)
-            {
-                int idx = ChunkDataUtility.GetIndexInTypeArray(archetype, type.typeIndex);
-                if (idx == -1)
-                    return false;
-
-                return archetype->types[idx].sharedComponentIndex == type.sharedComponentIndex;
-            }
-            else if (type.IsFixedArray)
+            if (type.IsFixedArray)
             {
                 int idx = ChunkDataUtility.GetIndexInTypeArray(archetype, type.typeIndex);
                 if (idx == -1)
@@ -315,7 +307,7 @@ namespace UnityEngine.ECS
         public void MoveEntityToChunk(ArchetypeManager typeMan, Entity entity, Chunk* newChunk, int newChunkIndex)
         {
             Chunk* oldChunk = m_Entities[entity.index].chunk;
-            Assert.AreEqual(oldChunk->archetype, newChunk->archetype);
+            Assert.IsTrue(oldChunk->archetype == newChunk->archetype);
 
             int oldChunkIndex = m_Entities[entity.index].index;
 
@@ -343,6 +335,15 @@ namespace UnityEngine.ECS
 
             typeMan.SetChunkCount(newChunk, newChunk->count + 1);
             typeMan.SetChunkCount(oldChunk, oldChunk->count - 1);
+        }
+
+        public int GetSharedComponentDataIndex(Entity entity, int indexInTypeArray)
+        {
+            Chunk* chunk = m_Entities[entity.index].chunk;
+            int* sharedComponentValueArray = ArchetypeManager.GetSharedComponentValueArray(chunk);
+            //TODO: bounds check
+            int sharedComponentOffset = m_Entities[entity.index].archetype->sharedComponentOffset[indexInTypeArray];
+            return sharedComponentValueArray[sharedComponentOffset];
         }
     }
 }

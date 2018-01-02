@@ -3,8 +3,10 @@ using NUnit.Framework;
 using System;
 using Unity.Collections;
 using Unity.Jobs;
+using UnityEngine.ECS;
+using UnityEngine.ECS.Tests;
 
-public class BlobTests
+public class BlobTests : ECSTestsFixture
 {
 	//@TODO: Test Prevent NativeArray and other containers inside of Blob data
 	//@TODO: Test Prevent BlobPtr, BlobArray onto job struct
@@ -34,7 +36,7 @@ public class BlobTests
 		allocator.Allocate(ref root->oneVector3);
 		allocator.Allocate(2, ref root->nestedArray);
 
-		BlobArray<int>* nestedArrays = (BlobArray<int>*)root->nestedArray.UnsafePtr;
+		BlobArray<int>* nestedArrays = (BlobArray<int>*)root->nestedArray.GetUnsafePtr();
 		allocator.Allocate(1, ref nestedArrays[0]);
 		allocator.Allocate(2, ref nestedArrays[1]);
 
@@ -68,7 +70,7 @@ public class BlobTests
         Assert.AreEqual (1, root->nestedArray[0].Length);
         Assert.AreEqual (2, root->nestedArray[1].Length);
 
-        var nested = (BlobArray<int>*)(root->nestedArray.UnsafePtr);
+        var nested = (BlobArray<int>*)(root->nestedArray.GetUnsafePtr());
 
         Assert.AreEqual (0, nested[0][0]);
         Assert.AreEqual (1, nested[1][0]);
@@ -80,25 +82,21 @@ public class BlobTests
 	public unsafe void CreateBlobData()
 	{
 		var blob = ConstructBlobData ();
-		MyData* root = (MyData*)blob.GetUnsafeReadOnlyPtr();
+		MyData* root = (MyData*)blob.GetUnsafePtr();
 	    ValidateBlobData(root);
 
 		blob.Release();
 	}
 
 	[Test]
-	[Ignore("Failing")]
-	public unsafe void CachedBlobArrayThrowsExceptionAfterDeallocatingRoot()
+	public unsafe void BlobAccessAfterReleaseThrows()
 	{
 		var blob = ConstructBlobData ();
-		MyData* root = (MyData*)blob.GetUnsafeReadOnlyPtr();
-		var floatArray = root->floatArray;
 		blob.Release();
-
-		Assert.Throws<InvalidOperationException>(() => { var p = floatArray[0]; });
+	    Assert.Throws<InvalidOperationException>(() => { blob.GetUnsafePtr(); });
 	}
 
-	struct JobData : IJob
+	struct ValidateBlobJob : IJob
 	{
 	    //@TODO: BlobAsset should always be guranteed immutable
 	    [ReadOnly]
@@ -106,17 +104,22 @@ public class BlobTests
 
 		public unsafe void Execute()
 		{
-			MyData* data = (MyData*)blob.GetUnsafeReadOnlyPtr();
+			MyData* data = (MyData*)blob.GetUnsafePtr();
 		    ValidateBlobData(data);
 		}
 	}
+
+    struct ComponentWithBlobData : IComponentData
+    {
+        public BlobAssetReference<MyData> blobAsset;
+    }
 
 	[Test]
 	public void ReadBlobDataFromJob()
 	{
 		var blob = ConstructBlobData ();
 
-		var jobData = new JobData();
+		var jobData = new ValidateBlobJob();
 		jobData.blob = blob;
 
 		jobData.Schedule ().Complete();
@@ -124,45 +127,67 @@ public class BlobTests
 		blob.Release();
 	}
 
+
+    struct ValidateBlobInComponentJob : IJobProcessComponentData<ComponentWithBlobData>
+    {
+        public bool ExpectException;
+
+        public unsafe void Execute(ref ComponentWithBlobData component)
+        {
+            if (ExpectException)
+            {
+                var asset = component.blobAsset;
+                Assert.Throws<InvalidOperationException>(() => { asset.GetUnsafePtr(); });
+            }
+            else
+            {
+                MyData* data = (MyData*) component.blobAsset.GetUnsafePtr();
+                ValidateBlobData(data);
+            }
+        }
+    }
+
 	[Test]
-	public unsafe void ScheduleJobDebugger()
+	public unsafe void ParallelBlobAccessFromEntityJob()
 	{
-		var blob = ConstructBlobData ();
+		var blob = CreateBlobEntities();
 
-		var jobData = new JobData();
-		jobData.blob = blob;
+	    var jobData = new ValidateBlobInComponentJob();
+	    var components = m_Manager.CreateComponentGroup(typeof(ComponentWithBlobData)).GetComponentDataArray<ComponentWithBlobData>();
+	    var jobHandle = jobData.Schedule(components, 1);
 
-		var jobHandle = jobData.Schedule ();
+	    ValidateBlobData((MyData*)blob.GetUnsafePtr());
 
-		Assert.Throws<InvalidOperationException>(() => { var p = blob.GetUnsafeReadOnlyPtr(); });
-
-		jobHandle.Complete ();
+	    jobHandle.Complete ();
 
 		blob.Release();
 	}
 
-	[Test]
-	[Ignore ("Not supported. Read only for the whole blob needs to be enforced via static code analysis.")]
-	public unsafe void ScheduleJobDebuggerNotImplemented()
-	{
-		var blob = ConstructBlobData ();
+    [Test]
+    public void DestroyedBlobAccessFromEntityJobThrows()
+    {
+        var blob = CreateBlobEntities();
 
-		var jobData = new JobData();
-		jobData.blob = blob;
+        blob.Release();
 
-		// Keep a reference to a float array
-		var floatArray = ((MyData*)blob.GetUnsafeReadOnlyPtr())->floatArray;
+        var jobData = new ValidateBlobInComponentJob();
+        jobData.ExpectException = true;
+        var components = m_Manager.CreateComponentGroup(typeof(ComponentWithBlobData)).GetComponentDataArray<ComponentWithBlobData>();
+        var jobHandle = jobData.Schedule(components, 1);
 
-		// Schedule job
-		var jobHandle = jobData.Schedule ();
+        jobHandle.Complete ();
+    }
 
-		// This should naturally throw an exception. Right now this can not be tracked.
-		// Since the data in the blob is shared between all threads,
-		// thus the whole per thread version masking machinery can't be used.
-		Assert.Throws<InvalidOperationException>(() => { floatArray[0] = 5; });
 
-		jobHandle.Complete ();
+    BlobAssetReference<MyData> CreateBlobEntities()
+    {
+        var blob = ConstructBlobData();
 
-		blob.Release();
-	}
+        for (int i = 0; i != 32; i++)
+        {
+            var entity = m_Manager.CreateEntity();
+            m_Manager.AddComponent(entity, new ComponentWithBlobData() {blobAsset = blob});
+        }
+        return blob;
+    }
 }

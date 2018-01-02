@@ -16,7 +16,6 @@ unsafe public struct BlobAllocator : IDisposable
 	DisposeSentinel     m_DisposeSentinel;
 	#endif
 
-	//@TODO: make it so size tracking is automatic like BatchAllocator.h
 	//@TODO: handle alignment correclty in the allocator
 	public BlobAllocator (int sizeHint)
 	{
@@ -37,14 +36,14 @@ unsafe public struct BlobAllocator : IDisposable
 #endif
     }
 
-    public unsafe void* ConstructRoot<T> () where T : struct
+    public void* ConstructRoot<T> () where T : struct
 	{
 	    byte* returnPtr = m_Ptr;
 		m_Ptr += UnsafeUtility.SizeOf<T> ();
 		return returnPtr;
 	}
 
-	unsafe int Allocate (long size, void* ptrAddr)
+	int Allocate (long size, void* ptrAddr)
 	{
 		long offset = (byte*)ptrAddr - m_RootPtr;
 		if (m_Ptr - m_RootPtr > m_Size)
@@ -118,16 +117,19 @@ unsafe public struct BlobAssetReference<T> where T : struct
     internal AtomicSafetyHandle 	m_Safety;
 #endif
 
-    public void* GetUnsafeReadOnlyPtr()
+    public void* GetUnsafePtr()
     {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
+        AtomicSafetyHandle.CheckExistsAndThrow(m_Safety);
 #endif
         return m_Ptr;
     }
 
     public void Retain()
     {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+        AtomicSafetyHandle.CheckExistsAndThrow(m_Safety);
+#endif
         var header = (BlobAssetHeader*)m_Ptr;
         header -= 1;
         Interlocked.Increment(ref header->Refcount);
@@ -141,18 +143,18 @@ unsafe public struct BlobAssetReference<T> where T : struct
 
     public void Release()
     {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+        AtomicSafetyHandle.CheckExistsAndThrow(m_Safety);
+#endif
+
         var header = (BlobAssetHeader*)m_Ptr;
         header -= 1;
 
-        if (Interlocked.Decrement(ref header->Refcount) == 1)
+        if (Interlocked.Decrement(ref header->Refcount) == 0)
         {
-            var res = AtomicSafetyHandle.EnforceAllBufferJobsHaveCompletedAndRelease(m_Safety);
-            UnsafeUtility.Free(header, header->Allocator);
+            AtomicSafetyHandle.Release(m_Safety);
 
-            if (res != EnforceJobResult.AllJobsAlreadySynced)
-            {
-                Debug.LogError("Resource was already destroyed");
-            }
+            UnsafeUtility.Free(header, header->Allocator);
             m_Ptr = null;
         }
     }
@@ -162,7 +164,7 @@ unsafe public struct BlobPtr<T> where T : struct
 {
 	internal int	m_OffsetPtr;
 
-	public unsafe T Value
+	public T Value
 	{
 		get
 		{
@@ -182,16 +184,13 @@ unsafe public struct BlobPtr<T> where T : struct
 		}
 	}
 
-	public unsafe void* UnsafePtr
-	{
-		get
-		{
-		    fixed (int* thisPtr = &m_OffsetPtr)
-		    {
-		        return (byte*)thisPtr + m_OffsetPtr;
-		    }
-		}
-	}
+    public void* GetUnsafePtr()
+    {
+        fixed (int* thisPtr = &m_OffsetPtr)
+        {
+            return (byte*) thisPtr + m_OffsetPtr;
+        }
+    }
 }
 
 unsafe public struct BlobArray<T> where T : struct
@@ -201,23 +200,22 @@ unsafe public struct BlobArray<T> where T : struct
 
 	public int Length { get { return m_Length; } }
 
-	public unsafe void* UnsafePtr
-	{
-		get
-		{
-		    fixed (int* thisPtr = &m_OffsetPtr)
-		    {
-		        return (byte*)thisPtr + m_OffsetPtr;
-		    }
-		}
-	}
+    public void* GetUnsafePtr()
+    {
+        fixed (int* thisPtr = &m_OffsetPtr)
+        {
+            return (byte*) thisPtr + m_OffsetPtr;
+        }
+    }
 
-	public unsafe T this [int index]
+    public T this [int index]
 	{
 		get
 		{
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if ((uint)index >= (uint)m_Length)
 				throw new System.IndexOutOfRangeException(string.Format("Index {0} is out of range Length {1}", index, m_Length));
+#endif
 
 		    fixed (int* thisPtr = &m_OffsetPtr)
 		    {
@@ -226,8 +224,10 @@ unsafe public struct BlobArray<T> where T : struct
 		}
 		set
 		{
-			if ((uint)index >= (uint)m_Length)
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+		    if ((uint)index >= (uint)m_Length)
 				throw new System.IndexOutOfRangeException ();
+#endif
 
 		    fixed (int* thisPtr = &m_OffsetPtr)
 		    {

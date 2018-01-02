@@ -13,12 +13,12 @@ public struct ProceduralChunkScene : ISharedComponentData
     public int2 Position;
 }
 
-public class ProceduralSpawnSystem : ComponentSystem
+public class ProceduralSpawnSystem : JobComponentSystem
 {
     public GameObject prefab;
 
-    const float                        GridSize = 2.0F;
-    const float                        PlantDensity = 0.2F;
+    const float                        GridSize = 1.0F;
+    const float                        PlantDensity = 0.5F;
     const int                          MaxChunksPerFrame = 4;
 
     struct GridChunk
@@ -31,9 +31,33 @@ public class ProceduralSpawnSystem : ComponentSystem
     //       however we currently can't iterate over all elements...
     NativeList<GridChunk> m_CreatedChunks;
 
+
+    NativeList<SpawnData>[] m_SpawnLocationCaches;
+
+
+
+    struct CameraEntity
+    {
+        public Transform             Transform;
+        public ProceduralSpawnView   View;
+    }
+
+    unsafe struct CollisionMeshInstances
+    {
+        [ReadOnly]
+        public ComponentDataArray<CollisionMeshInstance> Instances;
+    }
+
+    [InjectComponentGroup] CollisionMeshInstances m_CollisionMeshes;
+
+
     protected override void OnCreateManager(int capacity)
     {
         m_CreatedChunks = new NativeList<GridChunk>(capacity, Allocator.Persistent);
+        m_SpawnLocationCaches = new NativeList<SpawnData>[MaxChunksPerFrame];
+
+        for (int i = 0;i != m_SpawnLocationCaches.Length;i++)
+            m_SpawnLocationCaches[i] = new NativeList<SpawnData>(1024, Allocator.Persistent);
 
         prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/VegetationAssets/ECSVegetation0.prefab");
     }
@@ -41,6 +65,8 @@ public class ProceduralSpawnSystem : ComponentSystem
     protected override void OnDestroyManager()
     {
         m_CreatedChunks.Dispose();
+        for (int i = 0;i != m_SpawnLocationCaches.Length;i++)
+            m_SpawnLocationCaches[i].Dispose();
     }
     // * Calculate all grid positions within a distance to camera position
     // * Create delta against to be visible grid positions from currently loaded grid positions
@@ -70,25 +96,22 @@ public class ProceduralSpawnSystem : ComponentSystem
         }
     }
 
-    public bool GetToBeCreatedGridPosition(NativeArray<int2> visible, out int2 outGridPos)
+    public int GetToBeCreatedGridPositions(NativeArray<int2> visible, NativeArray<int2> outGridPositions)
     {
         //@TODO: Foreach support
         // foreach (var gridPos in visible)
-        for (int i = 0;i != visible.Length;i++)
+        int count = 0;
+        for (int i = 0;i != visible.Length && count != outGridPositions.Length;i++)
         {
             var gridPos = visible[i];
             //@TODO: Need Contains method here...
 
             ComponentType type;
             if (!HasChunk(gridPos))
-            {
-                outGridPos = gridPos;
-                return true;
-            }
+                outGridPositions[count++] = gridPos;
         }
 
-        outGridPos = new int2();
-        return false;
+        return count;
     }
 
     public void GetToBeDestroyedGridPositions(NativeArray<int2> visible, NativeList<int2> toBeDestroyed)
@@ -99,7 +122,6 @@ public class ProceduralSpawnSystem : ComponentSystem
                 toBeDestroyed.Add(m_CreatedChunks[i].Pos);
         }
     }
-
 
     public bool HasChunk(int2 gridPos)
     {
@@ -118,6 +140,43 @@ public class ProceduralSpawnSystem : ComponentSystem
         return -1;
     }
 
+    struct SpawnData
+    {
+        public float3 Position;
+    }
+
+    struct CalculateChunkSpawnLocationsJob : IJob
+    {
+        public int2                 ChunkPosition;
+        [ReadOnly]
+        public ComponentDataArray<CollisionMeshInstance> CollisionInstances;
+
+        public NativeList<SpawnData>        SpawnLocations;
+
+        public void Execute()
+        {
+            //@TODO: Why is this cast necessary? Seems wrong...
+            float2 min = ChunkPosition * (int)GridSize;
+            float2 max = min + new float2(GridSize);
+
+            for (float y = min.y; y < max.y; y+=PlantDensity)
+            {
+                for (float x = min.x; x < max.x; x+=PlantDensity)
+                {
+                    var origin = new float3(x, 1000, y);
+                    float3 intersection;
+                    if (GeometryUtility.RayIntersectsWorld(origin, new float3(0, -1, 0), CollisionInstances, out intersection))
+                    {
+                        SpawnData spawn;
+                        spawn.Position = intersection;
+                        SpawnLocations.Add(spawn);
+                    }
+                }
+            }
+        }
+    }
+
+
     struct PopulateChunk : IJob
     {
         //@TODO: This is just a hack. No data from the prefab gets transported except for ISharedComponentData
@@ -126,22 +185,24 @@ public class ProceduralSpawnSystem : ComponentSystem
         public EntityTransaction    EntityTransaction;
         public int2                 ChunkPosition;
 
+        [ReadOnly]
+        //@TODO: Not supported. This is super annoying...
+        //[DeallocateOnJobCompletion]
+        public NativeList<SpawnData> SpawnLocations;
+
         public void Execute()
         {
-            //@TODO: Inconvenient
-            float2 min = ChunkPosition * (int)GridSize;
-            float2 max = min + new float2(GridSize);
+            var entities = new NativeArray<Entity>(SpawnLocations.Length, Allocator.Temp);
+            EntityTransaction.CreateEntity(Archetype, entities);
 
-            for (float y = min.y; y < max.y; y+=PlantDensity)
+            for (int i = 0; i != entities.Length; i++)
             {
-                for (float x = min.x; x < max.x; x+=PlantDensity)
-                {
-                    var entity = EntityTransaction.CreateEntity(Archetype);
-                    InstanceRendererTransform transform;
-                    transform.matrix = Matrix4x4.Translate(new Vector3(x, 0, y));
-                    EntityTransaction.SetComponent(entity, transform);
-                }
+                InstanceRendererTransform transform;
+                transform.matrix = Matrix4x4.Translate(SpawnLocations[i].Position);
+                EntityTransaction.SetComponent(entities[i], transform);
             }
+
+            entities.Dispose();
         }
     }
 
@@ -149,15 +210,23 @@ public class ProceduralSpawnSystem : ComponentSystem
     {
         var chunkScene = new ProceduralChunkScene();
         chunkScene.Position = position;
-        var chunkSceneType = EntityManager.CreateSharedComponentType(chunkScene);
 
+        Profiler.BeginSample("Destroy.CreateComponentGroup");
+        var chunkSceneType = EntityManager.CreateSharedComponentType(chunkScene);
         var group = EntityManager.CreateComponentGroup(chunkSceneType);
+        Profiler.EndSample();
 
         //@TODO: This is highly inconvenient...
+        Profiler.BeginSample("Destroy.GetEntities");
         var entityGroupArray = group.GetEntityArray();
-        var entityArray = new NativeArray<Entity>(entityGroupArray.Length, Allocator.Temp);
+        var entityArray = new NativeArray<Entity>(entityGroupArray.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
         entityGroupArray.CopyTo(entityArray);
+        Profiler.EndSample();
+
+        Profiler.BeginSample("Destroy.DestroyEntity");
         EntityManager.DestroyEntity(entityArray);
+        Profiler.EndSample();
+
         entityArray.Dispose();
 
         group.Dispose();
@@ -173,7 +242,6 @@ public class ProceduralSpawnSystem : ComponentSystem
         Component[] components;
         GameObjectEntity.GetComponents(EntityManager, prefab, false, out types, out components);
 
-
         ComponentType[] typesWithChunk = new ComponentType[types.Length + 1];
         types.CopyTo(typesWithChunk, 0);
 
@@ -184,13 +252,8 @@ public class ProceduralSpawnSystem : ComponentSystem
         return EntityManager.CreateArchetype(typesWithChunk);
     }
 
-    struct CameraEntity
-    {
-        public Transform             Transform;
-        public ProceduralSpawnView   View;
-    }
 
-    protected override void OnUpdate()
+    protected override JobHandle OnUpdate(JobHandle dependency)
     {
         //@TODO: When is a good time for this to be called?
         Profiler.BeginSample("CommitTransaction");
@@ -222,22 +285,64 @@ public class ProceduralSpawnSystem : ComponentSystem
 
         Profiler.BeginSample("Schedule Chunk Creation");
         // Schedule jobs for each grid chunk that became visible
-        int2 createPos;
-        for (int i=0;i != MaxChunksPerFrame && GetToBeCreatedGridPosition(visibleGridPositions, out createPos);i++)
+
+
+        var toBeCreatedChunks = new NativeArray<int2>(MaxChunksPerFrame, Allocator.Temp);
+        int toBeCreatedCount = GetToBeCreatedGridPositions(visibleGridPositions, toBeCreatedChunks);
+
+        if (toBeCreatedCount != 0)
         {
-            ComponentType chunkSceneType;
-            var chunkJob = new PopulateChunk();
-            chunkJob.Archetype = GetArchetype(createPos, out chunkSceneType);
-            chunkJob.EntityTransaction = EntityManager.BeginTransaction();
-            chunkJob.ChunkPosition = createPos;
+            // Extract all archetypes first, because extracting the archetype will CommitTransaction...
+            // @TODO: When Simons SharedComponentData refactor is ready this should be unnecessary...
+            var archetypes = new NativeArray<EntityArchetype>(toBeCreatedCount, Allocator.Temp);
+            var chunkSceneTypes = new NativeArray<ComponentType>(toBeCreatedCount, Allocator.Temp);
+            for (int i = 0; i != toBeCreatedCount; i++)
+            {
+                ComponentType type;
+                archetypes[i] = GetArchetype(toBeCreatedChunks[i], out type);
+                chunkSceneTypes[i] = type;
+            }
 
-            m_CreatedChunks.Add(new GridChunk(){ Pos = createPos, ChunkSceneType = chunkSceneType });
+            UpdateInjectedComponentGroups();
 
-            EntityManager.DidScheduleCreationJob(chunkJob.Schedule(EntityManager.GetCreationDependency()));
+            var spawnInputDependency = dependency;
+            dependency = JobHandle.CombineDependencies(EntityManager.GetCreationDependency(), dependency);
+
+            var transaction = EntityManager.BeginTransaction();
+            for (int i=0;i != toBeCreatedCount;i++)
+            {
+                var createPos = toBeCreatedChunks[i];
+
+                var spawnLocationJob = new CalculateChunkSpawnLocationsJob();
+                spawnLocationJob.ChunkPosition = createPos;
+                spawnLocationJob.CollisionInstances = m_CollisionMeshes.Instances;
+                spawnLocationJob.SpawnLocations = m_SpawnLocationCaches[i];
+                spawnLocationJob.SpawnLocations.Clear();
+
+                var spawnDependency = spawnLocationJob.Schedule(spawnInputDependency);
+
+                var chunkJob = new PopulateChunk();
+                chunkJob.Archetype = archetypes[i];
+                chunkJob.EntityTransaction = transaction;
+                chunkJob.ChunkPosition = createPos;
+                chunkJob.SpawnLocations = spawnLocationJob.SpawnLocations;
+
+                m_CreatedChunks.Add(new GridChunk(){ Pos = createPos, ChunkSceneType = chunkSceneTypes[i] });
+
+                dependency = chunkJob.Schedule(JobHandle.CombineDependencies(spawnDependency, dependency));
+            }
+
+            EntityManager.DidScheduleCreationJob(dependency);
+
+            archetypes.Dispose();
+            chunkSceneTypes.Dispose();
         }
+        toBeCreatedChunks.Dispose();
         Profiler.EndSample();
 
         destroyGridPositions.Dispose();
         visibleGridPositions.Dispose();
+
+        return dependency;
     }
 }

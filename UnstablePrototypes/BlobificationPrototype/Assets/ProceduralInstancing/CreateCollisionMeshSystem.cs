@@ -5,34 +5,42 @@ using UnityEngine;
 using UnityEngine.ECS;
 using static Unity.Mathematics.math;
 
-public struct CollsionMeshInstance : IComponentData
-{
-    public BlobAssetReference<CollisionMeshData> CollisionMesh;
-}
-
 public class CreateCollisionMeshSystem : ComponentSystem
 {
+    [Inject] DeferredEntityChangeSystem m_DeferredChangeSystem;
+
     unsafe struct Group
     {
-        public SubtractiveComponent<CollsionMeshInstance> noMeshInstance;
-        public Transform                                  transform;
-        public MeshFilter                                 mesh;
-        public Entity*                                    entity;
+        public SubtractiveComponent<CollisionMeshInstance> NoMeshInstance;
+        public Transform                                  Transform;
+        public MeshFilter                                 Mesh;
+
+        //@TODO: Write test for injecting Entity struct into Group...
+//        public Entity*                                    Entity;
     }
+
 
     unsafe protected override void OnUpdate()
     {
+        var entities = GetEntities<Group>();
         foreach (var entity in GetEntities<Group>())
         {
-            var mesh = entity.mesh.sharedMesh;
+            var mesh = entity.Mesh.sharedMesh;
 
-            CollsionMeshInstance meshInstance;
+            CollisionMeshInstance meshInstance;
             var collisionMesh = ConstructMeshData(mesh);
             meshInstance.CollisionMesh = collisionMesh;
-            collisionMesh.Release();
+            meshInstance.Transform = entity.Transform.localToWorldMatrix;
 
-            EntityManager.AddComponent(*entity.entity, meshInstance);
+            var collisionMeshData = (CollisionMeshData*) collisionMesh.GetUnsafePtr();
+            meshInstance.Bounds = GeometryUtility.CalculateBounds(meshInstance.Transform, ref *collisionMeshData);
+
+            //@TODO: Blob data is currently leaking... because no event when deleting components...
+            m_DeferredChangeSystem.AddComponent(entity.Transform.GetComponent<GameObjectEntity>().Entity, meshInstance);
         }
+
+        if (entities.Length != 0)
+            m_DeferredChangeSystem.Update();
     }
 
     static unsafe BlobAssetReference<CollisionMeshData> ConstructMeshData(Mesh mesh)
@@ -45,17 +53,21 @@ public class CreateCollisionMeshSystem : ComponentSystem
         allocator.Allocate(tris.Length / 3, ref meshData->Triangles);
         fixed (int* trisPtr = tris)
         {
-            UnsafeUtility.MemCpy(meshData->Triangles.UnsafePtr, trisPtr, sizeof(int3) * meshData->Triangles.Length);
+            UnsafeUtility.MemCpy(meshData->Triangles.GetUnsafePtr(), trisPtr, sizeof(int3) * meshData->Triangles.Length);
         }
 
         allocator.Allocate(mesh.vertexCount, ref meshData->Vertices);
         var vertices = mesh.vertices;
         fixed (Vector3* vertexPtr = vertices)
         {
-            UnsafeUtility.MemCpy(meshData->Vertices.UnsafePtr, vertexPtr, sizeof(float3) * meshData->Vertices.Length);
+            UnsafeUtility.MemCpy(meshData->Vertices.GetUnsafePtr(), vertexPtr, sizeof(float3) * meshData->Vertices.Length);
         }
 
-        return allocator.CreateBlobAssetReference<CollisionMeshData>(Allocator.Persistent);
+        var assetRef = allocator.CreateBlobAssetReference<CollisionMeshData>(Allocator.Persistent);
+
+        allocator.Dispose();
+
+        return assetRef;
     }
 
 }

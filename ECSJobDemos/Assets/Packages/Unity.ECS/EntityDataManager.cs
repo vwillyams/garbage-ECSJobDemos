@@ -311,6 +311,39 @@ namespace UnityEngine.ECS
 
             typeMan.SetChunkCount(oldChunk, lastIndex);
         }
+
+        public void MoveEntityToChunk(ArchetypeManager typeMan, Entity entity, Chunk* newChunk, int newChunkIndex)
+        {
+            Chunk* oldChunk = m_Entities[entity.index].chunk;
+            Assert.AreEqual(oldChunk->archetype, newChunk->archetype);
+
+            int oldChunkIndex = m_Entities[entity.index].index;
+
+            ChunkDataUtility.Copy(oldChunk, oldChunkIndex, newChunk, newChunkIndex, 1);
+
+            if (oldChunk->managedArrayIndex >= 0)
+                ChunkDataUtility.CopyManagedObjects(typeMan, oldChunk, oldChunkIndex, newChunk, newChunkIndex, 1);
+
+            m_Entities[entity.index].chunk = newChunk;
+            m_Entities[entity.index].index = newChunkIndex;
+
+            int lastIndex = oldChunk->count - 1;
+            // No need to replace with ourselves
+            if (lastIndex != oldChunkIndex)
+            {
+                Entity* lastEntity = (Entity*)ChunkDataUtility.GetComponentData(oldChunk, lastIndex, 0);
+                m_Entities[lastEntity->index].index = oldChunkIndex;
+
+                ChunkDataUtility.Copy (oldChunk, lastIndex, oldChunk, oldChunkIndex, 1);
+                if (oldChunk->managedArrayIndex >= 0)
+                    ChunkDataUtility.CopyManagedObjects(typeMan, oldChunk, lastIndex, oldChunk, oldChunkIndex, 1);
+            }
+            if (oldChunk->managedArrayIndex >= 0)
+                ChunkDataUtility.ClearManagedObjects(typeMan, oldChunk, lastIndex, 1);
+
+            typeMan.SetChunkCount(newChunk, newChunk->count + 1);
+            typeMan.SetChunkCount(oldChunk, oldChunk->count - 1);
+        }
     }
 }
 

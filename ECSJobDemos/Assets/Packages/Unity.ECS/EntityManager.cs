@@ -410,6 +410,58 @@ namespace UnityEngine.ECS
             return m_SharedComponentManager.GetSharedComponentData<T>(archetype->types[indexInTypeArray].sharedComponentIndex);
         }
 
+
+
+//        unsafe public void AddSharedComponent<T>(Entity entity, T componentData) where T : struct, ISharedComponentData
+//        {
+//            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
+//            m_Entities.AssertEntitiesExist(&entity, 1);
+//
+//            Archetype* archetype = m_Entities.GetArchetype(entity);
+//
+//            //TODO: change InsertSharedComponent to return int
+//            int sharedComponentIndex = m_SharedComponentManager.InsertSharedComponent<T>(componentData).sharedComponentIndex;
+//
+//
+//            for(int i=0; i<)
+//
+//            //@TODO: Handle ISharedComponentData
+//            var componentType = new ComponentTypeInArchetype(type);
+//            int t = 0;
+//            while (t < archetype->typesCount && archetype->types[t] < componentType)
+//            {
+//                m_CachedComponentTypeInArchetypeArray[t] = archetype->types[t];
+//                ++t;
+//            }
+//
+//            m_CachedComponentTypeInArchetypeArray[t] = componentType;
+//            while (t < archetype->typesCount)
+//            {
+//                m_CachedComponentTypeInArchetypeArray[t + 1] = archetype->types[t];
+//                ++t;
+//            }
+//            Archetype* newType = m_ArchetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, archetype->typesCount + 1, m_GroupManager, m_SharedComponentManager);
+//            Chunk* newChunk = m_ArchetypeManager.GetChunkWithEmptySlots(newType);
+//
+//            int newChunkIndex = m_ArchetypeManager.AllocateIntoChunk(newChunk);
+//            m_Entities.SetArchetype(m_ArchetypeManager, entity, newType, newChunk, newChunkIndex);
+//
+//        }
+
+        unsafe public void SetSharedComponent<T>(Entity entity, T componentData) where T: struct, ISharedComponentData
+        {
+            int typeIndex = TypeManager.GetTypeIndex<T>();
+            m_Entities.AssertEntityHasComponent(entity, typeIndex);
+
+            m_JobSafetyManager.CompleteReadAndWriteDependency(typeIndex);
+            var archetype = m_Entities.GetArchetype(entity);
+
+
+
+
+        }
+
+
         unsafe public NativeArray<T> GetFixedArray<T>(Entity entity) where T : struct
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();

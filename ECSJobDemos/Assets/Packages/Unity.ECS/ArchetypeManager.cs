@@ -402,7 +402,7 @@ namespace UnityEngine.ECS
             }
         }
 
-	    bool ChuckHasDefaultSharedComponents(Chunk* chunk)
+	    bool ChunkHasDefaultSharedComponents(Chunk* chunk)
 	    {
 	        int* sharedComponentValueArray = GetSharedComponentValueArray(chunk);
 	        int numSharedComponents = chunk->archetype->numSharedComponents;
@@ -421,12 +421,27 @@ namespace UnityEngine.ECS
             // Try existing archetype chunks
             if (!archetype->chunkListWithEmptySlots.IsEmpty)
             {
-                var chunk = GetChunkFromEmptySlotNode(archetype->chunkListWithEmptySlots.Begin());
-                Assert.AreNotEqual(chunk->count, chunk->capacity);
-                return chunk;
+                if (archetype->numSharedComponents == 0)
+                {
+                    var chunk = GetChunkFromEmptySlotNode(archetype->chunkListWithEmptySlots.Begin());
+                    Assert.AreNotEqual(chunk->count, chunk->capacity);
+                    return chunk;
+                }
+
+                var end = archetype->chunkListWithEmptySlots.End();
+                for (var it = archetype->chunkListWithEmptySlots.Begin(); it != end; it = it->next)
+                {
+                    var chunk = GetChunkFromEmptySlotNode(it);
+                    Assert.AreNotEqual(chunk->count, chunk->capacity);
+                    if (ChunkHasDefaultSharedComponents(chunk))
+                    {
+                        return chunk;
+                    }
+                }
             }
+
             // Try empty chunk pool
-            else if (!m_EmptyChunkPool->IsEmpty)
+            if (!m_EmptyChunkPool->IsEmpty)
             {
                 Chunk* pooledChunk = (Chunk*)m_EmptyChunkPool->Begin();
                 pooledChunk->chunkListNode.Remove();

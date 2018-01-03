@@ -347,15 +347,34 @@ namespace UnityEngine.ECS
 	        return (int*)(((byte*)p) + sizeof(Chunk));
 	    }
 
-	    unsafe public Chunk* AllocateChunk(Archetype* archetype)
+	    unsafe public Chunk* AllocateChunk(Archetype* archetype, int* sharedComponentDataIndices)
 	    {
 	        byte* buffer = (byte*) UnsafeUtility.Malloc(Chunk.kChunkSize, 64, Allocator.Persistent);
 	        var chunk = (Chunk*)buffer;
-	        ConstructChunk(archetype, chunk);
+	        ConstructChunk(archetype, chunk, sharedComponentDataIndices);
 	        return chunk;
 	    }
 
-	    unsafe public void ConstructChunk(Archetype* archetype, Chunk* chunk)
+	    public static void CopySharedComponentDataIndexArray(int* dest, int* src, int count)
+	    {
+	        if (src == null)
+	        {
+	            for (int i = 0; i < count; ++i)
+	            {
+	                dest[i] = 0;
+	            }
+	        }
+	        else
+	        {
+	            for (int i = 0; i < count; ++i)
+	            {
+	                dest[i] = src[i];
+	            }
+	        }
+
+	    }
+
+	    unsafe public void ConstructChunk(Archetype* archetype, Chunk* chunk, int* sharedComponentDataIndices)
 	    {
 	        int bufferOffset = GetBufferOffset(archetype->numSharedComponents);
 
@@ -391,29 +410,39 @@ namespace UnityEngine.ECS
             if (archetype->numSharedComponents > 0)
             {
                 int* sharedComponentValueArray = GetSharedComponentValueArray(chunk);
-                int numSharedComponents = chunk->archetype->numSharedComponents;
-                for (int i = 0; i < numSharedComponents; ++i)
-                {
-                    sharedComponentValueArray[i] = 0;
-                }
+                CopySharedComponentDataIndexArray(sharedComponentValueArray, sharedComponentDataIndices, chunk->archetype->numSharedComponents);
             }
         }
 
-	    bool ChunkHasDefaultSharedComponents(Chunk* chunk)
+	    bool ChunkHasSharedComponents(Chunk* chunk, int* sharedComponentDataIndices)
 	    {
 	        int* sharedComponentValueArray = GetSharedComponentValueArray(chunk);
 	        int numSharedComponents = chunk->archetype->numSharedComponents;
-	        for (int i = 0; i < numSharedComponents; ++i)
+	        if (sharedComponentDataIndices == null)
 	        {
-	            if (sharedComponentValueArray[i] != 0)
+	            for (int i = 0; i < numSharedComponents; ++i)
 	            {
-	                return false;
+	                if (sharedComponentValueArray[i] != 0)
+	                {
+	                    return false;
+	                }
+	            }
+	        }
+	        else
+	        {
+	            for (int i = 0; i < numSharedComponents; ++i)
+	            {
+	                if (sharedComponentValueArray[i] != sharedComponentDataIndices[i])
+	                {
+	                    return false;
+	                }
 	            }
 	        }
 	        return true;
 	    }
 
-        public Chunk* GetChunkWithEmptySlots(Archetype* archetype)
+	    // length of sharedComponentDataIndices must match archetype->numSharedComponents
+        public Chunk* GetChunkWithEmptySlots(Archetype* archetype, int* sharedComponentDataIndices)
         {
             // Try existing archetype chunks
             if (!archetype->chunkListWithEmptySlots.IsEmpty)
@@ -430,7 +459,7 @@ namespace UnityEngine.ECS
                 {
                     var chunk = GetChunkFromEmptySlotNode(it);
                     Assert.AreNotEqual(chunk->count, chunk->capacity);
-                    if (ChunkHasDefaultSharedComponents(chunk))
+                    if (ChunkHasSharedComponents(chunk, sharedComponentDataIndices))
                     {
                         return chunk;
                     }
@@ -443,13 +472,13 @@ namespace UnityEngine.ECS
                 Chunk* pooledChunk = (Chunk*)m_EmptyChunkPool->Begin();
                 pooledChunk->chunkListNode.Remove();
 
-                ConstructChunk(archetype, pooledChunk);
+                ConstructChunk(archetype, pooledChunk, sharedComponentDataIndices);
                 return pooledChunk;
             }
             else
             {
                 // Allocate new chunk
-                return AllocateChunk (archetype);
+                return AllocateChunk(archetype, sharedComponentDataIndices);
             }
         }
 

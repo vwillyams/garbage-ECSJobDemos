@@ -138,7 +138,7 @@ namespace UnityEngine.ECS
 
             while (count != 0)
             {
-                Chunk* chunk = m_ArchetypeManager.GetChunkWithEmptySlots(archetype.archetype);
+                Chunk* chunk = m_ArchetypeManager.GetChunkWithEmptySlots(archetype.archetype, null);
                 int allocatedIndex;
                 int allocatedCount = m_ArchetypeManager.AllocateIntoChunk(chunk, count, out allocatedIndex);
                 m_Entities.AllocateEntities(archetype.archetype, chunk, allocatedIndex, allocatedCount, entities);
@@ -230,10 +230,11 @@ namespace UnityEngine.ECS
             int srcIndex = m_Entities.m_Entities[srcEntity.index].index;
             Chunk* srcChunk = m_Entities.m_Entities[srcEntity.index].chunk;
             Archetype* srcArchetype = m_Entities.m_Entities[srcEntity.index].archetype;
+            var srcSharedComponentDataIndices = ArchetypeManager.GetSharedComponentValueArray(m_Entities.GetComponentChunk(srcEntity));
 
             while (count != 0)
             {
-                Chunk* chunk = m_ArchetypeManager.GetChunkWithEmptySlots(srcArchetype);
+                Chunk* chunk = m_ArchetypeManager.GetChunkWithEmptySlots(srcArchetype, srcSharedComponentDataIndices);
                 int indexInChunk;
                 int allocatedCount = m_ArchetypeManager.AllocateIntoChunk(chunk, count, out indexInChunk);
 
@@ -269,10 +270,46 @@ namespace UnityEngine.ECS
                 ++t;
             }
             Archetype* newType = m_ArchetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, archetype->typesCount + 1, m_GroupManager, m_SharedComponentManager);
-            Chunk* newChunk = m_ArchetypeManager.GetChunkWithEmptySlots(newType);
+
+            bool newComponentIsShared = false;;
+
+            int* sharedComponentDataIndices = null;
+
+            if (newType->numSharedComponents > 0)
+            {
+                var oldSharedComponentDataIndices = ArchetypeManager.GetSharedComponentValueArray(m_Entities.GetComponentChunk(entity));
+                newComponentIsShared = (TypeManager.TypeCategory.ISharedComponentData == TypeManager.GetComponentType(type.typeIndex).category);
+                if (newComponentIsShared)
+                {
+                    sharedComponentDataIndices = (int*)UnsafeUtility.Malloc(sizeof(int) * newType->numSharedComponents, 4, Allocator.Temp);
+                    t = 0;
+                    while (t < archetype->typesCount && archetype->types[t] < componentType)
+                    {
+                        if (archetype->sharedComponentOffset[t] != -1)
+                            sharedComponentDataIndices[t] = oldSharedComponentDataIndices[t];
+                                ++t;
+                    }
+
+                    sharedComponentDataIndices[t] = componentType.typeIndex;
+                    while (t < archetype->typesCount)
+                    {
+                        sharedComponentDataIndices[t + 1] = oldSharedComponentDataIndices[t];
+                        ++t;
+                    }
+                }
+                else
+                {
+                    // reuse old sharedComponentDataIndices
+                    sharedComponentDataIndices = oldSharedComponentDataIndices;
+                }
+            }
+            Chunk* newChunk = m_ArchetypeManager.GetChunkWithEmptySlots(newType, null);
 
             int newChunkIndex = m_ArchetypeManager.AllocateIntoChunk(newChunk);
             m_Entities.SetArchetype(m_ArchetypeManager, entity, newType, newChunk, newChunkIndex);
+
+            if(newComponentIsShared)
+                UnsafeUtility.Free(sharedComponentDataIndices, Allocator.Temp);
         }
 
         public unsafe void RemoveComponent(Entity entity, ComponentType type)
@@ -295,9 +332,37 @@ namespace UnityEngine.ECS
 
             Assertions.Assert.AreNotEqual(-1, removedTypes);
 
+            bool freeSharedComponent = false;
+
             Archetype* newType = m_ArchetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, archtype->typesCount - removedTypes, m_GroupManager, m_SharedComponentManager);
 
-            Chunk* newChunk = m_ArchetypeManager.GetChunkWithEmptySlots(newType);
+            int* sharedComponentDataIndices = null;
+
+            if (newType->numSharedComponents > 0)
+            {
+                var oldSharedComponentDataIndices = ArchetypeManager.GetSharedComponentValueArray(m_Entities.GetComponentChunk(entity));
+                bool removedComponentIsShared = (TypeManager.TypeCategory.ISharedComponentData == TypeManager.GetComponentType(type.typeIndex).category);
+                removedTypes = 0;
+                if (removedComponentIsShared)
+                {
+                    freeSharedComponent = true;
+                    sharedComponentDataIndices = (int*)UnsafeUtility.Malloc(sizeof(int) * newType->numSharedComponents, 4, Allocator.Temp);
+                    for (int t = 0; t < archtype->typesCount; ++t)
+                    {
+                        if (archtype->types[t].typeIndex == componentType.typeIndex)
+                            ++removedTypes;
+                        else
+                            sharedComponentDataIndices[t - removedTypes] = oldSharedComponentDataIndices[t];
+                    }
+                }
+                else
+                {
+                    // reuse old sharedComponentDataIndices
+                    sharedComponentDataIndices = oldSharedComponentDataIndices;
+                }
+            }
+
+            Chunk* newChunk = m_ArchetypeManager.GetChunkWithEmptySlots(newType, sharedComponentDataIndices);
             int newChunkIndex = m_ArchetypeManager.AllocateIntoChunk(newChunk);
             m_Entities.SetArchetype(m_ArchetypeManager, entity, newType, newChunk, newChunkIndex);
         }
@@ -442,9 +507,14 @@ namespace UnityEngine.ECS
 
             m_JobSafetyManager.CompleteReadAndWriteDependency(typeIndex);
             var archetype = m_Entities.GetArchetype(entity);
+            int newSharedComponentDataIndex = m_SharedComponentManager.InsertSharedComponent(componentData);
 
+            int indexInTypeArray = ChunkDataUtility.GetIndexInTypeArray(archetype, typeIndex);
+            int oldSharedComponentDataIndex = m_Entities.GetSharedComponentDataIndex(entity, indexInTypeArray);
+            if (newSharedComponentDataIndex == oldSharedComponentDataIndex)
+                return;
 
-
+            //Find or create destination chunk...
 
         }
 

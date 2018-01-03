@@ -261,6 +261,12 @@ namespace UnityEngine.ECS
             ChunkDataUtility.GetComponentDataWithTypeAndFixedArrayLength(entityData->chunk, entityData->index, typeIndex, out ptr, out fixedArrayLength);
         }
 
+        public Chunk* GetComponentChunk(Entity entity)
+        {
+            var entityData = m_Entities + entity.index;
+            return entityData->chunk;
+        }
+
         public void GetComponentChunk(Entity entity, out Chunk* chunk, out int chunkIndex)
         {
             var entityData = m_Entities + entity.index;

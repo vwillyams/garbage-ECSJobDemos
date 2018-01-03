@@ -47,34 +47,34 @@ namespace UnityEngine.ECS
         }
     }
 
-    //@TODO: can this just be removed?
-//    public class SharedComponentDataWrapper<T> : ComponentDataWrapperBase where T : struct, ISharedComponentData
-//    {
-//        [SerializeField]
-//        T m_SerializedData;
-//
-//        public T Value
-//        {
-//            get
-//            {
-//                return m_SerializedData;
-//            }
-//            set
-//            {
-//                m_SerializedData = value;
-//            }
-//        }
-//
-//
-//        internal override ComponentType GetComponentType(EntityManager manager)
-//        {
-//            return manager.CreateSharedComponentType(m_SerializedData);
-//        }
-//
-//        internal override void UpdateComponentData(EntityManager manager, Entity entity)
-//        {
-//        }
-//    }
+    public class SharedComponentDataWrapper<T> : ComponentDataWrapperBase where T : struct, ISharedComponentData
+    {
+        [SerializeField]
+        T m_SerializedData;
+
+        public T Value
+        {
+            get
+            {
+                return m_SerializedData;
+            }
+            set
+            {
+                m_SerializedData = value;
+            }
+        }
+
+
+        internal override ComponentType GetComponentType(EntityManager manager)
+        {
+            return ComponentType.Create<T>();
+        }
+
+        internal override void UpdateComponentData(EntityManager manager, Entity entity)
+        {
+            manager.SetSharedComponent(entity, m_SerializedData);
+        }
+    }
 
     [DisallowMultipleComponent]
     public class GameObjectEntity : MonoBehaviour

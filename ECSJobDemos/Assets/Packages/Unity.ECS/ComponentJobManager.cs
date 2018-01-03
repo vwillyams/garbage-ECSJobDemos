@@ -104,6 +104,7 @@ namespace UnityEngine.ECS
 
         public void Dispose()
         {
+            CreationJob.Complete();
 
             for (int i = 0; i < kMaxTypes;i++)
                 m_ComponentSafetyHandles[i].writeFence.Complete();
@@ -123,6 +124,14 @@ namespace UnityEngine.ECS
             }
 
             AtomicSafetyHandle.Release(m_TempSafety);
+
+            var creationRes = AtomicSafetyHandle.EnforceAllBufferJobsHaveCompletedAndRelease(CreationSafety);
+            if (creationRes == EnforceJobResult.DidSyncRunningJobs)
+            {
+                //@TODO: EnforceAllBufferJobsHaveCompletedAndRelease should probably print the error message and locate the exact job...
+                Debug.LogError("Disposing EntityManager but a EntityTransaction job is still running. It appears the job has not been registered with EntityManager.EntityTransactionDependency.");
+            }
+
 #endif
 
             UnsafeUtility.Free(m_JobDependencyCombineBuffer, Allocator.Persistent);

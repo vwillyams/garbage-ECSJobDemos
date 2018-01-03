@@ -135,13 +135,9 @@ namespace UnityEngine.ECS
             UnsafeUtility.CopyStructureToPtr (ref componentData, ptr);
         }
 
-        internal void Dispose()
+        internal void OnDestroyManager()
         {
-            #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            //@TODO: Check if this is sensible...
-            AtomicSafetyHandle.EnforceAllBufferJobsHaveCompletedAndRelease(m_Safety);
-            #endif
-
+            UnsafeUtility.Free(m_CachedComponentTypeInArchetypeArray, Allocator.Persistent);
             m_ArchetypeManager.Free();
             m_Entities = null;
         }

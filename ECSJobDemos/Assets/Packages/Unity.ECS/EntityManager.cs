@@ -69,6 +69,8 @@ namespace UnityEngine.ECS
 
         unsafe protected override void OnDestroyManager()
         {
+            CommitTransaction();
+
             m_JobSafetyManager.Dispose(); m_JobSafetyManager = null;
             m_SharedComponentManager.Dispose(); m_SharedComponentManager = null;
             m_Entities.OnDestroy();
@@ -150,7 +152,7 @@ namespace UnityEngine.ECS
                 entities += allocatedCount;
                 count -= allocatedCount;
             }
-            
+
             AfterImmediateStructuralTransaction();
         }
 
@@ -166,7 +168,7 @@ namespace UnityEngine.ECS
         unsafe public void DestroyEntity(Entity entity)
         {
             BeforeImmediateStructualTransaction();
-            
+
             m_Entities.AssertEntitiesExist(&entity, 1);
 
             m_Entities.DeallocateEnties(m_ArchetypeManager, &entity, 1);
@@ -250,7 +252,7 @@ namespace UnityEngine.ECS
                 outputEntities += allocatedCount;
                 count -= allocatedCount;
             }
-            
+
             AfterImmediateStructuralTransaction();
         }
 
@@ -276,7 +278,7 @@ namespace UnityEngine.ECS
                 m_CachedComponentTypeInArchetypeArray[t + 1] = archetype->types[t];
                 ++t;
             }
-            
+
             Archetype* newType = m_ArchetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, archetype->typesCount + 1, m_GroupManager, m_SharedComponentManager);
             m_Entities.SetArchetype(m_ArchetypeManager, entity, newType);
         }
@@ -436,54 +438,54 @@ namespace UnityEngine.ECS
 
             return array;
         }
-        
-        internal ComponentJobSafetyManager ComponentJobSafetyManager { get { return m_JobSafetyManager; } }
 
+        internal ComponentJobSafetyManager ComponentJobSafetyManager { get { return m_JobSafetyManager; } }
 
         public unsafe EntityTransaction BeginTransaction()
         {
             fixed (EntityDataManager* data = &m_Entities)
             {
-                return new EntityTransaction(m_ArchetypeManager, data);
+                var transaction = new EntityTransaction(m_ArchetypeManager, data);
+                transaction.SetAtomicSafetyHandle(ComponentJobSafetyManager.CreationSafety);
+                return transaction;
             }
         }
 
-        public JobHandle GetCreationDependency()
+        public JobHandle EntityTransactionDependency
         {
-            return m_JobSafetyManager.CreationJob;
-        }
-
-        public void DidScheduleCreationJob(JobHandle jobHandle)
-        {
-            if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(m_JobSafetyManager.CreationJob, jobHandle))
+            get { return m_JobSafetyManager.CreationJob; }
+            set
             {
-                //@TODO: IMPROVE ERRO
-                throw new System.ArgumentException("jobHandle does not depend on previous CreationJob");    
+                if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(m_JobSafetyManager.CreationJob, value))
+                {
+                    //@TODO: IMPROVE ERRO
+                    throw new System.ArgumentException("jobHandle does not depend on previous CreationJob");
+                }
+
+                m_JobSafetyManager.CreationJob = value;
             }
-            
-            m_JobSafetyManager.CreationJob = jobHandle;
         }
 
         void AfterImmediateStructuralTransaction()
         {
             m_ArchetypeManager.IntegrateChunks();
         }
-        
+
         void BeforeImmediateStructualTransaction()
         {
             CommitTransaction();
         }
-                
+
         public void CommitTransaction()
         {
             // We are going to mutate ComponentGroup iteration state, so no iteration jobs may be running in parallel to this
             m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
             // Creation is exclusive to one job or main thread at a time, thus make sure any creation jobs are done
-            m_JobSafetyManager.CreationJob.Complete();
+            m_JobSafetyManager.CompleteCreationJob();
             // Ensure that all transaction state has been applied
             m_ArchetypeManager.IntegrateChunks();
         }
-        
+
         public void CompleteAllJobs()
         {
             CommitTransaction();

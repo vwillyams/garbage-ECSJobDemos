@@ -306,7 +306,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
             UpdateInjectedComponentGroups();
 
             var spawnInputDependency = dependency;
-            dependency = JobHandle.CombineDependencies(EntityManager.GetCreationDependency(), dependency);
+            dependency = JobHandle.CombineDependencies(EntityManager.EntityTransactionDependency, dependency);
 
             var transaction = EntityManager.BeginTransaction();
             for (int i=0;i != toBeCreatedCount;i++)
@@ -332,7 +332,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
                 dependency = chunkJob.Schedule(JobHandle.CombineDependencies(spawnDependency, dependency));
             }
 
-            EntityManager.DidScheduleCreationJob(dependency);
+            EntityManager.EntityTransactionDependency = dependency;
 
             archetypes.Dispose();
             chunkSceneTypes.Dispose();

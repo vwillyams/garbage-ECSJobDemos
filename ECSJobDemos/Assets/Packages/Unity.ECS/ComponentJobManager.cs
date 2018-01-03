@@ -31,10 +31,10 @@ namespace UnityEngine.ECS
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         public AtomicSafetyHandle      CreationSafety;
 #endif
-                
+
         JobHandle*              m_JobDependencyCombineBuffer;
         int                     m_JobDependencyCombineBufferCount;
-        
+
         //@TODO: Check against too many types created...
 
         public ComponentJobSafetyManager()
@@ -43,8 +43,8 @@ namespace UnityEngine.ECS
             m_TempSafety = AtomicSafetyHandle.Create();
             CreationSafety = AtomicSafetyHandle.Create();
 #endif
-            
-            
+
+
             m_ReadJobFences = (JobHandle*)UnsafeUtility.Malloc(sizeof(JobHandle) * kMaxReadJobHandles * kMaxTypes, 16, Allocator.Persistent);
             UnsafeUtility.MemClear(m_ReadJobFences, sizeof(JobHandle) * kMaxReadJobHandles * kMaxTypes);
 
@@ -230,6 +230,18 @@ namespace UnityEngine.ECS
 
             m_ReadJobFences[type * kMaxReadJobHandles] = combined;
             m_ComponentSafetyHandles[type].numReadFences = 1;
+        }
+
+        public void CompleteCreationJob()
+        {
+            CreationJob.Complete();
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            var res = AtomicSafetyHandle.EnforceAllBufferJobsHaveCompleted(CreationSafety);
+            if (res != EnforceJobResult.AllJobsAlreadySynced)
+            {
+                Debug.LogError("A EntityTransaction job has not been registered with the EntityManager.EntityTransactionDependency. This is necessary for safe execution.");
+            }
+#endif
         }
     }
 }

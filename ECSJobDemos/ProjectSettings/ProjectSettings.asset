@@ -541,7 +541,7 @@ PlayerSettings:
   webGLCompressionFormat: 1
   webGLLinkerTarget: 0
   scriptingDefineSymbols:
-    1: PARALLEL35;PERSISTENCE;PHYLOTREE;REPORTING;PROPERTY_GRID_SUPPORT;VERIFY;NET4;TEST_MSAGL;PARALLEL_SUPPORTED;USE_PHYLOTREE
+    1: 
   platformArchitecture: {}
   scriptingBackend: {}
   il2cppCompilerConfiguration: {}

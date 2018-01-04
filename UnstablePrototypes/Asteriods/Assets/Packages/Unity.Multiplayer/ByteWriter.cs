@@ -82,6 +82,11 @@ namespace Unity.Multiplayer
             Write(value.z);
         }
 
+        public int GetBitsWritten()
+        {
+            return m_Writer.GetBitsWritten();
+        }
+
         public int GetBytesWritten()
         {
             return m_Writer.GetBytesWritten();

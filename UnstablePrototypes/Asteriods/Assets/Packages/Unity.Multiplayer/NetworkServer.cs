@@ -2,7 +2,6 @@ using UnityEngine;
 
 using Unity.Collections;
 using Unity.Multiplayer;
-using Unity.Mathematics;
 
 /// thoughts
 /*
@@ -33,36 +32,53 @@ using Unity.Mathematics;
 
 namespace Unity.Multiplayer
 {
-    // make it an IComponentData ?
-    public struct NetworkConnection
+    public class NetworkServer
     {
-        public NetworkConnection(int id)
-        {
-            Id = id;
-        }
-
-        public int Id;
-    }
-
-    public class NetworkClient
-    {
-        public NetworkClient()
+        public NetworkServer(string address, int port, int maximumConnections = 10)
         {
             SocketConfiguration configuration = new SocketConfiguration
             {
                 Timeout = uint.MaxValue,
-                MaximumConnections = 1
+                MaximumConnections = (uint)maximumConnections
             };
-            m_Connection.Id = -1;
-            m_Socket = new GameSocket("127.0.0.1", 0, configuration);
-            m_ConnectionArray = new NativeArray<int>(1, Allocator.Persistent);
+            m_Socket = new GameSocket(address, (ushort)port, configuration);
+            m_Socket.ListenForConnections();
+
+            m_ConnectQueue = new NativeQueue<NetworkConnection>(Allocator.Persistent);
+            m_DisconnectQueue = new NativeQueue<NetworkConnection>(Allocator.Persistent);
 
             m_Buffer = new NativeArray<byte>(1024 * 1024, Allocator.Persistent);
             m_DataQueue = new NativeQueue<SliceInformation>(Allocator.Persistent);
+
+            m_Connections = new NativeList<int>(maximumConnections, Allocator.Persistent);
+        }
+
+        public bool IsCreated
+        {
+            get { return m_Connections.IsCreated || m_ConnectQueue.IsCreated || m_DisconnectQueue.IsCreated || m_Buffer.IsCreated || m_DataQueue.IsCreated; }
+        }
+
+        public void Dispose()
+        {
+            m_Socket.Dispose();
+
+            if (m_Connections.IsCreated)
+                m_Connections.Dispose();
+            if (m_ConnectQueue.IsCreated)
+                m_ConnectQueue.Dispose();
+            if (m_DisconnectQueue.IsCreated)
+                m_DisconnectQueue.Dispose();
+
+            if (m_DataQueue.IsCreated)
+                m_DataQueue.Dispose();
+            if (m_Buffer.IsCreated)
+                m_Buffer.Dispose();
         }
 
         public void Update()
         {
+            Debug.Assert(m_Socket.Listening);
+
             int connectionId;
             GameSocketEventType eventType;
             int receivedSize = 0;
@@ -77,13 +93,9 @@ namespace Unity.Multiplayer
                 {
                     case GameSocketEventType.Connect:
                         {
-                            if (m_Connection.Id != -1 && m_Connection.Id == connectionId)
-                            {
-                                m_State = ConnectionState.Connected;
-                                m_ConnectionArray[0] = connectionId;
-                            }
-                            else
-                                throw new System.Exception("ConnectionId does not match");
+                            var connection = new NetworkConnection(connectionId);
+                            m_Connections.Add(connectionId);
+                            m_ConnectQueue.Enqueue(connection);
                         }
                         break;
                     case GameSocketEventType.Data:
@@ -91,7 +103,8 @@ namespace Unity.Multiplayer
                             var info = new SliceInformation()
                             {
                                 offset = m_Offset,
-                                length = receivedSize
+                                length = receivedSize,
+                                id = connectionId
                             };
                             m_Offset += receivedSize;
                             m_DataQueue.Enqueue(info);
@@ -99,12 +112,10 @@ namespace Unity.Multiplayer
                         break;
                     case GameSocketEventType.Disconnect:
                         {
-                            if (m_Connection.Id != -1 && m_Connection.Id == connectionId)
-                            {
-                                m_State = ConnectionState.Disconnected;
-                            }
-                            else
-                                throw new System.Exception("ConnectionId does not match");
+                            var connection = new NetworkConnection(connectionId);
+                            m_DisconnectQueue.Enqueue(connection);
+
+                            // remove from the connection list
                         }
                         break;
                     case GameSocketEventType.Empty:
@@ -121,75 +132,50 @@ namespace Unity.Multiplayer
             }
         }
 
-        public void Connect(string address, int port)
+        public bool TryPopConnectionQueue(out NetworkConnection connection)
         {
-            var id = m_Socket.Connect(address, (ushort)port);
-            m_Connection = new NetworkConnection(id);
+            return m_ConnectQueue.TryDequeue(out connection);
         }
 
-        public bool ReadMessage(out NativeSlice<byte> message)
+        public bool TryPopDisconnectionQueue(out NetworkConnection connection)
+        {
+            return m_DisconnectQueue.TryDequeue(out connection);
+        }
+
+        public bool ReadMessage(out NativeSlice<byte> message, out int connectionId)
         {
             if (m_DataQueue.Count == 0)
             {
                 message = default(NativeSlice<byte>);
+                connectionId = -1;
                 return false;
             }
             var info = m_DataQueue.Dequeue();
             message = m_Buffer.Slice(info.offset, info.length);
+            connectionId = info.id;
             return true;
         }
 
         public bool WriteMessage(NativeSlice<byte> message)
         {
-            var length = m_Socket.SendData(message, m_ConnectionArray.Slice());
+            var length = m_Socket.SendData(message, ((NativeArray<int>)m_Connections).Slice());
             return message.Length == length;
         }
-
-        public bool Connected
-        {
-            get { return  m_State == ConnectionState.Connected; }
-        }
-
-        public bool IsCreated
-        {
-            get { return m_ConnectionArray.IsCreated; }
-        }
-
-        public void Dispose()
-        {
-            m_Socket.Dispose();
-            if (m_ConnectionArray.IsCreated)
-                m_ConnectionArray.Dispose();
-
-            if (m_Buffer.IsCreated)
-                m_Buffer.Dispose();
-            if (m_DataQueue.IsCreated)
-                m_DataQueue.Dispose();
-        }
-
-        enum ConnectionState
-        {
-            Connected,
-            Connecting,
-            Disconnected
-        }
-
-        ConnectionState m_State;
-        NetworkConnection m_Connection;
 
         struct SliceInformation
         {
             public int offset;
             public int length;
+            public int id;
         }
 
-        NativeQueue<SliceInformation> m_DataQueue;
 
-        NativeArray<int> m_ConnectionArray;
-        GameSocket m_Socket;
-
-        // TODO (michalb): create a circular buffer implementation, as we are duplicating this once again.
         int m_Offset;
         NativeArray<byte> m_Buffer;
+        NativeList<int> m_Connections;
+        NativeQueue<SliceInformation> m_DataQueue;
+        GameSocket m_Socket;
+        NativeQueue<NetworkConnection> m_ConnectQueue;
+        NativeQueue<NetworkConnection> m_DisconnectQueue;
     }
 }

@@ -42,7 +42,6 @@ namespace Unity.GameCode
             if (newState.Enter != null)
                 newState.Enter();
             m_CurrentState = newState;
-
         }
 
         class State

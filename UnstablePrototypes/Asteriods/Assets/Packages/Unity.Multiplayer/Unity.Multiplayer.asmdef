@@ -2,6 +2,7 @@
     "name": "Unity.Multiplayer",
     "references": [
         "UnityEngine.ECS",
+        "Unity.Collections",
         "Unity.Mathematics"
     ],
     "optionalUnityReferences": [],

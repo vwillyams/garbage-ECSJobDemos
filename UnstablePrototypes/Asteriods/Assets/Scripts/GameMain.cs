@@ -27,11 +27,10 @@ using UnityEngine.ECS;
         {
             if (clientWorld != null && serverWorld != null)
             {
-                ServerSettings.Instance().socket.Dispose();
-                ClientSettings.Instance().socket.Dispose();
-
                 serverWorld.Dispose();
                 clientWorld.Dispose();
+                ClientSettings.Instance().networkClient.Dispose();
+                ServerSettings.Instance().networkServer.Dispose();
                 World.UpdatePlayerLoop();
             }
             else

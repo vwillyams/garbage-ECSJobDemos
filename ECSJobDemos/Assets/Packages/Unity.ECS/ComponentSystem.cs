@@ -203,6 +203,7 @@ namespace UnityEngine.ECS
 	        JobHandle.ScheduleBatchedJobs();
 
 	        AddDependencyInternal(outputJob);
+	        m_PreviousFrameDependency = outputJob;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 
@@ -247,7 +248,6 @@ namespace UnityEngine.ECS
 	            }
 	        }
 #endif
-	        m_PreviousFrameDependency = outputJob;
 	    }
 
 	    internal sealed override void InternalUpdate()

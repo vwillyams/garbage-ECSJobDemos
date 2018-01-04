@@ -198,11 +198,15 @@ namespace UnityEngine.ECS
 	        return GetDependency();
 	    }
 
-	    void AfterOnUpdate(JobHandle outputJob)
+	    unsafe void AfterOnUpdate(JobHandle outputJob)
 	    {
 	        JobHandle.ScheduleBatchedJobs();
 
+	        AddDependencyInternal(outputJob);
+
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
+
+
 	        if (JobsUtility.JobDebuggerEnabled)
 	        {
 	            // Check that all reading and writing jobs are a dependency of the output job, to
@@ -216,13 +220,25 @@ namespace UnityEngine.ECS
 	            {
 	                for (int i = 0; i < m_JobDependencyForReadingManagers.Length; ++i)
 	                {
-	                    CheckJobDependencies(m_JobDependencyForReadingManagers[i], outputJob);
+	                    int type = m_JobDependencyForReadingManagers[i];
+
+	                    var readerDependency = m_SafetyManager.GetDependency(&type, 1, null, 0);
+	                    CheckJobDependencies(type, true, readerDependency);
+
+	                    var writerDependency = m_SafetyManager.GetDependency(null, 0, &type, 1);
+	                    CheckJobDependencies(type, false, writerDependency);
 	                }
 
 	                for (int i = 0; i < m_JobDependencyForWritingManagers.Length; ++i)
 	                {
-	                    CheckJobDependencies(m_JobDependencyForWritingManagers[i], outputJob);
-	                }
+	                    int type = m_JobDependencyForWritingManagers[i];
+
+	                    var readerDependency = m_SafetyManager.GetDependency(&type, 1, null, 0);
+	                    CheckJobDependencies(type, true, readerDependency);
+
+	                    var writerDependency = m_SafetyManager.GetDependency(null, 0, &type, 1);
+	                    CheckJobDependencies(type, false, writerDependency);
+                    }
 	            }
 	            catch (InvalidOperationException)
 	            {
@@ -231,7 +247,6 @@ namespace UnityEngine.ECS
 	            }
 	        }
 #endif
-	        AddDependencyInternal(outputJob);
 	        m_PreviousFrameDependency = outputJob;
 	    }
 
@@ -260,26 +275,29 @@ namespace UnityEngine.ECS
 	    }
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-		private void CheckJobDependencies(int type, JobHandle returnedHandle)
+		private void CheckJobDependencies(int type, bool isReading, JobHandle dependency)
 		{
             AtomicSafetyHandle h = m_SafetyManager.GetSafetyHandle(type, true);
 
             unsafe
             {
-                int readerCount = AtomicSafetyHandle.GetReaderArray(h, 0, IntPtr.Zero);
-                JobHandle* readers = stackalloc JobHandle[readerCount];
-                AtomicSafetyHandle.GetReaderArray(h, readerCount, (IntPtr) readers);
-
-                for (int i = 0; i < readerCount; ++i)
+                if (!isReading)
                 {
-                    if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(readers[i], returnedHandle))
+                    int readerCount = AtomicSafetyHandle.GetReaderArray(h, 0, IntPtr.Zero);
+                    JobHandle* readers = stackalloc JobHandle[readerCount];
+                    AtomicSafetyHandle.GetReaderArray(h, readerCount, (IntPtr) readers);
+
+                    for (int i = 0; i < readerCount; ++i)
                     {
-                        throw new InvalidOperationException($"The system {this.GetType()} reads {TypeManager.GetType(type)} via {AtomicSafetyHandle.GetReaderName(h, i)} but that type was not returned as a job dependency. To ensure correct behavior of other systems, the job or a dependency of it must be returned from the OnUpdate method.");
+                        if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(readers[i], dependency))
+                        {
+                            throw new InvalidOperationException($"The system {this.GetType()} reads {TypeManager.GetType(type)} via {AtomicSafetyHandle.GetReaderName(h, i)} but that type was not returned as a job dependency. To ensure correct behavior of other systems, the job or a dependency of it must be returned from the OnUpdate method.");
+                        }
                     }
                 }
 
                 JobHandle writer = AtomicSafetyHandle.GetWriter(h);
-                if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(writer, returnedHandle))
+                if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(writer, dependency))
                 {
                     throw new InvalidOperationException($"The system {this.GetType()} writes {TypeManager.GetType(type)} via {AtomicSafetyHandle.GetWriterName(h)} but that was not returned as a job dependency. To ensure correct behavior of other systems, the job or a dependency of it must be returned from the OnUpdate method.");
                 }

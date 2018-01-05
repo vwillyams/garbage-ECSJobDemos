@@ -73,7 +73,7 @@ namespace Asteriods.Client
         unsafe void UpdatePlayState()
         {
             NativeSlice<byte> message;
-            while (m_NetworkClient.ReadMessage(out message))
+            while (m_NetworkClient.PeekMessage(out message))
             {
                 ByteReader br = new ByteReader(message.GetUnsafePtr(), message.Length);
                 var type = br.ReadByte();
@@ -100,8 +100,10 @@ namespace Asteriods.Client
                         }
                     }
                 }
+                int length = message.Length;
                 int read_bytes = br.GetBytesRead();
                 Debug.Assert(message.Length == read_bytes);
+                m_NetworkClient.PopMessage();
             }
 
             /*

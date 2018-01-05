@@ -78,6 +78,7 @@ namespace Unity.Multiplayer
         public void Update()
         {
             Debug.Assert(m_Socket.Listening);
+            m_Offset = 0;
 
             int connectionId;
             GameSocketEventType eventType;

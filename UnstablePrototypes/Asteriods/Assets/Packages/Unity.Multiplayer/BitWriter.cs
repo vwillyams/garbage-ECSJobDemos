@@ -17,7 +17,6 @@ namespace Unity.Multiplayer
             m_ScratchBuffer = 0;
             m_BitIndex = 0;
             m_ByteIndex = 0;
-            UnsafeUtility.MemClear(m_Data, bytes);
         }
 
         public unsafe void WriteBits(uint value, int bits)

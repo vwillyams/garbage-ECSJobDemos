@@ -218,6 +218,10 @@ namespace UnityEngine.ECS
                 }
             }
 
+            if (m_filteredSharedComponents != null)
+            {
+                UnsafeUtility.Free(m_filteredSharedComponents, Allocator.Temp);
+            }
         }
         public void OnManagedObjectModified()
         {
@@ -286,6 +290,7 @@ namespace UnityEngine.ECS
             // Update the archetype segments
             int length = 0;
             MatchingArchetypes* last = null;
+            Chunk* firstNonEmptyChunk = null;
             if (m_filteredSharedComponents == null)
             {
                 for (var match = m_GroupData->firstMatchingArchetype; match != null; match = match->next)
@@ -296,6 +301,7 @@ namespace UnityEngine.ECS
                         last = match;
                     }
                 }
+                firstNonEmptyChunk = (Chunk*)last->archetype->chunkList.Begin();
             }
             else
             {
@@ -303,11 +309,19 @@ namespace UnityEngine.ECS
                 {
                     if (match->archetype->entityCount > 0)
                     {
-                        int filteredCount = GetFilteredEntityCountFromMatchingArcheType(match);
-                        if (filteredCount > 0)
+                        var archeType = match->archetype;
+                        int count = 0;
+                        for (Chunk* c = (Chunk*)archeType->chunkList.Begin(); c != archeType->chunkList.End(); c = (Chunk*)c->chunkListNode.next)
                         {
-                            length += filteredCount;
-                            last = match;
+                            //TODO: optimize this!
+                            if (ChunkMatchesFilter(archeType, c, match))
+                            {
+                                length += c->count;
+                                if (firstNonEmptyChunk == null)
+                                {
+                                    firstNonEmptyChunk = c;
+                                }
+                            }
                         }
                     }
                 }
@@ -316,8 +330,8 @@ namespace UnityEngine.ECS
             outLength = length;
 
             if (last == null)
-                return new ComponentChunkIterator(null, 0);
-            return new ComponentChunkIterator(last->archetypeSegments + componentIndex, length);
+                return new ComponentChunkIterator(null, 0, null, null);
+            return new ComponentChunkIterator(last->archetypeSegments + componentIndex, length, firstNonEmptyChunk, m_filteredSharedComponents);
         }
 
         public ComponentDataArray<T> GetComponentDataArray<T>() where T : struct, IComponentData
@@ -463,7 +477,6 @@ namespace UnityEngine.ECS
             return count;
         }
 
-
         public ComponentGroup GetVariation<SharedComponent1>(SharedComponent1 sharedComponent1)
             where SharedComponent1 : struct, ISharedComponentData
         {
@@ -483,6 +496,25 @@ namespace UnityEngine.ECS
             return variationComponentGroup;
         }
 
+        //TODO: Is this the api we want to expose?
+        public ComponentGroup GetVariation<SharedComponent1>(int sharedComponentIndex1)
+            where SharedComponent1 : struct, ISharedComponentData
+        {
+            var variationComponentGroup = new ComponentGroup(m_GroupData, m_SafetyManager, m_EntityManager);
+
+            int componetIndex1 = GetComponentIndexForVariation<SharedComponent1>();
+            int filteredCount = 1;
+
+            var filtered = (int*)UnsafeUtility.Malloc((filteredCount * 2 + 1) * sizeof(int), sizeof(int), Allocator.Temp); // TODO: does temp allocator make sense here?
+            variationComponentGroup.m_filteredSharedComponents = filtered;
+
+
+            filtered[0] = filteredCount;
+            filtered[1] = componetIndex1;
+            filtered[2] = sharedComponentIndex1;
+
+            return variationComponentGroup;
+        }
 
 
         public ComponentGroup GetVariation<SharedComponent1, SharedComponent2>(SharedComponent1 sharedComponent1, SharedComponent2 sharedComponent2)

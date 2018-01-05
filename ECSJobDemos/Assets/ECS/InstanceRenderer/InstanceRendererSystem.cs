@@ -27,41 +27,38 @@ namespace UnityEngine.ECS.Rendering
 
         protected override void OnUpdate()
 		{
-            var uniqueRendererTypes = new NativeList<ComponentType>(10, Allocator.TempJob);
+            var uniqueRendererTypes = new NativeList<int>(10, Allocator.TempJob);
 
-		    var group = EntityManager.CreateComponentGroup(typeof(InstanceRenderer), typeof(InstanceRendererTransform));
+		    var maingroup = EntityManager.CreateComponentGroup(typeof(InstanceRenderer), typeof(InstanceRendererTransform));
 
 
-		    // TODO:
-            //EntityManager.GetAllUniqueSharedComponents(typeof(InstanceRenderer), uniqueRendererTypes);
+            EntityManager.GetAllUniqueSharedComponents(typeof(InstanceRenderer), uniqueRendererTypes);
 
-            //@TODO: Do cleanup when renderer type is no longer being used...
+            for (int i = 0;i != uniqueRendererTypes.Length;i++)
+            {
+                var uniqueType = uniqueRendererTypes[i];
+                var renderer = EntityManager.GetSharedComponentData<InstanceRenderer>(uniqueType);
 
-//            for (int i = 0;i != uniqueRendererTypes.Length;i++)
-//            {
-//                var uniqueType = uniqueRendererTypes[i];
-//                var renderer = EntityManager.GetSharedComponentData<InstanceRenderer>(uniqueType);
-//
-//                var group = EntityManager.CreateComponentGroup(uniqueType, typeof(InstanceRendererTransform));
-//
-//                group.CompleteDependency();
-//
-//                var transforms = group.GetComponentDataArray<InstanceRendererTransform>();
-//
-//                int beginIndex = 0;
-//                while (beginIndex < transforms.Length)
-//                {
-//                    int length = math.min(m_MatricesArray.Length, transforms.Length - beginIndex);
-//                    CopyMatrices(transforms, beginIndex, length, m_MatricesArray);
-//                    Graphics.DrawMeshInstanced(renderer.mesh, 0, renderer.material, m_MatricesArray, length, null, renderer.castShadows, renderer.receiveShadows);
-//
-//                    beginIndex += length;
-//                }
-//
-//                group.Dispose();
-//            }
+                var group = maingroup.GetVariation(renderer);
+                group.CompleteDependency();
+
+                var transforms = group.GetComponentDataArray<InstanceRendererTransform>();
+
+                int beginIndex = 0;
+                while (beginIndex < transforms.Length)
+                {
+                    int length = math.min(m_MatricesArray.Length, transforms.Length - beginIndex);
+                    CopyMatrices(transforms, beginIndex, length, m_MatricesArray);
+                    Graphics.DrawMeshInstanced(renderer.mesh, 0, renderer.material, m_MatricesArray, length, null, renderer.castShadows, renderer.receiveShadows);
+
+                    beginIndex += length;
+                }
+
+                group.Dispose();
+            }
 
             uniqueRendererTypes.Dispose();
+		    maingroup.Dispose();
 		}
 
 		protected override void OnCreateManager (int capacity)

@@ -31,16 +31,40 @@ namespace UnityEngine.ECS
         Chunk*                                  m_CurrentChunk;
         int                                     m_CurrentChunkIndex;
 
-        public ComponentChunkIterator(ComponentDataArchetypeSegment* data, int length)
+        int*                                    m_filteredSharedComponents;
+
+        //TODO: this function is identical to ComponentGroup.ChunkMatchesFilter
+        bool ChunkMatchesFilter(Archetype* archeType, Chunk* chunk, ComponentDataArchetypeSegment* segement)
+        {
+            int* sharedComponentsInChunk = ArchetypeManager.GetSharedComponentValueArray(chunk);
+            int filteredCount = m_filteredSharedComponents[0];
+            var filtered = m_filteredSharedComponents + 1;
+            for(int i=0; i<filteredCount; ++i)
+            {
+                int componetIndexInComponentGroup = filtered[i * 2];
+                int sharedComponentIndex = filtered[i * 2 + 1];
+                int componentIndexInArcheType = segement->typeIndexInArchetype;
+                int componentIndexInChunk = archeType->sharedComponentOffset[componentIndexInArcheType];
+                if (sharedComponentsInChunk[componentIndexInChunk] != sharedComponentIndex)
+                    return false;
+            }
+
+            return true;
+        }
+
+//        private Chunk* GetNextMatchingChunk()
+//        {
+//
+//        }
+
+        public ComponentChunkIterator(ComponentDataArchetypeSegment* data, int length, Chunk* firstChunk, int* filteredSharedComponents)
         {
             m_FirstArchetypeSegment = data;
             m_CurrentArchetypeSegment = data;
             m_CurrentArchetypeIndex = 0;
-            if (length > 0)
-                m_CurrentChunk = (Chunk*)data->archetype->chunkList.Begin();
-            else
-                m_CurrentChunk = null;
+            m_CurrentChunk = firstChunk;
             m_CurrentChunkIndex = 0;
+            m_filteredSharedComponents = filteredSharedComponents;
         }
 
         public object GetManagedObject(ArchetypeManager typeMan, int typeIndexInArchetype, int cachedBeginIndex, int index)
@@ -63,32 +87,55 @@ namespace UnityEngine.ECS
 
         public void UpdateCache(int index, out ComponentChunkCache cache)
         {
-            if (index < m_CurrentArchetypeIndex)
+            if (m_filteredSharedComponents == null)
             {
+                if (index < m_CurrentArchetypeIndex)
+                {
+                    m_CurrentArchetypeSegment = m_FirstArchetypeSegment;
+                    m_CurrentArchetypeIndex = 0;
+                    m_CurrentChunk = (Chunk*) m_CurrentArchetypeSegment->archetype->chunkList.Begin();
+                    m_CurrentChunkIndex = 0;
+                }
+
+                while (index >= m_CurrentArchetypeIndex + m_CurrentArchetypeSegment->archetype->entityCount)
+                {
+                    m_CurrentArchetypeIndex += m_CurrentArchetypeSegment->archetype->entityCount;
+                    m_CurrentArchetypeSegment = m_CurrentArchetypeSegment->nextSegment;
+                    m_CurrentChunk = (Chunk*) m_CurrentArchetypeSegment->archetype->chunkList.Begin();
+                    m_CurrentChunkIndex = 0;
+                }
+
+                index -= m_CurrentArchetypeIndex;
+                if (index < m_CurrentChunkIndex)
+                {
+                    m_CurrentChunk = (Chunk*) m_CurrentArchetypeSegment->archetype->chunkList.Begin();
+                    m_CurrentChunkIndex = 0;
+                }
+
+                while (index >= m_CurrentChunkIndex + m_CurrentChunk->count)
+                {
+                    m_CurrentChunkIndex += m_CurrentChunk->count;
+                    m_CurrentChunk = (Chunk*) m_CurrentChunk->chunkListNode.next;
+                }
+            }
+            else
+            {
+                int currentIndex = 0;
+                //TODO: need the full 
                 m_CurrentArchetypeSegment = m_FirstArchetypeSegment;
                 m_CurrentArchetypeIndex = 0;
-                m_CurrentChunk = (Chunk*)m_CurrentArchetypeSegment->archetype->chunkList.Begin();
-                m_CurrentChunkIndex = 0;
-            }
-
-            while (index >= m_CurrentArchetypeIndex + m_CurrentArchetypeSegment->archetype->entityCount)
-            {
-                m_CurrentArchetypeIndex += m_CurrentArchetypeSegment->archetype->entityCount;
-                m_CurrentArchetypeSegment = m_CurrentArchetypeSegment->nextSegment;
-                m_CurrentChunk = (Chunk*)m_CurrentArchetypeSegment->archetype->chunkList.Begin();
-                m_CurrentChunkIndex = 0;
-            }
-            index -= m_CurrentArchetypeIndex;
-            if (index < m_CurrentChunkIndex)
-            {
-                m_CurrentChunk = (Chunk*)m_CurrentArchetypeSegment->archetype->chunkList.Begin();
-                m_CurrentChunkIndex = 0;
-            }
-
-            while (index >= m_CurrentChunkIndex + m_CurrentChunk->count)
-            {
-                m_CurrentChunkIndex += m_CurrentChunk->count;
-                m_CurrentChunk = (Chunk*)m_CurrentChunk->chunkListNode.next;
+                while (true)
+                {
+                    Archetype* archeType = m_CurrentArchetypeSegment->archetype;
+                    for (Chunk* c = (Chunk*)archeType->chunkList.Begin(); c != archeType->chunkList.End(); c = (Chunk*)c->chunkListNode.next)
+                    {
+                        if (ChunkMatchesFilter(archeType, c, m_CurrentArchetypeSegment))
+                        {
+                            currentIndex += c->count;
+                        }
+                    }
+                    m_CurrentArchetypeSegment = m_CurrentArchetypeSegment->nextSegment;
+                }
             }
 
             var archetype = m_CurrentArchetypeSegment->archetype;

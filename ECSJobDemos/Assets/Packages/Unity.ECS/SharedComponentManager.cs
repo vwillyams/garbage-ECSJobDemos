@@ -17,17 +17,16 @@ namespace UnityEngine.ECS
             m_SharedComponentData = null;
         }
 
-// TODO: how to handle this now
-//        public void GetAllUniqueSharedComponents(System.Type componentType, NativeList<ComponentType> uniqueComponents)
-//        {
-//            int typeIndex = TypeManager.GetTypeIndex(componentType);
-//            for (int i = 0; i != m_SharedComponentData.Count; i++)
-//            {
-//                object data = m_SharedComponentData[i];
-//                if (data != null && data.GetType() == componentType)
-//                    uniqueComponents.Add(GetComponentType(typeIndex, i));
-//            }
-//        }
+        public void GetAllUniqueSharedComponents(System.Type componentType, NativeList<int> componentIndices)
+        {
+            int typeIndex = TypeManager.GetTypeIndex(componentType);
+            for (int i = 0; i != m_SharedComponentData.Count; i++)
+            {
+                object data = m_SharedComponentData[i];
+                if (data != null && data.GetType() == componentType)
+                    componentIndices.Add(i);
+            }
+        }
 
         unsafe public void OnArchetypeAdded(ComponentTypeInArchetype* types, int count)
         {

@@ -286,14 +286,33 @@ namespace UnityEngine.ECS
             // Update the archetype segments
             int length = 0;
             MatchingArchetypes* last = null;
-            for (var match = m_GroupData->firstMatchingArchetype; match != null; match = match->next)
+            if (m_filteredSharedComponents == null)
             {
-                if (match->archetype->entityCount > 0)
+                for (var match = m_GroupData->firstMatchingArchetype; match != null; match = match->next)
                 {
-                    length += match->archetype->entityCount;
-                    last = match;
+                    if (match->archetype->entityCount > 0)
+                    {
+                        length += match->archetype->entityCount;
+                        last = match;
+                    }
                 }
             }
+            else
+            {
+                for (var match = m_GroupData->firstMatchingArchetype; match != null; match = match->next)
+                {
+                    if (match->archetype->entityCount > 0)
+                    {
+                        int filteredCount = GetFilteredEntityCountFromMatchingArcheType(match);
+                        if (filteredCount > 0)
+                        {
+                            length += filteredCount;
+                            last = match;
+                        }
+                    }
+                }
+            }
+
             outLength = length;
 
             if (last == null)
@@ -411,15 +430,82 @@ namespace UnityEngine.ECS
             return componentIndex;
         }
 
+        bool ChunkMatchesFilter(Archetype* archeType, Chunk* chunk, MatchingArchetypes* match)
+        {
+            int* sharedComponentsInChunk = ArchetypeManager.GetSharedComponentValueArray(chunk);
+            int filteredCount = m_filteredSharedComponents[0];
+            var filtered = m_filteredSharedComponents + 1;
+            for(int i=0; i<filteredCount; ++i)
+            {
+                int componetIndexInComponentGroup = filtered[i * 2];
+                int sharedComponentIndex = filtered[i * 2 + 1];
+                int componentIndexInArcheType = match->archetypeSegments[componetIndexInComponentGroup].typeIndexInArchetype;
+                int componentIndexInChunk = archeType->sharedComponentOffset[componentIndexInArcheType];
+                if (sharedComponentsInChunk[componentIndexInChunk] != sharedComponentIndex)
+                    return false;
+            }
+
+            return true;
+        }
+
+        int GetFilteredEntityCountFromMatchingArcheType(MatchingArchetypes* match)
+        {
+            var archeType = match->archetype;
+            int count = 0;
+            for (Chunk* c = (Chunk*)archeType->chunkList.Begin(); c != archeType->chunkList.End(); c = (Chunk*)c->chunkListNode.next)
+            {
+                if (ChunkMatchesFilter(archeType, c, match))
+                {
+                    count += c->count;
+                }
+            }
+
+            return count;
+        }
+
+
+        public ComponentGroup GetVariation<SharedComponent1>(SharedComponent1 sharedComponent1)
+            where SharedComponent1 : struct, ISharedComponentData
+        {
+            var variationComponentGroup = new ComponentGroup(m_GroupData, m_SafetyManager, m_EntityManager);
+
+            int componetIndex1 = GetComponentIndexForVariation<SharedComponent1>();
+            int filteredCount = 1;
+
+            var filtered = (int*)UnsafeUtility.Malloc((filteredCount * 2 + 1) * sizeof(int), sizeof(int), Allocator.Temp); // TODO: does temp allocator make sense here?
+            variationComponentGroup.m_filteredSharedComponents = filtered;
+
+
+            filtered[0] = filteredCount;
+            filtered[1] = componetIndex1;
+            filtered[2] = m_EntityManager.m_SharedComponentManager.InsertSharedComponent(sharedComponent1);
+
+            return variationComponentGroup;
+        }
+
+
 
         public ComponentGroup GetVariation<SharedComponent1, SharedComponent2>(SharedComponent1 sharedComponent1, SharedComponent2 sharedComponent2)
-            where SharedComponent1 : ISharedComponentData
-            where SharedComponent2 : ISharedComponentData
+            where SharedComponent1 : struct, ISharedComponentData
+            where SharedComponent2 : struct, ISharedComponentData
         {
+            var variationComponentGroup = new ComponentGroup(m_GroupData, m_SafetyManager, m_EntityManager);
+
             int componetIndex1 = GetComponentIndexForVariation<SharedComponent1>();
             int componetIndex2 = GetComponentIndexForVariation<SharedComponent2>();
+            int filteredCount = 2;
 
-            return null;
+            var filtered = (int*)UnsafeUtility.Malloc((filteredCount * 2 + 1) * sizeof(int), sizeof(int), Allocator.Temp);
+            variationComponentGroup.m_filteredSharedComponents = filtered;
+
+
+            filtered[0] = filteredCount;
+            filtered[1] = componetIndex1;
+            filtered[2] = m_EntityManager.m_SharedComponentManager.InsertSharedComponent(sharedComponent1);
+            filtered[3] = componetIndex2;
+            filtered[4] = m_EntityManager.m_SharedComponentManager.InsertSharedComponent(sharedComponent2);
+
+            return variationComponentGroup;
         }
 
         public void CompleteDependency()

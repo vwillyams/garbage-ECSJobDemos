@@ -28,6 +28,10 @@ namespace UnityEngine.ECS.Rendering
         protected override void OnUpdate()
 		{
             var uniqueRendererTypes = new NativeList<ComponentType>(10, Allocator.TempJob);
+
+		    var group = EntityManager.CreateComponentGroup(typeof(InstanceRenderer), typeof(InstanceRendererTransform));
+
+
 		    // TODO:
             //EntityManager.GetAllUniqueSharedComponents(typeof(InstanceRenderer), uniqueRendererTypes);
 

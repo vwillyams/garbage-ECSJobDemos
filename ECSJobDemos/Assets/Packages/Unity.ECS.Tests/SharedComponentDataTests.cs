@@ -8,17 +8,54 @@ namespace UnityEngine.ECS.Tests
 {
     public class SharedComponentDataTests : ECSTestsFixture
     {
-        struct SharedData : ISharedComponentData
+        struct SharedData1 : ISharedComponentData
         {
             public int value;
 
-            public SharedData(int val) { value = val; }
+            public SharedData1(int val) { value = val; }
+        }
+
+        struct SharedData2 : ISharedComponentData
+        {
+            public int value;
+
+            public SharedData2(int val) { value = val; }
         }
 
 
         //@TODO: No tests for invalid shared components / destroyed shared component data
         //@TODO: No tests for if we leak shared data when last entity is destroyed...
         //@TODO: No tests for invalid shared component type?
+
+        [Test]
+        public void SetSharedComponent()
+        {
+            var archetype = m_Manager.CreateArchetype(typeof(SharedData1), typeof(EcsTestData), typeof(SharedData2));
+
+            var group1 = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(SharedData1));
+            var group2 = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(SharedData2));
+            var group12 = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(SharedData2), typeof(SharedData1));
+
+            Assert.AreEqual(0, group1.CalculateLength());
+            Assert.AreEqual(0, group2.CalculateLength());
+            Assert.AreEqual(0, group12.CalculateLength());
+
+            var group1_filter_0 = group1.GetVariation(new SharedData1(0));
+            var group1_filter_20 = group1.GetVariation(new SharedData1(20));
+            Assert.AreEqual(0, group1_filter_0.CalculateLength());
+            Assert.AreEqual(0, group1_filter_20.CalculateLength());
+
+            Entity e = m_Manager.CreateEntity(archetype);
+
+            Assert.AreEqual(1, group1_filter_0.CalculateLength());
+            Assert.AreEqual(0, group1_filter_20.CalculateLength());
+
+            m_Manager.SetSharedComponent(e, new SharedData1(20));
+
+            Assert.AreEqual(0, group1_filter_0.CalculateLength());
+            Assert.AreEqual(1, group1_filter_20.CalculateLength());
+        }
+
 
 //        [Test]
 //        public void GetAllUniqueSharedComponents()

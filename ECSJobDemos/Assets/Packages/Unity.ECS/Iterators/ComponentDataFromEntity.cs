@@ -9,12 +9,13 @@ namespace UnityEngine.ECS
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         AtomicSafetyHandle      m_Safety;
 #endif
-        EntityDataManager       m_Entities;
+        [NativeDisableUnsafePtrRestriction]
+        EntityDataManager*      m_Entities;
         int                     m_TypeIndex;
         int                     m_TypeLookupCache;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        internal ComponentDataFromEntity(int typeIndex, EntityDataManager entityData, AtomicSafetyHandle safety)
+        internal ComponentDataFromEntity(int typeIndex, EntityDataManager* entityData, AtomicSafetyHandle safety)
         {
             m_Safety = safety;
             m_TypeIndex = typeIndex;
@@ -22,7 +23,7 @@ namespace UnityEngine.ECS
             m_TypeLookupCache = 0;
         }
 #else
-        internal ComponentDataFromEntity(int typeIndex, EntityDataManager entityData)
+        internal ComponentDataFromEntity(int typeIndex, EntityDataManager* entityData)
         {
             m_TypeIndex = typeIndex;
             m_Entities = entityData;
@@ -37,7 +38,7 @@ namespace UnityEngine.ECS
 #endif
             //@TODO: out of bounds index checks...
 
-            return m_Entities.HasComponent(entity, m_TypeIndex);
+            return m_Entities->HasComponent(entity, m_TypeIndex);
         }
 
         public unsafe T this[Entity entity]
@@ -47,9 +48,9 @@ namespace UnityEngine.ECS
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 #endif
-                m_Entities.AssertEntityHasComponent(entity, m_TypeIndex);
+                m_Entities->AssertEntityHasComponent(entity, m_TypeIndex);
 
-                void* ptr = m_Entities.GetComponentDataWithType(entity, m_TypeIndex, ref m_TypeLookupCache);
+                void* ptr = m_Entities->GetComponentDataWithType(entity, m_TypeIndex, ref m_TypeLookupCache);
                 T data;
                 UnsafeUtility.CopyPtrToStructure(ptr, out data);
 
@@ -60,9 +61,9 @@ namespace UnityEngine.ECS
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
-                m_Entities.AssertEntityHasComponent(entity, m_TypeIndex);
+                m_Entities->AssertEntityHasComponent(entity, m_TypeIndex);
 
-                void* ptr = m_Entities.GetComponentDataWithType(entity, m_TypeIndex);
+                void* ptr = m_Entities->GetComponentDataWithType(entity, m_TypeIndex);
                 UnsafeUtility.CopyStructureToPtr(ref value, ptr);
 			}
 		}

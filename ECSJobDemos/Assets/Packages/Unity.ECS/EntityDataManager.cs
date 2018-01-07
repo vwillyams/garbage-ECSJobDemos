@@ -15,10 +15,9 @@ namespace UnityEngine.ECS
 
     unsafe struct EntityDataManager
     {
-        [NativeDisableUnsafePtrRestriction]
-        internal EntityData*    m_Entities;
-        int                     m_EntitiesCapacity;
-        int                     m_EntitiesFreeIndex;
+        internal EntityData*   m_Entities;
+        int                    m_EntitiesCapacity;
+        int                    m_EntitiesFreeIndex;
 
         public void OnCreate(int capacity)
         {
@@ -39,18 +38,35 @@ namespace UnityEngine.ECS
             m_Entities[m_EntitiesCapacity - 1].index = -1;
         }
 
-        void IncreaseCapacity()
+        void IncreaseCapacity(bool allowIncreaseCapacity)
         {
-            EntityData* newEntities = (EntityData*) UnsafeUtility.Malloc(m_EntitiesCapacity * 2 * sizeof(EntityData),
-                64, Allocator.Persistent);
-            UnsafeUtility.MemCpy(newEntities, m_Entities, m_EntitiesCapacity * sizeof(EntityData) );
-            UnsafeUtility.Free(m_Entities, Allocator.Persistent);
+            //@TODO: This is not a good long term solution. Better would be to use virtual alloc,
+            //       so we can increase the size from any thread...
+            if (!allowIncreaseCapacity)
+                throw new System.InvalidOperationException("EntityManager.EntityCapacity is not large enough to support the number of created Entities from a Transaction.");
 
-            var startNdx = m_EntitiesCapacity - 1;
-            m_Entities = newEntities;
-            m_EntitiesCapacity *= 2;
+            Capacity = 2 * Capacity;
+        }
 
-            InitializeAdditionalCapacity(startNdx);
+        public int Capacity
+        {
+            get { return m_EntitiesCapacity; }
+            set
+            {
+                if (value <= m_EntitiesCapacity)
+                    return;
+
+                EntityData* newEntities = (EntityData*) UnsafeUtility.Malloc(value * sizeof(EntityData),
+                    64, Allocator.Persistent);
+                UnsafeUtility.MemCpy(newEntities, m_Entities, m_EntitiesCapacity * sizeof(EntityData) );
+                UnsafeUtility.Free(m_Entities, Allocator.Persistent);
+
+                var startNdx = m_EntitiesCapacity - 1;
+                m_Entities = newEntities;
+                m_EntitiesCapacity = value;
+
+                InitializeAdditionalCapacity(startNdx);
+            }
         }
 
         public void OnDestroy()
@@ -62,8 +78,29 @@ namespace UnityEngine.ECS
 
         public bool Exists(Entity entity)
         {
-            return m_Entities[entity.index].version == entity.version;
+            bool exists = m_Entities[entity.index].version == entity.version;
+
+            #if ENABLE_UNITY_COLLECTIONS_CHECKS
+            EntityData* entityData = m_Entities + entity.index;
+            if (exists && entityData->index >= entityData->chunk->count)
+                throw new System.ArgumentException("The entity has been created in a transaction but not yet committed, you are not allowed to access it via EntityManager before calling EntityManager.CommitTransaction();");
+            #endif
+
+            return exists;
         }
+
+        public bool ExistsFromTransaction(Entity entity)
+        {
+            bool exists = m_Entities[entity.index].version == entity.version;
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            EntityData* entityData = m_Entities + entity.index;
+            if (exists && entityData->index < entityData->chunk->count)
+                throw new System.ArgumentException("You are accessing the entity from a transaction, but the entity has already been committed and is thus not available from the transaction. Another thread might otherwise mutate the component data while the transaction job is running.");
+#endif
+            return exists;
+        }
+
 
         [System.Diagnostics.Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
         public void AssertEntitiesExist(Entity* entities, int count)
@@ -98,6 +135,19 @@ namespace UnityEngine.ECS
                     throw new System.ArgumentException("The entity does not exist");
                 else
                 //@TODO: Throw with specific type...
+                    throw new System.ArgumentException("The component has not been added to the entity.");
+            }
+        }
+
+        [System.Diagnostics.Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
+        public void AssertEntityHasComponentFromTransaction(Entity entity, int componentType)
+        {
+            if (!HasComponentFromTransaction(entity, componentType))
+            {
+                if (!ExistsFromTransaction(entity))
+                    throw new System.ArgumentException("The entity does not exist");
+                else
+                    //@TODO: Throw with specific type...
                     throw new System.ArgumentException("The component has not been added to the entity.");
             }
         }
@@ -143,12 +193,16 @@ namespace UnityEngine.ECS
 
                     // Move component data from the end to where we deleted components
                     ChunkDataUtility.Copy(chunk, chunk->count - batchCount, chunk, indexInChunk, batchCount);
-                    if (chunk->managedArrayIndex >= 0)
-                        ChunkDataUtility.CopyManagedObjects(typeMan, chunk, chunk->count - batchCount, chunk, indexInChunk, batchCount);
                 }
 
                 if (chunk->managedArrayIndex >= 0)
+                {
+                    // We can just chop-off the end, no need to copy anything
+                    if (chunk->count != indexInChunk + batchCount)
+                        ChunkDataUtility.CopyManagedObjects(typeMan, chunk, chunk->count - batchCount, chunk, indexInChunk, batchCount);
+
                     ChunkDataUtility.ClearManagedObjects(typeMan, chunk, chunk->count - batchCount, batchCount);
+                }
 
                 chunk->archetype->entityCount -= batchCount;
                 typeMan.SetChunkCount(chunk, chunk->count - batchCount);
@@ -183,7 +237,7 @@ namespace UnityEngine.ECS
         }
 #endif
 
-        public void AllocateEntities(Archetype* arch, Chunk* chunk, int baseIndex, int count, Entity* outputEntities)
+        public void AllocateEntities(Archetype* arch, Chunk* chunk, int baseIndex, int count, Entity* outputEntities, bool allowIncreaseCapacity)
         {
             Assert.AreEqual(chunk->archetype->offsets[0], 0);
             Assert.AreEqual(chunk->archetype->sizeOfs[0], sizeof(Entity));
@@ -195,7 +249,7 @@ namespace UnityEngine.ECS
                 EntityData* entity = m_Entities + m_EntitiesFreeIndex;
                 if (entity->index == -1)
                 {
-                    IncreaseCapacity();
+                    IncreaseCapacity(allowIncreaseCapacity);
                     entity = m_Entities + m_EntitiesFreeIndex;
                 }
 
@@ -218,6 +272,15 @@ namespace UnityEngine.ECS
         public bool HasComponent(Entity entity, int type)
         {
             if (!Exists (entity))
+                return false;
+
+            Archetype* archetype = m_Entities[entity.index].archetype;
+            return ChunkDataUtility.GetIndexInTypeArray(archetype, type) != -1;
+        }
+
+        public bool HasComponentFromTransaction(Entity entity, int type)
+        {
+            if (!ExistsFromTransaction (entity))
                 return false;
 
             Archetype* archetype = m_Entities[entity.index].archetype;
@@ -281,8 +344,11 @@ namespace UnityEngine.ECS
             return m_Entities[entity.index].archetype;
         }
 
-        public void SetArchetype(ArchetypeManager typeMan, Entity entity, Archetype* archetype, Chunk* chunk, int chunkIndex)
+        public void SetArchetype(ArchetypeManager typeMan, Entity entity, Archetype* archetype)
         {
+            Chunk* chunk = typeMan.GetChunkWithEmptySlots(archetype);
+            int chunkIndex = typeMan.AllocateIntoChunkImmediate(chunk);
+
             Archetype* oldArchetype = m_Entities[entity.index].archetype;
             Chunk* oldChunk = m_Entities[entity.index].chunk;
             int oldChunkIndex = m_Entities[entity.index].index;
@@ -295,7 +361,6 @@ namespace UnityEngine.ECS
             m_Entities[entity.index].index = chunkIndex;
 
             int lastIndex = oldChunk->count - 1;
-            --oldArchetype->entityCount;
             // No need to replace with ourselves
             if (lastIndex != oldChunkIndex)
             {
@@ -309,10 +374,8 @@ namespace UnityEngine.ECS
             if (oldChunk->managedArrayIndex >= 0)
                 ChunkDataUtility.ClearManagedObjects(typeMan, oldChunk, lastIndex, 1);
 
+            --oldArchetype->entityCount;
             typeMan.SetChunkCount(oldChunk, lastIndex);
         }
     }
 }
-
-
-

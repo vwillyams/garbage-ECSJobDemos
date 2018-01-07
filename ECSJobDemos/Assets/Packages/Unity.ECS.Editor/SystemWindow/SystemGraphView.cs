@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using Microsoft.Msagl.Core.Geometry.Curves;
+using Microsoft.Msagl.Core.Routing;
+using Microsoft.Msagl.Layout.Layered;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
@@ -102,19 +105,30 @@ namespace UnityEditor.ECS
 
 		public void GraphLayout()
 		{
-			var rowLength = Mathf.RoundToInt(Mathf.Sqrt(state.systemViews.Count));
-			if (rowLength == 0)
-				return;
-			var x = 0;
-			var y = 0;
-			foreach (var systemView in state.systemViews)
-			{
-				systemView.position.position = new Vector2(x*kHorizontalSpacing, y*kLayerHeight);
-				++x;
-				x = x % rowLength;
-				if (x == 0)
-					++y;
-			}
+		    var graphAdapter = new MsaglGraphAdapter(state);
+		    var settings = new SugiyamaLayoutSettings()
+		    {
+		        Transformation = PlaneTransformation.Rotation(Math.PI / 2),
+		        EdgeRoutingSettings = {EdgeRoutingMode = EdgeRoutingMode.StraightLine}
+		    };
+		    var layout = new LayeredLayout(graphAdapter.resultGraph, settings);
+		    layout.Run();
+
+		    var minPosition = Vector2.zero;
+		    foreach (var node in graphAdapter.resultGraph.Nodes)
+		    {
+		        var position = node.BoundingBox.LeftTop;
+		        if (position.X < minPosition.x)
+		            minPosition.x = (float) position.X;
+		        if (position.Y < minPosition.y)
+		            minPosition.y = (float) position.Y;
+		    }
+		    foreach (var node in graphAdapter.resultGraph.Nodes)
+		    {
+		        var view = (SystemViewData) node.UserData;
+		        var vector = new Vector2((float)node.BoundingBox.Left, (float)node.BoundingBox.Top);
+		        view.position.position = vector - minPosition + kStartPosition.position;
+		    }
 		}
 
 		public void OnGUIArrows()

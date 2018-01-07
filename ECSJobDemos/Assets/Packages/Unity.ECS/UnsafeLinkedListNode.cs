@@ -17,6 +17,7 @@ namespace UnityEngine.ECS
             list->next = list;
         }
 
+        
         public bool IsEmpty
         {
             get
@@ -58,7 +59,7 @@ namespace UnityEngine.ECS
         unsafe static public void InsertBefore(UnsafeLinkedListNode* pos, UnsafeLinkedListNode* node)
         {
             Assert.IsTrue(node != pos);
-            Assert.IsFalse(node->IsInList());
+            Assert.IsFalse(node->IsInList);
 
             node->prev = pos->prev;
             node->next = pos;
@@ -78,9 +79,9 @@ namespace UnityEngine.ECS
             }
         }
 
-        unsafe bool IsInList()
+        public bool IsInList
         {
-            return prev != null;
+            get { return prev != null; }
         }
     }
 }

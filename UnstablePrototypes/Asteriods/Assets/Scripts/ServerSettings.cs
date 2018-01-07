@@ -16,9 +16,9 @@ public class ServerSettings
     public EntityArchetype playerArchetype;
     public EntityArchetype asteroidArchetype;
     public EntityArchetype bulletArchetype;
-    public World world;
 
-    public GameSocket socket;
+    public NetworkServer networkServer;
+    public World world;
 
     static ServerSettings m_Instance;
     public static ServerSettings Instance()
@@ -34,6 +34,7 @@ public class ServerSettings
 
     void Instantiate(World world)
     {
+        this.networkServer = new NetworkServer("127.0.0.1", 50001);
         this.world = world;
         var manager = world.GetOrCreateManager<EntityManager>();
 
@@ -69,15 +70,12 @@ public class ServerSettings
             typeof(NetworkIdCompmonentData),
             typeof(VelocityComponentData));
 
-        var configuration = new SocketConfiguration() 
+        var configuration = new SocketConfiguration()
         {
             SendBufferSize = ushort.MaxValue,
             RecvBufferSize = ushort.MaxValue,
             Timeout = uint.MaxValue,
             MaximumConnections = 10
         };
-
-        socket = new GameSocket("127.0.0.1", 50001, configuration);
-        socket.ListenForConnections();
     }
 }

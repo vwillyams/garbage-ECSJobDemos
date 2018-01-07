@@ -11,6 +11,7 @@ namespace Unity.Multiplayer
     [StructLayout(LayoutKind.Sequential)]
     public struct SocketConfiguration
     {
+        // TODO: change to ints for sizes
         public ushort SendBufferSize;
         public ushort RecvBufferSize;
         public uint Timeout;
@@ -54,10 +55,10 @@ namespace Unity.Multiplayer
 
     public unsafe struct GameSocket : IDisposable
     {
-        enum Constants
+        public struct Constants
         {
-            HeaderSize = 14,
-            MaxPacketSize = 1472
+            public static readonly int HeaderSize = 14;
+            public static readonly int MaxPacketSize = 1472;
         }
         void* m_Socket;
         NativeArray<byte> m_Buffer;
@@ -80,7 +81,7 @@ namespace Unity.Multiplayer
                 e.InternalError = NativeBindings.gamesocket_get_last_error();
                 throw e;
             }
-            m_Buffer = new NativeArray<byte>((int)Constants.MaxPacketSize, Allocator.Persistent);
+            m_Buffer = new NativeArray<byte>(Constants.MaxPacketSize, Allocator.Persistent);
         }
 
         public void Dispose()
@@ -129,14 +130,6 @@ namespace Unity.Multiplayer
             NativeBindings.gamesocket_disconnect(m_Socket, connection);
         }
 
-        public long GetNextSendSequence
-        {
-            get
-            {
-                return 0; // NativeBindings.gamesocket_get_next_sequence(m_Socket, 0);
-            }
-        }
-
         public int SendData(NativeSlice<byte> buffer, NativeSlice<int> connections)
         {
             var result = NativeBindings.gamesocket_send(m_Socket, NativeSliceUnsafeUtility.GetUnsafePtr(buffer), (ushort)buffer.Length, NativeSliceUnsafeUtility.GetUnsafePtr(connections), connections.Length);
@@ -173,5 +166,20 @@ namespace Unity.Multiplayer
                 slice = default(NativeSlice<byte>);
             return (GameSocketEventType)result;
         }
+
+        public GameSocketEventType ReceiveEventSuppliedBuffer(NativeSlice<byte> slice, out int connection, out int size)
+        {
+            ushort bufferSize = (ushort)slice.Length;
+            int result = 0;
+            if ((result = NativeBindings.gamesocket_receive_event_supplied_buffer(m_Socket, slice.GetUnsafePtr(), out bufferSize, out connection)) < 0)
+            {
+                var code = (((GameSocketError)result == GameSocketError.InternalSocketError) ? NativeBindings.gamesocket_get_last_socket_error(m_Socket) : result);
+                var e = new GameSocketException("Error during recv " + code);
+                e.InternalError = code;
+                throw e;
+            }
+            size = bufferSize;
+            return (GameSocketEventType)result;
+        }
     }
-} 
+}

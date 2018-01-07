@@ -1,0 +1,14 @@
+{
+    "name": "Unity.Blobs.Tests",
+    "references": [
+        "UnityEngine.ECS",
+        "Unity.Blobs"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

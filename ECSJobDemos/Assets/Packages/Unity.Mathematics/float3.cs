@@ -63,6 +63,34 @@ namespace Unity.Mathematics
         [MethodImpl((MethodImplOptions)0x100)] // agressive inline
         public static implicit operator float3(int3 d) { return new float3(d.x, d.y, d.z); }
 
+        unsafe public float this [int index]
+        {
+            get
+            {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                if ((uint)index >= 3)
+                    throw new System.ArgumentException("index must be between [0...2]");
+#endif
+
+                fixed (float* array = &x)
+                {
+                    return array[index];
+                }
+            }
+            set
+            {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                if ((uint)index >= 3)
+                    throw new System.ArgumentException("index must be between [0...2]");
+#endif
+
+                fixed (float* array = &x)
+                {
+                    array[index] = value;
+                }
+            }
+        }
+
         public override string ToString()
         {
             return string.Format("float3({0}f, {1}f, {2}f)", x, y, z);

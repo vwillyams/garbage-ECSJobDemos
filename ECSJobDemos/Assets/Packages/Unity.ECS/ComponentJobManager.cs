@@ -27,6 +27,11 @@ namespace UnityEngine.ECS
         AtomicSafetyHandle      m_TempSafety;
         #endif
 
+        public JobHandle               CreationJob;
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+        public AtomicSafetyHandle      CreationSafety;
+#endif
+
         JobHandle*              m_JobDependencyCombineBuffer;
         int                     m_JobDependencyCombineBufferCount;
 
@@ -36,7 +41,10 @@ namespace UnityEngine.ECS
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_TempSafety = AtomicSafetyHandle.Create();
+            CreationSafety = AtomicSafetyHandle.Create();
 #endif
+
+
             m_ReadJobFences = (JobHandle*)UnsafeUtility.Malloc(sizeof(JobHandle) * kMaxReadJobHandles * kMaxTypes, 16, Allocator.Persistent);
             UnsafeUtility.MemClear(m_ReadJobFences, sizeof(JobHandle) * kMaxReadJobHandles * kMaxTypes);
 
@@ -96,6 +104,7 @@ namespace UnityEngine.ECS
 
         public void Dispose()
         {
+            CreationJob.Complete();
 
             for (int i = 0; i < kMaxTypes;i++)
                 m_ComponentSafetyHandles[i].writeFence.Complete();
@@ -115,6 +124,14 @@ namespace UnityEngine.ECS
             }
 
             AtomicSafetyHandle.Release(m_TempSafety);
+
+            var creationRes = AtomicSafetyHandle.EnforceAllBufferJobsHaveCompletedAndRelease(CreationSafety);
+            if (creationRes == EnforceJobResult.DidSyncRunningJobs)
+            {
+                //@TODO: EnforceAllBufferJobsHaveCompletedAndRelease should probably print the error message and locate the exact job...
+                Debug.LogError("Disposing EntityManager but a EntityTransaction job is still running. It appears the job has not been registered with EntityManager.EntityTransactionDependency.");
+            }
+
 #endif
 
             UnsafeUtility.Free(m_JobDependencyCombineBuffer, Allocator.Persistent);
@@ -222,6 +239,18 @@ namespace UnityEngine.ECS
 
             m_ReadJobFences[type * kMaxReadJobHandles] = combined;
             m_ComponentSafetyHandles[type].numReadFences = 1;
+        }
+
+        public void CompleteCreationJob()
+        {
+            CreationJob.Complete();
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            var res = AtomicSafetyHandle.EnforceAllBufferJobsHaveCompleted(CreationSafety);
+            if (res != EnforceJobResult.AllJobsAlreadySynced)
+            {
+                Debug.LogError("A EntityTransaction job has not been registered with the EntityManager.EntityTransactionDependency. This is necessary for safe execution.");
+            }
+#endif
         }
     }
 }

@@ -158,5 +158,16 @@ namespace UnityEngine.ECS.Tests
 
             jobHandle.Complete();
         }
+
+        [Test]
+        public void CreatingEntitiesBeyondCapacityInTransactionThrows()
+        {
+            var arch = m_Manager.CreateArchetype(typeof(EcsTestData));
+
+            var transaction = m_Manager.BeginTransaction();
+            var entities = new NativeArray<Entity>(1000, Allocator.Persistent);
+            Assert.Throws<InvalidOperationException>(() => { transaction.CreateEntity(arch, entities); });
+            entities.Dispose();
+        }
     }
 }

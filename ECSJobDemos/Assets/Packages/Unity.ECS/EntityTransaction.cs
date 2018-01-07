@@ -9,8 +9,9 @@ namespace UnityEngine.ECS
     [NativeContainer]
     unsafe public struct EntityTransaction
     {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
         AtomicSafetyHandle                 m_Safety;
-
+#endif
         [NativeDisableUnsafePtrRestriction]
         GCHandle                           m_ArchetypeManager;
 
@@ -95,7 +96,7 @@ namespace UnityEngine.ECS
                 Chunk* chunk = archetypeManager.GetChunkWithEmptySlots(archetype.archetype);
                 int allocatedIndex;
                 int allocatedCount = archetypeManager.AllocateIntoChunk(chunk, count, out allocatedIndex);
-                m_Entities->AllocateEntities(archetype.archetype, chunk, allocatedIndex, allocatedCount, entities);
+                m_Entities->AllocateEntities(archetype.archetype, chunk, allocatedIndex, allocatedCount, entities, false);
                 ChunkDataUtility.ClearComponents(chunk, allocatedIndex, allocatedCount);
 
                 entities += allocatedCount;

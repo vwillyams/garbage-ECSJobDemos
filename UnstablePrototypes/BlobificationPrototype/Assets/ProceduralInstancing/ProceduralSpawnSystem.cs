@@ -60,6 +60,10 @@ public class ProceduralSpawnSystem : JobComponentSystem
             m_SpawnLocationCaches[i] = new NativeList<SpawnData>(1024, Allocator.Persistent);
 
         prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/VegetationAssets/ECSVegetation0.prefab");
+
+
+        //@TODO: Would be nice if this wasn't necessary and transactions could increase capacity...
+        EntityManager.EntityCapacity = 1000 * 1000;
     }
 
     protected override void OnDestroyManager()

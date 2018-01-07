@@ -15,9 +15,9 @@ namespace UnityEngine.ECS
 
     unsafe struct EntityDataManager
     {
-        internal EntityData*    m_Entities;
-        int                     m_EntitiesCapacity;
-        int                     m_EntitiesFreeIndex;
+        internal EntityData*   m_Entities;
+        int                    m_EntitiesCapacity;
+        int                    m_EntitiesFreeIndex;
 
         public void OnCreate(int capacity)
         {
@@ -38,19 +38,35 @@ namespace UnityEngine.ECS
             m_Entities[m_EntitiesCapacity - 1].index = -1;
         }
 
-        //@TODO: This is not safe on creation job while iteration jobs are running...
-        void IncreaseCapacity()
+        void IncreaseCapacity(bool allowIncreaseCapacity)
         {
-            EntityData* newEntities = (EntityData*) UnsafeUtility.Malloc(m_EntitiesCapacity * 2 * sizeof(EntityData),
-                64, Allocator.Persistent);
-            UnsafeUtility.MemCpy(newEntities, m_Entities, m_EntitiesCapacity * sizeof(EntityData) );
-            UnsafeUtility.Free(m_Entities, Allocator.Persistent);
+            //@TODO: This is not a good long term solution. Better would be to use virtual alloc,
+            //       so we can increase the size from any thread...
+            if (!allowIncreaseCapacity)
+                throw new System.InvalidOperationException("EntityManager.EntityCapacity is not large enough to support the number of created Entities from a Transaction.");
 
-            var startNdx = m_EntitiesCapacity - 1;
-            m_Entities = newEntities;
-            m_EntitiesCapacity *= 2;
+            Capacity = 2 * Capacity;
+        }
 
-            InitializeAdditionalCapacity(startNdx);
+        public int Capacity
+        {
+            get { return m_EntitiesCapacity; }
+            set
+            {
+                if (value <= m_EntitiesCapacity)
+                    return;
+
+                EntityData* newEntities = (EntityData*) UnsafeUtility.Malloc(value * sizeof(EntityData),
+                    64, Allocator.Persistent);
+                UnsafeUtility.MemCpy(newEntities, m_Entities, m_EntitiesCapacity * sizeof(EntityData) );
+                UnsafeUtility.Free(m_Entities, Allocator.Persistent);
+
+                var startNdx = m_EntitiesCapacity - 1;
+                m_Entities = newEntities;
+                m_EntitiesCapacity = value;
+
+                InitializeAdditionalCapacity(startNdx);
+            }
         }
 
         public void OnDestroy()
@@ -136,7 +152,6 @@ namespace UnityEngine.ECS
             }
         }
 
-
         public void DeallocateEnties(ArchetypeManager typeMan, Entity* entities, int count)
         {
             while (count != 0)
@@ -178,12 +193,16 @@ namespace UnityEngine.ECS
 
                     // Move component data from the end to where we deleted components
                     ChunkDataUtility.Copy(chunk, chunk->count - batchCount, chunk, indexInChunk, batchCount);
-                    if (chunk->managedArrayIndex >= 0)
-                        ChunkDataUtility.CopyManagedObjects(typeMan, chunk, chunk->count - batchCount, chunk, indexInChunk, batchCount);
                 }
 
                 if (chunk->managedArrayIndex >= 0)
+                {
+                    // We can just chop-off the end, no need to copy anything
+                    if (chunk->count != indexInChunk + batchCount)
+                        ChunkDataUtility.CopyManagedObjects(typeMan, chunk, chunk->count - batchCount, chunk, indexInChunk, batchCount);
+
                     ChunkDataUtility.ClearManagedObjects(typeMan, chunk, chunk->count - batchCount, batchCount);
+                }
 
                 chunk->archetype->entityCount -= batchCount;
                 typeMan.SetChunkCount(chunk, chunk->count - batchCount);
@@ -218,7 +237,7 @@ namespace UnityEngine.ECS
         }
 #endif
 
-        public void AllocateEntities(Archetype* arch, Chunk* chunk, int baseIndex, int count, Entity* outputEntities)
+        public void AllocateEntities(Archetype* arch, Chunk* chunk, int baseIndex, int count, Entity* outputEntities, bool allowIncreaseCapacity)
         {
             Assert.AreEqual(chunk->archetype->offsets[0], 0);
             Assert.AreEqual(chunk->archetype->sizeOfs[0], sizeof(Entity));
@@ -230,7 +249,7 @@ namespace UnityEngine.ECS
                 EntityData* entity = m_Entities + m_EntitiesFreeIndex;
                 if (entity->index == -1)
                 {
-                    IncreaseCapacity();
+                    IncreaseCapacity(allowIncreaseCapacity);
                     entity = m_Entities + m_EntitiesFreeIndex;
                 }
 

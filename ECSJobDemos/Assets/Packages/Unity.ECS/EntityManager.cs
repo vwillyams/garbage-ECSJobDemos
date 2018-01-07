@@ -66,8 +66,9 @@ namespace UnityEngine.ECS
             m_GroupManager = new EntityGroupManager(m_JobSafetyManager);
             m_SharedComponentManager = new SharedComponentDataManager();
             m_EntityTransaction = new EntityTransaction(m_ArchetypeManager, m_Entities);
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_EntityTransaction.SetAtomicSafetyHandle(ComponentJobSafetyManager.CreationSafety);
-
+#endif
             TypeManager.Initialize();
 
             m_CachedComponentTypeArray = (ComponentType*)UnsafeUtility.Malloc(sizeof(ComponentType) * 32 * 1024, 16, Allocator.Persistent);
@@ -98,6 +99,16 @@ namespace UnityEngine.ECS
 
         public bool IsCreated { get { return (m_CachedComponentTypeArray != null); } }
 
+        public int EntityCapacity
+        {
+            get { return m_Entities->Capacity; }
+            set
+            {
+                BeforeImmediateStructualChange();
+                m_Entities->Capacity = value;
+            }
+        }
+
         int PopulatedCachedTypeArray(ComponentType[] requiredComponents)
         {
             m_CachedComponentTypeArray[0] = ComponentType.Create<Entity>();
@@ -116,12 +127,18 @@ namespace UnityEngine.ECS
 
         public ComponentGroup CreateComponentGroup(params ComponentType[] requiredComponents)
         {
+            //@TODO: Better would be to seperate creation of archetypes and getting existing archetypes
+            // and only flush when creating new ones...
+            BeforeImmediateStructualChange();
+
             return m_GroupManager.CreateEntityGroup(m_ArchetypeManager, m_CachedComponentTypeArray, PopulatedCachedTypeArray(requiredComponents), new TransformAccessArray());
         }
 
         public EntityArchetype CreateArchetype(params ComponentType[] types)
         {
-            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
+            //@TODO: Better would be to seperate creation of archetypes and getting existing archetypes
+            // and only flush when creating new ones...
+            BeforeImmediateStructualChange();
 
             EntityArchetype type;
             type.archetype = m_ArchetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, PopulatedCachedTypeInArchetypeArray(types), m_GroupManager, m_SharedComponentManager);
@@ -154,7 +171,7 @@ namespace UnityEngine.ECS
                 Chunk* chunk = m_ArchetypeManager.GetChunkWithEmptySlots(archetype.archetype);
                 int allocatedIndex;
                 int allocatedCount = m_ArchetypeManager.AllocateIntoChunk(chunk, count, out allocatedIndex);
-                m_Entities->AllocateEntities(archetype.archetype, chunk, allocatedIndex, allocatedCount, entities);
+                m_Entities->AllocateEntities(archetype.archetype, chunk, allocatedIndex, allocatedCount, entities, true);
                 ChunkDataUtility.ClearComponents(chunk, allocatedIndex, allocatedCount);
 
                 entities += allocatedCount;
@@ -166,7 +183,7 @@ namespace UnityEngine.ECS
 
         public void DestroyEntity(NativeArray<Entity> entities)
         {
-            BeforeImmediateStructualTransaction();
+            BeforeImmediateStructualChange();
 
             m_Entities->AssertEntitiesExist((Entity*)entities.GetUnsafeReadOnlyPtr(), entities.Length);
 
@@ -175,7 +192,7 @@ namespace UnityEngine.ECS
 
         public void DestroyEntity(Entity entity)
         {
-            BeforeImmediateStructualTransaction();
+            BeforeImmediateStructualChange();
 
             m_Entities->AssertEntitiesExist(&entity, 1);
 
@@ -243,6 +260,7 @@ namespace UnityEngine.ECS
             if (!m_Entities->Exists(srcEntity))
                 throw new System.ArgumentException("srcEntity is not a valid entity");
 
+            //@TODO: Move this block to EntityDataManager?
             int srcIndex = m_Entities->m_Entities[srcEntity.index].index;
             Chunk* srcChunk = m_Entities->m_Entities[srcEntity.index].chunk;
             Archetype* srcArchetype = m_Entities->m_Entities[srcEntity.index].archetype;
@@ -255,7 +273,7 @@ namespace UnityEngine.ECS
 
                 ChunkDataUtility.ReplicateComponents(srcChunk, srcIndex, chunk, indexInChunk, allocatedCount);
 
-                m_Entities->AllocateEntities(srcArchetype, chunk, indexInChunk, allocatedCount, outputEntities);
+                m_Entities->AllocateEntities(srcArchetype, chunk, indexInChunk, allocatedCount, outputEntities, true);
 
                 outputEntities += allocatedCount;
                 count -= allocatedCount;
@@ -266,7 +284,7 @@ namespace UnityEngine.ECS
 
         public void AddComponent(Entity entity, ComponentType type)
         {
-            BeforeImmediateStructualTransaction();
+            BeforeImmediateStructualChange();
 
             m_Entities->AssertEntitiesExist(&entity, 1);
 
@@ -293,7 +311,7 @@ namespace UnityEngine.ECS
 
         public void RemoveComponent(Entity entity, ComponentType type)
         {
-            BeforeImmediateStructualTransaction();
+            BeforeImmediateStructualChange();
 
             var componentType = new ComponentTypeInArchetype(type);
 
@@ -459,22 +477,28 @@ namespace UnityEngine.ECS
             get { return m_JobSafetyManager.CreationJob; }
             set
             {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
                 if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(m_JobSafetyManager.CreationJob, value))
-                {
-                    //@TODO: IMPROVE ERRO
-                    throw new System.ArgumentException("jobHandle does not depend on previous CreationJob");
-                }
+                    throw new System.ArgumentException("The assigned job dependency does not depend on the previous EntityTransactionDependency. You must schedule all jobs using EntityTransaction with a dependency on EntityManager.EntityTransactionDependency.");
+#endif
 
                 m_JobSafetyManager.CreationJob = value;
             }
         }
 
+        // Call this transactionable structure changes (instantiate, create entity etc)
+        void BeforeImmediateStructualTransaction()
+        {
+            CommitTransaction();
+        }
+        // Call this after transactionable structure changes to integrate them
         void AfterImmediateStructuralTransaction()
         {
             m_ArchetypeManager.IntegrateChunks();
         }
-
-        void BeforeImmediateStructualTransaction()
+        // Call this before doing a change that has to be applied immediately anyway.
+        // Thus no need to do anything after the transaction
+        void BeforeImmediateStructualChange()
         {
             CommitTransaction();
         }

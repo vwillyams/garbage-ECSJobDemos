@@ -125,22 +125,18 @@ namespace UnityEngine.ECS
                 else
                     typeI = prevTypeI;
             }
-            MatchingArchetypes* match = (MatchingArchetypes*)m_GroupDataChunkAllocator.Allocate(sizeof(MatchingArchetypes), 8);
+            MatchingArchetypes* match = (MatchingArchetypes*)m_GroupDataChunkAllocator.Allocate(sizeof(MatchingArchetypes) + sizeof(int) * group->requiredComponentsCount, 8);
             match->archetype = archetype;
-            match->archetypeSegments = (ComponentDataArchetypeSegment*)m_GroupDataChunkAllocator.Allocate(group->requiredComponentsCount * sizeof(ComponentDataArchetypeSegment), 8);
-            match->next = null;
-            if (group->lastMatchingArchetype != null)
-                group->lastMatchingArchetype->next = match;
-            else
-                group->firstMatchingArchetype = match;
+            var typeIndexInArchetypeArray = MatchingArchetypes.GetTypeIndexInArchetypeArray(match);
+
+            if (group->lastMatchingArchetype == null)
+                group->lastMatchingArchetype = match;
+
+            match->next = group->firstMatchingArchetype;
+            group->firstMatchingArchetype = match;
 
             for (int component = 0; component < group->requiredComponentsCount; ++component)
             {
-                match->archetypeSegments[component].archetype = archetype;
-                match->archetypeSegments[component].nextSegment = null;
-                if (group->lastMatchingArchetype != null)
-                    match->archetypeSegments[component].nextSegment = group->lastMatchingArchetype->archetypeSegments + component;
-
                 int typeComponentIndex = -1;
                 if (group->requiredComponents[component].accessMode != ComponentType.AccessMode.Subtractive)
                 {
@@ -148,18 +144,24 @@ namespace UnityEngine.ECS
                     Assertions.Assert.AreNotEqual(-1, typeComponentIndex);
                 }
 
-                match->archetypeSegments[component].typeIndexInArchetype = typeComponentIndex;
+                typeIndexInArchetypeArray[component] = typeComponentIndex;
             }
 
-            group->lastMatchingArchetype = match;
         }
     }
     unsafe struct MatchingArchetypes
     {
         public Archetype*                       archetype;
-        public ComponentDataArchetypeSegment*   archetypeSegments;
         public MatchingArchetypes*              next;
+        // Followed by array of ints that map from the type index in the EntityGroup to the type index in the archetype
+        unsafe public static int* GetTypeIndexInArchetypeArray(MatchingArchetypes* match)
+        {
+            return (int*)(((byte*)match) + sizeof(MatchingArchetypes));
+        }
     }
+
+
+
     unsafe struct EntityGroupData
     {
         public int*                 readerTypes;
@@ -290,6 +292,7 @@ namespace UnityEngine.ECS
             // Update the archetype segments
             int length = 0;
             MatchingArchetypes* last = null;
+            MatchingArchetypes* first = null;
             Chunk* firstNonEmptyChunk = null;
             if (m_filteredSharedComponents == null)
             {
@@ -299,9 +302,12 @@ namespace UnityEngine.ECS
                     {
                         length += match->archetype->entityCount;
                         last = match;
+                        if (first == null)
+                            first = match;
                     }
                 }
-                firstNonEmptyChunk = (Chunk*)last->archetype->chunkList.Begin();
+                if(first != null)
+                    firstNonEmptyChunk = (Chunk*)first->archetype->chunkList.Begin();
             }
             else
             {
@@ -316,10 +322,14 @@ namespace UnityEngine.ECS
                             //TODO: optimize this!
                             if (ChunkMatchesFilter(archeType, c, match))
                             {
-                                length += c->count;
-                                if (firstNonEmptyChunk == null)
+                                if (c->count > 0)
                                 {
-                                    firstNonEmptyChunk = c;
+                                    length += c->count;
+                                    if (first == null)
+                                    {
+                                        first = match;
+                                        firstNonEmptyChunk = c;
+                                    }
                                 }
                             }
                         }
@@ -329,9 +339,9 @@ namespace UnityEngine.ECS
 
             outLength = length;
 
-            if (last == null)
-                return new ComponentChunkIterator(null, 0, null, null);
-            return new ComponentChunkIterator(last->archetypeSegments + componentIndex, length, firstNonEmptyChunk, m_filteredSharedComponents);
+            if (first == null)
+                return new ComponentChunkIterator(null, 0, 0, null, null);
+            return new ComponentChunkIterator(first, componentIndex, length, firstNonEmptyChunk, m_filteredSharedComponents);
         }
 
         public ComponentDataArray<T> GetComponentDataArray<T>() where T : struct, IComponentData
@@ -453,7 +463,7 @@ namespace UnityEngine.ECS
             {
                 int componetIndexInComponentGroup = filtered[i * 2];
                 int sharedComponentIndex = filtered[i * 2 + 1];
-                int componentIndexInArcheType = match->archetypeSegments[componetIndexInComponentGroup].typeIndexInArchetype;
+                int componentIndexInArcheType = MatchingArchetypes.GetTypeIndexInArchetypeArray(match)[componetIndexInComponentGroup];
                 int componentIndexInChunk = archeType->sharedComponentOffset[componentIndexInArcheType];
                 if (sharedComponentsInChunk[componentIndexInChunk] != sharedComponentIndex)
                     return false;

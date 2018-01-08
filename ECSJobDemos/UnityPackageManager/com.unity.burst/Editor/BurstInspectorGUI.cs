@@ -159,6 +159,8 @@ namespace Unity.Burst.Editor
 
         GUIStyle m_FixedFontStyle = null;
 
+        private LongTextArea m_TextArea = null;
+
         public void OnGUI()
         {
             if (m_Targets == null)
@@ -177,6 +179,11 @@ namespace Unity.Burst.Editor
             if (m_SearchField == null)
             {
                 m_SearchField = new SearchField();
+            }
+
+            if (m_TextArea == null)
+            {
+                m_TextArea = new LongTextArea();
             }
 
             GUILayout.BeginHorizontal();
@@ -214,6 +221,7 @@ namespace Unity.Burst.Editor
                 EditorGUI.BeginDisabledGroup(!target.supportsBurst);
                 m_CodeGenOption = EditorGUILayout.Popup(m_CodeGenOption, s_CodeGenOptions);
                 bool doRefresh = GUILayout.Button("Refresh Disassembly");
+                bool doCopy = GUILayout.Button("Copy to Clipboard");
                 EditorGUI.EndDisabledGroup();
 
                 GUILayout.EndHorizontal();
@@ -235,6 +243,8 @@ namespace Unity.Burst.Editor
                         }
                         options.Append($" -simd={s_CodeGenOptions[m_CodeGenOption]}");
                         string result = BurstCompilerService.GetDisassembly(target.method, options.ToString().Trim(' '));
+
+                        result = TabsToSpaces(result);
                         target.disassembly = result;
                         disasm = result;
                     }
@@ -246,10 +256,15 @@ namespace Unity.Burst.Editor
 
                 if (disasm != null)
                 {
-
+                    m_TextArea.Text = disasm;
                     scrollPos = GUILayout.BeginScrollView(scrollPos);
-                    EditorGUILayout.TextArea(disasm, m_FixedFontStyle);
+                    m_TextArea.Render(m_FixedFontStyle);
                     GUILayout.EndScrollView();
+                }
+
+                if (doCopy)
+                {
+                    EditorGUIUtility.systemCopyBuffer = disasm == null ? "" : disasm;
                 }
             }
 
@@ -267,6 +282,42 @@ namespace Unity.Burst.Editor
             "avx2",
             "avx512",
         };
+
+        private static string TabsToSpaces(string s)
+        {
+            const int tabSize = 8;
+            int lineLength = 0;
+            StringBuilder result = new StringBuilder();
+            result.Capacity = s.Length;
+
+            foreach (char ch in s)
+            {
+                switch (ch)
+                {
+                    case '\n':
+                        result.Append(ch);
+                        lineLength = 0;
+                        break;
+                    case '\t':
+                        {
+                            int spaceCount = tabSize - (lineLength % tabSize);
+                            for (int i = 0; i < spaceCount; ++i)
+                            {
+                                result.Append(' ');
+                            }
+                            lineLength += spaceCount;
+                            break;
+                        }
+
+                    default:
+                        result.Append(ch);
+                        lineLength++;
+                        break;
+                }
+            }
+
+            return result.ToString();
+        }
     }
 
     internal class BurstMethodTreeView : TreeView
@@ -321,5 +372,6 @@ namespace Unity.Burst.Editor
         {
             return false;
         }
+
     }
 }

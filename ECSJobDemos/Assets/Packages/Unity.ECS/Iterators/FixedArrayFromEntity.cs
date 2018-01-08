@@ -22,7 +22,7 @@ namespace UnityEngine.ECS
             m_Entities = entityData;
         }
 #else
-        internal FixedArrayFromEntity(int typeIndex, EntityDataManager entityData)
+        internal FixedArrayFromEntity(int typeIndex, EntityDataManager* entityData)
         {
             m_TypeIndex = typeIndex;
             m_Entities = entityData;

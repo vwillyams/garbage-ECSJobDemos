@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using Microsoft.Msagl.Core.Geometry.Curves;
-using Microsoft.Msagl.Core.Routing;
 using Microsoft.Msagl.Layout.Layered;
 using UnityEngine;
-using UnityEditor;
-using UnityEditor.IMGUI.Controls;
 using UnityEngine.ECS;
-using UnityEngine.Experimental.LowLevel;
 
 namespace UnityEditor.ECS
 {
@@ -20,10 +15,11 @@ namespace UnityEditor.ECS
 		private const float kLayerHeight = 50f;
 		private const float kHorizontalSpacing = 200f;
 
-
 		private SystemGraphState state;
 	    private readonly Texture2D lineTexture;
 
+	    const float kAlpha = 0.25f;
+	    
 	    public SystemGraphView(Vector2 windowOffset)
 	    {
 	        kWindowOffset = windowOffset;
@@ -111,7 +107,6 @@ namespace UnityEditor.ECS
 		    var settings = new SugiyamaLayoutSettings()
 		    {
 		        Transformation = PlaneTransformation.Rotation(3.0*Math.PI/2.0),
-		        EdgeRoutingSettings = {EdgeRoutingMode = EdgeRoutingMode.StraightLine},
 		        NodeSeparation = 10.0
 		    };
 		    var layout = new LayeredLayout(graphAdapter.resultGraph, settings);
@@ -120,35 +115,77 @@ namespace UnityEditor.ECS
 		    var minPosition = new Vector2(float.MaxValue, float.MaxValue);
 		    foreach (var node in graphAdapter.resultGraph.Nodes)
 		    {
-		        var position = node.BoundingBox.LeftTop;
+		        var position = node.BoundingBox.LeftBottom;
 		        if (position.X < minPosition.x)
 		            minPosition.x = (float) position.X;
 		        if (position.Y < minPosition.y)
 		            minPosition.y = (float) position.Y;
 		    }
-		    Debug.Log(minPosition);
 		    foreach (var node in graphAdapter.resultGraph.Nodes)
 		    {
 		        var view = (SystemViewData) node.UserData;
-		        var vector = new Vector2(Mathf.Round((float) node.BoundingBox.Left), Mathf.Round((float) node.BoundingBox.Top));
+		        var vector = new Vector2(Mathf.Round((float) node.BoundingBox.Left), Mathf.Round((float) node.BoundingBox.Bottom));
 		        view.position.position = vector - minPosition + kWindowOffset;
+		    }
+            
+		    state.edges.Clear();
+		    foreach (var edge in graphAdapter.resultGraph.Edges)
+		    {
+		        var systemEdge = new SystemGraphEdge();
+		        foreach (var point in edge.EdgeGeometry.SmoothedPolyline)
+		        {
+		            var vector = new Vector2((float) point.X, (float) point.Y);
+		            systemEdge.points.Add(vector - minPosition + kWindowOffset);
+		        }
+
+		        systemEdge.target = state.systemViews.IndexOf((SystemViewData) edge.Target.UserData);
+		        systemEdge.points[systemEdge.points.Count - 1] =
+		            ExteriorPointFromOtherPoint(state.systemViews[systemEdge.target].position,
+		                systemEdge.points[systemEdge.points.Count - 2]);
+		        state.edges.Add(systemEdge);
 		    }
 		}
 
 		public void OnGUIArrows()
 		{
-			foreach (var systemView in state.systemViews)
-			{
-				foreach (var typeIndex in systemView.updateAfter)
-				{
-					DrawArrowBetweenBoxes(systemView, state.systemViews[typeIndex]);
-				}
-				foreach (var typeIndex in systemView.updateBefore)
-				{
-					DrawArrowBetweenBoxes(state.systemViews[typeIndex], systemView);
-				}
-			}
+
+		    foreach (var edge in state.edges)
+		    {
+		        Handles.color = EditorStyles.label.normal.textColor;
+		        if (edge.points.Count > 2)
+		        {
+		            DrawBezierSegment(edge.points[0], edge.points[0], edge.points[1], edge.points[2]);
+		        }
+
+		        for (var i = 1; i < edge.points.Count - 2; ++i)
+		        {
+		            DrawBezierSegment(edge.points[i - 1], edge.points[i], edge.points[i + 1], edge.points[i + 2]);
+		        }
+
+		        var secondLast = edge.points[edge.points.Count - 2];
+		        var thirdLast = edge.points.Count > 2 ? edge.points[edge.points.Count - 3] : secondLast;
+		        var last = edge.points[edge.points.Count - 1];
+		        
+		        DrawBezierSegment(thirdLast, secondLast, last, last);
+		        
+		        var arrowDirection = last - secondLast;
+		        if (arrowDirection == Vector3.zero)
+		            return;
+		        
+		        var endPos = ExteriorPointFromOtherPoint(state.systemViews[edge.target].position, secondLast);
+		        endPos -= (endPos - secondLast).normalized * 0.6f * kArrowSize;
+		        var rotation = Quaternion.LookRotation(arrowDirection, Vector3.forward);
+		        Handles.ConeHandleCap(0, endPos, rotation, kArrowSize, Event.current.type);
+		    }
 		}
+
+	    void DrawBezierSegment(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
+	    {
+	        var d = (p2 - p1).magnitude * kAlpha;
+	        var t1 = (p2 - p0).normalized * d + p1;
+	        var t2 = (p1 - p3).normalized * d + p2;
+	        Handles.DrawBezier(p1, p2, t1, t2, Handles.color, lineTexture, EditorGUIUtility.pixelsPerPoint * kLineWidth);
+	    }
 
 	    public void OnGUIWindows()
 	    {

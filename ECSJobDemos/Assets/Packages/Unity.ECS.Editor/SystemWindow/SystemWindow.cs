@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine.ECS;
 using UnityEngine.Experimental.LowLevel;
@@ -107,9 +106,6 @@ namespace UnityEditor.ECS
 
 			GUILayout.BeginVertical();
 		    worldListView.OnGUI(GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.Height(kWorldListHeight), GUILayout.ExpandWidth(true)));
-			
-
-		    var systemGraphRect = GUIHelpers.GetExpandingRect();
 		    
 		    if (currentWorldSelection == null)
 		    {
@@ -125,7 +121,6 @@ namespace UnityEditor.ECS
 
 		        EndWindows();
 		    }
-
 			GUILayout.EndVertical();
 
 			playerLoopListView.OnGUI(GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.ExpandHeight(true), GUILayout.Width(300f)));

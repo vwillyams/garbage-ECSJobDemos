@@ -2,7 +2,8 @@
     "name": "Unity.ECS.Tests",
     "references": [
         "UnityEngine.ECS",
-        "Unity.Collections"
+        "Unity.Collections",
+        "Unity.Jobs"
     ],
     "optionalUnityReferences": [
         "TestAssemblies"

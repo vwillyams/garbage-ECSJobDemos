@@ -14,7 +14,7 @@ namespace UnityEditor.ECS
 {
 	public class SystemGraphView
 	{
-		private readonly Rect kStartPosition;
+		private readonly Vector2 kWindowOffset;
 		public const float kArrowSize = 11f;
 		private const float kLineWidth = 2f;
 		private const float kLayerHeight = 50f;
@@ -26,7 +26,7 @@ namespace UnityEditor.ECS
 
 	    public SystemGraphView(Vector2 windowOffset)
 	    {
-	        kStartPosition = new Rect(windowOffset, Vector2.one);
+	        kWindowOffset = windowOffset;
 	        lineTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.ecs_bundle/Unity.ECS.Editor/Resources/AALineRetina.png");
 	    }
 
@@ -74,7 +74,8 @@ namespace UnityEditor.ECS
 					var systemViewIndex = state.systemViews.FindIndex(x => x.fullName == type.FullName);
 					if (systemViewIndex < 0)
 					{
-					    state.systemViews.Add(new SystemViewData(type.Name, type.FullName, kStartPosition));
+					    var size = GUI.skin.label.CalcSize(new GUIContent(type.Name));
+					    state.systemViews.Add(new SystemViewData(type.Name, type.FullName, new Rect(Vector2.zero, size)));
 						systemViewIndex = state.systemViews.Count - 1;
 					}
 				    state.systemViews[systemViewIndex].updateAfter = new List<int>();
@@ -101,6 +102,7 @@ namespace UnityEditor.ECS
 					}
 				}
 			}
+		    GraphLayout();
 		}
 
 		public void GraphLayout()
@@ -108,13 +110,14 @@ namespace UnityEditor.ECS
 		    var graphAdapter = new MsaglGraphAdapter(state);
 		    var settings = new SugiyamaLayoutSettings()
 		    {
-		        Transformation = PlaneTransformation.Rotation(Math.PI / 2),
-		        EdgeRoutingSettings = {EdgeRoutingMode = EdgeRoutingMode.StraightLine}
+		        Transformation = PlaneTransformation.Rotation(3.0*Math.PI/2.0),
+		        EdgeRoutingSettings = {EdgeRoutingMode = EdgeRoutingMode.StraightLine},
+		        NodeSeparation = 10.0
 		    };
 		    var layout = new LayeredLayout(graphAdapter.resultGraph, settings);
 		    layout.Run();
 
-		    var minPosition = Vector2.zero;
+		    var minPosition = new Vector2(float.MaxValue, float.MaxValue);
 		    foreach (var node in graphAdapter.resultGraph.Nodes)
 		    {
 		        var position = node.BoundingBox.LeftTop;
@@ -123,11 +126,12 @@ namespace UnityEditor.ECS
 		        if (position.Y < minPosition.y)
 		            minPosition.y = (float) position.Y;
 		    }
+		    Debug.Log(minPosition);
 		    foreach (var node in graphAdapter.resultGraph.Nodes)
 		    {
 		        var view = (SystemViewData) node.UserData;
-		        var vector = new Vector2((float)node.BoundingBox.Left, (float)node.BoundingBox.Top);
-		        view.position.position = vector - minPosition + kStartPosition.position;
+		        var vector = new Vector2(Mathf.Round((float) node.BoundingBox.Left), Mathf.Round((float) node.BoundingBox.Top));
+		        view.position.position = vector - minPosition + kWindowOffset;
 		    }
 		}
 
@@ -151,7 +155,7 @@ namespace UnityEditor.ECS
 	        for (var i = 0; i < state.systemViews.Count; ++i)
 	        {
 	            var view = state.systemViews[i];
-	            view.position = GUILayout.Window(i, view.position, WindowFunction, "", GUI.skin.box);
+	            view.position = GUI.Window(i, view.position, WindowFunction, "", GUI.skin.box);
 	        }
 	    }
 
@@ -197,8 +201,7 @@ namespace UnityEditor.ECS
 
 		void WindowFunction(int id)
 		{
-			GUI.DragWindow(new Rect(0f, 0f, 1000f, 1000f));
-			GUILayout.Label(new GUIContent(state.systemViews[id].name, state.systemViews[id].fullName));
+			GUI.Label(new Rect(Vector2.zero, state.systemViews[id].position.size), new GUIContent(state.systemViews[id].name, state.systemViews[id].fullName));
 		}
 	}
 

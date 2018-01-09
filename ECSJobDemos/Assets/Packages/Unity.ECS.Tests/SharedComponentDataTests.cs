@@ -45,15 +45,36 @@ namespace UnityEngine.ECS.Tests
             Assert.AreEqual(0, group1_filter_0.CalculateLength());
             Assert.AreEqual(0, group1_filter_20.CalculateLength());
 
-            Entity e = m_Manager.CreateEntity(archetype);
+            Entity e1 = m_Manager.CreateEntity(archetype);
+            m_Manager.SetComponent(e1, new EcsTestData(117));
+            Entity e2 = m_Manager.CreateEntity(archetype);
+            m_Manager.SetComponent(e2, new EcsTestData(243));
+
+            Assert.AreEqual(2, group1_filter_0.CalculateLength());
+            Assert.AreEqual(0, group1_filter_20.CalculateLength());
+            Assert.AreEqual(117, group1_filter_0.GetComponentDataArray<EcsTestData>()[0].value);
+            Assert.AreEqual(243, group1_filter_0.GetComponentDataArray<EcsTestData>()[1].value);
+
+            m_Manager.SetSharedComponent(e1, new SharedData1(20));
 
             Assert.AreEqual(1, group1_filter_0.CalculateLength());
-            Assert.AreEqual(0, group1_filter_20.CalculateLength());
+            Assert.AreEqual(1, group1_filter_20.CalculateLength());
+            Assert.AreEqual(117, group1_filter_20.GetComponentDataArray<EcsTestData>()[0].value);
+            Assert.AreEqual(243, group1_filter_0.GetComponentDataArray<EcsTestData>()[0].value);
 
-            m_Manager.SetSharedComponent(e, new SharedData1(20));
+            m_Manager.SetSharedComponent(e2, new SharedData1(20));
 
             Assert.AreEqual(0, group1_filter_0.CalculateLength());
-            Assert.AreEqual(1, group1_filter_20.CalculateLength());
+            Assert.AreEqual(2, group1_filter_20.CalculateLength());
+            Assert.AreEqual(117, group1_filter_20.GetComponentDataArray<EcsTestData>()[0].value);
+            Assert.AreEqual(243, group1_filter_20.GetComponentDataArray<EcsTestData>()[1].value);
+
+
+            group1.Dispose();
+            group2.Dispose();
+            group12.Dispose();
+            group1_filter_0.Dispose();
+            group1_filter_20.Dispose();
         }
 
 

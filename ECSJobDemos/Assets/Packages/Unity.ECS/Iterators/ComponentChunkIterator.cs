@@ -4,13 +4,6 @@ using System;
 
 namespace UnityEngine.ECS
 {
-    unsafe struct ComponentDataArchetypeSegment
-    {
-        public Archetype*                     archetype;
-        public int                            typeIndexInArchetype;
-        public ComponentDataArchetypeSegment* nextSegment;
-    }
-
     unsafe struct ComponentChunkCache
     {
         [NativeDisableUnsafePtrRestriction]
@@ -23,9 +16,9 @@ namespace UnityEngine.ECS
     unsafe struct ComponentChunkIterator
     {
         [NativeDisableUnsafePtrRestriction]
-        MatchingArchetypes*          m_FirstMatchingArchetype;
+        MatchingArchetypes*                     m_FirstMatchingArchetype;
         [NativeDisableUnsafePtrRestriction]
-        MatchingArchetypes*          m_CurrentMatchingArchetype;
+        MatchingArchetypes*                     m_CurrentMatchingArchetype;
         int                                     m_ComponentIndex;
         int                                     m_CurrentArchetypeIndex;
         [NativeDisableUnsafePtrRestriction]
@@ -37,7 +30,7 @@ namespace UnityEngine.ECS
         int*                                    m_filteredSharedComponents;
 
         //TODO: this function is identical to ComponentGroup.ChunkMatchesFilter
-        bool ChunkMatchesFilter(Archetype* archeType, Chunk* chunk, ComponentDataArchetypeSegment* segement)
+        bool ChunkMatchesFilter(MatchingArchetypes* match, Chunk* chunk)
         {
             int* sharedComponentsInChunk = ArchetypeManager.GetSharedComponentValueArray(chunk);
             int filteredCount = m_filteredSharedComponents[0];
@@ -46,8 +39,8 @@ namespace UnityEngine.ECS
             {
                 int componetIndexInComponentGroup = filtered[i * 2];
                 int sharedComponentIndex = filtered[i * 2 + 1];
-                int componentIndexInArcheType = segement->typeIndexInArchetype;
-                int componentIndexInChunk = archeType->sharedComponentOffset[componentIndexInArcheType];
+                int componentIndexInArcheType = MatchingArchetypes.GetTypeIndexInArchetypeArray(match)[m_ComponentIndex];
+                int componentIndexInChunk = match->archetype->sharedComponentOffset[componentIndexInArcheType];
                 if (sharedComponentsInChunk[componentIndexInChunk] != sharedComponentIndex)
                     return false;
             }
@@ -55,10 +48,34 @@ namespace UnityEngine.ECS
             return true;
         }
 
-//        private Chunk* GetNextMatchingChunk()
-//        {
-//
-//        }
+        private void MoveToNextMatchingChunk()
+        {
+            var m = m_CurrentMatchingArchetype;
+            var c = m_CurrentChunk;
+            var e = (Chunk*)m->archetype->chunkList.End();
+            //TODO: can empty chunks be encountered here?
+            do
+            {
+                c = (Chunk*)c->chunkListNode.next;
+                while (c == e)
+                {
+                    m_CurrentArchetypeIndex += m_CurrentChunkIndex;
+                    m_CurrentChunkIndex = 0;
+                    m = m->next;
+                    if (m == null)
+                    {
+                        m_CurrentMatchingArchetype = null;
+                        m_CurrentChunk = null;
+                        return;
+                    }
+
+                    c = (Chunk*)m->archetype->chunkList.Begin();
+                    e = (Chunk*)m->archetype->chunkList.End();
+                }
+            } while (!(ChunkMatchesFilter(m, c) && (c->capacity > 0)));
+            m_CurrentMatchingArchetype = m;
+            m_CurrentChunk = c;
+        }
 
         //MatchingArchetypes.GetTypeIndexInArchetypeArray
         public ComponentChunkIterator(MatchingArchetypes* match, int componentIndex, int length, Chunk* firstChunk, int* filteredSharedComponents)
@@ -92,7 +109,7 @@ namespace UnityEngine.ECS
 
         public void UpdateCache(int index, out ComponentChunkCache cache)
         {
-            //if (m_filteredSharedComponents == null)
+            if (m_filteredSharedComponents == null)
             {
                 if (index < m_CurrentArchetypeIndex)
                 {
@@ -123,25 +140,34 @@ namespace UnityEngine.ECS
                     m_CurrentChunk = (Chunk*) m_CurrentChunk->chunkListNode.next;
                 }
             }
-//            else
-//            {
-//                int currentIndex = 0;
-//                //TODO: need the full
-//                m_CurrentArchetypeSegment = m_FirstArchetypeSegment;
-//                m_CurrentArchetypeIndex = 0;
-//                while (true)
-//                {
-//                    Archetype* archeType = m_CurrentArchetypeSegment->archetype;
-//                    for (Chunk* c = (Chunk*)archeType->chunkList.Begin(); c != archeType->chunkList.End(); c = (Chunk*)c->chunkListNode.next)
-//                    {
-//                        if (ChunkMatchesFilter(archeType, c, m_CurrentArchetypeSegment))
-//                        {
-//                            currentIndex += c->count;
-//                        }
-//                    }
-//                    m_CurrentArchetypeSegment = m_CurrentArchetypeSegment->nextSegment;
-//                }
-//            }
+            else
+            {
+                Assertions.Assert.IsTrue(ChunkMatchesFilter(m_CurrentMatchingArchetype, m_CurrentChunk));
+                if (index < m_CurrentArchetypeIndex + m_CurrentChunkIndex)
+                {
+                    if (index < m_CurrentArchetypeIndex)
+                    {
+                        m_CurrentMatchingArchetype = m_FirstMatchingArchetype;
+                        m_CurrentArchetypeIndex = 0;
+                    }
+
+                    m_CurrentChunk = (Chunk*) m_CurrentMatchingArchetype->archetype->chunkList.Begin();
+                    m_CurrentChunkIndex = 0;
+                    if (!(ChunkMatchesFilter(m_CurrentMatchingArchetype, m_CurrentChunk) &&
+                          (m_CurrentChunk->count > 0)))
+                    {
+                        MoveToNextMatchingChunk();
+                    }
+                }
+
+                Assertions.Assert.IsTrue(ChunkMatchesFilter(m_CurrentMatchingArchetype, m_CurrentChunk));
+
+                while (index >= m_CurrentArchetypeIndex + m_CurrentChunkIndex + m_CurrentChunk->count)
+                {
+                    m_CurrentChunkIndex += m_CurrentChunk->count;
+                    MoveToNextMatchingChunk();
+                }
+            }
 
             var archetype = m_CurrentMatchingArchetype->archetype;
             var typeIndexInArchetype =MatchingArchetypes.GetTypeIndexInArchetypeArray(m_CurrentMatchingArchetype)[m_ComponentIndex];

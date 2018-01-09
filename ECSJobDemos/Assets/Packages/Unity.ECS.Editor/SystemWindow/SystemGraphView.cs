@@ -148,7 +148,7 @@ namespace UnityEditor.ECS
 
 		public void OnGUIArrows()
 		{
-
+		    Handles.matrix = Matrix4x4.Translate(Vector3.forward * -5f);
 		    foreach (var edge in state.edges)
 		    {
 		        Handles.color = EditorStyles.label.normal.textColor;
@@ -169,7 +169,7 @@ namespace UnityEditor.ECS
 		        DrawBezierSegment(thirdLast, secondLast, last, last);
 		        
 		        var arrowDirection = last - secondLast;
-		        if (arrowDirection == Vector3.zero)
+		        if (arrowDirection == Vector2.zero)
 		            return;
 		        
 		        var endPos = ExteriorPointFromOtherPoint(state.systemViews[edge.target].position, secondLast);
@@ -177,6 +177,7 @@ namespace UnityEditor.ECS
 		        var rotation = Quaternion.LookRotation(arrowDirection, Vector3.forward);
 		        Handles.ConeHandleCap(0, endPos, rotation, kArrowSize, Event.current.type);
 		    }
+		    Handles.matrix = Matrix4x4.identity;
 		}
 
 	    void DrawBezierSegment(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
@@ -210,7 +211,7 @@ namespace UnityEditor.ECS
 			Handles.ConeHandleCap(0, endPos, rotation, kArrowSize, Event.current.type);
 		}
 
-		static Vector3 ExteriorPointFromOtherPoint(Rect rect, Vector2 other)
+		static Vector2 ExteriorPointFromOtherPoint(Rect rect, Vector2 other)
 		{
 			if (rect.width == 0f || rect.height == 0f)
 				return rect.center;
@@ -233,7 +234,7 @@ namespace UnityEditor.ECS
 			ext.y *= Mathf.Sign(localOther.y)*(rect.height*0.5f);
 			ext += rect.center;
 
-			return new Vector3(ext.x, ext.y, -5f);
+			return new Vector2(ext.x, ext.y);
 		}
 
 		void WindowFunction(int id)

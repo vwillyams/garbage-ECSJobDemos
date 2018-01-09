@@ -1,6 +1,6 @@
 variables:
   UNITY_EXECUTABLE_PATH_MAC: "/Applications/Unity-af7ec7d6be7f/Unity.app/Contents/MacOS/Unity"
-  UNITY_EXECUTABLE_PATH_LINUX: "/home/builduser/Unity-af7ec7d6be7f/Editor/Unity"
+  UNITY_EXECUTABLE_PATH_LINUX: "/home/builduser/buildslave/unity/build/build/LinuxEditor/Unity"
   UNITY_EXECUTABLE_PATH_WINDOWS: "C:/Program Files/Unity-af7ec7d6be7f/Editor/Unity.exe"
 
 stages:
@@ -101,7 +101,7 @@ build:linux:
   tags:
     - linux
   script:
-    - dotnet ~/unity-log-wrapper/bin/Debug/netcoreapp2.0/UnityLogWrapper.dll -unityexecutable $UNITY_EXECUTABLE_PATH_LINUX -projectpath $(pwd)/ECSJobDemos -batchmode -nographics -buildLinux64Player build/linux-standalone -silentcrashes -automated -logfile output.log -quit
+    - dotnet ~/unity-log-wrapper/bin/Debug/netcoreapp2.0/UnityLogWrapper.dll -unityexecutable $UNITY_EXECUTABLE_PATH_LINUX -projectpath $(pwd)/ECSJobDemos -batchmode -nographics -silentcrashes -automated -logfile output.log -quit
   artifacts:
       name: "linux-build-logs"
       when: always
@@ -116,7 +116,7 @@ standalone:linux:
   tags:
     - linux
   script:
-    - dotnet ~/unity-log-wrapper/bin/Debug/netcoreapp2.0/UnityLogWrapper.dll -unityexecutable $UNITY_EXECUTABLE_PATH_LINUX -projectpath $(pwd)/ECSJobDemos -batchmode -nographics -silentcrashes -automated -logfile output.log -quit
+    - dotnet ~/unity-log-wrapper/bin/Debug/netcoreapp2.0/UnityLogWrapper.dll -unityexecutable $UNITY_EXECUTABLE_PATH_LINUX -projectpath $(pwd)/ECSJobDemos -batchmode -buildLinuxUniversalPlayer build/linux-standalone -silentcrashes -automated -logfile output.log -quit
   artifacts:
       name: "linux-standalone-logs"
       when: always

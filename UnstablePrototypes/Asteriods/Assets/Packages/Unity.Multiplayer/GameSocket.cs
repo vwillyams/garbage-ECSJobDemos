@@ -2,6 +2,7 @@
 using Unity.Collections;
 using Unity.Multiplayer.Native;
 
+using UnityEngine;
 using System.Runtime.InteropServices;
 using Unity.Collections.LowLevel.Unsafe;
 
@@ -167,12 +168,14 @@ namespace Unity.Multiplayer
             return (GameSocketEventType)result;
         }
 
-        public GameSocketEventType ReceiveEventSuppliedBuffer(NativeSlice<byte> slice, out int connection, out int size)
+        public unsafe GameSocketEventType ReceiveEventSuppliedBuffer(NativeSlice<byte> slice, out int connection, out int size)
         {
             ushort bufferSize = (ushort)slice.Length;
             int result = 0;
-            if ((result = NativeBindings.gamesocket_receive_event_supplied_buffer(m_Socket, slice.GetUnsafePtr(), out bufferSize, out connection)) < 0)
+            void* ptr = slice.GetUnsafePtr();
+            if ((result = NativeBindings.gamesocket_receive_event_supplied_buffer(m_Socket, ptr, out bufferSize, out connection)) < 0)
             {
+                Debug.Log("unsafe ptr = " + new IntPtr(ptr).ToString());
                 var code = (((GameSocketError)result == GameSocketError.InternalSocketError) ? NativeBindings.gamesocket_get_last_socket_error(m_Socket) : result);
                 var e = new GameSocketException("Error during recv " + code);
                 e.InternalError = code;

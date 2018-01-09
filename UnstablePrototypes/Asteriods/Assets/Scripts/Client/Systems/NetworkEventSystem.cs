@@ -48,7 +48,12 @@ namespace Asteriods.Client
 
         override protected void OnUpdate()
         {
-            m_NetworkClient.Update();
+            if (!m_NetworkClient.IsCreated)
+            {
+                Debug.Log("not created");
+            }
+            else
+                m_NetworkClient.Update();
             m_StateMachine.Update();
         }
 

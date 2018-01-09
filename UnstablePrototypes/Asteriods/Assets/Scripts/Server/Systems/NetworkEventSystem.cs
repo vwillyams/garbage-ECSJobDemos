@@ -31,6 +31,11 @@ namespace Asteriods.Server
 
         unsafe override protected void OnUpdate()
         {
+            if (!m_NetworkServer.IsCreated)
+            {
+                Debug.Log("not created");
+                return;
+            }
             m_NetworkServer.Update();
 
             NetworkConnection connection;

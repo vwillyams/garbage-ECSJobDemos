@@ -164,7 +164,7 @@ namespace Unity.Multiplayer
             m_Buffer = new NativeArray<byte>(1024 * 1024, Allocator.Persistent);
             m_DataQueue = new NativeQueue<SliceInformation>(Allocator.Persistent);
 
-            m_PacketBuffer = new PacketBuffer(GameSocket.Constants.MaxPacketSize, 10);
+            m_PacketBuffer = new PacketBuffer(GameSocket.Constants.MaxPacketSize, 100);
         }
 
         public void Update()

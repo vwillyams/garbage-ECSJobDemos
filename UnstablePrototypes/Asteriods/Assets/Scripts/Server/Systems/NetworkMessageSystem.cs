@@ -73,7 +73,7 @@ namespace Asteriods.Server
                 bw.Write((byte)AsteroidsProtocol.Snapshot);
                 snapshot.Serialize(ref bw);
 
-                Debug.Log(bw.GetBytesWritten());
+                //Debug.Log(bw.GetBytesWritten());
                 var slice = m_Buffer.Slice(0, bw.GetBytesWritten());
                 m_NetworkServer.WriteMessage(slice);
             }

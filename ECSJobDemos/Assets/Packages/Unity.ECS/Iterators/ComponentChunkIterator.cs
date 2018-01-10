@@ -39,7 +39,7 @@ namespace UnityEngine.ECS
             {
                 int componetIndexInComponentGroup = filtered[i * 2];
                 int sharedComponentIndex = filtered[i * 2 + 1];
-                int componentIndexInArcheType = MatchingArchetypes.GetTypeIndexInArchetypeArray(match)[m_ComponentIndex];
+                int componentIndexInArcheType = MatchingArchetypes.GetTypeIndexInArchetypeArray(match)[componetIndexInComponentGroup];
                 int componentIndexInChunk = match->archetype->sharedComponentOffset[componentIndexInArcheType];
                 if (sharedComponentsInChunk[componentIndexInChunk] != sharedComponentIndex)
                     return false;

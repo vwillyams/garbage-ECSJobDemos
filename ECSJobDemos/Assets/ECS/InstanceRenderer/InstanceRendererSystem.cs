@@ -30,7 +30,7 @@ namespace UnityEngine.ECS.Rendering
             var uniqueRendererTypes = new NativeList<int>(10, Allocator.TempJob);
 
 		    var maingroup = EntityManager.CreateComponentGroup(typeof(InstanceRenderer), typeof(InstanceRendererTransform));
-
+		    maingroup.CompleteDependency();
 
             EntityManager.GetAllUniqueSharedComponents(typeof(InstanceRenderer), uniqueRendererTypes);
 
@@ -40,7 +40,7 @@ namespace UnityEngine.ECS.Rendering
                 var renderer = EntityManager.GetSharedComponentData<InstanceRenderer>(uniqueType);
 
                 var group = maingroup.GetVariation(renderer);
-                group.CompleteDependency();
+                //group.CompleteDependency();
 
                 var transforms = group.GetComponentDataArray<InstanceRendererTransform>();
 

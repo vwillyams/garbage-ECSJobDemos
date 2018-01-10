@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine.ECS;
 using UnityEngine.Experimental.LowLevel;
@@ -89,8 +88,9 @@ namespace UnityEditor.ECS
 	        select s as ComponentSystemBase).ToArray();
 
 	    private bool noWorlds = true;
+	    [SerializeField] private Vector2 scrollPosition;
 
-		void OnGUI()
+	    void OnGUI()
 		{
 
 		    var worldsAppeared = noWorlds && World.AllWorlds.Count > 0;
@@ -105,44 +105,25 @@ namespace UnityEditor.ECS
 			GUILayout.BeginHorizontal();
 
 			GUILayout.BeginVertical();
-            GUILayout.BeginVertical(GUILayout.Height(kWorldListHeight));
-		    worldListView.OnGUI(GUIHelpers.GetExpandingRect());
-		    GUILayout.EndVertical();
-			GUILayout.FlexibleSpace();
+		    worldListView.OnGUI(GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.Height(kWorldListHeight), GUILayout.ExpandWidth(true)));
+		    
+		    if (currentWorldSelection == null)
+		    {
+		        GUIHelpers.ShowCenteredNotification(new Rect(Vector2.zero, position.size), "No ComponentSystems loaded. (Try pushing Play)");
+		    }
+		    else
+		    {
+		        systemGraphView.OnGUIArrows();
 
-			GUILayout.BeginHorizontal();
-			GUILayout.FlexibleSpace();
-			if (GUILayout.Button("Layout"))
-			{
-				systemGraphView.GraphLayout();
-			}
-			GUILayout.Space(5f);
-			if (GUILayout.Button("Clear"))
-			{
-				systemViews.Clear();
-			}
-			GUILayout.EndHorizontal();
+		        BeginWindows();
 
-			if (currentWorldSelection == null)
-			{
-				GUIHelpers.ShowCenteredNotification(new Rect(Vector2.zero, position.size), "No ComponentSystems loaded. (Try pushing Play)");
-			}
-			else
-			{
-			    systemGraphView.OnGUIArrows();
+		        systemGraphView.OnGUIWindows();
 
-			    BeginWindows();
-
-			    systemGraphView.OnGUIWindows();
-
-			    EndWindows();
-			}
-
+		        EndWindows();
+		    }
 			GUILayout.EndVertical();
 
-			GUILayout.BeginVertical(GUILayout.Width(300f));
-			playerLoopListView.OnGUI(GUIHelpers.GetExpandingRect());
-			GUILayout.EndVertical();
+			playerLoopListView.OnGUI(GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.ExpandHeight(true), GUILayout.Width(300f)));
 
 			GUILayout.EndHorizontal();
 		}

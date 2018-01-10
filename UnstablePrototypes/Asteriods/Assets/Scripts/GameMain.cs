@@ -6,15 +6,66 @@ using UnityEngine;
 using UnityEngine.ECS;
 
 #if ASTEROIDS_SERVER
-    class ServerWorldBootstrap
+    public class ServerWorldBootstrap
     {
+        public static World serverWorld;
+
+        public static void DomainUnloadShutdown()
+        {
+            if (serverWorld != null)
+            {
+                serverWorld.Dispose();
+                ServerSettings.Instance().networkServer.Dispose();
+                World.UpdatePlayerLoop();
+            }
+            else
+            {
+                Debug.LogError("World has already been destroyed");
+            }
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        public static void Initialize()
+        {
+            Debug.LogWarning("Server Running");
+            PlayerLoopManager.RegisterDomainUnload(DomainUnloadShutdown);
+
+            serverWorld = new World("Server");
+            ServerSettings.Create(serverWorld);
+            WorldCreator.FindAndCreateWorldFromNamespace(serverWorld, "Asteriods.Server");
+            World.Active = null;
+            World.UpdatePlayerLoop(serverWorld);
+        }
+    }
+#elif ASTEROIDS_CLIENT
+    class ClientWorldBootstrap
+    {
+        public static World clientWorld;
+
+        static void DomainUnloadShutdown()
+        {
+            if (clientWorld != null)
+            {
+                clientWorld.Dispose();
+                ClientSettings.Instance().networkClient.Dispose();
+                World.UpdatePlayerLoop();
+            }
+            else
+            {
+                Debug.LogError("World has already been destroyed");
+            }
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void Initialize()
         {
-            Debug.Log("ServerWorldBootstrap");
+            PlayerLoopManager.RegisterDomainUnload(DomainUnloadShutdown);
 
-            var world = WorldCreator.FindAndCreateWorldFromNamespace("Asteriods.Server");
-            World.UpdatePlayerLoop(world);
+            clientWorld = new World("Client");
+            ClientSettings.Create(clientWorld);
+            WorldCreator.FindAndCreateWorldFromNamespace(clientWorld, "Asteriods.Client");
+            World.Active = null;
+            World.UpdatePlayerLoop(clientWorld);
         }
     }
 #else // Client + Server
@@ -27,11 +78,10 @@ using UnityEngine.ECS;
         {
             if (clientWorld != null && serverWorld != null)
             {
-                ServerSettings.Instance().socket.Dispose();
-                ClientSettings.Instance().socket.Dispose();
-
                 serverWorld.Dispose();
                 clientWorld.Dispose();
+                ClientSettings.Instance().networkClient.Dispose();
+                ServerSettings.Instance().networkServer.Dispose();
                 World.UpdatePlayerLoop();
             }
             else
@@ -43,6 +93,7 @@ using UnityEngine.ECS;
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void Initialize()
         {
+            Debug.Assert(false);
             PlayerLoopManager.RegisterDomainUnload(DomainUnloadShutdown);
 
             serverWorld = new World("Server");

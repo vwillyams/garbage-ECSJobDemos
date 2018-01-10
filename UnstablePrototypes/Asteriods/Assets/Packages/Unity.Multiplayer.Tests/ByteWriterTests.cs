@@ -79,6 +79,17 @@ namespace Unity.Multiplayer.Tests
         }
 
         [Test]
+        public unsafe void TestAlignWriteBytes()
+        {
+            ByteWriter writer = new ByteWriter(m_NativeArray.GetUnsafePtr(), m_NativeArray.Length);
+            writer.Write((byte)1);
+            writer.Write((byte)1);
+
+            Assert.AreEqual(16, writer.GetBitsWritten());
+            Assert.AreEqual(2, writer.GetBytesWritten());
+        }
+
+        [Test]
         public unsafe void TestWriteBytesWritten()
         {
             ByteWriter writer = new ByteWriter(m_NativeArray.GetUnsafePtr(), m_NativeArray.Length);

@@ -18,7 +18,7 @@ namespace BoidSimulations
 
 		struct BoidTargets
 		{
-			[ReadOnly] 
+			[ReadOnly]
 			public ComponentDataArray<BoidTarget> boidTargets;
 			public ComponentArray<Transform>      transforms;
 			public int 							  Length;
@@ -27,7 +27,7 @@ namespace BoidSimulations
 
 		struct Settings
 		{
-			[ReadOnly] 
+			[ReadOnly]
 			public ComponentDataArray<BoidSimulationSettings> settings;
 			public int  									  Length;
 		}
@@ -35,7 +35,7 @@ namespace BoidSimulations
 
 		struct Grounds
 		{
-			[ReadOnly] 
+			[ReadOnly]
 			public ComponentDataArray<BoidGround> grounds;
 			public ComponentArray<Transform> 	  transforms;
 			public int 							  Length;
@@ -54,9 +54,9 @@ namespace BoidSimulations
 		[InjectComponentGroup] BoidObstacles m_BoidObstacles;
 
 		NativeMultiHashMap<int, int> 		 m_Cells;
-		NativeArray<int> 					 m_CellOffsetsTable;
-		
-		
+		NativeArray<int3> 					 m_CellOffsetsTable;
+
+
 		[ComputeJobOptimizationAttribute(Accuracy.Med, Support.Relaxed)]
 		struct PrepareParallelBoidsJob : IJobParallelFor
 		{
@@ -102,7 +102,7 @@ namespace BoidSimulations
 			public NativeMultiHashMap<int, int>   					    cells;
 
 			[ReadOnly]
-			public NativeArray<int> 									cellOffsetsTable;
+			public NativeArray<int3> 									cellOffsetsTable;
 
 			public void Execute(int index)
 			{
@@ -124,7 +124,7 @@ namespace BoidSimulations
 			m_Cells.Clear ();
 
 			var boids = new NativeArray<BoidData> (m_Boids.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-			
+
 			// Simulation
 			var simulateJob = new SimulateBoidsJob
 			{
@@ -146,7 +146,7 @@ namespace BoidSimulations
 			}
 			if (m_Targets.Length == 0)
 				simulateJob.simulationSettings.targetWeight = 0;
-			
+
 			if (m_Ground.Length >= 1)
 				simulateJob.simulationState.ground = m_Ground.transforms[0].position;
 
@@ -162,7 +162,7 @@ namespace BoidSimulations
 				cellRadius = m_Settings.settings[0].cellRadius
 			};
 			var prepareJobHandle = prepareParallelJob.Schedule(boids.Length, 32, inputDeps);
-			
+
 			return simulateJob.Schedule (boids.Length, 32, prepareJobHandle);
 		}
 
@@ -170,7 +170,7 @@ namespace BoidSimulations
 		{
 			base.OnCreateManager(capacity);
 			m_Cells = new NativeMultiHashMap<int, int>(capacity, Allocator.Persistent);
-			m_CellOffsetsTable = new NativeArray<int>(HashUtility.cellOffsets, Allocator.Persistent);
+			m_CellOffsetsTable = new NativeArray<int3>(HashUtility.cellOffsets, Allocator.Persistent);
 		}
 
 		protected override void OnDestroyManager()

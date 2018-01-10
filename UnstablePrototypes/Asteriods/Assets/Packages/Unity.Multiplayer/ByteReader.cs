@@ -10,6 +10,7 @@ namespace Unity.Multiplayer
         {
             m_Reader = new BitReader(data, bytes);
         }
+
         public ByteReader(BitReader reader)
         {
             m_Reader = reader;

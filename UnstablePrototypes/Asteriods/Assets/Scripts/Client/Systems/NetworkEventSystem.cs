@@ -1,19 +1,15 @@
 using UnityEngine;
 using UnityEngine.ECS;
 
-using Unity.Collections;
 using Unity.Multiplayer;
 using Unity.GameCode;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace Asteriods.Client
 {
     public class NetworkEventSystem : ComponentSystem
     {
-        // HACK (2017-12-08, lifetime 4 weeks or until proper protocol implemented.)
-        public static NativeQueue<SpawnCommand> SpawnEventQueue;
-        public static NativeQueue<DespawnCommand> DespawnEventQueue;
-        public static NativeQueue<MovementData> MovementEventQueue;
-
         [Inject]
         SpawnSystem m_SpawnSystem;
 
@@ -23,7 +19,7 @@ namespace Asteriods.Client
         [Inject]
         SnapshotSystem m_SnapshotSystem;
 
-        GameSocket m_Socket;
+        NetworkClient m_NetworkClient;
         StateMachine<ClientState> m_StateMachine;
 
         enum ClientState
@@ -36,15 +32,7 @@ namespace Asteriods.Client
         override protected void OnCreateManager(int capacity)
         {
             base.OnCreateManager(capacity);
-
-            SpawnEventQueue = new NativeQueue<SpawnCommand>(Allocator.Persistent);
-            MovementEventQueue = new NativeQueue<MovementData>(Allocator.Persistent);
-            DespawnEventQueue = new NativeQueue<DespawnCommand>(Allocator.Persistent);
-            Debug.Assert(SpawnEventQueue.IsCreated);
-            Debug.Assert(MovementEventQueue.IsCreated);
-            Debug.Assert(DespawnEventQueue.IsCreated);
-
-            m_Socket = ClientSettings.Instance().socket;
+            this.m_NetworkClient = ClientSettings.Instance().networkClient;
 
             m_StateMachine = new StateMachine<ClientState>();
             m_StateMachine.Add(ClientState.Connecting, EnterConnectingState, UpdateConnectingState, null);
@@ -56,30 +44,27 @@ namespace Asteriods.Client
 
         override protected void OnDestroyManager()
         {
-            if (SpawnEventQueue.IsCreated)
-                SpawnEventQueue.Dispose();
-            if (MovementEventQueue.IsCreated)
-                MovementEventQueue.Dispose();
-            if (DespawnEventQueue.IsCreated)
-                DespawnEventQueue.Dispose();
         }
 
         override protected void OnUpdate()
         {
+            if (!m_NetworkClient.IsCreated)
+            {
+                Debug.Log("not created");
+            }
+            else
+                m_NetworkClient.Update();
             m_StateMachine.Update();
         }
 
         void EnterConnectingState()
         {
-            m_Socket.Connect(ClientSettings.Instance().serverAddress, ClientSettings.Instance().serverPort);
+            m_NetworkClient.Connect(ClientSettings.Instance().serverAddress, ClientSettings.Instance().serverPort);
         }
 
         void UpdateConnectingState()
         {
-            NativeSlice<byte> outBuffer;
-            GameSocketEventType eventType;
-            int connectionId;
-            if ((eventType = m_Socket.ReceiveEvent(out outBuffer, out connectionId)) == GameSocketEventType.Connect)
+            if (m_NetworkClient.Connected)
             {
                 m_StateMachine.SwitchTo(ClientState.Loading);
             }
@@ -90,8 +75,43 @@ namespace Asteriods.Client
             m_StateMachine.SwitchTo(ClientState.Playing);
         }
 
-        void UpdatePlayState()
+        unsafe void UpdatePlayState()
         {
+            NativeSlice<byte> message;
+            while (m_NetworkClient.PeekMessage(out message))
+            {
+                ByteReader br = new ByteReader(message.GetUnsafePtr(), message.Length);
+                var type = br.ReadByte();
+
+                if (type == (byte)AsteroidsProtocol.Snapshot)
+                {
+                    using (var snapshot = new Snapshot(0, Allocator.Temp))
+                    {
+                        snapshot.Deserialize(ref br);
+
+                        for (int i = 0, c = snapshot.SpawnCommands.Length; i < c; ++i)
+                        {
+                            m_SpawnSystem.SpawnQueue.Enqueue(snapshot.SpawnCommands[i]);
+                        }
+
+                        for (int i = 0, c = snapshot.DespawnCommands.Length; i < c; ++i)
+                        {
+                            m_DespawnSystem.DespawnQueue.Enqueue(snapshot.DespawnCommands[i].id);
+                        }
+
+                        for (int i = 0, c = snapshot.MovementDatas.Length; i < c; ++i)
+                        {
+                            m_SnapshotSystem.MovementUpdates.Enqueue(snapshot.MovementDatas[i]);
+                        }
+                    }
+                }
+                int length = message.Length;
+                int read_bytes = br.GetBytesRead();
+                Debug.Assert(message.Length == read_bytes);
+                m_NetworkClient.PopMessage();
+            }
+
+            /*
             for (int i = 0, c = SpawnEventQueue.Count; i < c; ++i)
             {
                 m_SpawnSystem.SpawnQueue.Enqueue(SpawnEventQueue.Dequeue());
@@ -106,6 +126,7 @@ namespace Asteriods.Client
             {
                 m_DespawnSystem.DespawnQueue.Enqueue(DespawnEventQueue.Dequeue().id);
             }
+            */
         }
     }
 }

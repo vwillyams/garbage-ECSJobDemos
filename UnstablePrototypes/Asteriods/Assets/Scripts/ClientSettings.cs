@@ -10,8 +10,8 @@ public class ClientSettings
     public EntityArchetype playerClientArchetype;
     public EntityArchetype asteroidClientArchetype;
     public EntityArchetype bulletClientArchetype;
+    public NetworkClient networkClient;
     public World world;
-    public GameSocket socket;
     public string serverAddress;
     public ushort serverPort;
 
@@ -29,6 +29,7 @@ public class ClientSettings
 
     void Instantiate(World world)
     {
+        this.networkClient = new NetworkClient();
         this.world = world;
         playerPrefab = Resources.Load("Prefabs/Ship") as GameObject;
         var manager = world.GetOrCreateManager<EntityManager>();
@@ -56,13 +57,12 @@ public class ClientSettings
         serverAddress = "127.0.0.1";
         serverPort = 50001;
 
-        var configuration = new SocketConfiguration() 
+        var configuration = new SocketConfiguration()
         {
             SendBufferSize = ushort.MaxValue,
             RecvBufferSize = ushort.MaxValue,
             Timeout = uint.MaxValue,
             MaximumConnections = 1
         };
-        socket = new GameSocket("127.0.0.1", 50002, configuration);
     }
 }

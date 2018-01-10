@@ -1,6 +1,7 @@
 ﻿using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using System;
+using Unity.Burst;
 
 namespace UnityEngine.ECS
 {
@@ -39,12 +40,7 @@ namespace UnityEngine.ECS
         public NativeArray<T> GetChunkArray(int startIndex, int maxCount)
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
-
-	        if (startIndex < m_MinIndex)
-		        FailOutOfRangeError(startIndex);
-	        else if (startIndex + maxCount > m_MaxIndex + 1)
-		        FailOutOfRangeError(startIndex + maxCount);
+            CheckRange(startIndex, maxCount);
 #endif
 
             m_Iterator.UpdateCache(startIndex, out m_Cache);
@@ -59,6 +55,19 @@ namespace UnityEngine.ECS
 #endif
 
             return arr;
+        }
+
+        [BurstDiscard]
+        private void CheckRange(int startIndex, int maxCount)
+        {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
+
+            if (startIndex < m_MinIndex)
+                FailOutOfRangeError(startIndex);
+            else if (startIndex + maxCount > m_MaxIndex + 1)
+                FailOutOfRangeError(startIndex + maxCount);
+#endif
         }
 
         public void CopyTo(NativeSlice<T> dst, int startIndex = 0)
@@ -105,6 +114,7 @@ namespace UnityEngine.ECS
 		}
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
+        [BurstDiscard]
         void FailOutOfRangeError(int index)
 		{
 			//@TODO: Make error message utility and share with NativeArray...

@@ -292,13 +292,14 @@ namespace UnityEngine.ECS
         }
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
+        [BurstDiscard]
         public void FailOutOfRangeError(int index)
         {
             /*
             //@TODO: Make error message utility and share with NativeArray...
             if (index < Length && (m_MinIndex != 0 || m_MaxIndex != Length - 1))
                 throw new IndexOutOfRangeException(string.Format(
-                    "Index {0} is out of restricted IJobParallelFor range [{1}...{2}] in ReadWriteBuffer.\n" +
+                    "Index {0} is out of restricted component group array range [{1}...{2}] in ReadWriteBuffer.\n" +
                     "ReadWriteBuffers are restricted to only read & write the element at the job index. " +
                     "You can use double buffering strategies to avoid race conditions due to " +
                     "reading & writing in parallel to the same elements from a job.",

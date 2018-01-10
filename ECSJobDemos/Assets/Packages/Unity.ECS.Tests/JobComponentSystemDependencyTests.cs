@@ -15,7 +15,7 @@ namespace UnityEngine.ECS.Tests
                 public ComponentDataArray<EcsTestData> data;
             }
 
-            [InjectComponentGroup] private Inputs m_Inputs;
+            [InjectComponentGroup] Inputs m_Inputs;
 
             struct ReadJob : IJob
             {
@@ -29,7 +29,8 @@ namespace UnityEngine.ECS.Tests
 
             protected override JobHandle OnUpdate(JobHandle input)
             {
-                return new ReadJob() { wat = m_Inputs.data }.Schedule(input);
+                var job = new ReadJob() {wat = m_Inputs.data};
+                return job.Schedule(input);
             }
         }
 
@@ -103,9 +104,28 @@ namespace UnityEngine.ECS.Tests
 
             [InjectComponentGroup] private Inputs m_Inputs;
 
+            public bool SkipJob = false;
+
+            private struct WriteJob : IJob
+            {
+                public ComponentDataArray<EcsTestData> data;
+
+                public void Execute()
+                {
+                }
+            }
+
             protected override JobHandle OnUpdate(JobHandle input)
             {
-                return input;
+                if (!SkipJob)
+                {
+                    var job = new WriteJob() {data = m_Inputs.data};
+                    return job.Schedule(input);
+                }
+                else
+                {
+                    return input;
+                }
             }
         }
 
@@ -128,16 +148,28 @@ namespace UnityEngine.ECS.Tests
         {
             var entity = m_Manager.CreateEntity (typeof(EcsTestData));
             m_Manager.SetComponent(entity, new EcsTestData(42));
-            ReadSystem1 rs1 = World.GetOrCreateManager<ReadSystem1>();
+            WriteSystem ws1 = World.GetOrCreateManager<WriteSystem>();
             ReadSystem2 rs2 = World.GetOrCreateManager<ReadSystem2>();
 
             rs2.ignoreInputDeps = true;
 
-            rs1.Update();
+            ws1.Update();
             Assert.Throws<System.InvalidOperationException>(() => { rs2.Update(); });
         }
 
-        [Ignore("Unclear how to reason about the dependencies.")] [Test]
+        [Test]
+        public void NotSchedulingWriteJobIsHarmless()
+        {
+            var entity = m_Manager.CreateEntity (typeof(EcsTestData));
+            m_Manager.SetComponent(entity, new EcsTestData(42));
+            WriteSystem ws1 = World.GetOrCreateManager<WriteSystem>();
+
+            ws1.Update();
+            ws1.SkipJob = true;
+            ws1.Update();
+        }
+
+        [Test]
         public void NotUsingDataIsHarmless()
         {
             var entity = m_Manager.CreateEntity (typeof(EcsTestData));

@@ -45,7 +45,7 @@ class SimpleAnimationPlayback : MonoBehaviour
 
 			var sampledCurves = new NativeArray<float>(animationToSkeleton.animationCurveToSkeletonIndex.Length, Allocator.Temp);
 
-			DenseClip* denseClip = (DenseClip*)clip.GetUnsafeReadOnlyPtr();
+			DenseClip* denseClip = (DenseClip*)clip.GetUnsafePtr();
 			AnimationSystem.SampleAnimation (ref *denseClip, time, sampledCurves);
 
 			AnimationSystem.CopyPose (defaultPose, outputPose);

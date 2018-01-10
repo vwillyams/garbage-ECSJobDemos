@@ -96,7 +96,10 @@
   - [ ] byte writer / reader
     - write tests for bit reader & writer
     - write tests for byte reader & writer
+  - move the packet reading into a circular buffer type of class.
 
 #### notes
 
-- would be nice to see all entities in the world
+- how do we want to make the serialization of network messages? need to think this through as it is gonna be important for debugging later.
+  - mark type of messages, generate code/il/other, 
+- seems to be a bit much duplication between NetworkServer & NetworkClient, Dont know if NetworkTransport/Interface would be better. 

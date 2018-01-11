@@ -110,7 +110,7 @@ namespace UnityEditor.ECS
         [SerializeField]
         List<MultiColumnHeaderState> entityColumnHeaderStates;
 
-        [MenuItem ("Window/Entities", false, 2017)]
+        [MenuItem ("Window/ECS/Entities", false, 2017)]
         static void Init ()
         {
             EditorWindow.GetWindow<EntityWindow>("Entities");

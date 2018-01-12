@@ -11,9 +11,9 @@ class BuildTools
 {
     public static UnityEditor.Build.Reporting.BuildReport BuildGame(string buildPath, string exeName, BuildTarget target, BuildOptions opts, string buildId)
     {
-        var levels = new string[] 
-        { 
-            "Assets/level0.unity" 
+        var levels = new string[]
+        {
+            "Assets/level0.unity"
         };
 
         var exePathName = buildPath + "/" + exeName;
@@ -45,31 +45,36 @@ public class BuildWindow : EditorWindow
         GetWindow<BuildWindow>(false, "Build Tools", true);
     }
 
+    enum BuildType
+    {
+        None,
+        Default,
+        Client,
+        Server,
+        All
+    }
+
     void OnGUI()
     {
+        var target = BuildType.None;
         GUILayout.BeginHorizontal();
         if (GUILayout.Button("Build Server"))
         {
-            var serverDefine = "ASTEROIDS_SERVER";
-            var defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone);
-            PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone, defines + ";" + serverDefine);
-
-            BuildOptions options = BuildOptions.Development | BuildOptions.AllowDebugging;
-
-            BuildTools.BuildGame(StandardBuildPath + "/Server", "Server.exe", BuildTarget.StandaloneWindows64, options, "ServerBuild");
-            PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone, defines);
+            target = BuildType.Server;
         }
         if (GUILayout.Button("Build Client"))
         {
-            var clientDefine = "ASTEROIDS_CLIENT";
-            var defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone);
-            PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone, defines + ";" + clientDefine);
-
-            BuildOptions options = BuildOptions.Development | BuildOptions.AllowDebugging;
-
-            BuildTools.BuildGame(StandardBuildPath + "/Client", "Client.exe", BuildTarget.StandaloneWindows64, options, "ClientBuild");
-            PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone, defines);
+            target = BuildType.Client;
         }
+        GUILayout.EndHorizontal();
+
+        GUILayout.BeginHorizontal();
+
+        if (GUILayout.Button("Build All Targets"))
+        {
+            target = BuildType.All;
+        }
+
         GUILayout.EndHorizontal();
 
         GUILayout.BeginHorizontal();
@@ -82,6 +87,34 @@ public class BuildWindow : EditorWindow
             Debug.Log(PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone));
         }
         GUILayout.EndHorizontal();
+
+        if (target == BuildType.None)
+            return;
+        else if (target == BuildType.All)
+        {
+            BuildForTarget("server");
+            BuildForTarget("client");
+        }
+        else
+        {
+            string name = (target == BuildType.Server ? "server" : "client");
+            BuildForTarget(name);
+        }
+    }
+
+    void BuildForTarget(string name)
+    {
+        try
+        {
+            File.Copy(name + "_defines", "Assets/mcs.rsp");
+            BuildOptions options = BuildOptions.Development | BuildOptions.AllowDebugging;
+            BuildTools.BuildGame(StandardBuildPath + "/" + name, "_" + name + ".exe", BuildTarget.StandaloneWindows64, options, name + "_build");
+            File.Delete("Assets/mcs.rsp");
+        }
+        catch(Exception e)
+        {
+            Debug.LogException(e);
+        }
     }
 
     static readonly string StandardBuildPath = "StandardBuild";

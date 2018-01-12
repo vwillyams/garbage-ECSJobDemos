@@ -3,6 +3,7 @@ using UnityEngine;
 using Unity.Collections;
 using Unity.Multiplayer;
 using Unity.Mathematics;
+using Unity.Collections.LowLevel.Unsafe;
 
 /// thoughts
 /*
@@ -59,6 +60,16 @@ namespace Unity.Multiplayer
             m_ChunkSize = chunkSize;
             m_Length = capacity * m_ChunkSize;
             m_Buffer = new NativeArray<byte>(m_Length, Allocator.Persistent);
+
+            byte it = 0;
+            for (int i = 0; i < m_Buffer.Length; i = i+4)
+            {
+                m_Buffer[i] = (byte)((it % 25) + 65);
+                m_Buffer[i + 1] = (byte)((it % 25) + 65);
+                m_Buffer[i + 2] = (byte)((it % 25) + 65);
+                m_Buffer[i + 3] = (byte)((it++ % 25) + 65);
+            }
+
             m_DataQueue = new NativeQueue<SliceInformation>(Allocator.Persistent);
 
             m_Count = m_CommitedHead = m_Head = m_Tail = 0;
@@ -169,7 +180,7 @@ namespace Unity.Multiplayer
 
         public void Update()
         {
-            m_Offset = 0; 
+            m_Offset = 0;
             int connectionId;
             GameSocketEventType eventType;
             int receivedLength = 0;

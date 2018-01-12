@@ -38,6 +38,10 @@ namespace Asteriods.Client
                     EntityManager.SetComponent(e, new PositionComponentData(update.position.x, update.position.y));
                     EntityManager.SetComponent(e, new RotationComponentData(update.rotation.angle));
                 }
+                else
+                {
+                    m_SpawnSystem.SpawnQueue.Enqueue(new SpawnCommand(update.id, update.type, update.position, update.rotation));
+                }
             }
         }
     }

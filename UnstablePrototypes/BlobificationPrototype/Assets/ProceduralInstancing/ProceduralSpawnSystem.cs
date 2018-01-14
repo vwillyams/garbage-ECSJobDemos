@@ -19,7 +19,8 @@ public class ProceduralSpawnSystem : JobComponentSystem
 
     const float                        GridSize = 1.0F;
     const float                        PlantDensity = 0.5F;
-    const int                          MaxChunksPerFrame = 4;
+    const int                          MaxCreateChunksPerFrame = 4;
+    const int                          MaxDestroyChunksPerFrame = 8;
 
     struct GridChunk
     {
@@ -54,7 +55,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
     protected override void OnCreateManager(int capacity)
     {
         m_CreatedChunks = new NativeList<GridChunk>(capacity, Allocator.Persistent);
-        m_SpawnLocationCaches = new NativeList<SpawnData>[MaxChunksPerFrame];
+        m_SpawnLocationCaches = new NativeList<SpawnData>[MaxCreateChunksPerFrame];
 
         for (int i = 0;i != m_SpawnLocationCaches.Length;i++)
             m_SpawnLocationCaches[i] = new NativeList<SpawnData>(1024, Allocator.Persistent);
@@ -118,13 +119,15 @@ public class ProceduralSpawnSystem : JobComponentSystem
         return count;
     }
 
-    public void GetToBeDestroyedGridPositions(NativeArray<int2> visible, NativeList<int2> toBeDestroyed)
+    public int GetToBeDestroyedGridPositions(NativeArray<int2> visible, NativeArray<int2> toBeDestroyed)
     {
-        for (int i = 0; i != m_CreatedChunks.Length; i++)
+        int count = 0;
+        for (int i = 0; i != m_CreatedChunks.Length && count != toBeDestroyed.Length; i++)
         {
             if (!visible.Contains(m_CreatedChunks[i].Pos))
-                toBeDestroyed.Add(m_CreatedChunks[i].Pos);
+                toBeDestroyed[count++] = m_CreatedChunks[i].Pos;
         }
+        return count;
     }
 
     public bool HasChunk(int2 gridPos)
@@ -149,6 +152,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
         public float3 Position;
     }
 
+    //[ComputeJobOptimization]
     struct CalculateChunkSpawnLocationsJob : IJob
     {
         public int2                 ChunkPosition;
@@ -280,19 +284,24 @@ public class ProceduralSpawnSystem : JobComponentSystem
 
         Profiler.BeginSample("DestroyChunk");
         // Destroys any invisible grid positions
-        var destroyGridPositions = new NativeList<int2>(0, Allocator.Temp);
-        GetToBeDestroyedGridPositions(visibleGridPositions, destroyGridPositions);
-        for (int i = 0; i != destroyGridPositions.Length; i++)
+        var destroyGridPositions = new NativeArray<int2>(MaxDestroyChunksPerFrame, Allocator.Temp);
+        
+        Profiler.BeginSample("Destroy.FindToBeDestroyed");
+        int toDestroyedCount = GetToBeDestroyedGridPositions(visibleGridPositions, destroyGridPositions);
+        Profiler.EndSample();
+        
+        for (int i = 0; i != toDestroyedCount; i++)
             Destroy(destroyGridPositions[i]);
         Profiler.EndSample();
 
 
-        Profiler.BeginSample("Schedule Chunk Creation");
-        // Schedule jobs for each grid chunk that became visible
-
-
-        var toBeCreatedChunks = new NativeArray<int2>(MaxChunksPerFrame, Allocator.Temp);
+        Profiler.BeginSample("ScheduleChunkCreation");
+        var toBeCreatedChunks = new NativeArray<int2>(MaxCreateChunksPerFrame, Allocator.Temp);
+        Profiler.BeginSample("FindToBeCreated");
         int toBeCreatedCount = GetToBeCreatedGridPositions(visibleGridPositions, toBeCreatedChunks);
+        Profiler.EndSample();
+
+        // Schedule jobs for each grid chunk that became visible
 
         if (toBeCreatedCount != 0)
         {

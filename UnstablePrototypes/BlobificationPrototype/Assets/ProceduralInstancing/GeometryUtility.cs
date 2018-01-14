@@ -20,7 +20,6 @@ static public class GeometryUtility
     {
         float closestT = float.PositiveInfinity;
 
-        // @TODO: At least a simple bounding box early out would be useful?
         for (int i = 0; i != CollisionInstances.Length; i++)
         {
             var collider = CollisionInstances[i];

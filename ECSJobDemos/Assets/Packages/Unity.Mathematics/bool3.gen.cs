@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 #pragma warning disable 0660, 0661
 namespace Unity.Mathematics
 {
-    public partial struct bool3
+    public partial struct bool3 : System.IEquatable<bool3>
     {
 
         // equal 
@@ -21,6 +21,31 @@ namespace Unity.Mathematics
         public static bool3 operator != (bool3 lhs, bool rhs) { return new bool3 (lhs.x != rhs, lhs.y != rhs, lhs.z != rhs); }
         [MethodImpl(0x100)]
         public static bool3 operator != (bool lhs, bool3 rhs) { return new bool3 (lhs != rhs.x, lhs != rhs.y, lhs != rhs.z); }
+
+        // Equals 
+        [MethodImpl(0x100)]
+        public bool Equals(bool3 rhs)  { return x == rhs.x && y == rhs.y && z == rhs.z; }
+
+        // [int index] 
+        unsafe public bool1 this[int index]
+        {
+            get
+            {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                if ((uint)index >= 3)
+                    throw new System.ArgumentException("index must be between[0...2]");
+#endif
+                fixed (bool1* array = &x) { return array[index]; }
+            }
+            set
+            {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                if ((uint)index >= 3)
+                    throw new System.ArgumentException("index must be between[0...2]");
+#endif
+                fixed (bool1* array = &x) { array[index] = value; }
+            }
+        }
 
         // operator &
         [MethodImpl(0x100)]

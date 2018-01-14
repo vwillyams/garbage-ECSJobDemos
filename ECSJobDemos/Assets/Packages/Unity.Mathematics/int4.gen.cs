@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 #pragma warning disable 0660, 0661
 namespace Unity.Mathematics
 {
-    public partial struct int4
+    public partial struct int4 : System.IEquatable<int4>
     {
 
         // mul
@@ -72,6 +72,14 @@ namespace Unity.Mathematics
         // plus 
         [MethodImpl(0x100)]
         public static int4 operator + (int4 val) { return new int4 (+val.x, +val.y, +val.z, +val.w); }
+        // left shift
+        [MethodImpl(0x100)]
+        public static int4 operator << (int4 lhs, int rhs) { return new int4 (lhs.x << rhs, lhs.y << rhs, lhs.z << rhs, lhs.w << rhs); }
+
+        // right shift
+        [MethodImpl(0x100)]
+        public static int4 operator >> (int4 lhs, int rhs) { return new int4 (lhs.x >> rhs, lhs.y >> rhs, lhs.z >> rhs, lhs.w >> rhs); }
+
         // equal 
         [MethodImpl(0x100)]
         public static bool4 operator == (int4 lhs, int4 rhs) { return new bool4 (lhs.x == rhs.x, lhs.y == rhs.y, lhs.z == rhs.z, lhs.w == rhs.w); }
@@ -87,6 +95,31 @@ namespace Unity.Mathematics
         public static bool4 operator != (int4 lhs, int rhs) { return new bool4 (lhs.x != rhs, lhs.y != rhs, lhs.z != rhs, lhs.w != rhs); }
         [MethodImpl(0x100)]
         public static bool4 operator != (int lhs, int4 rhs) { return new bool4 (lhs != rhs.x, lhs != rhs.y, lhs != rhs.z, lhs != rhs.w); }
+
+        // Equals 
+        [MethodImpl(0x100)]
+        public bool Equals(int4 rhs)  { return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w; }
+
+        // [int index] 
+        unsafe public int this[int index]
+        {
+            get
+            {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                if ((uint)index >= 4)
+                    throw new System.ArgumentException("index must be between[0...3]");
+#endif
+                fixed (int* array = &x) { return array[index]; }
+            }
+            set
+            {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                if ((uint)index >= 4)
+                    throw new System.ArgumentException("index must be between[0...3]");
+#endif
+                fixed (int* array = &x) { array[index] = value; }
+            }
+        }
 
         // operator &
         [MethodImpl(0x100)]

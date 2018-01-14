@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 #pragma warning disable 0660, 0661
 namespace Unity.Mathematics
 {
-    public partial struct bool4
+    public partial struct bool4 : System.IEquatable<bool4>
     {
 
         // equal 
@@ -21,6 +21,31 @@ namespace Unity.Mathematics
         public static bool4 operator != (bool4 lhs, bool rhs) { return new bool4 (lhs.x != rhs, lhs.y != rhs, lhs.z != rhs, lhs.w != rhs); }
         [MethodImpl(0x100)]
         public static bool4 operator != (bool lhs, bool4 rhs) { return new bool4 (lhs != rhs.x, lhs != rhs.y, lhs != rhs.z, lhs != rhs.w); }
+
+        // Equals 
+        [MethodImpl(0x100)]
+        public bool Equals(bool4 rhs)  { return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w; }
+
+        // [int index] 
+        unsafe public bool1 this[int index]
+        {
+            get
+            {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                if ((uint)index >= 4)
+                    throw new System.ArgumentException("index must be between[0...3]");
+#endif
+                fixed (bool1* array = &x) { return array[index]; }
+            }
+            set
+            {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                if ((uint)index >= 4)
+                    throw new System.ArgumentException("index must be between[0...3]");
+#endif
+                fixed (bool1* array = &x) { array[index] = value; }
+            }
+        }
 
         // operator &
         [MethodImpl(0x100)]

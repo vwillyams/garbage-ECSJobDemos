@@ -3,97 +3,99 @@ using System.Runtime.CompilerServices;
 #pragma warning disable 0660, 0661
 namespace Unity.Mathematics
 {
-    public partial struct float4 : System.IEquatable<float4>
+    public partial struct uint4 : System.IEquatable<uint4>
     {
 
         // mul
         [MethodImpl(0x100)]
-        public static float4 operator * (float4 lhs, float4 rhs) { return new float4 (lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z, lhs.w * rhs.w); }
+        public static uint4 operator * (uint4 lhs, uint4 rhs) { return new uint4 (lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z, lhs.w * rhs.w); }
         [MethodImpl(0x100)]
-        public static float4 operator * (float4 lhs, float rhs) { return new float4 (lhs.x * rhs, lhs.y * rhs, lhs.z * rhs, lhs.w * rhs); }
+        public static uint4 operator * (uint4 lhs, uint rhs) { return new uint4 (lhs.x * rhs, lhs.y * rhs, lhs.z * rhs, lhs.w * rhs); }
         [MethodImpl(0x100)]
-        public static float4 operator * (float lhs, float4 rhs) { return new float4 (lhs * rhs.x, lhs * rhs.y, lhs * rhs.z, lhs * rhs.w); }
+        public static uint4 operator * (uint lhs, uint4 rhs) { return new uint4 (lhs * rhs.x, lhs * rhs.y, lhs * rhs.z, lhs * rhs.w); }
 
         // add
         [MethodImpl(0x100)]
-        public static float4 operator + (float4 lhs, float4 rhs) { return new float4 (lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z, lhs.w + rhs.w); }
+        public static uint4 operator + (uint4 lhs, uint4 rhs) { return new uint4 (lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z, lhs.w + rhs.w); }
         [MethodImpl(0x100)]
-        public static float4 operator + (float4 lhs, float rhs) { return new float4 (lhs.x + rhs, lhs.y + rhs, lhs.z + rhs, lhs.w + rhs); }
+        public static uint4 operator + (uint4 lhs, uint rhs) { return new uint4 (lhs.x + rhs, lhs.y + rhs, lhs.z + rhs, lhs.w + rhs); }
         [MethodImpl(0x100)]
-        public static float4 operator + (float lhs, float4 rhs) { return new float4 (lhs + rhs.x, lhs + rhs.y, lhs + rhs.z, lhs + rhs.w); }
+        public static uint4 operator + (uint lhs, uint4 rhs) { return new uint4 (lhs + rhs.x, lhs + rhs.y, lhs + rhs.z, lhs + rhs.w); }
 
         // sub
         [MethodImpl(0x100)]
-        public static float4 operator - (float4 lhs, float4 rhs) { return new float4 (lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z, lhs.w - rhs.w); }
+        public static uint4 operator - (uint4 lhs, uint4 rhs) { return new uint4 (lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z, lhs.w - rhs.w); }
         [MethodImpl(0x100)]
-        public static float4 operator - (float4 lhs, float rhs) { return new float4 (lhs.x - rhs, lhs.y - rhs, lhs.z - rhs, lhs.w - rhs); }
+        public static uint4 operator - (uint4 lhs, uint rhs) { return new uint4 (lhs.x - rhs, lhs.y - rhs, lhs.z - rhs, lhs.w - rhs); }
         [MethodImpl(0x100)]
-        public static float4 operator - (float lhs, float4 rhs) { return new float4 (lhs - rhs.x, lhs - rhs.y, lhs - rhs.z, lhs - rhs.w); }
+        public static uint4 operator - (uint lhs, uint4 rhs) { return new uint4 (lhs - rhs.x, lhs - rhs.y, lhs - rhs.z, lhs - rhs.w); }
 
         // div
         [MethodImpl(0x100)]
-        public static float4 operator / (float4 lhs, float4 rhs) { return new float4 (lhs.x / rhs.x, lhs.y / rhs.y, lhs.z / rhs.z, lhs.w / rhs.w); }
+        public static uint4 operator / (uint4 lhs, uint4 rhs) { return new uint4 (lhs.x / rhs.x, lhs.y / rhs.y, lhs.z / rhs.z, lhs.w / rhs.w); }
         [MethodImpl(0x100)]
-        public static float4 operator / (float4 lhs, float rhs) { return new float4 (lhs.x / rhs, lhs.y / rhs, lhs.z / rhs, lhs.w / rhs); }
+        public static uint4 operator / (uint4 lhs, uint rhs) { return new uint4 (lhs.x / rhs, lhs.y / rhs, lhs.z / rhs, lhs.w / rhs); }
         [MethodImpl(0x100)]
-        public static float4 operator / (float lhs, float4 rhs) { return new float4 (lhs / rhs.x, lhs / rhs.y, lhs / rhs.z, lhs / rhs.w); }
+        public static uint4 operator / (uint lhs, uint4 rhs) { return new uint4 (lhs / rhs.x, lhs / rhs.y, lhs / rhs.z, lhs / rhs.w); }
 
         // smaller 
         [MethodImpl(0x100)]
-        public static bool4 operator < (float4 lhs, float4 rhs) { return new bool4 (lhs.x < rhs.x, lhs.y < rhs.y, lhs.z < rhs.z, lhs.w < rhs.w); }
+        public static bool4 operator < (uint4 lhs, uint4 rhs) { return new bool4 (lhs.x < rhs.x, lhs.y < rhs.y, lhs.z < rhs.z, lhs.w < rhs.w); }
         [MethodImpl(0x100)]
-        public static bool4 operator < (float4 lhs, float rhs) { return new bool4 (lhs.x < rhs, lhs.y < rhs, lhs.z < rhs, lhs.w < rhs); }
+        public static bool4 operator < (uint4 lhs, uint rhs) { return new bool4 (lhs.x < rhs, lhs.y < rhs, lhs.z < rhs, lhs.w < rhs); }
         [MethodImpl(0x100)]
-        public static bool4 operator < (float lhs, float4 rhs) { return new bool4 (lhs < rhs.x, lhs < rhs.y, lhs < rhs.z, lhs < rhs.w); }
+        public static bool4 operator < (uint lhs, uint4 rhs) { return new bool4 (lhs < rhs.x, lhs < rhs.y, lhs < rhs.z, lhs < rhs.w); }
         [MethodImpl(0x100)]
-        public static bool4 operator <= (float4 lhs, float4 rhs) { return new bool4 (lhs.x <= rhs.x, lhs.y <= rhs.y, lhs.z <= rhs.z, lhs.w <= rhs.w); }
+        public static bool4 operator <= (uint4 lhs, uint4 rhs) { return new bool4 (lhs.x <= rhs.x, lhs.y <= rhs.y, lhs.z <= rhs.z, lhs.w <= rhs.w); }
         [MethodImpl(0x100)]
-        public static bool4 operator <= (float4 lhs, float rhs) { return new bool4 (lhs.x <= rhs, lhs.y <= rhs, lhs.z <= rhs, lhs.w <= rhs); }
+        public static bool4 operator <= (uint4 lhs, uint rhs) { return new bool4 (lhs.x <= rhs, lhs.y <= rhs, lhs.z <= rhs, lhs.w <= rhs); }
         [MethodImpl(0x100)]
-        public static bool4 operator <= (float lhs, float4 rhs) { return new bool4 (lhs <= rhs.x, lhs <= rhs.y, lhs <= rhs.z, lhs <= rhs.w); }
+        public static bool4 operator <= (uint lhs, uint4 rhs) { return new bool4 (lhs <= rhs.x, lhs <= rhs.y, lhs <= rhs.z, lhs <= rhs.w); }
 
         // greater 
         [MethodImpl(0x100)]
-        public static bool4 operator > (float4 lhs, float4 rhs) { return new bool4 (lhs.x > rhs.x, lhs.y > rhs.y, lhs.z > rhs.z, lhs.w > rhs.w); }
+        public static bool4 operator > (uint4 lhs, uint4 rhs) { return new bool4 (lhs.x > rhs.x, lhs.y > rhs.y, lhs.z > rhs.z, lhs.w > rhs.w); }
         [MethodImpl(0x100)]
-        public static bool4 operator > (float4 lhs, float rhs) { return new bool4 (lhs.x > rhs, lhs.y > rhs, lhs.z > rhs, lhs.w > rhs); }
+        public static bool4 operator > (uint4 lhs, uint rhs) { return new bool4 (lhs.x > rhs, lhs.y > rhs, lhs.z > rhs, lhs.w > rhs); }
         [MethodImpl(0x100)]
-        public static bool4 operator > (float lhs, float4 rhs) { return new bool4 (lhs > rhs.x, lhs > rhs.y, lhs > rhs.z, lhs > rhs.w); }
+        public static bool4 operator > (uint lhs, uint4 rhs) { return new bool4 (lhs > rhs.x, lhs > rhs.y, lhs > rhs.z, lhs > rhs.w); }
         [MethodImpl(0x100)]
-        public static bool4 operator >= (float4 lhs, float4 rhs) { return new bool4 (lhs.x >= rhs.x, lhs.y >= rhs.y, lhs.z >= rhs.z, lhs.w >= rhs.w); }
+        public static bool4 operator >= (uint4 lhs, uint4 rhs) { return new bool4 (lhs.x >= rhs.x, lhs.y >= rhs.y, lhs.z >= rhs.z, lhs.w >= rhs.w); }
         [MethodImpl(0x100)]
-        public static bool4 operator >= (float4 lhs, float rhs) { return new bool4 (lhs.x >= rhs, lhs.y >= rhs, lhs.z >= rhs, lhs.w >= rhs); }
+        public static bool4 operator >= (uint4 lhs, uint rhs) { return new bool4 (lhs.x >= rhs, lhs.y >= rhs, lhs.z >= rhs, lhs.w >= rhs); }
         [MethodImpl(0x100)]
-        public static bool4 operator >= (float lhs, float4 rhs) { return new bool4 (lhs >= rhs.x, lhs >= rhs.y, lhs >= rhs.z, lhs >= rhs.w); }
+        public static bool4 operator >= (uint lhs, uint4 rhs) { return new bool4 (lhs >= rhs.x, lhs >= rhs.y, lhs >= rhs.z, lhs >= rhs.w); }
 
-        // neg 
+        // left shift
         [MethodImpl(0x100)]
-        public static float4 operator - (float4 val) { return new float4 (-val.x, -val.y, -val.z, -val.w); }
-        // plus 
+        public static uint4 operator << (uint4 lhs, int rhs) { return new uint4 (lhs.x << rhs, lhs.y << rhs, lhs.z << rhs, lhs.w << rhs); }
+
+        // right shift
         [MethodImpl(0x100)]
-        public static float4 operator + (float4 val) { return new float4 (+val.x, +val.y, +val.z, +val.w); }
+        public static uint4 operator >> (uint4 lhs, int rhs) { return new uint4 (lhs.x >> rhs, lhs.y >> rhs, lhs.z >> rhs, lhs.w >> rhs); }
+
         // equal 
         [MethodImpl(0x100)]
-        public static bool4 operator == (float4 lhs, float4 rhs) { return new bool4 (lhs.x == rhs.x, lhs.y == rhs.y, lhs.z == rhs.z, lhs.w == rhs.w); }
+        public static bool4 operator == (uint4 lhs, uint4 rhs) { return new bool4 (lhs.x == rhs.x, lhs.y == rhs.y, lhs.z == rhs.z, lhs.w == rhs.w); }
         [MethodImpl(0x100)]
-        public static bool4 operator == (float4 lhs, float rhs) { return new bool4 (lhs.x == rhs, lhs.y == rhs, lhs.z == rhs, lhs.w == rhs); }
+        public static bool4 operator == (uint4 lhs, uint rhs) { return new bool4 (lhs.x == rhs, lhs.y == rhs, lhs.z == rhs, lhs.w == rhs); }
         [MethodImpl(0x100)]
-        public static bool4 operator == (float lhs, float4 rhs) { return new bool4 (lhs == rhs.x, lhs == rhs.y, lhs == rhs.z, lhs == rhs.w); }
+        public static bool4 operator == (uint lhs, uint4 rhs) { return new bool4 (lhs == rhs.x, lhs == rhs.y, lhs == rhs.z, lhs == rhs.w); }
 
         // not equal 
         [MethodImpl(0x100)]
-        public static bool4 operator != (float4 lhs, float4 rhs) { return new bool4 (lhs.x != rhs.x, lhs.y != rhs.y, lhs.z != rhs.z, lhs.w != rhs.w); }
+        public static bool4 operator != (uint4 lhs, uint4 rhs) { return new bool4 (lhs.x != rhs.x, lhs.y != rhs.y, lhs.z != rhs.z, lhs.w != rhs.w); }
         [MethodImpl(0x100)]
-        public static bool4 operator != (float4 lhs, float rhs) { return new bool4 (lhs.x != rhs, lhs.y != rhs, lhs.z != rhs, lhs.w != rhs); }
+        public static bool4 operator != (uint4 lhs, uint rhs) { return new bool4 (lhs.x != rhs, lhs.y != rhs, lhs.z != rhs, lhs.w != rhs); }
         [MethodImpl(0x100)]
-        public static bool4 operator != (float lhs, float4 rhs) { return new bool4 (lhs != rhs.x, lhs != rhs.y, lhs != rhs.z, lhs != rhs.w); }
+        public static bool4 operator != (uint lhs, uint4 rhs) { return new bool4 (lhs != rhs.x, lhs != rhs.y, lhs != rhs.z, lhs != rhs.w); }
 
         // Equals 
         [MethodImpl(0x100)]
-        public bool Equals(float4 rhs)  { return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w; }
+        public bool Equals(uint4 rhs)  { return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w; }
 
         // [int index] 
-        unsafe public float this[int index]
+        unsafe public uint this[int index]
         {
             get
             {
@@ -101,7 +103,7 @@ namespace Unity.Mathematics
                 if ((uint)index >= 4)
                     throw new System.ArgumentException("index must be between[0...3]");
 #endif
-                fixed (float* array = &x) { return array[index]; }
+                fixed (uint* array = &x) { return array[index]; }
             }
             set
             {
@@ -109,2814 +111,2841 @@ namespace Unity.Mathematics
                 if ((uint)index >= 4)
                     throw new System.ArgumentException("index must be between[0...3]");
 #endif
-                fixed (float* array = &x) { array[index] = value; }
+                fixed (uint* array = &x) { array[index] = value; }
             }
         }
-        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxxx
+
+        // operator &
+        [MethodImpl(0x100)]
+        public static uint4 operator & (uint4 lhs, uint4 rhs) { return new uint4 (lhs.x & rhs.x, lhs.y & rhs.y, lhs.z & rhs.z, lhs.w & rhs.w); }
+        [MethodImpl(0x100)]
+        public static uint4 operator & (uint4 lhs, uint rhs) { return new uint4 (lhs.x & rhs, lhs.y & rhs, lhs.z & rhs, lhs.w & rhs); }
+        [MethodImpl(0x100)]
+        public static uint4 operator & (uint lhs, uint4 rhs) { return new uint4 (lhs & rhs.x, lhs & rhs.y, lhs & rhs.z, lhs & rhs.w); }
+
+        // operator |
+        [MethodImpl(0x100)]
+        public static uint4 operator | (uint4 lhs, uint4 rhs) { return new uint4 (lhs.x | rhs.x, lhs.y | rhs.y, lhs.z | rhs.z, lhs.w | rhs.w); }
+        [MethodImpl(0x100)]
+        public static uint4 operator | (uint4 lhs, uint rhs) { return new uint4 (lhs.x | rhs, lhs.y | rhs, lhs.z | rhs, lhs.w | rhs); }
+        [MethodImpl(0x100)]
+        public static uint4 operator | (uint lhs, uint4 rhs) { return new uint4 (lhs | rhs.x, lhs | rhs.y, lhs | rhs.z, lhs | rhs.w); }
+
+        // operator ^
+        [MethodImpl(0x100)]
+        public static uint4 operator ^ (uint4 lhs, uint4 rhs) { return new uint4 (lhs.x ^ rhs.x, lhs.y ^ rhs.y, lhs.z ^ rhs.z, lhs.w ^ rhs.w); }
+        [MethodImpl(0x100)]
+        public static uint4 operator ^ (uint4 lhs, uint rhs) { return new uint4 (lhs.x ^ rhs, lhs.y ^ rhs, lhs.z ^ rhs, lhs.w ^ rhs); }
+        [MethodImpl(0x100)]
+        public static uint4 operator ^ (uint lhs, uint4 rhs) { return new uint4 (lhs ^ rhs.x, lhs ^ rhs.y, lhs ^ rhs.z, lhs ^ rhs.w); }
+
+        // operator ~ 
+        [MethodImpl(0x100)]
+        public static uint4 operator ~ (uint4 val) { return new uint4 (~val.x, ~val.y, ~val.z, ~val.w); }        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public uint4 xxxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, x, x); }
+            get { return new uint4(x, x, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxxy
+        public uint4 xxxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, x, y); }
+            get { return new uint4(x, x, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxxz
+        public uint4 xxxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, x, z); }
+            get { return new uint4(x, x, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxxw
+        public uint4 xxxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, x, w); }
+            get { return new uint4(x, x, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxyx
+        public uint4 xxyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, y, x); }
+            get { return new uint4(x, x, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxyy
+        public uint4 xxyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, y, y); }
+            get { return new uint4(x, x, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxyz
+        public uint4 xxyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, y, z); }
+            get { return new uint4(x, x, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxyw
+        public uint4 xxyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, y, w); }
+            get { return new uint4(x, x, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxzx
+        public uint4 xxzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, z, x); }
+            get { return new uint4(x, x, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxzy
+        public uint4 xxzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, z, y); }
+            get { return new uint4(x, x, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxzz
+        public uint4 xxzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, z, z); }
+            get { return new uint4(x, x, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxzw
+        public uint4 xxzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, z, w); }
+            get { return new uint4(x, x, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxwx
+        public uint4 xxwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, w, x); }
+            get { return new uint4(x, x, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxwy
+        public uint4 xxwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, w, y); }
+            get { return new uint4(x, x, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxwz
+        public uint4 xxwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, w, z); }
+            get { return new uint4(x, x, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xxww
+        public uint4 xxww
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, x, w, w); }
+            get { return new uint4(x, x, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyxx
+        public uint4 xyxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, x, x); }
+            get { return new uint4(x, y, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyxy
+        public uint4 xyxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, x, y); }
+            get { return new uint4(x, y, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyxz
+        public uint4 xyxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, x, z); }
+            get { return new uint4(x, y, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyxw
+        public uint4 xyxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, x, w); }
+            get { return new uint4(x, y, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyyx
+        public uint4 xyyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, y, x); }
+            get { return new uint4(x, y, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyyy
+        public uint4 xyyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, y, y); }
+            get { return new uint4(x, y, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyyz
+        public uint4 xyyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, y, z); }
+            get { return new uint4(x, y, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyyw
+        public uint4 xyyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, y, w); }
+            get { return new uint4(x, y, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyzx
+        public uint4 xyzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, z, x); }
+            get { return new uint4(x, y, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyzy
+        public uint4 xyzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, z, y); }
+            get { return new uint4(x, y, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyzz
+        public uint4 xyzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, z, z); }
+            get { return new uint4(x, y, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyzw
+        public uint4 xyzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, z, w); }
+            get { return new uint4(x, y, z, w); }
             [MethodImpl(0x100)]
             set { x = value.x; y = value.y; z = value.z; w = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xywx
+        public uint4 xywx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, w, x); }
+            get { return new uint4(x, y, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xywy
+        public uint4 xywy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, w, y); }
+            get { return new uint4(x, y, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xywz
+        public uint4 xywz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, w, z); }
+            get { return new uint4(x, y, w, z); }
             [MethodImpl(0x100)]
             set { x = value.x; y = value.y; w = value.z; z = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xyww
+        public uint4 xyww
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, y, w, w); }
+            get { return new uint4(x, y, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzxx
+        public uint4 xzxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, x, x); }
+            get { return new uint4(x, z, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzxy
+        public uint4 xzxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, x, y); }
+            get { return new uint4(x, z, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzxz
+        public uint4 xzxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, x, z); }
+            get { return new uint4(x, z, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzxw
+        public uint4 xzxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, x, w); }
+            get { return new uint4(x, z, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzyx
+        public uint4 xzyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, y, x); }
+            get { return new uint4(x, z, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzyy
+        public uint4 xzyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, y, y); }
+            get { return new uint4(x, z, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzyz
+        public uint4 xzyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, y, z); }
+            get { return new uint4(x, z, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzyw
+        public uint4 xzyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, y, w); }
+            get { return new uint4(x, z, y, w); }
             [MethodImpl(0x100)]
             set { x = value.x; z = value.y; y = value.z; w = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzzx
+        public uint4 xzzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, z, x); }
+            get { return new uint4(x, z, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzzy
+        public uint4 xzzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, z, y); }
+            get { return new uint4(x, z, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzzz
+        public uint4 xzzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, z, z); }
+            get { return new uint4(x, z, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzzw
+        public uint4 xzzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, z, w); }
+            get { return new uint4(x, z, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzwx
+        public uint4 xzwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, w, x); }
+            get { return new uint4(x, z, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzwy
+        public uint4 xzwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, w, y); }
+            get { return new uint4(x, z, w, y); }
             [MethodImpl(0x100)]
             set { x = value.x; z = value.y; w = value.z; y = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzwz
+        public uint4 xzwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, w, z); }
+            get { return new uint4(x, z, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xzww
+        public uint4 xzww
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, z, w, w); }
+            get { return new uint4(x, z, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwxx
+        public uint4 xwxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, x, x); }
+            get { return new uint4(x, w, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwxy
+        public uint4 xwxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, x, y); }
+            get { return new uint4(x, w, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwxz
+        public uint4 xwxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, x, z); }
+            get { return new uint4(x, w, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwxw
+        public uint4 xwxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, x, w); }
+            get { return new uint4(x, w, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwyx
+        public uint4 xwyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, y, x); }
+            get { return new uint4(x, w, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwyy
+        public uint4 xwyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, y, y); }
+            get { return new uint4(x, w, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwyz
+        public uint4 xwyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, y, z); }
+            get { return new uint4(x, w, y, z); }
             [MethodImpl(0x100)]
             set { x = value.x; w = value.y; y = value.z; z = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwyw
+        public uint4 xwyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, y, w); }
+            get { return new uint4(x, w, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwzx
+        public uint4 xwzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, z, x); }
+            get { return new uint4(x, w, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwzy
+        public uint4 xwzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, z, y); }
+            get { return new uint4(x, w, z, y); }
             [MethodImpl(0x100)]
             set { x = value.x; w = value.y; z = value.z; y = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwzz
+        public uint4 xwzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, z, z); }
+            get { return new uint4(x, w, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwzw
+        public uint4 xwzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, z, w); }
+            get { return new uint4(x, w, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwwx
+        public uint4 xwwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, w, x); }
+            get { return new uint4(x, w, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwwy
+        public uint4 xwwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, w, y); }
+            get { return new uint4(x, w, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwwz
+        public uint4 xwwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, w, z); }
+            get { return new uint4(x, w, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 xwww
+        public uint4 xwww
         {
             [MethodImpl(0x100)]
-            get { return new float4(x, w, w, w); }
+            get { return new uint4(x, w, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxxx
+        public uint4 yxxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, x, x); }
+            get { return new uint4(y, x, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxxy
+        public uint4 yxxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, x, y); }
+            get { return new uint4(y, x, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxxz
+        public uint4 yxxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, x, z); }
+            get { return new uint4(y, x, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxxw
+        public uint4 yxxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, x, w); }
+            get { return new uint4(y, x, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxyx
+        public uint4 yxyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, y, x); }
+            get { return new uint4(y, x, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxyy
+        public uint4 yxyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, y, y); }
+            get { return new uint4(y, x, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxyz
+        public uint4 yxyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, y, z); }
+            get { return new uint4(y, x, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxyw
+        public uint4 yxyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, y, w); }
+            get { return new uint4(y, x, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxzx
+        public uint4 yxzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, z, x); }
+            get { return new uint4(y, x, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxzy
+        public uint4 yxzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, z, y); }
+            get { return new uint4(y, x, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxzz
+        public uint4 yxzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, z, z); }
+            get { return new uint4(y, x, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxzw
+        public uint4 yxzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, z, w); }
+            get { return new uint4(y, x, z, w); }
             [MethodImpl(0x100)]
             set { y = value.x; x = value.y; z = value.z; w = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxwx
+        public uint4 yxwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, w, x); }
+            get { return new uint4(y, x, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxwy
+        public uint4 yxwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, w, y); }
+            get { return new uint4(y, x, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxwz
+        public uint4 yxwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, w, z); }
+            get { return new uint4(y, x, w, z); }
             [MethodImpl(0x100)]
             set { y = value.x; x = value.y; w = value.z; z = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yxww
+        public uint4 yxww
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, x, w, w); }
+            get { return new uint4(y, x, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyxx
+        public uint4 yyxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, x, x); }
+            get { return new uint4(y, y, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyxy
+        public uint4 yyxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, x, y); }
+            get { return new uint4(y, y, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyxz
+        public uint4 yyxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, x, z); }
+            get { return new uint4(y, y, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyxw
+        public uint4 yyxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, x, w); }
+            get { return new uint4(y, y, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyyx
+        public uint4 yyyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, y, x); }
+            get { return new uint4(y, y, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyyy
+        public uint4 yyyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, y, y); }
+            get { return new uint4(y, y, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyyz
+        public uint4 yyyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, y, z); }
+            get { return new uint4(y, y, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyyw
+        public uint4 yyyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, y, w); }
+            get { return new uint4(y, y, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyzx
+        public uint4 yyzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, z, x); }
+            get { return new uint4(y, y, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyzy
+        public uint4 yyzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, z, y); }
+            get { return new uint4(y, y, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyzz
+        public uint4 yyzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, z, z); }
+            get { return new uint4(y, y, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyzw
+        public uint4 yyzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, z, w); }
+            get { return new uint4(y, y, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yywx
+        public uint4 yywx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, w, x); }
+            get { return new uint4(y, y, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yywy
+        public uint4 yywy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, w, y); }
+            get { return new uint4(y, y, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yywz
+        public uint4 yywz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, w, z); }
+            get { return new uint4(y, y, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yyww
+        public uint4 yyww
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, y, w, w); }
+            get { return new uint4(y, y, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzxx
+        public uint4 yzxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, x, x); }
+            get { return new uint4(y, z, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzxy
+        public uint4 yzxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, x, y); }
+            get { return new uint4(y, z, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzxz
+        public uint4 yzxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, x, z); }
+            get { return new uint4(y, z, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzxw
+        public uint4 yzxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, x, w); }
+            get { return new uint4(y, z, x, w); }
             [MethodImpl(0x100)]
             set { y = value.x; z = value.y; x = value.z; w = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzyx
+        public uint4 yzyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, y, x); }
+            get { return new uint4(y, z, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzyy
+        public uint4 yzyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, y, y); }
+            get { return new uint4(y, z, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzyz
+        public uint4 yzyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, y, z); }
+            get { return new uint4(y, z, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzyw
+        public uint4 yzyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, y, w); }
+            get { return new uint4(y, z, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzzx
+        public uint4 yzzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, z, x); }
+            get { return new uint4(y, z, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzzy
+        public uint4 yzzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, z, y); }
+            get { return new uint4(y, z, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzzz
+        public uint4 yzzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, z, z); }
+            get { return new uint4(y, z, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzzw
+        public uint4 yzzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, z, w); }
+            get { return new uint4(y, z, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzwx
+        public uint4 yzwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, w, x); }
+            get { return new uint4(y, z, w, x); }
             [MethodImpl(0x100)]
             set { y = value.x; z = value.y; w = value.z; x = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzwy
+        public uint4 yzwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, w, y); }
+            get { return new uint4(y, z, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzwz
+        public uint4 yzwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, w, z); }
+            get { return new uint4(y, z, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 yzww
+        public uint4 yzww
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, z, w, w); }
+            get { return new uint4(y, z, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywxx
+        public uint4 ywxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, x, x); }
+            get { return new uint4(y, w, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywxy
+        public uint4 ywxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, x, y); }
+            get { return new uint4(y, w, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywxz
+        public uint4 ywxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, x, z); }
+            get { return new uint4(y, w, x, z); }
             [MethodImpl(0x100)]
             set { y = value.x; w = value.y; x = value.z; z = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywxw
+        public uint4 ywxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, x, w); }
+            get { return new uint4(y, w, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywyx
+        public uint4 ywyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, y, x); }
+            get { return new uint4(y, w, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywyy
+        public uint4 ywyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, y, y); }
+            get { return new uint4(y, w, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywyz
+        public uint4 ywyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, y, z); }
+            get { return new uint4(y, w, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywyw
+        public uint4 ywyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, y, w); }
+            get { return new uint4(y, w, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywzx
+        public uint4 ywzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, z, x); }
+            get { return new uint4(y, w, z, x); }
             [MethodImpl(0x100)]
             set { y = value.x; w = value.y; z = value.z; x = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywzy
+        public uint4 ywzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, z, y); }
+            get { return new uint4(y, w, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywzz
+        public uint4 ywzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, z, z); }
+            get { return new uint4(y, w, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywzw
+        public uint4 ywzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, z, w); }
+            get { return new uint4(y, w, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywwx
+        public uint4 ywwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, w, x); }
+            get { return new uint4(y, w, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywwy
+        public uint4 ywwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, w, y); }
+            get { return new uint4(y, w, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywwz
+        public uint4 ywwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, w, z); }
+            get { return new uint4(y, w, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 ywww
+        public uint4 ywww
         {
             [MethodImpl(0x100)]
-            get { return new float4(y, w, w, w); }
+            get { return new uint4(y, w, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxxx
+        public uint4 zxxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, x, x); }
+            get { return new uint4(z, x, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxxy
+        public uint4 zxxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, x, y); }
+            get { return new uint4(z, x, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxxz
+        public uint4 zxxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, x, z); }
+            get { return new uint4(z, x, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxxw
+        public uint4 zxxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, x, w); }
+            get { return new uint4(z, x, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxyx
+        public uint4 zxyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, y, x); }
+            get { return new uint4(z, x, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxyy
+        public uint4 zxyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, y, y); }
+            get { return new uint4(z, x, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxyz
+        public uint4 zxyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, y, z); }
+            get { return new uint4(z, x, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxyw
+        public uint4 zxyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, y, w); }
+            get { return new uint4(z, x, y, w); }
             [MethodImpl(0x100)]
             set { z = value.x; x = value.y; y = value.z; w = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxzx
+        public uint4 zxzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, z, x); }
+            get { return new uint4(z, x, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxzy
+        public uint4 zxzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, z, y); }
+            get { return new uint4(z, x, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxzz
+        public uint4 zxzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, z, z); }
+            get { return new uint4(z, x, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxzw
+        public uint4 zxzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, z, w); }
+            get { return new uint4(z, x, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxwx
+        public uint4 zxwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, w, x); }
+            get { return new uint4(z, x, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxwy
+        public uint4 zxwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, w, y); }
+            get { return new uint4(z, x, w, y); }
             [MethodImpl(0x100)]
             set { z = value.x; x = value.y; w = value.z; y = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxwz
+        public uint4 zxwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, w, z); }
+            get { return new uint4(z, x, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zxww
+        public uint4 zxww
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, x, w, w); }
+            get { return new uint4(z, x, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyxx
+        public uint4 zyxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, x, x); }
+            get { return new uint4(z, y, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyxy
+        public uint4 zyxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, x, y); }
+            get { return new uint4(z, y, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyxz
+        public uint4 zyxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, x, z); }
+            get { return new uint4(z, y, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyxw
+        public uint4 zyxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, x, w); }
+            get { return new uint4(z, y, x, w); }
             [MethodImpl(0x100)]
             set { z = value.x; y = value.y; x = value.z; w = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyyx
+        public uint4 zyyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, y, x); }
+            get { return new uint4(z, y, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyyy
+        public uint4 zyyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, y, y); }
+            get { return new uint4(z, y, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyyz
+        public uint4 zyyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, y, z); }
+            get { return new uint4(z, y, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyyw
+        public uint4 zyyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, y, w); }
+            get { return new uint4(z, y, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyzx
+        public uint4 zyzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, z, x); }
+            get { return new uint4(z, y, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyzy
+        public uint4 zyzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, z, y); }
+            get { return new uint4(z, y, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyzz
+        public uint4 zyzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, z, z); }
+            get { return new uint4(z, y, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyzw
+        public uint4 zyzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, z, w); }
+            get { return new uint4(z, y, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zywx
+        public uint4 zywx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, w, x); }
+            get { return new uint4(z, y, w, x); }
             [MethodImpl(0x100)]
             set { z = value.x; y = value.y; w = value.z; x = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zywy
+        public uint4 zywy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, w, y); }
+            get { return new uint4(z, y, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zywz
+        public uint4 zywz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, w, z); }
+            get { return new uint4(z, y, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zyww
+        public uint4 zyww
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, y, w, w); }
+            get { return new uint4(z, y, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzxx
+        public uint4 zzxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, x, x); }
+            get { return new uint4(z, z, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzxy
+        public uint4 zzxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, x, y); }
+            get { return new uint4(z, z, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzxz
+        public uint4 zzxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, x, z); }
+            get { return new uint4(z, z, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzxw
+        public uint4 zzxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, x, w); }
+            get { return new uint4(z, z, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzyx
+        public uint4 zzyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, y, x); }
+            get { return new uint4(z, z, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzyy
+        public uint4 zzyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, y, y); }
+            get { return new uint4(z, z, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzyz
+        public uint4 zzyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, y, z); }
+            get { return new uint4(z, z, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzyw
+        public uint4 zzyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, y, w); }
+            get { return new uint4(z, z, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzzx
+        public uint4 zzzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, z, x); }
+            get { return new uint4(z, z, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzzy
+        public uint4 zzzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, z, y); }
+            get { return new uint4(z, z, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzzz
+        public uint4 zzzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, z, z); }
+            get { return new uint4(z, z, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzzw
+        public uint4 zzzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, z, w); }
+            get { return new uint4(z, z, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzwx
+        public uint4 zzwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, w, x); }
+            get { return new uint4(z, z, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzwy
+        public uint4 zzwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, w, y); }
+            get { return new uint4(z, z, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzwz
+        public uint4 zzwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, w, z); }
+            get { return new uint4(z, z, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zzww
+        public uint4 zzww
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, z, w, w); }
+            get { return new uint4(z, z, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwxx
+        public uint4 zwxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, x, x); }
+            get { return new uint4(z, w, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwxy
+        public uint4 zwxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, x, y); }
+            get { return new uint4(z, w, x, y); }
             [MethodImpl(0x100)]
             set { z = value.x; w = value.y; x = value.z; y = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwxz
+        public uint4 zwxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, x, z); }
+            get { return new uint4(z, w, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwxw
+        public uint4 zwxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, x, w); }
+            get { return new uint4(z, w, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwyx
+        public uint4 zwyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, y, x); }
+            get { return new uint4(z, w, y, x); }
             [MethodImpl(0x100)]
             set { z = value.x; w = value.y; y = value.z; x = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwyy
+        public uint4 zwyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, y, y); }
+            get { return new uint4(z, w, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwyz
+        public uint4 zwyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, y, z); }
+            get { return new uint4(z, w, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwyw
+        public uint4 zwyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, y, w); }
+            get { return new uint4(z, w, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwzx
+        public uint4 zwzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, z, x); }
+            get { return new uint4(z, w, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwzy
+        public uint4 zwzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, z, y); }
+            get { return new uint4(z, w, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwzz
+        public uint4 zwzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, z, z); }
+            get { return new uint4(z, w, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwzw
+        public uint4 zwzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, z, w); }
+            get { return new uint4(z, w, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwwx
+        public uint4 zwwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, w, x); }
+            get { return new uint4(z, w, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwwy
+        public uint4 zwwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, w, y); }
+            get { return new uint4(z, w, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwwz
+        public uint4 zwwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, w, z); }
+            get { return new uint4(z, w, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 zwww
+        public uint4 zwww
         {
             [MethodImpl(0x100)]
-            get { return new float4(z, w, w, w); }
+            get { return new uint4(z, w, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxxx
+        public uint4 wxxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, x, x); }
+            get { return new uint4(w, x, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxxy
+        public uint4 wxxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, x, y); }
+            get { return new uint4(w, x, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxxz
+        public uint4 wxxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, x, z); }
+            get { return new uint4(w, x, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxxw
+        public uint4 wxxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, x, w); }
+            get { return new uint4(w, x, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxyx
+        public uint4 wxyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, y, x); }
+            get { return new uint4(w, x, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxyy
+        public uint4 wxyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, y, y); }
+            get { return new uint4(w, x, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxyz
+        public uint4 wxyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, y, z); }
+            get { return new uint4(w, x, y, z); }
             [MethodImpl(0x100)]
             set { w = value.x; x = value.y; y = value.z; z = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxyw
+        public uint4 wxyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, y, w); }
+            get { return new uint4(w, x, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxzx
+        public uint4 wxzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, z, x); }
+            get { return new uint4(w, x, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxzy
+        public uint4 wxzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, z, y); }
+            get { return new uint4(w, x, z, y); }
             [MethodImpl(0x100)]
             set { w = value.x; x = value.y; z = value.z; y = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxzz
+        public uint4 wxzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, z, z); }
+            get { return new uint4(w, x, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxzw
+        public uint4 wxzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, z, w); }
+            get { return new uint4(w, x, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxwx
+        public uint4 wxwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, w, x); }
+            get { return new uint4(w, x, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxwy
+        public uint4 wxwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, w, y); }
+            get { return new uint4(w, x, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxwz
+        public uint4 wxwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, w, z); }
+            get { return new uint4(w, x, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wxww
+        public uint4 wxww
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, x, w, w); }
+            get { return new uint4(w, x, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyxx
+        public uint4 wyxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, x, x); }
+            get { return new uint4(w, y, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyxy
+        public uint4 wyxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, x, y); }
+            get { return new uint4(w, y, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyxz
+        public uint4 wyxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, x, z); }
+            get { return new uint4(w, y, x, z); }
             [MethodImpl(0x100)]
             set { w = value.x; y = value.y; x = value.z; z = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyxw
+        public uint4 wyxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, x, w); }
+            get { return new uint4(w, y, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyyx
+        public uint4 wyyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, y, x); }
+            get { return new uint4(w, y, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyyy
+        public uint4 wyyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, y, y); }
+            get { return new uint4(w, y, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyyz
+        public uint4 wyyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, y, z); }
+            get { return new uint4(w, y, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyyw
+        public uint4 wyyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, y, w); }
+            get { return new uint4(w, y, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyzx
+        public uint4 wyzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, z, x); }
+            get { return new uint4(w, y, z, x); }
             [MethodImpl(0x100)]
             set { w = value.x; y = value.y; z = value.z; x = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyzy
+        public uint4 wyzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, z, y); }
+            get { return new uint4(w, y, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyzz
+        public uint4 wyzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, z, z); }
+            get { return new uint4(w, y, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyzw
+        public uint4 wyzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, z, w); }
+            get { return new uint4(w, y, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wywx
+        public uint4 wywx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, w, x); }
+            get { return new uint4(w, y, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wywy
+        public uint4 wywy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, w, y); }
+            get { return new uint4(w, y, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wywz
+        public uint4 wywz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, w, z); }
+            get { return new uint4(w, y, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wyww
+        public uint4 wyww
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, y, w, w); }
+            get { return new uint4(w, y, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzxx
+        public uint4 wzxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, x, x); }
+            get { return new uint4(w, z, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzxy
+        public uint4 wzxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, x, y); }
+            get { return new uint4(w, z, x, y); }
             [MethodImpl(0x100)]
             set { w = value.x; z = value.y; x = value.z; y = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzxz
+        public uint4 wzxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, x, z); }
+            get { return new uint4(w, z, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzxw
+        public uint4 wzxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, x, w); }
+            get { return new uint4(w, z, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzyx
+        public uint4 wzyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, y, x); }
+            get { return new uint4(w, z, y, x); }
             [MethodImpl(0x100)]
             set { w = value.x; z = value.y; y = value.z; x = value.w; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzyy
+        public uint4 wzyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, y, y); }
+            get { return new uint4(w, z, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzyz
+        public uint4 wzyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, y, z); }
+            get { return new uint4(w, z, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzyw
+        public uint4 wzyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, y, w); }
+            get { return new uint4(w, z, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzzx
+        public uint4 wzzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, z, x); }
+            get { return new uint4(w, z, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzzy
+        public uint4 wzzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, z, y); }
+            get { return new uint4(w, z, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzzz
+        public uint4 wzzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, z, z); }
+            get { return new uint4(w, z, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzzw
+        public uint4 wzzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, z, w); }
+            get { return new uint4(w, z, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzwx
+        public uint4 wzwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, w, x); }
+            get { return new uint4(w, z, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzwy
+        public uint4 wzwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, w, y); }
+            get { return new uint4(w, z, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzwz
+        public uint4 wzwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, w, z); }
+            get { return new uint4(w, z, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wzww
+        public uint4 wzww
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, z, w, w); }
+            get { return new uint4(w, z, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwxx
+        public uint4 wwxx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, x, x); }
+            get { return new uint4(w, w, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwxy
+        public uint4 wwxy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, x, y); }
+            get { return new uint4(w, w, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwxz
+        public uint4 wwxz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, x, z); }
+            get { return new uint4(w, w, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwxw
+        public uint4 wwxw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, x, w); }
+            get { return new uint4(w, w, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwyx
+        public uint4 wwyx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, y, x); }
+            get { return new uint4(w, w, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwyy
+        public uint4 wwyy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, y, y); }
+            get { return new uint4(w, w, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwyz
+        public uint4 wwyz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, y, z); }
+            get { return new uint4(w, w, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwyw
+        public uint4 wwyw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, y, w); }
+            get { return new uint4(w, w, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwzx
+        public uint4 wwzx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, z, x); }
+            get { return new uint4(w, w, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwzy
+        public uint4 wwzy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, z, y); }
+            get { return new uint4(w, w, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwzz
+        public uint4 wwzz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, z, z); }
+            get { return new uint4(w, w, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwzw
+        public uint4 wwzw
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, z, w); }
+            get { return new uint4(w, w, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwwx
+        public uint4 wwwx
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, w, x); }
+            get { return new uint4(w, w, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwwy
+        public uint4 wwwy
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, w, y); }
+            get { return new uint4(w, w, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwwz
+        public uint4 wwwz
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, w, z); }
+            get { return new uint4(w, w, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float4 wwww
+        public uint4 wwww
         {
             [MethodImpl(0x100)]
-            get { return new float4(w, w, w, w); }
+            get { return new uint4(w, w, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xxx
+        public uint3 xxx
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, x, x); }
+            get { return new uint3(x, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xxy
+        public uint3 xxy
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, x, y); }
+            get { return new uint3(x, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xxz
+        public uint3 xxz
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, x, z); }
+            get { return new uint3(x, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xxw
+        public uint3 xxw
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, x, w); }
+            get { return new uint3(x, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xyx
+        public uint3 xyx
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, y, x); }
+            get { return new uint3(x, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xyy
+        public uint3 xyy
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, y, y); }
+            get { return new uint3(x, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xyz
+        public uint3 xyz
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, y, z); }
+            get { return new uint3(x, y, z); }
             [MethodImpl(0x100)]
             set { x = value.x; y = value.y; z = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xyw
+        public uint3 xyw
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, y, w); }
+            get { return new uint3(x, y, w); }
             [MethodImpl(0x100)]
             set { x = value.x; y = value.y; w = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xzx
+        public uint3 xzx
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, z, x); }
+            get { return new uint3(x, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xzy
+        public uint3 xzy
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, z, y); }
+            get { return new uint3(x, z, y); }
             [MethodImpl(0x100)]
             set { x = value.x; z = value.y; y = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xzz
+        public uint3 xzz
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, z, z); }
+            get { return new uint3(x, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xzw
+        public uint3 xzw
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, z, w); }
+            get { return new uint3(x, z, w); }
             [MethodImpl(0x100)]
             set { x = value.x; z = value.y; w = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xwx
+        public uint3 xwx
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, w, x); }
+            get { return new uint3(x, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xwy
+        public uint3 xwy
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, w, y); }
+            get { return new uint3(x, w, y); }
             [MethodImpl(0x100)]
             set { x = value.x; w = value.y; y = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xwz
+        public uint3 xwz
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, w, z); }
+            get { return new uint3(x, w, z); }
             [MethodImpl(0x100)]
             set { x = value.x; w = value.y; z = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 xww
+        public uint3 xww
         {
             [MethodImpl(0x100)]
-            get { return new float3(x, w, w); }
+            get { return new uint3(x, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yxx
+        public uint3 yxx
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, x, x); }
+            get { return new uint3(y, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yxy
+        public uint3 yxy
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, x, y); }
+            get { return new uint3(y, x, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yxz
+        public uint3 yxz
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, x, z); }
+            get { return new uint3(y, x, z); }
             [MethodImpl(0x100)]
             set { y = value.x; x = value.y; z = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yxw
+        public uint3 yxw
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, x, w); }
+            get { return new uint3(y, x, w); }
             [MethodImpl(0x100)]
             set { y = value.x; x = value.y; w = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yyx
+        public uint3 yyx
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, y, x); }
+            get { return new uint3(y, y, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yyy
+        public uint3 yyy
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, y, y); }
+            get { return new uint3(y, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yyz
+        public uint3 yyz
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, y, z); }
+            get { return new uint3(y, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yyw
+        public uint3 yyw
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, y, w); }
+            get { return new uint3(y, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yzx
+        public uint3 yzx
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, z, x); }
+            get { return new uint3(y, z, x); }
             [MethodImpl(0x100)]
             set { y = value.x; z = value.y; x = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yzy
+        public uint3 yzy
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, z, y); }
+            get { return new uint3(y, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yzz
+        public uint3 yzz
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, z, z); }
+            get { return new uint3(y, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yzw
+        public uint3 yzw
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, z, w); }
+            get { return new uint3(y, z, w); }
             [MethodImpl(0x100)]
             set { y = value.x; z = value.y; w = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 ywx
+        public uint3 ywx
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, w, x); }
+            get { return new uint3(y, w, x); }
             [MethodImpl(0x100)]
             set { y = value.x; w = value.y; x = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 ywy
+        public uint3 ywy
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, w, y); }
+            get { return new uint3(y, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 ywz
+        public uint3 ywz
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, w, z); }
+            get { return new uint3(y, w, z); }
             [MethodImpl(0x100)]
             set { y = value.x; w = value.y; z = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 yww
+        public uint3 yww
         {
             [MethodImpl(0x100)]
-            get { return new float3(y, w, w); }
+            get { return new uint3(y, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zxx
+        public uint3 zxx
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, x, x); }
+            get { return new uint3(z, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zxy
+        public uint3 zxy
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, x, y); }
+            get { return new uint3(z, x, y); }
             [MethodImpl(0x100)]
             set { z = value.x; x = value.y; y = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zxz
+        public uint3 zxz
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, x, z); }
+            get { return new uint3(z, x, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zxw
+        public uint3 zxw
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, x, w); }
+            get { return new uint3(z, x, w); }
             [MethodImpl(0x100)]
             set { z = value.x; x = value.y; w = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zyx
+        public uint3 zyx
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, y, x); }
+            get { return new uint3(z, y, x); }
             [MethodImpl(0x100)]
             set { z = value.x; y = value.y; x = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zyy
+        public uint3 zyy
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, y, y); }
+            get { return new uint3(z, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zyz
+        public uint3 zyz
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, y, z); }
+            get { return new uint3(z, y, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zyw
+        public uint3 zyw
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, y, w); }
+            get { return new uint3(z, y, w); }
             [MethodImpl(0x100)]
             set { z = value.x; y = value.y; w = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zzx
+        public uint3 zzx
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, z, x); }
+            get { return new uint3(z, z, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zzy
+        public uint3 zzy
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, z, y); }
+            get { return new uint3(z, z, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zzz
+        public uint3 zzz
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, z, z); }
+            get { return new uint3(z, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zzw
+        public uint3 zzw
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, z, w); }
+            get { return new uint3(z, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zwx
+        public uint3 zwx
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, w, x); }
+            get { return new uint3(z, w, x); }
             [MethodImpl(0x100)]
             set { z = value.x; w = value.y; x = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zwy
+        public uint3 zwy
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, w, y); }
+            get { return new uint3(z, w, y); }
             [MethodImpl(0x100)]
             set { z = value.x; w = value.y; y = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zwz
+        public uint3 zwz
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, w, z); }
+            get { return new uint3(z, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 zww
+        public uint3 zww
         {
             [MethodImpl(0x100)]
-            get { return new float3(z, w, w); }
+            get { return new uint3(z, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wxx
+        public uint3 wxx
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, x, x); }
+            get { return new uint3(w, x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wxy
+        public uint3 wxy
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, x, y); }
+            get { return new uint3(w, x, y); }
             [MethodImpl(0x100)]
             set { w = value.x; x = value.y; y = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wxz
+        public uint3 wxz
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, x, z); }
+            get { return new uint3(w, x, z); }
             [MethodImpl(0x100)]
             set { w = value.x; x = value.y; z = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wxw
+        public uint3 wxw
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, x, w); }
+            get { return new uint3(w, x, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wyx
+        public uint3 wyx
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, y, x); }
+            get { return new uint3(w, y, x); }
             [MethodImpl(0x100)]
             set { w = value.x; y = value.y; x = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wyy
+        public uint3 wyy
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, y, y); }
+            get { return new uint3(w, y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wyz
+        public uint3 wyz
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, y, z); }
+            get { return new uint3(w, y, z); }
             [MethodImpl(0x100)]
             set { w = value.x; y = value.y; z = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wyw
+        public uint3 wyw
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, y, w); }
+            get { return new uint3(w, y, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wzx
+        public uint3 wzx
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, z, x); }
+            get { return new uint3(w, z, x); }
             [MethodImpl(0x100)]
             set { w = value.x; z = value.y; x = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wzy
+        public uint3 wzy
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, z, y); }
+            get { return new uint3(w, z, y); }
             [MethodImpl(0x100)]
             set { w = value.x; z = value.y; y = value.z; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wzz
+        public uint3 wzz
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, z, z); }
+            get { return new uint3(w, z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wzw
+        public uint3 wzw
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, z, w); }
+            get { return new uint3(w, z, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wwx
+        public uint3 wwx
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, w, x); }
+            get { return new uint3(w, w, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wwy
+        public uint3 wwy
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, w, y); }
+            get { return new uint3(w, w, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 wwz
+        public uint3 wwz
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, w, z); }
+            get { return new uint3(w, w, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float3 www
+        public uint3 www
         {
             [MethodImpl(0x100)]
-            get { return new float3(w, w, w); }
+            get { return new uint3(w, w, w); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 xx
+        public uint2 xx
         {
             [MethodImpl(0x100)]
-            get { return new float2(x, x); }
+            get { return new uint2(x, x); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 xy
+        public uint2 xy
         {
             [MethodImpl(0x100)]
-            get { return new float2(x, y); }
+            get { return new uint2(x, y); }
             [MethodImpl(0x100)]
             set { x = value.x; y = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 xz
+        public uint2 xz
         {
             [MethodImpl(0x100)]
-            get { return new float2(x, z); }
+            get { return new uint2(x, z); }
             [MethodImpl(0x100)]
             set { x = value.x; z = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 xw
+        public uint2 xw
         {
             [MethodImpl(0x100)]
-            get { return new float2(x, w); }
+            get { return new uint2(x, w); }
             [MethodImpl(0x100)]
             set { x = value.x; w = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 yx
+        public uint2 yx
         {
             [MethodImpl(0x100)]
-            get { return new float2(y, x); }
+            get { return new uint2(y, x); }
             [MethodImpl(0x100)]
             set { y = value.x; x = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 yy
+        public uint2 yy
         {
             [MethodImpl(0x100)]
-            get { return new float2(y, y); }
+            get { return new uint2(y, y); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 yz
+        public uint2 yz
         {
             [MethodImpl(0x100)]
-            get { return new float2(y, z); }
+            get { return new uint2(y, z); }
             [MethodImpl(0x100)]
             set { y = value.x; z = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 yw
+        public uint2 yw
         {
             [MethodImpl(0x100)]
-            get { return new float2(y, w); }
+            get { return new uint2(y, w); }
             [MethodImpl(0x100)]
             set { y = value.x; w = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 zx
+        public uint2 zx
         {
             [MethodImpl(0x100)]
-            get { return new float2(z, x); }
+            get { return new uint2(z, x); }
             [MethodImpl(0x100)]
             set { z = value.x; x = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 zy
+        public uint2 zy
         {
             [MethodImpl(0x100)]
-            get { return new float2(z, y); }
+            get { return new uint2(z, y); }
             [MethodImpl(0x100)]
             set { z = value.x; y = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 zz
+        public uint2 zz
         {
             [MethodImpl(0x100)]
-            get { return new float2(z, z); }
+            get { return new uint2(z, z); }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 zw
+        public uint2 zw
         {
             [MethodImpl(0x100)]
-            get { return new float2(z, w); }
+            get { return new uint2(z, w); }
             [MethodImpl(0x100)]
             set { z = value.x; w = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 wx
+        public uint2 wx
         {
             [MethodImpl(0x100)]
-            get { return new float2(w, x); }
+            get { return new uint2(w, x); }
             [MethodImpl(0x100)]
             set { w = value.x; x = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 wy
+        public uint2 wy
         {
             [MethodImpl(0x100)]
-            get { return new float2(w, y); }
+            get { return new uint2(w, y); }
             [MethodImpl(0x100)]
             set { w = value.x; y = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 wz
+        public uint2 wz
         {
             [MethodImpl(0x100)]
-            get { return new float2(w, z); }
+            get { return new uint2(w, z); }
             [MethodImpl(0x100)]
             set { w = value.x; z = value.y; }
         }
 
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public float2 ww
+        public uint2 ww
         {
             [MethodImpl(0x100)]
-            get { return new float2(w, w); }
+            get { return new uint2(w, w); }
         }
 
 

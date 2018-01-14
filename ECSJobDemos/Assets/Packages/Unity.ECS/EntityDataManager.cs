@@ -1,7 +1,9 @@
-﻿using Unity.Collections;
+﻿//#define USE_BURST_DESTROY
+
+using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using System;
 using UnityEngine.Assertions;
+using UnityEngine.Profiling;
 
 namespace UnityEngine.ECS
 {
@@ -15,6 +17,11 @@ namespace UnityEngine.ECS
 
     unsafe struct EntityDataManager
     {
+        #if USE_BURST_DESTROY
+        unsafe delegate Chunk* DeallocateDataEntitiesInChunkDelegate(EntityDataManager* entityDataManager, Entity* entities, int count, out int indexInChunk, out int batchCount);
+        static DeallocateDataEntitiesInChunkDelegate ms_DeallocateDataEntitiesInChunkDelegate;
+        #endif
+
         internal EntityData*   m_Entities;
         int                    m_EntitiesCapacity;
         int                    m_EntitiesFreeIndex;
@@ -25,6 +32,14 @@ namespace UnityEngine.ECS
             m_Entities = (EntityData*)UnsafeUtility.Malloc(m_EntitiesCapacity * sizeof(EntityData), 64, Allocator.Persistent);
             m_EntitiesFreeIndex = 0;
             InitializeAdditionalCapacity(0);
+
+            #if USE_BURST_DESTROY
+            if (ms_DeallocateDataEntitiesInChunkDelegate == null)
+            {
+                ms_DeallocateDataEntitiesInChunkDelegate = DeallocateDataEntitiesInChunk;
+                ms_DeallocateDataEntitiesInChunkDelegate = Unity.Burst.BurstDelegateCompiler.CompileDelegate(ms_DeallocateDataEntitiesInChunkDelegate);
+            }
+            #endif
         }
 
         void InitializeAdditionalCapacity(int start)
@@ -156,45 +171,21 @@ namespace UnityEngine.ECS
         {
             while (count != 0)
             {
-                /// This is optimized for the case where the array of entities are allocated contigously in the chunk
-                /// Thus the compacting of other elements can be batched
+                int indexInChunk;
+                int batchCount;
+                Chunk* chunk;
 
-                // Calculate baseEntityIndex & chunk
-                int baseEntityIndex = entities[0].index;
-
-                Chunk* chunk = m_Entities[baseEntityIndex].chunk;
-                int indexInChunk = m_Entities[baseEntityIndex].index;
-                int batchCount = 0;
-
-                while (batchCount < count)
+                //Profiler.BeginSample("DeallocateDataEntitiesInChunk");
+                fixed (EntityDataManager* manager = &this)
                 {
-                    int entityIndex = entities[batchCount].index;
-                    EntityData* data = m_Entities + entityIndex;
-
-                    if (data->chunk != chunk || data->index != indexInChunk + batchCount)
-                        break;
-
-                    data->chunk = null;
-                    data->version++;
-                    data->index = m_EntitiesFreeIndex;
-                    m_EntitiesFreeIndex = entityIndex;
-
-                    batchCount++;
+#if USE_BURST_DESTROY
+                    chunk = ms_DeallocateDataEntitiesInChunkDelegate(manager , entities, count, out indexInChunk, out batchCount);
+#else
+                    chunk = DeallocateDataEntitiesInChunk(manager, entities, count, out indexInChunk, out batchCount);
+#endif
                 }
-
-                // We can just chop-off the end, no need to copy anything
-                if (chunk->count != indexInChunk + batchCount)
-                {
-                    // updates EntitityData->index to point to where the components will be moved to
-                    Assert.IsTrue(chunk->archetype->sizeOfs[0] == sizeof(Entity) && chunk->archetype->offsets[0] == 0);
-                    Entity* movedEntities = (Entity*)(chunk->buffer) + (chunk->count - batchCount);
-                    for (int i = 0; i != batchCount;i++)
-                        m_Entities[movedEntities[i].index].index = indexInChunk + i;
-
-                    // Move component data from the end to where we deleted components
-                    ChunkDataUtility.Copy(chunk, chunk->count - batchCount, chunk, indexInChunk, batchCount);
-                }
-
+                //Profiler.EndSample();
+                
                 if (chunk->managedArrayIndex >= 0)
                 {
                     // We can just chop-off the end, no need to copy anything
@@ -210,6 +201,54 @@ namespace UnityEngine.ECS
                 entities += batchCount;
                 count -= batchCount;
             }
+        }
+
+        static unsafe Chunk* DeallocateDataEntitiesInChunk(EntityDataManager* entityDataManager, Entity* entities, int count, out int indexInChunk, out int batchCount)
+        {
+            /// This is optimized for the case where the array of entities are allocated contigously in the chunk
+            /// Thus the compacting of other elements can be batched
+
+            // Calculate baseEntityIndex & chunk
+            int baseEntityIndex = entities[0].index;
+
+            Chunk* chunk = entityDataManager->m_Entities[baseEntityIndex].chunk;
+            indexInChunk = entityDataManager->m_Entities[baseEntityIndex].index;
+            batchCount = 0;
+
+            int freeIndex = entityDataManager->m_EntitiesFreeIndex;
+            EntityData* entityDatas = entityDataManager->m_Entities;
+            
+            while (batchCount < count)
+            {
+                int entityIndex = entities[batchCount].index;
+                EntityData* data = entityDatas + entityIndex;
+
+                if (data->chunk != chunk || data->index != indexInChunk + batchCount)
+                    break;
+
+                data->chunk = null;
+                data->version++;
+                data->index = freeIndex;
+                freeIndex = entityIndex;
+
+                batchCount++;
+            }
+
+            entityDataManager->m_EntitiesFreeIndex = freeIndex;
+
+            // We can just chop-off the end, no need to copy anything
+            if (chunk->count != indexInChunk + batchCount)
+            {
+                // updates EntitityData->index to point to where the components will be moved to
+                //Assert.IsTrue(chunk->archetype->sizeOfs[0] == sizeof(Entity) && chunk->archetype->offsets[0] == 0);
+                Entity* movedEntities = (Entity*) (chunk->buffer) + (chunk->count - batchCount);
+                for (int i = 0; i != batchCount; i++)
+                    entityDataManager->m_Entities[movedEntities[i].index].index = indexInChunk + i;
+
+                // Move component data from the end to where we deleted components
+                ChunkDataUtility.Copy(chunk, chunk->count - batchCount, chunk, indexInChunk, batchCount);
+            }
+            return chunk;
         }
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS

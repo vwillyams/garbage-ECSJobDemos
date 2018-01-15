@@ -8,6 +8,9 @@ using UnityEngine.Profiling;
 
 namespace UnityEngine.ECS
 {
+    //@TODO: There is nothing prevent non-main thread (non-job thread) access of EntityMnaager.
+    //       Static Analysis or runtime checks?
+
     //@TODO: safety?
     public unsafe struct EntityArchetype
     {
@@ -45,7 +48,7 @@ namespace UnityEngine.ECS
         EntityGroupManager                m_GroupManager;
         ComponentJobSafetyManager         m_JobSafetyManager;
 
-        SharedComponentDataManager        m_SharedComponentManager;
+        static SharedComponentDataManager m_SharedComponentManager;
 
         EntityTransaction                 m_EntityTransaction;
 
@@ -64,7 +67,10 @@ namespace UnityEngine.ECS
             m_ArchetypeManager = new ArchetypeManager();
             m_JobSafetyManager = new ComponentJobSafetyManager();
             m_GroupManager = new EntityGroupManager(m_JobSafetyManager);
-            m_SharedComponentManager = new SharedComponentDataManager();
+            if (m_SharedComponentManager == null)
+                m_SharedComponentManager = new SharedComponentDataManager();
+            m_SharedComponentManager.Retain();
+
             m_EntityTransaction = new EntityTransaction(m_ArchetypeManager, m_Entities);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_EntityTransaction.SetAtomicSafetyHandle(ComponentJobSafetyManager.CreationSafety);
@@ -78,7 +84,9 @@ namespace UnityEngine.ECS
         protected override void OnDestroyManager()
         {
             m_JobSafetyManager.Dispose(); m_JobSafetyManager = null;
-            m_SharedComponentManager.Dispose(); m_SharedComponentManager = null;
+            if (m_SharedComponentManager.Release())
+                m_SharedComponentManager = null;
+
             m_Entities->OnDestroy();
             UnsafeUtility.Free(m_Entities, Allocator.Persistent);
             m_Entities = null;
@@ -516,6 +524,34 @@ namespace UnityEngine.ECS
         public void CompleteAllJobs()
         {
             CommitTransaction();
+        }
+
+        public void MoveEntitiesFrom(EntityManager srcEntities)
+        {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            if (srcEntities == this)
+                throw new System.ArgumentException("srcEntities must not be the same as this EntityManager.");
+#endif
+
+            BeforeImmediateStructualChange();
+            srcEntities.BeforeImmediateStructualChange();
+
+            ArchetypeManager.MoveChunks(srcEntities.m_ArchetypeManager, srcEntities.m_Entities, m_ArchetypeManager, m_GroupManager, m_SharedComponentManager, m_Entities);
+        }
+
+        public void CheckInternalConsistency()
+        {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+
+            CommitTransaction();
+
+            //@TODO: Validate from perspective of componentgroup...
+            //@TODO: Validate shared component data refcounts...
+            int entityCountEntityData = m_Entities->CheckInternalConsistency();
+            int entityCountArchetypeManager = m_ArchetypeManager.CheckInternalConsistency();
+
+            Assert.AreEqual(entityCountEntityData, entityCountArchetypeManager);
+#endif
         }
     }
 }

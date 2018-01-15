@@ -17,7 +17,7 @@ namespace UnityEngine.ECS
             list->next = list;
         }
 
-        
+
         public bool IsEmpty
         {
             get
@@ -64,8 +64,26 @@ namespace UnityEngine.ECS
             node->prev = pos->prev;
             node->next = pos;
 
-            node->prev->next= node;
+            node->prev->next = node;
             node->next->prev = node;
+        }
+
+        unsafe static public void InsertListBefore(UnsafeLinkedListNode* pos, UnsafeLinkedListNode* srcList)
+        {
+            Assert.IsTrue(pos != srcList);
+            Assert.IsFalse(srcList->IsEmpty);
+
+            // Insert source before pos
+            UnsafeLinkedListNode* a = pos->prev;
+            UnsafeLinkedListNode* b = pos;
+            a->next = srcList->next;
+            b->prev = srcList->prev;
+            a->next->prev = a;
+            b->prev->next = b;
+
+            // Clear source list
+            srcList->next = srcList;
+            srcList->prev= srcList;
         }
 
         unsafe public void Remove()

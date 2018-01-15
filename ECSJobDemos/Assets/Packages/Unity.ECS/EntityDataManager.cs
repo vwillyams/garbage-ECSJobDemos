@@ -12,6 +12,7 @@ namespace UnityEngine.ECS
         public int version;
         public Archetype* archetype;
         public Chunk* chunk;
+        //@TODO: Rename indexInChunk
         public int index;
     }
 
@@ -44,12 +45,14 @@ namespace UnityEngine.ECS
 
         void InitializeAdditionalCapacity(int start)
         {
-            for (int i = start; i != m_EntitiesCapacity - 1; i++)
+            for (int i = start; i != m_EntitiesCapacity; i++)
             {
                 m_Entities[i].index = i + 1;
                 m_Entities[i].version = 1;
                 m_Entities[i].chunk = null;
             }
+
+            // Last entity index identifies that we ran out of space...
             m_Entities[m_EntitiesCapacity - 1].index = -1;
         }
 
@@ -104,6 +107,25 @@ namespace UnityEngine.ECS
             return exists;
         }
 
+        [System.Diagnostics.Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
+        public void AssertEntitiesExist(Entity* entities, int count)
+        {
+            for (int i = 0; i != count;i++)
+            {
+                Entity* entity = entities + i;
+                bool exists = m_Entities[entity->index].version == entity->version;
+                if (!exists)
+                    throw new System.ArgumentException("All entities passed to EntityManager.Destroy must exist. One of the entities was already destroyed or never created.");
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                EntityData* entityData = m_Entities + entity->index;
+                if (entityData->index >= entityData->chunk->count)
+                    throw new System.ArgumentException("The entity has been created in a transaction but not yet committed, you are not allowed to access it via EntityManager before calling EntityManager.CommitTransaction();");
+#endif
+            }
+        }
+
+
         public bool ExistsFromTransaction(Entity entity)
         {
             bool exists = m_Entities[entity.index].version == entity.version;
@@ -114,17 +136,6 @@ namespace UnityEngine.ECS
                 throw new System.ArgumentException("You are accessing the entity from a transaction, but the entity has already been committed and is thus not available from the transaction. Another thread might otherwise mutate the component data while the transaction job is running.");
 #endif
             return exists;
-        }
-
-
-        [System.Diagnostics.Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
-        public void AssertEntitiesExist(Entity* entities, int count)
-        {
-            for (int i = 0; i != count;i++)
-            {
-                if (!Exists(entities[i]))
-                    throw new System.ArgumentException("All entities passed to EntityManager.Destroy must exist. One of the entities was already destroyed or never created.");
-            }
         }
 
         [System.Diagnostics.Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
@@ -185,7 +196,7 @@ namespace UnityEngine.ECS
 #endif
                 }
                 //Profiler.EndSample();
-                
+
                 if (chunk->managedArrayIndex >= 0)
                 {
                     // We can just chop-off the end, no need to copy anything
@@ -217,7 +228,7 @@ namespace UnityEngine.ECS
 
             int freeIndex = entityDataManager->m_EntitiesFreeIndex;
             EntityData* entityDatas = entityDataManager->m_Entities;
-            
+
             while (batchCount < count)
             {
                 int entityIndex = entities[batchCount].index;
@@ -251,8 +262,30 @@ namespace UnityEngine.ECS
             return chunk;
         }
 
+        public static unsafe void FreeDataEntitiesInChunk(EntityDataManager* entityDataManager, Chunk* chunk, int count)
+        {
+            int freeIndex = entityDataManager->m_EntitiesFreeIndex;
+            EntityData* entityDatas = entityDataManager->m_Entities;
+
+            Entity* chunkEntities = (Entity*) chunk->buffer;
+
+            for (int i = 0;i != count;i++)
+            {
+                int entityIndex = chunkEntities[i].index;
+                EntityData* data = entityDatas + entityIndex;
+
+                data->chunk = null;
+                data->version++;
+                data->index = freeIndex;
+                freeIndex = entityIndex;
+            }
+
+            entityDataManager->m_EntitiesFreeIndex = freeIndex;
+        }
+
+
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        void AssertInternalConsistency()
+        public int CheckInternalConsistency()
         {
             int aliveEntities = 0;
             int entityType = TypeManager.GetTypeIndex<Entity>();
@@ -262,8 +295,8 @@ namespace UnityEngine.ECS
                 if (m_Entities[i].chunk != null)
                 {
                     aliveEntities++;
-
-                    Assert.AreEqual(entityType, m_Entities[i].archetype->types[0].typeIndex);
+                    var archetype = m_Entities[i].archetype;
+                    Assert.AreEqual(entityType, archetype->types[0].typeIndex);
                     Entity entity = *(Entity*)ChunkDataUtility.GetComponentData(m_Entities[i].chunk, m_Entities[i].index, 0);
                     Assert.AreEqual(i, entity.index);
                     Assert.AreEqual(m_Entities[i].version, entity.version);
@@ -272,7 +305,7 @@ namespace UnityEngine.ECS
                 }
             }
 
-            //@TODO: Validate from perspective of chunks...
+            return aliveEntities;
         }
 #endif
 

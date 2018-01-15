@@ -405,6 +405,7 @@ namespace UnityEngine.ECS
             if (oldChunk->managedArrayIndex >= 0)
                 ChunkDataUtility.ClearManagedObjects(typeMan, oldChunk, lastIndex, 1);
 
+            newChunk->archetype->entityCount--;
             typeMan.SetChunkCount(oldChunk, oldChunk->count - 1);
         }
 

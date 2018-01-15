@@ -1,9 +1,24 @@
 using System;
 using System.Linq;
 using System.Reflection;
-
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.ECS;
+
+public class WorldBootstrap
+{
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        public static void Initialize()
+        {
+#           if ASTEROIDS_SERVER
+                ServerWorldBootstrap.Initialize();
+#           elif ASTEROIDS_CLIENT
+                ClientWorldBootstrap.Initialize();
+#           else
+                LocalWorldBootstrap.Initialize();
+#           endif
+        }
+}
 
 #if ASTEROIDS_SERVER
     public class ServerWorldBootstrap
@@ -24,7 +39,6 @@ using UnityEngine.ECS;
             }
         }
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void Initialize()
         {
             Debug.LogWarning("Server Running");
@@ -37,12 +51,14 @@ using UnityEngine.ECS;
             World.UpdatePlayerLoop(serverWorld);
         }
     }
+
 #elif ASTEROIDS_CLIENT
+
     class ClientWorldBootstrap
     {
         public static World clientWorld;
 
-        static void DomainUnloadShutdown()
+        public static void DomainUnloadShutdown()
         {
             if (clientWorld != null)
             {
@@ -56,8 +72,7 @@ using UnityEngine.ECS;
             }
         }
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        static void Initialize()
+        public static void Initialize()
         {
             PlayerLoopManager.RegisterDomainUnload(DomainUnloadShutdown);
 
@@ -68,13 +83,15 @@ using UnityEngine.ECS;
             World.UpdatePlayerLoop(clientWorld);
         }
     }
+
 #else // Client + Server
+
     class LocalWorldBootstrap
     {
         public static World clientWorld;
         public static World serverWorld;
 
-        static void DomainUnloadShutdown()
+        public static void DomainUnloadShutdown()
         {
             if (clientWorld != null && serverWorld != null)
             {
@@ -90,10 +107,8 @@ using UnityEngine.ECS;
             }
         }
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        static void Initialize()
+        public static void Initialize()
         {
-            Debug.Assert(false);
             PlayerLoopManager.RegisterDomainUnload(DomainUnloadShutdown);
 
             serverWorld = new World("Server");
@@ -110,45 +125,46 @@ using UnityEngine.ECS;
             World.UpdatePlayerLoop(serverWorld, clientWorld);
         }
     }
+
 #endif
 
-    public class WorldCreator
+public class WorldCreator
+{
+    public static void FindAndCreateWorldFromNamespace(World world, string name)
     {
-        public static void FindAndCreateWorldFromNamespace(World world, string name)
+        World.Active = world;
+
+        foreach (var ass in AppDomain.CurrentDomain.GetAssemblies())
         {
-            World.Active = world;
+            var allTypes = ass.GetTypes();
 
-            foreach (var ass in AppDomain.CurrentDomain.GetAssemblies())
+            // Make it based on an attribute.
+            // Create all ComponentSystem
+            var systemTypes = allTypes.Where(
+                t => t.IsSubclassOf(typeof(ComponentSystemBase)) &&
+                !t.IsAbstract &&
+                !t.ContainsGenericParameters &&
+                (t.Namespace != null && t.Namespace == name) &&
+                t.GetCustomAttributes(typeof(DisableAutoCreationAttribute), true).Length == 0);
+            foreach (var type in systemTypes)
             {
-                var allTypes = ass.GetTypes();
-
-                // Make it based on an attribute.
-                // Create all ComponentSystem
-                var systemTypes = allTypes.Where(
-                    t => t.IsSubclassOf(typeof(ComponentSystemBase)) &&
-                    !t.IsAbstract &&
-                    !t.ContainsGenericParameters &&
-                    (t.Namespace != null && t.Namespace == name) &&
-                    t.GetCustomAttributes(typeof(DisableAutoCreationAttribute), true).Length == 0);
-                foreach (var type in systemTypes)
-                {
-                    GetBehaviourManagerAndLogException(world, type);
-                }
-            }
-        }
-
-        public static void GetBehaviourManagerAndLogException(World world, Type type)
-        {
-            try
-            {
-                world.GetOrCreateManager(type);
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
+                GetBehaviourManagerAndLogException(world, type);
             }
         }
     }
+
+    public static void GetBehaviourManagerAndLogException(World world, Type type)
+    {
+        try
+        {
+            world.GetOrCreateManager(type);
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
+        }
+    }
+}
 
 public class GameMain : MonoBehaviour
 {

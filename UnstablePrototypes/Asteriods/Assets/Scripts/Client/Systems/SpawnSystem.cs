@@ -51,8 +51,15 @@ namespace Asteriods.Client
             for (int i = 0, c = SpawnQueue.Count; i < c; ++i)
             {
                 // TODO (michalb): add some nice debugging for this
-
                 var cmd = SpawnQueue.Dequeue();
+
+                Entity et;
+                if (NetworkIdLookup.TryGetValue(cmd.id, out et) && EntityManager.Exists(et))
+                {
+                    Debug.Log("id = " + cmd.id  + " already exists");
+                    continue;
+                }
+
                 switch((SpawnType)cmd.type)
                 {
                     case SpawnType.Asteroid:

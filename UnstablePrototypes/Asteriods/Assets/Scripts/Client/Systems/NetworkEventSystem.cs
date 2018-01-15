@@ -92,6 +92,8 @@ namespace Asteriods.Client
                         for (int i = 0, c = snapshot.SpawnCommands.Length; i < c; ++i)
                         {
                             m_SpawnSystem.SpawnQueue.Enqueue(snapshot.SpawnCommands[i]);
+                            var sc = snapshot.SpawnCommands[i];
+                            Debug.Log("spawn = " + sc.id + " of type " + ((SpawnType)sc.type).ToString());
                         }
 
                         for (int i = 0, c = snapshot.DespawnCommands.Length; i < c; ++i)

@@ -29,11 +29,11 @@ namespace Asteriods.Server
         {
         }
 
+
         unsafe override protected void OnUpdate()
         {
             if (!m_NetworkServer.IsCreated)
             {
-                Debug.Log("not created");
                 return;
             }
             m_NetworkServer.Update();
@@ -41,6 +41,7 @@ namespace Asteriods.Server
             NetworkConnection connection;
             while (m_NetworkServer.TryPopConnectionQueue(out connection))
             {
+                m_SpawnSystem.SpawnPlayer(connection);
                 Debug.Log("OnConnect: ConnectionId = " + connection.Id);
             }
 

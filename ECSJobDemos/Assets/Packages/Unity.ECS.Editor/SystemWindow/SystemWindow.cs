@@ -57,7 +57,7 @@ namespace UnityEditor.ECS
 			SetPlayerLoop(PlayerLoopHelper.currentPlayerLoop);
 		}
 
-		[MenuItem("Window/Systems", false, 2017)]
+		[MenuItem("Window/ECS/Systems", false, 2017)]
 		static void Open()
 		{
 			EditorWindow.GetWindow<SystemWindow>("Systems");

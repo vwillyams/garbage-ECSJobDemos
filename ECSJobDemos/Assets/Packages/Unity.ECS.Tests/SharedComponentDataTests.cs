@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Threading;
+using UnityEngine;
 using UnityEditor;
 using NUnit.Framework;
 using UnityEngine.ECS;
@@ -77,6 +78,41 @@ namespace UnityEngine.ECS.Tests
             group1_filter_20.Dispose();
         }
 
+
+        [Test]
+        public void GetComponentArray()
+        {
+            var archetype1 = m_Manager.CreateArchetype(typeof(SharedData1), typeof(EcsTestData));
+            var archetype2 = m_Manager.CreateArchetype(typeof(SharedData1), typeof(EcsTestData), typeof(SharedData2));
+
+            const int entitiesPerValue = 5000;
+            for (int i = 0; i < entitiesPerValue*8; ++i)
+            {
+                Entity e = m_Manager.CreateEntity((i % 2 == 0) ? archetype1 : archetype2);
+                m_Manager.SetComponent(e, new EcsTestData(i));
+                m_Manager.SetSharedComponent(e, new SharedData1(i%8));
+            }
+
+            var group = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(SharedData1));
+
+            for (int sharedValue = 0; sharedValue < 8; ++sharedValue)
+            {
+                bool[] foundEntities = new bool[entitiesPerValue];
+                var filteredGroup = group.GetVariation(new SharedData1(sharedValue));
+                var componentArray = filteredGroup.GetComponentDataArray<EcsTestData>();
+                Assert.AreEqual(entitiesPerValue, componentArray.Length);
+                for (int i = 0; i < entitiesPerValue; ++i)
+                {
+                    int index = componentArray[i].value;
+                    Assert.AreEqual(sharedValue, index % 8);
+                    Assert.IsFalse(foundEntities[index/8]);
+                    foundEntities[index/8] = true;
+                }
+                filteredGroup.Dispose();
+            }
+
+            group.Dispose();
+        }
 
 //        [Test]
 //        public void GetAllUniqueSharedComponents()

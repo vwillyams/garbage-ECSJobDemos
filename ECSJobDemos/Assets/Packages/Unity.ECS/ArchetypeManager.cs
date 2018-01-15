@@ -120,6 +120,7 @@ namespace UnityEngine.ECS
 	{
 		NativeMultiHashMap<uint, IntPtr>    m_TypeLookup;
 		ChunkAllocator                      m_ArchetypeChunkAllocator;
+	    SharedComponentDataManager          m_SharedComponentManager;
 		internal Archetype*                 m_LastArchetype;
 
 	    UnsafeLinkedListNode*               m_EmptyChunkPool;
@@ -140,8 +141,9 @@ namespace UnityEngine.ECS
 		}
 		List<ManagedArrayListeners> m_ManagedArrayListeners = new List<ManagedArrayListeners>();
 
-		public ArchetypeManager()
+		public ArchetypeManager(SharedComponentDataManager sharedComponentManager)
 		{
+		    m_SharedComponentManager = sharedComponentManager;
 			m_TypeLookup = new NativeMultiHashMap<uint, IntPtr>(256, Allocator.Persistent);
 		    
 		    m_EmptyChunkPool = (UnsafeLinkedListNode*)m_ArchetypeChunkAllocator.Allocate(sizeof(UnsafeLinkedListNode), UnsafeUtility.AlignOf<UnsafeLinkedListNode>());
@@ -217,9 +219,9 @@ namespace UnityEngine.ECS
 			}
 		}
 
-	    
-	    
-        public Archetype* GetArchetype(ComponentTypeInArchetype* types, int count, EntityGroupManager groupManager, SharedComponentDataManager sharedComponentManager)
+
+
+        public Archetype* GetArchetype(ComponentTypeInArchetype* types, int count, EntityGroupManager groupManager)
 		{
 			uint hash = HashUtility.fletcher32((ushort*)types, count * sizeof(ComponentTypeInArchetype) / sizeof(ushort));
 			IntPtr typePtr;
@@ -330,7 +332,6 @@ namespace UnityEngine.ECS
 			m_TypeLookup.Add(hash, (IntPtr)type);
 
 			groupManager.OnArchetypeAdded(type);
-            sharedComponentManager.OnArchetypeAdded(type->types, type->typesCount);
 
 			return type;
 		}
@@ -425,6 +426,14 @@ namespace UnityEngine.ECS
             {
                 int* sharedComponentValueArray = GetSharedComponentValueArray(chunk);
                 CopySharedComponentDataIndexArray(sharedComponentValueArray, sharedComponentDataIndices, chunk->archetype->numSharedComponents);
+
+                if (sharedComponentDataIndices != null)
+                {
+                    for (int i = 0; i < archetype->numSharedComponents; ++i)
+                    {
+                        m_SharedComponentManager.AddReference(sharedComponentValueArray[i]);
+                    }
+                }
             }
         }
 
@@ -570,6 +579,16 @@ namespace UnityEngine.ECS
                 //@TODO: Support pooling when there are managed arrays...
                 if (chunk->archetype->numManagedArrays == 0)
                 {
+                    //Remove references to shared components
+                    if (chunk->archetype->numSharedComponents > 0)
+                    {
+                        int* sharedComponentValueArray = GetSharedComponentValueArray(chunk);
+                        for (int i = 0; i < chunk->archetype->numSharedComponents; ++i)
+                        {
+                            m_SharedComponentManager.RemoveReference(sharedComponentValueArray[i]);
+                        }
+                    }
+
                     chunk->archetype = null;
                     chunk->chunkListNode.Remove();
                     chunk->chunkListWithEmptySlotsNode.Remove();

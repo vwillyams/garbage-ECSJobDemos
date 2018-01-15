@@ -222,6 +222,15 @@ namespace UnityEngine.ECS
 
             if (m_filteredSharedComponents != null)
             {
+                int filteredCount = m_filteredSharedComponents[0];
+                var filtered = m_filteredSharedComponents + 1;
+
+                for(int i=0; i<filteredCount; ++i)
+                {
+                    int sharedComponentIndex = filtered[i * 2 + 1];
+                    m_EntityManager.m_SharedComponentManager.RemoveReference(sharedComponentIndex);
+                }
+
                 UnsafeUtility.Free(m_filteredSharedComponents, Allocator.Temp);
             }
         }

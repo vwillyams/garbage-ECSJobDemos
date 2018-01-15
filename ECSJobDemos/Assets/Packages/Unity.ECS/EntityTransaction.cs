@@ -62,7 +62,7 @@ namespace UnityEngine.ECS
 
             EntityArchetype type;
             //@TODO: make dedicated function to only allow getting existing archetype
-            type.archetype = archetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, PopulatedCachedTypeInArchetypeArray(types), null, null);
+            type.archetype = archetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, PopulatedCachedTypeInArchetypeArray(types), null);
             return type;
         }
 

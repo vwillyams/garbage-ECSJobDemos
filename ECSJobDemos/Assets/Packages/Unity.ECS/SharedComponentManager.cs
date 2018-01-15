@@ -10,6 +10,12 @@ namespace UnityEngine.ECS
         List<object>    m_SharedComponentData = new List<object>();
         NativeList<int> m_SharedComponentRefCount = new NativeList<int>(0, Allocator.Persistent);
 
+        public SharedComponentDataManager()
+        {
+            m_SharedComponentData.Add(null);
+            m_SharedComponentRefCount.Add(1);
+        }
+
         public void Dispose()
         {
             m_SharedComponentRefCount.Dispose();
@@ -20,7 +26,7 @@ namespace UnityEngine.ECS
         public void GetAllUniqueSharedComponents(System.Type componentType, NativeList<int> componentIndices)
         {
             int typeIndex = TypeManager.GetTypeIndex(componentType);
-            for (int i = 0; i != m_SharedComponentData.Count; i++)
+            for (int i = 1; i != m_SharedComponentData.Count; i++)
             {
                 object data = m_SharedComponentData[i];
                 if (data != null && data.GetType() == componentType)
@@ -28,14 +34,14 @@ namespace UnityEngine.ECS
             }
         }
 
-        unsafe public void OnArchetypeAdded(ComponentTypeInArchetype* types, int count)
-        {
-            //TODO: still need this?
-        }
-
         public int InsertSharedComponent<T>(T newData) where T : struct
         {
-            for (int i = 0; i != m_SharedComponentData.Count; i++)
+            if (newData.Equals(default(T)))
+            {
+                return 0;
+            }
+
+            for (int i = 1; i != m_SharedComponentData.Count; i++)
             {
                 object data = m_SharedComponentData[i];
                 if (data != null && data.GetType() == typeof(T))
@@ -54,15 +60,29 @@ namespace UnityEngine.ECS
             return m_SharedComponentData.Count - 1;
         }
 
-        public T GetSharedComponentData<T>(int index)
+        public T GetSharedComponentData<T>(int index) where T : struct
         {
-            return (T)m_SharedComponentData[index];
+            if (index == 0)
+            {
+                return default(T);
+            }
+            else
+            {
+                return (T)m_SharedComponentData[index];
+            }
         }
 
-        public void AdjustInstanceCount(int index, int count)
+        public void AddReference(int index)
         {
-            int newCount = m_SharedComponentRefCount[index];
-            newCount += count;
+            if (index != 0)
+                ++m_SharedComponentRefCount[index];
+        }
+
+        public void RemoveReference(int index)
+        {
+            if (index == 0)
+                return;
+            int newCount = --m_SharedComponentRefCount[index];
             if (newCount == 0)
             {
                 m_SharedComponentData[index] = null;

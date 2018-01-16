@@ -9,18 +9,32 @@ namespace UnityEngine.ECS
     {
         List<object>    m_SharedComponentData = new List<object>();
         NativeList<int> m_SharedComponentRefCount = new NativeList<int>(0, Allocator.Persistent);
+        int             m_RefCount = 0;
 
         public SharedComponentDataManager()
         {
             m_SharedComponentData.Add(null);
             m_SharedComponentRefCount.Add(1);
         }
-
-        public void Dispose()
+		
+        public void Retain()
         {
-            m_SharedComponentRefCount.Dispose();
-            m_SharedComponentData.Clear();
-            m_SharedComponentData = null;
+            m_RefCount++;
+        }
+
+        public bool Release()
+        {
+            if (--m_RefCount == 0)
+            {
+                m_SharedComponentRefCount.Dispose();
+                m_SharedComponentData.Clear();
+                m_SharedComponentData = null;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public void GetAllUniqueSharedComponents(System.Type componentType, NativeList<int> componentIndices)

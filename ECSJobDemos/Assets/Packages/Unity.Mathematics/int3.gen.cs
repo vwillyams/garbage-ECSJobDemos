@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 #pragma warning disable 0660, 0661
 namespace Unity.Mathematics
 {
-    public partial struct int3
+    public partial struct int3 : System.IEquatable<int3>
     {
 
         // mul
@@ -72,6 +72,14 @@ namespace Unity.Mathematics
         // plus 
         [MethodImpl(0x100)]
         public static int3 operator + (int3 val) { return new int3 (+val.x, +val.y, +val.z); }
+        // left shift
+        [MethodImpl(0x100)]
+        public static int3 operator << (int3 lhs, int rhs) { return new int3 (lhs.x << rhs, lhs.y << rhs, lhs.z << rhs); }
+
+        // right shift
+        [MethodImpl(0x100)]
+        public static int3 operator >> (int3 lhs, int rhs) { return new int3 (lhs.x >> rhs, lhs.y >> rhs, lhs.z >> rhs); }
+
         // equal 
         [MethodImpl(0x100)]
         public static bool3 operator == (int3 lhs, int3 rhs) { return new bool3 (lhs.x == rhs.x, lhs.y == rhs.y, lhs.z == rhs.z); }
@@ -87,6 +95,31 @@ namespace Unity.Mathematics
         public static bool3 operator != (int3 lhs, int rhs) { return new bool3 (lhs.x != rhs, lhs.y != rhs, lhs.z != rhs); }
         [MethodImpl(0x100)]
         public static bool3 operator != (int lhs, int3 rhs) { return new bool3 (lhs != rhs.x, lhs != rhs.y, lhs != rhs.z); }
+
+        // Equals 
+        [MethodImpl(0x100)]
+        public bool Equals(int3 rhs)  { return x == rhs.x && y == rhs.y && z == rhs.z; }
+
+        // [int index] 
+        unsafe public int this[int index]
+        {
+            get
+            {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                if ((uint)index >= 3)
+                    throw new System.ArgumentException("index must be between[0...2]");
+#endif
+                fixed (int* array = &x) { return array[index]; }
+            }
+            set
+            {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                if ((uint)index >= 3)
+                    throw new System.ArgumentException("index must be between[0...2]");
+#endif
+                fixed (int* array = &x) { array[index] = value; }
+            }
+        }
 
         // operator &
         [MethodImpl(0x100)]

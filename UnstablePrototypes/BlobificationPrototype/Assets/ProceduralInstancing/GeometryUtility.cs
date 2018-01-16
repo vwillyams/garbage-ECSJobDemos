@@ -1,5 +1,5 @@
-﻿using Unity.Mathematics;
-using UnityEngine.ECS;
+﻿using Unity.Collections;
+using Unity.Mathematics;
 using static Unity.Mathematics.math;
 
 static public class GeometryUtility
@@ -16,11 +16,10 @@ static public class GeometryUtility
         return math.mul(transform, new float4(pos, 1)).xyz;
     }
 
-    unsafe public static bool RayIntersectsWorld(float3 rayOrigin, float3 rayVector, ComponentDataArray<CollisionMeshInstance>  CollisionInstances, out float3 outIntersectionPoint)
+    unsafe public static bool RayIntersectsWorld(float3 rayOrigin, float3 rayVector, NativeArray<CollisionMeshInstance>  CollisionInstances, out float3 outIntersectionPoint)
     {
         float closestT = float.PositiveInfinity;
 
-        // @TODO: At least a simple bounding box early out would be useful?
         for (int i = 0; i != CollisionInstances.Length; i++)
         {
             var collider = CollisionInstances[i];

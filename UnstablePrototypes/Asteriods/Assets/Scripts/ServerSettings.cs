@@ -51,7 +51,9 @@ public class ServerSettings
             typeof(PlayerTagComponentData),
             typeof(CollisionSphereComponentData),
             typeof(NetworkIdCompmonentData),
-            typeof(VelocityComponentData));
+            typeof(VelocityComponentData),
+            typeof(EntityTypeComponentData),
+            typeof(PlayerStateComponentData));
 
         asteroidArchetype = manager.CreateArchetype(
             typeof(PositionComponentData),
@@ -59,6 +61,7 @@ public class ServerSettings
             typeof(AsteroidTagComponentData),
             typeof(CollisionSphereComponentData),
             typeof(NetworkIdCompmonentData),
+            typeof(EntityTypeComponentData),
             typeof(VelocityComponentData));
 
         bulletArchetype = manager.CreateArchetype(
@@ -68,6 +71,7 @@ public class ServerSettings
             typeof(BulletAgeComponentData),
             typeof(CollisionSphereComponentData),
             typeof(NetworkIdCompmonentData),
+            typeof(EntityTypeComponentData),
             typeof(VelocityComponentData));
 
         var configuration = new SocketConfiguration()

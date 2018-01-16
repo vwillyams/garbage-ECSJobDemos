@@ -85,6 +85,8 @@
   - [ ] misc fixes that is still missing for multiple worlds
     - add attributes for client / server code and remove the namespace hack in GameMain
     - GameSettings and archetypes need to have their respective owners set properly. e.g. remvoe hack
+  - handle respawns
+  - start looking at proper snapshotting
 
 - debug tools
   - console system
@@ -96,7 +98,10 @@
   - [ ] byte writer / reader
     - write tests for bit reader & writer
     - write tests for byte reader & writer
-  - move the packet reading into a circular buffer type of class.
+  - ~move the packet reading into a circular buffer type of class.~
+  - move network layer to c#?
+  - fix the fact that we actually dont handle disconnects at all in the llapi now.
+
 
 #### notes
 

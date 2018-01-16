@@ -110,7 +110,7 @@ namespace UnityEditor.ECS
         [SerializeField]
         List<MultiColumnHeaderState> entityColumnHeaderStates;
 
-        [MenuItem ("Window/Entities", false, 2017)]
+        [MenuItem ("Window/ECS/Entities", false, 2017)]
         static void Init ()
         {
             EditorWindow.GetWindow<EntityWindow>("Entities");
@@ -121,14 +121,10 @@ namespace UnityEditor.ECS
             if (worldListState == null)
                 worldListState = new TreeViewState();
             worldListView = new WorldListView(worldListState, this);
-        }
-
-        void OnFocus()
-        {
             SceneView.onSceneGUIDelegate += OnSceneGUI;
         }
 
-        void OnLostFocs()
+        void OnDisable()
         {
             SceneView.onSceneGUIDelegate -= OnSceneGUI;
         }
@@ -174,6 +170,15 @@ namespace UnityEditor.ECS
 
         private bool noWorlds = true;
 
+        private float lastUpdate;
+        void Update()
+        {
+            if (CurrentSystemSelection != null && EditorApplication.isPlaying && Time.time > lastUpdate + 0.1f)
+            {
+                Repaint();
+            }
+        }
+        
         void OnGUI ()
         {
             var worldsAppeared = noWorlds && World.AllWorlds.Count > 0;
@@ -201,14 +206,13 @@ namespace UnityEditor.ECS
             GUILayout.BeginVertical();
             EntityList();
             GUILayout.EndVertical();
+
+            lastUpdate = EditorApplication.isPlaying ? 0f : Time.time;
         }
 
         void OnSceneGUI(SceneView sceneView)
         {
             entityListView?.DrawSelection();
-
-            if (CurrentSystemSelection != null && EditorApplication.isPlaying)
-                Repaint();
         }
     }
 }

@@ -1,7 +1,9 @@
-﻿using Unity.Collections;
+﻿//#define USE_BURST_DESTROY
+
+using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using System;
 using UnityEngine.Assertions;
+using UnityEngine.Profiling;
 
 namespace UnityEngine.ECS
 {
@@ -10,11 +12,17 @@ namespace UnityEngine.ECS
         public int version;
         public Archetype* archetype;
         public Chunk* chunk;
+        //@TODO: Rename indexInChunk
         public int index;
     }
 
     unsafe struct EntityDataManager
     {
+        #if USE_BURST_DESTROY
+        unsafe delegate Chunk* DeallocateDataEntitiesInChunkDelegate(EntityDataManager* entityDataManager, Entity* entities, int count, out int indexInChunk, out int batchCount);
+        static DeallocateDataEntitiesInChunkDelegate ms_DeallocateDataEntitiesInChunkDelegate;
+        #endif
+
         internal EntityData*   m_Entities;
         int                    m_EntitiesCapacity;
         int                    m_EntitiesFreeIndex;
@@ -25,16 +33,26 @@ namespace UnityEngine.ECS
             m_Entities = (EntityData*)UnsafeUtility.Malloc(m_EntitiesCapacity * sizeof(EntityData), 64, Allocator.Persistent);
             m_EntitiesFreeIndex = 0;
             InitializeAdditionalCapacity(0);
+
+            #if USE_BURST_DESTROY
+            if (ms_DeallocateDataEntitiesInChunkDelegate == null)
+            {
+                ms_DeallocateDataEntitiesInChunkDelegate = DeallocateDataEntitiesInChunk;
+                ms_DeallocateDataEntitiesInChunkDelegate = Unity.Burst.BurstDelegateCompiler.CompileDelegate(ms_DeallocateDataEntitiesInChunkDelegate);
+            }
+            #endif
         }
 
         void InitializeAdditionalCapacity(int start)
         {
-            for (int i = start; i != m_EntitiesCapacity - 1; i++)
+            for (int i = start; i != m_EntitiesCapacity; i++)
             {
                 m_Entities[i].index = i + 1;
                 m_Entities[i].version = 1;
                 m_Entities[i].chunk = null;
             }
+
+            // Last entity index identifies that we ran out of space...
             m_Entities[m_EntitiesCapacity - 1].index = -1;
         }
 
@@ -89,6 +107,25 @@ namespace UnityEngine.ECS
             return exists;
         }
 
+        [System.Diagnostics.Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
+        public void AssertEntitiesExist(Entity* entities, int count)
+        {
+            for (int i = 0; i != count;i++)
+            {
+                Entity* entity = entities + i;
+                bool exists = m_Entities[entity->index].version == entity->version;
+                if (!exists)
+                    throw new System.ArgumentException("All entities passed to EntityManager.Destroy must exist. One of the entities was already destroyed or never created.");
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                EntityData* entityData = m_Entities + entity->index;
+                if (entityData->index >= entityData->chunk->count)
+                    throw new System.ArgumentException("The entity has been created in a transaction but not yet committed, you are not allowed to access it via EntityManager before calling EntityManager.CommitTransaction();");
+#endif
+            }
+        }
+
+
         public bool ExistsFromTransaction(Entity entity)
         {
             bool exists = m_Entities[entity.index].version == entity.version;
@@ -99,17 +136,6 @@ namespace UnityEngine.ECS
                 throw new System.ArgumentException("You are accessing the entity from a transaction, but the entity has already been committed and is thus not available from the transaction. Another thread might otherwise mutate the component data while the transaction job is running.");
 #endif
             return exists;
-        }
-
-
-        [System.Diagnostics.Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
-        public void AssertEntitiesExist(Entity* entities, int count)
-        {
-            for (int i = 0; i != count;i++)
-            {
-                if (!Exists(entities[i]))
-                    throw new System.ArgumentException("All entities passed to EntityManager.Destroy must exist. One of the entities was already destroyed or never created.");
-            }
         }
 
         [System.Diagnostics.Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
@@ -156,44 +182,20 @@ namespace UnityEngine.ECS
         {
             while (count != 0)
             {
-                /// This is optimized for the case where the array of entities are allocated contigously in the chunk
-                /// Thus the compacting of other elements can be batched
+                int indexInChunk;
+                int batchCount;
+                Chunk* chunk;
 
-                // Calculate baseEntityIndex & chunk
-                int baseEntityIndex = entities[0].index;
-
-                Chunk* chunk = m_Entities[baseEntityIndex].chunk;
-                int indexInChunk = m_Entities[baseEntityIndex].index;
-                int batchCount = 0;
-
-                while (batchCount < count)
+                //Profiler.BeginSample("DeallocateDataEntitiesInChunk");
+                fixed (EntityDataManager* manager = &this)
                 {
-                    int entityIndex = entities[batchCount].index;
-                    EntityData* data = m_Entities + entityIndex;
-
-                    if (data->chunk != chunk || data->index != indexInChunk + batchCount)
-                        break;
-
-                    data->chunk = null;
-                    data->version++;
-                    data->index = m_EntitiesFreeIndex;
-                    m_EntitiesFreeIndex = entityIndex;
-
-                    batchCount++;
+#if USE_BURST_DESTROY
+                    chunk = ms_DeallocateDataEntitiesInChunkDelegate(manager , entities, count, out indexInChunk, out batchCount);
+#else
+                    chunk = DeallocateDataEntitiesInChunk(manager, entities, count, out indexInChunk, out batchCount);
+#endif
                 }
-
-                // We can just chop-off the end, no need to copy anything
-                if (chunk->count != indexInChunk + batchCount)
-                {
-                    // updates EntitityData->index to point to where the components will be moved to
-                    Assert.IsTrue(chunk->archetype->sizeOfs[0] == sizeof(Entity) && chunk->archetype->offsets[0] == 0);
-                    Entity* movedEntities = (Entity*)(chunk->buffer) + (chunk->count - batchCount);
-                    for (int i = 0; i != batchCount;i++)
-                        m_Entities[movedEntities[i].index].index = indexInChunk + i;
-
-                    // Move component data from the end to where we deleted components
-                    ChunkDataUtility.Copy(chunk, chunk->count - batchCount, chunk, indexInChunk, batchCount);
-                }
+                //Profiler.EndSample();
 
                 if (chunk->managedArrayIndex >= 0)
                 {
@@ -212,8 +214,78 @@ namespace UnityEngine.ECS
             }
         }
 
+        static unsafe Chunk* DeallocateDataEntitiesInChunk(EntityDataManager* entityDataManager, Entity* entities, int count, out int indexInChunk, out int batchCount)
+        {
+            /// This is optimized for the case where the array of entities are allocated contigously in the chunk
+            /// Thus the compacting of other elements can be batched
+
+            // Calculate baseEntityIndex & chunk
+            int baseEntityIndex = entities[0].index;
+
+            Chunk* chunk = entityDataManager->m_Entities[baseEntityIndex].chunk;
+            indexInChunk = entityDataManager->m_Entities[baseEntityIndex].index;
+            batchCount = 0;
+
+            int freeIndex = entityDataManager->m_EntitiesFreeIndex;
+            EntityData* entityDatas = entityDataManager->m_Entities;
+
+            while (batchCount < count)
+            {
+                int entityIndex = entities[batchCount].index;
+                EntityData* data = entityDatas + entityIndex;
+
+                if (data->chunk != chunk || data->index != indexInChunk + batchCount)
+                    break;
+
+                data->chunk = null;
+                data->version++;
+                data->index = freeIndex;
+                freeIndex = entityIndex;
+
+                batchCount++;
+            }
+
+            entityDataManager->m_EntitiesFreeIndex = freeIndex;
+
+            // We can just chop-off the end, no need to copy anything
+            if (chunk->count != indexInChunk + batchCount)
+            {
+                // updates EntitityData->index to point to where the components will be moved to
+                //Assert.IsTrue(chunk->archetype->sizeOfs[0] == sizeof(Entity) && chunk->archetype->offsets[0] == 0);
+                Entity* movedEntities = (Entity*) (chunk->buffer) + (chunk->count - batchCount);
+                for (int i = 0; i != batchCount; i++)
+                    entityDataManager->m_Entities[movedEntities[i].index].index = indexInChunk + i;
+
+                // Move component data from the end to where we deleted components
+                ChunkDataUtility.Copy(chunk, chunk->count - batchCount, chunk, indexInChunk, batchCount);
+            }
+            return chunk;
+        }
+
+        public static unsafe void FreeDataEntitiesInChunk(EntityDataManager* entityDataManager, Chunk* chunk, int count)
+        {
+            int freeIndex = entityDataManager->m_EntitiesFreeIndex;
+            EntityData* entityDatas = entityDataManager->m_Entities;
+
+            Entity* chunkEntities = (Entity*) chunk->buffer;
+
+            for (int i = 0;i != count;i++)
+            {
+                int entityIndex = chunkEntities[i].index;
+                EntityData* data = entityDatas + entityIndex;
+
+                data->chunk = null;
+                data->version++;
+                data->index = freeIndex;
+                freeIndex = entityIndex;
+            }
+
+            entityDataManager->m_EntitiesFreeIndex = freeIndex;
+        }
+
+
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        void AssertInternalConsistency()
+        public int CheckInternalConsistency()
         {
             int aliveEntities = 0;
             int entityType = TypeManager.GetTypeIndex<Entity>();
@@ -223,8 +295,8 @@ namespace UnityEngine.ECS
                 if (m_Entities[i].chunk != null)
                 {
                     aliveEntities++;
-
-                    Assert.AreEqual(entityType, m_Entities[i].archetype->types[0].typeIndex);
+                    var archetype = m_Entities[i].archetype;
+                    Assert.AreEqual(entityType, archetype->types[0].typeIndex);
                     Entity entity = *(Entity*)ChunkDataUtility.GetComponentData(m_Entities[i].chunk, m_Entities[i].index, 0);
                     Assert.AreEqual(i, entity.index);
                     Assert.AreEqual(m_Entities[i].version, entity.version);
@@ -233,7 +305,7 @@ namespace UnityEngine.ECS
                 }
             }
 
-            //@TODO: Validate from perspective of chunks...
+            return aliveEntities;
         }
 #endif
 

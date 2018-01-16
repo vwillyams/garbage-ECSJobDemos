@@ -23,6 +23,7 @@ namespace Asteriods.Server
             public ComponentDataArray<NetworkIdCompmonentData> ids;
             public ComponentDataArray<PositionComponentData> positions;
             public ComponentDataArray<RotationComponentData> rotations;
+            public ComponentDataArray<EntityTypeComponentData> types;
         }
 
         [InjectComponentGroup]
@@ -52,7 +53,6 @@ namespace Asteriods.Server
         {
             using (var snapshot = new Snapshot(0, Allocator.Temp))
             {
-                // HACK (2017-12-11, lifetime 4 weeks or until proper protocol implemented.)
                 for (int i = 0, c = m_SpawnSystem.OutgoingSpawnQueue.Count; i < c; ++i)
                 {
                     snapshot.SpawnCommands.Add(m_SpawnSystem.OutgoingSpawnQueue.Dequeue());
@@ -60,7 +60,7 @@ namespace Asteriods.Server
 
                 for (int i = 0, c = networkedItems.Length; i < c; ++i)
                 {
-                    var m = new MovementData(networkedItems.ids[i].id, networkedItems.positions[i], networkedItems.rotations[i]);
+                    var m = new MovementData(networkedItems.ids[i].id, networkedItems.types[i].Type, networkedItems.positions[i], networkedItems.rotations[i]);
                     snapshot.MovementDatas.Add(m);
                 }
 

@@ -48,7 +48,8 @@ namespace UnityEngine.ECS
         EntityGroupManager m_GroupManager;
         ComponentJobSafetyManager m_JobSafetyManager;
 
-        static SharedComponentDataManager m_SharedComponentManager;
+        //TODO:
+        internal static SharedComponentDataManager m_SharedComponentManager;
 
 		EntityTransaction                 m_EntityTransaction;
         ComponentType*             m_CachedComponentTypeArray;

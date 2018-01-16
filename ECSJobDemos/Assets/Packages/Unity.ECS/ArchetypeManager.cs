@@ -146,7 +146,7 @@ namespace UnityEngine.ECS
 		{
 		    m_SharedComponentManager = sharedComponentManager;
 			m_TypeLookup = new NativeMultiHashMap<uint, IntPtr>(256, Allocator.Persistent);
-		    
+
 		    m_EmptyChunkPool = (UnsafeLinkedListNode*)m_ArchetypeChunkAllocator.Allocate(sizeof(UnsafeLinkedListNode), UnsafeUtility.AlignOf<UnsafeLinkedListNode>());
 		    UnsafeLinkedListNode.InitializeList(m_EmptyChunkPool);
 
@@ -364,7 +364,7 @@ namespace UnityEngine.ECS
 	    {
 	        return (int*)(((byte*)p) + sizeof(Chunk));
 	    }
-		
+
 	    unsafe public Chunk* AllocateChunk(Archetype* archetype, int* sharedComponentDataIndices)
 	    {
 	        byte* buffer = (byte*) UnsafeUtility.Malloc(Chunk.kChunkSize, 64, Allocator.Persistent);
@@ -669,7 +669,7 @@ namespace UnityEngine.ECS
 	            {
 	                if (srcArchetype->numManagedArrays != 0)
 	                    throw new System.ArgumentException("MoveEntitiesFrom is not supported with managed arrays");
-	                Archetype* dstArchetype = dstArchetypeManager.GetArchetype(srcArchetype->types, srcArchetype->typesCount, dstGroupManager, dstSharedComponentDataManager);
+	                Archetype* dstArchetype = dstArchetypeManager.GetArchetype(srcArchetype->types, srcArchetype->typesCount, dstGroupManager);
 
 	                for (var c = srcArchetype->chunkList.Begin();c != srcArchetype->chunkList.End();c = c->next)
 	                {

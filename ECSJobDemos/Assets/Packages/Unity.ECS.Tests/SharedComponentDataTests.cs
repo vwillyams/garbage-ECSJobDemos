@@ -90,7 +90,7 @@ namespace UnityEngine.ECS.Tests
             var sharedType20 = m_Manager.CreateSharedComponentType(new SharedData(20));
             var sharedType30 = m_Manager.CreateSharedComponentType(new SharedData(30));
 
-            var archetype30 = m_Manager.CreateArchetype(typeof(EcsTestData), sharedType30);
+            /*var archetype30 = */ m_Manager.CreateArchetype(typeof(EcsTestData), sharedType30);
             var archetype20 = m_Manager.CreateArchetype(typeof(EcsTestData), sharedType20);
 
             var entity = m_Manager.CreateEntity(archetype20);

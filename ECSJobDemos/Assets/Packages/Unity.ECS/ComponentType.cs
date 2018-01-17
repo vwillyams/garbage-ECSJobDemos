@@ -160,5 +160,15 @@ namespace UnityEngine.ECS
                 return GetManagedType().ToString();
         }
 #endif
+
+        public override bool Equals(object obj)
+        {
+            return obj is ComponentType && (ComponentType) obj == this;
+        }
+
+        public override int GetHashCode()
+        {
+            return (typeIndex * 5813) ^ FixedArrayLength;
+        }
     }
 }

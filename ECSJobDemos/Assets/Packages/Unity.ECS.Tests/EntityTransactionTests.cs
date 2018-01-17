@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
 using Unity.Jobs;
 using Unity.Collections;
 
@@ -16,8 +17,10 @@ namespace UnityEngine.ECS.Tests
         }
 
         [SetUp]
-        public void Setup()
+        public override void Setup()
         {
+            base.Setup();
+
             m_Group = m_Manager.CreateComponentGroup(typeof(EcsTestData));
 
             // Archetypes can't be created on a job
@@ -81,7 +84,7 @@ namespace UnityEngine.ECS.Tests
             var job = new CreateEntityJob();
             job.entities = m_Manager.BeginTransaction();
 
-            var jobHandle = job.Schedule(m_Manager.EntityTransactionDependency);
+            /*var jobHandle =*/ job.Schedule(m_Manager.EntityTransactionDependency);
 
             // Commit transaction expects an error not exception otherwise errors might occurr after a system has completed...
             TestTools.LogAssert.Expect(LogType.Error, new Regex("EntityTransaction job has not been registered"));

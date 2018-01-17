@@ -370,7 +370,6 @@ namespace Unity.Collections
 			int* nextPtrs = (int*)data->next;
 			int bucket = Math.Abs(it.key.GetHashCode()) % data->bucketCapacity;
 
-			int prevEntry = -1;
 			int entryIdx = buckets[bucket];
 			if (entryIdx == it.EntryIndex)
 			{

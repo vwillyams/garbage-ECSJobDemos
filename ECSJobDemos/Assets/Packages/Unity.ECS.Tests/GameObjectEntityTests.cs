@@ -53,7 +53,7 @@ namespace UnityEngine.ECS.Tests
         public void RigidbodyComponentArray()
         {
             var go = new GameObject("test", typeof(Rigidbody));
-            var entity = GameObjectEntity.AddToEntityManager(m_Manager, go);
+            /*var entity =*/ GameObjectEntity.AddToEntityManager(m_Manager, go);
 
             var grp = m_Manager.CreateComponentGroup(typeof(Rigidbody));
 

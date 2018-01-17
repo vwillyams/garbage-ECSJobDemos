@@ -63,7 +63,7 @@ namespace UnityEngine.ECS.Tests
 	    public void ComponentAccessAfterScheduledJobThrowsEntityArray()
 	    {
 	        var entityArrayCache = new ComponentGroupArrayStaticCache(typeof(TestEntity), m_Manager);
-	        var group = m_Manager.CreateComponentGroup(typeof(EcsTestData));
+	        m_Manager.CreateComponentGroup(typeof(EcsTestData));
 	        m_Manager.CreateEntity(typeof(EcsTestData), typeof(EcsTestData2));
 
 	        var job = new TestCopy1To2Job();

@@ -140,7 +140,7 @@ namespace UnityEngine.ECS
             // and only flush when creating new ones...
             BeforeImmediateStructualChange();
 
-            return m_GroupManager.CreateEntityGroup(this, m_CachedComponentTypeArray, PopulatedCachedTypeArray(requiredComponents), new TransformAccessArray());
+            return m_GroupManager.CreateEntityGroup(m_ArchetypeManager, m_CachedComponentTypeArray, PopulatedCachedTypeArray(requiredComponents), new TransformAccessArray());
         }
 
         public EntityArchetype CreateArchetype(params ComponentType[] types)

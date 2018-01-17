@@ -21,7 +21,7 @@ namespace UnityEngine.ECS
         }
 
 
-        public ComponentGroup CreateEntityGroup(EntityManager entityMan, ComponentType* requiredTypes, int requiredCount, TransformAccessArray trans)
+        public ComponentGroup CreateEntityGroup(ArchetypeManager typeMan, ComponentType* requiredTypes, int requiredCount, TransformAccessArray trans)
         {
             uint hash = HashUtility.fletcher32((ushort*)requiredTypes, requiredCount * sizeof(ComponentType) / sizeof(short));
             NativeMultiHashMapIterator<uint> it;
@@ -33,7 +33,7 @@ namespace UnityEngine.ECS
                 {
                     grp = (EntityGroupData*)grpPtr;
                     if (ComponentType.CompareArray(grp->requiredComponents, grp->requiredComponentsCount, requiredTypes, requiredCount))
-                        return new ComponentGroup(grp, m_JobSafetyManager, entityMan);
+                        return new ComponentGroup(grp, m_JobSafetyManager, typeMan);
                 }
                 while (m_GroupLookup.TryGetNextValue(out grpPtr, ref it));
             }
@@ -79,10 +79,10 @@ namespace UnityEngine.ECS
 
             grp->firstMatchingArchetype = null;
             grp->lastMatchingArchetype = null;
-            for (Archetype* type = entityMan.m_ArchetypeManager.m_LastArchetype; type != null; type = type->prevArchetype)
+            for (Archetype* type = typeMan.m_LastArchetype; type != null; type = type->prevArchetype)
                 AddArchetypeIfMatching(type, grp);
             m_GroupLookup.Add(hash, (IntPtr)grp);
-            return new ComponentGroup(grp, m_JobSafetyManager, entityMan);
+            return new ComponentGroup(grp, m_JobSafetyManager, typeMan);
         }
         public void Dispose()
         {
@@ -185,19 +185,18 @@ namespace UnityEngine.ECS
     {
         EntityGroupData*                      m_GroupData;
         ComponentJobSafetyManager             m_SafetyManager;
-        EntityManager                         m_EntityManager;
+        ArchetypeManager                      m_TypeManager;
         MatchingArchetypes*                   m_LastRegisteredListenerArchetype;
 
         TransformAccessArray                  m_Transforms;
         bool                                  m_TransformsDirty;
+		int*                                  m_filteredSharedComponents;
 
-        int*                                  m_filteredSharedComponents;
-
-        internal ComponentGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager, EntityManager entityManager)
+        internal ComponentGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager, ArchetypeManager typeManager)
         {
             m_GroupData = groupData;
             m_SafetyManager = safetyManager;
-            m_EntityManager = entityManager;
+            m_TypeManager = typeManager;
             m_TransformsDirty = true;
             m_LastRegisteredListenerArchetype = null;
             m_filteredSharedComponents = null;
@@ -216,7 +215,7 @@ namespace UnityEngine.ECS
                 for (MatchingArchetypes* type = m_GroupData->firstMatchingArchetype; type != m_LastRegisteredListenerArchetype->next; type = type->next)
                 {
                     int idx = ChunkDataUtility.GetIndexInTypeArray(type->archetype, transformType);
-                    m_EntityManager.m_ArchetypeManager.RemoveManagedObjectModificationListener(type->archetype, idx, this);
+                    m_TypeManager.RemoveManagedObjectModificationListener(type->archetype, idx, this);
                 }
             }
 
@@ -399,7 +398,7 @@ namespace UnityEngine.ECS
             int componentIndex;
 
             var cache = GetComponentChunkIterator(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
-            return new ComponentArray<T>(cache, length, m_EntityManager.m_ArchetypeManager);
+            return new ComponentArray<T>(cache, length, m_TypeManager);
         }
 
         public unsafe int CalculateLength()
@@ -416,7 +415,7 @@ namespace UnityEngine.ECS
             for (MatchingArchetypes* type = m_LastRegisteredListenerArchetype != null ? m_LastRegisteredListenerArchetype->next : m_GroupData->firstMatchingArchetype; type != null; type = type->next)
             {
                 int idx = ChunkDataUtility.GetIndexInTypeArray(type->archetype, transformIdx);
-                m_EntityManager.m_ArchetypeManager.AddManagedObjectModificationListener(type->archetype, idx, this);
+                m_TypeManager.AddManagedObjectModificationListener(type->archetype, idx, this);
                 m_TransformsDirty = true;
             }
             m_LastRegisteredListenerArchetype = m_GroupData->lastMatchingArchetype;
@@ -499,7 +498,7 @@ namespace UnityEngine.ECS
         public ComponentGroup GetVariation<SharedComponent1>(SharedComponent1 sharedComponent1)
             where SharedComponent1 : struct, ISharedComponentData
         {
-            var variationComponentGroup = new ComponentGroup(m_GroupData, m_SafetyManager, m_EntityManager);
+            var variationComponentGroup = new ComponentGroup(m_GroupData, m_SafetyManager, m_TypeManager);
 
             int componetIndex1 = GetComponentIndexForVariation<SharedComponent1>();
             int filteredCount = 1;
@@ -519,7 +518,7 @@ namespace UnityEngine.ECS
         public ComponentGroup GetVariation<SharedComponent1>(int sharedComponentIndex1)
             where SharedComponent1 : struct, ISharedComponentData
         {
-            var variationComponentGroup = new ComponentGroup(m_GroupData, m_SafetyManager, m_EntityManager);
+            var variationComponentGroup = new ComponentGroup(m_GroupData, m_SafetyManager, m_TypeManager);
 
             int componetIndex1 = GetComponentIndexForVariation<SharedComponent1>();
             int filteredCount = 1;
@@ -540,7 +539,7 @@ namespace UnityEngine.ECS
             where SharedComponent1 : struct, ISharedComponentData
             where SharedComponent2 : struct, ISharedComponentData
         {
-            var variationComponentGroup = new ComponentGroup(m_GroupData, m_SafetyManager, m_EntityManager);
+            var variationComponentGroup = new ComponentGroup(m_GroupData, m_SafetyManager, m_TypeManager);
 
             int componetIndex1 = GetComponentIndexForVariation<SharedComponent1>();
             int componetIndex2 = GetComponentIndexForVariation<SharedComponent2>();
@@ -576,7 +575,7 @@ namespace UnityEngine.ECS
 
         internal ArchetypeManager GetArchetypeManager()
         {
-            return m_EntityManager.m_ArchetypeManager;
+            return m_TypeManager;
         }
     }
 }

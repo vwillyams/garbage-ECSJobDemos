@@ -498,6 +498,57 @@ namespace UnityEngine.ECS
             return count;
         }
 
+        public ComponentGroup GetFirstVariation<SharedComponent1>()
+            where SharedComponent1 : struct, ISharedComponentData
+        {
+            var variationComponentGroup = new ComponentGroup(m_GroupData, m_SafetyManager, m_TypeManager);
+
+            int componetIndex1 = GetComponentIndexForVariation<SharedComponent1>();
+            int filteredCount = 1;
+
+            var filtered = (int*)UnsafeUtility.Malloc((filteredCount * 2 + 1) * sizeof(int), sizeof(int), Allocator.Temp); // TODO: does temp allocator make sense here?
+            variationComponentGroup.m_filteredSharedComponents = filtered;
+
+
+            filtered[0] = -filteredCount;
+            filtered[1] = componetIndex1;
+            filtered[2] = EntityManager.m_SharedComponentManager.GetFirstSharedComponentOfType(typeof(SharedComponent1));
+
+            return variationComponentGroup;
+        }
+
+
+        private bool NextFilterPermutation()
+        {
+            return true;
+        }
+
+        public bool NextVariation()
+        {
+            int filteredCount = m_filteredSharedComponents[0];
+            var filtered = m_filteredSharedComponents + 1;
+            if (filteredCount < 0)
+            {
+                for (int i = 0; i < filteredCount; ++i)
+                {
+                    if (filtered[i * 2] < 0)
+                        return false;
+                }
+
+                filteredCount = -filteredCount;
+                m_filteredSharedComponents[0] = filteredCount;
+
+                return true;
+            }
+            else
+            {
+                //while(entityCount is 0)
+                NextFilterPermutation();
+            }
+
+            return true;
+        }
+
         public ComponentGroup GetVariation<SharedComponent1>(SharedComponent1 sharedComponent1)
             where SharedComponent1 : struct, ISharedComponentData
         {

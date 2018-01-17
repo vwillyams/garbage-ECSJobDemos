@@ -98,7 +98,7 @@ public class NativeListTests
 		NativeArray<int> array = list;
 		Assert.Throws<System.InvalidOperationException> (()=> { array.Dispose(); });
 		list.Dispose();
-	}	
+	}
 
 	[Test]
 	public void CopiedNativeListIsKeptInSync()
@@ -115,5 +115,17 @@ public class NativeListTests
 		Assert.AreEqual (1, list.Length);
 
 		list.Dispose();
-	}	
+	}
+
+    #if ENABLE_UNITY_COLLECTIONS_CHECKS
+    [Test]
+    public void SetCapacityLessThanLength()
+    {
+        var list = new NativeList<int> (Allocator.Persistent);
+        list.ResizeUninitialized(10);
+        Assert.Throws<ArgumentException>(() => { list.Capacity = 5; });
+
+        list.Dispose();
+    }
+    #endif
 }

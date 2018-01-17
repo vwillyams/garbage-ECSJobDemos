@@ -89,6 +89,9 @@ namespace Unity.Collections
 			{
 				#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckWriteAndBumpSecondaryVersion(m_Safety);
+
+			    if (value < m_Buffer->length)
+			        throw new System.ArgumentException("Capacity must be larger than the length of the NativeList.");
 				#endif
 
 				if (m_Buffer->capacity == value)

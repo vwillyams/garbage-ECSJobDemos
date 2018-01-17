@@ -90,6 +90,15 @@ namespace UnityEngine.ECS
 
         public int                   managedArrayIndex;
         public int 		             notYetIntegratedCount;
+
+        public int* GetSharedComponentValueArray()
+        {
+            fixed (Chunk* chunk = &this)
+            {
+                return (int*)(((byte*)chunk) + sizeof(Chunk));
+            }
+        }
+
     }
 
 	unsafe struct Archetype
@@ -360,11 +369,6 @@ namespace UnityEngine.ECS
 	        return (Chunk*) (node - 2);
 	    }
 
-	    public static int* GetSharedComponentValueArray(Chunk* p)
-	    {
-	        return (int*)(((byte*)p) + sizeof(Chunk));
-	    }
-
 	    unsafe public Chunk* AllocateChunk(Archetype* archetype, int* sharedComponentDataIndices)
 	    {
 	        byte* buffer = (byte*) UnsafeUtility.Malloc(Chunk.kChunkSize, 64, Allocator.Persistent);
@@ -425,7 +429,7 @@ namespace UnityEngine.ECS
 
             if (archetype->numSharedComponents > 0)
             {
-                int* sharedComponentValueArray = GetSharedComponentValueArray(chunk);
+                int* sharedComponentValueArray = chunk->GetSharedComponentValueArray();
                 CopySharedComponentDataIndexArray(sharedComponentValueArray, sharedComponentDataIndices, chunk->archetype->numSharedComponents);
 
                 if (sharedComponentDataIndices != null)
@@ -440,7 +444,7 @@ namespace UnityEngine.ECS
 
 	    bool ChunkHasSharedComponents(Chunk* chunk, int* sharedComponentDataIndices)
 	    {
-	        int* sharedComponentValueArray = GetSharedComponentValueArray(chunk);
+	        int* sharedComponentValueArray = chunk->GetSharedComponentValueArray();
 	        int numSharedComponents = chunk->archetype->numSharedComponents;
 	        if (sharedComponentDataIndices == null)
 	        {
@@ -583,7 +587,8 @@ namespace UnityEngine.ECS
                     //Remove references to shared components
                     if (chunk->archetype->numSharedComponents > 0)
                     {
-                        int* sharedComponentValueArray = GetSharedComponentValueArray(chunk);
+                        int* sharedComponentValueArray = chunk->GetSharedComponentValueArray();
+
                         for (int i = 0; i < chunk->archetype->numSharedComponents; ++i)
                         {
                             m_SharedComponentManager.RemoveReference(sharedComponentValueArray[i]);

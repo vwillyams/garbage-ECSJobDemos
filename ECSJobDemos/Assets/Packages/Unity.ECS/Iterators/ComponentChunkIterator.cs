@@ -32,7 +32,7 @@ namespace UnityEngine.ECS
         //TODO: this function is identical to ComponentGroup.ChunkMatchesFilter
         bool ChunkMatchesFilter(MatchingArchetypes* match, Chunk* chunk)
         {
-            int* sharedComponentsInChunk = ArchetypeManager.GetSharedComponentValueArray(chunk);
+            int* sharedComponentsInChunk = chunk->GetSharedComponentValueArray();
             int filteredCount = m_filteredSharedComponents[0];
             var filtered = m_filteredSharedComponents + 1;
             for(int i=0; i<filteredCount; ++i)

@@ -273,7 +273,7 @@ namespace UnityEngine.ECS
             int srcIndex = m_Entities->m_Entities[srcEntity.index].index;
             Chunk* srcChunk = m_Entities->m_Entities[srcEntity.index].chunk;
             Archetype* srcArchetype = m_Entities->m_Entities[srcEntity.index].archetype;
-            var srcSharedComponentDataIndices = ArchetypeManager.GetSharedComponentValueArray(m_Entities->GetComponentChunk(srcEntity));
+            var srcSharedComponentDataIndices = m_Entities->GetComponentChunk(srcEntity)->GetSharedComponentValueArray();
 
             while (count != 0)
             {
@@ -322,7 +322,7 @@ namespace UnityEngine.ECS
 
             if (newType->numSharedComponents > 0)
             {
-                var oldSharedComponentDataIndices = ArchetypeManager.GetSharedComponentValueArray(m_Entities->GetComponentChunk(entity));
+                var oldSharedComponentDataIndices = m_Entities->GetComponentChunk(entity)->GetSharedComponentValueArray();
                 newComponentIsShared = (TypeManager.TypeCategory.ISharedComponentData == TypeManager.GetComponentType(type.typeIndex).category);
                 if (newComponentIsShared)
                 {
@@ -383,7 +383,7 @@ namespace UnityEngine.ECS
 
             if (newType->numSharedComponents > 0)
             {
-                var oldSharedComponentDataIndices = ArchetypeManager.GetSharedComponentValueArray(m_Entities->GetComponentChunk(entity));
+                var oldSharedComponentDataIndices = m_Entities->GetComponentChunk(entity)->GetSharedComponentValueArray();
                 bool removedComponentIsShared = (TypeManager.TypeCategory.ISharedComponentData == TypeManager.GetComponentType(type.typeIndex).category);
                 removedTypes = 0;
                 if (removedComponentIsShared)
@@ -528,14 +528,14 @@ namespace UnityEngine.ECS
             int indexInTypeArray = ChunkDataUtility.GetIndexInTypeArray(archetype, typeIndex);
 
             var srcChunk = m_Entities->GetComponentChunk(entity);
-            int* srcSharedComponentValueArray = ArchetypeManager.GetSharedComponentValueArray(srcChunk);
+            int* srcSharedComponentValueArray = srcChunk->GetSharedComponentValueArray();
             int sharedComponentOffset = archetype->sharedComponentOffset[indexInTypeArray];
             int oldSharedComponentDataIndex = srcSharedComponentValueArray[sharedComponentOffset];
 
             if (newSharedComponentDataIndex != oldSharedComponentDataIndex)
             {
                 var sharedComponentIndices = (int*) UnsafeUtility.Malloc(sizeof(int) * archetype->numSharedComponents, sizeof(int), Allocator.Temp);
-                var srcSharedComponentDataIndices = ArchetypeManager.GetSharedComponentValueArray(srcChunk);
+                var srcSharedComponentDataIndices = srcChunk->GetSharedComponentValueArray();
 
                 ArchetypeManager.CopySharedComponentDataIndexArray(sharedComponentIndices,
                     srcSharedComponentDataIndices, archetype->numSharedComponents);

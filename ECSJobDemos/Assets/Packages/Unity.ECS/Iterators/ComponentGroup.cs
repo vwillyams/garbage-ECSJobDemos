@@ -127,7 +127,7 @@ namespace UnityEngine.ECS
             }
             MatchingArchetypes* match = (MatchingArchetypes*)m_GroupDataChunkAllocator.Allocate(sizeof(MatchingArchetypes) + sizeof(int) * group->requiredComponentsCount, 8);
             match->archetype = archetype;
-            var typeIndexInArchetypeArray = MatchingArchetypes.GetTypeIndexInArchetypeArray(match);
+            var typeIndexInArchetypeArray = match->GetTypeIndexInArchetypeArray();
 
             if (group->lastMatchingArchetype == null)
                 group->lastMatchingArchetype = match;
@@ -154,9 +154,12 @@ namespace UnityEngine.ECS
         public Archetype*                       archetype;
         public MatchingArchetypes*              next;
         // Followed by array of ints that map from the type index in the EntityGroup to the type index in the archetype
-        unsafe public static int* GetTypeIndexInArchetypeArray(MatchingArchetypes* match)
+        unsafe public int* GetTypeIndexInArchetypeArray()
         {
-            return (int*)(((byte*)match) + sizeof(MatchingArchetypes));
+            fixed (MatchingArchetypes* match = &this)
+            {
+                return (int*)(((byte*)match) + sizeof(MatchingArchetypes));
+            }
         }
     }
 
@@ -471,7 +474,7 @@ namespace UnityEngine.ECS
             {
                 int componetIndexInComponentGroup = filtered[i * 2];
                 int sharedComponentIndex = filtered[i * 2 + 1];
-                int componentIndexInArcheType = MatchingArchetypes.GetTypeIndexInArchetypeArray(match)[componetIndexInComponentGroup];
+                int componentIndexInArcheType = match->GetTypeIndexInArchetypeArray()[componetIndexInComponentGroup];
                 int componentIndexInChunk = archeType->sharedComponentOffset[componentIndexInArcheType];
                 if (sharedComponentsInChunk[componentIndexInChunk] != sharedComponentIndex)
                     return false;

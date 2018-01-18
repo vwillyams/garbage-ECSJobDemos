@@ -179,6 +179,8 @@ namespace Unity.Burst.Editor
         [SerializeField]
         private DisassemblyKind m_Kind = DisassemblyKind.Asm;
 
+        const string kFontSizeIndexPref = "BurstInspectorFontSizeIndex";
+
         private static readonly string[] s_DisassemblyKindNames = new string[]
         {
             "Assembly",
@@ -198,7 +200,17 @@ namespace Unity.Burst.Editor
 
         GUIStyle m_FixedFontStyle = null;
 
+        private int m_FontSizeIndex = -1;
         private LongTextArea m_TextArea = null;
+
+        private static int[] s_FontSizes = new int[]
+        {
+            8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20,
+        };
+
+        private static string[] s_FontSizesStr = null;
+
+        private int FontSize { get { return s_FontSizes[m_FontSizeIndex]; } }
 
         public void OnGUI()
         {
@@ -214,10 +226,26 @@ namespace Unity.Burst.Editor
                 }
             }
 
+            if (s_FontSizesStr == null)
+            {
+                s_FontSizesStr = new string[s_FontSizes.Length];
+                for (int i = 0; i < s_FontSizes.Length; ++i)
+                {
+                    s_FontSizesStr[i] = s_FontSizes[i].ToString();
+                }
+            }
+
+            if (m_FontSizeIndex == -1)
+            {
+                m_FontSizeIndex = EditorPrefs.GetInt(kFontSizeIndexPref, 5);
+                m_FontSizeIndex = Math.Max(0, m_FontSizeIndex);
+                m_FontSizeIndex = Math.Min(m_FontSizeIndex, s_FontSizes.Length - 1);
+            }
+
             if (m_FixedFontStyle == null)
             {
                 m_FixedFontStyle = new GUIStyle(GUI.skin.label);
-                m_FixedFontStyle.font = Font.CreateDynamicFontFromOSFont("Courier", 14);
+                m_FixedFontStyle.font = Font.CreateDynamicFontFromOSFont("Courier", FontSize);
             }
 
             if (m_SearchField == null)
@@ -265,6 +293,10 @@ namespace Unity.Burst.Editor
                 m_FastMath = GUILayout.Toggle(m_FastMath, "Fast Math");
                 EditorGUI.BeginDisabledGroup(!target.supportsBurst);
                 m_CodeGenOption = EditorGUILayout.Popup(m_CodeGenOption, s_CodeGenOptions);
+
+                GUILayout.Label("Font Size");
+                int fsi = EditorGUILayout.Popup(m_FontSizeIndex, s_FontSizesStr);
+
                 bool doRefresh = GUILayout.Button("Refresh Disassembly");
                 bool doCopy = GUILayout.Button("Copy to Clipboard");
                 EditorGUI.EndDisabledGroup();
@@ -315,6 +347,13 @@ namespace Unity.Burst.Editor
                 if (doCopy)
                 {
                     EditorGUIUtility.systemCopyBuffer = disasm == null ? "" : disasm;
+                }
+
+                if (fsi != m_FontSizeIndex)
+                {
+                    m_FontSizeIndex = fsi;
+                    EditorPrefs.SetInt(kFontSizeIndexPref, fsi);
+                    m_FixedFontStyle = null;
                 }
             }
 

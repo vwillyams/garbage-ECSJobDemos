@@ -79,7 +79,6 @@ namespace UnityEngine.ECS
 
         static int FindTypeIndex(Type type, int count)
         {
-            int typeIndex = -1;
             for (int i = 0; i != count; i++)
             {
                 var c = m_Types[i];

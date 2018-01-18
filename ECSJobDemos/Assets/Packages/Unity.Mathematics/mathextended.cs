@@ -25,7 +25,6 @@ namespace Unity.Mathematics
         // Returns the number of enabled mask bits. (0 ... 4)
         public static unsafe int compress(int* output, int index, int4 val, bool4 mask)
         {
-            int4 outputValue = new int4(0);
             if (mask.x)
                 output[index++] = val.x;
             if (mask.y)

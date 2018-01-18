@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using System.Reflection;
 using System.IO;
 using UnityEditor;
 using Unity.Jobs;
@@ -55,7 +56,7 @@ namespace Unity.Burst.LowLevel
                 {
                     shouldBurstCompile = true;
 
-                    syncCompilation = (bool)attrType.GetProperty("CompileSynchronously").GetValue(attr);
+                    syncCompilation = (bool)attrType.GetProperty("CompileSynchronously").GetValue(attr, BindingFlags.Default, null, null, null);
 
                     break;
                 }

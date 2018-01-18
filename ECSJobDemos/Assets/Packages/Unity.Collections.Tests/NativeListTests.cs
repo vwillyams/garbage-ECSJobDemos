@@ -127,5 +127,17 @@ public class NativeListTests
 
         list.Dispose();
     }
+
+    [Test]
+	public void DisposingNativeListDerivedArrayThrows()
+	{
+		var list = new NativeList<int> (Allocator.Persistent);
+		list.Add(1);
+
+		NativeArray<int> array = list;
+	    Assert.Throws<InvalidOperationException>(() => { array.Dispose(); });
+
+		list.Dispose();
+	}
     #endif
 }

@@ -302,7 +302,6 @@ namespace UnityEngine.ECS
 
             // Update the archetype segments
             int length = 0;
-            MatchingArchetypes* last = null;
             MatchingArchetypes* first = null;
             Chunk* firstNonEmptyChunk = null;
             if (m_filteredSharedComponents == null)
@@ -312,7 +311,6 @@ namespace UnityEngine.ECS
                     if (match->archetype->entityCount > 0)
                     {
                         length += match->archetype->entityCount;
-                        last = match;
                         if (first == null)
                             first = match;
                     }
@@ -327,7 +325,6 @@ namespace UnityEngine.ECS
                     if (match->archetype->entityCount > 0)
                     {
                         var archeType = match->archetype;
-                        int count = 0;
                         for (Chunk* c = (Chunk*)archeType->chunkList.Begin(); c != archeType->chunkList.End(); c = (Chunk*)c->chunkListNode.next)
                         {
                             //TODO: optimize this!

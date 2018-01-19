@@ -375,7 +375,7 @@ namespace UnityEngine.ECS
 
             Assertions.Assert.AreNotEqual(-1, removedTypes);
 
-            bool freeSharedComponent = false;
+            bool freeSharedComponentIndices = false;
 
             Archetype* newType = m_ArchetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, archtype->typesCount - removedTypes, m_GroupManager);
 
@@ -388,7 +388,7 @@ namespace UnityEngine.ECS
                 removedTypes = 0;
                 if (removedComponentIsShared)
                 {
-                    freeSharedComponent = true;
+                    freeSharedComponentIndices = true;
                     sharedComponentDataIndices = (int*)UnsafeUtility.Malloc(sizeof(int) * newType->numSharedComponents, 4, Allocator.Temp);
                     for (int t = 0; t < archtype->typesCount; ++t)
                     {
@@ -406,6 +406,9 @@ namespace UnityEngine.ECS
             }
 
             m_Entities->SetArchetype(m_ArchetypeManager, entity, newType, sharedComponentDataIndices);
+
+            if(freeSharedComponentIndices)
+                UnsafeUtility.Free(sharedComponentDataIndices, Allocator.Temp);
         }
 
         public void AddComponent<T>(Entity entity, T componentData) where T : struct, IComponentData

@@ -76,7 +76,7 @@ namespace UnityEngine.ECS
 
 	    public override int GetHashCode()
 	    {
-	        return (typeIndex * 5819) ^ (sharedComponentIndex * 11) ^ FixedArrayLength;
+	        return (typeIndex * 5819) ^ FixedArrayLength;
 	    }
 	}
 

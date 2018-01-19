@@ -47,6 +47,7 @@ namespace UnityEngine.ECS
         }
     }
 
+    //@TODO: This should be fully implemented in C++ for efficiency
     public class SharedComponentDataWrapper<T> : ComponentDataWrapperBase where T : struct, ISharedComponentData
     {
         [SerializeField]

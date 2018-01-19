@@ -1,4 +1,10 @@
 {
 	"dependencies": {
-	}
+	},
+	"testables": [
+		"com.unity.collections",
+		"com.unity.ecs",
+		"com.unity.jobs",
+		"com.unity.mathematics"
+	]
 }

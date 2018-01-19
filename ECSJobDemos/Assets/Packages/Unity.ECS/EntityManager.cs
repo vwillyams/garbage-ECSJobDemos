@@ -328,19 +328,34 @@ namespace UnityEngine.ECS
                 if (newComponentIsShared)
                 {
                     sharedComponentDataIndices = (int*)UnsafeUtility.Malloc(sizeof(int) * newType->numSharedComponents, 4, Allocator.Temp);
-                    t = 0;
-                    while (t < archetype->typesCount && archetype->types[t] < componentType)
+                    if (archetype->sharedComponentOffset == null)
                     {
-                        if (archetype->sharedComponentOffset[t] != -1)
-                            sharedComponentDataIndices[t] = oldSharedComponentDataIndices[t];
-                                ++t;
+                        sharedComponentDataIndices[0] = 0;
                     }
-
-                    sharedComponentDataIndices[t] = componentType.typeIndex;
-                    while (t < archetype->typesCount)
+                    else
                     {
-                        sharedComponentDataIndices[t + 1] = oldSharedComponentDataIndices[t];
-                        ++t;
+                        t = 0;
+                        int sharedIndex = 0;
+                        while (t < archetype->typesCount && archetype->types[t] < componentType)
+                        {
+                            if (archetype->sharedComponentOffset[t] != -1)
+                            {
+                                sharedComponentDataIndices[sharedIndex] = oldSharedComponentDataIndices[sharedIndex];
+                                ++sharedIndex;
+                            }
+                            ++t;
+                        }
+
+                        sharedComponentDataIndices[sharedIndex] = 0;
+                        while (t < archetype->typesCount)
+                        {
+                            if (archetype->sharedComponentOffset[t] != -1)
+                            {
+                                sharedComponentDataIndices[sharedIndex + 1] = oldSharedComponentDataIndices[sharedIndex];
+                                ++sharedIndex;
+                            }
+                            ++t;
+                        }
                     }
                 }
                 else
@@ -507,11 +522,16 @@ namespace UnityEngine.ECS
             return m_SharedComponentManager.GetSharedComponentData<T>(sharedComponentIndex);
         }
 
-        unsafe public void AddSharedComponent<T>(Entity entity, T componentData) where T : struct, ISharedComponentData
+        public void AddSharedComponent<T>(Entity entity, T componentData) where T : struct, ISharedComponentData
         {
             //TODO: optimize this (no need to move the entity to a new chunk twice)
             AddComponent(entity, ComponentType.Create<T>());
             SetSharedComponent(entity, componentData);
+        }
+
+        public void RemoveSharedComponent<T>(Entity entity) where T : struct, ISharedComponentData
+        {
+            RemoveComponent(entity, ComponentType.Create<T>());
         }
 
         unsafe public void SetSharedComponent<T>(Entity entity, T componentData) where T: struct, ISharedComponentData

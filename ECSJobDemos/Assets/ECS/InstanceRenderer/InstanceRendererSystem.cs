@@ -1,6 +1,8 @@
 ﻿using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
+using System.Collections.Generic;
+
 namespace UnityEngine.ECS.Rendering
 {
 	[UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.PreLateUpdate.ParticleSystemBeginUpdateAll))]
@@ -24,23 +26,22 @@ namespace UnityEngine.ECS.Rendering
             }
         }
 
-
         protected override void OnUpdate()
 		{
-            var uniqueRendererTypes = new NativeList<int>(10, Allocator.TempJob);
+		    //TODO: any way to use a native collection for this?
+            var uniqueRendererTypes = new List<InstanceRenderer>(10);
 
 		    var maingroup = EntityManager.CreateComponentGroup(typeof(InstanceRenderer), typeof(InstanceRendererTransform));
+
 		    maingroup.CompleteDependency();
 
-            EntityManager.GetAllUniqueSharedComponents(typeof(InstanceRenderer), uniqueRendererTypes);
+            EntityManager.GetAllUniqueSharedComponents(uniqueRendererTypes);
 
-            for (int i = 0;i != uniqueRendererTypes.Length;i++)
+            for (int i = 0;i != uniqueRendererTypes.Count;i++)
             {
-                var uniqueType = uniqueRendererTypes[i];
-                var renderer = EntityManager.GetSharedComponentData<InstanceRenderer>(uniqueType);
+                var renderer = uniqueRendererTypes[i];
 
                 var group = maingroup.GetVariation(renderer);
-                //group.CompleteDependency();
 
                 var transforms = group.GetComponentDataArray<InstanceRendererTransform>();
 
@@ -57,7 +58,6 @@ namespace UnityEngine.ECS.Rendering
                 group.Dispose();
             }
 
-            uniqueRendererTypes.Dispose();
 		    maingroup.Dispose();
 		}
 

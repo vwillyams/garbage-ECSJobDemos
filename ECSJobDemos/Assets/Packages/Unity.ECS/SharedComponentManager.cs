@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Microsoft.Msagl.Core.Layout;
 using UnityEngine;
 using Unity.Collections;
 
@@ -37,56 +38,15 @@ namespace UnityEngine.ECS
             }
         }
 
-        public void GetAllUniqueSharedComponents(System.Type componentType, NativeList<int> componentIndices)
+        public void GetAllUniqueSharedComponents<T>(List<T> sharedComponentValues) where T : struct, ISharedComponentData
         {
+            sharedComponentValues.Add(default(T));
             for (int i = 1; i != m_SharedComponentData.Count; i++)
             {
                 object data = m_SharedComponentData[i];
-                if (data != null && data.GetType() == componentType)
-                    componentIndices.Add(i);
+                if (data != null && data.GetType() == typeof(T))
+                    sharedComponentValues.Add((T)m_SharedComponentData[i]);
             }
-        }
-
-        public int GetFirstSharedComponentOfType(System.Type componentType)
-        {
-            for (int i = 1; i != m_SharedComponentData.Count; i++)
-            {
-                object data = m_SharedComponentData[i];
-                if (data != null && data.GetType() == componentType)
-                {
-                    ++m_SharedComponentRefCount[i];
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
-        public int GetNextSharedComponentOfType(int index)
-        {
-            System.Type componentType = m_SharedComponentData[index].GetType();
-
-            RemoveReference(index);
-            for (int i = index+1; i != m_SharedComponentData.Count; i++)
-            {
-                object data = m_SharedComponentData[i];
-                if (data != null && data.GetType() == componentType)
-                {
-                    ++m_SharedComponentRefCount[i];
-                    return i;
-                }
-            }
-
-            for (int i = 1; i != index+1; i++)
-            {
-                object data = m_SharedComponentData[i];
-                if (data != null && data.GetType() == componentType)
-                {
-                    ++m_SharedComponentRefCount[i];
-                    return i;
-                }
-            }
-            return -1;
         }
 
         public int InsertSharedComponent<T>(T newData) where T : struct

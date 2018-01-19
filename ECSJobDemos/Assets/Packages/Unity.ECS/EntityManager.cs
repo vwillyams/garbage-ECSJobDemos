@@ -486,9 +486,10 @@ namespace UnityEngine.ECS
             return m_ArchetypeManager.GetManagedObject(chunk, componentType, chunkIndex) as T;
         }
 
-        public void GetAllUniqueSharedComponents(Type type, NativeList<int> componentIndices)
+        public void GetAllUniqueSharedComponents<T>(System.Collections.Generic.List<T> sharedComponentValues)
+            where T : struct, ISharedComponentData
         {
-            m_SharedComponentManager.GetAllUniqueSharedComponents(type, componentIndices);
+            m_SharedComponentManager.GetAllUniqueSharedComponents(sharedComponentValues);
         }
 
         unsafe public T GetSharedComponentData<T>(Entity entity) where T : struct, ISharedComponentData
@@ -501,13 +502,6 @@ namespace UnityEngine.ECS
             int sharedComponentIndex = m_Entities->GetSharedComponentDataIndex(entity, indexInTypeArray);
             return m_SharedComponentManager.GetSharedComponentData<T>(sharedComponentIndex);
         }
-
-        //TODO: api?
-        unsafe public T GetSharedComponentData<T>(int index) where T : struct, ISharedComponentData
-        {
-            return m_SharedComponentManager.GetSharedComponentData<T>(index);
-        }
-
 
         unsafe public void AddSharedComponent<T>(Entity entity, T componentData) where T : struct, ISharedComponentData
         {

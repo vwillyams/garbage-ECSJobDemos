@@ -6,7 +6,7 @@ using Unity.Collections;
 
 namespace UnityEngine.ECS
 {
-    internal class SharedComponentDataManager
+    class SharedComponentDataManager
     {
         List<object>    m_SharedComponentData = new List<object>();
         NativeList<int> m_SharedComponentRefCount = new NativeList<int>(0, Allocator.Persistent);

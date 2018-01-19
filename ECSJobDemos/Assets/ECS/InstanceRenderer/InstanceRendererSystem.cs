@@ -28,7 +28,6 @@ namespace UnityEngine.ECS.Rendering
 
         protected override void OnUpdate()
 		{
-		    //TODO: any way to use a native collection for this?
             var uniqueRendererTypes = new List<InstanceRenderer>(10);
 
 		    var maingroup = EntityManager.CreateComponentGroup(typeof(InstanceRenderer), typeof(InstanceRendererTransform));

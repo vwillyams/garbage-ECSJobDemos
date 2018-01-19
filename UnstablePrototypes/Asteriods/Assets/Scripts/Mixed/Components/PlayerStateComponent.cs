@@ -11,6 +11,10 @@ public struct PlayerStateComponentData : IComponentData
     public enum PlayerState
     {
         None,
+        Connecting,
+        Loading,
+        Playing,
+        Ready,
         Alive,
         Dead
     }

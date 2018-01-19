@@ -81,11 +81,12 @@ namespace Asteriods.Client
                     } break;
                     case SpawnType.Ship:
                     {
-                        Entity e = EntityManager.CreateEntity(ClientSettings.Instance().playerClientArchetype);
+                        Entity e = EntityManager.CreateEntity(ClientSettings.Instance().shipArchetype);
                         EntityManager.SetComponent<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(cmd.id));
                         EntityManager.SetComponent(e, new PositionComponentData(cmd.position.x, cmd.position.y));
                         EntityManager.SetComponent(e, new RotationComponentData(cmd.rotation.angle));
                         EntityManager.SetComponent(e, ClientSettings.Instance().playerPrefab.GetComponent<ParticleEmitterComponent>().Value);
+
                         NetworkIdLookup.TryAdd(cmd.id, e);
                     } break;
                 }

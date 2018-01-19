@@ -6,10 +6,22 @@ using Unity.GameCode;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
+using PlayerState = PlayerStateComponentData.PlayerState;
+
 namespace Asteriods.Client
 {
     public class NetworkEventSystem : ComponentSystem
     {
+        struct Player
+        {
+            public int Length;
+            public ComponentDataArray<PlayerStateComponentData> state;
+            public ComponentDataArray<PlayerTagComponentData> self;
+        }
+
+        [InjectComponentGroup]
+        Player player;
+
         [Inject]
         SpawnSystem m_SpawnSystem;
 
@@ -20,30 +32,31 @@ namespace Asteriods.Client
         SnapshotSystem m_SnapshotSystem;
 
         NetworkClient m_NetworkClient;
-        StateMachine<ClientState> m_StateMachine;
-
-        enum ClientState
-        {
-            Connecting,
-            Loading,
-            Playing
-        }
+        StateMachine<PlayerStateComponentData.PlayerState> m_StateMachine;
 
         override protected void OnCreateManager(int capacity)
         {
             base.OnCreateManager(capacity);
             this.m_NetworkClient = ClientSettings.Instance().networkClient;
 
-            m_StateMachine = new StateMachine<ClientState>();
-            m_StateMachine.Add(ClientState.Connecting, EnterConnectingState, UpdateConnectingState, null);
-            m_StateMachine.Add(ClientState.Loading, null, UpdateLoadingState, null);
-            m_StateMachine.Add(ClientState.Playing, null, UpdatePlayState, null);
+            m_StateMachine = new StateMachine<PlayerState>();
+            m_StateMachine.Add(PlayerState.None, null, UpdateIdleState, null);
+            m_StateMachine.Add(PlayerState.Connecting, EnterConnectingState, UpdateConnectingState, null);
+            m_StateMachine.Add(PlayerState.Loading, null, UpdateLoadingState, null);
+            m_StateMachine.Add(PlayerState.Playing, null, UpdatePlayState, null);
 
-            m_StateMachine.SwitchTo(ClientState.Connecting);
+            m_StateMachine.SwitchTo(PlayerState.None);
         }
 
         override protected void OnDestroyManager()
         {
+        }
+
+        void SwitchState(PlayerState state)
+        {
+            Debug.Assert(player.Length == 1);
+            m_StateMachine.SwitchTo(state);
+            player.state[0] = new PlayerStateComponentData(state);
         }
 
         override protected void OnUpdate()
@@ -54,7 +67,15 @@ namespace Asteriods.Client
             }
             else
                 m_NetworkClient.Update();
+
             m_StateMachine.Update();
+        }
+
+        void UpdateIdleState()
+        {
+            Entity e = EntityManager.CreateEntity(ClientSettings.Instance().playerClientArchetype);
+
+            SwitchState(PlayerState.Connecting);
         }
 
         void EnterConnectingState()
@@ -66,16 +87,21 @@ namespace Asteriods.Client
         {
             if (m_NetworkClient.Connected)
             {
-                m_StateMachine.SwitchTo(ClientState.Loading);
+                SwitchState(PlayerState.Loading);
             }
         }
 
         void UpdateLoadingState()
         {
-            m_StateMachine.SwitchTo(ClientState.Playing);
+            PollNetwork();
         }
 
         unsafe void UpdatePlayState()
+        {
+            PollNetwork();
+        }
+
+        unsafe void PollNetwork()
         {
             NativeSlice<byte> message;
             while (m_NetworkClient.PeekMessage(out message))
@@ -85,50 +111,48 @@ namespace Asteriods.Client
 
                 if (type == (byte)AsteroidsProtocol.Snapshot)
                 {
-                    using (var snapshot = new Snapshot(0, Allocator.Temp))
+                    var snapshot = new Snapshot(0, Allocator.Temp);
                     {
                         snapshot.Deserialize(ref br);
-
-                        for (int i = 0, c = snapshot.SpawnCommands.Length; i < c; ++i)
-                        {
-                            m_SpawnSystem.SpawnQueue.Enqueue(snapshot.SpawnCommands[i]);
-                            var sc = snapshot.SpawnCommands[i];
-                            Debug.Log("spawn = " + sc.id + " of type " + ((SpawnType)sc.type).ToString());
-                        }
-
-                        for (int i = 0, c = snapshot.DespawnCommands.Length; i < c; ++i)
-                        {
-                            m_DespawnSystem.DespawnQueue.Enqueue(snapshot.DespawnCommands[i].id);
-                        }
-
-                        for (int i = 0, c = snapshot.MovementDatas.Length; i < c; ++i)
-                        {
-                            m_SnapshotSystem.MovementUpdates.Enqueue(snapshot.MovementDatas[i]);
-                        }
+                        HandleSnapshot(ref snapshot);
                     }
+                    snapshot.Dispose();
                 }
+                else if (type == (byte)AsteroidsProtocol.ReadyRsp &&
+                         m_StateMachine.CurrentState() == PlayerState.Loading)
+                {
+                    SwitchState(PlayerState.Playing);
+                }
+
                 int length = message.Length;
                 int read_bytes = br.GetBytesRead();
                 Debug.Assert(message.Length == read_bytes);
                 m_NetworkClient.PopMessage();
             }
 
-            /*
-            for (int i = 0, c = SpawnEventQueue.Count; i < c; ++i)
+        }
+
+        void HandleSnapshot(ref Snapshot snapshot)
+        {
+            if (m_StateMachine.CurrentState() != PlayerState.Playing)
+                return;
+
+            for (int i = 0, c = snapshot.SpawnCommands.Length; i < c; ++i)
             {
-                m_SpawnSystem.SpawnQueue.Enqueue(SpawnEventQueue.Dequeue());
+                m_SpawnSystem.SpawnQueue.Enqueue(snapshot.SpawnCommands[i]);
+                var sc = snapshot.SpawnCommands[i];
+                Debug.Log("spawn = " + sc.id + " of type " + ((SpawnType)sc.type).ToString());
             }
 
-            for (int i = 0, c = MovementEventQueue.Count; i < c; ++i)
+            for (int i = 0, c = snapshot.DespawnCommands.Length; i < c; ++i)
             {
-                m_SnapshotSystem.MovementUpdates.Enqueue(MovementEventQueue.Dequeue());
+                m_DespawnSystem.DespawnQueue.Enqueue(snapshot.DespawnCommands[i].id);
             }
 
-            for (int i = 0, c = DespawnEventQueue.Count; i < c; ++i)
+            for (int i = 0, c = snapshot.MovementDatas.Length; i < c; ++i)
             {
-                m_DespawnSystem.DespawnQueue.Enqueue(DespawnEventQueue.Dequeue().id);
+                m_SnapshotSystem.MovementUpdates.Enqueue(snapshot.MovementDatas[i]);
             }
-            */
         }
     }
 }

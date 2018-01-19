@@ -121,11 +121,25 @@ namespace Asteriods.Server
             }
         }
 
-        public void SpawnPlayer(NetworkConnection connection)
+        public void SpawnPlayer(Entity entity)
+        {
+            var pos = EntityManager.GetComponent<PositionComponentData>(entity);
+            var rot = EntityManager.GetComponent<RotationComponentData>(entity);
+            var netId = EntityManager.GetComponent<NetworkIdCompmonentData>(entity);
+
+            EntityManager.AddComponent<CollisionSphereComponentData>(
+                entity, new CollisionSphereComponentData(ServerSettings.Instance().playerRadius));
+
+            OutgoingSpawnQueue.Enqueue(
+                new SpawnCommand(netId.id, (int)SpawnType.Ship, pos, rot));
+        }
+
+        public Entity CreatePlayer(NetworkConnection connection)
         {
             var e = EntityManager.CreateEntity(ServerSettings.Instance().playerArchetype);
 
             var id = m_SpawnId++;
+
             var pos = new PositionComponentData(GameSettings.mapWidth / 2, GameSettings.mapHeight / 2);
             var rot = new RotationComponentData(90f);
 
@@ -134,11 +148,8 @@ namespace Asteriods.Server
             EntityManager.SetComponent<EntityTypeComponentData>(e, new EntityTypeComponentData(){ Type = (int)SpawnType.Ship});
             EntityManager.SetComponent<VelocityComponentData>(e, new VelocityComponentData(0, 0));
             EntityManager.SetComponent<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(id));
-            EntityManager.SetComponent<CollisionSphereComponentData>(
-                e, new CollisionSphereComponentData(ServerSettings.Instance().playerRadius));
 
-            OutgoingSpawnQueue.Enqueue(
-                new SpawnCommand(id, (int)SpawnType.Ship, pos, rot));
+            return e;
         }
     }
 }

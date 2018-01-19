@@ -49,7 +49,7 @@ public class ServerSettings
             typeof(PositionComponentData),
             typeof(RotationComponentData),
             typeof(PlayerTagComponentData),
-            typeof(CollisionSphereComponentData),
+            //typeof(CollisionSphereComponentData),
             typeof(NetworkIdCompmonentData),
             typeof(VelocityComponentData),
             typeof(EntityTypeComponentData),

@@ -5,6 +5,8 @@ using Unity.Multiplayer;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
+using PlayerState = PlayerStateComponentData.PlayerState;
+
 namespace Asteriods.Client
 {
     public class NetworkMessageSystem : ComponentSystem
@@ -15,6 +17,16 @@ namespace Asteriods.Client
             public ComponentDataArray<PlayerTagComponentData> self;
             public ComponentDataArray<PlayerInputComponentData> input;
         }
+
+        struct Player
+        {
+            public int Length;
+            public ComponentDataArray<PlayerStateComponentData> state;
+            public ComponentDataArray<PlayerTagComponentData> self;
+        }
+
+        [InjectComponentGroup]
+        Player player;
 
         [InjectComponentGroup]
         SerializableData data;
@@ -38,6 +50,18 @@ namespace Asteriods.Client
 
         unsafe override protected void OnUpdate()
         {
+            if (player.Length == 0)
+                return;
+
+            if (player.state[0].State == (int)PlayerState.Loading)
+            {
+                var bw = new ByteWriter(m_Buffer.GetUnsafePtr(), m_Buffer.Length);
+                bw.Write((byte)AsteroidsProtocol.ReadyReq);
+
+                m_NetworkClient.WriteMessage(m_Buffer.Slice(0, bw.GetBytesWritten()));
+                return;
+            }
+
             if (data.Length == 0)
                 return;
 

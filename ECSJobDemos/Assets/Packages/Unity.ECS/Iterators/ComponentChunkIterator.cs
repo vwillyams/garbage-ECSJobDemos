@@ -141,7 +141,6 @@ namespace UnityEngine.ECS
             }
             else
             {
-                Assertions.Assert.IsTrue(ChunkMatchesFilter(m_CurrentMatchingArchetype, m_CurrentChunk));
                 if (index < m_CurrentArchetypeIndex + m_CurrentChunkIndex)
                 {
                     if (index < m_CurrentArchetypeIndex)
@@ -158,8 +157,6 @@ namespace UnityEngine.ECS
                         MoveToNextMatchingChunk();
                     }
                 }
-
-                Assertions.Assert.IsTrue(ChunkMatchesFilter(m_CurrentMatchingArchetype, m_CurrentChunk));
 
                 while (index >= m_CurrentArchetypeIndex + m_CurrentChunkIndex + m_CurrentChunk->count)
                 {

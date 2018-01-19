@@ -1,6 +1,9 @@
 {
 	"dependencies": {
-		"com.unity.ecs_bundle": "file:../../../ECSJobDemos/Assets/Packages",
-		"com.unity.burst": "file:../../../ECSJobDemos/UnityPackageManager/com.unity.burst"
+		 "com.unity.ecs": "file:../../../ECSJobDemos/UnityPackageManager/com.unity.ecs",
+		 "com.unity.jobs": "file:../../../ECSJobDemos/UnityPackageManager/com.unity.jobs",
+		 "com.unity.mathematics": "file:../../../ECSJobDemos/UnityPackageManager/com.unity.mathematics",
+		 "com.unity.collections": "file:../../../ECSJobDemos/UnityPackageManager/com.unity.collections",
+		 "com.unity.burst": "file:../../../ECSJobDemos/UnityPackageManager/com.unity.burst"
 	}
 }

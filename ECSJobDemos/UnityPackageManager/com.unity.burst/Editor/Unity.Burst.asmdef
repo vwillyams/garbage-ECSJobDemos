@@ -1,4 +1,6 @@
 {
 	"name": "Unity.Burst",
-	"references": [ ]
+	"references": [ ],
+	"includePlatforms": [ "Editor" ]
+
 }

@@ -64,7 +64,20 @@ namespace UnityEngine.ECS
 			return type.ToString();
 		}
 #endif
+	    public override bool Equals(object obj)
+	    {
+	        if (obj is ComponentTypeInArchetype)
+	        {
+	            return (ComponentTypeInArchetype) obj == this;
+	        }
 
+	        return false;
+	    }
+
+	    public override int GetHashCode()
+	    {
+	        return (typeIndex * 5819) ^ (sharedComponentIndex * 11) ^ FixedArrayLength;
+	    }
 	}
 
     unsafe struct Chunk

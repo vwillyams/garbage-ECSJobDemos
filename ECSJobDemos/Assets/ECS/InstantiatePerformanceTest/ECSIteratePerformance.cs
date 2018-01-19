@@ -190,15 +190,11 @@ public class ECSIteratePerformance : MonoBehaviour
 
 	CustomSampler setupSampler;
     CustomSampler memcpySampler;
-    CustomSampler instantiateMemcpySampler ;
-    CustomSampler instantiateMemcpyReplicateSampler ;
 	CustomSampler iterateArraySampler;
 
     void Awake()
 	{
 		setupSampler = CustomSampler.Create("Setup");
-	    instantiateMemcpySampler = CustomSampler.Create("InstantiateTest - Memcpy");
-	    instantiateMemcpyReplicateSampler = CustomSampler.Create("InstantiateTest - MemcpyReplicate");
         memcpySampler = CustomSampler.Create("Iterate - Memcpy");
 		iterateArraySampler = CustomSampler.Create("Iterate - float[]");
     }

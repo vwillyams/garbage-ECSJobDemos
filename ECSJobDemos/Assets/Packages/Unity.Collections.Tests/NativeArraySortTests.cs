@@ -31,7 +31,6 @@ public class NativeArraySortTests
     [Test]
     public void SortNativeArray_SortedInts_ReturnSorted([Values(1, 10, 1000, 10000)] int size)
     {
-        var random = new System.Random();
         NativeArray<int> array = new NativeArray<int>(size, Allocator.Persistent);
         Assert.IsTrue(array.IsCreated);
 

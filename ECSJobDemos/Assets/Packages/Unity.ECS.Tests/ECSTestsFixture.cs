@@ -10,7 +10,7 @@ namespace UnityEngine.ECS.Tests
 		protected EntityManager     m_Manager;
 
         [SetUp]
-		public void Setup()
+		public virtual void Setup()
 		{
 			m_PreviousWorld = World.Active;
 			World = World.Active = new World ("Test World");

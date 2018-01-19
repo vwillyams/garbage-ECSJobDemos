@@ -152,6 +152,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
         public float3 Position;
     }
 
+    [ComputeJobOptimization]
     struct DoubleBufferCollisionInstancesJob : IJobParallelFor
     {
         //@TODO: How do we treat refcounts of the blob asset reference here????
@@ -167,6 +168,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
         }
     }
 
+    [ComputeJobOptimization]
     struct DeallocateCollisionInstancesJob : IJobParallelFor
     {
         [DeallocateOnJobCompletion]
@@ -179,7 +181,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
         }
     }
 
-    //[ComputeJobOptimization]
+    [ComputeJobOptimization]
     struct CalculateChunkSpawnLocationsJob : IJob
     {
         public int2                 ChunkPosition;
@@ -212,7 +214,6 @@ public class ProceduralSpawnSystem : JobComponentSystem
     }
 
 
-    //[ComputeJobOptimization]
     struct CalculateToCreateAndDestroyChunks : IJob
     {
         //@TODO: Would be nice if this could be a local variable in the job...

@@ -352,7 +352,7 @@ namespace UnityEngine.ECS
             return new ComponentGroupEnumerator<T>(m_Data);
         }
 
-        public unsafe struct ComponentGroupEnumerator<T> : IEnumerator<T> where T : struct
+        public unsafe struct ComponentGroupEnumerator<U> : IEnumerator<U> where U : struct
         {
             ComponentGroupArrayData     m_Data;
             int                         m_Index;
@@ -389,7 +389,7 @@ namespace UnityEngine.ECS
                 m_Index = -1;
             }
 
-            unsafe public T Current
+            unsafe public U Current
             {
                 get
                 {
@@ -400,7 +400,7 @@ namespace UnityEngine.ECS
                         m_Data.FailOutOfRangeError(m_Index);
 #endif
 
-                    var value = default(T);
+                    var value = default(U);
                     byte* valuePtr = (byte*)UnsafeUtility.AddressOf(ref value);
                     m_Data.PatchPtrs(m_Index, valuePtr);
                     m_Data.PatchManagedPtrs(m_Index, valuePtr);

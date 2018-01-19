@@ -124,7 +124,7 @@ namespace Unity.Jobs.Tests
     {
         public struct Sphere
         {
-            private float x, y, z, r;
+            public float x, y, z, r;
 
             public bool Intersects(Sphere other)
             {
@@ -334,7 +334,7 @@ namespace Unity.Jobs.Tests
     [ComputeJobOptimization(Accuracy = Accuracy.Low, Support = Support.Relaxed)]
     public struct DivisionByScalar : IJob
     {
-        float divisor;
+        public float divisor;
         [ReadOnly]
         public NativeArray<float> a;
         public NativeArray<float> b;
@@ -362,7 +362,7 @@ namespace Unity.Jobs.Tests
         {
             for (int i = 0; i < a.Length; ++i)
             {
-                c[i] = a[i] / b[i];
+                c[i] = a[i] / b[i] * 3.0f;
             }
         }
     }

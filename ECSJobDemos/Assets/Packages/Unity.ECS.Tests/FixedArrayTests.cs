@@ -121,8 +121,8 @@ namespace UnityEngine.ECS.Tests
 		[Test]
         public void FixedArrayComponentGroupIteration()
         {
-            var entity64 = m_Manager.CreateEntity(ComponentType.FixedArray(typeof(int), 64));
-	        var entity10 = m_Manager.CreateEntity(ComponentType.FixedArray(typeof(int), 10));
+            /*var entity64 =*/ m_Manager.CreateEntity(ComponentType.FixedArray(typeof(int), 64));
+	        /*var entity10 =*/ m_Manager.CreateEntity(ComponentType.FixedArray(typeof(int), 10));
 
             var group = m_Manager.CreateComponentGroup(typeof(int));
 

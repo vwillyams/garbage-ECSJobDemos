@@ -42,7 +42,12 @@ namespace UnityEngine.ECS.Tests
 
             var fence = job.Schedule();
             
-            Assert.Throws<System.InvalidOperationException>(() => { var f = job.data[0].value; });
+            Assert.Throws<System.InvalidOperationException>(() =>
+            {
+                var f = job.data[0].value;
+                // ReSharper disable once ReturnValueOfPureMethodIsNotUsed
+                f.GetHashCode();
+            });
 
             fence.Complete();
             Assert.AreEqual(43, job.data[0].value);
@@ -66,7 +71,7 @@ namespace UnityEngine.ECS.Tests
         public void DestroyEntityCompletesScheduledJobs()
         {
             var entity = m_Manager.CreateEntity(typeof(EcsTestData));
-            var entity2 = m_Manager.CreateEntity(typeof(EcsTestData));
+            /*var entity2 =*/ m_Manager.CreateEntity(typeof(EcsTestData));
             var group = m_Manager.CreateComponentGroup(typeof(EcsTestData));
 
             var job = new TestIncrementJob();
@@ -86,7 +91,7 @@ namespace UnityEngine.ECS.Tests
         {
             LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("job is still running"));
 
-            var entity = m_Manager.CreateEntity(typeof(EcsTestData));
+            /*var entity =*/ m_Manager.CreateEntity(typeof(EcsTestData));
             var group = m_Manager.CreateComponentGroup(typeof(EcsTestData));
 
             var job = new TestIncrementJob();

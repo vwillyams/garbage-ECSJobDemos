@@ -152,7 +152,7 @@ namespace UnityEngine.ECS.Tests
             World.Active = world;
 
             var entityMan = world.CreateManager<EntityManager>();
-            var deferredMan = world.CreateManager<DeferredEntityChangeSystem>();
+            world.CreateManager<DeferredEntityChangeSystem>();
             var testMan = world.CreateManager<TestEntitySystem>();
      
             entityMan.CreateEntity(typeof(EcsTestData));

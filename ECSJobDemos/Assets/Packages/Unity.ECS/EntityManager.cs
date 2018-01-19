@@ -64,13 +64,13 @@ namespace UnityEngine.ECS
             m_Entities = (EntityDataManager*)UnsafeUtility.Malloc(sizeof(EntityDataManager), 64, Allocator.Persistent);
             m_Entities->OnCreate(capacity);
 
-            m_SharedComponentManager = new SharedComponentDataManager();
-            m_ArchetypeManager = new ArchetypeManager(m_SharedComponentManager);
-            m_JobSafetyManager = new ComponentJobSafetyManager();
-            m_GroupManager = new EntityGroupManager(m_JobSafetyManager);
             if (m_SharedComponentManager == null)
                 m_SharedComponentManager = new SharedComponentDataManager();
             m_SharedComponentManager.Retain();
+
+            m_ArchetypeManager = new ArchetypeManager(m_SharedComponentManager);
+            m_JobSafetyManager = new ComponentJobSafetyManager();
+            m_GroupManager = new EntityGroupManager(m_JobSafetyManager);
 
             m_EntityTransaction = new EntityTransaction(m_ArchetypeManager, m_Entities);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -85,8 +85,6 @@ namespace UnityEngine.ECS
         protected override void OnDestroyManager()
         {
             m_JobSafetyManager.Dispose(); m_JobSafetyManager = null;
-            if (m_SharedComponentManager.Release())
-                m_SharedComponentManager = null;
 
             m_Entities->OnDestroy();
             UnsafeUtility.Free(m_Entities, Allocator.Persistent);
@@ -94,6 +92,9 @@ namespace UnityEngine.ECS
             m_ArchetypeManager.Dispose(); m_ArchetypeManager = null;
             m_GroupManager.Dispose(); m_GroupManager = null;
             m_EntityTransaction.OnDestroyManager();
+
+            if (m_SharedComponentManager.Release())
+                m_SharedComponentManager = null;
 
             UnsafeUtility.Free(m_CachedComponentTypeArray, Allocator.Persistent);
             m_CachedComponentTypeArray = null;

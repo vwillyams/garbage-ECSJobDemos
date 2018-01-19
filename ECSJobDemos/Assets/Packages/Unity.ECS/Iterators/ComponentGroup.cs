@@ -327,8 +327,7 @@ namespace UnityEngine.ECS
                         var archeType = match->archetype;
                         for (Chunk* c = (Chunk*)archeType->chunkList.Begin(); c != archeType->chunkList.End(); c = (Chunk*)c->chunkListNode.next)
                         {
-                            //TODO: optimize this!
-                            if (ChunkMatchesFilter(archeType, c, match))
+                            if (ComponentChunkIterator.ChunkMatchesFilter(match, c, m_filteredSharedComponents))
                             {
                                 if (c->count > 0)
                                 {
@@ -460,24 +459,6 @@ namespace UnityEngine.ECS
                 throw new InvalidOperationException(string.Format("Trying to get a component group variation for {0} but the required component type was not declared in the ComponentGroup.", typeof(T)));
 #endif
             return componentIndex;
-        }
-
-        bool ChunkMatchesFilter(Archetype* archeType, Chunk* chunk, MatchingArchetypes* match)
-        {
-            int* sharedComponentsInChunk = chunk->GetSharedComponentValueArray();
-            int filteredCount = m_filteredSharedComponents[0];
-            var filtered = m_filteredSharedComponents + 1;
-            for(int i=0; i<filteredCount; ++i)
-            {
-                int componetIndexInComponentGroup = filtered[i * 2];
-                int sharedComponentIndex = filtered[i * 2 + 1];
-                int componentIndexInArcheType = match->GetTypeIndexInArchetypeArray()[componetIndexInComponentGroup];
-                int componentIndexInChunk = archeType->sharedComponentOffset[componentIndexInArcheType];
-                if (sharedComponentsInChunk[componentIndexInChunk] != sharedComponentIndex)
-                    return false;
-            }
-
-            return true;
         }
 
         public ComponentGroup GetVariation<SharedComponent1>(SharedComponent1 sharedComponent1)

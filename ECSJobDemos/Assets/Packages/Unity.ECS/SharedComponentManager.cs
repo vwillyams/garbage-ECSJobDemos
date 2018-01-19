@@ -103,11 +103,5 @@ namespace UnityEngine.ECS
                 m_SharedComponentData[index] = null;
             }
         }
-
-        // Should only be used in tests
-        public int GetReferenceCount(int index)
-        {
-            return m_SharedComponentRefCount[index];
-        }
     }
 }

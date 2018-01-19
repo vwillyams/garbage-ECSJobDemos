@@ -167,6 +167,7 @@ namespace UnityEngine.ECS
 		public ArchetypeManager(SharedComponentDataManager sharedComponentManager)
 		{
 		    m_SharedComponentManager = sharedComponentManager;
+		    m_SharedComponentManager.Retain();
 			m_TypeLookup = new NativeMultiHashMap<uint, IntPtr>(256, Allocator.Persistent);
 
 		    m_EmptyChunkPool = (UnsafeLinkedListNode*)m_ArchetypeChunkAllocator.Allocate(sizeof(UnsafeLinkedListNode), UnsafeUtility.AlignOf<UnsafeLinkedListNode>());
@@ -200,6 +201,7 @@ namespace UnityEngine.ECS
 
 			m_TypeLookup.Dispose();
 			m_ArchetypeChunkAllocator.Dispose();
+		    m_SharedComponentManager.Release();
 		}
 
 		public unsafe void AddManagedObjectModificationListener(Archetype* archetype, int typeIdx, IManagedObjectModificationListener listener)
@@ -241,8 +243,6 @@ namespace UnityEngine.ECS
 					throw new ArgumentException($"It is not allowed to have two components of the same type on the same entity. ({types[i-1]} and {types[i]})");
 			}
 		}
-
-
 
         public Archetype* GetArchetype(ComponentTypeInArchetype* types, int count, EntityGroupManager groupManager)
 		{
@@ -329,8 +329,6 @@ namespace UnityEngine.ECS
 				}
 			}
 
-
-
 		    if (type->numSharedComponents > 0)
 		    {
 		        type->sharedComponentOffset = (int*)m_ArchetypeChunkAllocator.Allocate (sizeof(int) * count, 4);
@@ -364,6 +362,7 @@ namespace UnityEngine.ECS
 	        int headerSize = sizeof(Chunk) + numSharedComponents * sizeof(int);
 	        return (headerSize + 63) & ~63;
 	    }
+
         public static int GetChunkBufferSize(int numSharedComponents)
         {
             int bufferOffset = GetBufferOffset(numSharedComponents);
@@ -439,7 +438,6 @@ namespace UnityEngine.ECS
 			else
 				chunk->managedArrayIndex = -1;
 
-
             if (archetype->numSharedComponents > 0)
             {
                 int* sharedComponentValueArray = chunk->GetSharedComponentValueArray();
@@ -482,7 +480,6 @@ namespace UnityEngine.ECS
 	        return true;
 	    }
 
-	    // length of sharedComponentDataIndices must match archetype->numSharedComponents
         public Chunk* GetChunkWithEmptySlots(Archetype* archetype, int* sharedComponentDataIndices)
         {
             // Try existing archetype chunks

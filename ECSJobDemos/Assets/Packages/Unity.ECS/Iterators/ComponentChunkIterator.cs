@@ -27,14 +27,14 @@ namespace UnityEngine.ECS
 
 
         [NativeDisableUnsafePtrRestriction]
+        // The first element is the amount of filtered components
         int*                                    m_filteredSharedComponents;
 
-        //TODO: this function is identical to ComponentGroup.ChunkMatchesFilter
-        bool ChunkMatchesFilter(MatchingArchetypes* match, Chunk* chunk)
+        internal static bool ChunkMatchesFilter(MatchingArchetypes* match, Chunk* chunk, int* filteredSharedComponents)
         {
             int* sharedComponentsInChunk = chunk->GetSharedComponentValueArray();
-            int filteredCount = m_filteredSharedComponents[0];
-            var filtered = m_filteredSharedComponents + 1;
+            int filteredCount = filteredSharedComponents[0];
+            var filtered = filteredSharedComponents + 1;
             for(int i=0; i<filteredCount; ++i)
             {
                 int componetIndexInComponentGroup = filtered[i * 2];
@@ -53,7 +53,7 @@ namespace UnityEngine.ECS
             var m = m_CurrentMatchingArchetype;
             var c = m_CurrentChunk;
             var e = (Chunk*)m->archetype->chunkList.End();
-            //TODO: can empty chunks be encountered here?
+
             do
             {
                 c = (Chunk*)c->chunkListNode.next;
@@ -72,7 +72,7 @@ namespace UnityEngine.ECS
                     c = (Chunk*)m->archetype->chunkList.Begin();
                     e = (Chunk*)m->archetype->chunkList.End();
                 }
-            } while (!(ChunkMatchesFilter(m, c) && (c->capacity > 0)));
+            } while (!(ChunkMatchesFilter(m, c, m_filteredSharedComponents) && (c->capacity > 0)));
             m_CurrentMatchingArchetype = m;
             m_CurrentChunk = c;
         }
@@ -151,7 +151,7 @@ namespace UnityEngine.ECS
 
                     m_CurrentChunk = (Chunk*) m_CurrentMatchingArchetype->archetype->chunkList.Begin();
                     m_CurrentChunkIndex = 0;
-                    if (!(ChunkMatchesFilter(m_CurrentMatchingArchetype, m_CurrentChunk) &&
+                    if (!(ChunkMatchesFilter(m_CurrentMatchingArchetype, m_CurrentChunk, m_filteredSharedComponents) &&
                           (m_CurrentChunk->count > 0)))
                     {
                         MoveToNextMatchingChunk();

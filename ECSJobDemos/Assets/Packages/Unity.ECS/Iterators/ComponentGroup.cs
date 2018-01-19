@@ -230,7 +230,7 @@ namespace UnityEngine.ECS
                 for(int i=0; i<filteredCount; ++i)
                 {
                     int sharedComponentIndex = filtered[i * 2 + 1];
-                    EntityManager.m_SharedComponentManager.RemoveReference(sharedComponentIndex);
+                    m_TypeManager.GetSharedComponentDataManager().RemoveReference(sharedComponentIndex);
                 }
 
                 UnsafeUtility.Free(m_filteredSharedComponents, Allocator.Temp);
@@ -475,7 +475,7 @@ namespace UnityEngine.ECS
 
             filtered[0] = filteredCount;
             filtered[1] = componetIndex1;
-            filtered[2] = EntityManager.m_SharedComponentManager.InsertSharedComponent(sharedComponent1);
+            filtered[2] = m_TypeManager.GetSharedComponentDataManager().InsertSharedComponent(sharedComponent1);
 
             return variationComponentGroup;
         }
@@ -496,9 +496,9 @@ namespace UnityEngine.ECS
 
             filtered[0] = filteredCount;
             filtered[1] = componetIndex1;
-            filtered[2] = EntityManager.m_SharedComponentManager.InsertSharedComponent(sharedComponent1);
+            filtered[2] = m_TypeManager.GetSharedComponentDataManager().InsertSharedComponent(sharedComponent1);
             filtered[3] = componetIndex2;
-            filtered[4] = EntityManager.m_SharedComponentManager.InsertSharedComponent(sharedComponent2);
+            filtered[4] = m_TypeManager.GetSharedComponentDataManager().InsertSharedComponent(sharedComponent2);
 
             return variationComponentGroup;
         }

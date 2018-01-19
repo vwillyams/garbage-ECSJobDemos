@@ -42,16 +42,16 @@ namespace UnityEngine.ECS
 
     public unsafe class EntityManager : ScriptBehaviourManager
     {
-        EntityDataManager* m_Entities;
+        EntityDataManager*                m_Entities;
 
-        internal ArchetypeManager m_ArchetypeManager;
-        EntityGroupManager m_GroupManager;
-        ComponentJobSafetyManager m_JobSafetyManager;
+        ArchetypeManager                  m_ArchetypeManager;
+        EntityGroupManager                m_GroupManager;
+        ComponentJobSafetyManager         m_JobSafetyManager;
 
-        //TODO:
-        internal static SharedComponentDataManager m_SharedComponentManager;
+        static SharedComponentDataManager m_SharedComponentManager;
 
-		EntityTransaction                 m_EntityTransaction;
+        EntityTransaction                 m_EntityTransaction;
+
         ComponentType*             m_CachedComponentTypeArray;
         ComponentTypeInArchetype*  m_CachedComponentTypeInArchetypeArray;
 
@@ -317,7 +317,7 @@ namespace UnityEngine.ECS
             }
             Archetype* newType = m_ArchetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, archetype->typesCount + 1, m_GroupManager);
 
-            bool newComponentIsShared = false;;
+            bool newComponentIsShared = false;
 
             int* sharedComponentDataIndices = null;
 

@@ -485,7 +485,6 @@ namespace UnityEngine.ECS
         {
             Chunk* chunk = m_Entities[entity.index].chunk;
             int* sharedComponentValueArray = chunk->GetSharedComponentValueArray();
-            //TODO: bounds check
             int sharedComponentOffset = m_Entities[entity.index].archetype->sharedComponentOffset[indexInTypeArray];
             return sharedComponentValueArray[sharedComponentOffset];
         }

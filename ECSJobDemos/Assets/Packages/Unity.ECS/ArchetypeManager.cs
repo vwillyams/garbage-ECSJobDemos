@@ -739,5 +739,10 @@ namespace UnityEngine.ECS
 
 	        return totalCount;
 	    }
+
+	    internal SharedComponentDataManager GetSharedComponentDataManager()
+	    {
+	        return m_SharedComponentManager;
+	    }
 	}
 }

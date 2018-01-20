@@ -213,7 +213,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
         }
     }
 
-
+    [ComputeJobOptimization]
     struct CalculateToCreateAndDestroyChunks : IJob
     {
         //@TODO: Would be nice if this could be a local variable in the job...

@@ -6,20 +6,15 @@ using Unity.Multiplayer;
 
 using Unity.Collections.LowLevel.Unsafe;
 
+using PlayerState = PlayerStateComponentData.PlayerState;
+
 namespace Asteriods.Server
 {
-    [UpdateAfter(typeof(DamageSystem))]
+    //[UpdateAfter(typeof(DamageSystem))]
     public class NetworkEventSystem : ComponentSystem
     {
-        struct Players
-        {
-            public int Length;
-            public ComponentDataArray<PlayerStateComponentData> state;
-        }
-
-        [InjectComponentGroup]
-        Players players;
-
+        [Inject]
+        NetworkStateSystem m_NetworkStateSystem;
 
         [Inject]
         SteeringSystem m_SteeringSystem;
@@ -29,25 +24,18 @@ namespace Asteriods.Server
 
         NetworkServer m_NetworkServer;
 
-        NativeHashMap<int, Entity> m_Connections;
-
         override protected void OnCreateManager(int capacity)
         {
             base.OnCreateManager(capacity);
             this.m_NetworkServer = ServerSettings.Instance().networkServer;
-            m_Connections = new NativeHashMap<int, Entity>(10, Allocator.Persistent);
         }
 
         override protected void OnDestroyManager()
         {
-            if (m_Connections.IsCreated)
-                m_Connections.Dispose();
         }
-
 
         unsafe override protected void OnUpdate()
         {
-            var readyPlayers = new NativeList<int>(Allocator.Temp);
             if (!m_NetworkServer.IsCreated)
             {
                 return;
@@ -57,7 +45,7 @@ namespace Asteriods.Server
             NetworkConnection connection;
             while (m_NetworkServer.TryPopConnectionQueue(out connection))
             {
-                m_Connections.TryAdd(connection.Id, m_SpawnSystem.CreatePlayer(connection));
+                m_NetworkStateSystem.PlayerCreate(connection);
                 Debug.Log("OnConnect: ConnectionId = " + connection.Id);
             }
 
@@ -77,39 +65,105 @@ namespace Asteriods.Server
                         for (int i = 0, s = command.InputCommands.Length; i < s; ++i)
                         {
                             var e = command.InputCommands[i];
-                            m_SteeringSystem.playerInputQueue.Enqueue(e);
+                            m_NetworkStateSystem.PlayerUpdate(id, e);
+                            //m_SteeringSystem.playerInputQueue.Enqueue(e);
 
-                            if (e.shoot == 1)
-                            {
-                                m_SpawnSystem.IncommingSpawnQueue.Enqueue(new SpawnCommand(0, (int)SpawnType.Bullet, default(PositionComponentData), default(RotationComponentData)));
-                            }
+                            //if (e.shoot == 1)
+                            //{
+                                //m_SpawnSystem.IncommingSpawnQueue.Enqueue(new SpawnCommand(0, (int)SpawnType.Bullet, default(PositionComponentData), default(RotationComponentData)));
+                            //}
                         }
                     }
                 }
                 else if (type == (byte)AsteroidsProtocol.ReadyReq)
                 {
-                    Entity e;
-
-                    var buffer = new NativeArray<byte>(16, Allocator.Temp);
-
-                    var bw = new ByteWriter(buffer.GetUnsafePtr(), buffer.Length);
-                    bw.Write((byte)AsteroidsProtocol.ReadyRsp);
-
-                    //Debug.Log(bw.GetBytesWritten());
-                    m_NetworkServer.WriteMessage(buffer.Slice(0, bw.GetBytesWritten()));
-
-                    buffer.Dispose();
-
-                    m_Connections.TryGetValue(id, out e);
-                    m_SpawnSystem.SpawnPlayer(e);
+                    Debug.Log("ready req from " + id);
+                    var nc = new NetworkConnection(id);
+                    m_NetworkStateSystem.PlayerSetReady(nc);
                 }
 
                 int read_bytes = br.GetBytesRead();
                 Debug.Assert(message.Length == read_bytes);
             }
+        }
+    }
 
-            readyPlayers.Dispose();
+    public class NetworkStateSystem : ComponentSystem
+    {
+        int m_NetworkId;
+
+        NativeHashMap<int, Entity> m_Connections;
+        NativeQueue<int> m_ReadyConnections;
+
+        override protected void OnCreateManager(int capacity)
+        {
+            base.OnCreateManager(capacity);
+            m_Connections = new NativeHashMap<int, Entity>(10, Allocator.Persistent);
+            m_ReadyConnections = new NativeQueue<int>(Allocator.Persistent);
         }
 
+        override protected void OnDestroyManager()
+        {
+            if (m_Connections.IsCreated)
+                m_Connections.Dispose();
+
+            if (m_ReadyConnections.IsCreated)
+                m_ReadyConnections.Dispose();
+        }
+
+        unsafe override protected void OnUpdate()
+        {
+        }
+
+        public int GetNextNetworkId()
+        {
+            return m_NetworkId++;
+        }
+
+        public void PlayerCreate(NetworkConnection nc)
+        {
+            var e = EntityManager.CreateEntity(ServerSettings.Instance().playerArchetype);
+
+            var id = GetNextNetworkId();
+
+            EntityManager.SetComponent<EntityTypeComponentData>(e, new EntityTypeComponentData() { Type = (int)SpawnType.Ship });
+            EntityManager.SetComponent<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(id));
+            EntityManager.SetComponent<PlayerStateComponentData>(e, new PlayerStateComponentData(PlayerState.Loading));
+
+            m_Connections.TryAdd(nc.Id, e);
+        }
+
+        public void PlayerSetReady(NetworkConnection nc)
+        {
+            Entity e;
+            if (!m_Connections.TryGetValue(nc.Id, out e))
+                return;
+
+            var s = EntityManager.GetComponent<PlayerStateComponentData>(e);
+            if (s.State >= (int)PlayerState.Ready)
+                return;
+
+            EntityManager.SetComponent<PlayerStateComponentData>(e, new PlayerStateComponentData(PlayerState.Ready));
+            m_ReadyConnections.Enqueue(nc.Id);
+        }
+
+        public void PlayerUpdate(int nid, PlayerInputComponentData input)
+        {
+            Entity e;
+            if (!m_Connections.TryGetValue(nid, out e))
+                return;
+
+            EntityManager.SetComponent<PlayerInputComponentData>(e, input);
+        }
+
+        public bool PlayerTryGetReady(out int id, out Entity e)
+        {
+            if (!m_ReadyConnections.TryDequeue(out id))
+            {
+                e = Entity.Null;
+                return false;
+            }
+            return m_Connections.TryGetValue(id, out e);
+        }
     }
 }

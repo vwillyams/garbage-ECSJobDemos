@@ -23,6 +23,20 @@ public enum SpawnType
     Bullet
 }
 
+
+public struct ReadyRsp : INetworkedMessage
+{
+    public int NetworkId;
+    public void Serialize(ref ByteWriter writer)
+    {
+        writer.Write(NetworkId);
+    }
+    public void Deserialize(ref ByteReader reader)
+    {
+        NetworkId = reader.ReadInt();
+    }
+}
+
 public struct Command : INetworkedMessage, IDisposable
 {
     int sequence;

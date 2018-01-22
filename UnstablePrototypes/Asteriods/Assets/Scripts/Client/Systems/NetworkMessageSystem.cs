@@ -69,11 +69,13 @@ namespace Asteriods.Client
             {
                 for (int i = 0; i < data.Length; ++i)
                 {
+                    /*
                     if (data.input[i].left == 0 &&
                         data.input[i].right == 0 &&
                         data.input[i].shoot == 0 &&
                         data.input[i].thrust == 0)
                         continue;
+                    */
                     command.InputCommands.Add(data.input[i]);
                 }
                 if (command.InputCommands.Length == 0)

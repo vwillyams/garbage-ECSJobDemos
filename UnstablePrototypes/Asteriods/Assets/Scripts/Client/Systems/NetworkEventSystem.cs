@@ -16,6 +16,8 @@ namespace Asteriods.Client
         {
             public int Length;
             public ComponentDataArray<PlayerStateComponentData> state;
+            public ComponentDataArray<NetworkIdCompmonentData> nid;
+            public ComponentDataArray<ShipInfoComponentData> ship;
             public ComponentDataArray<PlayerTagComponentData> self;
         }
 
@@ -45,6 +47,11 @@ namespace Asteriods.Client
             m_StateMachine.Add(PlayerState.Loading, null, UpdateLoadingState, null);
             m_StateMachine.Add(PlayerState.Playing, null, UpdatePlayState, null);
 
+            var player = EntityManager.CreateEntity(ClientSettings.Instance().playerClientArchetype);
+            var ship = EntityManager.CreateEntity(ClientSettings.Instance().playerBaseShipArchetype);
+
+            EntityManager.SetComponent<ShipInfoComponentData>(player, new ShipInfoComponentData(ship));
+
             m_StateMachine.SwitchTo(PlayerState.None);
         }
 
@@ -73,7 +80,6 @@ namespace Asteriods.Client
 
         void UpdateIdleState()
         {
-            Entity e = EntityManager.CreateEntity(ClientSettings.Instance().playerClientArchetype);
 
             SwitchState(PlayerState.Connecting);
         }
@@ -121,6 +127,14 @@ namespace Asteriods.Client
                 else if (type == (byte)AsteroidsProtocol.ReadyRsp &&
                          m_StateMachine.CurrentState() == PlayerState.Loading)
                 {
+                    var msg = new ReadyRsp();
+                    msg.Deserialize(ref br);
+
+                    player.nid[0] = new NetworkIdCompmonentData(msg.NetworkId);
+                    m_SpawnSystem.SetPlayerShip(player.ship[0].entity, msg.NetworkId);
+
+                    //player.ship[0] = new ShipInfoComponentData(m_SpawnSystem.SpawnPlayerShip(msg.NetworkId));
+
                     SwitchState(PlayerState.Playing);
                 }
 

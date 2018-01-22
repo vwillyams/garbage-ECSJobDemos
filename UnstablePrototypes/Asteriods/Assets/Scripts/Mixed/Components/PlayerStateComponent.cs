@@ -13,8 +13,8 @@ public struct PlayerStateComponentData : IComponentData
         None,
         Connecting,
         Loading,
-        Playing,
         Ready,
+        Playing,
         Alive,
         Dead
     }

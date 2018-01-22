@@ -35,6 +35,11 @@ namespace Asteriods.Client
                 Entity e;
                 if (m_SpawnSystem.NetworkIdLookup.TryGetValue(update.id, out e) && EntityManager.Exists(e))
                 {
+                    if (!EntityManager.HasComponent<PositionComponentData>(e))
+                    {
+                        Debug.Log("Missing component Position on " + update.id);
+                        continue;
+                    }
                     EntityManager.SetComponent(e, new PositionComponentData(update.position.x, update.position.y));
                     EntityManager.SetComponent(e, new RotationComponentData(update.rotation.angle));
                 }

@@ -39,9 +39,8 @@ namespace Asteriods.Client
             public ComponentDataArray<RotationComponentData> rotation;
             public ComponentDataArray<ParticleVelocityComponentData> velocity;
             public ComponentDataArray<ParticleAgeComponentData> age;
-
-
         }
+
         [ComputeJobOptimization]
         struct ParticleIntializeJob : IJobParallelFor
         {

@@ -17,6 +17,7 @@ namespace Asteriods.Server
             public int Length;
             public ComponentDataArray<VelocityComponentData> steering;
             public ComponentDataArray<PositionComponentData> positions;
+            public ComponentDataArray<PlayerInputComponentData> inputs;
             public ComponentDataArray<RotationComponentData> rotations;
             ComponentDataArray<PlayerTagComponentData> tags;
         }
@@ -45,14 +46,14 @@ namespace Asteriods.Server
 
             float dt = Time.deltaTime;
 
-            var rot = spaceships.rotations[0];
-            float angle = rot.angle;//;spaceships.steering[0].angle;
-            float dx = spaceships.steering[0].dx;
-            float dy = spaceships.steering[0].dy;
-
-            if (playerInputQueue.Count > 0)
+            for (int i = 0, s = spaceships.Length; i < s; ++i)
             {
-                PlayerInputComponentData input = playerInputQueue.Dequeue();
+                var rot = spaceships.rotations[i];
+                float angle = rot.angle;//;spaceships.steering[0].angle;
+                float dx = spaceships.steering[i].dx;
+                float dy = spaceships.steering[i].dy;
+
+                PlayerInputComponentData input = spaceships.inputs[i];
 
                 if (input.left == 1)
                 {
@@ -67,13 +68,15 @@ namespace Asteriods.Server
                     dx -= math.sin(math.radians(angle)) * ServerSettings.Instance().playerForce * dt;
                     dy += math.cos(math.radians(angle)) * ServerSettings.Instance().playerForce * dt;
                 }
+
+                var pos = spaceships.positions[i];
+
+                spaceships.positions[i] = new PositionComponentData(pos.x + dx, pos.y + dy);
+                spaceships.rotations[i] = new RotationComponentData(angle);
+                spaceships.steering[i] = new VelocityComponentData(dx, dy);
             }
 
-            var pos = spaceships.positions[0];
 
-            spaceships.positions[0] = new PositionComponentData(pos.x + dx, pos.y + dy);
-            spaceships.rotations[0] = new RotationComponentData(angle);
-            spaceships.steering[0] = new VelocityComponentData(dx, dy);
         }
     }
 }

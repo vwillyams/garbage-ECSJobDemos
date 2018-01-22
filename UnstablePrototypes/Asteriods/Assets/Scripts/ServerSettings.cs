@@ -46,10 +46,11 @@ public class ServerSettings
         bulletVelocity = 10f;
 
         playerArchetype = manager.CreateArchetype(
+            //typeof(CollisionSphereComponentData),
+            typeof(PlayerInputComponentData),
             typeof(PositionComponentData),
             typeof(RotationComponentData),
             typeof(PlayerTagComponentData),
-            //typeof(CollisionSphereComponentData),
             typeof(NetworkIdCompmonentData),
             typeof(VelocityComponentData),
             typeof(EntityTypeComponentData),

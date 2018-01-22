@@ -9,6 +9,7 @@ public class ClientSettings
 
     public EntityArchetype playerClientArchetype;
     public EntityArchetype shipArchetype;
+    public EntityArchetype playerBaseShipArchetype;
     public EntityArchetype asteroidClientArchetype;
     public EntityArchetype bulletClientArchetype;
     public NetworkClient networkClient;
@@ -35,16 +36,26 @@ public class ClientSettings
         playerPrefab = Resources.Load("Prefabs/Ship") as GameObject;
         var manager = world.GetOrCreateManager<EntityManager>();
 
+        playerBaseShipArchetype = manager.CreateArchetype(
+            typeof(ShipTagComponentData),
+            typeof(ShipStateComponentData),
+            //typeof(PositionComponentData),
+            //typeof(RotationComponentData),
+            //typeof(ParticleEmitterComponentData),
+            typeof(NetworkIdCompmonentData));
+
         shipArchetype = manager.CreateArchetype(
+            typeof(ShipTagComponentData),
+            typeof(ShipStateComponentData),
             typeof(PositionComponentData),
             typeof(RotationComponentData),
-            typeof(ShipTagComponentData),
-            typeof(NetworkIdCompmonentData),
-            typeof(PlayerStateComponentData),
-            typeof(ParticleEmitterComponentData));
+            typeof(ParticleEmitterComponentData),
+            typeof(NetworkIdCompmonentData));
+
 
         playerClientArchetype = manager.CreateArchetype(
             typeof(PlayerTagComponentData),
+            typeof(ShipInfoComponentData),
             typeof(PlayerInputComponentData),
             typeof(NetworkIdCompmonentData),
             typeof(PlayerStateComponentData));

@@ -14,11 +14,15 @@ namespace Asteriods.Client
         {
             public int Length;
             [ReadOnly]
-            public ComponentDataArray<PlayerTagComponentData> self;
+            public ComponentDataArray<ShipTagComponentData> self;
             [ReadOnly]
-            public ComponentDataArray<PlayerInputComponentData> input;
+            public ComponentDataArray<ShipStateComponentData> state;
+
+            //[ReadOnly]
+            //public ComponentDataArray<PlayerInputComponentData> input;
             public ComponentDataArray<ParticleEmitterComponentData> emitter;
         }
+
         [InjectComponentGroup]
         Spaceships spaceships;
 
@@ -27,7 +31,7 @@ namespace Asteriods.Client
             for (int i = 0; i < spaceships.Length; ++i)
             {
                 var emitter = spaceships.emitter[i];
-                emitter.active = spaceships.input[i].thrust;
+                emitter.active = spaceships.state[i].State;
                 spaceships.emitter[i] = emitter;
             }
         }
@@ -43,9 +47,9 @@ namespace Asteriods.Client
         {
             public int Length;
             [ReadOnly]
-            public ComponentDataArray<PlayerTagComponentData> self;
-            [ReadOnly]
-            public ComponentDataArray<PlayerInputComponentData> input;
+            public ComponentDataArray<ShipTagComponentData> self;
+            //[ReadOnly]
+            //public ComponentDataArray<PlayerInputComponentData> input;
             [ReadOnly]
             public ComponentDataArray<PositionComponentData> position;
             [ReadOnly]

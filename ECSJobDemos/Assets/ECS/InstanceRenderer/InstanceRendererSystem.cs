@@ -1,6 +1,8 @@
 ﻿using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
+using System.Collections.Generic;
+
 namespace UnityEngine.ECS.Rendering
 {
 	[UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.PreLateUpdate.ParticleSystemBeginUpdateAll))]
@@ -24,22 +26,21 @@ namespace UnityEngine.ECS.Rendering
             }
         }
 
-
         protected override void OnUpdate()
 		{
-            var uniqueRendererTypes = new NativeList<ComponentType>(10, Allocator.TempJob);
-            EntityManager.GetAllUniqueSharedComponents(typeof(InstanceRenderer), uniqueRendererTypes);
+            var uniqueRendererTypes = new List<InstanceRenderer>(10);
 
-            //@TODO: Do cleanup when renderer type is no longer being used...
+		    var maingroup = EntityManager.CreateComponentGroup(typeof(InstanceRenderer), typeof(InstanceRendererTransform));
 
-            for (int i = 0;i != uniqueRendererTypes.Length;i++)
+		    maingroup.CompleteDependency();
+
+            EntityManager.GetAllUniqueSharedComponents(uniqueRendererTypes);
+
+            for (int i = 0;i != uniqueRendererTypes.Count;i++)
             {
-                var uniqueType = uniqueRendererTypes[i];
-                var renderer = EntityManager.GetSharedComponentData<InstanceRenderer>(uniqueType);
+                var renderer = uniqueRendererTypes[i];
 
-                var group = EntityManager.CreateComponentGroup(uniqueType, typeof(InstanceRendererTransform));
-
-                group.CompleteDependency();
+                var group = maingroup.GetVariation(renderer);
 
                 var transforms = group.GetComponentDataArray<InstanceRendererTransform>();
 
@@ -56,7 +57,7 @@ namespace UnityEngine.ECS.Rendering
                 group.Dispose();
             }
 
-            uniqueRendererTypes.Dispose();
+		    maingroup.Dispose();
 		}
 
 		protected override void OnCreateManager (int capacity)

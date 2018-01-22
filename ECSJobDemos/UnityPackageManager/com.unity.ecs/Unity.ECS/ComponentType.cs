@@ -21,7 +21,6 @@ namespace UnityEngine.ECS
         {
             ComponentType type;
             type.typeIndex = TypeManager.GetTypeIndex<T>();
-            type.sharedComponentIndex = -1;
             type.accessMode = AccessMode.ReadWrite;
             type.FixedArrayLength = -1;
             return type;
@@ -31,7 +30,6 @@ namespace UnityEngine.ECS
         {
             ComponentType t;
             t.typeIndex = TypeManager.GetTypeIndex(type);
-            t.sharedComponentIndex = -1;
             t.accessMode = AccessMode.ReadOnly;
             t.FixedArrayLength = -1;
             return t;
@@ -40,7 +38,6 @@ namespace UnityEngine.ECS
         {
             ComponentType t;
             t.typeIndex = TypeManager.GetTypeIndex<T>();
-            t.sharedComponentIndex = -1;
             t.accessMode = AccessMode.ReadOnly;
             t.FixedArrayLength = -1;
             return t;
@@ -50,7 +47,6 @@ namespace UnityEngine.ECS
         {
             ComponentType t;
             t.typeIndex = TypeManager.GetTypeIndex(type);
-            t.sharedComponentIndex = -1;
             t.accessMode = AccessMode.Subtractive;
             t.FixedArrayLength = -1;
             return t;
@@ -59,7 +55,6 @@ namespace UnityEngine.ECS
         {
             ComponentType t;
             t.typeIndex = TypeManager.GetTypeIndex<T>();
-            t.sharedComponentIndex = -1;
             t.accessMode = AccessMode.Subtractive;
             t.FixedArrayLength = -1;
             return t;
@@ -68,21 +63,19 @@ namespace UnityEngine.ECS
         public ComponentType(Type type, AccessMode accessMode = AccessMode.ReadWrite)
         {
             typeIndex = TypeManager.GetTypeIndex(type);
-            sharedComponentIndex = -1;
             this.accessMode = accessMode;
             FixedArrayLength = -1;
         }
-        
+
         public static ComponentType FixedArray(Type type, int numElements)
         {
             #if ENABLE_UNITY_COLLECTIONS_CHECKS
             if (numElements < 0)
                 throw new System.ArgumentException("FixedArray length must be 0 or larger");
             #endif
-            
+
             ComponentType t;
             t.typeIndex = TypeManager.GetTypeIndex(type);
-            t.sharedComponentIndex = -1;
             t.accessMode = AccessMode.ReadWrite;
             t.FixedArrayLength = numElements;
             return t;
@@ -113,7 +106,7 @@ namespace UnityEngine.ECS
         static public bool operator <(ComponentType lhs, ComponentType rhs)
         {
             if (lhs.typeIndex == rhs.typeIndex)
-                return lhs.sharedComponentIndex != rhs.sharedComponentIndex ? lhs.sharedComponentIndex < rhs.sharedComponentIndex : lhs.accessMode < rhs.accessMode;
+                return lhs.FixedArrayLength != rhs.FixedArrayLength ? lhs.FixedArrayLength < rhs.FixedArrayLength : lhs.accessMode < rhs.accessMode;
             else
                 return lhs.typeIndex < rhs.typeIndex;
 
@@ -125,11 +118,11 @@ namespace UnityEngine.ECS
 
         static public bool operator ==(ComponentType lhs, ComponentType rhs)
         {
-            return lhs.typeIndex == rhs.typeIndex && lhs.sharedComponentIndex == rhs.sharedComponentIndex && lhs.accessMode == rhs.accessMode;
+            return lhs.typeIndex == rhs.typeIndex && lhs.FixedArrayLength == rhs.FixedArrayLength && lhs.accessMode == rhs.accessMode;
         }
         static public bool operator !=(ComponentType lhs, ComponentType rhs)
         {
-            return lhs.typeIndex != rhs.typeIndex || lhs.sharedComponentIndex != rhs.sharedComponentIndex && lhs.accessMode == rhs.accessMode;
+            return lhs.typeIndex != rhs.typeIndex || lhs.FixedArrayLength != rhs.FixedArrayLength && lhs.accessMode == rhs.accessMode;
         }
 
         unsafe static internal bool CompareArray(ComponentType* type1, int typeCount1, ComponentType* type2, int typeCount2)
@@ -148,7 +141,6 @@ namespace UnityEngine.ECS
 
         public int typeIndex;
         public AccessMode accessMode;
-        public int sharedComponentIndex;
         public int FixedArrayLength;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS

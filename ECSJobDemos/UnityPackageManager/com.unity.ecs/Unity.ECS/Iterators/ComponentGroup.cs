@@ -107,17 +107,13 @@ namespace UnityEngine.ECS
             {
                 while (archetype->types[typeI].typeIndex < group->requiredComponents[i].typeIndex && typeI < archetype->typesCount)
                     ++typeI;
-                
+
                 bool hasComponent = true;
                 if (typeI >= archetype->typesCount)
                     hasComponent = false;
 
                 // Type mismatch
                 if (hasComponent && archetype->types[typeI].typeIndex != group->requiredComponents[i].typeIndex)
-                    hasComponent = false;
-
-                // We are looking for a specific shared type index and it doesn't match
-                if (hasComponent && group->requiredComponents[i].sharedComponentIndex != -1 && archetype->types[typeI].sharedComponentIndex != group->requiredComponents[i].sharedComponentIndex)
                     hasComponent = false;
 
                 if (hasComponent && group->requiredComponents[i].accessMode == ComponentType.AccessMode.Subtractive)
@@ -129,22 +125,18 @@ namespace UnityEngine.ECS
                 else
                     typeI = prevTypeI;
             }
-            MatchingArchetypes* match = (MatchingArchetypes*)m_GroupDataChunkAllocator.Allocate(sizeof(MatchingArchetypes), 8);
+            MatchingArchetypes* match = (MatchingArchetypes*)m_GroupDataChunkAllocator.Allocate(sizeof(MatchingArchetypes) + sizeof(int) * group->requiredComponentsCount, 8);
             match->archetype = archetype;
-            match->archetypeSegments = (ComponentDataArchetypeSegment*)m_GroupDataChunkAllocator.Allocate(group->requiredComponentsCount * sizeof(ComponentDataArchetypeSegment), 8);
-            match->next = null;
-            if (group->lastMatchingArchetype != null)
-                group->lastMatchingArchetype->next = match;
-            else
-                group->firstMatchingArchetype = match;
+            var typeIndexInArchetypeArray = match->GetTypeIndexInArchetypeArray();
+
+            if (group->lastMatchingArchetype == null)
+                group->lastMatchingArchetype = match;
+
+            match->next = group->firstMatchingArchetype;
+            group->firstMatchingArchetype = match;
 
             for (int component = 0; component < group->requiredComponentsCount; ++component)
             {
-                match->archetypeSegments[component].archetype = archetype;
-                match->archetypeSegments[component].nextSegment = null;
-                if (group->lastMatchingArchetype != null)
-                    match->archetypeSegments[component].nextSegment = group->lastMatchingArchetype->archetypeSegments + component;
-
                 int typeComponentIndex = -1;
                 if (group->requiredComponents[component].accessMode != ComponentType.AccessMode.Subtractive)
                 {
@@ -152,18 +144,27 @@ namespace UnityEngine.ECS
                     Assertions.Assert.AreNotEqual(-1, typeComponentIndex);
                 }
 
-                match->archetypeSegments[component].typeIndexInArchetype = typeComponentIndex;
+                typeIndexInArchetypeArray[component] = typeComponentIndex;
             }
 
-            group->lastMatchingArchetype = match;
         }
     }
     unsafe struct MatchingArchetypes
     {
         public Archetype*                       archetype;
-        public ComponentDataArchetypeSegment*   archetypeSegments;
         public MatchingArchetypes*              next;
+        // Followed by array of ints that map from the type index in the EntityGroup to the type index in the archetype
+        unsafe public int* GetTypeIndexInArchetypeArray()
+        {
+            fixed (MatchingArchetypes* match = &this)
+            {
+                return (int*)(((byte*)match) + sizeof(MatchingArchetypes));
+            }
+        }
     }
+
+
+
     unsafe struct EntityGroupData
     {
         public int*                 readerTypes;
@@ -189,9 +190,10 @@ namespace UnityEngine.ECS
         ComponentJobSafetyManager             m_SafetyManager;
         ArchetypeManager                      m_TypeManager;
         MatchingArchetypes*                   m_LastRegisteredListenerArchetype;
-        
+
         TransformAccessArray                  m_Transforms;
         bool                                  m_TransformsDirty;
+		int*                                  m_filteredSharedComponents;
 
         internal ComponentGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager, ArchetypeManager typeManager)
         {
@@ -200,6 +202,7 @@ namespace UnityEngine.ECS
             m_TypeManager = typeManager;
             m_TransformsDirty = true;
             m_LastRegisteredListenerArchetype = null;
+            m_filteredSharedComponents = null;
         }
 
         public void Dispose()
@@ -208,7 +211,7 @@ namespace UnityEngine.ECS
             {
                 m_Transforms.Dispose();
             }
-            
+
             if (m_LastRegisteredListenerArchetype != null)
             {
                 var transformType = TypeManager.GetTypeIndex<Transform>();
@@ -217,6 +220,20 @@ namespace UnityEngine.ECS
                     int idx = ChunkDataUtility.GetIndexInTypeArray(type->archetype, transformType);
                     m_TypeManager.RemoveManagedObjectModificationListener(type->archetype, idx, this);
                 }
+            }
+
+            if (m_filteredSharedComponents != null)
+            {
+                int filteredCount = m_filteredSharedComponents[0];
+                var filtered = m_filteredSharedComponents + 1;
+
+                for(int i=0; i<filteredCount; ++i)
+                {
+                    int sharedComponentIndex = filtered[i * 2 + 1];
+                    m_TypeManager.GetSharedComponentDataManager().RemoveReference(sharedComponentIndex);
+                }
+
+                UnsafeUtility.Free(m_filteredSharedComponents, Allocator.Temp);
             }
         }
         public void OnManagedObjectModified()
@@ -240,7 +257,7 @@ namespace UnityEngine.ECS
         {
             if (!type.RequiresJobDependency)
                 return;
-                    
+
             if (type.accessMode == ComponentType.AccessMode.ReadOnly)
             {
                 if (reading.Contains(type.typeIndex))
@@ -282,23 +299,56 @@ namespace UnityEngine.ECS
             if (componentIndex >= m_GroupData->requiredComponentsCount)
                 throw new InvalidOperationException(string.Format("Trying to get ComponentDataArray for {0} but the required component type was not declared in the EntityGroup.", TypeManager.GetType(componentType)));
 #endif
-            
+
             // Update the archetype segments
             int length = 0;
-            MatchingArchetypes* last = null;
-            for (var match = m_GroupData->firstMatchingArchetype; match != null; match = match->next)
+            MatchingArchetypes* first = null;
+            Chunk* firstNonEmptyChunk = null;
+            if (m_filteredSharedComponents == null)
             {
-                if (match->archetype->entityCount > 0)
+                for (var match = m_GroupData->firstMatchingArchetype; match != null; match = match->next)
                 {
-                    length += match->archetype->entityCount;
-                    last = match;
+                    if (match->archetype->entityCount > 0)
+                    {
+                        length += match->archetype->entityCount;
+                        if (first == null)
+                            first = match;
+                    }
+                }
+                if(first != null)
+                    firstNonEmptyChunk = (Chunk*)first->archetype->chunkList.Begin();
+            }
+            else
+            {
+                for (var match = m_GroupData->firstMatchingArchetype; match != null; match = match->next)
+                {
+                    if (match->archetype->entityCount > 0)
+                    {
+                        var archeType = match->archetype;
+                        for (Chunk* c = (Chunk*)archeType->chunkList.Begin(); c != archeType->chunkList.End(); c = (Chunk*)c->chunkListNode.next)
+                        {
+                            if (ComponentChunkIterator.ChunkMatchesFilter(match, c, m_filteredSharedComponents))
+                            {
+                                if (c->count > 0)
+                                {
+                                    length += c->count;
+                                    if (first == null)
+                                    {
+                                        first = match;
+                                        firstNonEmptyChunk = c;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
+
             outLength = length;
 
-            if (last == null)
-                return new ComponentChunkIterator(null, 0);
-            return new ComponentChunkIterator(last->archetypeSegments + componentIndex, length);
+            if (first == null)
+                return new ComponentChunkIterator(null, 0, 0, null, null);
+            return new ComponentChunkIterator(first, componentIndex, length, firstNonEmptyChunk, m_filteredSharedComponents);
         }
 
         public ComponentDataArray<T> GetComponentDataArray<T>() where T : struct, IComponentData
@@ -396,6 +446,62 @@ namespace UnityEngine.ECS
 				return types.ToArray ();
 			}
 		}
+
+
+        private int GetComponentIndexForVariation<T>()
+        {
+            int componentType = TypeManager.GetTypeIndex<T>();
+            int componentIndex = 0;
+            while (componentIndex < m_GroupData->requiredComponentsCount && m_GroupData->requiredComponents[componentIndex].typeIndex != componentType)
+                ++componentIndex;
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            if (componentIndex >= m_GroupData->requiredComponentsCount)
+                throw new InvalidOperationException(string.Format("Trying to get a component group variation for {0} but the required component type was not declared in the ComponentGroup.", typeof(T)));
+#endif
+            return componentIndex;
+        }
+
+        public ComponentGroup GetVariation<SharedComponent1>(SharedComponent1 sharedComponent1)
+            where SharedComponent1 : struct, ISharedComponentData
+        {
+            var variationComponentGroup = new ComponentGroup(m_GroupData, m_SafetyManager, m_TypeManager);
+
+            int componetIndex1 = GetComponentIndexForVariation<SharedComponent1>();
+            int filteredCount = 1;
+
+            var filtered = (int*)UnsafeUtility.Malloc((filteredCount * 2 + 1) * sizeof(int), sizeof(int), Allocator.Temp); // TODO: does temp allocator make sense here?
+            variationComponentGroup.m_filteredSharedComponents = filtered;
+
+
+            filtered[0] = filteredCount;
+            filtered[1] = componetIndex1;
+            filtered[2] = m_TypeManager.GetSharedComponentDataManager().InsertSharedComponent(sharedComponent1);
+
+            return variationComponentGroup;
+        }
+
+        public ComponentGroup GetVariation<SharedComponent1, SharedComponent2>(SharedComponent1 sharedComponent1, SharedComponent2 sharedComponent2)
+            where SharedComponent1 : struct, ISharedComponentData
+            where SharedComponent2 : struct, ISharedComponentData
+        {
+            var variationComponentGroup = new ComponentGroup(m_GroupData, m_SafetyManager, m_TypeManager);
+
+            int componetIndex1 = GetComponentIndexForVariation<SharedComponent1>();
+            int componetIndex2 = GetComponentIndexForVariation<SharedComponent2>();
+            int filteredCount = 2;
+
+            var filtered = (int*)UnsafeUtility.Malloc((filteredCount * 2 + 1) * sizeof(int), sizeof(int), Allocator.Temp);
+            variationComponentGroup.m_filteredSharedComponents = filtered;
+
+
+            filtered[0] = filteredCount;
+            filtered[1] = componetIndex1;
+            filtered[2] = m_TypeManager.GetSharedComponentDataManager().InsertSharedComponent(sharedComponent1);
+            filtered[3] = componetIndex2;
+            filtered[4] = m_TypeManager.GetSharedComponentDataManager().InsertSharedComponent(sharedComponent2);
+
+            return variationComponentGroup;
+        }
 
         public void CompleteDependency()
         {

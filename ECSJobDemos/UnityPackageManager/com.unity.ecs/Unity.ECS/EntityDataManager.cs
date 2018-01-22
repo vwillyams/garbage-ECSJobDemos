@@ -366,15 +366,7 @@ namespace UnityEngine.ECS
 
             Archetype* archetype = m_Entities[entity.index].archetype;
 
-            if (type.sharedComponentIndex != -1)
-            {
-                int idx = ChunkDataUtility.GetIndexInTypeArray(archetype, type.typeIndex);
-                if (idx == -1)
-                    return false;
-
-                return archetype->types[idx].sharedComponentIndex == type.sharedComponentIndex;
-            }
-            else if (type.IsFixedArray)
+            if (type.IsFixedArray)
             {
                 int idx = ChunkDataUtility.GetIndexInTypeArray(archetype, type.typeIndex);
                 if (idx == -1)
@@ -404,6 +396,12 @@ namespace UnityEngine.ECS
             ChunkDataUtility.GetComponentDataWithTypeAndFixedArrayLength(entityData->chunk, entityData->index, typeIndex, out ptr, out fixedArrayLength);
         }
 
+        public Chunk* GetComponentChunk(Entity entity)
+        {
+            var entityData = m_Entities + entity.index;
+            return entityData->chunk;
+        }
+
         public void GetComponentChunk(Entity entity, out Chunk* chunk, out int chunkIndex)
         {
             var entityData = m_Entities + entity.index;
@@ -416,9 +414,9 @@ namespace UnityEngine.ECS
             return m_Entities[entity.index].archetype;
         }
 
-        public void SetArchetype(ArchetypeManager typeMan, Entity entity, Archetype* archetype)
+        public void SetArchetype(ArchetypeManager typeMan, Entity entity, Archetype* archetype, int* sharedComponentDataIndices)
         {
-            Chunk* chunk = typeMan.GetChunkWithEmptySlots(archetype);
+            Chunk* chunk = typeMan.GetChunkWithEmptySlots(archetype, sharedComponentDataIndices);
             int chunkIndex = typeMan.AllocateIntoChunkImmediate(chunk);
 
             Archetype* oldArchetype = m_Entities[entity.index].archetype;
@@ -448,6 +446,47 @@ namespace UnityEngine.ECS
 
             --oldArchetype->entityCount;
             typeMan.SetChunkCount(oldChunk, lastIndex);
+        }
+
+        public void MoveEntityToChunk(ArchetypeManager typeMan, Entity entity, Chunk* newChunk, int newChunkIndex)
+        {
+            Chunk* oldChunk = m_Entities[entity.index].chunk;
+            Assert.IsTrue(oldChunk->archetype == newChunk->archetype);
+
+            int oldChunkIndex = m_Entities[entity.index].index;
+
+            ChunkDataUtility.Copy(oldChunk, oldChunkIndex, newChunk, newChunkIndex, 1);
+
+            if (oldChunk->managedArrayIndex >= 0)
+                ChunkDataUtility.CopyManagedObjects(typeMan, oldChunk, oldChunkIndex, newChunk, newChunkIndex, 1);
+
+            m_Entities[entity.index].chunk = newChunk;
+            m_Entities[entity.index].index = newChunkIndex;
+
+            int lastIndex = oldChunk->count - 1;
+            // No need to replace with ourselves
+            if (lastIndex != oldChunkIndex)
+            {
+                Entity* lastEntity = (Entity*)ChunkDataUtility.GetComponentData(oldChunk, lastIndex, 0);
+                m_Entities[lastEntity->index].index = oldChunkIndex;
+
+                ChunkDataUtility.Copy (oldChunk, lastIndex, oldChunk, oldChunkIndex, 1);
+                if (oldChunk->managedArrayIndex >= 0)
+                    ChunkDataUtility.CopyManagedObjects(typeMan, oldChunk, lastIndex, oldChunk, oldChunkIndex, 1);
+            }
+            if (oldChunk->managedArrayIndex >= 0)
+                ChunkDataUtility.ClearManagedObjects(typeMan, oldChunk, lastIndex, 1);
+
+            newChunk->archetype->entityCount--;
+            typeMan.SetChunkCount(oldChunk, oldChunk->count - 1);
+        }
+
+        public int GetSharedComponentDataIndex(Entity entity, int indexInTypeArray)
+        {
+            Chunk* chunk = m_Entities[entity.index].chunk;
+            int* sharedComponentValueArray = chunk->GetSharedComponentValueArray();
+            int sharedComponentOffset = m_Entities[entity.index].archetype->sharedComponentOffset[indexInTypeArray];
+            return sharedComponentValueArray[sharedComponentOffset];
         }
     }
 }

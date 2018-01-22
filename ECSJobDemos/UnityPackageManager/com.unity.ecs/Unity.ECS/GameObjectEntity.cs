@@ -68,11 +68,12 @@ namespace UnityEngine.ECS
 
         internal override ComponentType GetComponentType(EntityManager manager)
         {
-            return manager.CreateSharedComponentType(m_SerializedData);
+            return ComponentType.Create<T>();
         }
 
         internal override void UpdateComponentData(EntityManager manager, Entity entity)
         {
+            manager.SetSharedComponent(entity, m_SerializedData);
         }
     }
 

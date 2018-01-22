@@ -11,6 +11,12 @@ namespace UnityEngine.ECS
         NativeList<int> m_SharedComponentRefCount = new NativeList<int>(0, Allocator.Persistent);
         int             m_RefCount = 0;
 
+        public SharedComponentDataManager()
+        {
+            m_SharedComponentData.Add(null);
+            m_SharedComponentRefCount.Add(1);
+        }
+
         public void Retain()
         {
             m_RefCount++;
@@ -31,29 +37,25 @@ namespace UnityEngine.ECS
             }
         }
 
-        public void GetAllUniqueSharedComponents(System.Type componentType, NativeList<ComponentType> uniqueComponents)
+        public void GetAllUniqueSharedComponents<T>(List<T> sharedComponentValues) where T : struct, ISharedComponentData
         {
-            int typeIndex = TypeManager.GetTypeIndex(componentType);
-            for (int i = 0; i != m_SharedComponentData.Count; i++)
+            sharedComponentValues.Add(default(T));
+            for (int i = 1; i != m_SharedComponentData.Count; i++)
             {
                 object data = m_SharedComponentData[i];
-                if (data != null && data.GetType() == componentType)
-                    uniqueComponents.Add(GetComponentType(typeIndex, i));
+                if (data != null && data.GetType() == typeof(T))
+                    sharedComponentValues.Add((T)m_SharedComponentData[i]);
             }
         }
 
-        unsafe public void OnArchetypeAdded(ComponentTypeInArchetype* types, int count)
+        public int InsertSharedComponent<T>(T newData) where T : struct
         {
-            for (int i = 0; i != count;i++)
+            if (newData.Equals(default(T)))
             {
-                if (types[i].sharedComponentIndex != -1)
-                    m_SharedComponentRefCount[types[i].sharedComponentIndex]++;
+                return 0;
             }
-        }
 
-        public ComponentType InsertSharedComponent<T>(T newData) where T : struct
-        {
-            for (int i = 0; i != m_SharedComponentData.Count; i++)
+            for (int i = 1; i != m_SharedComponentData.Count; i++)
             {
                 object data = m_SharedComponentData[i];
                 if (data != null && data.GetType() == typeof(T))
@@ -61,7 +63,7 @@ namespace UnityEngine.ECS
                     if (newData.Equals(data))
                     {
                         m_SharedComponentRefCount[i]++;
-                        return GetComponentType(TypeManager.GetTypeIndex<T>(), i);
+                        return i;
                     }
                 }
             }
@@ -69,39 +71,36 @@ namespace UnityEngine.ECS
             m_SharedComponentData.Add(newData);
             m_SharedComponentRefCount.Add(1);
 
-            return GetComponentType(TypeManager.GetTypeIndex<T>(), m_SharedComponentData.Count - 1);
+            return m_SharedComponentData.Count - 1;
         }
 
-        public T GetSharedComponentData<T>(int index)
+        public T GetSharedComponentData<T>(int index) where T : struct
         {
-            return (T)m_SharedComponentData[index];
+            if (index == 0)
+            {
+                return default(T);
+            }
+            else
+            {
+                return (T)m_SharedComponentData[index];
+            }
         }
 
-        public T GetSharedComponentData<T>(ComponentType component)
+        public void AddReference(int index)
         {
-            return (T)m_SharedComponentData[component.sharedComponentIndex];
+            if (index != 0)
+                ++m_SharedComponentRefCount[index];
         }
 
-
-        public void AdjustInstanceCount(int index, int count)
+        public void RemoveReference(int index)
         {
-            int newCount = m_SharedComponentRefCount[index];
-            newCount += count;
+            if (index == 0)
+                return;
+            int newCount = --m_SharedComponentRefCount[index];
             if (newCount == 0)
             {
                 m_SharedComponentData[index] = null;
             }
-        }
-
-        ComponentType GetComponentType(int typeIndex, int sharedIndex)
-        {
-            ComponentType type;
-            type.sharedComponentIndex = sharedIndex;
-            type.typeIndex = typeIndex;
-            type.accessMode = ComponentType.AccessMode.ReadWrite;
-            type.FixedArrayLength = -1;
-
-            return type;
         }
     }
 }

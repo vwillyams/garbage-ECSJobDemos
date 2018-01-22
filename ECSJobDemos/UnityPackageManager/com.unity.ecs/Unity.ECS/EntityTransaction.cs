@@ -62,7 +62,7 @@ namespace UnityEngine.ECS
 
             EntityArchetype type;
             //@TODO: make dedicated function to only allow getting existing archetype
-            type.archetype = archetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, PopulatedCachedTypeInArchetypeArray(types), null, null);
+            type.archetype = archetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, PopulatedCachedTypeInArchetypeArray(types), null);
             return type;
         }
 
@@ -93,7 +93,7 @@ namespace UnityEngine.ECS
 
             while (count != 0)
             {
-                Chunk* chunk = archetypeManager.GetChunkWithEmptySlots(archetype.archetype);
+                Chunk* chunk = archetypeManager.GetChunkWithEmptySlots(archetype.archetype, null);
                 int allocatedIndex;
                 int allocatedCount = archetypeManager.AllocateIntoChunk(chunk, count, out allocatedIndex);
                 m_Entities->AllocateEntities(archetype.archetype, chunk, allocatedIndex, allocatedCount, entities, false);

@@ -210,5 +210,213 @@ namespace UnityEngine.ECS.Tests
             Assert.IsFalse(m_Manager.HasComponent<SharedData2>(e));
         }
 
+        [Test]
+        public void SharedComponentOrderMaintained()
+        {
+            var archetype = m_Manager.CreateArchetype(typeof(EcsTestData));
+            var evenShared = new SharedData1(17);
+            var oddShared = new SharedData1(34);
+            for (int i = 0; i < 100; i++)
+            {
+                Entity e = m_Manager.CreateEntity(archetype);
+                var testData = m_Manager.GetComponent<EcsTestData>(e);
+                testData.value = i;
+                m_Manager.SetComponent(e, testData);
+                if ((i & 0x01) == 0)
+                {
+                    m_Manager.AddSharedComponent(e,evenShared);
+                }
+                else
+                {
+                    m_Manager.AddSharedComponent(e,oddShared);
+                }
+            }
+            
+            //
+            // Do Nothing (order unchanged)
+            //
+            
+            {
+                var uniqueTypes = new List<SharedData1>(10);
+                var maingroup = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(SharedData1));
+                maingroup.CompleteDependency();
+
+                m_Manager.GetAllUniqueSharedComponents(uniqueTypes);
+
+                for (int sharedIndex = 0; sharedIndex != uniqueTypes.Count;sharedIndex++)
+                {
+                    var sharedData = uniqueTypes[sharedIndex];
+                    var group = maingroup.GetVariation(sharedData);
+                    var testData = group.GetComponentDataArray<EcsTestData>();
+
+                    if (sharedData.value == 17)
+                    {
+                        Assert.AreEqual(50,testData.Length);
+                        
+                        for (int i = 0; i < 50; i++)
+                        {
+                            Assert.AreEqual(i*2,testData[i].value);
+                        }
+                    }
+                    
+                    if (sharedData.value == 34)
+                    {
+                        Assert.AreEqual(50,testData.Length);
+                        
+                        for (int i = 0; i < 50; i++)
+                        {
+                            Assert.AreEqual(1+(i*2),testData[i].value);
+                        }
+                    }
+
+                    group.Dispose();
+                }
+
+                maingroup.Dispose();
+            }
+            
+            //
+            // Change order of odd group, doesn't affect order of even group.
+            //
+
+            {
+                var uniqueTypes = new List<SharedData1>(10);
+                var maingroup = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(SharedData1));
+                maingroup.CompleteDependency();
+
+                m_Manager.GetAllUniqueSharedComponents(uniqueTypes);
+
+                for (int sharedIndex = 0; sharedIndex != uniqueTypes.Count;sharedIndex++)
+                {
+                    var sharedData = uniqueTypes[sharedIndex];
+                    var group = maingroup.GetVariation(sharedData);
+                    var testData = group.GetComponentDataArray<EcsTestData>();
+                    var entityData = group.GetEntityArray();
+
+                    if (sharedData.value == 34)
+                    {
+                        Assert.AreEqual(50,testData.Length);
+
+                        var entities = new NativeArray<Entity>(50, Allocator.Temp);
+                        entityData.CopyTo(new NativeSlice<Entity>(entities));
+                        
+                        for (int i = 0; i < 50; i++)
+                        {
+                            var e = entities[i];
+                            if ((i & 0x01) == 0)
+                            {
+                                var testData2 = new EcsTestData2(i);
+                                m_Manager.AddComponent(e,testData2); 
+                            }
+                        }
+                        entities.Dispose();
+                    }
+
+                    group.Dispose();
+                }
+
+                maingroup.Dispose();
+            }
+            
+            
+            {
+                var uniqueTypes = new List<SharedData1>(10);
+                var maingroup = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(SharedData1));
+                maingroup.CompleteDependency();
+
+                m_Manager.GetAllUniqueSharedComponents(uniqueTypes);
+
+                for (int sharedIndex = 0; sharedIndex != uniqueTypes.Count;sharedIndex++)
+                {
+                    var sharedData = uniqueTypes[sharedIndex];
+                    var group = maingroup.GetVariation(sharedData);
+                    var testData = group.GetComponentDataArray<EcsTestData>();
+
+                    if (sharedData.value == 17)
+                    {
+                        Assert.AreEqual(50,testData.Length);
+                        
+                        for (int i = 0; i < 50; i++)
+                        {
+                            Assert.AreEqual(i*2,testData[i].value);
+                        }
+                    }
+                    
+                    group.Dispose();
+                }
+
+                maingroup.Dispose();
+            }
+            
+            //
+            // Destroy all the entities in the odd group, doesn't affect order of even group.
+            //
+
+            {
+                var uniqueTypes = new List<SharedData1>(10);
+                var maingroup = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(SharedData1));
+                maingroup.CompleteDependency();
+
+                m_Manager.GetAllUniqueSharedComponents(uniqueTypes);
+
+                for (int sharedIndex = 0; sharedIndex != uniqueTypes.Count;sharedIndex++)
+                {
+                    var sharedData = uniqueTypes[sharedIndex];
+                    var group = maingroup.GetVariation(sharedData);
+                    var testData = group.GetComponentDataArray<EcsTestData>();
+                    var entityData = group.GetEntityArray();
+
+                    if (sharedData.value == 34)
+                    {
+                        Assert.AreEqual(50,testData.Length);
+
+                        var entities = new NativeArray<Entity>(50, Allocator.Temp);
+                        entityData.CopyTo(new NativeSlice<Entity>(entities));
+                        
+                        for (int i = 0; i < 50; i++)
+                        {
+                            var e = entities[i];
+                            m_Manager.DestroyEntity(e);
+                        }
+                        entities.Dispose();
+                    }
+
+                    group.Dispose();
+                }
+
+                maingroup.Dispose();
+            }
+            
+            
+            {
+                var uniqueTypes = new List<SharedData1>(10);
+                var maingroup = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(SharedData1));
+                maingroup.CompleteDependency();
+
+                m_Manager.GetAllUniqueSharedComponents(uniqueTypes);
+
+                for (int sharedIndex = 0; sharedIndex != uniqueTypes.Count;sharedIndex++)
+                {
+                    var sharedData = uniqueTypes[sharedIndex];
+                    var group = maingroup.GetVariation(sharedData);
+                    var testData = group.GetComponentDataArray<EcsTestData>();
+
+                    if (sharedData.value == 17)
+                    {
+                        Assert.AreEqual(50,testData.Length);
+                        
+                        for (int i = 0; i < 50; i++)
+                        {
+                            Assert.AreEqual(i*2,testData[i].value);
+                        }
+                    }
+                    
+                    group.Dispose();
+                }
+
+                maingroup.Dispose();
+            }
+            
+        }
     }
 }

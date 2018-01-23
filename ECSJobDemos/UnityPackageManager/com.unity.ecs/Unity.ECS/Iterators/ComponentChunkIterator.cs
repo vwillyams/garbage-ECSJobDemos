@@ -32,14 +32,14 @@ namespace UnityEngine.ECS
 
         internal static bool ChunkMatchesFilter(MatchingArchetypes* match, Chunk* chunk, int* filteredSharedComponents)
         {
-            int* sharedComponentsInChunk = chunk->GetSharedComponentValueArray();
+            int* sharedComponentsInChunk = chunk->sharedComponentValueArray;
             int filteredCount = filteredSharedComponents[0];
             var filtered = filteredSharedComponents + 1;
             for(int i=0; i<filteredCount; ++i)
             {
                 int componetIndexInComponentGroup = filtered[i * 2];
                 int sharedComponentIndex = filtered[i * 2 + 1];
-                int componentIndexInArcheType = match->GetTypeIndexInArchetypeArray()[componetIndexInComponentGroup];
+                int componentIndexInArcheType = match->typeIndexInArchetypeArray[componetIndexInComponentGroup];
                 int componentIndexInChunk = match->archetype->sharedComponentOffset[componentIndexInArcheType];
                 if (sharedComponentsInChunk[componentIndexInChunk] != sharedComponentIndex)
                     return false;
@@ -95,12 +95,12 @@ namespace UnityEngine.ECS
 
         public object GetManagedObject(ArchetypeManager typeMan, int cachedBeginIndex, int index)
         {
-            return typeMan.GetManagedObject(m_CurrentChunk, m_CurrentMatchingArchetype->GetTypeIndexInArchetypeArray()[m_ComponentIndex], index - cachedBeginIndex);
+            return typeMan.GetManagedObject(m_CurrentChunk, m_CurrentMatchingArchetype->typeIndexInArchetypeArray[m_ComponentIndex], index - cachedBeginIndex);
         }
 
         public object[] GetManagedObjectRange(ArchetypeManager typeMan, int cachedBeginIndex, int index, out int rangeStart, out int rangeLength)
         {
-            var objs = typeMan.GetManagedObjectRange(m_CurrentChunk, m_CurrentMatchingArchetype->GetTypeIndexInArchetypeArray()[m_ComponentIndex], out rangeStart, out rangeLength);
+            var objs = typeMan.GetManagedObjectRange(m_CurrentChunk, m_CurrentMatchingArchetype->typeIndexInArchetypeArray[m_ComponentIndex], out rangeStart, out rangeLength);
             rangeStart += index - cachedBeginIndex;
             rangeLength -= index - cachedBeginIndex;
             return objs;
@@ -166,7 +166,7 @@ namespace UnityEngine.ECS
             }
 
             var archetype = m_CurrentMatchingArchetype->archetype;
-            var typeIndexInArchetype = m_CurrentMatchingArchetype->GetTypeIndexInArchetypeArray()[m_ComponentIndex];
+            var typeIndexInArchetype = m_CurrentMatchingArchetype->typeIndexInArchetypeArray[m_ComponentIndex];
 
             cache.CachedBeginIndex = m_CurrentChunkIndex + m_CurrentArchetypeIndex;
             cache.CachedEndIndex = cache.CachedBeginIndex + m_CurrentChunk->count;

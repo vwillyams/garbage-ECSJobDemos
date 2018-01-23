@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Assertions;
@@ -80,38 +81,43 @@ namespace UnityEngine.ECS
 	    }
 	}
 
+    [StructLayout(LayoutKind.Sequential)]
     unsafe struct Chunk
     {
-        public const int kChunkSize = 16 * 1024;
-        public const int kMaximumEntitiesPerChunk = kChunkSize / 8;
-
         // NOTE: Order of the UnsafeLinkedListNode is required to be this in order
         //       to allow for casting & grabbing Chunk* from nodes...
         public UnsafeLinkedListNode  chunkListNode;
         public UnsafeLinkedListNode  chunkListWithEmptySlotsNode;
         public UnsafeLinkedListNode  chunkListNotYetIntegratedNode;
 
-        // Component data buffer
-        public byte* 		         buffer;
+        public Archetype*            archetype;
+        public int* 		         sharedComponentValueArray;
 
         // This is meant as read-only.
         // ArchetypeManager.SetChunkCount should be used to change the count.
         public int 		             count;
         public int 		             capacity;
 
-        public Archetype*            archetype;
-
         public int                   managedArrayIndex;
         public int 		             notYetIntegratedCount;
+        
+        // Component data buffer
+        public fixed byte 		     buffer[4];
+        
+        
+        public const int kChunkSize = 16 * 1024;
+        public const int kMaximumEntitiesPerChunk = kChunkSize / 8;
 
-        public int* GetSharedComponentValueArray()
+        public static int GetChunkBufferSize(int numSharedComponents)
         {
-            fixed (Chunk* chunk = &this)
-            {
-                return (int*)(((byte*)chunk) + sizeof(Chunk));
-            }
+            int bufferSize = Chunk.kChunkSize - (sizeof(Chunk) - 4 + numSharedComponents * sizeof(int));
+            return bufferSize;
         }
 
+        public static int GetSharedComponentOffset(int numSharedComponents)
+        {
+            return Chunk.kChunkSize - numSharedComponents * sizeof(int);
+        }
     }
 
 	unsafe struct Archetype
@@ -175,6 +181,11 @@ namespace UnityEngine.ECS
 
 		    m_NotIntegratedChunks = (UnsafeLinkedListNode*)m_ArchetypeChunkAllocator.Allocate(sizeof(UnsafeLinkedListNode), UnsafeUtility.AlignOf<UnsafeLinkedListNode>());
 		    UnsafeLinkedListNode.InitializeList(m_NotIntegratedChunks);
+		    
+		    
+		    // Buffer should be 16 byte aligned to ensure component data layout itself can gurantee being aligned
+		    int offset = UnsafeUtility.GetFieldOffset(typeof(Chunk).GetField("buffer"));
+		    Assert.AreEqual(0, offset % 16);
 		}
 
 		public void Dispose()
@@ -277,7 +288,7 @@ namespace UnityEngine.ECS
 		            ++type->numSharedComponents;
 		    }
 
-            int chunkDataSize = GetChunkBufferSize(type->numSharedComponents);
+            int chunkDataSize = Chunk.GetChunkBufferSize(type->numSharedComponents);
 
             // FIXME: proper alignment
             type->offsets = (int*)m_ArchetypeChunkAllocator.Allocate(sizeof(int) * count, 4);
@@ -356,21 +367,7 @@ namespace UnityEngine.ECS
 
 			return type;
 		}
-
-		static int GetBufferOffset(int numSharedComponents)
-	    {
-	        int headerSize = sizeof(Chunk) + numSharedComponents * sizeof(int);
-	        return (headerSize + 63) & ~63;
-	    }
-
-        public static int GetChunkBufferSize(int numSharedComponents)
-        {
-            int bufferOffset = GetBufferOffset(numSharedComponents);
-            int bufferSize = Chunk.kChunkSize - bufferOffset;
-
-            return bufferSize;
-        }
-
+	    
 	    public static Chunk* GetChunkFromEmptySlotNode(UnsafeLinkedListNode* node)
 	    {
 	        return (Chunk*) (node - 1);
@@ -405,15 +402,11 @@ namespace UnityEngine.ECS
 	                dest[i] = src[i];
 	            }
 	        }
-
 	    }
 
 	    unsafe public void ConstructChunk(Archetype* archetype, Chunk* chunk, int* sharedComponentDataIndices)
 	    {
-	        int bufferOffset = GetBufferOffset(archetype->numSharedComponents);
-
-	        chunk->buffer = (byte*)chunk + bufferOffset;
-            chunk->archetype = archetype;
+	        chunk->archetype = archetype;
 
             chunk->count = 0;
             chunk->capacity = archetype->chunkCapacity;
@@ -421,7 +414,8 @@ namespace UnityEngine.ECS
             chunk->chunkListWithEmptySlotsNode = new UnsafeLinkedListNode();
             chunk->chunkListNotYetIntegratedNode = new UnsafeLinkedListNode();
             chunk->notYetIntegratedCount = 0;
-
+	        chunk->sharedComponentValueArray = (int*)((byte*)(chunk) + Chunk.GetSharedComponentOffset(archetype->numSharedComponents));
+	        
             archetype->chunkListWithEmptySlots.Add(&chunk->chunkListWithEmptySlotsNode);
 
             Assert.IsTrue(!archetype->chunkListWithEmptySlots.IsEmpty);
@@ -438,9 +432,10 @@ namespace UnityEngine.ECS
 			else
 				chunk->managedArrayIndex = -1;
 
+	        
             if (archetype->numSharedComponents > 0)
             {
-                int* sharedComponentValueArray = chunk->GetSharedComponentValueArray();
+                int* sharedComponentValueArray = chunk->sharedComponentValueArray;
                 CopySharedComponentDataIndexArray(sharedComponentValueArray, sharedComponentDataIndices, chunk->archetype->numSharedComponents);
 
                 if (sharedComponentDataIndices != null)
@@ -455,7 +450,7 @@ namespace UnityEngine.ECS
 
 	    bool ChunkHasSharedComponents(Chunk* chunk, int* sharedComponentDataIndices)
 	    {
-	        int* sharedComponentValueArray = chunk->GetSharedComponentValueArray();
+	        int* sharedComponentValueArray = chunk->sharedComponentValueArray;
 	        int numSharedComponents = chunk->archetype->numSharedComponents;
 	        if (sharedComponentDataIndices == null)
 	        {
@@ -597,7 +592,7 @@ namespace UnityEngine.ECS
                     //Remove references to shared components
                     if (chunk->archetype->numSharedComponents > 0)
                     {
-                        int* sharedComponentValueArray = chunk->GetSharedComponentValueArray();
+                        int* sharedComponentValueArray = chunk->sharedComponentValueArray;
 
                         for (int i = 0; i < chunk->archetype->numSharedComponents; ++i)
                         {

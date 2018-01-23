@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
@@ -126,9 +125,9 @@ namespace UnityEngine.ECS
                 else
                     typeI = prevTypeI;
             }
-            MatchingArchetypes* match = (MatchingArchetypes*)m_GroupDataChunkAllocator.Allocate(MatchingArchetypes.GetAllocationSize(group->requiredComponentsCount), 8);
+            MatchingArchetypes* match = (MatchingArchetypes*)m_GroupDataChunkAllocator.Allocate(sizeof(MatchingArchetypes) + sizeof(int) * group->requiredComponentsCount, 8);
             match->archetype = archetype;
-            var typeIndexInArchetypeArray = match->typeIndexInArchetypeArray;
+            var typeIndexInArchetypeArray = match->GetTypeIndexInArchetypeArray();
 
             if (group->lastMatchingArchetype == null)
                 group->lastMatchingArchetype = match;
@@ -150,19 +149,21 @@ namespace UnityEngine.ECS
 
         }
     }
-    
-    [StructLayout(LayoutKind.Sequential)]
     unsafe struct MatchingArchetypes
     {
         public Archetype*                       archetype;
         public MatchingArchetypes*              next;
-        public fixed int                        typeIndexInArchetypeArray[1];
-
-        public static int GetAllocationSize(int requiredComponentsCount)
+        // Followed by array of ints that map from the type index in the EntityGroup to the type index in the archetype
+        unsafe public int* GetTypeIndexInArchetypeArray()
         {
-            return sizeof(MatchingArchetypes) + sizeof(int) * (requiredComponentsCount - 1);
+            fixed (MatchingArchetypes* match = &this)
+            {
+                return (int*)(((byte*)match) + sizeof(MatchingArchetypes));
+            }
         }
     }
+
+
 
     unsafe struct EntityGroupData
     {

@@ -484,7 +484,7 @@ namespace UnityEngine.ECS
         public int GetSharedComponentDataIndex(Entity entity, int indexInTypeArray)
         {
             Chunk* chunk = m_Entities[entity.index].chunk;
-            int* sharedComponentValueArray = chunk->sharedComponentValueArray;
+            int* sharedComponentValueArray = chunk->GetSharedComponentValueArray();
             int sharedComponentOffset = m_Entities[entity.index].archetype->sharedComponentOffset[indexInTypeArray];
             return sharedComponentValueArray[sharedComponentOffset];
         }

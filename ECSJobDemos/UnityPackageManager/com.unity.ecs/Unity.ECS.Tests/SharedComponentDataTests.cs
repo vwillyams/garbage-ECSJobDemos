@@ -231,6 +231,9 @@ namespace UnityEngine.ECS.Tests
                     m_Manager.AddSharedComponent(e,oddShared);
                 }
             }
+
+            int evenVersion = 1;
+            int oddVersion = 1;
             
             //
             // Do Nothing (order unchanged)
@@ -248,9 +251,11 @@ namespace UnityEngine.ECS.Tests
                     var sharedData = uniqueTypes[sharedIndex];
                     var group = maingroup.GetVariation(sharedData);
                     var testData = group.GetComponentDataArray<EcsTestData>();
+                    int version = maingroup.GetVariationVersion(sharedData);
 
                     if (sharedData.value == 17)
                     {
+                        Assert.AreEqual(evenVersion, version);
                         Assert.AreEqual(50,testData.Length);
                         
                         for (int i = 0; i < 50; i++)
@@ -261,6 +266,7 @@ namespace UnityEngine.ECS.Tests
                     
                     if (sharedData.value == 34)
                     {
+                        Assert.AreEqual(oddVersion, version);
                         Assert.AreEqual(50,testData.Length);
                         
                         for (int i = 0; i < 50; i++)
@@ -311,13 +317,12 @@ namespace UnityEngine.ECS.Tests
                         }
                         entities.Dispose();
                     }
-
+                    
                     group.Dispose();
                 }
 
                 maingroup.Dispose();
             }
-            
             
             {
                 var uniqueTypes = new List<SharedData1>(10);
@@ -331,15 +336,23 @@ namespace UnityEngine.ECS.Tests
                     var sharedData = uniqueTypes[sharedIndex];
                     var group = maingroup.GetVariation(sharedData);
                     var testData = group.GetComponentDataArray<EcsTestData>();
-
+                    int version = maingroup.GetVariationVersion(sharedData);
+                    
                     if (sharedData.value == 17)
                     {
+                        Assert.AreEqual(evenVersion,version);
                         Assert.AreEqual(50,testData.Length);
                         
                         for (int i = 0; i < 50; i++)
                         {
                             Assert.AreEqual(i*2,testData[i].value);
                         }
+                    }
+
+                    if (sharedData.value == 34)
+                    {
+                        Assert.Greater(version,oddVersion);
+                        oddVersion = version;
                     }
                     
                     group.Dispose();
@@ -349,7 +362,7 @@ namespace UnityEngine.ECS.Tests
             }
             
             //
-            // Destroy all the entities in the odd group, doesn't affect order of even group.
+            // Destroy all but one entities in the odd group, doesn't affect order of even group.
             //
 
             {
@@ -365,7 +378,7 @@ namespace UnityEngine.ECS.Tests
                     var group = maingroup.GetVariation(sharedData);
                     var testData = group.GetComponentDataArray<EcsTestData>();
                     var entityData = group.GetEntityArray();
-
+                    
                     if (sharedData.value == 34)
                     {
                         Assert.AreEqual(50,testData.Length);
@@ -373,7 +386,7 @@ namespace UnityEngine.ECS.Tests
                         var entities = new NativeArray<Entity>(50, Allocator.Temp);
                         entityData.CopyTo(new NativeSlice<Entity>(entities));
                         
-                        for (int i = 0; i < 50; i++)
+                        for (int i = 0; i < 49; i++)
                         {
                             var e = entities[i];
                             m_Manager.DestroyEntity(e);
@@ -400,15 +413,23 @@ namespace UnityEngine.ECS.Tests
                     var sharedData = uniqueTypes[sharedIndex];
                     var group = maingroup.GetVariation(sharedData);
                     var testData = group.GetComponentDataArray<EcsTestData>();
+                    int version = maingroup.GetVariationVersion(sharedData);
 
                     if (sharedData.value == 17)
                     {
                         Assert.AreEqual(50,testData.Length);
+                        Assert.AreEqual(evenVersion, version);
                         
                         for (int i = 0; i < 50; i++)
                         {
                             Assert.AreEqual(i*2,testData[i].value);
                         }
+                    }
+                    
+                    if (sharedData.value == 34)
+                    {
+                        Assert.Greater(version,oddVersion);
+                        oddVersion = version;
                     }
                     
                     group.Dispose();

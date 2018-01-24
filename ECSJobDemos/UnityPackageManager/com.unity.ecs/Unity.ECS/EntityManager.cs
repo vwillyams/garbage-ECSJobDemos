@@ -176,6 +176,7 @@ namespace UnityEngine.ECS
         {
             BeforeImmediateStructualTransaction();
 
+            Entity* representativeEntity = entities;
             while (count != 0)
             {
                 Chunk* chunk = m_ArchetypeManager.GetChunkWithEmptySlots(archetype.archetype, null);
@@ -187,6 +188,7 @@ namespace UnityEngine.ECS
                 entities += allocatedCount;
                 count -= allocatedCount;
             }
+            IncrementSharedComponentsVersion(*representativeEntity);
 
             AfterImmediateStructuralTransaction();
         }
@@ -194,6 +196,10 @@ namespace UnityEngine.ECS
         public void DestroyEntity(NativeArray<Entity> entities)
         {
             BeforeImmediateStructualChange();
+            for (int i = 0; i < entities.Length; i++)
+            {
+                IncrementSharedComponentsVersion(entities[i]);
+            }
 
             m_Entities->AssertEntitiesExist((Entity*)entities.GetUnsafeReadOnlyPtr(), entities.Length);
 
@@ -203,6 +209,7 @@ namespace UnityEngine.ECS
         public void DestroyEntity(Entity entity)
         {
             BeforeImmediateStructualChange();
+            IncrementSharedComponentsVersion(entity);
 
             m_Entities->AssertEntitiesExist(&entity, 1);
 
@@ -275,6 +282,7 @@ namespace UnityEngine.ECS
             Chunk* srcChunk = m_Entities->m_Entities[srcEntity.index].chunk;
             Archetype* srcArchetype = m_Entities->m_Entities[srcEntity.index].archetype;
             var srcSharedComponentDataIndices = m_Entities->GetComponentChunk(srcEntity)->GetSharedComponentValueArray();
+            Entity* representativeEntity = outputEntities;
 
             while (count != 0)
             {
@@ -289,6 +297,7 @@ namespace UnityEngine.ECS
                 outputEntities += allocatedCount;
                 count -= allocatedCount;
             }
+            IncrementSharedComponentsVersion(*representativeEntity);
 
             AfterImmediateStructuralTransaction();
         }
@@ -296,6 +305,7 @@ namespace UnityEngine.ECS
         public void AddComponent(Entity entity, ComponentType type)
         {
             BeforeImmediateStructualChange();
+            IncrementSharedComponentsVersion(entity);
 
             m_Entities->AssertEntitiesExist(&entity, 1);
 
@@ -371,14 +381,25 @@ namespace UnityEngine.ECS
                 UnsafeUtility.Free(sharedComponentDataIndices, Allocator.Temp);
         }
 
+        public void IncrementSharedComponentsVersion(Entity entity)
+        {
+            Archetype* archtype = m_Entities->GetArchetype(entity);
+            var sharedComponentDataIndices = m_Entities->GetComponentChunk(entity)->GetSharedComponentValueArray();
+            for (int i = 0; i < archtype->numSharedComponents; i++)
+            {
+                m_SharedComponentManager.IncrementSharedComponentVersion(sharedComponentDataIndices[i]);
+            }
+        }
+
         public void RemoveComponent(Entity entity, ComponentType type)
         {
             BeforeImmediateStructualChange();
+            IncrementSharedComponentsVersion(entity);
 
             var componentType = new ComponentTypeInArchetype(type);
 
             m_Entities->AssertEntityHasComponent(entity, type);
-
+            
             Archetype* archtype = m_Entities->GetArchetype(entity);
             int removedTypes = 0;
             for (int t = 0; t < archtype->typesCount; ++t)
@@ -388,6 +409,7 @@ namespace UnityEngine.ECS
                 else
                     m_CachedComponentTypeInArchetypeArray[t - removedTypes] = archtype->types[t];
             }
+            
 
             Assertions.Assert.AreNotEqual(-1, removedTypes);
 
@@ -422,7 +444,7 @@ namespace UnityEngine.ECS
             }
 
             m_Entities->SetArchetype(m_ArchetypeManager, entity, newType, sharedComponentDataIndices);
-
+            
             if(freeSharedComponentIndices)
                 UnsafeUtility.Free(sharedComponentDataIndices, Allocator.Temp);
         }
@@ -656,7 +678,7 @@ namespace UnityEngine.ECS
 
             BeforeImmediateStructualChange();
             srcEntities.BeforeImmediateStructualChange();
-
+            
             ArchetypeManager.MoveChunks(srcEntities.m_ArchetypeManager, srcEntities.m_Entities, m_ArchetypeManager, m_GroupManager, m_SharedComponentManager, m_Entities);
         }
 

@@ -207,7 +207,7 @@ namespace UnityEngine.ECS
 
             m_Entities->AssertEntitiesExist(entities, count);
 
-            for (int i = 0; i < entities.Length; i++)
+            for (int i = 0; i < count; i++)
                 IncrementSharedComponentsVersion(entities[i]);
 
             m_Entities->DeallocateEnties(m_ArchetypeManager, entities, count);

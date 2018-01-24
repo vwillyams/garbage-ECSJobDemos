@@ -64,6 +64,9 @@ namespace Unity.Multiplayer.Native
         public static extern int gamesocket_listen(void* socket);
 
         [DllImport("gamesocket.native", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int gamesocket_send_to(void* socket, void* buffer, ushort buffer_size, int connection);
+
+        [DllImport("gamesocket.native", CallingConvention = CallingConvention.Cdecl)]
         public static extern int gamesocket_send(void* socket, void* buffer, ushort buffer_size, void* connections, int connection_size);
 
         [DllImport("gamesocket.native", CallingConvention = CallingConvention.Cdecl)]

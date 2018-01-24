@@ -131,6 +131,19 @@ namespace Unity.Multiplayer
             NativeBindings.gamesocket_disconnect(m_Socket, connection);
         }
 
+        public int SendData(NativeSlice<byte> buffer, int connection)
+        {
+            var result = NativeBindings.gamesocket_send_to(m_Socket, NativeSliceUnsafeUtility.GetUnsafePtr(buffer), (ushort)buffer.Length, connection);
+            if (result < 0)
+            {
+                var code = (((GameSocketError)result == GameSocketError.InternalSocketError) ? NativeBindings.gamesocket_get_last_socket_error(m_Socket) : result);
+                var e = new GameSocketException("Error during send " + code);
+                e.InternalError = code;
+                throw e;
+            }
+            return result;
+        }
+
         public int SendData(NativeSlice<byte> buffer, NativeSlice<int> connections)
         {
             var result = NativeBindings.gamesocket_send(m_Socket, NativeSliceUnsafeUtility.GetUnsafePtr(buffer), (ushort)buffer.Length, NativeSliceUnsafeUtility.GetUnsafePtr(connections), connections.Length);

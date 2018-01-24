@@ -9,12 +9,14 @@ namespace UnityEngine.ECS
     {
         List<object>    m_SharedComponentData = new List<object>();
         NativeList<int> m_SharedComponentRefCount = new NativeList<int>(0, Allocator.Persistent);
+        NativeList<int> m_SharedComponentVersion = new NativeList<int>(0, Allocator.Persistent);
         int             m_RefCount = 0;
 
         public SharedComponentDataManager()
         {
             m_SharedComponentData.Add(null);
             m_SharedComponentRefCount.Add(1);
+            m_SharedComponentVersion.Add(1);
         }
 
         public void Retain()
@@ -27,6 +29,7 @@ namespace UnityEngine.ECS
             if (--m_RefCount == 0)
             {
                 m_SharedComponentRefCount.Dispose();
+                m_SharedComponentVersion.Dispose();
                 m_SharedComponentData.Clear();
                 m_SharedComponentData = null;
                 return true;
@@ -70,8 +73,30 @@ namespace UnityEngine.ECS
 
             m_SharedComponentData.Add(newData);
             m_SharedComponentRefCount.Add(1);
+            m_SharedComponentVersion.Add(1);
 
             return m_SharedComponentData.Count - 1;
+        }
+
+        public void IncrementSharedComponentVersion(int index)
+        {
+          m_SharedComponentVersion[index]++;
+        }
+        
+        public int GetSharedComponentVersion<T>(T sharedData) where T: struct
+        {
+            for (int i = 0; i != m_SharedComponentData.Count; i++)
+            {
+                object data = m_SharedComponentData[i];
+                if (data != null && data.GetType() == typeof(T))
+                {
+                    if (sharedData.Equals(data))
+                    {
+                        return m_SharedComponentVersion[i];
+                    }
+                }
+            }
+            return 0;
         }
 
         public T GetSharedComponentData<T>(int index) where T : struct

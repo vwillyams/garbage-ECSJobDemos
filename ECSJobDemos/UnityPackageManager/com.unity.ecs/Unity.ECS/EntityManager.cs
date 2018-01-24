@@ -354,7 +354,7 @@ namespace UnityEngine.ECS
             m_Entities->SetArchetype(m_ArchetypeManager, entity, newType, sharedComponentDataIndices);
         }
 
-        public void IncrementSharedComponentsVersion(Entity entity)
+        private void IncrementSharedComponentsVersion(Entity entity)
         {
             Archetype* archtype = m_Entities->GetArchetype(entity);
             var sharedComponentDataIndices = m_Entities->GetComponentChunk(entity)->GetSharedComponentValueArray();
@@ -363,7 +363,7 @@ namespace UnityEngine.ECS
                 m_SharedComponentManager.IncrementSharedComponentVersion(sharedComponentDataIndices[i]);
             }
         }
-
+        
         public void RemoveComponent(Entity entity, ComponentType type)
         {
             BeforeImmediateStructualChange();

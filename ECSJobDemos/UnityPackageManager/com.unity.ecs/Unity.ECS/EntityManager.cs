@@ -482,7 +482,7 @@ namespace UnityEngine.ECS
             m_SharedComponentManager.GetAllUniqueSharedComponents(sharedComponentValues);
         }
 
-        unsafe public T GetSharedComponentData<T>(Entity entity) where T : struct, ISharedComponentData
+        unsafe public T GetSharedComponent<T>(Entity entity) where T : struct, ISharedComponentData
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
             m_Entities->AssertEntityHasComponent(entity, typeIndex);

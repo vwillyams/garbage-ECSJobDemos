@@ -88,20 +88,8 @@ namespace UnityEngine.ECS
         unsafe void CreateEntityInternal(EntityArchetype archetype, Entity* entities, int count)
         {
             CheckAccess();
-
             var archetypeManager = (ArchetypeManager)m_ArchetypeManager.Target;
-
-            while (count != 0)
-            {
-                Chunk* chunk = archetypeManager.GetChunkWithEmptySlots(archetype.archetype, null);
-                int allocatedIndex;
-                int allocatedCount = archetypeManager.AllocateIntoChunk(chunk, count, out allocatedIndex);
-                m_Entities->AllocateEntities(archetype.archetype, chunk, allocatedIndex, allocatedCount, entities, false);
-                ChunkDataUtility.ClearComponents(chunk, allocatedIndex, allocatedCount);
-
-                entities += allocatedCount;
-                count -= allocatedCount;
-            }
+            m_Entities->CreateEntities(archetypeManager, archetype.archetype, entities, count, false);
         }
 
         public bool Exists(Entity entity)

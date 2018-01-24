@@ -481,6 +481,43 @@ namespace UnityEngine.ECS
             typeMan.SetChunkCount(oldChunk, oldChunk->count - 1);
         }
 
+        public void CreateEntities(ArchetypeManager archetypeManager, Archetype* archetype, Entity* entities, int count, bool allowIncreaseCapacity)
+        {
+            while (count != 0)
+            {
+                Chunk* chunk = archetypeManager.GetChunkWithEmptySlots(archetype, null);
+                int allocatedIndex;
+                int allocatedCount = archetypeManager.AllocateIntoChunk(chunk, count, out allocatedIndex);
+                AllocateEntities(archetype, chunk, allocatedIndex, allocatedCount, entities, allowIncreaseCapacity);
+                ChunkDataUtility.ClearComponents(chunk, allocatedIndex, allocatedCount);
+
+                entities += allocatedCount;
+                count -= allocatedCount;
+            }
+        }
+
+        public void InstantiateEntities(ArchetypeManager archetypeManager, Entity srcEntity, Entity* outputEntities, int count, bool allowIncreaseCapacity)
+        {
+            int srcIndex = m_Entities[srcEntity.index].index;
+            Chunk* srcChunk = m_Entities[srcEntity.index].chunk;
+            Archetype* srcArchetype = m_Entities[srcEntity.index].archetype;
+            var srcSharedComponentDataIndices = GetComponentChunk(srcEntity)->GetSharedComponentValueArray();
+
+            while (count != 0)
+            {
+                Chunk* chunk = archetypeManager.GetChunkWithEmptySlots(srcArchetype, srcSharedComponentDataIndices);
+                int indexInChunk;
+                int allocatedCount = archetypeManager.AllocateIntoChunk(chunk, count, out indexInChunk);
+
+                ChunkDataUtility.ReplicateComponents(srcChunk, srcIndex, chunk, indexInChunk, allocatedCount);
+
+                AllocateEntities(srcArchetype, chunk, indexInChunk, allocatedCount, outputEntities, allowIncreaseCapacity);
+
+                outputEntities += allocatedCount;
+                count -= allocatedCount;
+            }
+        }
+
         public int GetSharedComponentDataIndex(Entity entity, int indexInTypeArray)
         {
             Chunk* chunk = m_Entities[entity.index].chunk;

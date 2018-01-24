@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -61,8 +62,13 @@ namespace UnityEngine.ECS
             var archetypeManager = (ArchetypeManager)m_ArchetypeManager.Target;
 
             EntityArchetype type;
-            //@TODO: make dedicated function to only allow getting existing archetype
-            type.archetype = archetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, PopulatedCachedTypeInArchetypeArray(types), null);
+            type.archetype = archetypeManager.GetExistingArchetype(m_CachedComponentTypeInArchetypeArray, PopulatedCachedTypeInArchetypeArray(types));
+            
+            #if ENABLE_UNITY_COLLECTIONS_CHECKS
+            if (type.archetype == null)
+                throw new System.ArgumentException("EntityTransaction.CreateArchetype may only lookup existing archetypes");
+            #endif
+            
             return type;
         }
 
@@ -88,20 +94,8 @@ namespace UnityEngine.ECS
         unsafe void CreateEntityInternal(EntityArchetype archetype, Entity* entities, int count)
         {
             CheckAccess();
-
             var archetypeManager = (ArchetypeManager)m_ArchetypeManager.Target;
-
-            while (count != 0)
-            {
-                Chunk* chunk = archetypeManager.GetChunkWithEmptySlots(archetype.archetype, null);
-                int allocatedIndex;
-                int allocatedCount = archetypeManager.AllocateIntoChunk(chunk, count, out allocatedIndex);
-                m_Entities->AllocateEntities(archetype.archetype, chunk, allocatedIndex, allocatedCount, entities, false);
-                ChunkDataUtility.ClearComponents(chunk, allocatedIndex, allocatedCount);
-
-                entities += allocatedCount;
-                count -= allocatedCount;
-            }
+            m_Entities->CreateEntities(archetypeManager, archetype.archetype, entities, count, false);
         }
 
         public bool Exists(Entity entity)

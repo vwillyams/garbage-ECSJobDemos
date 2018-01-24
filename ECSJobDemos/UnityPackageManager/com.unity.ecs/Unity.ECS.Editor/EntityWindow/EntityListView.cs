@@ -160,6 +160,12 @@ namespace UnityEditor.ECS
             return root;
         }
 
+        protected override void BeforeRowsGUI()
+        {
+            currentSystem?.GetDependency().Complete();
+            base.BeforeRowsGUI();
+        }
+
 		protected override void RowGUI (RowGUIArgs args)
 		{
             if (args.item.depth == -1)

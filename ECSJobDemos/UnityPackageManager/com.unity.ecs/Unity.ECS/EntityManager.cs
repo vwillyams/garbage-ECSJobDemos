@@ -504,10 +504,11 @@ namespace UnityEngine.ECS
 
         unsafe public void SetSharedComponent<T>(Entity entity, T componentData) where T: struct, ISharedComponentData
         {
+            BeforeImmediateStructualChange();
+            
             int typeIndex = TypeManager.GetTypeIndex<T>();
             m_Entities->AssertEntityHasComponent(entity, typeIndex);
 
-            m_JobSafetyManager.CompleteReadAndWriteDependency(typeIndex);
             var archetype = m_Entities->GetArchetype(entity);
             int newSharedComponentDataIndex = m_SharedComponentManager.InsertSharedComponent(componentData);
 
@@ -520,7 +521,7 @@ namespace UnityEngine.ECS
 
             if (newSharedComponentDataIndex != oldSharedComponentDataIndex)
             {
-                var sharedComponentIndices = (int*) UnsafeUtility.Malloc(sizeof(int) * archetype->numSharedComponents, sizeof(int), Allocator.Temp);
+                var sharedComponentIndices = stackalloc int[archetype->numSharedComponents];
                 var srcSharedComponentDataIndices = srcChunk->GetSharedComponentValueArray();
 
                 ArchetypeManager.CopySharedComponentDataIndexArray(sharedComponentIndices,
@@ -531,8 +532,6 @@ namespace UnityEngine.ECS
                 int newChunkIndex = m_ArchetypeManager.AllocateIntoChunkImmediate(newChunk);
 
                 m_Entities->MoveEntityToChunk(m_ArchetypeManager, entity, newChunk, newChunkIndex);
-
-                UnsafeUtility.Free(sharedComponentIndices, Allocator.Temp);
             }
             m_SharedComponentManager.RemoveReference(newSharedComponentDataIndex);
         }

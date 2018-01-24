@@ -244,21 +244,36 @@ namespace UnityEngine.ECS
 			}
 		}
 
-        public Archetype* GetArchetype(ComponentTypeInArchetype* types, int count, EntityGroupManager groupManager)
-		{
-			uint hash = HashUtility.fletcher32((ushort*)types, count * sizeof(ComponentTypeInArchetype) / sizeof(ushort));
-			IntPtr typePtr;
-			Archetype* type;
-			NativeMultiHashMapIterator<uint> it;
-			if (m_TypeLookup.TryGetFirstValue(hash, out typePtr, out it))
-			{
-				do
-				{
-					type = (Archetype*)typePtr;
-					if (ComponentTypeInArchetype.CompareArray(type->types, type->typesCount, types, count))
-						return type;
-				} while (m_TypeLookup.TryGetNextValue(out typePtr, ref it));
-			}
+	    public Archetype* GetExistingArchetype(ComponentTypeInArchetype* types, int count)
+	    {
+	        IntPtr typePtr;
+	        Archetype* type;
+	        NativeMultiHashMapIterator<uint> it;
+	        if (m_TypeLookup.TryGetFirstValue(GetHash(types, count), out typePtr, out it))
+	        {
+	            do
+	            {
+	                type = (Archetype*)typePtr;
+	                if (ComponentTypeInArchetype.CompareArray(type->types, type->typesCount, types, count))
+	                    return type;
+	            }
+	            while (m_TypeLookup.TryGetNextValue(out typePtr, ref it));
+	        }
+
+	        return null;
+	    }
+
+	    static uint GetHash(ComponentTypeInArchetype* types, int count)
+	    {
+	        uint hash = HashUtility.fletcher32((ushort*)types, count * sizeof(ComponentTypeInArchetype) / sizeof(ushort));
+	        return hash;
+	    }
+
+	    public Archetype* GetOrCreateArchetype(ComponentTypeInArchetype* types, int count, EntityGroupManager groupManager)
+	    {
+	        Archetype* type = GetExistingArchetype(types, count);
+	        if (type != null)
+	            return type;
 
 			AssertArchetypeComponents(types, count);
 
@@ -350,7 +365,7 @@ namespace UnityEngine.ECS
 			UnsafeLinkedListNode.InitializeList(&type->chunkList);
 		    UnsafeLinkedListNode.InitializeList(&type->chunkListWithEmptySlots);
 
-			m_TypeLookup.Add(hash, (IntPtr)type);
+			m_TypeLookup.Add(GetHash(types, count), (IntPtr)type);
 
 			groupManager.OnArchetypeAdded(type);
 
@@ -684,7 +699,7 @@ namespace UnityEngine.ECS
 	            {
 	                if (srcArchetype->numManagedArrays != 0)
 	                    throw new System.ArgumentException("MoveEntitiesFrom is not supported with managed arrays");
-	                Archetype* dstArchetype = dstArchetypeManager.GetArchetype(srcArchetype->types, srcArchetype->typesCount, dstGroupManager);
+	                Archetype* dstArchetype = dstArchetypeManager.GetOrCreateArchetype(srcArchetype->types, srcArchetype->typesCount, dstGroupManager);
 
 	                for (var c = srcArchetype->chunkList.Begin();c != srcArchetype->chunkList.End();c = c->next)
 	                {

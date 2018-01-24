@@ -151,7 +151,7 @@ namespace UnityEngine.ECS
             BeforeImmediateStructualChange();
 
             EntityArchetype type;
-            type.archetype = m_ArchetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, PopulatedCachedTypeInArchetypeArray(types), m_GroupManager);
+            type.archetype = m_ArchetypeManager.GetOrCreateArchetype(m_CachedComponentTypeInArchetypeArray, PopulatedCachedTypeInArchetypeArray(types), m_GroupManager);
             return type;
         }
 
@@ -287,7 +287,7 @@ namespace UnityEngine.ECS
                 m_CachedComponentTypeInArchetypeArray[t + 1] = archetype->types[t];
                 ++t;
             }
-            Archetype* newType = m_ArchetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, archetype->typesCount + 1, m_GroupManager);
+            Archetype* newType = m_ArchetypeManager.GetOrCreateArchetype(m_CachedComponentTypeInArchetypeArray, archetype->typesCount + 1, m_GroupManager);
 
             int* sharedComponentDataIndices = null;
             if (newType->numSharedComponents > 0)
@@ -361,7 +361,7 @@ namespace UnityEngine.ECS
 
             bool freeSharedComponentIndices = false;
 
-            Archetype* newType = m_ArchetypeManager.GetArchetype(m_CachedComponentTypeInArchetypeArray, archtype->typesCount - removedTypes, m_GroupManager);
+            Archetype* newType = m_ArchetypeManager.GetOrCreateArchetype(m_CachedComponentTypeInArchetypeArray, archtype->typesCount - removedTypes, m_GroupManager);
 
             int* sharedComponentDataIndices = null;
 

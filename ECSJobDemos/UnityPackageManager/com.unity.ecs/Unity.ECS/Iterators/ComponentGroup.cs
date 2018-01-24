@@ -479,6 +479,12 @@ namespace UnityEngine.ECS
 
             return variationComponentGroup;
         }
+        
+        public int GetVariationVersion<SharedComponent1>(SharedComponent1 sharedComponent1)
+            where SharedComponent1 : struct, ISharedComponentData
+        {
+            return m_TypeManager.GetSharedComponentDataManager().GetSharedComponentVersion(sharedComponent1);
+        }
 
         public ComponentGroup GetVariation<SharedComponent1, SharedComponent2>(SharedComponent1 sharedComponent1, SharedComponent2 sharedComponent2)
             where SharedComponent1 : struct, ISharedComponentData

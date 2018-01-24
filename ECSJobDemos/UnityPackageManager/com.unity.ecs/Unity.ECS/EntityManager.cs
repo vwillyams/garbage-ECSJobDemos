@@ -186,6 +186,7 @@ namespace UnityEngine.ECS
             BeforeImmediateStructualTransaction();
 
             m_Entities->CreateEntities(m_ArchetypeManager, archetype.archetype, entities, count, true);
+            IncrementSharedComponentsVersion(entities[0]);
 
             AfterImmediateStructuralTransaction();
         }
@@ -205,6 +206,9 @@ namespace UnityEngine.ECS
             BeforeImmediateStructualChange();
 
             m_Entities->AssertEntitiesExist(entities, count);
+
+            for (int i = 0; i < entities.Length; i++)
+                IncrementSharedComponentsVersion(entities[i]);
 
             m_Entities->DeallocateEnties(m_ArchetypeManager, entities, count);
         }
@@ -271,6 +275,7 @@ namespace UnityEngine.ECS
                 throw new System.ArgumentException("srcEntity is not a valid entity");
 
             m_Entities->InstantiateEntities(m_ArchetypeManager, srcEntity, outputEntities, count, true);
+            IncrementSharedComponentsVersion(srcEntity);
 
             AfterImmediateStructuralTransaction();
         }
@@ -278,6 +283,7 @@ namespace UnityEngine.ECS
         public void AddComponent(Entity entity, ComponentType type)
         {
             BeforeImmediateStructualChange();
+            IncrementSharedComponentsVersion(entity);
 
             m_Entities->AssertEntitiesExist(&entity, 1);
 
@@ -348,14 +354,25 @@ namespace UnityEngine.ECS
             m_Entities->SetArchetype(m_ArchetypeManager, entity, newType, sharedComponentDataIndices);
         }
 
+        public void IncrementSharedComponentsVersion(Entity entity)
+        {
+            Archetype* archtype = m_Entities->GetArchetype(entity);
+            var sharedComponentDataIndices = m_Entities->GetComponentChunk(entity)->GetSharedComponentValueArray();
+            for (int i = 0; i < archtype->numSharedComponents; i++)
+            {
+                m_SharedComponentManager.IncrementSharedComponentVersion(sharedComponentDataIndices[i]);
+            }
+        }
+
         public void RemoveComponent(Entity entity, ComponentType type)
         {
             BeforeImmediateStructualChange();
+            IncrementSharedComponentsVersion(entity);
 
             var componentType = new ComponentTypeInArchetype(type);
 
             m_Entities->AssertEntityHasComponent(entity, type);
-
+            
             Archetype* archtype = m_Entities->GetArchetype(entity);
             int removedTypes = 0;
             for (int t = 0; t < archtype->typesCount; ++t)
@@ -365,6 +382,7 @@ namespace UnityEngine.ECS
                 else
                     m_CachedComponentTypeInArchetypeArray[t - removedTypes] = archtype->types[t];
             }
+            
 
             Assertions.Assert.AreNotEqual(-1, removedTypes);
 
@@ -601,7 +619,7 @@ namespace UnityEngine.ECS
 
             BeforeImmediateStructualChange();
             srcEntities.BeforeImmediateStructualChange();
-
+            
             ArchetypeManager.MoveChunks(srcEntities.m_ArchetypeManager, srcEntities.m_Entities, m_ArchetypeManager, m_GroupManager, m_SharedComponentManager, m_Entities);
         }
 

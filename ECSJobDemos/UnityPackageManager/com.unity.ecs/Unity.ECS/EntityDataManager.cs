@@ -517,12 +517,42 @@ namespace UnityEngine.ECS
             }
         }
 
-        public int GetSharedComponentDataIndex(Entity entity, int indexInTypeArray)
+        public int GetSharedComponentDataIndex(Entity entity, int typeIndex)
         {
+            var archetype = GetArchetype(entity);
+            int indexInTypeArray = ChunkDataUtility.GetIndexInTypeArray(archetype, typeIndex);
+
             Chunk* chunk = m_Entities[entity.index].chunk;
             int* sharedComponentValueArray = chunk->GetSharedComponentValueArray();
             int sharedComponentOffset = m_Entities[entity.index].archetype->sharedComponentOffset[indexInTypeArray];
             return sharedComponentValueArray[sharedComponentOffset];
+        }
+        
+        public void SetSharedComponentDataIndex(ArchetypeManager archetypeManager, Entity entity, int typeIndex, int newSharedComponentDataIndex)
+        {
+            var archetype = GetArchetype(entity);
+
+            int indexInTypeArray = ChunkDataUtility.GetIndexInTypeArray(archetype, typeIndex);
+
+            var srcChunk = GetComponentChunk(entity);
+            int* srcSharedComponentValueArray = srcChunk->GetSharedComponentValueArray();
+            int sharedComponentOffset = archetype->sharedComponentOffset[indexInTypeArray];
+            int oldSharedComponentDataIndex = srcSharedComponentValueArray[sharedComponentOffset];
+
+            if (newSharedComponentDataIndex != oldSharedComponentDataIndex)
+            {
+                var sharedComponentIndices = stackalloc int[archetype->numSharedComponents];
+                var srcSharedComponentDataIndices = srcChunk->GetSharedComponentValueArray();
+
+                ArchetypeManager.CopySharedComponentDataIndexArray(sharedComponentIndices,
+                    srcSharedComponentDataIndices, archetype->numSharedComponents);
+                sharedComponentIndices[sharedComponentOffset] = newSharedComponentDataIndex;
+
+                var newChunk = archetypeManager.GetChunkWithEmptySlots(archetype, sharedComponentIndices);
+                int newChunkIndex = archetypeManager.AllocateIntoChunkImmediate(newChunk);
+
+                MoveEntityToChunk(archetypeManager, entity, newChunk, newChunkIndex);
+            }
         }
     }
 }

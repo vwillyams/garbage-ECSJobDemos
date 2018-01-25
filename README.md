@@ -8,7 +8,7 @@ Required build: https://beta.unity3d.com/download/57e810e109ee/download.html
 unity source code revision: 57e810e109ee branch: 2018.1/scripting/jobsystem/playground
 
 # active development against master
-unity source code branch: scripting/jobsystem/combined
+unity source code branch: 2018.1/scripting/jobsystem/playground
 NOTE: (Navmesh & Raycast job API's is included in this branch)
 
 # ECSJobDemos

@@ -16,9 +16,9 @@
         }
 
         public float4x4(float m00, float m01, float m02, float m03,
-                        float m10, float m11, float m12, float m13,
-                        float m20, float m21, float m22, float m23,
-                        float m30, float m31, float m32, float m33)
+            float m10, float m11, float m12, float m13,
+            float m20, float m21, float m22, float m23,
+            float m30, float m31, float m32, float m33)
         {
             this.m0 = new float4(m00, m01, m02, m03);
             this.m1 = new float4(m10, m11, m12, m13);
@@ -44,7 +44,7 @@
         }
 
         public float2x2(float m00, float m01,
-                        float m10, float m11)
+            float m10, float m11)
         {
             this.m0 = new float2(m00, m01);
             this.m1 = new float2(m10, m11);
@@ -70,8 +70,8 @@
         }
 
         public float3x3(float m00, float m01, float m02,
-                        float m10, float m11, float m12,
-                        float m20, float m21, float m22)
+            float m10, float m11, float m12,
+            float m20, float m21, float m22)
         {
             this.m0 = new float3(m00, m01, m02);
             this.m1 = new float3(m10, m11, m12);
@@ -138,6 +138,26 @@
         public static float2x2 transpose(float2x2 i) { return new float2x2(i.m0.x, i.m1.x, i.m0.y, i.m1.y); }
         public static float3x3 transpose(float3x3 i) { return new float3x3(i.m0.x, i.m1.x, i.m2.x, i.m0.y, i.m1.y, i.m2.y, i.m0.z, i.m1.z, i.m2.z); }
         public static float4x4 transpose(float4x4 i) { return new float4x4(i.m0.x, i.m1.x, i.m2.x, i.m3.x, i.m0.y, i.m1.y, i.m2.y, i.m3.y, i.m0.z, i.m1.z, i.m2.z, i.m3.z, i.m0.w, i.m1.w, i.m2.w, i.m3.w); }
+        
+        public static float4x4 scale(float3 vector)
+        {
+            float4x4 matrix4x4 = new float4x4();
+            matrix4x4.m0 = new float4(vector.x,0.0f,0.0f,0.0f);
+            matrix4x4.m1 = new float4(0.0f,vector.y,0.0f,0.0f);
+            matrix4x4.m2 = new float4(0.0f,0.0f,vector.z,0.0f);
+            matrix4x4.m3 = new float4(0.0f, 0.0f, 0.0f, 1.0f);
+            return matrix4x4;
+        }
+
+        public static float4x4 translate(float3 vector)
+        {
+            float4x4 matrix4x4 = new float4x4();
+            matrix4x4.m0 = new float4(1.0f, 0.0f, 0.0f, 0.0f);
+            matrix4x4.m1 = new float4(0.0f, 1.0f, 0.0f, 0.0f);
+            matrix4x4.m2 = new float4(0.0f, 0.0f, 1.0f, 0.0f);
+            matrix4x4.m3 = new float4(vector.x, vector.y, vector.z, 1.0f);
+            return matrix4x4;
+        }
 
         /* @TODO:
         [MethodImpl((MethodImplOptions)0x100)] // agressive inline

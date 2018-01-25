@@ -2,6 +2,7 @@
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using System.Collections.Generic;
+using UnityEngine.ECS.Transform;
 
 namespace UnityEngine.ECS.Rendering
 {
@@ -11,14 +12,14 @@ namespace UnityEngine.ECS.Rendering
         // Instance renderer takes only batches of 1024
         Matrix4x4[] m_MatricesArray = new Matrix4x4[1023];
 
-        public unsafe static void CopyMatrices(ComponentDataArray<InstanceRendererTransform> transforms, int beginIndex, int length, Matrix4x4[] outMatrices)
+        public unsafe static void CopyMatrices(ComponentDataArray<TransformMatrix> transforms, int beginIndex, int length, Matrix4x4[] outMatrices)
         {
 	        // @TODO: This is only unsafe because the Unity DrawInstances API takes a Matrix4x4[] instead of NativeArray.
 	        ///       And we also want the code to be really fast.
             fixed (Matrix4x4* matricesPtr = outMatrices)
             {
-                UnityEngine.Assertions.Assert.AreEqual(sizeof(Matrix4x4), sizeof(InstanceRendererTransform));
-	            var matricesSlice = Unity.Collections.LowLevel.Unsafe.NativeSliceUnsafeUtility.ConvertExistingDataToNativeSlice<InstanceRendererTransform>(matricesPtr, sizeof(Matrix4x4), length);
+                UnityEngine.Assertions.Assert.AreEqual(sizeof(Matrix4x4), sizeof(TransformMatrix));
+	            var matricesSlice = Unity.Collections.LowLevel.Unsafe.NativeSliceUnsafeUtility.ConvertExistingDataToNativeSlice<TransformMatrix>(matricesPtr, sizeof(Matrix4x4), length);
 	            #if ENABLE_UNITY_COLLECTIONS_CHECKS
 	            Unity.Collections.LowLevel.Unsafe.NativeSliceUnsafeUtility.SetAtomicSafetyHandle(ref matricesSlice, AtomicSafetyHandle.GetTempUnsafePtrSliceHandle());
 	            #endif
@@ -30,7 +31,7 @@ namespace UnityEngine.ECS.Rendering
 		{
             var uniqueRendererTypes = new List<InstanceRenderer>(10);
 
-		    var maingroup = EntityManager.CreateComponentGroup(typeof(InstanceRenderer), typeof(InstanceRendererTransform));
+		    var maingroup = EntityManager.CreateComponentGroup(typeof(InstanceRenderer), typeof(TransformMatrix));
 
 		    maingroup.CompleteDependency();
 
@@ -42,7 +43,7 @@ namespace UnityEngine.ECS.Rendering
 
                 var group = maingroup.GetVariation(renderer);
 
-                var transforms = group.GetComponentDataArray<InstanceRendererTransform>();
+                var transforms = group.GetComponentDataArray<TransformMatrix>();
 
                 int beginIndex = 0;
                 while (beginIndex < transforms.Length)

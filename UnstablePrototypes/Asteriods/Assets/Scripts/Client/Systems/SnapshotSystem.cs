@@ -17,7 +17,7 @@ namespace Asteriods.Client
         {
             base.OnCreateManager(capacity);
 
-            MovementUpdates = new NativeQueue<MovementData>(128, Allocator.Persistent);
+            MovementUpdates = new NativeQueue<MovementData>(Allocator.Persistent);
             Debug.Assert(MovementUpdates.IsCreated);
         }
 
@@ -37,6 +37,10 @@ namespace Asteriods.Client
                 {
                     EntityManager.SetComponent(e, new PositionComponentData(update.position.x, update.position.y));
                     EntityManager.SetComponent(e, new RotationComponentData(update.rotation.angle));
+                }
+                else
+                {
+                    m_SpawnSystem.SpawnQueue.Enqueue(new SpawnCommand(update.id, update.type, update.position, update.rotation));
                 }
             }
         }

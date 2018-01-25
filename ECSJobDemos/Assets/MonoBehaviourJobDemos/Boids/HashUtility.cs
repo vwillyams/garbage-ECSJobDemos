@@ -4,15 +4,15 @@ using Unity.Mathematics;
 
 struct HashUtility
 {
-	public readonly static int[] cellOffsets =
+	public readonly static int3[] cellOffsets =
 	{
-		0, 0, 0,
-		-1, 0, 0,
-		0, -1, 0,
-		0, 0, -1,
-		1, 0, 0,
-		0, 1, 0,
-		0, 0, 1
+		new int3(0, 0, 0),
+		new int3(-1, 0, 0),
+		new int3(0, -1, 0),
+		new int3(0, 0, -1),
+		new int3(1, 0, 0),
+		new int3(0, 1, 0),
+		new int3(0, 0, 1)
 	};
 
 	public static int Hash(float3 v, float cellSize)

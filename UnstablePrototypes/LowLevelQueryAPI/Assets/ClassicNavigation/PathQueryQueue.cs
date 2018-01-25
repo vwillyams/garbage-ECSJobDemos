@@ -119,8 +119,8 @@ public class PathQueryQueue
                 m_Current.start = m_Query.MapLocation(req.start, 10.0f * Vector3.one, 0, -1);
                 m_Current.end = m_Query.MapLocation(req.end, 10.0f * Vector3.one, 0, -1);
 
-                // TODO: check the status returned by InitSlicedFindPath()
-                m_Query.InitSlicedFindPath(m_Current.start, m_Current.end, NavMesh.AllAreas, m_Costs);
+                // TODO: check the status returned by BeginFindPath()
+                m_Query.BeginFindPath(m_Current.start, m_Current.end, NavMesh.AllAreas, m_Costs);
             }
 
             if (m_Current.handle.valid)
@@ -129,14 +129,14 @@ public class PathQueryQueue
                 int niter = 0;
 
                 // TODO: check status
-                var status = m_Query.UpdateSlicedFindPath(maxIter, out niter);
+                var status = m_Query.UpdateFindPath(maxIter, out niter);
                 maxIter -= niter;
 
                 if (status == PathQueryStatus.Success)
                 {
                     // Copy path result to
                     int npath = 0;
-                    status = m_Query.FinalizeSlicedFindPath(out npath);
+                    status = m_Query.EndFindPath(out npath);
 
                     var res = m_Current;
                     res.polygons = new NativeArray<PolygonID>(npath, Allocator.Persistent);

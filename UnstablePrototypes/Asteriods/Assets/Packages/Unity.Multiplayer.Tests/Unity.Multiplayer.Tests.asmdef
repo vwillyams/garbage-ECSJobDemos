@@ -1,0 +1,14 @@
+{
+    "name": "Unity.Multiplayer.Tests",
+    "references": [
+        "Unity.Multiplayer",
+        "Unity.Mathematics"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

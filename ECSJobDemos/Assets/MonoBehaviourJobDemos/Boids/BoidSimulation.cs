@@ -57,7 +57,7 @@ namespace BoidcloudSimulation
 	        obstacle1AversionDistance = 30;
 		}
 
-		public BoidData Steer(int index, BoidSimulationState state, NativeArray<BoidData> boids, NativeMultiHashMap<int, int> cells, NativeArray<int> cellOffsetsTable)
+		public BoidData Steer(int index, BoidSimulationState state, NativeArray<BoidData> boids, NativeMultiHashMap<int, int> cells, NativeArray<int3> cellOffsetsTable)
 		{
 	        var separationSteering = new float3(0);
 	        var alignmentSteering = new float3(0);
@@ -68,7 +68,7 @@ namespace BoidcloudSimulation
 	        int3 gridPos = HashUtility.Quantize(thisb.position, radius);
 	        for (int oi = 0; oi < 7; oi++)
 	        {
-				var gridOffset = new int3(cellOffsetsTable[oi++], cellOffsetsTable[oi++], cellOffsetsTable[oi++]);
+				var gridOffset = cellOffsetsTable[oi];
 
 				hash = HashUtility.Hash(gridPos + gridOffset);
 	            int i;

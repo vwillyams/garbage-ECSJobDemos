@@ -1,0 +1,10 @@
+{
+    "name": "UnityEngine.ECS",
+    "references": [
+        "Unity.Collections",
+        "Unity.Burst"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": []
+}

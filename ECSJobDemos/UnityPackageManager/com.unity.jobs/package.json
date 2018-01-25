@@ -1,0 +1,11 @@
+{
+  "name": "com.unity.jobs",
+  "version": "0.0.1",
+  "unity": "2018.1",
+  "description": "Unity Managed Job System",
+  "keywords": [
+    "ads",
+    "unity"
+  ],
+  "category": "AssetStore/Unity"
+}

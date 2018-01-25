@@ -23,9 +23,13 @@ namespace Unity.Navigation.Tests
         internal NavMeshBuildSettings m_BuildSettingsRobot;
         internal const float k_Height = 0.3f;
 
+        internal NavMeshData GetNavMeshData() { return m_NavMeshData; }
+
         [SetUp]
         public void Setup()
         {
+            NavMesh.RemoveAllNavMeshData();
+
             var ground = new NavMeshBuildSource
             {
                 shape = NavMeshBuildSourceShape.Box,
@@ -88,16 +92,41 @@ namespace Unity.Navigation.Tests
             Assert.IsFalse(m_NavMeshQuery.IsValid(nmLocation));
         }
 
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
         [Test]
         public void NavMeshLocation_WhenCreatedWithPositionOutsidePolygon_Throws()
         {
-            var insidePos = new Vector3(1.0f, 0.5f, 2.0f);
-            var outsidePos = new Vector3(738.0f, 619.5f, 354.0f);
-            var validLocation = m_NavMeshQuery.MapLocation(insidePos, Vector3.one, m_TestedAgentTypeId, m_TestedAreaMask);
-            Assert.Throws<ArgumentException>(() => { var outsidePosition = new NavMeshLocation(outsidePos, validLocation.polygon); });
-            Assert.Throws<ArgumentException>(() => { var nullPolygon = new NavMeshLocation(insidePos, new PolygonID()); });
-            Assert.DoesNotThrow(() => { var samePosAndPoly = new NavMeshLocation(validLocation.position, validLocation.polygon); });
-            Assert.DoesNotThrow(() => { var posInTheSamePoly = new NavMeshLocation( validLocation.position + new Vector3(0.1f, 0, 0), validLocation.polygon); });
+            var location = m_NavMeshQuery.MapLocation(new Vector3(1.0f, 0f, 2.0f), Vector3.one, m_TestedAgentTypeId, m_TestedAreaMask);
+            var neighbour = m_NavMeshQuery.MapLocation(-location.position, Vector3.one, m_TestedAgentTypeId, m_TestedAreaMask);
+            Assert.AreNotEqual(location.polygon, neighbour.polygon);
+            Assert.Throws<ArgumentException>(() => { var outsidePosition = m_NavMeshQuery.CreateLocation(new Vector3(738.0f, 619.5f, 354.0f), location.polygon); });
+            Assert.Throws<ArgumentException>(() => { var neighbouringPolygon = m_NavMeshQuery.CreateLocation(location.position, neighbour.polygon); });
+            Assert.Throws<ArgumentException>(() => { var nullPolygon = m_NavMeshQuery.CreateLocation(location.position, new PolygonID()); });
+            Assert.Throws<ArgumentException>(() => { var slightlyOff = m_NavMeshQuery.CreateLocation(location.position + new Vector3(0, 0.01f, 0), location.polygon); });
+            Assert.DoesNotThrow(() => { var samePosAndPoly = m_NavMeshQuery.CreateLocation(location.position, location.polygon); });
+            Assert.DoesNotThrow(() => { var posInTheSamePoly = m_NavMeshQuery.CreateLocation(location.position + new Vector3(0.3f, 0, 0), location.polygon); });
+        }
+
+#endif
+        [Test]
+        public void NavMeshLocation_WhenOwnSurfaceRemoved_BecomesInvalid()
+        {
+            var instancePos = -15 * Vector3.right;
+            var temporaryInstance = NavMesh.AddNavMeshData(GetNavMeshData(), instancePos, Quaternion.identity);
+            var nmLocation = m_NavMeshQuery.MapLocation(instancePos, Vector3.one, m_TestedAgentTypeId, m_TestedAreaMask);
+
+            Assert.IsTrue(m_NavMeshQuery.IsValid(nmLocation));
+
+            temporaryInstance.Remove();
+
+            Assert.IsFalse(m_NavMeshQuery.IsValid(nmLocation));
+
+            // adding the surface again in the same position will create new polygon IDs
+            temporaryInstance = NavMesh.AddNavMeshData(GetNavMeshData(), instancePos, Quaternion.identity);
+
+            Assert.IsFalse(m_NavMeshQuery.IsValid(nmLocation));
+
+            temporaryInstance.Remove();
         }
 
         [Test]

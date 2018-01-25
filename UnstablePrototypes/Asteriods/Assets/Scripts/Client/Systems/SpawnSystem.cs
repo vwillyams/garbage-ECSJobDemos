@@ -1,3 +1,4 @@
+//#define STRESS_TEST_PARTICLES
 using UnityEngine.ECS;
 using UnityEngine;
 
@@ -15,11 +16,27 @@ namespace Asteriods.Client
         {
             base.OnCreateManager(capacity);
 
-            SpawnQueue = new NativeQueue<SpawnCommand>(128, Allocator.Persistent);
+            SpawnQueue = new NativeQueue<SpawnCommand>(Allocator.Persistent);
             NetworkIdLookup = new NativeHashMap<int, Entity>(1024, Allocator.Persistent);
 
             Debug.Assert(SpawnQueue.IsCreated);
             Debug.Assert(NetworkIdLookup.IsCreated);
+			#if STRESS_TEST_PARTICLES
+            var emitterType = EntityManager.CreateArchetype(typeof(PositionComponentData), typeof(RotationComponentData), typeof(ParticleEmitterComponentData));
+            var emitterData = ClientSettings.Instance().playerPrefab.GetComponent<ParticleEmitterComponent>().Value;
+            int numEmitters = 0;
+            for (int yp = 0; yp < Screen.height; yp += 20)
+            {
+                for (int xp = 0; xp < Screen.width; xp += 100)
+                {
+                    Entity e = EntityManager.CreateEntity(emitterType);
+                    EntityManager.SetComponent(e, new PositionComponentData(xp, yp));
+                    EntityManager.SetComponent(e, emitterData);
+                    ++numEmitters;
+                }
+            }
+            Debug.Log("Running " + numEmitters + " systems, " + (numEmitters * emitterData.particlesPerSecond) + " particles / second");
+			#endif
         }
 
         override protected void OnDestroyManager()
@@ -34,13 +51,20 @@ namespace Asteriods.Client
             for (int i = 0, c = SpawnQueue.Count; i < c; ++i)
             {
                 // TODO (michalb): add some nice debugging for this
-
                 var cmd = SpawnQueue.Dequeue();
+
+                Entity et;
+                if (NetworkIdLookup.TryGetValue(cmd.id, out et) && EntityManager.Exists(et))
+                {
+                    Debug.Log("id = " + cmd.id  + " already exists");
+                    continue;
+                }
+
                 switch((SpawnType)cmd.type)
                 {
                     case SpawnType.Asteroid:
                     {
-                        Entity e = EntityManager.CreateEntity(GameSettings.Instance().asteroidClientArchetype);
+                        Entity e = EntityManager.CreateEntity(ClientSettings.Instance().asteroidClientArchetype);
                         EntityManager.SetComponent<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(cmd.id));
                         EntityManager.SetComponent(e, new PositionComponentData(cmd.position.x, cmd.position.y));
                         EntityManager.SetComponent(e, new RotationComponentData(cmd.rotation.angle));
@@ -48,7 +72,7 @@ namespace Asteriods.Client
                     } break;
                     case SpawnType.Bullet:
                     {
-                        Entity e = EntityManager.CreateEntity(GameSettings.Instance().bulletClientArchetype);
+                        Entity e = EntityManager.CreateEntity(ClientSettings.Instance().bulletClientArchetype);
                         EntityManager.SetComponent<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(cmd.id));
                         EntityManager.SetComponent(e, new PositionComponentData(cmd.position.x, cmd.position.y));
                         EntityManager.SetComponent(e, new RotationComponentData(cmd.rotation.angle));
@@ -57,11 +81,11 @@ namespace Asteriods.Client
                     } break;
                     case SpawnType.Ship:
                     {
-                        Entity e = EntityManager.CreateEntity(GameSettings.Instance().playerClientArchetype);
+                        Entity e = EntityManager.CreateEntity(ClientSettings.Instance().playerClientArchetype);
                         EntityManager.SetComponent<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(cmd.id));
                         EntityManager.SetComponent(e, new PositionComponentData(cmd.position.x, cmd.position.y));
                         EntityManager.SetComponent(e, new RotationComponentData(cmd.rotation.angle));
-                        EntityManager.SetComponent(e, GameSettings.Instance().playerPrefab.GetComponent<ParticleEmitterComponent>().Value);
+                        EntityManager.SetComponent(e, ClientSettings.Instance().playerPrefab.GetComponent<ParticleEmitterComponent>().Value);
                         NetworkIdLookup.TryAdd(cmd.id, e);
                     } break;
                 }

@@ -21,7 +21,7 @@ namespace Asteriods.Client
         {
             base.OnCreateManager(capacity);
 
-            DespawnQueue = new NativeQueue<int>(128, Allocator.Persistent);
+            DespawnQueue = new NativeQueue<int>(Allocator.Persistent);
             Debug.Assert(DespawnQueue.IsCreated);
         }
 
@@ -39,7 +39,6 @@ namespace Asteriods.Client
                 Entity e;
                 if (m_SpawnSystem.NetworkIdLookup.TryGetValue(id, out e) && EntityManager.Exists(e))
                 {
-                    Debug.Log("despawn for " + id + " received");
                     m_EntityManager.DestroyEntity(e);
                 }
             }

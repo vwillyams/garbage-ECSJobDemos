@@ -38,8 +38,8 @@ namespace Asteriods.Client
                 right = 1;
             if (Input.GetKey("up"))
                 thrust = 1;
-            //if (Input.GetKeyDown("space"))
-            if (Input.GetKey("space"))
+            if (Input.GetKeyDown("space"))
+            //if (Input.GetKey("space"))
                 shoot = 1;
 
             //Debug.LogFormat("left {0}, right {1}, up {2}, space {3}", left, right, thrust, shoot);

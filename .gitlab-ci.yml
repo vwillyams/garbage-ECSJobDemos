@@ -1,0 +1,141 @@
+variables:
+  UNITY_EXECUTABLE_PATH_MAC: "/Applications/Unity-922e0ba8e4d3/Unity.app/Contents/MacOS/Unity"
+  UNITY_EXECUTABLE_PATH_LINUX: "/home/builduser/buildslave/unity/build/build/LinuxEditor/Unity"
+  UNITY_EXECUTABLE_PATH_WINDOWS: "C:/Program Files/Unity-922e0ba8e4d3/Editor/Unity.exe"
+
+stages:
+  - build
+  - standalone
+  - test
+
+build:macOS:
+  stage: build
+  tags:
+    - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/bin/Debug/netcoreapp2.0/UnityLogWrapper.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath $(pwd)/ECSJobDemos -batchmode -nographics -silentcrashes -automated -logfile output.log -quit
+  artifacts:
+      name: "mac-build-logs"
+      when: always
+      paths:
+        - "*.log"
+        - "*.xml"
+      expire_in: 1 week
+
+standalone:macOS:
+  stage: standalone
+  tags:
+    - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/bin/Debug/netcoreapp2.0/UnityLogWrapper.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath $(pwd)/ECSJobDemos -batchmode -buildOSXUniversalPlayer build/osx_standalone.app -quit -nographics -silentcrashes -automated -logfile output.log -quit
+  artifacts:
+      name: "mac-standalone-logs"
+      when: always
+      paths:
+        - "*.log"
+        - "*.xml"
+        - "ECSJobDemos/build/"
+      expire_in: 1 week
+
+test:macOS:
+  stage: test
+  tags:
+    - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/bin/Debug/netcoreapp2.0/UnityLogWrapper.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath $(pwd)/ECSJobDemos -batchmode -nographics -silentcrashes -automated -logfile output.log -runtests -testresults results.xml
+  artifacts:
+    name: "mac-test-logs"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+
+build:windows:
+  stage: build
+  tags:
+    - windows
+  script:
+    - dotnet C:/unity-log-wrapper/bin/Debug/netcoreapp2.0/UnityLogWrapper.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -nographics -silentcrashes -automated -logfile output.log -quit
+  artifacts:
+      name: "windows-build-logs"
+      when: always
+      paths:
+        - "*.log"
+        - "*.xml"
+      expire_in: 1 week
+
+standalone:windows:
+  stage: standalone
+  tags:
+    - windows
+  script:
+    - dotnet C:/unity-log-wrapper/bin/Debug/netcoreapp2.0/UnityLogWrapper.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -buildWindows64Player build/windows-standalone.exe -nographics -silentcrashes -automated -logfile output.log -quit
+  artifacts:
+      name: "windows-standalone-logs"
+      when: always
+      paths:
+        - "*.log"
+        - "*.xml"
+        - "ECSJobDemos/build/"
+      expire_in: 1 week
+
+test:windows:
+  stage: test
+  tags:
+    - windows
+  script:
+    - dotnet C:/unity-log-wrapper/bin/Debug/netcoreapp2.0/UnityLogWrapper.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -nographics -silentcrashes -automated -logfile output.log -runtests -testresults results.xml
+  artifacts:
+    name: "windows-test-logs"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+
+#build:linux:
+#  stage: build
+#  allow_failure: true
+#  tags:
+#    - linux
+#  script:
+#    - dotnet ~/unity-log-wrapper/bin/Debug/netcoreapp2.0/UnityLogWrapper.dll -unityexecutable $UNITY_EXECUTABLE_PATH_LINUX -projectpath $(pwd)/ECSJobDemos -batchmode -nographics -silentcrashes -automated -logfile output.log -quit
+#  artifacts:
+#      name: "linux-build-logs"
+#      when: always
+#      paths:
+#        - "*.log"
+#        - "*.xml"
+#      expire_in: 1 week
+
+#standalone:linux:
+#  stage: standalone
+#  allow_failure: true
+#  tags:
+#    - linux
+#  script:
+#    - dotnet ~/unity-log-wrapper/bin/Debug/netcoreapp2.0/UnityLogWrapper.dll -unityexecutable $UNITY_EXECUTABLE_PATH_LINUX -projectpath $(pwd)/ECSJobDemos -batchmode -buildLinuxUniversalPlayer build/linux-standalone -silentcrashes -automated -logfile output.log -quit
+#  artifacts:
+#      name: "linux-standalone-logs"
+#      when: always
+#      paths:
+#        - "*.log"
+#        - "*.xml"
+#        - "ECSJobDemos/build/"
+#      expire_in: 1 week
+
+#test:linux:
+#  stage: test
+#  allow_failure: true
+#  tags:
+#    - linux
+#  script:
+#    - dotnet ~/unity-log-wrapper/bin/Debug/netcoreapp2.0/UnityLogWrapper.dll -unityexecutable $UNITY_EXECUTABLE_PATH_LINUX -projectpath $(pwd)/ECSJobDemos -batchmode -nographics -silentcrashes -automated -logfile output.log -runtests -testresults results.xml
+#  artifacts:
+#    name: "linux-test-logs"
+#    when: always
+#    paths:
+#      - "*.log"
+#      - "*.xml"
+#    expire_in: 1 week

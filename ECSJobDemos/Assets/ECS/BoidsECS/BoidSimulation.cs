@@ -74,7 +74,7 @@ namespace BoidSimulations
 			return steer;
 		}
 
-		public void CalculateSeparationAndAlignment(NativeArray<BoidData> boids, int index, NativeMultiHashMap<int, int> cells, NativeArray<int> cellOffsetsTable, out float3 alignmentSteering, out float3 separationSteering)
+		public void CalculateSeparationAndAlignment(NativeArray<BoidData> boids, int index, NativeMultiHashMap<int, int> cells, NativeArray<int3> cellOffsetsTable, out float3 alignmentSteering, out float3 separationSteering)
 		{
 			BoidData thisb = boids[index];
 			separationSteering = new float3(0);
@@ -85,7 +85,7 @@ namespace BoidSimulations
 			int3 gridPos = HashUtility.Quantize(thisb.position, cellRadius);
 			for (int oi = 0; oi < 7; oi++)
 			{
-				var gridOffset = new int3(cellOffsetsTable[oi++], cellOffsetsTable[oi++], cellOffsetsTable[oi++]);
+				var gridOffset = cellOffsetsTable[oi];
 
 				hash = HashUtility.Hash(gridPos + gridOffset);
 				int i;
@@ -123,7 +123,7 @@ namespace BoidSimulations
 			alignmentSteering = math_experimental.normalizeSafe(alignmentSteering);
 		}
 
-		public BoidData Steer(int index, BoidSimulationState state, NativeArray<BoidData> boids, NativeArray<BoidObstacle> boidObstacles, NativeArray<float3> targetPositions, NativeMultiHashMap<int, int> cells, NativeArray<int> cellOffsetsTable)
+		public BoidData Steer(int index, BoidSimulationState state, NativeArray<BoidData> boids, NativeArray<BoidObstacle> boidObstacles, NativeArray<float3> targetPositions, NativeMultiHashMap<int, int> cells, NativeArray<int3> cellOffsetsTable)
 		{
 			float3 separationSteering;
 			float3 alignmentSteering;

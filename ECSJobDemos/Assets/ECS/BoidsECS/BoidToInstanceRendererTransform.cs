@@ -8,68 +8,53 @@ using Unity.Mathematics;
 
 namespace BoidSimulations
 {
-    class matrix_math_util
+#if true
+    
+    // Transforms BoidData simulation state to InstanceRendererTransform
+    // which is essentially a matrix used by the rendering system.
+    [UpdateBefore(typeof(BoidSimulationSystem))]
+    class BoidToInstanceRendererTransform : JobComponentSystem
     {
-        const float epsilon = 0.000001F;
-
-        public static float3x3 identity3
+        struct Group
         {
-            get { return new float3x3(new float3(1, 0, 0), new float3(0, 1, 0), new float3(0, 0, 1)); }
-        }
-        public static float4x4 identity4
-        {
-            get { return new float4x4(new float4(1, 0, 0, 0), new float4(0, 1, 0, 0), new float4(0, 0, 1, 0), new float4(0, 0, 0, 1)); }
+            public ComponentDataArray<BoidData>                  boids;
+            public ComponentDataArray<InstanceRendererTransform> rendererTransforms;
         }
 
-        public static float4x4 LookRotationToMatrix(float3 position, float3 forward, float3 up)
+        [InjectComponentGroup] 
+        Group m_Group;
+        
+        [ComputeJobOptimizationAttribute(Accuracy.Med, Support.Relaxed)]
+        struct TransformJob : IJobProcessComponentData<BoidData, InstanceRendererTransform>
         {
-            float3x3 rot = LookRotationToMatrix(forward, up);
-
-            float4x4 matrix;
-            matrix.m0 = new float4(rot.m0, 0.0F);
-            matrix.m1 = new float4(rot.m1, 0.0F);
-            matrix.m2 = new float4(rot.m2, 0.0F);
-            matrix.m3 = new float4(position, 1.0F);
-
-            return matrix;
+            public void Execute(ref BoidData boid, ref InstanceRendererTransform transform)
+            {
+                transform.matrix = matrix_math_util.LookRotationToMatrix(boid.position, boid.forward, new float3(0, 1, 0));
+            }
         }
 
-        public static float3x3 LookRotationToMatrix(float3 forward, float3 up)
+        protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            float3 z = forward;
-            // compute u0
-            float mag = math.length(z);
-            if (mag < epsilon)
-                return identity3;
-            z /= mag;
-
-            float3 x = math.cross(up, z);
-            mag = math.length(x);
-            if (mag < epsilon)
-                return identity3;
-            x /= mag;
-
-            float3 y = math.cross(z, x);
-            float yLength = math.length(y);
-            if (yLength < 0.9F || yLength > 1.1F)
-                return identity3;
-
-            return new float3x3(x, y, z);
+            var job = new TransformJob();
+            return job.Schedule(m_Group.boids, m_Group.rendererTransforms, 16, inputDeps);
         }
     }
 
-    //[DisableAutoCreation]
+#else
+
+    // This code does exactly the same as above.
+    // But using IAutoComponentSystemJob effectively creates the component system code automatically,
+    // so you have to only write the job and scheduling it is taken care of automatically.
     [ComputeJobOptimizationAttribute(Accuracy.Med, Support.Relaxed)]
     struct BoidToInstanceRendererTransform : IJobProcessComponentData<BoidData, InstanceRendererTransform>, IAutoComponentSystemJob
     {
-        public void Prepare()
-        {
-        }
+        public void Prepare() { }
 
         public void Execute(ref BoidData boid, ref InstanceRendererTransform transform)
         {
             transform.matrix = matrix_math_util.LookRotationToMatrix(boid.position, boid.forward, new float3(0, 1, 0));
         }
     }
-
+    
+#endif
 }

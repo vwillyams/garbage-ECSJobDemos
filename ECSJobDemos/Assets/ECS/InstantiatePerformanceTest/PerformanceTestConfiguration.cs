@@ -7,7 +7,7 @@ using Unity.Collections;
 
 public static class PerformanceTestConfiguration
 {
-    public const int InstanceCount = 10000;
-    public const int Iterations = 500;
+    public const int InstanceCount = 100 * 1000;
+    public const int Iterations = 1;
     public static bool CleanManagers = false;
 }

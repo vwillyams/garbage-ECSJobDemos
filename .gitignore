@@ -5,9 +5,6 @@ ECSJobDemos/Temp
 ECSJobDemos/obj
 
 
-ECSJobDemos/UnityPackageManager/com.unity.burst*
-
-
 UnstablePrototypes/BlobificationPrototype/Library
 UnstablePrototypes/BlobificationPrototype/Temp
 UnstablePrototypes/BlobificationPrototype/obj
@@ -22,8 +19,17 @@ UnstablePrototypes/Asteriods/.vscode
 UnstablePrototypes/Asteriods/Assets/Plugins*
 UnstablePrototypes/Asteriods/Library
 UnstablePrototypes/Asteriods/Temp
+UnstablePrototypes/Asteriods/StandardBuild
 UnstablePrototypes/Asteriods/obj
 UnstablePrototypes/Asteriods/.editorconfig
+
+UnstablePrototypes/GalacticConquest/.vscode
+UnstablePrototypes/GalacticConquest/.vs
+UnstablePrototypes/GalacticConquest/Assets/Plugins*
+UnstablePrototypes/GalacticConquest/Library
+UnstablePrototypes/GalacticConquest/Temp
+UnstablePrototypes/GalacticConquest/obj
+UnstablePrototypes/GalacticConquest/.editorconfig
 
 
 *.idea

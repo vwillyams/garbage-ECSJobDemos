@@ -26,7 +26,7 @@ public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
         if (PerformanceTestConfiguration.CleanManagers)
         {
             oldRoot = World.Active;
-            World.Active = new World();
+            World.Active = new World("AddRemoveComponentNonBatchPerformance");
             World.Active.SetDefaultCapacity(PerformanceTestConfiguration.InstanceCount);
         }
 
@@ -39,26 +39,28 @@ public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
         var archetype = entityManager.CreateArchetype(typeof(Component128Bytes), typeof(Component12Bytes), typeof(Component64Bytes));
         var entities = new NativeArray<Entity>(PerformanceTestConfiguration.InstanceCount, Allocator.Temp);
 
-        instantiateSampler.Begin();
-        for (int i = 0; i < entities.Length; i++)
-            entities[i] = entityManager.CreateEntity (archetype);
+	    for (int k = 0; k != PerformanceTestConfiguration.Iterations; k++)
+	    {
+	        instantiateSampler.Begin();
+	        for (int i = 0; i < entities.Length; i++)
+	            entities[i] = entityManager.CreateEntity (archetype);
+	        instantiateSampler.End();
 
-		instantiateSampler.End();
+	        addSampler.Begin();
+	        for (int i = 0; i < entities.Length; i++)
+	            entityManager.AddComponent(entities[i], new Component16Bytes());
+	        addSampler.End();
 
-        addSampler.Begin();
-        for (int i = 0; i < entities.Length; i++)
-            entityManager.AddComponent(entities[i], new Component16Bytes());
-        addSampler.End();
+	        removeSampler.Begin();
+	        for (int i = 0;i<entities.Length;i++)
+	            entityManager.RemoveComponent<Component16Bytes> (entities[i]);
+	        removeSampler.End();
 
-        removeSampler.Begin();
-		for (int i = 0;i<entities.Length;i++)
-			entityManager.RemoveComponent<Component16Bytes> (entities[i]);
-        removeSampler.End();
-
-        destroySampler.Begin();
-        for (int i = 0; i < entities.Length; i++)
-            entityManager.DestroyEntity(entities[i]);
-        destroySampler.End();
+	        destroySampler.Begin();
+	        for (int i = 0; i < entities.Length; i++)
+	            entityManager.DestroyEntity(entities[i]);
+	        destroySampler.End();
+	    }
 
         entities.Dispose ();
 

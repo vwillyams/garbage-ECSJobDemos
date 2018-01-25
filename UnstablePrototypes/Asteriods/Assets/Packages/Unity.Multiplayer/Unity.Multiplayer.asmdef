@@ -1,7 +1,9 @@
 {
     "name": "Unity.Multiplayer",
     "references": [
-        "UnityEngine.ECS"
+        "UnityEngine.ECS",
+        "Unity.Collections",
+        "Unity.Mathematics"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],

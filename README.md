@@ -22,5 +22,5 @@ Project folder for basic ECS dev & tests
 # AI Navigation & Batched raycasts
 Sandbox project for pathfinding: [LowLevelQueryAPI](UnstablePrototypes/LowLevelQueryAPI).
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTgyNjM5MTgzNywtMTg4NTI4ODI5OV19
+eyJoaXN0b3J5IjpbMjQ5NjkxMjUzLDE4MjYzOTE4MzddfQ==
 -->

@@ -5,6 +5,12 @@ using UnityEngine;
 
 namespace Unity.Mathematics
 {
+    public partial struct float2
+    {
+        public static implicit operator Vector2(float2 d)     { return new Vector2(d.x, d.y); }
+        public static implicit operator float2(Vector2 d)     { return new float2(d.x, d.y); }
+    }
+    
     public partial struct float3
     {
         public static implicit operator Vector3(float3 d)     { return new Vector3(d.x, d.y, d.z); }

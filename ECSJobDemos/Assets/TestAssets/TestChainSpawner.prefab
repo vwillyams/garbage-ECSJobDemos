@@ -78,9 +78,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_SerializedData:
     t: 0
-    speed: 4
+    speed: 8
     height:
-      x: 0.5
+      x: 2
       y: 1
       z: 0
 --- !u!114 &114827442760359236
@@ -96,5 +96,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_SerializedData:
     prefab: {fileID: 1281946613142142, guid: 8dbf8b65b735f4210b4ff20878ef8841, type: 2}
-    distance: 2
+    minDistance: 1
+    maxDistance: 2
     count: 100

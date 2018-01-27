@@ -6,7 +6,8 @@ namespace UnityEngine.ECS.Spawners
     public struct SpawnChain : ISharedComponentData
     {
         public GameObject prefab;
-        public float distance;
+        public float minDistance;
+        public float maxDistance;
         public int count;
     }
 

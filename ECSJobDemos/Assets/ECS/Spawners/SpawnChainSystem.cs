@@ -77,7 +77,8 @@ namespace ECS.Spawners
                 int count = spawner.count;
                 var entities = new NativeArray<Entity>(count,Allocator.Temp);
                 var prefab = spawner.prefab;
-                float distance = spawner.distance;
+                float minDistance = spawner.minDistance;
+                float maxDistance = spawner.maxDistance;
                 float3 center = spawnInstances[spawnIndex].position;
                 var sourceEntity = spawnInstances[spawnIndex].sourceEntity;
 
@@ -87,7 +88,8 @@ namespace ECS.Spawners
                     PositionConstraint contraint = new PositionConstraint();
 
                     contraint.parentEntity = sourceEntity;
-                    contraint.distance = distance;
+                    contraint.minDistance = minDistance;
+                    contraint.maxDistance = maxDistance;
                     
                     EntityManager.AddComponent(entities[0],contraint);
                 }
@@ -97,12 +99,13 @@ namespace ECS.Spawners
                     PositionConstraint contraint = new PositionConstraint();
                     
                     contraint.parentEntity = entities[i - 1];
-                    contraint.distance = distance;
+                    contraint.minDistance = minDistance;
+                    contraint.maxDistance = maxDistance;
                     
                     EntityManager.AddComponent(entities[i],contraint);
                 }
                 
-                float3 dv = new float3( 0.0f, distance * 0.25f, 0.0f );
+                float3 dv = new float3( 0.0f, minDistance, 0.0f );
                 for (int i = 0; i < count; i++)
                 {
                     var position = new TransformPosition

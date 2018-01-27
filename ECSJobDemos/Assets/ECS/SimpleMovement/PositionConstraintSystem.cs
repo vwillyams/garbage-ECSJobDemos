@@ -1,4 +1,5 @@
 ﻿using Boo.Lang;
+using Microsoft.Msagl.Core.Layout.ProximityOverlapRemoval.StressEnergy;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -58,10 +59,12 @@ namespace UnityEngine.ECS.SimpleMovement
                     
                     float3 d = childPosition - parentPosition;
                     float len = math.length(d);
+                    float nl = math.min(math.max(len, positionConstraints[i].minDistance),
+                        positionConstraints[i].maxDistance);
 
                     positions[childIndex] = new TransformPosition
                     {
-                        position = parentPosition + (d * (positionConstraints[i].distance) / len)
+                        position = parentPosition + ((d * nl) / len)
                     };
                 }
             }

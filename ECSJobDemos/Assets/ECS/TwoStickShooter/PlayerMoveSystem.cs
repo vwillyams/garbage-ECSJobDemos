@@ -9,47 +9,29 @@ using UnityEngine.XR.WSA;
 
 namespace TwoStickExample
 {
-
-    public class PlayerMoveSystem : JobComponentSystem
+    public class PlayerMoveSystem : ComponentSystem
     {
         public struct Data
         {
             public int Length;
             public ComponentDataArray<WorldPos> Position;
-            [ReadOnly]
-            public ComponentDataArray<PlayerInput> Input;
+            [ReadOnly] public ComponentDataArray<PlayerInput> Input;
         }
 
         [InjectComponentGroup] private Data m_Data;
 
-        public struct Job : IJobParallelFor
+        protected override void OnUpdate()
         {
-            public ComponentDataArray<WorldPos> Position;
-            [ReadOnly]
-            public ComponentDataArray<PlayerInput> Input;
-            public float DeltaTime;
-
-            public void Execute(int index)
+            float dt = Time.deltaTime;
+            for (int index = 0; index < m_Data.Length; ++index)
             {
-                WorldPos pos = Position[index];
+                WorldPos pos = m_Data.Position[index];
 
-                pos.Position += DeltaTime * Input[index].Move;
-                pos.Heading = Input[index].Shoot;
+                pos.Position += dt * m_Data.Input[index].Move;
+                pos.Heading = m_Data.Input[index].Shoot;
 
-                Position[index] = pos;
+                m_Data.Position[index] = pos;
             }
-        }
-
-        protected override JobHandle OnUpdate(JobHandle inputDeps)
-        {
-            var job = new Job
-            {
-                Position = m_Data.Position,
-                Input = m_Data.Input,
-                DeltaTime = Time.deltaTime
-            };
-
-            return job.Schedule(m_Data.Length, 64, inputDeps);
         }
     }
 }

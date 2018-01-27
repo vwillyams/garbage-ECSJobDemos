@@ -9,6 +9,7 @@ namespace UnityEngine.ECS.SimpleMovement
     [Serializable]
     public struct Bounce : IComponentData
     {
+        [NonSerialized]
         public float t;
         public float speed;
         public float3 height;

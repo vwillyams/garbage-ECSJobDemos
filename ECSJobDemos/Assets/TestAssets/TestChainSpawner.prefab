@@ -77,10 +77,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SerializedData:
-    t: 0
     speed: 8
     height:
-      x: 2
+      x: 1
       y: 1
       z: 0
 --- !u!114 &114827442760359236

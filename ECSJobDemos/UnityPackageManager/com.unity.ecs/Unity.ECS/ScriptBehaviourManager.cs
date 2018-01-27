@@ -4,7 +4,6 @@ using System.Reflection;
 
 namespace UnityEngine.ECS
 {
-	//@TODO: Checks to ensure base override is always called.
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
 	sealed public class DisableAutoCreationAttribute : System.Attribute
 	{
@@ -12,47 +11,9 @@ namespace UnityEngine.ECS
 	
 	public abstract class ScriptBehaviourManager
 	{	
-		static void ValidateNoStaticInjectDependencies(Type type)
-        {
-#if UNITY_EDITOR
-            var fields = type.GetFields(BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic);
-
-            foreach (var field in fields)
-            {
-                var hasInject = field.GetCustomAttributes(typeof(InjectAttribute), true).Length != 0;
-                if (hasInject && field.GetValue(null) == null)
-                    Debug.LogError(string.Format("{0}.{1} InjectDependency may not be used on static variables", type, field.Name));
-            }
-#endif
-        }
-
-		void InjectConstructorDependencies(World world)
-		{
-			var type = GetType();
-			var fields = type.GetFields (BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-			foreach (var field in fields)
-			{
-				var hasInject = field.GetCustomAttributes (typeof(InjectAttribute), true).Length != 0;
-				if (hasInject)
-				{
-					if (field.FieldType.IsSubclassOf(typeof(ScriptBehaviourManager)))
-					{
-						field.SetValue(this, world.GetOrCreateManager(field.FieldType));
-					}
-					else
-					{
-						Debug.LogErrorFormat("[Inject] can not be applied to type: {0}", field.FieldType);
-					}
-				}
-			}
-		}
-
 		internal void CreateInstance(World world, int capacity)
 		{
-			InjectConstructorDependencies(world);
-			ValidateNoStaticInjectDependencies(GetType());
-			
-			OnCreateManagerInternal(capacity);
+			OnCreateManagerInternal(world, capacity);
 			OnCreateManager(capacity);
 		}
 
@@ -61,7 +22,7 @@ namespace UnityEngine.ECS
 			OnDestroyManager();
 		}
 
-		protected abstract void OnCreateManagerInternal(int capacity);
+		protected abstract void OnCreateManagerInternal(World world, int capacity);
 
 		/// <summary>
 		/// Called when the ScriptBehaviourManager is created.

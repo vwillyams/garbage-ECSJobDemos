@@ -17,7 +17,7 @@ namespace UnityEngine.ECS.Transform
             public int Length;
         }
         
-        [InjectComponentGroup] private WorldPositionGroup m_WorldPositionGroup;
+        [Inject] private WorldPositionGroup m_WorldPositionGroup;
     
         [ComputeJobOptimization]
         struct WorldPositionToMatrix : IJobParallelFor

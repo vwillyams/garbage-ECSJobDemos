@@ -20,20 +20,22 @@ namespace UnityEngine.ECS
         internal int[]		    			m_JobDependencyForWritingManagers;
         internal ComponentJobSafetyManager  m_SafetyManager;
         EntityManager                       m_EntityManager;
-
+        World                               m_World;
 
 	    public ComponentGroup[] 			ComponentGroups { get { return m_ComponentGroups; } }
 
         protected ComponentSystemBase()
         {
-            m_EntityManager = World.Active.GetOrCreateManager<EntityManager>();
+            
         }
 
-    	protected override void OnCreateManagerInternal(int capacity)
-    	{
+    	protected override void OnCreateManagerInternal(World world, int capacity)
+	    {
+	        m_World = world;
+	        m_EntityManager = world.GetOrCreateManager<EntityManager>();
             m_SafetyManager = m_EntityManager.ComponentJobSafetyManager;
 
-		    ComponentSystemInjection.Inject(GetType(), m_EntityManager, out m_InjectedComponentGroups, out m_InjectedFromEntity);
+		    ComponentSystemInjection.Inject(this, world, m_EntityManager, out m_InjectedComponentGroups, out m_InjectedFromEntity);
 
 		    m_ComponentGroups = new ComponentGroup[m_InjectedComponentGroups.Length];
 		    for (var i = 0; i < m_InjectedComponentGroups.Length; ++i)
@@ -94,6 +96,7 @@ namespace UnityEngine.ECS
     	}
 
         protected EntityManager EntityManager { get { return m_EntityManager; }  }
+        protected World World                 { get { return m_World; }  }
 
         // TODO: this should be made part of UnityEngine?
         static void ArrayUtilityAdd<T>(ref T[] array, T item)
@@ -172,9 +175,9 @@ namespace UnityEngine.ECS
 	        AfterOnUpdate();
 	    }
 
-		protected sealed override void OnCreateManagerInternal(int capacity)
+		protected sealed override void OnCreateManagerInternal(World world, int capacity)
 		{
-			base.OnCreateManagerInternal(capacity);
+			base.OnCreateManagerInternal(world, capacity);
 		}
 
 		/// <summary>
@@ -259,9 +262,9 @@ namespace UnityEngine.ECS
 	        AfterOnUpdate(outputJob);
 	    }
 
-	    override sealed protected void OnCreateManagerInternal(int capacity)
+	    override sealed protected void OnCreateManagerInternal(World world, int capacity)
 		{
-			base.OnCreateManagerInternal(capacity);
+			base.OnCreateManagerInternal(world, capacity);
 		}
 
 		override protected void OnDestroyManager()

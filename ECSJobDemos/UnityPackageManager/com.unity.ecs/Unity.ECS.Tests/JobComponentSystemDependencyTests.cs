@@ -15,7 +15,7 @@ namespace UnityEngine.ECS.Tests
                 public ComponentDataArray<EcsTestData> data;
             }
 
-            [InjectComponentGroup] Inputs m_Inputs;
+            [Inject] Inputs m_Inputs;
 
             struct ReadJob : IJob
             {
@@ -46,7 +46,7 @@ namespace UnityEngine.ECS.Tests
             public bool returnWrongJob = false;
             public bool ignoreInputDeps = false;
 
-            [InjectComponentGroup] private Inputs m_Inputs;
+            [Inject] private Inputs m_Inputs;
 
             private struct ReadJob : IJob
             {
@@ -86,7 +86,7 @@ namespace UnityEngine.ECS.Tests
                 public ComponentDataArray<EcsTestData> data;
             }
 
-            [InjectComponentGroup] private Inputs m_Inputs;
+            [Inject] private Inputs m_Inputs;
 
             protected override JobHandle OnUpdate(JobHandle input)
             {
@@ -102,7 +102,7 @@ namespace UnityEngine.ECS.Tests
                 public ComponentDataArray<EcsTestData> data;
             }
 
-            [InjectComponentGroup] private Inputs m_Inputs;
+            [Inject] private Inputs m_Inputs;
 
             public bool SkipJob = false;
 

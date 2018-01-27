@@ -23,7 +23,7 @@ namespace UnityEngine.ECS.Tests
                 public int Length;
             }
 
-            [InjectComponentGroup] 
+            [Inject] 
             public TestGroup Group;
 
             protected override void OnUpdate()
@@ -44,7 +44,7 @@ namespace UnityEngine.ECS.Tests
                 public int Length;
             }
 
-            [InjectComponentGroup] 
+            [Inject] 
             public TestGroup Group;
 
             protected override void OnUpdate()
@@ -69,7 +69,7 @@ namespace UnityEngine.ECS.Tests
                 public int Length;
             }
 
-            [InjectComponentGroup] 
+            [Inject] 
             public TestGroup Group;
             
             struct AddTest2Component : IJobParallelFor
@@ -118,7 +118,7 @@ namespace UnityEngine.ECS.Tests
                 public int Length;
             }
 
-            [InjectComponentGroup] 
+            [Inject] 
             public TestGroup Group;
             
             struct RemoveTest2Component : IJobParallelFor

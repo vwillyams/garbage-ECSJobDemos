@@ -28,7 +28,7 @@ namespace RotatorSamples
 			public int  								Length;
 		}
 
-		[InjectComponentGroup] 
+		[Inject] 
 		Damages m_Damages;
 		
 		
@@ -39,7 +39,7 @@ namespace RotatorSamples
 			public int  								Length;
 		}
 
-		[InjectComponentGroup] 
+		[Inject] 
 		Rotators m_Rotators;
 		
 		protected override JobHandle OnUpdate(JobHandle inputDeps)

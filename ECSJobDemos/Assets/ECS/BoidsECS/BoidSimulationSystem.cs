@@ -13,7 +13,7 @@ namespace BoidSimulations
 			public ComponentDataArray<BoidData> boids;
 			public int 							Length;
 		}
-		[InjectComponentGroup] Boids m_Boids;
+		[Inject] Boids m_Boids;
 
 
 		struct BoidTargets
@@ -23,7 +23,7 @@ namespace BoidSimulations
 			public ComponentArray<Transform>      transforms;
 			public int 							  Length;
 		}
-		[InjectComponentGroup] BoidTargets m_Targets;
+		[Inject] BoidTargets m_Targets;
 
 		struct Settings
 		{
@@ -31,7 +31,7 @@ namespace BoidSimulations
 			public ComponentDataArray<BoidSimulationSettings> settings;
 			public int  									  Length;
 		}
-		[InjectComponentGroup] Settings m_Settings;
+		[Inject] Settings m_Settings;
 
 		struct Grounds
 		{
@@ -41,7 +41,7 @@ namespace BoidSimulations
 			public int 							  Length;
 
 		}
-		[InjectComponentGroup] Grounds m_Ground;
+		[Inject] Grounds m_Ground;
 
 		struct BoidObstacles
 		{
@@ -51,7 +51,7 @@ namespace BoidSimulations
 			public int 							    Length;
 
 		}
-		[InjectComponentGroup] BoidObstacles m_BoidObstacles;
+		[Inject] BoidObstacles m_BoidObstacles;
 
 		NativeMultiHashMap<int, int> 		 m_Cells;
 		NativeArray<int3> 					 m_CellOffsetsTable;

@@ -6,12 +6,6 @@ using Unity.Collections;
 
 namespace UnityEngine.ECS
 {
-	[AttributeUsage(AttributeTargets.Field)]
-	public sealed class InjectComponentFromEntityAttribute : System.Attribute
-	{
-
-	}
-
 	class InjectFromEntityData
 	{
 		class UpdateInjectionComponentDataFromEntity<T> : IUpdateInjection where T : struct, IComponentData
@@ -54,7 +48,8 @@ namespace UnityEngine.ECS
 			}
 			else
 			{
-				throw new System.InvalidOperationException($"{field.DeclaringType}.{field.Name} doesn't support [InjectComponentFromEntity]");
+			    ComponentSystemInjection.ThrowUnsupportedInjectException(field);
+			    return default (InjectionData);
 			}
 		}
 

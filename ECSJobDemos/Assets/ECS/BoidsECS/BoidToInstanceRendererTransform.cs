@@ -22,7 +22,7 @@ namespace BoidSimulations
             public ComponentDataArray<TransformMatrix> rendererTransforms;
         }
 
-        [InjectComponentGroup] 
+        [Inject] 
         Group m_Group;
         
         [ComputeJobOptimizationAttribute(Accuracy.Med, Support.Relaxed)]

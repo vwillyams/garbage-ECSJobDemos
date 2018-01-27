@@ -6,28 +6,71 @@ namespace UnityEngine.ECS
 {
     static class ComponentSystemInjection
     {
-        static public void Inject(Type componentSystemType, EntityManager entityManager, out InjectComponentGroupData[] outInjectGroups, out InjectionData[] outInjectFromEntity)
+        public static string GetFieldString(FieldInfo info)
         {
+            return $"{info.DeclaringType.Name}.{info.Name}";
+        }
+        
+        static public void Inject(ComponentSystemBase componentSystem, World world, EntityManager entityManager, out InjectComponentGroupData[] outInjectGroups, out InjectionData[] outInjectFromEntity)
+        {
+            Type componentSystemType = componentSystem.GetType();
+
+            ValidateNoStaticInjectDependencies(componentSystemType);
+                        
             var fields = componentSystemType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             var injectGroups = new List<InjectComponentGroupData>();
             var injectFromEntity = new List<InjectionData>();
             foreach (var field in fields)
             {
-                object[] attr;
-			    
-                // Component group injection
-                attr = field.GetCustomAttributes(typeof(InjectComponentGroupAttribute), true);
-                if (attr.Length != 0)
-                    injectGroups.Add(InjectComponentGroupData.CreateInjection(field.FieldType, field, entityManager));
-			    
-                // Component from entity injection
-                attr = field.GetCustomAttributes(typeof(InjectComponentFromEntityAttribute), true);
-                if (attr.Length != 0)
-                    injectFromEntity.Add(InjectFromEntityData.CreateInjection(field, entityManager));
+                var attr = field.GetCustomAttributes(typeof(InjectAttribute), true);
+                if (attr.Length == 0)
+                    continue;
+
+                if (field.FieldType.IsClass)
+                {
+                    InjectConstructorDependencies(componentSystem, world, field);
+                }
+                else
+                {
+                    if (field.FieldType.IsGenericType)
+                        injectFromEntity.Add(InjectFromEntityData.CreateInjection(field, entityManager));
+                    else
+                        injectGroups.Add(InjectComponentGroupData.CreateInjection(field.FieldType, field, entityManager));
+                }
             }
 
             outInjectGroups = injectGroups.ToArray();
             outInjectFromEntity = injectFromEntity.ToArray();
+        }
+        
+        static void ValidateNoStaticInjectDependencies(Type type)
+        {
+#if UNITY_EDITOR
+            var fields = type.GetFields(BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic);
+
+            foreach (var field in fields)
+            {
+                if (field.GetCustomAttributes(typeof(InjectAttribute), true).Length != 0)
+                    throw new System.ArgumentException(string.Format("[Inject] may not be used on static variables: {0}", GetFieldString(field)));
+            }
+#endif
+        }
+
+        static void InjectConstructorDependencies(ScriptBehaviourManager manager, World world, FieldInfo field)
+        {
+            if (field.FieldType.IsSubclassOf(typeof(ScriptBehaviourManager)))
+            {
+                field.SetValue(manager, world.GetOrCreateManager(field.FieldType));
+            }
+            else
+            {
+                ThrowUnsupportedInjectException(field);
+            }
+        }
+
+        public static void ThrowUnsupportedInjectException(FieldInfo field)
+        {
+            throw new System.ArgumentException(string.Format("[Inject] is not supported for type '{0}'. At: {1}", field.FieldType, GetFieldString(field)));
         }
     }
 }

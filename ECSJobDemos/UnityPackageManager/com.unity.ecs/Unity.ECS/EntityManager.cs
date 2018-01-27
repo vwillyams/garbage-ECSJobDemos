@@ -62,7 +62,7 @@ namespace UnityEngine.ECS
 
         private NativeHashMap<int, int> m_ComponentTypeOrderVersion;
 
-        protected sealed override void OnCreateManagerInternal(int capacity)
+        protected sealed override void OnCreateManagerInternal(World world, int capacity)
         {
         }
 

@@ -21,7 +21,7 @@ namespace UnityEngine.ECS.Tests
 				public int                             Length;
 			}
 
-			[InjectComponentGroup] 
+			[Inject] 
 			public DataAndEntites Group;
 
 			protected override void OnUpdate()
@@ -38,7 +38,7 @@ namespace UnityEngine.ECS.Tests
 				public ComponentDataArray<EcsTestData> Data;
 			}
 
-			[InjectComponentGroup] 
+			[Inject] 
 			public Datas Group;
 
 			protected override void OnUpdate()
@@ -55,7 +55,7 @@ namespace UnityEngine.ECS.Tests
 				public SubtractiveComponent<EcsTestData2> Data2;
 			}
 
-			[InjectComponentGroup] 
+			[Inject] 
 			public Datas Group;
 
 			protected override void OnUpdate()
@@ -159,10 +159,10 @@ namespace UnityEngine.ECS.Tests
 				}
 			}
 
-			[InjectComponentFromEntity]
+			[Inject]
 			FixedArrayFromEntity<int> intArrayFromEntity;
 			
-			[InjectComponentFromEntity]
+		    [Inject]
 			ComponentDataFromEntity<EcsTestData> ecsTestDataFromEntity;
 
 			public Entity entity;
@@ -210,7 +210,7 @@ namespace UnityEngine.ECS.Tests
 	            public ComponentDataArray<EcsTestData> Data;
 	        }
 
-	        [InjectComponentGroup] 
+	        [Inject] 
 	        public Group group;
 
 	        protected override void OnDestroyManager()
@@ -245,7 +245,7 @@ namespace UnityEngine.ECS.Tests
 				public ComponentDataArray<EcsTestData> Data;
 			}
 
-			[InjectComponentGroup] 
+			[Inject] 
 			public Group group;
 
 			protected override void OnCreateManager(int capacity)

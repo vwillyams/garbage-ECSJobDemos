@@ -30,7 +30,7 @@ namespace RotatorSamples
 			public int 								    Length;
 		}
 
-		[InjectComponentGroup]
+		[Inject]
 		Group m_Rotators;
 
 		override public void OnUpdate()
@@ -57,7 +57,7 @@ namespace RotatorSamples
 			public ComponentDataArray<RotationSpeed>    rotators;
 		}
 
-		[InjectComponentGroup]
+		[Inject]
 		Group m_Rotators;
 		
 		protected override JobHandle OnUpdate(JobHandle inputDeps)

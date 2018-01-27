@@ -24,7 +24,7 @@ namespace UnityEngine.ECS
     }
 
 
-    public struct Entity
+    public struct Entity : IEquatable<Entity>
     {
         public int index;
         public int version;
@@ -37,6 +37,11 @@ namespace UnityEngine.ECS
         public static Entity Null
         {
             get { return new Entity(); }
+        }
+
+        public bool Equals(Entity entity)
+        {
+            return (entity.index == index) && (entity.version == version);
         }
     }
 
@@ -54,6 +59,8 @@ namespace UnityEngine.ECS
 
         ComponentType*             m_CachedComponentTypeArray;
         ComponentTypeInArchetype*  m_CachedComponentTypeInArchetypeArray;
+
+        private NativeHashMap<int, int> m_ComponentTypeOrderVersion;
 
         protected sealed override void OnCreateManagerInternal(int capacity)
         {
@@ -80,6 +87,8 @@ namespace UnityEngine.ECS
 
             m_CachedComponentTypeArray = (ComponentType*)UnsafeUtility.Malloc(sizeof(ComponentType) * 32 * 1024, 16, Allocator.Persistent);
             m_CachedComponentTypeInArchetypeArray = (ComponentTypeInArchetype*)UnsafeUtility.Malloc(sizeof(ComponentTypeInArchetype) * 32 * 1024, 16, Allocator.Persistent);
+
+            m_ComponentTypeOrderVersion = new NativeHashMap<int, int>(256, Allocator.Persistent);
         }
 
         protected override void OnDestroyManager()
@@ -101,6 +110,8 @@ namespace UnityEngine.ECS
 
             UnsafeUtility.Free(m_CachedComponentTypeInArchetypeArray, Allocator.Persistent);
             m_CachedComponentTypeInArchetypeArray = null;
+            
+            m_ComponentTypeOrderVersion.Dispose();
         }
 
         internal override void InternalUpdate()
@@ -187,6 +198,7 @@ namespace UnityEngine.ECS
 
             m_Entities->CreateEntities(m_ArchetypeManager, archetype.archetype, entities, count, true);
             IncrementSharedComponentsVersion(entities[0]);
+            IncrementComponentsVersion(archetype.archetype);
 
             AfterImmediateStructuralTransaction();
         }
@@ -208,7 +220,13 @@ namespace UnityEngine.ECS
             m_Entities->AssertEntitiesExist(entities, count);
 
             for (int i = 0; i < count; i++)
-                IncrementSharedComponentsVersion(entities[i]);
+            {
+                Entity entity = entities[i];
+                Archetype* archetype = m_Entities->GetArchetype(entity);
+                
+                IncrementSharedComponentsVersion(entity);
+                IncrementComponentsVersion(archetype);
+            }
 
             m_Entities->DeallocateEnties(m_ArchetypeManager, entities, count);
         }
@@ -276,6 +294,7 @@ namespace UnityEngine.ECS
 
             m_Entities->InstantiateEntities(m_ArchetypeManager, srcEntity, outputEntities, count, true);
             IncrementSharedComponentsVersion(srcEntity);
+            IncrementComponentsVersion(m_Entities->GetArchetype(srcEntity));
 
             AfterImmediateStructuralTransaction();
         }
@@ -289,6 +308,8 @@ namespace UnityEngine.ECS
 
             var componentType = new ComponentTypeInArchetype(type);
             Archetype* archetype = m_Entities->GetArchetype(entity);
+            IncrementComponentsVersion(archetype);
+            
             int t = 0;
             while (t < archetype->typesCount && archetype->types[t] < componentType)
             {
@@ -356,12 +377,39 @@ namespace UnityEngine.ECS
 
         private void IncrementSharedComponentsVersion(Entity entity)
         {
-            Archetype* archtype = m_Entities->GetArchetype(entity);
+            Archetype* archetype = m_Entities->GetArchetype(entity);
             var sharedComponentDataIndices = m_Entities->GetComponentChunk(entity)->GetSharedComponentValueArray();
-            for (int i = 0; i < archtype->numSharedComponents; i++)
+            for (int i = 0; i < archetype->numSharedComponents; i++)
             {
                 m_SharedComponentManager.IncrementSharedComponentVersion(sharedComponentDataIndices[i]);
             }
+        }
+        
+        private void IncrementComponentsVersion(Archetype* archetype)
+        {
+            for (int t = 0; t < archetype->typesCount; ++t)
+            {
+                int typeIndex = archetype->types[t].typeIndex;
+                bool sharedComponent = (TypeManager.TypeCategory.ISharedComponentData == TypeManager.GetComponentType(typeIndex).category);
+                if (!sharedComponent)
+                {
+                    int typeVersion = 0;
+                    if (m_ComponentTypeOrderVersion.TryGetValue(typeIndex, out typeVersion))
+                    {
+                        m_ComponentTypeOrderVersion.Remove(typeIndex);
+                    }
+                    typeVersion++;
+                    m_ComponentTypeOrderVersion.TryAdd(typeIndex, typeVersion);
+                }
+            }
+        }
+        
+        public int GetComponentOrderVersion<T>()
+        {
+            int typeVersion = 0;
+            int typeIndex = TypeManager.GetTypeIndex<T>();
+            m_ComponentTypeOrderVersion.TryGetValue(typeIndex, out typeVersion);
+            return typeVersion;
         }
         
         public void RemoveComponent(Entity entity, ComponentType type)
@@ -373,20 +421,22 @@ namespace UnityEngine.ECS
 
             m_Entities->AssertEntityHasComponent(entity, type);
             
-            Archetype* archtype = m_Entities->GetArchetype(entity);
+            Archetype* archetype = m_Entities->GetArchetype(entity);
+            IncrementComponentsVersion(archetype);
+                
             int removedTypes = 0;
-            for (int t = 0; t < archtype->typesCount; ++t)
+            for (int t = 0; t < archetype->typesCount; ++t)
             {
-                if (archtype->types[t].typeIndex == componentType.typeIndex)
+                if (archetype->types[t].typeIndex == componentType.typeIndex)
                     ++removedTypes;
                 else
-                    m_CachedComponentTypeInArchetypeArray[t - removedTypes] = archtype->types[t];
+                    m_CachedComponentTypeInArchetypeArray[t - removedTypes] = archetype->types[t];
             }
             
 
             Assertions.Assert.AreNotEqual(-1, removedTypes);
 
-            Archetype* newType = m_ArchetypeManager.GetOrCreateArchetype(m_CachedComponentTypeInArchetypeArray, archtype->typesCount - removedTypes, m_GroupManager);
+            Archetype* newType = m_ArchetypeManager.GetOrCreateArchetype(m_CachedComponentTypeInArchetypeArray, archetype->typesCount - removedTypes, m_GroupManager);
 
             int* sharedComponentDataIndices = null;
             if (newType->numSharedComponents > 0)
@@ -398,9 +448,9 @@ namespace UnityEngine.ECS
                 {
                     int* tempAlloc = stackalloc int[newType->numSharedComponents];
                     sharedComponentDataIndices = tempAlloc;
-                    for (int t = 0; t < archtype->typesCount; ++t)
+                    for (int t = 0; t < archetype->typesCount; ++t)
                     {
-                        if (archtype->types[t].typeIndex == componentType.typeIndex)
+                        if (archetype->types[t].typeIndex == componentType.typeIndex)
                             ++removedTypes;
                         else
                             sharedComponentDataIndices[t - removedTypes] = oldSharedComponentDataIndices[t];
@@ -550,9 +600,9 @@ namespace UnityEngine.ECS
 
             var array = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(ptr, length, Allocator.Invalid);
 
-            #if ENABLE_UNITY_COLLECTIONS_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref array, m_JobSafetyManager.GetSafetyHandle(typeIndex, false));
-            #endif
+#endif
 
             return array;
         }
@@ -639,6 +689,3 @@ namespace UnityEngine.ECS
         }
     }
 }
-
-
-

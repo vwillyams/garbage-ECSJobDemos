@@ -6,7 +6,6 @@ using UnityEngine.ECS;
 
 namespace UnityEngine.ECS.Transform
 {
-    [Serializable]
     public struct TransformPosition : IComponentData
     {
         public float3 position;

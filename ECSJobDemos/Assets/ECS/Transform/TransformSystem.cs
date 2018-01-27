@@ -1,10 +1,11 @@
-﻿using Unity.Collections;
+﻿using Boo.Lang;
+using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine.ECS;
 using UnityEngine.ECS.Transform;
 
-namespace ECS.Transform
+namespace UnityEngine.ECS.Transform
 {
     public class TransformSystem : JobComponentSystem
     {
@@ -15,9 +16,10 @@ namespace ECS.Transform
             public ComponentDataArray<TransformMatrix> matrices;
             public int Length;
         }
-
+        
         [InjectComponentGroup] private WorldPositionGroup m_WorldPositionGroup;
     
+        [ComputeJobOptimization]
         struct WorldPositionToMatrix : IJobParallelFor
         {
             [ReadOnly]
@@ -34,7 +36,7 @@ namespace ECS.Transform
                 matrices[i] = result;
             }
         }
-    
+
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
             var worldPositionToMatrixJob = new WorldPositionToMatrix();

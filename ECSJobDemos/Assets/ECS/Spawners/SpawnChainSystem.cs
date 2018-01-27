@@ -9,20 +9,19 @@ using UnityEngine.ECS.Transform;
 
 namespace ECS.Spawners
 {
-    public class SpawnRandomCircleSystem : ComponentSystem
+    public class SpawnChainSystem : ComponentSystem
     {
-        struct SpawnRandomCircleInstance
+        struct SpawnChainInstance
         {
             public int spawnerIndex;
             public Entity sourceEntity;
             public float3 position;
-            public float radius;
         }
 
         protected override void OnUpdate()
         {
-            var uniqueTypes = new List<SpawnRandomCircle>(10);
-            var maingroup = EntityManager.CreateComponentGroup(typeof(SpawnRandomCircle),typeof(TransformPosition));
+            var uniqueTypes = new List<SpawnChain>(10);
+            var maingroup = EntityManager.CreateComponentGroup(typeof(SpawnChain),typeof(TransformPosition));
             maingroup.CompleteDependency();
 
             EntityManager.GetAllUniqueSharedComponents(uniqueTypes);
@@ -43,7 +42,7 @@ namespace ECS.Spawners
                 return;
             }
 
-            var spawnInstances = new NativeArray<SpawnRandomCircleInstance>(spawnInstanceCount, Allocator.Temp);
+            var spawnInstances = new NativeArray<SpawnChainInstance>(spawnInstanceCount, Allocator.Temp);
             {
                 int spawnIndex = 0;
                 for (int sharedIndex = 0; sharedIndex != uniqueTypes.Count; sharedIndex++)
@@ -55,7 +54,7 @@ namespace ECS.Spawners
 
                     for (int entityIndex = 0; entityIndex < entities.Length; entityIndex++)
                     {
-                        var spawnInstance = new SpawnRandomCircleInstance();
+                        var spawnInstance = new SpawnChainInstance();
 
                         spawnInstance.sourceEntity = entities[entityIndex];
                         spawnInstance.spawnerIndex = sharedIndex;
@@ -78,23 +77,42 @@ namespace ECS.Spawners
                 int count = spawner.count;
                 var entities = new NativeArray<Entity>(count,Allocator.Temp);
                 var prefab = spawner.prefab;
-                float radius = spawner.radius;
+                float distance = spawner.distance;
                 float3 center = spawnInstances[spawnIndex].position;
                 var sourceEntity = spawnInstances[spawnIndex].sourceEntity;
 
                 EntityManager.Instantiate(prefab, entities);
                 
+                {
+                    PositionConstraint contraint = new PositionConstraint();
+
+                    contraint.parentEntity = sourceEntity;
+                    contraint.distance = distance;
+                    
+                    EntityManager.AddComponent(entities[0],contraint);
+                }
+                
+                for (int i = 1; i < count; i++ )
+                {
+                    PositionConstraint contraint = new PositionConstraint();
+                    
+                    contraint.parentEntity = entities[i - 1];
+                    contraint.distance = distance;
+                    
+                    EntityManager.AddComponent(entities[i],contraint);
+                }
+                
+                float3 dv = new float3( 0.0f, distance * 0.25f, 0.0f );
                 for (int i = 0; i < count; i++)
                 {
-                    float angle = Random.Range(0.0f, Mathf.PI * 2.0f);
-                    float x = math.sin(angle) * radius;
-                    float z = math.cos(angle) * radius;
-                    var position = new TransformPosition();
-                    position.position = center + (new float3(x,0.0f,z));
+                    var position = new TransformPosition
+                    {
+                        position = center - (dv * (float) i)
+                    };
                     EntityManager.SetComponent(entities[i],position);
                 }
 
-                EntityManager.RemoveSharedComponent<SpawnRandomCircle>(sourceEntity);
+                EntityManager.RemoveSharedComponent<SpawnChain>(sourceEntity);
                 
                 entities.Dispose();
             }

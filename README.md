@@ -8,7 +8,7 @@ Required build: https://beta.unity3d.com/download/57e810e109ee/download.html
 unity source code revision: 57e810e109ee branch: 2018.1/scripting/jobsystem/playground
 
 # active development against master
-unity source code branch: scripting/jobsystem/combined
+unity source code branch: 2018.1/scripting/jobsystem/playground
 NOTE: (Navmesh & Raycast job API's is included in this branch)
 
 # ECSJobDemos
@@ -21,3 +21,7 @@ Project folder for basic ECS dev & tests
 
 # AI Navigation & Batched raycasts
 Sandbox project for pathfinding: [LowLevelQueryAPI](UnstablePrototypes/LowLevelQueryAPI).
+<!--stackedit_data:
+eyJoaXN0b3J5IjpbMjQ5NjkxMjUzLDE4MjYzOTE4MzcsMjQ5Nj
+kxMjUzLDE4MjYzOTE4MzddfQ==
+-->

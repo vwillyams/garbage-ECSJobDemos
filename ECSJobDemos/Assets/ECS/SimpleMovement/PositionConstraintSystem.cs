@@ -19,7 +19,7 @@ namespace UnityEngine.ECS.SimpleMovement
             public int Length;
         }
 
-        [InjectComponentGroup] private PositionConstraintsGroup m_PositionContraintsGroup;
+        [Inject] private PositionConstraintsGroup m_PositionContraintsGroup;
         
         struct PositionsGroup
         {
@@ -29,7 +29,7 @@ namespace UnityEngine.ECS.SimpleMovement
             public int Length;
         }
 
-        [InjectComponentGroup] private PositionsGroup m_PositionsGroup;
+        [Inject] private PositionsGroup m_PositionsGroup;
         
         [ComputeJobOptimization]
         struct ContrainPositions : IJob

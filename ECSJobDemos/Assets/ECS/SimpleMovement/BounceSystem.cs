@@ -18,7 +18,7 @@ namespace UnityEngine.ECS.SimpleMovement
         }
         
 
-        [InjectComponentGroup] private BounceGroup m_BounceGroup;
+        [Inject] private BounceGroup m_BounceGroup;
     
         [ComputeJobOptimization]
         struct BouncePosition : IJobParallelFor

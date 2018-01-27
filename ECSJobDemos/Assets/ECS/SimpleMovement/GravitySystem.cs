@@ -16,7 +16,7 @@ namespace UnityEngine.ECS.SimpleMovement
             public int Length;
         }
 
-        [InjectComponentGroup] private GravityGroup m_GravityGroup;
+        [Inject] private GravityGroup m_GravityGroup;
     
         [ComputeJobOptimization]
         struct GravityPosition : IJobParallelFor

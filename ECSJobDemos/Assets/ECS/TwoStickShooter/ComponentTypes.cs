@@ -13,6 +13,19 @@ namespace TwoStickExample
     {
         public float2 Move;
         public float2 Shoot;
+        public float FireCooldown;
         public byte Fire;
+    }
+
+    public struct Shot : IComponentData
+    {
+        public float Speed;
+        public float TimeToLive;
+    }
+
+    public struct ShotSpawnData : IComponentData
+    {
+        public Shot Shot;
+        public WorldPos WorldPos;
     }
 }

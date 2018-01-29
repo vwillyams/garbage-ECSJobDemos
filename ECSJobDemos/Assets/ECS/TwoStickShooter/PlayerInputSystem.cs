@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Microsoft.Msagl.Core.Layout.ProximityOverlapRemoval.StressEnergy;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.ECS;
@@ -19,24 +20,26 @@ namespace TwoStickExample
 
         protected override void OnUpdate()
         {
+            float dt = Time.deltaTime;
+
             for (int i = 0; i < m_Players.Length; ++i)
             {
-                UpdatePlayerInput(i);
+                UpdatePlayerInput(i, dt);
             }
         }
 
-        private void UpdatePlayerInput(int i)
+        private void UpdatePlayerInput(int i, float dt)
         {
             PlayerInput pi;
 
             pi.Fire = Input.GetButtonDown("Fire1") ? (byte) 1 : (byte) 0;
 
-            pi.Move.x = Input.GetAxis("Horizontal");
-            pi.Move.y = Input.GetAxis("Vertical");
+            pi.Move.x = Input.GetAxis("MoveX");
+            pi.Move.y = Input.GetAxis("MoveY");
+            pi.Shoot.x = Input.GetAxis("ShootX");
+            pi.Shoot.y = Input.GetAxis("ShootY");
 
-            // TODO: When I get a gamepad
-            pi.Shoot.x = 0.0f;
-            pi.Shoot.y = 1.0f;
+            pi.FireCooldown = Mathf.Max(0.0f, m_Players.Input[i].FireCooldown - dt);
 
             m_Players.Input[i] = pi;
         }

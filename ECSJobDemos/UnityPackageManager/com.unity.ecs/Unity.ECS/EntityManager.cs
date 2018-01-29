@@ -302,9 +302,10 @@ namespace UnityEngine.ECS
         public void AddComponent(Entity entity, ComponentType type)
         {
             BeforeImmediateStructualChange();
-            IncrementSharedComponentsVersion(entity);
 
             m_Entities->AssertEntitiesExist(&entity, 1);
+
+            IncrementSharedComponentsVersion(entity);
 
             var componentType = new ComponentTypeInArchetype(type);
             Archetype* archetype = m_Entities->GetArchetype(entity);
@@ -328,7 +329,7 @@ namespace UnityEngine.ECS
             int* sharedComponentDataIndices = null;
             if (newType->numSharedComponents > 0)
             {
-                var oldSharedComponentDataIndices = m_Entities->GetComponentChunk(entity)->GetSharedComponentValueArray();
+                var oldSharedComponentDataIndices = m_Entities->GetComponentChunk(entity)->sharedComponentValueArray;
                 var newComponentIsShared = (TypeManager.TypeCategory.ISharedComponentData == TypeManager.GetComponentType(type.typeIndex).category);
                 if (newComponentIsShared)
                 {
@@ -378,7 +379,7 @@ namespace UnityEngine.ECS
         private void IncrementSharedComponentsVersion(Entity entity)
         {
             Archetype* archetype = m_Entities->GetArchetype(entity);
-            var sharedComponentDataIndices = m_Entities->GetComponentChunk(entity)->GetSharedComponentValueArray();
+            var sharedComponentDataIndices = m_Entities->GetComponentChunk(entity)->sharedComponentValueArray;
             for (int i = 0; i < archetype->numSharedComponents; i++)
             {
                 m_SharedComponentManager.IncrementSharedComponentVersion(sharedComponentDataIndices[i]);
@@ -415,13 +416,13 @@ namespace UnityEngine.ECS
         public void RemoveComponent(Entity entity, ComponentType type)
         {
             BeforeImmediateStructualChange();
-            IncrementSharedComponentsVersion(entity);
 
             var componentType = new ComponentTypeInArchetype(type);
 
             m_Entities->AssertEntityHasComponent(entity, type);
-            
+
             Archetype* archetype = m_Entities->GetArchetype(entity);
+            IncrementSharedComponentsVersion(entity);
             IncrementComponentsVersion(archetype);
                 
             int removedTypes = 0;
@@ -441,7 +442,7 @@ namespace UnityEngine.ECS
             int* sharedComponentDataIndices = null;
             if (newType->numSharedComponents > 0)
             {
-                var oldSharedComponentDataIndices = m_Entities->GetComponentChunk(entity)->GetSharedComponentValueArray();
+                var oldSharedComponentDataIndices = m_Entities->GetComponentChunk(entity)->sharedComponentValueArray;
                 bool removedComponentIsShared = (TypeManager.TypeCategory.ISharedComponentData == TypeManager.GetComponentType(type.typeIndex).category);
                 removedTypes = 0;
                 if (removedComponentIsShared)

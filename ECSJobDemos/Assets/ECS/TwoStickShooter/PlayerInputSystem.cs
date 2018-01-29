@@ -1,7 +1,9 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Microsoft.Msagl.Core.Layout.ProximityOverlapRemoval.StressEnergy;
 using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.ECS;
 
@@ -31,8 +33,6 @@ namespace TwoStickExample
         private void UpdatePlayerInput(int i, float dt)
         {
             PlayerInput pi;
-
-            pi.Fire = Input.GetButtonDown("Fire1") ? (byte) 1 : (byte) 0;
 
             pi.Move.x = Input.GetAxis("MoveX");
             pi.Move.y = Input.GetAxis("MoveY");

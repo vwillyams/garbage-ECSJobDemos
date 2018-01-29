@@ -6,6 +6,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.ECS;
+using UnityEngine.ECS.Transform;
 
 namespace TwoStickExample
 {
@@ -34,6 +35,9 @@ namespace TwoStickExample
 
                 // Ref return will make this nicer.
                 Position[index] = new WorldPos {Position = pos, Heading = dir};
+
+                Debug.Log($"pos: {Position[index].Position}");
+
             }
         }
 
@@ -66,8 +70,8 @@ namespace TwoStickExample
                 em.RemoveComponent<ShotSpawnData>(shotEntity);
                 em.AddComponent(shotEntity, spawnData.Shot);
                 em.AddComponent(shotEntity, spawnData.WorldPos);
+                em.AddComponent(shotEntity, default(TransformMatrix));
                 em.AddSharedComponent(shotEntity, TwoStickBootstrap.ShotLook);
-                Debug.Log($"Spawned shot at {spawnData.WorldPos.Position.x},{spawnData.WorldPos.Position.y}");
             }
         }
     }
@@ -92,7 +96,7 @@ namespace TwoStickExample
                 return;
 
             int removeCount = 0;
-            NativeArray<Entity> entitiesToRemove = new NativeArray<Entity>(m_Data.Length, Allocator.Temp);
+            var entitiesToRemove = new NativeArray<Entity>(m_Data.Length, Allocator.Temp);
 
             float dt = Time.deltaTime;
 

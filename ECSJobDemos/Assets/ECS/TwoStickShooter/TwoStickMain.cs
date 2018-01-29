@@ -5,6 +5,7 @@ using UnityEngine.ECS;
 using UnityEngine.ECS.Rendering;
 using UnityEngine.ECS.Transform;
 using UnityEngine.Experimental.LowLevel;
+using UnityEngine.PostProcessing;
 using UnityEngine.SceneManagement;
 
 namespace TwoStickExample
@@ -18,6 +19,8 @@ namespace TwoStickExample
 
         public static InstanceRenderer PlayerLook;
         public static InstanceRenderer ShotLook;
+
+        public static TwoStickExampleSettings Settings;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void Initialize()
@@ -35,6 +38,8 @@ namespace TwoStickExample
         public static void InitializeWithScene()
         {
             var entityManager = World.Active.GetOrCreateManager<EntityManager>();
+
+            Settings = GameObject.Find("Settings").GetComponent<TwoStickExampleSettings>();
 
             PlayerLook = GetLookFromPrototype("PlayerRenderPrototype");
             ShotLook = GetLookFromPrototype("ShotRenderPrototype");

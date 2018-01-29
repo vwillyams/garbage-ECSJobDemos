@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using Unity.Jobs;
 using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.ECS;
 using UnityEngine.XR.WSA;
@@ -28,6 +29,8 @@ namespace TwoStickExample
             int pendingShotCount = 0;
             var pendingShots = new NativeArray<ShotSpawnData>(m_Data.Length, Allocator.Temp);
 
+            var settings = TwoStickBootstrap.Settings;
+
             float dt = Time.deltaTime;
             for (int index = 0; index < m_Data.Length; ++index)
             {
@@ -35,27 +38,26 @@ namespace TwoStickExample
 
                 var playerInput = m_Data.Input[index];
 
-                pos.Position += dt * playerInput.Move;
-                pos.Heading = playerInput.Shoot;
+                pos.Position += dt * playerInput.Move * settings.playerMoveSpeed;
 
-                m_Data.Position[index] = pos;
-
-                if (playerInput.FireCooldown <= 0.0)
+                if (playerInput.Fire)
                 {
-                    if (playerInput.Fire != 0)
-                    {
-                        // TODO: Setting
-                        playerInput.FireCooldown = 1.0f;
+                    pos.Heading = math.normalize(playerInput.Shoot);
 
-                        pendingShots[pendingShotCount++] = new ShotSpawnData
+                    playerInput.FireCooldown = settings.playerFireCoolDown;
+
+                    pendingShots[pendingShotCount++] = new ShotSpawnData
+                    {
+                        Shot = new Shot
                         {
-                            // TODO: Settings
-                            Shot = new Shot { Speed = 50.0f, TimeToLive = 1.0f },
-                            WorldPos = pos,
-                        };
-                    }
+                            Speed = settings.bulletMoveSpeed,
+                            TimeToLive = settings.bulletTimeToLive,
+                        },
+                        WorldPos = pos,
+                    };
                 }
 
+                m_Data.Position[index] = pos;
                 m_Data.Input[index] = playerInput;
             }
 

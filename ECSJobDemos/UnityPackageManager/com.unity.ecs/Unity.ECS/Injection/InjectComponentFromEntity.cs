@@ -26,7 +26,17 @@ namespace UnityEngine.ECS
 			}
 		}
 
-		static public InjectionData CreateInjection(FieldInfo field, EntityManager entityManager)
+	    static public bool SupportsInjections(FieldInfo field)
+	    {
+	        if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition() == typeof(ComponentDataFromEntity<>))
+	            return true;
+	        else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition() == typeof(FixedArrayFromEntity<>))
+	            return true;
+	        else
+	            return false;
+	    }
+
+	    static public InjectionData CreateInjection(FieldInfo field, EntityManager entityManager)
 		{
 			var isReadOnly = field.GetCustomAttributes(typeof(ReadOnlyAttribute), true).Length != 0;
 

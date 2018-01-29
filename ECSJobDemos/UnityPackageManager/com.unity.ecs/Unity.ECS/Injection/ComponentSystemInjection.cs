@@ -32,7 +32,7 @@ namespace UnityEngine.ECS
                 }
                 else
                 {
-                    if (field.FieldType.IsGenericType)
+                    if (InjectFromEntityData.SupportsInjections(field))
                         injectFromEntity.Add(InjectFromEntityData.CreateInjection(field, entityManager));
                     else
                         injectGroups.Add(InjectComponentGroupData.CreateInjection(field.FieldType, field, entityManager));

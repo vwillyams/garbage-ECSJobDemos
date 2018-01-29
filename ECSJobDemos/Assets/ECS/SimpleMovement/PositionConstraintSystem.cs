@@ -9,57 +9,35 @@ namespace UnityEngine.ECS.SimpleMovement
     {
         struct PositionConstraintsGroup
         {
-            [ReadOnly]
-            public ComponentDataArray<PositionConstraint> positionConstraints;
-            [ReadOnly]
-            public EntityArray entities;
-            public int Length;
+            [ReadOnly] public ComponentDataArray<PositionConstraint> positionConstraints;
+            [ReadOnly] public EntityArray                            entities;
+            public int                                               Length;
         }
 
-        [Inject] private PositionConstraintsGroup m_PositionContraintsGroup;
-
-        struct PositionsGroup
-        {
-            public ComponentDataArray<TransformPosition> positions;
-            [ReadOnly]
-            public EntityArray entities;
-            public int Length;
-        }
-
-        [Inject] private PositionsGroup m_PositionsGroup;
+        [Inject] private PositionConstraintsGroup           m_PositionContraintsGroup;
+        [Inject] ComponentDataFromEntity<TransformPosition> m_TransformPositions;
 
         [ComputeJobOptimization]
         struct ContrainPositions : IJob
         {
-            public ComponentDataArray<TransformPosition> positions;
-            [ReadOnly]
-            public EntityArray entities;
-            [ReadOnly]
-            public ComponentDataArray<PositionConstraint> positionConstraints;
-            [ReadOnly]
-            public EntityArray positionConstraintEntities;
-            [ReadOnly]
-            public NativeHashMap<Entity, int> entityIndexHashMap;
+            public ComponentDataFromEntity<TransformPosition>        positions;
+            [ReadOnly] public ComponentDataArray<PositionConstraint> positionConstraints;
+            [ReadOnly] public EntityArray                            positionConstraintEntities;
 
             public void Execute()
             {
                 for (int i = 0; i < positionConstraints.Length; i++)
                 {
-                    int childIndex = 0;
-                    int parentIndex = 0;
+                    var childEntity    = positionConstraintEntities[i];
+                    var parentEntity   = positionConstraints[i].parentEntity;
+                    var childPosition  = positions[childEntity].position;
+                    var parentPosition = positions[parentEntity].position;
 
-                    entityIndexHashMap.TryGetValue(positionConstraintEntities[i], out childIndex);
-                    entityIndexHashMap.TryGetValue(positionConstraints[i].parentEntity, out parentIndex);
+                    float3 d   = childPosition - parentPosition;
+                    float  len = math.length(d);
+                    float  nl  = math.min(math.max(len, positionConstraints[i].minDistance), positionConstraints[i].maxDistance);
 
-                    var childPosition = positions[childIndex].position;
-                    var parentPosition = positions[parentIndex].position;
-
-                    float3 d = childPosition - parentPosition;
-                    float len = math.length(d);
-                    float nl = math.min(math.max(len, positionConstraints[i].minDistance),
-                        positionConstraints[i].maxDistance);
-
-                    positions[childIndex] = new TransformPosition
+                    positions[childEntity] = new TransformPosition
                     {
                         position = parentPosition + ((d * nl) / len)
                     };
@@ -69,40 +47,14 @@ namespace UnityEngine.ECS.SimpleMovement
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            if (EntityManager.GetComponentOrderVersion<TransformPosition>() != m_PositionOrderVersion)
+            var constrainPositionsJob = new ContrainPositions
             {
-                m_EntityIndexHashMap?.Dispose();
-                var entityIndexHashMap = new NativeHashMap<Entity, int>(m_PositionsGroup.entities.Length, Allocator.Persistent);
-                for (int i = 0; i < m_PositionsGroup.entities.Length; i++)
-                {
-                    entityIndexHashMap.TryAdd(m_PositionsGroup.entities[i], i);
-                }
-                m_EntityIndexHashMap = entityIndexHashMap;
-                m_PositionOrderVersion = EntityManager.GetComponentOrderVersion<TransformPosition>();
-            }
-            var constrainPositionsJob = new ContrainPositions();
-            constrainPositionsJob.entities = m_PositionsGroup.entities;
-            constrainPositionsJob.positions = m_PositionsGroup.positions;
-            constrainPositionsJob.positionConstraints = m_PositionContraintsGroup.positionConstraints;
-            constrainPositionsJob.positionConstraintEntities = m_PositionContraintsGroup.entities;
-            constrainPositionsJob.entityIndexHashMap = m_EntityIndexHashMap.Value;
+                positions = m_TransformPositions,
+                positionConstraints = m_PositionContraintsGroup.positionConstraints,
+                positionConstraintEntities = m_PositionContraintsGroup.entities
+            };
+            
             return constrainPositionsJob.Schedule(inputDeps);
-        }
-
-        NativeHashMap<Entity, int>? m_EntityIndexHashMap;
-        int m_PositionOrderVersion;
-
-        protected override void OnCreateManager(int capacity)
-        {
-            base.OnCreateManager(capacity);
-            m_PositionOrderVersion = -1;
-            m_EntityIndexHashMap = null;
-        }
-
-        protected override void OnDestroyManager()
-        {
-            base.OnDestroyManager();
-            m_EntityIndexHashMap?.Dispose();
         }
     }
 }

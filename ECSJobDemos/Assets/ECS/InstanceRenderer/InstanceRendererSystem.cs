@@ -6,6 +6,9 @@ using UnityEngine.ECS.Transform;
 
 namespace UnityEngine.ECS.Rendering
 {
+    /// <summary>
+    /// Renders all Entities containing both InstanceRenderer & TransformMatrix components.
+    /// </summary>
 	[UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.PreLateUpdate.ParticleSystemBeginUpdateAll))]
 	public class InstanceRendererSystem : ComponentSystem
 	{
@@ -52,8 +55,13 @@ namespace UnityEngine.ECS.Rendering
                 var group = maingroup.GetVariation(renderer);
                 var transforms = group.GetComponentDataArray<TransformMatrix>();
 
-                // Graphics.DrawMeshInstanced has a set of limitations that are not optimal for working with the ECS.
-                // We will adjust this API in the future to make it easy to fill in the buffers from jobs via Native containers directly.
+                // Graphics.DrawMeshInstanced has a set of limitations that are not optimal for working with ECS.
+                // Specifically:
+                // * No way to push the matrices from a job
+                // * no NativeArray API, currently uses Matrix4x4[]
+                // As a result this code is not yet jobified.
+                // We are planning to adjust this API to make it more efficient for this use case.
+
                 // For now, we have to copy our data into Matrix4x4[] with a specific upper limit of how many instances we can render in one batch.
                 // So we just have a for loop here, representing each Graphics.DrawMeshInstanced batch
                 int beginIndex = 0;

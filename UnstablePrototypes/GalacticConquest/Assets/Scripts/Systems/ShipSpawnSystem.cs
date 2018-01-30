@@ -93,10 +93,13 @@ namespace Systems
             for (int i = 0; i < shipData.Length; i++)
             {
                 var go = Object.Instantiate<GameObject>(_prefabManager.ShipPrefab, shipData[i].SpawnPosition, Quaternion.identity);
+                var targetPlanet = _entityManager.GetComponent<PlanetData>(shipData[i].TargetEntity);
 
                 var data = new ShipData
                 {
                     TargetEntity = shipData[i].TargetEntity,
+                    TargetEntityPosition = targetPlanet.Position,
+                    TargetEntityRadius = targetPlanet.Radius,
                     TeamOwnership = shipData[i].TeamOwnership
                 };
                 _entityManager.AddComponent(go.GetComponent<GameObjectEntity>().Entity, data);

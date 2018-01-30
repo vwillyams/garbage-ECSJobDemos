@@ -7,14 +7,14 @@ using UnityEngine.ECS;
 
 namespace Systems
 {
-    public class UserActionSystem : ComponentSystem
+    public class UserInputSystem : ComponentSystem
     {
         private Dictionary<GameObject, PlanetData?> FromTargets = new Dictionary<GameObject, PlanetData?>();
         private GameObject ToTarget = null;
 
         private EntityManager _entityManager;
 
-        public UserActionSystem ()
+        public UserInputSystem ()
         {
             _entityManager = World.Active.GetOrCreateManager<EntityManager>();
         }

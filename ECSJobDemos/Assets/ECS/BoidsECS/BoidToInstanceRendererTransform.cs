@@ -9,10 +9,13 @@ using UnityEngine.ECS.Transform;
 
 namespace BoidSimulations
 {
-    // Transforms BoidData simulation state to TransformMatrix
-    // TransformMatrix is used by the rendering system.
+    // This file contains all the different ways you can iterate over entities.
+    // Our current recommendation is to use the last two
+    // BoidToInstanceRendererTransform_IJobProcessComponentData or BoidToInstanceRendererTransform whenever possible.
 
-    
+
+    // Uses GetEntities<Group> to foreach iterate over all entities
+    // and produce a matrix from the BoidData state. Running all on the main thread.
     [DisableAutoCreation]
     class BoidToInstanceRendererTransform_GetEntities : ComponentSystem
     {
@@ -35,7 +38,8 @@ namespace BoidSimulations
         }
     }
 
-    
+    // Uses injection of a ComponentDataArray group to
+    // iterate over all entities with matching components on the main thread.    
     [DisableAutoCreation]
     class BoidToInstanceRendererTransform_ComponentDataArray : ComponentSystem
     {
@@ -66,6 +70,9 @@ namespace BoidSimulations
         }
     }
 
+    // Uses injection of a ComponentDataArray group to
+    // iterate over all entities with matching components.
+    // IJobParallelFor executes the code on multiple cores.
     [DisableAutoCreation]
     class BoidToInstanceRendererTransform_ParallelForJob_ComponentDataArray  : JobComponentSystem
     {
@@ -101,13 +108,16 @@ namespace BoidSimulations
             }
         }
         
-        // We derive from JobComponentSystem, the injected m_Group,
-        // Also declares what data is being read & written to in this ComponentSystem.
-        // Because it is declared the JobComponentSystem can give us a Job dependency, which contains all jobs that write to any BoidData or RendererTransforms
-        // We also return the dependency so any scheduled job will now be registered against the types for the next System that might run
+        // We derive from JobComponentSystem, as a result ECS hands us the required dependencies for our jobs.
+        //
+        // This is possible because we declare using the Group struct, which components we read & write from.
+        // Also declares what data is being read & written to in this ComponentSystem by declaring it in the Group struct.
+        // Because it is declared the JobComponentSystem can give us a Job dependency, which contains all previously scheduled
+        // jobs that write to any BoidData or RendererTransforms.
+        // We also have to return the dependency so any job we schedule will get registered against the types for the next System that might run
         // This approach means:
         // * No waiting on main thread, just scheduling jobs with dependencies (Jobs only start when dependencies have completed)
-        // * Dependencies are figured out automatically for us
+        // * Dependencies are figured out automatically for us, so we can write modular multithreaded code
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
             var job = new TransformJob() { Boids = m_Group.Boids, TransformMatrices = m_Group.RendererTransforms };
@@ -115,8 +125,8 @@ namespace BoidSimulations
         }
     }
     
-    // [Inject] creates a ComponentGroup, setting up the two ComponentDataArrays so
-    // that we can iterate over all entities containing both BoidData & TransformMatrix.
+    // Using IJobProcessComponentData to iterate of all entities matching the required component types.
+    // Processing of entities happens in parallel. The Main thread only schedules jobs.
     [DisableAutoCreation]
     class BoidToInstanceRendererTransform_IJobProcessComponentData : JobComponentSystem
     {
@@ -127,6 +137,8 @@ namespace BoidSimulations
             public ComponentDataArray<TransformMatrix> RendererTransforms;
         }
 
+        // [Inject] creates a ComponentGroup, setting up the two ComponentDataArrays so
+        // that we can iterate over all entities containing both BoidData & TransformMatrix.    
         [Inject] 
         Group m_Group;
         
@@ -143,6 +155,16 @@ namespace BoidSimulations
             }
         }
 
+        // We derive from JobComponentSystem, as a result ECS hands us the required dependencies for our jobs.
+        //
+        // This is possible because we declare using the Group struct, which components we read & write from.
+        // Also declares what data is being read & written to in this ComponentSystem by declaring it in the Group struct.
+        // Because it is declared the JobComponentSystem can give us a Job dependency, which contains all previously scheduled
+        // jobs that write to any BoidData or RendererTransforms.
+        // We also have to return the dependency so any job we schedule will get registered against the types for the next System that might run
+        // This approach means:
+        // * No waiting on main thread, just scheduling jobs with dependencies (Jobs only start when dependencies have completed)
+        // * Dependencies are figured out automatically for us, so we can write modular multithreaded code
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
             var job = new TransformJob();
@@ -156,10 +178,13 @@ namespace BoidSimulations
     // 
     // Essentially we tell the ECS that it should create a JobComponentSystem for us that will automatically schedule the job every frame,
     // 
-    // Effectively it's a simpler way of writing the BoidToInstanceRendererTransform_IJobProcessComponentData
+    // Effectively it's a literally the same BoidToInstanceRendererTransform_IJobProcessComponentData,
+    // just with a lot less code and the system code being done for us automatically.
     [ComputeJobOptimization]
     struct BoidToInstanceRendererTransform : IJobProcessComponentData<BoidData, TransformMatrix>, IAutoComponentSystemJob
     {
+        // This is invoked on the main thread.
+        // You could use it to store the deltaTime before scheduling the job here.
         public void Prepare() { }
 
         public void Execute(ref BoidData boid, ref TransformMatrix transform)

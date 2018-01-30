@@ -6,16 +6,22 @@ using UnityEngine.ECS.Transform;
 
 namespace UnityEngine.ECS.Rendering
 {
+    /// <summary>
+    /// Renders all Entities containing both InstanceRenderer & TransformMatrix components.
+    /// </summary>
 	[UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.PreLateUpdate.ParticleSystemBeginUpdateAll))]
 	public class InstanceRendererSystem : ComponentSystem
 	{
-        // Instance renderer takes only batches of 1024
+        // Instance renderer takes only batches of 1023
         Matrix4x4[] m_MatricesArray = new Matrix4x4[1023];
 
+	    // This is the ugly bit, necessary until Graphics.DrawMeshInstanced supports NativeArrays pulling the data in from a job.
         public unsafe static void CopyMatrices(ComponentDataArray<TransformMatrix> transforms, int beginIndex, int length, Matrix4x4[] outMatrices)
         {
-	        // @TODO: This is only unsafe because the Unity DrawInstances API takes a Matrix4x4[] instead of NativeArray.
-	        ///       And we also want the code to be really fast.
+	        // @TODO: This is using unsafe code because the Unity DrawInstances API takes a Matrix4x4[] instead of NativeArray.
+	        // We want to use the ComponentDataArray.CopyTo method
+	        // because internally it uses memcpy to copy the data,
+	        // if the nativeslice layout matches the layout of the component data. It's very fast...
             fixed (Matrix4x4* matricesPtr = outMatrices)
             {
                 UnityEngine.Assertions.Assert.AreEqual(sizeof(Matrix4x4), sizeof(TransformMatrix));
@@ -29,22 +35,35 @@ namespace UnityEngine.ECS.Rendering
 
         protected override void OnUpdate()
 		{
-            var uniqueRendererTypes = new List<InstanceRenderer>(10);
-
+            // We want to find all InstanceRenderer & TransformMatrix combinations and render them
 		    var maingroup = EntityManager.CreateComponentGroup(typeof(InstanceRenderer), typeof(TransformMatrix));
-
+		    // We didn't declare the ComponentGroup via injection so we need to manually
+		    // Complete any jobs that are writing to TransformMatrices
 		    maingroup.CompleteDependency();
 
+		    // We want to iterate over all unique InstanceRenderer shared component data,
+		    // that are attached to any entities in the world
+		    var uniqueRendererTypes = new List<InstanceRenderer>(10);
             EntityManager.GetAllUniqueSharedComponents(uniqueRendererTypes);
 
             for (int i = 0;i != uniqueRendererTypes.Count;i++)
             {
+                // For each unique InstanceRenderer data, we want to get all entities with a TransformMatrix
+                // SharedComponentData gurantees that all those entities are packed togehter in a chunk with linear memory layout.
+                // As a result the copy of the matrices out is internally done via memcpy. 
                 var renderer = uniqueRendererTypes[i];
-
                 var group = maingroup.GetVariation(renderer);
-
                 var transforms = group.GetComponentDataArray<TransformMatrix>();
 
+                // Graphics.DrawMeshInstanced has a set of limitations that are not optimal for working with ECS.
+                // Specifically:
+                // * No way to push the matrices from a job
+                // * no NativeArray API, currently uses Matrix4x4[]
+                // As a result this code is not yet jobified.
+                // We are planning to adjust this API to make it more efficient for this use case.
+
+                // For now, we have to copy our data into Matrix4x4[] with a specific upper limit of how many instances we can render in one batch.
+                // So we just have a for loop here, representing each Graphics.DrawMeshInstanced batch
                 int beginIndex = 0;
                 while (beginIndex < transforms.Length)
                 {
@@ -59,16 +78,6 @@ namespace UnityEngine.ECS.Rendering
             }
 
 		    maingroup.Dispose();
-		}
-
-		protected override void OnCreateManager (int capacity)
-		{
-			base.OnCreateManager (capacity);
-		}
-
-		protected override void OnDestroyManager ()
-		{
-			base.OnDestroyManager ();
 		}
 	}
 }

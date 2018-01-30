@@ -16,7 +16,7 @@ namespace TwoStickExample
         {
             public int Length;
             [ReadOnly] public ComponentDataArray<Shot> Shot;
-            public ComponentDataArray<WorldPos> Position;
+            public ComponentDataArray<Transform2D> Transform;
         }
 
         [InjectComponentGroup] private Data m_Data;
@@ -24,24 +24,24 @@ namespace TwoStickExample
         private struct ShotMoveJob : IJobParallelFor
         {
             [ReadOnly] public ComponentDataArray<Shot> Shot;
-            public ComponentDataArray<WorldPos> Position;
+            public ComponentDataArray<Transform2D> Transform;
 
             public void Execute(int index)
             {
-                float2 pos = Position[index].Position;
-                float2 dir = Position[index].Heading;
+                float2 pos = Transform[index].Position;
+                float2 dir = Transform[index].Heading;
 
                 pos += dir * Shot[index].Speed;
 
                 // Ref return will make this nicer.
-                Position[index] = new WorldPos {Position = pos, Heading = dir};
+                Transform[index] = new Transform2D {Position = pos, Heading = dir};
 
             }
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            var moveJob = new ShotMoveJob {Shot = m_Data.Shot, Position = m_Data.Position};
+            var moveJob = new ShotMoveJob {Shot = m_Data.Shot, Transform = m_Data.Transform};
 
             return moveJob.Schedule(m_Data.Length, 64, inputDeps);
         }
@@ -67,7 +67,7 @@ namespace TwoStickExample
                 var shotEntity = m_Data.SpawnedEntities[i];
                 em.RemoveComponent<ShotSpawnData>(shotEntity);
                 em.AddComponent(shotEntity, spawnData.Shot);
-                em.AddComponent(shotEntity, spawnData.WorldPos);
+                em.AddComponent(shotEntity, spawnData.Transform);
                 em.AddComponent(shotEntity, default(TransformMatrix));
                 em.AddSharedComponent(shotEntity, TwoStickBootstrap.ShotLook);
             }

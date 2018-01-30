@@ -27,10 +27,10 @@ namespace TwoStickExample
         {
             var entityManager = World.Active.GetOrCreateManager<EntityManager>();
 
-            PlayerArchetype = entityManager.CreateArchetype(typeof(WorldPos), typeof(PlayerInput), typeof(TransformMatrix));
-            ShotArchetype = entityManager.CreateArchetype(typeof(WorldPos), typeof(Shot), typeof(TransformMatrix));
+            PlayerArchetype = entityManager.CreateArchetype(typeof(Transform2D), typeof(PlayerInput), typeof(TransformMatrix));
+            ShotArchetype = entityManager.CreateArchetype(typeof(Transform2D), typeof(Shot), typeof(TransformMatrix));
             ShotSpawnArchetype = entityManager.CreateArchetype(typeof(ShotSpawnData));
-            BasicEnemyArchetype = entityManager.CreateArchetype(typeof(WorldPos), typeof(TransformMatrix));
+            BasicEnemyArchetype = entityManager.CreateArchetype(typeof(Transform2D), typeof(TransformMatrix));
         }
 
 
@@ -45,7 +45,7 @@ namespace TwoStickExample
             ShotLook = GetLookFromPrototype("ShotRenderPrototype");
 
             Entity player = entityManager.CreateEntity(PlayerArchetype);
-            WorldPos initialPos;
+            Transform2D initialPos;
             initialPos.Position = new float2(0, 0);
             initialPos.Heading = new float2(0, 1);
 

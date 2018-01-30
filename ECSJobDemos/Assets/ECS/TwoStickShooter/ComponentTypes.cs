@@ -4,7 +4,7 @@ using UnityEngine.ECS;
 
 namespace TwoStickExample
 {
-    public struct WorldPos : IComponentData
+    public struct Transform2D : IComponentData
     {
         public float2 Position;
         public float2 Heading;
@@ -28,6 +28,6 @@ namespace TwoStickExample
     public struct ShotSpawnData : IComponentData
     {
         public Shot Shot;
-        public WorldPos WorldPos;
+        public Transform2D Transform;
     }
 }

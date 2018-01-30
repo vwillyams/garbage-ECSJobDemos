@@ -15,7 +15,7 @@ namespace TwoStickExample
         public struct Data
         {
             public int Length;
-            public ComponentDataArray<WorldPos> Position;
+            public ComponentDataArray<Transform2D> Transform;
             public ComponentDataArray<PlayerInput> Input;
         }
 
@@ -34,15 +34,15 @@ namespace TwoStickExample
             float dt = Time.deltaTime;
             for (int index = 0; index < m_Data.Length; ++index)
             {
-                WorldPos pos = m_Data.Position[index];
+                Transform2D xform = m_Data.Transform[index];
 
                 var playerInput = m_Data.Input[index];
 
-                pos.Position += dt * playerInput.Move * settings.playerMoveSpeed;
+                xform.Position += dt * playerInput.Move * settings.playerMoveSpeed;
 
                 if (playerInput.Fire)
                 {
-                    pos.Heading = math.normalize(playerInput.Shoot);
+                    xform.Heading = math.normalize(playerInput.Shoot);
 
                     playerInput.FireCooldown = settings.playerFireCoolDown;
 
@@ -53,11 +53,11 @@ namespace TwoStickExample
                             Speed = settings.bulletMoveSpeed,
                             TimeToLive = settings.bulletTimeToLive,
                         },
-                        WorldPos = pos,
+                        Transform = xform,
                     };
                 }
 
-                m_Data.Position[index] = pos;
+                m_Data.Transform[index] = xform;
                 m_Data.Input[index] = playerInput;
             }
 

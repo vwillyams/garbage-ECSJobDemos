@@ -19,7 +19,7 @@ namespace TwoStickExample
         {
             public int Length;
 
-            [ReadOnly] public ComponentDataArray<WorldPos> Positions;
+            [ReadOnly] public ComponentDataArray<Transform2D> Positions;
             public ComponentDataArray<TransformMatrix> Output;
         }
 
@@ -27,7 +27,7 @@ namespace TwoStickExample
 
         private struct TransformJob : IJobParallelFor
         {
-            [ReadOnly] public ComponentDataArray<WorldPos> Positions;
+            [ReadOnly] public ComponentDataArray<Transform2D> Positions;
             public ComponentDataArray<TransformMatrix> Output;
 
             public void Execute(int index)

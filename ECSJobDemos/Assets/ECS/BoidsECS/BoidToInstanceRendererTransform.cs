@@ -15,7 +15,7 @@ namespace BoidSimulations
 
 
     // Uses GetEntities<Group> to foreach iterate over all entities
-    // and produce a matrix from the boiddata state
+    // and produce a matrix from the BoidData state. Running all on the main thread.
     [DisableAutoCreation]
     class BoidToInstanceRendererTransform_GetEntities : ComponentSystem
     {
@@ -125,8 +125,8 @@ namespace BoidSimulations
         }
     }
     
-    // Using IJobProcessComponentData ECS will produce the most efficient iteration code.
-    // We still run all the code in parallel on jobs without any syncs on the main thread.
+    // Using IJobProcessComponentData to iterate of all entities matching the required component types.
+    // Processing of entities happens in parallel. The Main thread only schedules jobs.
     [DisableAutoCreation]
     class BoidToInstanceRendererTransform_IJobProcessComponentData : JobComponentSystem
     {
@@ -137,6 +137,8 @@ namespace BoidSimulations
             public ComponentDataArray<TransformMatrix> RendererTransforms;
         }
 
+        // [Inject] creates a ComponentGroup, setting up the two ComponentDataArrays so
+        // that we can iterate over all entities containing both BoidData & TransformMatrix.    
         [Inject] 
         Group m_Group;
         

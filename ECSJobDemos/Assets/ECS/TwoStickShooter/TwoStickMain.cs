@@ -19,6 +19,7 @@ namespace TwoStickExample
 
         public static InstanceRenderer PlayerLook;
         public static InstanceRenderer ShotLook;
+        public static InstanceRenderer EnemyLook;
 
         public static TwoStickExampleSettings Settings;
 
@@ -30,7 +31,7 @@ namespace TwoStickExample
             PlayerArchetype = entityManager.CreateArchetype(typeof(Transform2D), typeof(PlayerInput), typeof(TransformMatrix));
             ShotArchetype = entityManager.CreateArchetype(typeof(Transform2D), typeof(Shot), typeof(TransformMatrix));
             ShotSpawnArchetype = entityManager.CreateArchetype(typeof(ShotSpawnData));
-            BasicEnemyArchetype = entityManager.CreateArchetype(typeof(Transform2D), typeof(TransformMatrix));
+            BasicEnemyArchetype = entityManager.CreateArchetype(typeof(Enemy), typeof(Transform2D), typeof(TransformMatrix));
         }
 
 
@@ -43,13 +44,14 @@ namespace TwoStickExample
 
             PlayerLook = GetLookFromPrototype("PlayerRenderPrototype");
             ShotLook = GetLookFromPrototype("ShotRenderPrototype");
+            EnemyLook = GetLookFromPrototype("EnemyRenderPrototype");
 
             Entity player = entityManager.CreateEntity(PlayerArchetype);
-            Transform2D initialPos;
-            initialPos.Position = new float2(0, 0);
-            initialPos.Heading = new float2(0, 1);
+            Transform2D initialXform;
+            initialXform.Position = new float2(0, 0);
+            initialXform.Heading = new float2(0, 1);
 
-            entityManager.SetComponent(player, initialPos);
+            entityManager.SetComponent(player, initialXform);
             entityManager.AddSharedComponent(player, PlayerLook);
         }
 

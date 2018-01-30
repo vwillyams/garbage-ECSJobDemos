@@ -30,4 +30,9 @@ namespace TwoStickExample
         public Shot Shot;
         public Transform2D Transform;
     }
+
+    public struct Enemy : IComponentData
+    {
+        public int Health;
+    }
 }

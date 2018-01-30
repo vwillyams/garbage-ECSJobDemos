@@ -11,7 +11,7 @@ using Random = UnityEngine.Random;
 
 namespace Systems
 {
-    [UpdateAfter(typeof(UserActionSystem))]
+    [UpdateAfter(typeof(UserInputSystem))]
     public class ShipSpawnSystem : ComponentSystem
     {
         public ShipSpawnSystem()
@@ -32,7 +32,7 @@ namespace Systems
             public int TeamOwnership { get; set; }
         }
 
-        [InjectComponentGroup] private SpawningPlanets _planets;
+        [Inject] private SpawningPlanets _planets;
         private PrefabManager _prefabManager;
         private EntityManager _entityManager;
 
@@ -55,7 +55,7 @@ namespace Systems
                 var shipsToSpawn = planetLaunchData.NumberToSpawn;
 
                 spawnCounter += Time.deltaTime;
-                var deltaSpawn = Math.Max(1, Convert.ToInt32(500.0f * spawnCounter));
+                var deltaSpawn = Math.Max(1, Convert.ToInt32(5000.0f * spawnCounter));
                 if (deltaSpawn >= 1)
                     spawnCounter = 0;
                 if (deltaSpawn < shipsToSpawn)

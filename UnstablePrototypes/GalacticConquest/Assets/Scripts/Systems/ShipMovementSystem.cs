@@ -32,8 +32,8 @@ namespace Systems
             public ComponentDataArray<PlanetData> Data;
         }
 
-        [InjectComponentGroup] private Ships _ships;
-        [InjectComponentGroup] private Planets _planets;
+        [Inject] private Ships _ships;
+        [Inject] private Planets _planets;
         private EntityManager _entityManager;
 
         protected override void OnUpdate()

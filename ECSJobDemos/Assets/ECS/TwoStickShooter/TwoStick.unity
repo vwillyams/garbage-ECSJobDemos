@@ -157,6 +157,7 @@ MonoBehaviour:
   bulletMoveSpeed: 1
   bulletTimeToLive: 2
   playerFireCoolDown: 0.1
+  enemySpeed: 0.1
 --- !u!1 &356037869
 GameObject:
   m_ObjectHideFlags: 0

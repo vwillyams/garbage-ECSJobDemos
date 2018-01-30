@@ -4,7 +4,7 @@ using UnityEngine.ECS;
 
 namespace RotatorSamples
 {
-	public class RotationSpeedComponent : MonoBehaviour
+	public class RotationSpeedComponentOld : MonoBehaviour
 	{
 		public float speed;
 	}
@@ -14,7 +14,7 @@ namespace RotatorSamples
 		struct Group
 		{
 			public Transform 				transform;
-			public RotationSpeedComponent   rotation;
+			public RotationSpeedComponentOld   rotation;
 		}
 
 		protected override void OnUpdate()

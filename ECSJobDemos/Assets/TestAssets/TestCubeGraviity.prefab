@@ -24,6 +24,8 @@ GameObject:
   - component: {fileID: 114424513855032838}
   - component: {fileID: 114641635668592072}
   - component: {fileID: 114928447940498756}
+  - component: {fileID: 114281514216075292}
+  - component: {fileID: 114726102540456930}
   m_Layer: 0
   m_Name: TestCubeGraviity
   m_TagString: Untagged
@@ -44,6 +46,17 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &114281514216075292
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1281946613142142}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2327f3002fc94f2b91d287c740439550, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &114424513855032838
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -77,6 +90,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2caacf465eeae43f39a6a13e442d1dc0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &114726102540456930
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1281946613142142}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7edbc7bcf4c64fb783cea4df2f3cea0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SerializedData:
+    speed: 10
 --- !u!114 &114928447940498756
 MonoBehaviour:
   m_ObjectHideFlags: 1

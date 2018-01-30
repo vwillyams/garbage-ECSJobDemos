@@ -36,8 +36,6 @@ namespace TwoStickExample
                 // Ref return will make this nicer.
                 Position[index] = new WorldPos {Position = pos, Heading = dir};
 
-                Debug.Log($"pos: {Position[index].Position}");
-
             }
         }
 
@@ -113,12 +111,7 @@ namespace TwoStickExample
 
             if (removeCount > 0)
             {
-                for (int k = 0; k < removeCount; ++k)
-                {
-                    EntityManager.DestroyEntity(entitiesToRemove[k]);
-                }
-                // TODO: BROKEN
-                //EntityManager.DestroyEntity(entitiesToRemove.Slice(removeCount));
+                EntityManager.DestroyEntity(entitiesToRemove.Slice(0, removeCount));
             }
 
             entitiesToRemove.Dispose();

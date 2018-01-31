@@ -29,10 +29,10 @@ namespace TwoStickExample
         {
             var entityManager = World.Active.GetOrCreateManager<EntityManager>();
 
-            PlayerArchetype = entityManager.CreateArchetype(typeof(Transform2D), typeof(PlayerInput), typeof(Health), typeof(TransformMatrix));
+            PlayerArchetype = entityManager.CreateArchetype(typeof(Transform2D), typeof(PlayerInput), typeof(Faction), typeof(Health), typeof(TransformMatrix));
             ShotArchetype = entityManager.CreateArchetype(typeof(Transform2D), typeof(Shot), typeof(TransformMatrix), typeof(Faction));
             ShotSpawnArchetype = entityManager.CreateArchetype(typeof(ShotSpawnData));
-            BasicEnemyArchetype = entityManager.CreateArchetype(typeof(Enemy), typeof(Health), typeof(EnemyShootState), typeof(Transform2D), typeof(TransformMatrix));
+            BasicEnemyArchetype = entityManager.CreateArchetype(typeof(Enemy), typeof(Health), typeof(EnemyShootState), typeof(Faction), typeof(Transform2D), typeof(TransformMatrix));
         }
 
 
@@ -57,6 +57,7 @@ namespace TwoStickExample
             initialXform.Heading = new float2(0, 1);
 
             entityManager.SetComponent(player, initialXform);
+            entityManager.SetComponent(player, new Faction { Value = Faction.kPlayer });
             entityManager.SetComponent(player, new Health { Value = Settings.playerInitialHealth });
             entityManager.AddSharedComponent(player, PlayerLook);
 

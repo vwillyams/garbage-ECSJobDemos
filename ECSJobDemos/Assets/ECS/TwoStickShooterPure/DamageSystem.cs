@@ -10,20 +10,20 @@ namespace TwoStickExample
 
     public class PlayerDamageSystem : ComponentSystem
     {
-        public struct PlayerData
+        public struct ReceiverData
         {
             public int Length;
-            [ReadOnly] public ComponentDataArray<PlayerInput> Input;
-            [ReadOnly] public ComponentDataArray<Transform2D> Transform2D;
             public ComponentDataArray<Health> Health;
+            [ReadOnly] public ComponentDataArray<Faction> Faction;
+            [ReadOnly] public ComponentDataArray<Transform2D> Transform2D;
         }
 
-        [Inject] PlayerData m_Players;
+        [Inject] ReceiverData m_Receivers;
 
         public struct ShotData
         {
             public int Length;
-            [ReadOnly] public ComponentDataArray<Shot> Shot;
+            public ComponentDataArray<Shot> Shot;
             [ReadOnly] public ComponentDataArray<Transform2D> Transform2D;
             [ReadOnly] public ComponentDataArray<Faction> Faction;
         }
@@ -31,35 +31,44 @@ namespace TwoStickExample
 
         protected override void OnUpdate()
         {
-            if (0 == m_Players.Length || 0 == m_Shots.Length)
+            if (0 == m_Receivers.Length || 0 == m_Shots.Length)
                 return;
 
-            float collisionRadius = TwoStickBootstrap.Settings.playerCollisionRadius;
-            float collisionRadiusSquared = collisionRadius * collisionRadius;
+            var settings = TwoStickBootstrap.Settings;
 
-            for (int pi = 0; pi < m_Players.Length; ++pi)
+            for (int pi = 0; pi < m_Receivers.Length; ++pi)
             {
                 float damage = 0.0f;
 
-                float2 playerPos = m_Players.Transform2D[pi].Position;
+                float collisionRadius = m_Receivers.Faction[pi].Value == Faction.kPlayer ? settings.playerCollisionRadius : settings.enemyCollisionRadius;
+                float collisionRadiusSquared = collisionRadius * collisionRadius;
+
+                float2 receiverPos = m_Receivers.Transform2D[pi].Position;
+                int receiverFaction = m_Receivers.Faction[pi].Value;
 
                 for (int si = 0; si < m_Shots.Length; ++si)
                 {
-                    if (m_Shots.Faction[si].Value == Faction.kEnemy)
+                    if (m_Shots.Faction[si].Value != receiverFaction)
                     {
                         float2 shotPos = m_Shots.Transform2D[si].Position;
-                        float2 delta = shotPos - playerPos;
+                        float2 delta = shotPos - receiverPos;
                         float distSquared = math.dot(delta, delta);
                         if (distSquared <= collisionRadiusSquared)
                         {
-                            damage += m_Shots.Shot[si].Energy;
+                            var shot = m_Shots.Shot[si];
+
+                            damage += shot.Energy;
+
+                            shot.TimeToLive = 0.0f;
+                            
+                            m_Shots.Shot[si] = shot;
                         }
                     }
                 }
 
-                var h = m_Players.Health[pi];
+                var h = m_Receivers.Health[pi];
                 h.Value = math.max(h.Value - damage, 0.0f);
-                m_Players.Health[pi] = h;
+                m_Receivers.Health[pi] = h;
             }
         }
     }
@@ -80,30 +89,25 @@ namespace TwoStickExample
 
         protected override void OnUpdate()
         {
-            if (m_Players.Length == 0)
-                return;
+            int displayedHealth = 0;
 
-            int displayedHealth = (int) m_Players.Health[0].Value;
+            if (m_Players.Length > 0)
+            {
+                displayedHealth = (int)m_Players.Health[0].Value;
+            }
 
             if (m_CachedValue != displayedHealth)
             {
                 Text t = GameObject.Find("HealthText")?.GetComponent<Text>();
                 if (t != null)
                 {
-                    t.text = $"HEALTH: {displayedHealth}";
+                    if (displayedHealth > 0)
+                        t.text = $"HEALTH: {displayedHealth}";
+                    else
+                        t.text = "GAME OVER";
                 }
 
                 m_CachedValue = displayedHealth;
-
-                if (displayedHealth == 0)
-                {
-                    EntityManager.DestroyEntity(m_Players.Entity[0]);
-
-                    if (t != null)
-                    {
-                        t.text = "GAME OVER";
-                    }
-                }
             }
         }
     }

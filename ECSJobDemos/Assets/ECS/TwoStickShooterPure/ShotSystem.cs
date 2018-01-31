@@ -71,7 +71,6 @@ namespace TwoStickExample
             for (int i = 0; i < m_Data.Length; ++i)
             {
                 var sd = spawnData[i];
-                Debug.Log($"Spawning shot at {sd.Transform.Position.x},{sd.Transform.Position.y} with {sd.Shot.TimeToLive} TTL");
                 var shotEntity = entities[i];
                 em.RemoveComponent<ShotSpawnData>(shotEntity);
                 em.AddComponent(shotEntity, sd.Shot);

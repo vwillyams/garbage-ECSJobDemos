@@ -42,7 +42,6 @@ namespace TwoStickExample
                 state.SpawnedEnemyCount++;
                 state.Cooldown = ComputeCooldown(state.SpawnedEnemyCount);
                 spawn = true;
-                Debug.Log($"Spawned an enemy, count so far: {state.SpawnedEnemyCount}");
             }
 
             state.RandomState = Random.state;
@@ -58,13 +57,15 @@ namespace TwoStickExample
                 EntityManager.SetComponent(e, default(Enemy));
                 EntityManager.SetComponent(e, new Health { Value = TwoStickBootstrap.Settings.enemyInitialHealth });
                 EntityManager.SetComponent(e, new EnemyShootState { Cooldown = 0.5f });
+                EntityManager.SetComponent(e, new Faction { Value = Faction.kEnemy });
+
                 EntityManager.AddSharedComponent(e, TwoStickBootstrap.EnemyLook);
             }
         }
 
         private float ComputeCooldown(int stateSpawnedEnemyCount)
         {
-            return 0.75f;
+            return 0.15f;
         }
 
         private void ComputeSpawnLocation(out Transform2D xform)
@@ -74,7 +75,7 @@ namespace TwoStickExample
             const float x1 = 50.0f;
             float x = x0 + (x1 - x0) * r;
 
-            xform.Position = new float2(x, 5);
+            xform.Position = new float2(x, 13);
             xform.Heading = new float2(0, 1);
         }
     }
@@ -122,7 +123,7 @@ namespace TwoStickExample
                 Health = m_Data.Health,
                 Transform2D = m_Data.Transform2D,
                 Speed = TwoStickBootstrap.Settings.enemySpeed,
-                MaxY = 10.0f // TODO: Represent bounds somewhere
+                MaxY = 30.0f // TODO: Represent bounds somewhere
             };
 
             return moveJob.Schedule(m_Data.Length, 64, inputDeps);
@@ -198,13 +199,12 @@ namespace TwoStickExample
         }
     }
 
-    public class EnemyDestroySystem : ComponentSystem
+    public class DestroyDeadSystem : ComponentSystem
     {
         public struct Data
         {
             public int Length;
             [ReadOnly] public EntityArray Entity;
-            [ReadOnly] public ComponentDataArray<Enemy> EnemyTag;
             [ReadOnly] public ComponentDataArray<Health> Health;
         }
 
@@ -225,7 +225,6 @@ namespace TwoStickExample
 
             if (removeCount > 0)
             {
-                Debug.Log($"Removing {removeCount} enemies");
                 EntityManager.DestroyEntity(enemiesToRemove.Slice(0, removeCount));
             }
 

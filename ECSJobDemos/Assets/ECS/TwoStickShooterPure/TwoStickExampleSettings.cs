@@ -12,7 +12,8 @@ public class TwoStickExampleSettings : MonoBehaviour
     public float enemyShotTimeToLive = 2.0f;
     public float playerInitialHealth = 5.0f;
     public float enemyInitialHealth = 100.0f;
-    public float playerCollisionRadius = 1.0f;
     public float playerShotEnergy = 3.0f;
     public float enemyShotEnergy = 3.0f;
+    public float playerCollisionRadius = 1.0f;
+    public float enemyCollisionRadius = 1.0f;
 }

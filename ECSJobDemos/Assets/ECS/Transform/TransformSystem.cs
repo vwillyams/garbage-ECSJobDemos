@@ -40,9 +40,10 @@ namespace UnityEngine.ECS.Transform
         
             public void Execute(int i)
             {
+                var position = positions[i].position;
                 matrices[i] = new TransformMatrix
                 {
-                    matrix = math.translate(positions[i].position)
+                    matrix = math.translate(position)
                 };
             }
         }
@@ -58,9 +59,10 @@ namespace UnityEngine.ECS.Transform
         
             public void Execute(int i)
             {
+                float3 position = positions[i].position;
                 matrices[i] = new TransformMatrix
                 {
-                    matrix = math.rottrans( math.normalize(rotations[i].rotation), positions[i].position )
+                    matrix = math.rottrans( math.normalize(rotations[i].rotation), position )
                 };
             }
         }
@@ -76,9 +78,9 @@ namespace UnityEngine.ECS.Transform
             worldRotTransToMatrixJob.positions = m_WorldRotTransGroup.positions;
             worldRotTransToMatrixJob.matrices = m_WorldRotTransGroup.matrices;
             worldRotTransToMatrixJob.rotations = m_WorldRotTransGroup.rotations;
-            var worldRotTransToMatrixJobHandle = worldRotTransToMatrixJob.Schedule(m_WorldRotTransGroup.Length, 64, inputDeps);
-
-            return JobHandle.CombineDependencies(worldRotTransToMatrixJobHandle, worldTransToMatrixJobHandle);
+            // var worldRotTransToMatrixJobHandle = worldRotTransToMatrixJob.Schedule(m_WorldRotTransGroup.Length, 64, inputDeps);
+            // return JobHandle.CombineDependencies(worldRotTransToMatrixJobHandle, worldTransToMatrixJobHandle);
+            return worldRotTransToMatrixJob.Schedule(m_WorldRotTransGroup.Length, 64, worldTransToMatrixJobHandle);
         } 
     }
 }

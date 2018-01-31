@@ -12,6 +12,7 @@ namespace UnityEngine.ECS.SimpleMovement
         struct GravityGroup
         {
             public ComponentDataArray<TransformPosition> positions;
+            [ReadOnly]
             public ComponentDataArray<Gravity> gravity;
             public int Length;
         }
@@ -22,6 +23,7 @@ namespace UnityEngine.ECS.SimpleMovement
         struct GravityPosition : IJobParallelFor
         {
             public ComponentDataArray<TransformPosition> positions;
+            [ReadOnly]
             public ComponentDataArray<Gravity> gravity;
         
             public void Execute(int i)

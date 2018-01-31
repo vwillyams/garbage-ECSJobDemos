@@ -29,11 +29,15 @@ namespace UnityEngine.ECS.SimpleRotation
         
             public void Execute(int i)
             {
-                rotations[i] = new TransformRotation
+                var speed = rotationSpeeds[i].speed;
+                if (speed > 0.0f)
                 {
-                    rotation = math.mul(math.normalize(rotations[i].rotation),
-                        math.axisAngle(float3.up(), rotationSpeeds[i].speed))
-                };
+                    var prevRotation = math.normalize(rotations[i].rotation);
+                    var changeRotation = math.axisAngle(math.up(), speed * dt);
+                    var rotation = math.mul(prevRotation, changeRotation);
+                    rotations[i] = new TransformRotation {rotation = rotation};
+
+                }
             }
         }
 

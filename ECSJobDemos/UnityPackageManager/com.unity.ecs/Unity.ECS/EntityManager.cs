@@ -312,154 +312,17 @@ namespace UnityEngine.ECS
             // so it covers the added component?
             IncrementSharedComponentsVersion(entity);
 
-            var componentType = new ComponentTypeInArchetype(type);
-            Archetype* archetype = m_Entities->GetArchetype(entity);
-            
-            int t = 0;
-            while (t < archetype->typesCount && archetype->types[t] < componentType)
-            {
-                m_CachedComponentTypeInArchetypeArray[t] = archetype->types[t];
-                ++t;
-            }
-
-            m_CachedComponentTypeInArchetypeArray[t] = componentType;
-            while (t < archetype->typesCount)
-            {
-                m_CachedComponentTypeInArchetypeArray[t + 1] = archetype->types[t];
-                ++t;
-            }
-            Archetype* newType = m_ArchetypeManager.GetOrCreateArchetype(m_CachedComponentTypeInArchetypeArray, archetype->typesCount + 1, m_GroupManager);
-
-            int* sharedComponentDataIndices = null;
-            if (newType->numSharedComponents > 0)
-            {
-                var oldSharedComponentDataIndices = m_Entities->GetComponentChunk(entity)->sharedComponentValueArray;
-                var newComponentIsShared = (TypeManager.TypeCategory.ISharedComponentData == TypeManager.GetComponentType(type.typeIndex).category);
-                if (newComponentIsShared)
-                {
-                    int* stackAlloced = stackalloc int[newType->numSharedComponents]; 
-                    sharedComponentDataIndices = stackAlloced;
-                    
-                    if (archetype->sharedComponentOffset == null)
-                    {
-                        sharedComponentDataIndices[0] = 0;
-                    }
-                    else
-                    {
-                        t = 0;
-                        int sharedIndex = 0;
-                        while (t < archetype->typesCount && archetype->types[t] < componentType)
-                        {
-                            if (archetype->sharedComponentOffset[t] != -1)
-                            {
-                                sharedComponentDataIndices[sharedIndex] = oldSharedComponentDataIndices[sharedIndex];
-                                ++sharedIndex;
-                            }
-                            ++t;
-                        }
-
-                        sharedComponentDataIndices[sharedIndex] = 0;
-                        while (t < archetype->typesCount)
-                        {
-                            if (archetype->sharedComponentOffset[t] != -1)
-                            {
-                                sharedComponentDataIndices[sharedIndex + 1] = oldSharedComponentDataIndices[sharedIndex];
-                                ++sharedIndex;
-                            }
-                            ++t;
-                        }
-                    }
-                }
-                else
-                {
-                    // reuse old sharedComponentDataIndices
-                    sharedComponentDataIndices = oldSharedComponentDataIndices;
-                }
-            }
-
-            m_Entities->SetArchetype(m_ArchetypeManager, entity, newType, sharedComponentDataIndices);
-        }
-
-        private void IncrementSharedComponentsVersion(Entity entity)
-        {
-            Archetype* archetype = m_Entities->GetArchetype(entity);
-            
-            // Increment shared component version
-            var sharedComponentDataIndices = m_Entities->GetComponentChunk(entity)->sharedComponentValueArray;
-            for (int i = 0; i < archetype->numSharedComponents; i++)
-            {
-                m_SharedComponentManager.IncrementSharedComponentVersion(sharedComponentDataIndices[i]);
-            }
-            
-            // Increment type component version
-            for (int t = 0; t < archetype->typesCount; ++t)
-            {
-                int typeIndex = archetype->types[t].typeIndex;
-                bool sharedComponent = (TypeManager.TypeCategory.ISharedComponentData == TypeManager.GetComponentType(typeIndex).category);
-                if (!sharedComponent)
-                    m_ComponentTypeOrderVersion[typeIndex]++;
-            }
-        }
-
-        public int GetComponentOrderVersion<T>()
-        {
-            int typeVersion = 0;
-            int typeIndex = TypeManager.GetTypeIndex<T>();
-            return m_ComponentTypeOrderVersion[typeIndex];
+            m_Entities->AddComponent(entity, type, m_ArchetypeManager, m_GroupManager, m_CachedComponentTypeInArchetypeArray);
         }
         
         public void RemoveComponent(Entity entity, ComponentType type)
         {
             BeforeImmediateStructualChange();
-
-            var componentType = new ComponentTypeInArchetype(type);
-
             m_Entities->AssertEntityHasComponent(entity, type);
 
             IncrementSharedComponentsVersion(entity);
-
-            Archetype* archetype = m_Entities->GetArchetype(entity);
-                
-            int removedTypes = 0;
-            for (int t = 0; t < archetype->typesCount; ++t)
-            {
-                if (archetype->types[t].typeIndex == componentType.typeIndex)
-                    ++removedTypes;
-                else
-                    m_CachedComponentTypeInArchetypeArray[t - removedTypes] = archetype->types[t];
-            }
             
-
-            Assertions.Assert.AreNotEqual(-1, removedTypes);
-
-            Archetype* newType = m_ArchetypeManager.GetOrCreateArchetype(m_CachedComponentTypeInArchetypeArray, archetype->typesCount - removedTypes, m_GroupManager);
-
-            int* sharedComponentDataIndices = null;
-            if (newType->numSharedComponents > 0)
-            {
-                var oldSharedComponentDataIndices = m_Entities->GetComponentChunk(entity)->sharedComponentValueArray;
-                bool removedComponentIsShared = (TypeManager.TypeCategory.ISharedComponentData == TypeManager.GetComponentType(type.typeIndex).category);
-                removedTypes = 0;
-                if (removedComponentIsShared)
-                {
-                    int* tempAlloc = stackalloc int[newType->numSharedComponents];
-                    sharedComponentDataIndices = tempAlloc;
-                    for (int t = 0; t < archetype->typesCount; ++t)
-                    {
-                        if (archetype->types[t].typeIndex == componentType.typeIndex)
-                            ++removedTypes;
-                        else
-                            sharedComponentDataIndices[t - removedTypes] = oldSharedComponentDataIndices[t];
-                    }
-                }
-                else
-                {
-                    // reuse old sharedComponentDataIndices
-                    sharedComponentDataIndices = oldSharedComponentDataIndices;
-                }
-            }
-
-            m_Entities->SetArchetype(m_ArchetypeManager, entity, newType, sharedComponentDataIndices);
+            m_Entities->RemoveComponent(entity, type, m_ArchetypeManager, m_GroupManager, m_CachedComponentTypeInArchetypeArray);
         }
 
         public void AddComponent<T>(Entity entity, T componentData) where T : struct, IComponentData
@@ -603,6 +466,34 @@ namespace UnityEngine.ECS
             return array;
         }
 
+        void IncrementSharedComponentsVersion(Entity entity)
+        {
+            Archetype* archetype = m_Entities->GetArchetype(entity);
+            
+            // Increment shared component version
+            var sharedComponentDataIndices = m_Entities->GetComponentChunk(entity)->sharedComponentValueArray;
+            for (int i = 0; i < archetype->numSharedComponents; i++)
+            {
+                m_SharedComponentManager.IncrementSharedComponentVersion(sharedComponentDataIndices[i]);
+            }
+            
+            // Increment type component version
+            for (int t = 0; t < archetype->typesCount; ++t)
+            {
+                int typeIndex = archetype->types[t].typeIndex;
+                bool sharedComponent = (TypeManager.TypeCategory.ISharedComponentData == TypeManager.GetComponentType(typeIndex).category);
+                if (!sharedComponent)
+                    m_ComponentTypeOrderVersion[typeIndex]++;
+            }
+        }
+        
+        public int GetComponentOrderVersion<T>()
+        {
+            int typeVersion = 0;
+            int typeIndex = TypeManager.GetTypeIndex<T>();
+            return m_ComponentTypeOrderVersion[typeIndex];
+        }
+        
         internal ComponentJobSafetyManager ComponentJobSafetyManager { get { return m_JobSafetyManager; } }
 
         public EntityTransaction BeginTransaction()

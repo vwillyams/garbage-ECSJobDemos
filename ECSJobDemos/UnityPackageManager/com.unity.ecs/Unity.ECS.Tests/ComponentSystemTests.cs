@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System;
+using NUnit.Framework;
 
 namespace UnityEngine.ECS.Tests
 {
@@ -27,6 +28,18 @@ namespace UnityEngine.ECS.Tests
         [DisableAutoCreation]
         class DerivedTestSystem : TestSystem
         {
+            protected override void OnUpdate()
+            {
+            }
+        }
+        
+        [DisableAutoCreation]
+        class ThrowExceptionSystem : TestSystem
+        {
+            protected override void OnCreateManager(int capacity)
+            {
+                throw new System.Exception();
+            }
             protected override void OnUpdate()
             {
             }
@@ -62,6 +75,13 @@ namespace UnityEngine.ECS.Tests
             Assert.AreEqual(null, World.GetExistingManager<TestSystem>());
 
             Assert.IsFalse(system.Created);
+        }
+        
+        [Test]
+        public void OnCreateThrowRemovesSystem()
+        {
+            Assert.Throws<Exception>(() => { World.CreateManager<ThrowExceptionSystem>(); });
+            Assert.AreEqual(null, World.GetExistingManager<ThrowExceptionSystem>());
         }
     }
 }

@@ -500,7 +500,7 @@ namespace UnityEngine.ECS
             int srcIndex = m_Entities[srcEntity.index].indexInChunk;
             Chunk* srcChunk = m_Entities[srcEntity.index].chunk;
             Archetype* srcArchetype = m_Entities[srcEntity.index].archetype;
-            var srcSharedComponentDataIndices = GetComponentChunk(srcEntity)->GetSharedComponentValueArray();
+            var srcSharedComponentDataIndices = GetComponentChunk(srcEntity)->sharedComponentValueArray;
 
             while (count != 0)
             {
@@ -523,7 +523,7 @@ namespace UnityEngine.ECS
             int indexInTypeArray = ChunkDataUtility.GetIndexInTypeArray(archetype, typeIndex);
 
             Chunk* chunk = m_Entities[entity.index].chunk;
-            int* sharedComponentValueArray = chunk->GetSharedComponentValueArray();
+            int* sharedComponentValueArray = chunk->sharedComponentValueArray;
             int sharedComponentOffset = m_Entities[entity.index].archetype->sharedComponentOffset[indexInTypeArray];
             return sharedComponentValueArray[sharedComponentOffset];
         }
@@ -535,14 +535,14 @@ namespace UnityEngine.ECS
             int indexInTypeArray = ChunkDataUtility.GetIndexInTypeArray(archetype, typeIndex);
 
             var srcChunk = GetComponentChunk(entity);
-            int* srcSharedComponentValueArray = srcChunk->GetSharedComponentValueArray();
+            int* srcSharedComponentValueArray = srcChunk->sharedComponentValueArray;
             int sharedComponentOffset = archetype->sharedComponentOffset[indexInTypeArray];
             int oldSharedComponentDataIndex = srcSharedComponentValueArray[sharedComponentOffset];
 
             if (newSharedComponentDataIndex != oldSharedComponentDataIndex)
             {
                 var sharedComponentIndices = stackalloc int[archetype->numSharedComponents];
-                var srcSharedComponentDataIndices = srcChunk->GetSharedComponentValueArray();
+                var srcSharedComponentDataIndices = srcChunk->sharedComponentValueArray;
 
                 ArchetypeManager.CopySharedComponentDataIndexArray(sharedComponentIndices,
                     srcSharedComponentDataIndices, archetype->numSharedComponents);

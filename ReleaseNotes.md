@@ -1,3 +1,12 @@
+# 0.0.2
+
+## New Features
+
+## Changes
+* [InjectComponentGroup] and [InjectComponentFromEntity] were replaced by simply [Inject] handling all injection cases.
+
+## Fixes
+
 # 0.0.1
 
 ## New Features

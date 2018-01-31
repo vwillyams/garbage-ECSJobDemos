@@ -19,7 +19,7 @@ namespace BoidSimulations
 			public TransformAccessArray 		    transforms;
 		}
 
-		[InjectComponentGroup] Group m_Boids;
+		[Inject] Group m_Boids;
 
 		struct WriteBoidsToTransformsJob : IJobParallelForTransform
 		{

@@ -193,7 +193,7 @@ namespace UnityEngine.ECS
         {
             internal ComponentDataArray<TComponentData0> component0;
         }
-        [InjectComponentGroup]
+        [Inject]
         private DataGroup m_Group;
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
@@ -218,7 +218,7 @@ namespace UnityEngine.ECS
             internal ComponentDataArray<TComponentData1> component1;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         private DataGroup m_Group;
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)

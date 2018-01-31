@@ -53,6 +53,11 @@ namespace UnityEngine.ECS
             }
         }
 
+        public static int MaximumTypesCount
+        {
+            get { return m_Types.Length; }
+        }
+
         public static int GetTypeIndex<T>()
         {
             int typeIndex = StaticTypeLookup<T>.typeIndex;
@@ -67,7 +72,7 @@ namespace UnityEngine.ECS
                 return typeIndex;
             }
         }
-
+        
         public static int GetTypeIndex(Type type)
         {
             int index = FindTypeIndex(type, m_Count);
@@ -181,12 +186,12 @@ namespace UnityEngine.ECS
                 return !isArray;
         }
 
-        static public ComponentType GetComponentType(int typeIndex)
+        public static ComponentType GetComponentType(int typeIndex)
         {
             return m_Types[typeIndex];
         }
 
-        static public ComponentType GetComponentType<T>()
+        public static ComponentType GetComponentType<T>()
         {
             return m_Types[GetTypeIndex<T>()];
         }

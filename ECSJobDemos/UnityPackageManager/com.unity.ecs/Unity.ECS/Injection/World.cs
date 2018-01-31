@@ -105,7 +105,16 @@ namespace UnityEngine.ECS
 			m_BehaviourManagers.Add (manager);
 			m_BehaviourManagerLookup.Add(type, manager);
 
-			manager.CreateInstance (this, capacity);
+		    try
+		    {
+		        manager.CreateInstance (this, capacity);
+
+		    }
+		    catch
+		    {
+		        RemoveManagerInteral(manager);
+		        throw;
+		    }
 
 			return manager;
 		}
@@ -140,10 +149,10 @@ namespace UnityEngine.ECS
 			if (manager != null)
 				return manager;
 			else
-				return  CreateManagerInternal(type, GetCapacityForType(type), null);
+				return CreateManagerInternal(type, GetCapacityForType(type), null);
 		}
-		
-		void DestroyManagerInteral(ScriptBehaviourManager manager)
+		    
+		void RemoveManagerInteral(ScriptBehaviourManager manager)
 		{
 			if (!m_BehaviourManagers.Remove(manager))
 				throw new System.ArgumentException($"manager does not exist in the world");
@@ -154,8 +163,6 @@ namespace UnityEngine.ECS
 				m_BehaviourManagerLookup.Remove(type);
 				type = type.BaseType;
 			}
-
-			manager.DestroyInstance();	
 		}
 
 		public ScriptBehaviourManager CreateManager(Type type, params object[] constructorArgumnents)
@@ -190,7 +197,8 @@ namespace UnityEngine.ECS
 
 		public void DestroyManager(ScriptBehaviourManager manager)
 		{
-			DestroyManagerInteral(manager);
+			RemoveManagerInteral(manager);
+		    manager.DestroyInstance();
 		}
 
 		public static void UpdatePlayerLoop(params World[] worlds)

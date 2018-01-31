@@ -48,7 +48,7 @@ namespace Systems
                 //var targetTransform = shipData.TargetTransform;
 
                 var newPos = Vector3.MoveTowards(shipTransform.position, targetPlanet.Position, Time.deltaTime);
-                bool3 huh;
+
                 if (Vector3.Distance(targetPlanet.Position, newPos) <= targetPlanet.Radius)
                 {
                     arrivingShipData.Add(shipData);

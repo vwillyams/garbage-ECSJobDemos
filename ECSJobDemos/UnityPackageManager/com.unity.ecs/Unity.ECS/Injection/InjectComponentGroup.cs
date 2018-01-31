@@ -7,12 +7,6 @@ using UnityEngine.Jobs;
 
 namespace UnityEngine.ECS
 {
-	[AttributeUsage(AttributeTargets.Field)]
-	public sealed class InjectComponentGroupAttribute : System.Attribute
-	{
-
-	}
-
 	class InjectComponentGroupData
     {
 	    int 				m_EntityArrayOffset;
@@ -133,15 +127,14 @@ namespace UnityEngine.ECS
 		    var componentRequirements = new List<ComponentType>();
 		    var error = CollectInjectedGroup(injectedGroupType, out entityArrayField, out transformAccessArrayField, out lengthField, componentInjections, componentRequirements);
 		    if (error != null)
-			    throw new System.InvalidOperationException(error);
+			    throw new System.ArgumentException(error);
 
 		    return new InjectComponentGroupData(entityManager, groupField, componentInjections.ToArray(), entityArrayField, transformAccessArrayField, lengthField, componentRequirements.ToArray());
 	    }
 
 	    static string CollectInjectedGroup(Type injectedGroupType, out FieldInfo entityArrayField, out FieldInfo transformAccessArrayField, out FieldInfo lengthField, List<InjectionData> componentInjections, List<ComponentType> componentRequirements)
 	    {
-			//@TODO: Improved error messages... should include full struct pathname etc.
-
+	        //@TODO: Improve error messages...
 		    var fields = injectedGroupType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 		    transformAccessArrayField = null;
 		    entityArrayField = null;
@@ -191,7 +184,7 @@ namespace UnityEngine.ECS
 						return "[ReadOnly] may not be used on a TransformAccessArray only on ComponentDataArray<>";
 					// Error on multiple transformAccessArray
 					if (transformAccessArrayField != null)
-						return "A [InjectComponentGroup] struct, may only contain a single TransformAccessArray";
+						return "A [Inject] struct, may only contain a single TransformAccessArray";
 
 					transformAccessArrayField = field;
 				}
@@ -199,7 +192,7 @@ namespace UnityEngine.ECS
 				{
 					// Error on multiple EntityArray
 					if (entityArrayField != null)
-						return "A [InjectComponentGroup] struct, may only contain a single EntityArray";
+						return "A [Inject] struct, may only contain a single EntityArray";
 
 					entityArrayField = field;
 				}
@@ -207,13 +200,13 @@ namespace UnityEngine.ECS
 			    {
 				    // Error on multiple EntityArray
 				    if (field.Name != "Length")
-					    return "A [InjectComponentGroup] struct, supports only a specialized int storing the length of the group. (\"int Length;\")";
+					    return "A [Inject] struct, supports only a specialized int storing the length of the group. (\"int Length;\")";
 				    lengthField = field;
 			    }
 			    else
 			    {
 				    return
-					    "[InjectComponentGroup] may only be used on ComponentDataArray<>, ComponentArray<> or TransformAccessArray";
+					    "[Inject] may only be used on ComponentDataArray<>, ComponentArray<>, TransformAccessArray, EntityArray and int Length.";
 			    }
 		    }
 

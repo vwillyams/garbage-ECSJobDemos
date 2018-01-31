@@ -438,5 +438,8 @@ namespace Unity.Mathematics
         public static void sincos(float3 x, out float3 s, out float3 c) { s = sin(x); c = cos(x); }
         [MethodImpl((MethodImplOptions)0x100)] // agressive inline
         public static void sincos(float4 x, out float4 s, out float4 c) { s = sin(x); c = cos(x); }
+        
+        [MethodImpl((MethodImplOptions)0x100)] // agressive inline
+        public static float3 up() { return new float3(0.0f,1.0f,0.0f); }
     }
 }

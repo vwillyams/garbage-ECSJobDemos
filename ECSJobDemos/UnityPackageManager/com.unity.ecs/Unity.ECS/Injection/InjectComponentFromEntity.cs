@@ -6,12 +6,6 @@ using Unity.Collections;
 
 namespace UnityEngine.ECS
 {
-	[AttributeUsage(AttributeTargets.Field)]
-	public sealed class InjectComponentFromEntityAttribute : System.Attribute
-	{
-
-	}
-
 	class InjectFromEntityData
 	{
 		class UpdateInjectionComponentDataFromEntity<T> : IUpdateInjection where T : struct, IComponentData
@@ -32,7 +26,17 @@ namespace UnityEngine.ECS
 			}
 		}
 
-		static public InjectionData CreateInjection(FieldInfo field, EntityManager entityManager)
+	    static public bool SupportsInjections(FieldInfo field)
+	    {
+	        if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition() == typeof(ComponentDataFromEntity<>))
+	            return true;
+	        else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition() == typeof(FixedArrayFromEntity<>))
+	            return true;
+	        else
+	            return false;
+	    }
+
+	    static public InjectionData CreateInjection(FieldInfo field, EntityManager entityManager)
 		{
 			var isReadOnly = field.GetCustomAttributes(typeof(ReadOnlyAttribute), true).Length != 0;
 
@@ -54,7 +58,8 @@ namespace UnityEngine.ECS
 			}
 			else
 			{
-				throw new System.InvalidOperationException($"{field.DeclaringType}.{field.Name} doesn't support [InjectComponentFromEntity]");
+			    ComponentSystemInjection.ThrowUnsupportedInjectException(field);
+			    return default (InjectionData);
 			}
 		}
 

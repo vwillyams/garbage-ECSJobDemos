@@ -25,10 +25,20 @@ namespace TwoStickExample
         public float TimeToLive;
     }
 
+    // A tag type added to shot entities created by the player, so we can segregate them
+    public struct PlayerShot : ISharedComponentData
+    {
+    }
+
+    public struct EnemyShot : ISharedComponentData
+    {
+    }
+
     public struct ShotSpawnData : IComponentData
     {
         public Shot Shot;
         public Transform2D Transform;
+        public byte IsPlayer;
     }
 
     public struct Enemy : IComponentData

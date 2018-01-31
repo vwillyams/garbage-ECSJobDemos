@@ -78,6 +78,16 @@ namespace TwoStickExample
                 em.AddComponent(shotEntity, sd.Transform);
                 em.AddComponent(shotEntity, default(TransformMatrix));
                 em.AddSharedComponent(shotEntity, TwoStickBootstrap.ShotLook);
+
+                // Tag shot so we can do collision tests with instigator
+                if (sd.IsPlayer == 1)
+                {
+                    em.AddSharedComponent(shotEntity, default(PlayerShot));
+                }
+                else
+                {
+                    em.AddSharedComponent(shotEntity, default(EnemyShot));
+                }
             }
 
             spawnData.Dispose();

@@ -54,6 +54,7 @@ namespace TwoStickExample
                             TimeToLive = settings.bulletTimeToLive,
                         },
                         Transform = xform,
+                        IsPlayer = 1,
                     };
                 }
 

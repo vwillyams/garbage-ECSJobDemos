@@ -176,7 +176,7 @@ namespace TwoStickExample
                     spawn.Shot.TimeToLive = shotTtl;
                     spawn.Transform = m_Data.Transform2D[i];
                     spawn.Transform.Heading = math.normalize(playerPos - spawn.Transform.Position);
-
+                    spawn.IsPlayer = 0;
                     shotLocations[shotCount++] = spawn;
                 }
 

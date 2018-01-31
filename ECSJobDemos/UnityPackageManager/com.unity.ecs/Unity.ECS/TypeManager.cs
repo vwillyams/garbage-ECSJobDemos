@@ -53,6 +53,11 @@ namespace UnityEngine.ECS
             }
         }
 
+        public static int MaximumTypesCount
+        {
+            get { return m_Types.Length; }
+        }
+
         public static int GetTypeIndex<T>()
         {
             int typeIndex = StaticTypeLookup<T>.typeIndex;

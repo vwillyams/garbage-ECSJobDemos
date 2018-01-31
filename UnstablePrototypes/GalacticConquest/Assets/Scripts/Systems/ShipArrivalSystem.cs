@@ -34,16 +34,22 @@ namespace Systems
             {
                 var shipData = _ships.Data[shipIndex];
                 var shipTransform = _ships.Transforms[shipIndex];
-                var targetPlanet = _entityManager.GetComponent<PlanetData>(shipData.TargetEntity);
 
-
-                if (Vector3.Distance(targetPlanet.Position, shipTransform.position) <= targetPlanet.Radius * 1.01f)
+                if (Vector3.Distance(shipData.TargetEntityPosition, shipTransform.position) <= shipData.TargetEntityRadius * 1.01f)
                 {
                     arrivingShipData.Add(shipData);
                     arrivingShipTransforms.Add(shipTransform);
                 }
             }
 
+            HandleArrivedShips(arrivingShipData, arrivingShipTransforms);
+            
+
+            arrivingShipData.Dispose();
+        }
+
+        private void HandleArrivedShips(NativeList<ShipData> arrivingShipData, List<Transform> arrivingShipTransforms)
+        {
             for (var shipIndex = 0; shipIndex < arrivingShipData.Length; shipIndex++)
             {
 
@@ -67,8 +73,6 @@ namespace Systems
                 _entityManager.SetComponent(shipData.TargetEntity, planetData);
                 Object.Destroy(shipTransform.gameObject);
             }
-
-            arrivingShipData.Dispose();
         }
     }
 }

@@ -20,7 +20,7 @@ namespace TwoStickHybridExample
             public ComponentArray<PlayerInput> Input;
         }
 
-        [InjectComponentGroup] private Data m_Data;
+        [Inject] private Data m_Data;
 
         protected override void OnUpdate()
         {

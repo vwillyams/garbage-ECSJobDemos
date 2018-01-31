@@ -19,7 +19,7 @@ namespace TwoStickExample
             public ComponentDataArray<Transform2D> Transform;
         }
 
-        [InjectComponentGroup] private Data m_Data;
+        [Inject] private Data m_Data;
 
         private struct ShotMoveJob : IJobParallelFor
         {
@@ -56,7 +56,7 @@ namespace TwoStickExample
             [ReadOnly] public ComponentDataArray<ShotSpawnData> SpawnData;
         }
 
-        [InjectComponentGroup] private Data m_Data;
+        [Inject] private Data m_Data;
 
         protected override void OnUpdate()
         {
@@ -85,7 +85,7 @@ namespace TwoStickExample
             public ComponentDataArray<Shot> Shot;
         }
 
-        [InjectComponentGroup] private Data m_Data;
+        [Inject] private Data m_Data;
 
         protected override void OnUpdate()
         {

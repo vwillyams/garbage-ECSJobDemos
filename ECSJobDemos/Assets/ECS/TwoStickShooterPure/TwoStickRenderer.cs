@@ -23,7 +23,7 @@ namespace TwoStickExample
             public ComponentDataArray<TransformMatrix> Output;
         }
 
-        [InjectComponentGroup] private Data m_Data;
+        [Inject] private Data m_Data;
 
         private struct TransformJob : IJobParallelFor
         {

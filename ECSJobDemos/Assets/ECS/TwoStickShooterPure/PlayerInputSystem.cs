@@ -18,7 +18,7 @@ namespace TwoStickExample
             public ComponentDataArray<PlayerInput> Input;
         }
 
-        [InjectComponentGroup] private PlayerData m_Players;
+        [Inject] private PlayerData m_Players;
 
         protected override void OnUpdate()
         {

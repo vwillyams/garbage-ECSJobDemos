@@ -18,7 +18,7 @@ namespace TwoStickExample
             public ComponentDataArray<EnemySpawnSystemState> S;
         }
 
-        [InjectComponentGroup] private State m_State;
+        [Inject] private State m_State;
 
         protected override void OnUpdate()
         {
@@ -86,7 +86,7 @@ namespace TwoStickExample
             public ComponentDataArray<Transform2D> Transform2D;
         }
 
-        [InjectComponentGroup] private Data m_Data;
+        [Inject] private Data m_Data;
 
         public struct MoveJob : IJobParallelFor
         {
@@ -135,7 +135,7 @@ namespace TwoStickExample
             [ReadOnly] public ComponentDataArray<Enemy> Enemy;
         }
 
-        [InjectComponentGroup] private Data m_Data;
+        [Inject] private Data m_Data;
 
         protected override void OnUpdate()
         {

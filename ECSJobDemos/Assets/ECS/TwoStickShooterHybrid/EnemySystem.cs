@@ -19,7 +19,7 @@ namespace TwoStickHybridExample
             public ComponentArray<EnemySpawnSystemState> S;
         }
 
-        [InjectComponentGroup] private State m_State;
+        [Inject] private State m_State;
 
         protected override void OnUpdate()
         {

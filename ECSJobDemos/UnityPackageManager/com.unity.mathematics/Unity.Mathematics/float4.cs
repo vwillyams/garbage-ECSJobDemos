@@ -88,11 +88,6 @@ namespace Unity.Mathematics
         {
             return string.Format("float4({0}f, {1}f, {2}f, {3}f)", x.ToString(format, formatProvider), y.ToString(format, formatProvider), z.ToString(format, formatProvider), w.ToString(format, formatProvider));
         }
-
-        public static float4 up()
-        {
-            return new float4(0.0f,1.0f,0.0f,0.0f);
-        }
     }
 }
 

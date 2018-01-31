@@ -72,11 +72,6 @@ namespace Unity.Mathematics
         {
             return string.Format("float3({0}f, {1}f, {2}f)", x.ToString(format, formatProvider), y.ToString(format, formatProvider), z.ToString(format, formatProvider));
         }
-        
-        public static float3 up()
-        {
-            return new float3(0.0f, 1.0f, 0.0f);
-        }
     }
 }
 

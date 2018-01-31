@@ -36,7 +36,6 @@ namespace UnityEngine.ECS.SimpleRotation
                     var changeRotation = math.axisAngle(math.up(), speed * dt);
                     var rotation = math.mul(prevRotation, changeRotation);
                     rotations[i] = new TransformRotation {rotation = rotation};
-
                 }
             }
         }

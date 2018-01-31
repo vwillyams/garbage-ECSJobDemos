@@ -35,6 +35,12 @@ namespace TwoStickExample
     {
         public int Health;
     }
+
+    public struct EnemyShootState : IComponentData
+    {
+        public float Cooldown;
+    }
+
     // TODO: Call out that this is better than storing state in the system, because it can support things like replay.
     public struct EnemySpawnSystemState : IComponentData
     {

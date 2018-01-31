@@ -55,7 +55,8 @@ namespace TwoStickExample
             {
                 Entity e = EntityManager.CreateEntity(TwoStickBootstrap.BasicEnemyArchetype);
                 EntityManager.SetComponent(e, spawnXform);
-                EntityManager.SetComponent(e, new Enemy {Health = 1});
+                EntityManager.SetComponent(e, new Enemy { Health = 1 });
+                EntityManager.SetComponent(e, new EnemyShootState { Cooldown = 0.5f });
                 EntityManager.AddSharedComponent(e, TwoStickBootstrap.EnemyLook);
             }
         }
@@ -123,6 +124,73 @@ namespace TwoStickExample
             };
 
             return moveJob.Schedule(m_Data.Length, 64, inputDeps);
+        }
+    }
+
+    public class EnemyShootSystem : ComponentSystem
+    {
+        public struct Data
+        {
+            public int Length;
+            [ReadOnly] public ComponentDataArray<Transform2D> Transform2D;
+            public ComponentDataArray<EnemyShootState> ShootState;
+        }
+
+        [Inject] private Data m_Data;
+
+        public struct PlayerData
+        {
+            public int Length;
+            [ReadOnly] public ComponentDataArray<Transform2D> Transform2D;
+            [ReadOnly] public ComponentDataArray<PlayerInput> PlayerInput;
+        }
+
+        [Inject] private PlayerData m_Player;
+
+        protected override void OnUpdate()
+        {
+            if (m_Data.Length == 0 || m_Player.Length == 0)
+                return;
+
+            var playerPos = m_Player.Transform2D[0].Position;
+
+            int shotCount = 0;
+            var shotLocations = new NativeArray<ShotSpawnData>(m_Data.Length, Allocator.Temp);
+
+            float dt = Time.deltaTime;
+            float shootRate = TwoStickBootstrap.Settings.enemyShootRate;
+            float shotSpeed = TwoStickBootstrap.Settings.enemyShotSpeed;
+            float shotTtl = TwoStickBootstrap.Settings.enemyShotTimeToLive;
+
+            for (int i = 0; i < m_Data.Length; ++i)
+            {
+                var state = m_Data.ShootState[i];
+
+                state.Cooldown -= dt;
+                if (state.Cooldown <= 0.0)
+                {
+                    state.Cooldown = shootRate;
+
+                    ShotSpawnData spawn;
+                    spawn.Shot.Speed = shotSpeed;
+                    spawn.Shot.TimeToLive = shotTtl;
+                    spawn.Transform = m_Data.Transform2D[i];
+                    spawn.Transform.Heading = math.normalize(playerPos - spawn.Transform.Position);
+
+                    shotLocations[shotCount++] = spawn;
+                }
+
+                m_Data.ShootState[i] = state;
+            }
+
+            // TODO: Batch
+            for (int i = 0; i < shotCount; ++i)
+            {
+                var e = EntityManager.CreateEntity(TwoStickBootstrap.ShotSpawnArchetype);
+                EntityManager.SetComponent(e, shotLocations[i]);
+            }
+
+            shotLocations.Dispose();
         }
     }
 

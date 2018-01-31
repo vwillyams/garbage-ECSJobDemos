@@ -61,16 +61,27 @@ namespace TwoStickExample
         protected override void OnUpdate()
         {
             var em = EntityManager;
+
+            // Need to copy the data out so we can spawn without invalidating these arrays.
+            var entities = new NativeArray<Entity>(m_Data.Length, Allocator.Temp);
+            var spawnData = new NativeArray<ShotSpawnData>(m_Data.Length, Allocator.Temp);
+            m_Data.SpawnedEntities.CopyTo(entities);
+            m_Data.SpawnData.CopyTo(spawnData);
+
             for (int i = 0; i < m_Data.Length; ++i)
             {
-                var spawnData = m_Data.SpawnData[i];
-                var shotEntity = m_Data.SpawnedEntities[i];
+                var sd = spawnData[i];
+                Debug.Log($"Spawning shot at {sd.Transform.Position.x},{sd.Transform.Position.y} with {sd.Shot.TimeToLive} TTL");
+                var shotEntity = entities[i];
                 em.RemoveComponent<ShotSpawnData>(shotEntity);
-                em.AddComponent(shotEntity, spawnData.Shot);
-                em.AddComponent(shotEntity, spawnData.Transform);
+                em.AddComponent(shotEntity, sd.Shot);
+                em.AddComponent(shotEntity, sd.Transform);
                 em.AddComponent(shotEntity, default(TransformMatrix));
                 em.AddSharedComponent(shotEntity, TwoStickBootstrap.ShotLook);
             }
+
+            spawnData.Dispose();
+            entities.Dispose();
         }
     }
 

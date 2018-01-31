@@ -31,7 +31,7 @@ namespace TwoStickExample
             PlayerArchetype = entityManager.CreateArchetype(typeof(Transform2D), typeof(PlayerInput), typeof(TransformMatrix));
             ShotArchetype = entityManager.CreateArchetype(typeof(Transform2D), typeof(Shot), typeof(TransformMatrix));
             ShotSpawnArchetype = entityManager.CreateArchetype(typeof(ShotSpawnData));
-            BasicEnemyArchetype = entityManager.CreateArchetype(typeof(Enemy), typeof(Transform2D), typeof(TransformMatrix));
+            BasicEnemyArchetype = entityManager.CreateArchetype(typeof(Enemy), typeof(EnemyShootState), typeof(Transform2D), typeof(TransformMatrix));
         }
 
 

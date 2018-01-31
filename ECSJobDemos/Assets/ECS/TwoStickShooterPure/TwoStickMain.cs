@@ -38,9 +38,13 @@ namespace TwoStickExample
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         public static void InitializeWithScene()
         {
-            var entityManager = World.Active.GetOrCreateManager<EntityManager>();
 
-            Settings = GameObject.Find("Settings").GetComponent<TwoStickExampleSettings>();
+            var settingsGO = GameObject.Find("Settings");
+            Settings = settingsGO?.GetComponent<TwoStickExampleSettings>();
+            if (!Settings)
+                return;
+            
+            var entityManager = World.Active.GetOrCreateManager<EntityManager>();
 
             PlayerLook = GetLookFromPrototype("PlayerRenderPrototype");
             ShotLook = GetLookFromPrototype("ShotRenderPrototype");
@@ -53,6 +57,18 @@ namespace TwoStickExample
 
             entityManager.SetComponent(player, initialXform);
             entityManager.AddSharedComponent(player, PlayerLook);
+
+            var arch = entityManager.CreateArchetype(typeof(EnemySpawnSystemState));
+            var stateEntity = entityManager.CreateEntity(arch);
+            var oldState = Random.state;
+            Random.InitState(0xaf77);
+            entityManager.SetComponent(stateEntity, new EnemySpawnSystemState
+            {
+                Cooldown = 0.0f,
+                SpawnedEnemyCount = 0,
+                RandomState = Random.state
+            });
+            Random.state = oldState;
         }
 
         private static InstanceRenderer GetLookFromPrototype(string protoName)

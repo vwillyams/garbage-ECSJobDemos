@@ -11,13 +11,6 @@ namespace TwoStickExample
     // Spawns new enemies.
     public class EnemySpawnSystem : ComponentSystem
     {
-        // TODO: Call out that this is better than storing state in the system, because it can support things like replay.
-        public struct EnemySpawnSystemState : IComponentData
-        {
-            public int SpawnedEnemyCount;
-            public float Cooldown;
-            public Random.State RandomState;
-        }
 
         public struct State
         {
@@ -26,23 +19,6 @@ namespace TwoStickExample
         }
 
         [InjectComponentGroup] private State m_State;
-
-        protected override void OnCreateManager(int capacity)
-        {
-            base.OnCreateManager(capacity);
-
-            var arch = EntityManager.CreateArchetype(typeof(EnemySpawnSystemState));
-            var stateEntity = EntityManager.CreateEntity(arch);
-            var oldState = Random.state;
-            Random.InitState(0xaf77);
-            EntityManager.SetComponent(stateEntity, new EnemySpawnSystemState
-            {
-                Cooldown = 0.0f,
-                SpawnedEnemyCount = 0,
-                RandomState = Random.state
-            });
-            Random.state = oldState;
-        }
 
         protected override void OnUpdate()
         {
@@ -136,6 +112,8 @@ namespace TwoStickExample
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
+            if (!TwoStickBootstrap.Settings)
+                return inputDeps;
             var moveJob = new MoveJob
             {
                 Enemy = m_Data.Enemy,

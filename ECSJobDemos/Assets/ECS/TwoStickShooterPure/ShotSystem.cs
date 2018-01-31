@@ -76,18 +76,9 @@ namespace TwoStickExample
                 em.RemoveComponent<ShotSpawnData>(shotEntity);
                 em.AddComponent(shotEntity, sd.Shot);
                 em.AddComponent(shotEntity, sd.Transform);
+                em.AddComponent(shotEntity, sd.Faction);
                 em.AddComponent(shotEntity, default(TransformMatrix));
-                em.AddSharedComponent(shotEntity, TwoStickBootstrap.ShotLook);
-
-                // Tag shot so we can do collision tests with instigator
-                if (sd.IsPlayer == 1)
-                {
-                    em.AddSharedComponent(shotEntity, default(PlayerShot));
-                }
-                else
-                {
-                    em.AddSharedComponent(shotEntity, default(EnemyShot));
-                }
+                em.AddSharedComponent(shotEntity, sd.Faction.Value == Faction.kPlayer ? TwoStickBootstrap.PlayerShotLook : TwoStickBootstrap.EnemyShotLook);
             }
 
             spawnData.Dispose();
@@ -132,7 +123,11 @@ namespace TwoStickExample
 
             if (removeCount > 0)
             {
-                EntityManager.DestroyEntity(entitiesToRemove.Slice(0, removeCount));
+                for (int i = 0; i < removeCount; ++i)
+                {
+                    EntityManager.DestroyEntity(entitiesToRemove[i]);
+                }
+                //EntityManager.DestroyEntity(entitiesToRemove.Slice(0, removeCount));
             }
 
             entitiesToRemove.Dispose();

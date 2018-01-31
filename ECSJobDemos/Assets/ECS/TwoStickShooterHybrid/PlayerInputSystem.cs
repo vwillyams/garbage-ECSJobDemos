@@ -25,8 +25,8 @@ namespace TwoStickHybridExample
             {
                 var pi = entity.Input;
 
-                pi.Move.x = Input.GetAxis("MoveX");
-                pi.Move.y = Input.GetAxis("MoveY");
+                pi.Move.x = Input.GetAxis("Horizontal");
+                pi.Move.y = Input.GetAxis("Vertical");
                 pi.Shoot.x = Input.GetAxis("ShootX");
                 pi.Shoot.y = Input.GetAxis("ShootY");
 

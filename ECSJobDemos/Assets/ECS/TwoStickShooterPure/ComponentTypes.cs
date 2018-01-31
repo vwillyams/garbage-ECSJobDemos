@@ -23,28 +23,31 @@ namespace TwoStickExample
     {
         public float Speed;
         public float TimeToLive;
-    }
-
-    // A tag type added to shot entities created by the player, so we can segregate them
-    public struct PlayerShot : ISharedComponentData
-    {
-    }
-
-    public struct EnemyShot : ISharedComponentData
-    {
+        public float Energy;
     }
 
     public struct ShotSpawnData : IComponentData
     {
         public Shot Shot;
         public Transform2D Transform;
-        public byte IsPlayer;
+        public Faction Faction;
     }
 
-    public struct Enemy : IComponentData
+    public struct Faction : IComponentData
     {
-        public int Health;
+        public const int kPlayer = 0;
+        public const int kEnemy = 1;
+
+        public int Value;
     }
+
+    public struct Health : IComponentData
+    {
+        public float Value;
+    }
+
+    // Pure marker type
+    public struct Enemy : IComponentData { }
 
     public struct EnemyShootState : IComponentData
     {

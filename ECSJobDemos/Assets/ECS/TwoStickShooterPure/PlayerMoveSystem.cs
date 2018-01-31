@@ -52,9 +52,10 @@ namespace TwoStickExample
                         {
                             Speed = settings.bulletMoveSpeed,
                             TimeToLive = settings.bulletTimeToLive,
+                            Energy = settings.playerShotEnergy,
                         },
                         Transform = xform,
-                        IsPlayer = 1,
+                        Faction = new Faction { Value = Faction.kPlayer },
                     };
                 }
 

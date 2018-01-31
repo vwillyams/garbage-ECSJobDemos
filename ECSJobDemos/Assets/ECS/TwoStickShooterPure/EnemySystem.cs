@@ -55,7 +55,8 @@ namespace TwoStickExample
             {
                 Entity e = EntityManager.CreateEntity(TwoStickBootstrap.BasicEnemyArchetype);
                 EntityManager.SetComponent(e, spawnXform);
-                EntityManager.SetComponent(e, new Enemy { Health = 1 });
+                EntityManager.SetComponent(e, default(Enemy));
+                EntityManager.SetComponent(e, new Health { Value = TwoStickBootstrap.Settings.enemyInitialHealth });
                 EntityManager.SetComponent(e, new EnemyShootState { Cooldown = 0.5f });
                 EntityManager.AddSharedComponent(e, TwoStickBootstrap.EnemyLook);
             }
@@ -83,7 +84,8 @@ namespace TwoStickExample
         public struct Data
         {
             public int Length;
-            public ComponentDataArray<Enemy> Enemy;
+            [ReadOnly] public ComponentDataArray<Enemy> EnemyTag;
+            public ComponentDataArray<Health> Health;
             public ComponentDataArray<Transform2D> Transform2D;
         }
 
@@ -91,7 +93,7 @@ namespace TwoStickExample
 
         public struct MoveJob : IJobParallelFor
         {
-            public ComponentDataArray<Enemy> Enemy;
+            public ComponentDataArray<Health> Health;
             public ComponentDataArray<Transform2D> Transform2D;
 
             public float Speed;
@@ -104,7 +106,7 @@ namespace TwoStickExample
 
                 if (xform.Position.y > MaxY || xform.Position.y < -MaxY)
                 {
-                    Enemy[index] = new Enemy {Health = -1};
+                    Health[index] = new Health { Value = -1.0f };
                 }
 
                 Transform2D[index] = xform;
@@ -117,7 +119,7 @@ namespace TwoStickExample
                 return inputDeps;
             var moveJob = new MoveJob
             {
-                Enemy = m_Data.Enemy,
+                Health = m_Data.Health,
                 Transform2D = m_Data.Transform2D,
                 Speed = TwoStickBootstrap.Settings.enemySpeed,
                 MaxY = 10.0f // TODO: Represent bounds somewhere
@@ -161,6 +163,7 @@ namespace TwoStickExample
             float shootRate = TwoStickBootstrap.Settings.enemyShootRate;
             float shotSpeed = TwoStickBootstrap.Settings.enemyShotSpeed;
             float shotTtl = TwoStickBootstrap.Settings.enemyShotTimeToLive;
+            float shotEnergy = TwoStickBootstrap.Settings.enemyShotEnergy;
 
             for (int i = 0; i < m_Data.Length; ++i)
             {
@@ -174,9 +177,10 @@ namespace TwoStickExample
                     ShotSpawnData spawn;
                     spawn.Shot.Speed = shotSpeed;
                     spawn.Shot.TimeToLive = shotTtl;
+                    spawn.Shot.Energy = shotEnergy;
                     spawn.Transform = m_Data.Transform2D[i];
                     spawn.Transform.Heading = math.normalize(playerPos - spawn.Transform.Position);
-                    spawn.IsPlayer = 0;
+                    spawn.Faction = new Faction { Value = Faction.kEnemy };
                     shotLocations[shotCount++] = spawn;
                 }
 
@@ -200,7 +204,8 @@ namespace TwoStickExample
         {
             public int Length;
             [ReadOnly] public EntityArray Entity;
-            [ReadOnly] public ComponentDataArray<Enemy> Enemy;
+            [ReadOnly] public ComponentDataArray<Enemy> EnemyTag;
+            [ReadOnly] public ComponentDataArray<Health> Health;
         }
 
         [Inject] private Data m_Data;
@@ -212,7 +217,7 @@ namespace TwoStickExample
 
             for (int i = 0; i < m_Data.Length; ++i)
             {
-                if (m_Data.Enemy[i].Health <= 0)
+                if (m_Data.Health[i].Value <= 0)
                 {
                     enemiesToRemove[removeCount++] = m_Data.Entity[i];
                 }

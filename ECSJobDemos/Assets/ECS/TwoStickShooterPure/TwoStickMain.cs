@@ -18,7 +18,8 @@ namespace TwoStickExample
         public static EntityArchetype ShotSpawnArchetype;
 
         public static InstanceRenderer PlayerLook;
-        public static InstanceRenderer ShotLook;
+        public static InstanceRenderer PlayerShotLook;
+        public static InstanceRenderer EnemyShotLook;
         public static InstanceRenderer EnemyLook;
 
         public static TwoStickExampleSettings Settings;
@@ -28,17 +29,16 @@ namespace TwoStickExample
         {
             var entityManager = World.Active.GetOrCreateManager<EntityManager>();
 
-            PlayerArchetype = entityManager.CreateArchetype(typeof(Transform2D), typeof(PlayerInput), typeof(TransformMatrix));
-            ShotArchetype = entityManager.CreateArchetype(typeof(Transform2D), typeof(Shot), typeof(TransformMatrix));
+            PlayerArchetype = entityManager.CreateArchetype(typeof(Transform2D), typeof(PlayerInput), typeof(Health), typeof(TransformMatrix));
+            ShotArchetype = entityManager.CreateArchetype(typeof(Transform2D), typeof(Shot), typeof(TransformMatrix), typeof(Faction));
             ShotSpawnArchetype = entityManager.CreateArchetype(typeof(ShotSpawnData));
-            BasicEnemyArchetype = entityManager.CreateArchetype(typeof(Enemy), typeof(EnemyShootState), typeof(Transform2D), typeof(TransformMatrix));
+            BasicEnemyArchetype = entityManager.CreateArchetype(typeof(Enemy), typeof(Health), typeof(EnemyShootState), typeof(Transform2D), typeof(TransformMatrix));
         }
 
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         public static void InitializeWithScene()
         {
-
             var settingsGO = GameObject.Find("Settings");
             Settings = settingsGO?.GetComponent<TwoStickExampleSettings>();
             if (!Settings)
@@ -47,7 +47,8 @@ namespace TwoStickExample
             var entityManager = World.Active.GetOrCreateManager<EntityManager>();
 
             PlayerLook = GetLookFromPrototype("PlayerRenderPrototype");
-            ShotLook = GetLookFromPrototype("ShotRenderPrototype");
+            PlayerShotLook = GetLookFromPrototype("PlayerShotRenderPrototype");
+            EnemyShotLook = GetLookFromPrototype("EnemyShotRenderPrototype");
             EnemyLook = GetLookFromPrototype("EnemyRenderPrototype");
 
             Entity player = entityManager.CreateEntity(PlayerArchetype);
@@ -56,6 +57,7 @@ namespace TwoStickExample
             initialXform.Heading = new float2(0, 1);
 
             entityManager.SetComponent(player, initialXform);
+            entityManager.SetComponent(player, new Health { Value = Settings.playerInitialHealth });
             entityManager.AddSharedComponent(player, PlayerLook);
 
             var arch = entityManager.CreateArchetype(typeof(EnemySpawnSystemState));

@@ -9,18 +9,30 @@ namespace UnityEngine.ECS.Transform
 {
     public class TransformSystem : JobComponentSystem
     {
-        struct WorldPositionGroup
+        struct WorldTransGroup
         {
             [ReadOnly]
             public ComponentDataArray<TransformPosition> positions;
             public ComponentDataArray<TransformMatrix> matrices;
+            public SubtractiveComponent<TransformRotation> rotations;
             public int Length;
         }
         
-        [Inject] private WorldPositionGroup m_WorldPositionGroup;
+        [Inject] private WorldTransGroup m_WorldTransGroup;
+        
+        struct WorldRotTransGroup
+        {
+            [ReadOnly]
+            public ComponentDataArray<TransformPosition> positions;
+            public ComponentDataArray<TransformMatrix> matrices;
+            public ComponentDataArray<TransformRotation> rotations;
+            public int Length;
+        }
+        
+        [Inject] private WorldRotTransGroup m_WorldRotTransGroup;
     
         [ComputeJobOptimization]
-        struct WorldPositionToMatrix : IJobParallelFor
+        struct WorldTransToMatrix : IJobParallelFor
         {
             [ReadOnly]
             public ComponentDataArray<TransformPosition> positions;
@@ -28,21 +40,47 @@ namespace UnityEngine.ECS.Transform
         
             public void Execute(int i)
             {
-                var result = new TransformMatrix();
-                var matrix = new float4x4();
-                
-                matrix = math.translate(positions[i].position);
-                result.matrix = matrix;
-                matrices[i] = result;
+                var position = positions[i].position;
+                matrices[i] = new TransformMatrix
+                {
+                    matrix = math.translate(position)
+                };
             }
         }
-
+        
+        [ComputeJobOptimization]
+        struct WorldRotTransToMatrix : IJobParallelFor
+        {
+            [ReadOnly]
+            public ComponentDataArray<TransformPosition> positions;
+            [ReadOnly]
+            public ComponentDataArray<TransformRotation> rotations;
+            public ComponentDataArray<TransformMatrix> matrices;
+        
+            public void Execute(int i)
+            {
+                float3 position = positions[i].position;
+                matrices[i] = new TransformMatrix
+                {
+                    matrix = math.rottrans( math.normalize(rotations[i].rotation), position )
+                };
+            }
+        }
+        
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            var worldPositionToMatrixJob = new WorldPositionToMatrix();
-            worldPositionToMatrixJob.positions = m_WorldPositionGroup.positions;
-            worldPositionToMatrixJob.matrices = m_WorldPositionGroup.matrices;
-            return worldPositionToMatrixJob.Schedule(m_WorldPositionGroup.Length, 64, inputDeps);
+            var worldTransToMatrixJob = new WorldTransToMatrix();
+            worldTransToMatrixJob.positions = m_WorldTransGroup.positions;
+            worldTransToMatrixJob.matrices = m_WorldTransGroup.matrices;
+            var worldTransToMatrixJobHandle = worldTransToMatrixJob.Schedule(m_WorldTransGroup.Length, 64, inputDeps);
+            
+            var worldRotTransToMatrixJob = new WorldRotTransToMatrix();
+            worldRotTransToMatrixJob.positions = m_WorldRotTransGroup.positions;
+            worldRotTransToMatrixJob.matrices = m_WorldRotTransGroup.matrices;
+            worldRotTransToMatrixJob.rotations = m_WorldRotTransGroup.rotations;
+            // var worldRotTransToMatrixJobHandle = worldRotTransToMatrixJob.Schedule(m_WorldRotTransGroup.Length, 64, inputDeps);
+            // return JobHandle.CombineDependencies(worldRotTransToMatrixJobHandle, worldTransToMatrixJobHandle);
+            return worldRotTransToMatrixJob.Schedule(m_WorldRotTransGroup.Length, 64, worldTransToMatrixJobHandle);
         } 
     }
 }

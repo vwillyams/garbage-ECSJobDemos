@@ -41,6 +41,26 @@ namespace UnityEngine.ECS.Tests
             AssertDoesNotExist(entity1);
         }
 
+	    [Test]
+	    [Ignore("Failing, either throw argument exception or make it work")]
+	    unsafe public void CreateZeroEntities()
+	    {
+	        var array = new NativeArray<Entity>(0, Allocator.Temp);
+	        m_Manager.CreateEntity(m_Manager.CreateArchetype(typeof(EcsTestData)), array);
+	        array.Dispose();
+	    }
+
+	    [Test]
+	    unsafe public void InstantiateZeroEntities()
+	    {
+	        var array = new NativeArray<Entity>(0, Allocator.Temp);
+	        
+	        var srcEntity = m_Manager.CreateEntity(typeof(EcsTestData));
+	        m_Manager.Instantiate(srcEntity , array);
+	        array.Dispose();
+	    }
+
+	    
         [Test]
         unsafe public void CreateAndDestroyThree()
         {

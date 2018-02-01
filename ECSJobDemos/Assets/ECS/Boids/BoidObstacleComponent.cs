@@ -10,9 +10,6 @@ namespace UnityEngine.ECS.Boids
 	[Serializable]
 	public struct BoidObstacle : IComponentData
 	{
-		// Cached value grabbed from transform component
-		public float3 position;
-
 		public float size;
 		public float aversionDistance;
 	}

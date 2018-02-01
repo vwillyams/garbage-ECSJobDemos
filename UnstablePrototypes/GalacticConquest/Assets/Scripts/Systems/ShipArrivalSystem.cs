@@ -20,8 +20,8 @@ namespace Systems
         struct Ships
         {
             public int Length;
-            public ComponentArray<Transform> Transforms;
             public ComponentDataArray<ShipData> Data;
+            public EntityArray Entities;
             public ComponentDataArray<ShipArrivedTag> Tag;
         }
         [Inject] private Ships _ships;
@@ -31,30 +31,29 @@ namespace Systems
             if (_ships.Length == 0)
                 return;
 
-            var arrivingShipTransforms = new List<Transform>();
+            var arrivingShipTransforms = new NativeList<Entity>(Allocator.Temp);
             var arrivingShipData = new NativeList<ShipData>(Allocator.Temp);
 
             for (var shipIndex = 0; shipIndex < _ships.Length; shipIndex++)
             {
                 var shipData = _ships.Data[shipIndex];
-                var shipTransform = _ships.Transforms[shipIndex];
+                var shipEntity = _ships.Entities[shipIndex];
                 arrivingShipData.Add(shipData);
-                arrivingShipTransforms.Add(shipTransform);
+                arrivingShipTransforms.Add(shipEntity);
             }
 
             HandleArrivedShips(arrivingShipData, arrivingShipTransforms);
 
-
+            arrivingShipTransforms.Dispose();
             arrivingShipData.Dispose();
         }
 
-        private void HandleArrivedShips(NativeList<ShipData> arrivingShipData, List<Transform> arrivingShipTransforms)
+        private void HandleArrivedShips(NativeList<ShipData> arrivingShipData, NativeList<Entity> arrivingShipEntities)
         {
             for (var shipIndex = 0; shipIndex < arrivingShipData.Length; shipIndex++)
             {
 
                 var shipData = arrivingShipData[shipIndex];
-                var shipTransform = arrivingShipTransforms[shipIndex];
                 var planetData = _entityManager.GetComponent<PlanetData>(shipData.TargetEntity);
 
                 if (shipData.TeamOwnership != planetData.TeamOwnership)
@@ -71,8 +70,8 @@ namespace Systems
                     planetData.Occupants = planetData.Occupants + 1;
                 }
                 _entityManager.SetComponent(shipData.TargetEntity, planetData);
-                Object.Destroy(shipTransform.gameObject);
             }
+            _entityManager.DestroyEntity(arrivingShipEntities);
         }
     }
 }

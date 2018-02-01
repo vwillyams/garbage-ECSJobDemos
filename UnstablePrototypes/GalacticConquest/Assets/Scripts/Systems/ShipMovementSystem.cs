@@ -7,6 +7,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.ECS;
+using UnityEngine.ECS.Transform;
 using UnityEngine.Jobs;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
@@ -26,7 +27,7 @@ namespace Systems
         struct Ships
         {
             public int Length;
-            public TransformAccessArray Transforms;
+            public ComponentDataArray<TransformPosition> Transforms;
             public ComponentDataArray<ShipData> Data;
             public EntityArray Entities;
         }
@@ -37,22 +38,24 @@ namespace Systems
             public ComponentDataArray<PlanetData> Data;
         }
 
-        struct CalculatePositionsJob : IJobParallelForTransform
+        struct CalculatePositionsJob : IJobParallelFor
         {
             public float DeltaTime;
             [ReadOnly]
             public ComponentDataArray<ShipData> Ships;
             public EntityArray Entities;
+            public ComponentDataArray<TransformPosition> Transforms;
 
             [ReadOnly] public ComponentDataArray<PlanetData> Planets;
             [ReadOnly] public ComponentDataFromEntity<PlanetData> TargetPlanet;
             public NativeQueue<AddComponentPayload<ShipArrivedTag>>.Concurrent AddShipArrivedTagDeferred;
 
-            public void Execute(int index, TransformAccess transform)
+            public void Execute(int index)
             {
                 var shipData = Ships[index];
 
                 var targetPosition = TargetPlanet[shipData.TargetEntity].Position;
+                var transform = Transforms[index];
 
                 var newPos = Vector3.MoveTowards(transform.position, targetPosition, DeltaTime);
 
@@ -71,6 +74,7 @@ namespace Systems
                     }
                 }
                 transform.position = newPos;
+                Transforms[index] = transform;
             }
         }
 
@@ -90,10 +94,11 @@ namespace Systems
                 TargetPlanet = _entitymanager.GetComponentDataFromEntity<PlanetData>(),
                 DeltaTime = Time.deltaTime,
                 Entities = _ships.Entities,
+                Transforms = _ships.Transforms,
                 AddShipArrivedTagDeferred = AddShipArrivedTagDeferred.GetAddComponentQueue<ShipArrivedTag>()
             };
 
-            return job.Schedule(_ships.Transforms, inputDeps);
+            return job.Schedule(_ships.Length, 128, inputDeps);
         }
     }
 }

@@ -7,7 +7,7 @@ using UnityEngine.Jobs;
 
 namespace UnityEngine.ECS
 {
-	class InjectComponentGroupData
+	internal class InjectComponentGroupData
     {
 	    int 				m_EntityArrayOffset;
 	    int 				m_TransformAccessArrayOffset;
@@ -22,7 +22,7 @@ namespace UnityEngine.ECS
 	    int 				m_GroupFieldOffset;
 
 
-        class UpdateInjectionComponentDataArray<T> : IUpdateInjection where T : struct, IComponentData
+        internal class UpdateInjectionComponentDataArray<T> : IUpdateInjection where T : struct, IComponentData
         {
 	        unsafe public void UpdateInjection(byte* groupData, EntityManager entityManager, ComponentGroup group, InjectionData injection)
             {
@@ -31,7 +31,7 @@ namespace UnityEngine.ECS
             }
         }
 
-	    class UpdateInjectionComponentDataFixedArray<T> : IUpdateInjection where T : struct
+        internal class UpdateInjectionComponentDataFixedArray<T> : IUpdateInjection where T : struct
 	    {
 		    unsafe public void UpdateInjection(byte* groupData, EntityManager entityManager, ComponentGroup group, InjectionData injection)
 		    {
@@ -40,7 +40,7 @@ namespace UnityEngine.ECS
 		    }
 	    }
 
-        class UpdateInjectionComponentArray<T> : IUpdateInjection where T : UnityEngine.Component
+        internal class UpdateInjectionComponentArray<T> : IUpdateInjection where T : UnityEngine.Component
         {
             unsafe public void UpdateInjection(byte* groupData, EntityManager entityManager, ComponentGroup group, InjectionData injection)
             {

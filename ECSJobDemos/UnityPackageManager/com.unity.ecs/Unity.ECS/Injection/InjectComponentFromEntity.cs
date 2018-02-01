@@ -6,9 +6,9 @@ using Unity.Collections;
 
 namespace UnityEngine.ECS
 {
-	class InjectFromEntityData
+    internal class InjectFromEntityData
 	{
-		class UpdateInjectionComponentDataFromEntity<T> : IUpdateInjection where T : struct, IComponentData
+	    internal class UpdateInjectionComponentDataFromEntity<T> : IUpdateInjection where T : struct, IComponentData
 		{
 			unsafe public void UpdateInjection(byte* targetObject, EntityManager entityManager, ComponentGroup group, InjectionData injection)
 			{
@@ -17,7 +17,7 @@ namespace UnityEngine.ECS
 			}
 		}
 
-		class UpdateInjectionFixedArrayFromEntity<T> : IUpdateInjection where T : struct
+	    internal class UpdateInjectionFixedArrayFromEntity<T> : IUpdateInjection where T : struct
 		{
 			unsafe public void UpdateInjection(byte* targetObject, EntityManager entityManager, ComponentGroup group, InjectionData injection)
 			{

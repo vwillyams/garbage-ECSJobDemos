@@ -63,7 +63,6 @@ MonoBehaviour:
       y: 0
       z: 0
     radius: 25
-    t: 0
 --- !u!114 &114095003526460886
 MonoBehaviour:
   m_ObjectHideFlags: 1

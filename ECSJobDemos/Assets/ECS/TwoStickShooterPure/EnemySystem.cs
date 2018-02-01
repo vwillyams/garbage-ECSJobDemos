@@ -70,12 +70,14 @@ namespace TwoStickExample
 
         private void ComputeSpawnLocation(out Transform2D xform)
         {
+            var settings = TwoStickBootstrap.Settings;
+
             float r = Random.value;
-            const float x0 = -50.0f;
-            const float x1 = 50.0f;
+            float x0 = settings.playfield.xMin;
+            float x1 = settings.playfield.xMax;
             float x = x0 + (x1 - x0) * r;
 
-            xform.Position = new float2(x, 13);
+            xform.Position = new float2(x, settings.playfield.yMax); // Y axis is positive up
             xform.Heading = new float2(0, 1);
         }
     }
@@ -98,6 +100,7 @@ namespace TwoStickExample
             public ComponentDataArray<Transform2D> Transform2D;
 
             public float Speed;
+            public float MinY;
             public float MaxY;
 
             public void Execute(int index)
@@ -105,7 +108,7 @@ namespace TwoStickExample
                 var xform = Transform2D[index];
                 xform.Position.y -= Speed;
 
-                if (xform.Position.y > MaxY || xform.Position.y < -MaxY)
+                if (xform.Position.y > MaxY || xform.Position.y < MinY)
                 {
                     Health[index] = new Health { Value = -1.0f };
                 }
@@ -123,7 +126,8 @@ namespace TwoStickExample
                 Health = m_Data.Health,
                 Transform2D = m_Data.Transform2D,
                 Speed = TwoStickBootstrap.Settings.enemySpeed,
-                MaxY = 30.0f // TODO: Represent bounds somewhere
+                MinY = TwoStickBootstrap.Settings.playfield.yMin,
+                MaxY = TwoStickBootstrap.Settings.playfield.yMax,
             };
 
             return moveJob.Schedule(m_Data.Length, 64, inputDeps);
@@ -199,36 +203,4 @@ namespace TwoStickExample
         }
     }
 
-    public class DestroyDeadSystem : ComponentSystem
-    {
-        public struct Data
-        {
-            public int Length;
-            [ReadOnly] public EntityArray Entity;
-            [ReadOnly] public ComponentDataArray<Health> Health;
-        }
-
-        [Inject] private Data m_Data;
-
-        protected override void OnUpdate()
-        {
-            int removeCount = 0;
-            var enemiesToRemove = new NativeArray<Entity>(m_Data.Length, Allocator.Temp);
-
-            for (int i = 0; i < m_Data.Length; ++i)
-            {
-                if (m_Data.Health[i].Value <= 0)
-                {
-                    enemiesToRemove[removeCount++] = m_Data.Entity[i];
-                }
-            }
-
-            if (removeCount > 0)
-            {
-                EntityManager.DestroyEntity(enemiesToRemove.Slice(0, removeCount));
-            }
-
-            enemiesToRemove.Dispose();
-        }
-    }
 }

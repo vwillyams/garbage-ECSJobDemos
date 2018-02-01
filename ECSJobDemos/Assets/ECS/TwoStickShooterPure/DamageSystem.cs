@@ -8,9 +8,15 @@ using UnityEngine.UI;
 namespace TwoStickExample
 {
 
-    public class PlayerDamageSystem : ComponentSystem
+    /// <summary>
+    /// Assigns out damage from shots colliding with entities of other factions.
+    /// </summary>
+    public class ShotDamageSystem : ComponentSystem
     {
-        public struct ReceiverData
+        /// <summary>
+        /// An array of entities that can take damage (players/enemies both included)
+        /// </summary>
+        private struct ReceiverData
         {
             public int Length;
             public ComponentDataArray<Health> Health;
@@ -20,7 +26,10 @@ namespace TwoStickExample
 
         [Inject] ReceiverData m_Receivers;
 
-        public struct ShotData
+        /// <summary>
+        /// All our shots, and the factions who fired them.
+        /// </summary>
+        private struct ShotData
         {
             public int Length;
             public ComponentDataArray<Shot> Shot;
@@ -40,7 +49,7 @@ namespace TwoStickExample
             {
                 float damage = 0.0f;
 
-                float collisionRadius = m_Receivers.Faction[pi].Value == Faction.kPlayer ? settings.playerCollisionRadius : settings.enemyCollisionRadius;
+                float collisionRadius = GetCollisionRadius(settings, m_Receivers.Faction[pi].Value);
                 float collisionRadiusSquared = collisionRadius * collisionRadius;
 
                 float2 receiverPos = m_Receivers.Transform2D[pi].Position;
@@ -59,8 +68,9 @@ namespace TwoStickExample
 
                             damage += shot.Energy;
 
+                            // Set the shot's time to live to zero, so it will be collected by the shot destroy system
                             shot.TimeToLive = 0.0f;
-                            
+
                             m_Shots.Shot[si] = shot;
                         }
                     }
@@ -70,6 +80,13 @@ namespace TwoStickExample
                 h.Value = math.max(h.Value - damage, 0.0f);
                 m_Receivers.Health[pi] = h;
             }
+        }
+
+        private float GetCollisionRadius(TwoStickExampleSettings settings, int faction)
+        {
+            // This simply picks the collision radius based on whether the receiver is the player or not.
+            // In a real game, this would be much more sophisticated, perhaps with a CollisionRadius component.
+            return faction == Faction.kPlayer ? settings.playerCollisionRadius : settings.enemyCollisionRadius;
         }
     }
 

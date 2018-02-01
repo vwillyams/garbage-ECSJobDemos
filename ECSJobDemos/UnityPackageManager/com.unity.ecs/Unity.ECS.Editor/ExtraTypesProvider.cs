@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.ECS;
+using UnityEditor.Experimental.Build.Player;
 
 namespace UnityEditor.ECS
 {
     [InitializeOnLoad]
-    public sealed class GenericInstanceTypesCollector
+    public sealed class ExtraTypesProvider
     {
         private static readonly Dictionary<Type, Type> _updateInjectionTypeMap = new Dictionary<Type, Type>
         {
@@ -17,9 +18,9 @@ namespace UnityEditor.ECS
             { typeof(FixedArrayFromEntity<>), typeof(InjectFromEntityData.UpdateInjectionFixedArrayFromEntity<>)}
         };
 
-        static GenericInstanceTypesCollector()
+        static ExtraTypesProvider()
         {
-            UnityEditorInternal.TempIl2cpp.GenerateAdditionalGenericInstanceTypes += () =>
+            PlayerBuildInterface.ExtraTypesProvider += () =>
             {
                 var extraTypes = new HashSet<string>();
 

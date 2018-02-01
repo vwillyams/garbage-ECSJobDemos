@@ -3,6 +3,7 @@ using Unity.Jobs;
 using Unity.Collections;
 using UnityEngine.ECS;
 using Unity.Mathematics;
+using UnityEngine.ECS.Boids;
 
 namespace BoidSimulations
 {

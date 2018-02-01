@@ -9,6 +9,7 @@ namespace UnityEngine.ECS.Boids
         public float cellRadius;
         public float separationWeight;
         public float alignmentWeight;
+        public float targetWeight;
         public float rotationalSpeed;
     }
     public class BoidSettingsComponent : ComponentDataWrapper<BoidSettings> { }

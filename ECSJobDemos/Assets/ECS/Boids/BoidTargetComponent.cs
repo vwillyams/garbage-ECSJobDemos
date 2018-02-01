@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.ECS;
 
-namespace BoidSimulations
+namespace UnityEngine.ECS.Boids
 {
 	public struct BoidTarget : IComponentData { }
 

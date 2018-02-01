@@ -11,8 +11,10 @@ namespace UnityEngine.ECS.SimpleMovement
     {
         public float3 center;
         public float radius;
+        [NonSerialized]
         public float t;
     }
 
     public class MoveAlongCircleComponent : ComponentDataWrapper<MoveAlongCircle> { } 
 }
+

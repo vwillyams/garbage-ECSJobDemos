@@ -77,26 +77,29 @@ namespace ECS.Spawners
                 var spawner = uniqueTypes[spawnerIndex];
                 int count = spawner.count;
                 var entities = new NativeArray<Entity>(count,Allocator.Temp);
+                var positions = new NativeArray<float3>(count,Allocator.Temp);
                 var prefab = spawner.prefab;
                 float radius = spawner.radius;
                 float3 center = spawnInstances[spawnIndex].position;
                 var sourceEntity = spawnInstances[spawnIndex].sourceEntity;
+                
+                MathUtility.RandomPointsOnCircle(center,radius,ref positions);
 
                 EntityManager.Instantiate(prefab, entities);
                 
                 for (int i = 0; i < count; i++)
                 {
-                    float angle = Random.Range(0.0f, Mathf.PI * 2.0f);
-                    float x = math.sin(angle) * radius;
-                    float z = math.cos(angle) * radius;
-                    var position = new TransformPosition();
-                    position.position = center + (new float3(x,0.0f,z));
+                    var position = new TransformPosition
+                    {
+                        position = positions[i]
+                    };
                     EntityManager.SetComponent(entities[i],position);
                 }
 
                 EntityManager.RemoveSharedComponent<SpawnRandomCircle>(sourceEntity);
                 
                 entities.Dispose();
+                positions.Dispose();
             }
             spawnInstances.Dispose();
         } 

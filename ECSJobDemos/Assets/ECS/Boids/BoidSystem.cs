@@ -18,6 +18,7 @@ namespace UnityEngine.ECS.Boids
     {
         NativeMultiHashMap<int, int> 		 m_Cells;
         NativeArray<int3> 					 m_CellOffsetsTable;
+        NativeArray<float>                   m_Bias;
 
         struct BoidSettingsGroup
         {
@@ -81,8 +82,9 @@ namespace UnityEngine.ECS.Boids
             [ReadOnly] public ComponentDataArray<BoidObstacle>        obstacles;
             [ReadOnly] public NativeMultiHashMap<int, int>            cells;
             [ReadOnly] public NativeArray<int3> 					  cellOffsetsTable;
-            [ReadOnly] public BoidSettings settings;
-            public float dt;
+            [ReadOnly] public BoidSettings                            settings;
+            [ReadOnly] public NativeArray<float>                      bias;
+            public float                                              dt;
             
             static float3 AvoidObstacle (float3 obstaclePosition, BoidObstacle obstacle, float3 position, float3 steer)
             {
@@ -142,7 +144,7 @@ namespace UnityEngine.ECS.Boids
                     NativeMultiHashMapIterator<int> iterator;
                     bool found = cells.TryGetFirstValue(hash, out i, out iterator);
                     int neighbors = 0;
-                    while (found && neighbors < 2)        // limit neighbors to help initial hiccup due to all boids starting from same point
+                    while (found)
                     {
                         if (i == index)
                         {
@@ -159,8 +161,7 @@ namespace UnityEngine.ECS.Boids
                         // to normalize, divided another time to get 1/d falloff)
                         var offset = otherPosition - (position + forward * 0.5f);
 
-                        // should we have sqrLength?
-                        var distanceSquared = math.dot(offset, offset);
+                        var distanceSquared = math.lengthSquared(offset);
                         separationSteering += (offset / -distanceSquared);
 
                         // accumulate sum of neighbor's heading
@@ -198,7 +199,7 @@ namespace UnityEngine.ECS.Boids
                     
                     forwardRotations[index] = new ForwardRotation
                     {
-                        forward = math_experimental.normalizeSafe(forward + steer * dt * Mathf.Deg2Rad * settings.rotationalSpeed)
+                        forward = math_experimental.normalizeSafe(forward + steer * bias[index&1023] * dt * Mathf.Deg2Rad * settings.rotationalSpeed)
                     };
                 }
             }
@@ -237,6 +238,7 @@ namespace UnityEngine.ECS.Boids
                 targetPositions = m_TargetGroup.positions,
                 obstaclePositions = m_ObstacleGroup.positions,
                 obstacles = m_ObstacleGroup.obstacles,
+                bias = m_Bias,
                 dt = Time.deltaTime
             };
 
@@ -250,6 +252,11 @@ namespace UnityEngine.ECS.Boids
             base.OnCreateManager(capacity);
             m_Cells = new NativeMultiHashMap<int, int>(capacity, Allocator.Persistent);
             m_CellOffsetsTable = new NativeArray<int3>(HashUtility.cellOffsets, Allocator.Persistent);
+            m_Bias = new NativeArray<float>(1024,Allocator.Persistent);
+            for (int i = 0; i < 1024; i++)
+            {
+                m_Bias[i] = Random.Range(0.5f, 1.5f);
+            }
         }
 
         protected override void OnDestroyManager()
@@ -257,6 +264,7 @@ namespace UnityEngine.ECS.Boids
             base.OnDestroyManager();
             m_Cells.Dispose ();
             m_CellOffsetsTable.Dispose();
+            m_Bias.Dispose();
         }
 
     }

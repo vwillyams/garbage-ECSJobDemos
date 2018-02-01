@@ -16,4 +16,7 @@ namespace Data
     {
         public float3 RotationSpeed;
     }
+
+    public struct ShipArrivedTag : IComponentData
+    {}
 }

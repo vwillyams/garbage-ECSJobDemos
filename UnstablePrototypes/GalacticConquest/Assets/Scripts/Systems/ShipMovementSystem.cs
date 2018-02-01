@@ -13,35 +13,46 @@ using Object = UnityEngine.Object;
 
 namespace Systems
 {
-    [UpdateAfter(typeof(ShipSpawnSystem))]
+    [UpdateBefore(typeof(DeferredEntityChangeSystem))]
     public class ShipMovementSystem : JobComponentSystem
     {
+        public ShipMovementSystem()
+        {
+            _entitymanager = World.Active.GetOrCreateManager<EntityManager>();
+        }
+
+        EntityManager _entitymanager;
+
         struct Ships
         {
             public int Length;
             public TransformAccessArray Transforms;
             public ComponentDataArray<ShipData> Data;
+            public EntityArray Entities;
         }
 
         struct Planets
         {
             public int Length;
-            public ComponentArray<Transform> Transforms;
             public ComponentDataArray<PlanetData> Data;
         }
 
         struct CalculatePositionsJob : IJobParallelForTransform
         {
             public float DeltaTime;
+            [ReadOnly]
             public ComponentDataArray<ShipData> Ships;
+            public EntityArray Entities;
 
             [ReadOnly] public ComponentDataArray<PlanetData> Planets;
+            [ReadOnly] public ComponentDataFromEntity<PlanetData> TargetPlanet;
+            public NativeQueue<AddComponentPayload<ShipArrivedTag>>.Concurrent AddShipArrivedTagDeferred;
 
             public void Execute(int index, TransformAccess transform)
             {
                 var shipData = Ships[index];
 
-                var targetPosition = shipData.TargetEntityPosition;
+                var targetPosition = TargetPlanet[shipData.TargetEntity].Position;
 
                 var newPos = Vector3.MoveTowards(transform.position, targetPosition, DeltaTime);
 
@@ -50,6 +61,10 @@ namespace Systems
                     var planet = Planets[planetIndex];
                     if (Vector3.Distance(newPos, planet.Position) < planet.Radius)
                     {
+                        if (planet.Position == targetPosition)
+                        {
+                            AddShipArrivedTagDeferred.Enqueue(new AddComponentPayload<ShipArrivedTag>(Entities[index], new ShipArrivedTag()));
+                        }
                         var direction = (newPos - planet.Position).normalized;
                         newPos = planet.Position + (direction * planet.Radius);
                         break;
@@ -59,16 +74,23 @@ namespace Systems
             }
         }
 
+        [Inject]
+        private DeferredEntityChangeSystem AddShipArrivedTagDeferred;
         [Inject] private Ships _ships;
         [Inject] private Planets _planets;
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
+            if (_ships.Length == 0)
+                return inputDeps;
             var job = new CalculatePositionsJob
             {
                 Ships = _ships.Data,
                 Planets = _planets.Data,
+                TargetPlanet = _entitymanager.GetComponentDataFromEntity<PlanetData>(),
                 DeltaTime = Time.deltaTime,
+                Entities = _ships.Entities,
+                AddShipArrivedTagDeferred = AddShipArrivedTagDeferred.GetAddComponentQueue<ShipArrivedTag>()
             };
 
             return job.Schedule(_ships.Transforms, inputDeps);

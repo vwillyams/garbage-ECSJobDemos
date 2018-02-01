@@ -7,7 +7,7 @@ using UnityEngine.Jobs;
 
 namespace Systems
 {
-    [UpdateAfter(typeof(ShipMovementSystem))]
+    [UpdateAfter(typeof(DeferredEntityChangeSystem))]
     public class ShipArrivalSystem : ComponentSystem
     {
         private EntityManager _entityManager;
@@ -22,11 +22,15 @@ namespace Systems
             public int Length;
             public ComponentArray<Transform> Transforms;
             public ComponentDataArray<ShipData> Data;
+            public ComponentDataArray<ShipArrivedTag> Tag;
         }
         [Inject] private Ships _ships;
 
         protected override void OnUpdate()
         {
+            if (_ships.Length == 0)
+                return;
+
             var arrivingShipTransforms = new List<Transform>();
             var arrivingShipData = new NativeList<ShipData>(Allocator.Temp);
 
@@ -34,16 +38,12 @@ namespace Systems
             {
                 var shipData = _ships.Data[shipIndex];
                 var shipTransform = _ships.Transforms[shipIndex];
-
-                if (Vector3.Distance(shipData.TargetEntityPosition, shipTransform.position) <= shipData.TargetEntityRadius * 1.01f)
-                {
-                    arrivingShipData.Add(shipData);
-                    arrivingShipTransforms.Add(shipTransform);
-                }
+                arrivingShipData.Add(shipData);
+                arrivingShipTransforms.Add(shipTransform);
             }
 
             HandleArrivedShips(arrivingShipData, arrivingShipTransforms);
-            
+
 
             arrivingShipData.Dispose();
         }

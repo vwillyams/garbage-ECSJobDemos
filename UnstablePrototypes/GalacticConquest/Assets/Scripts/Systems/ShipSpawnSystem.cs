@@ -32,15 +32,26 @@ namespace Systems
             public int TeamOwnership { get; set; }
         }
 
+        protected override void OnCreateManager(int capacity)
+        {
+            _shipsToSpawn = new NativeList<ShipSpawnData>(Allocator.Persistent);
+        }
+
+        protected override void OnDestroyManager()
+        {
+            _shipsToSpawn.Dispose();
+        }
+
         [Inject] private SpawningPlanets _planets;
         private PrefabManager _prefabManager;
         private EntityManager _entityManager;
 
         private float spawnCounter = 0.0f;
+        NativeList<ShipSpawnData> _shipsToSpawn;
 
         protected override void OnUpdate()
         {
-            var shipData = new NativeList<ShipSpawnData>(Allocator.Temp);
+
             for(var planetIndex = 0; planetIndex < _planets.Length; planetIndex++)
             {
                 var planetLaunchData = _planets.Data[planetIndex];
@@ -73,7 +84,7 @@ namespace Systems
                         shipPos = planetPos + (onSphere * (planetRadius + _prefabManager.ShipPrefab.transform.localScale.x));
                     } while (Vector3.Distance(shipPos, targetPlanet.Position) > planetDistance);
 
-                    shipData.Add(new ShipSpawnData
+                    _shipsToSpawn.Add(new ShipSpawnData
                     {
                         SpawnPosition = shipPos,
                         TargetEntity = planetLaunchData.TargetEntity,
@@ -90,22 +101,19 @@ namespace Systems
                 };
                 _planets.Data[planetIndex] = launchData;
             }
-            for (int i = 0; i < shipData.Length; i++)
+            for (int i = 0; i < _shipsToSpawn.Length; i++)
             {
-                var go = Object.Instantiate<GameObject>(_prefabManager.ShipPrefab, shipData[i].SpawnPosition, Quaternion.identity);
-                var targetPlanet = _entityManager.GetComponent<PlanetData>(shipData[i].TargetEntity);
+                var go = Object.Instantiate<GameObject>(_prefabManager.ShipPrefab, _shipsToSpawn[i].SpawnPosition, Quaternion.identity);
 
                 var data = new ShipData
                 {
-                    TargetEntity = shipData[i].TargetEntity,
-                    TargetEntityPosition = targetPlanet.Position,
-                    TargetEntityRadius = targetPlanet.Radius,
-                    TeamOwnership = shipData[i].TeamOwnership
+                    TargetEntity = _shipsToSpawn[i].TargetEntity,
+                    TeamOwnership = _shipsToSpawn[i].TeamOwnership
                 };
                 _entityManager.AddComponent(go.GetComponent<GameObjectEntity>().Entity, data);
             }
 
-            shipData.Dispose();
+            _shipsToSpawn.Clear();
         }
     }
 }

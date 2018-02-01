@@ -72,14 +72,14 @@ namespace UnityEngine.ECS.Boids
         [ComputeJobOptimization]
         struct Steer : IJob
         {
+            public ComponentDataArray<TransformRotation>              rotations;
             [ReadOnly] public ComponentDataArray<TransformPosition>   positions;
             [ReadOnly] public ComponentDataArray<TransformPosition>   targetPositions;
             [ReadOnly] public ComponentDataArray<TransformPosition>   obstaclePositions;
             [ReadOnly] public ComponentDataArray<BoidObstacle>        obstacles;
-            public ComponentDataArray<TransformRotation>              rotations;
             [ReadOnly] public NativeMultiHashMap<int, int>            cells;
             [ReadOnly] public NativeArray<int3> 					  cellOffsetsTable;
-            public BoidSettings settings;
+            [ReadOnly] public BoidSettings settings;
             public float dt;
             
             static float3 AvoidObstacle (float3 obstaclePosition, BoidObstacle obstacle, float3 position, float3 steer)

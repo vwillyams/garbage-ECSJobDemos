@@ -31,7 +31,8 @@ namespace UnityEngine.ECS.Boids
         {
             [ReadOnly] public ComponentDataArray<Boid>                boid; 
             [ReadOnly] public ComponentDataArray<TransformPosition>   positions;
-            public ComponentDataArray<TransformRotation>              rotations;
+            [ReadOnly] public ComponentDataArray<TransformRotation>   rotations;
+            public ComponentDataArray<ForwardRotation>                forwardRotations;
             public int Length;
         }
 
@@ -72,8 +73,9 @@ namespace UnityEngine.ECS.Boids
         [ComputeJobOptimization]
         struct Steer : IJob
         {
-            public ComponentDataArray<TransformRotation>              rotations;
+            public ComponentDataArray<ForwardRotation>                forwardRotations;
             [ReadOnly] public ComponentDataArray<TransformPosition>   positions;
+            [ReadOnly] public ComponentDataArray<TransformRotation>   rotations;
             [ReadOnly] public ComponentDataArray<TransformPosition>   targetPositions;
             [ReadOnly] public ComponentDataArray<TransformPosition>   obstaclePositions;
             [ReadOnly] public ComponentDataArray<BoidObstacle>        obstacles;
@@ -174,9 +176,9 @@ namespace UnityEngine.ECS.Boids
 
             public void Execute()
             {
-                for (int index = 0; index < rotations.Length; index++)
+                for (int index = 0; index < forwardRotations.Length; index++)
                 {
-                    var rotation = rotations[index].rotation;
+                    var forward = math.forward(rotations[index].rotation);
                     var position = positions[index].position;
                     
                     float3 alignmentSteering;
@@ -193,13 +195,10 @@ namespace UnityEngine.ECS.Boids
                     
                     for (int i = 0;i != obstacles.Length;i++)
                         steer = AvoidObstacle (obstaclePositions[i].position, obstacles[i], position, steer);
-
-                    var forward = math_experimental.normalizeSafe(math.forward(rotation) + steer * dt * Mathf.Deg2Rad * settings.rotationalSpeed);
-                    var forwardRotation = math.lookRotationToQuaternion(forward, math.up());
                     
-                    rotations[index] = new TransformRotation
+                    forwardRotations[index] = new ForwardRotation
                     {
-                        rotation = forwardRotation
+                        forward = math_experimental.normalizeSafe(forward + steer * dt * Mathf.Deg2Rad * settings.rotationalSpeed)
                     };
                 }
             }
@@ -229,6 +228,7 @@ namespace UnityEngine.ECS.Boids
 
             var steerJob = new Steer
             {
+                forwardRotations = m_BoidGroup.forwardRotations,
                 positions = m_BoidGroup.positions,
                 rotations = m_BoidGroup.rotations,
                 cells = m_Cells,

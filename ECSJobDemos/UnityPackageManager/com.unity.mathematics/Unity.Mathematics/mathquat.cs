@@ -152,5 +152,32 @@ namespace Unity.Mathematics
             // var res = math.normalize(lhs.value + t * (math.chgsign(rhs.value, math.dot(lhs.value, rhs.value)) - rhs.value));
             // return new quaternion(res);
         }
+
+        public static float3 forward(quaternion q)
+        {
+            return new float3
+            {
+                x = 2 * ((q.value.x * q.value.z) + (q.value.w * q.value.y)),
+                y = 2 * ((q.value.y * q.value.z) + (q.value.w * q.value.x)),
+                z = 1 - 2 * ((q.value.x * q.value.x) + (q.value.y * q.value.y))
+            };
+        }
+        
+        public static float3 up(quaternion q)
+        {
+            return new float3
+            {
+                x = 1 - 2 * ((q.value.y * q.value.y) + (q.value.z * q.value.z)),
+                y = 2 * ((q.value.x * q.value.y) + (q.value.w * q.value.z)),
+                z = 2 * ((q.value.x * q.value.z) + (q.value.w * q.value.y))
+            };
+        }
+
+        public static quaternion lookRotationToQuaternion(float3 direction, float3 up)
+        {
+            var m = lookRotationToMatrix(direction, up);
+            var q = matrixToQuat(m.m0,m.m1,m.m2);
+            return q;
+        }
     }
 }

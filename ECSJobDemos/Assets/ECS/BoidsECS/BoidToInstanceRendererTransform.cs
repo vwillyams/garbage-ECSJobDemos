@@ -33,7 +33,7 @@ namespace BoidSimulations
             foreach (var e in GetEntities<Group>())
             {
                 var boid = e.Boid;
-                e.Transform->matrix = matrix_math_util.LookRotationToMatrix(boid->position, boid->forward, new float3(0, 1, 0));
+                e.Transform->matrix = math.lookRotationToMatrix(boid->position, boid->forward, new float3(0, 1, 0));
             }
         }
     }
@@ -64,7 +64,7 @@ namespace BoidSimulations
                 var boid = m_Group.Boids[i];
                 
                 TransformMatrix transform;
-                transform.matrix = matrix_math_util.LookRotationToMatrix(boid.position, boid.forward, new float3(0, 1, 0));
+                transform.matrix = math.lookRotationToMatrix(boid.position, boid.forward, new float3(0, 1, 0));
                 m_Group.RendererTransforms[i] = transform;
             }
         }
@@ -102,7 +102,7 @@ namespace BoidSimulations
                 var boid = Boids[index];
                 
                 TransformMatrix transform;
-                transform.matrix = matrix_math_util.LookRotationToMatrix(boid.position, boid.forward, new float3(0, 1, 0));
+                transform.matrix = math.lookRotationToMatrix(boid.position, boid.forward, new float3(0, 1, 0));
                 
                 TransformMatrices[index] = transform;
             }
@@ -151,7 +151,7 @@ namespace BoidSimulations
         {
             public void Execute(ref BoidData boid, ref TransformMatrix transformMatrix)
             {
-                transformMatrix.matrix = matrix_math_util.LookRotationToMatrix(boid.position, boid.forward, new float3(0, 1, 0));
+                transformMatrix.matrix = math.lookRotationToMatrix(boid.position, boid.forward, new float3(0, 1, 0));
             }
         }
 
@@ -189,7 +189,7 @@ namespace BoidSimulations
 
         public void Execute(ref BoidData boid, ref TransformMatrix transform)
         {
-            transform.matrix = matrix_math_util.LookRotationToMatrix(boid.position, boid.forward, new float3(0, 1, 0));
+            transform.matrix = math.lookRotationToMatrix(boid.position, boid.forward, new float3(0, 1, 0));
         }
     }
 }

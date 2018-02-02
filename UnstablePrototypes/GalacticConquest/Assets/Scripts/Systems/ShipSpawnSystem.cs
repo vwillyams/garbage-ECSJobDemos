@@ -7,7 +7,6 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.ECS;
 using UnityEngine.ECS.Transform;
-using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 namespace Systems

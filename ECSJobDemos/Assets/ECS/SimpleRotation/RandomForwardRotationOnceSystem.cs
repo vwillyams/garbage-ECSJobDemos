@@ -35,6 +35,7 @@ namespace UnityEngine.ECS.SimpleRotation
             {
                 EntityManager.RemoveComponent<RandomForwardRotationOnce>(entities[i]);
             }
+            entities.Dispose();
         } 
     }
 }

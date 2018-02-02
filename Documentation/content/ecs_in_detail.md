@@ -1,3 +1,4 @@
+# ecs_in_detail
 # ECS Features in Detail
 
 ## Entity
@@ -24,7 +25,7 @@ IComponentData structs may not contain references to managed objects. Since the 
 
 
 ## EntityArchetype
-An archetype is a unique array of ComponentType. EntityManager uses Archetypes to group all entities using the same Component types in chunks.
+An archetype is a unique array of ComponentType. EntityManager uses Archetypes to group all entities using the same component types in chunks.
 
 ```
 // Using typeof to create an archetype from a set of components
@@ -64,6 +65,12 @@ EntityManager.SetComponentData(entity, myData);
 // Removing a component at runtime
 EntityManager.RemoveComponent<MyComponentData>(entity);
 
+// Does the entity exist and does it have the component?
+bool has = EntityManager.HasComponent<MyComponentData>(entity);
+
+// Is the entity still alive?
+bool has = EntityManager.Exists(entity);
+
 // Instantiate the entity
 var instance = EntityManager.Instantiate(entity);
 
@@ -75,8 +82,8 @@ EntityManager.DestroyEntity(instance);
 // EntityManager also provides batch API's
 // to create and destroy many entities in one call. 
 // They are significantly faster 
-// and should always be used 
-// if you want to create many instances in a loop
+// and should be used where ever possible
+// for performance reasons.
 
 // Instantiate 500 entities and write the resulting entity ids to the instances array
 var instances = new NativeArray<Entity>(500, Allocator.Temp);
@@ -88,11 +95,17 @@ EntityManager.DestroyEntity(instances);
 
 ## Chunk - Implementation detail
 
-The component data for each entity is stored in what we internally refer to as a chunk. Component data is laid out by stream. Meaning all components of type A, are tightly packed in an array. Followed by all components of Type B etc.
+The component data for each entity is stored in what we internally refer to as a Chunk. Component data is laid out by stream. Meaning all components of type A, are tightly packed in an array. Followed by all components of Type B etc.
 
-Thus iterating over entities using ComponentDataArray, we gurantee that within a chunk memory access is completely linear with no waste loaded into cache lines. Once all entities of a chunk have been iterated, we find the next matching chunk and iterate through those.
+A chunk is always linked to a specfic archetype. Thus all entities in one chunk follow the exact same memory layout. When iterating over components, Memory access of components within a chunk is always completely linear,  with no waste loaded into cache lines. This is a hard gurantee.
 
-When entities are destroyed, we move another entities in its place and update the Entitytable accordingly.
+
+ComponentDataArray is essentially an iterator over all archetypes compatible with the set of required components. For each archetype, iterating over all chunks compatible with it. And for each chunk iterating over all entities in that chunk.
+
+Once all entities of a chunk have been visited, we find the next matching chunk and iterate through those entities.
+
+
+When entities are destroyed, we move another entities in its place and update the Entitytable accordingly. This is required to make a hard gurantee on linear iteration of entities. The code moving the component data in memory is highly optimized.
 
 ## World
 
@@ -102,6 +115,9 @@ By default we create a single world when entering playmode and populate it with 
 
 [Default world creation code](https://github.com/Unity-Technologies/ECSJobDemos/blob/master/ECSJobDemos/UnityPackageManager/com.unity.ecs/Unity.ECS/Injection/DefaultWorldInitialization.cs)
 [Automatic bootstrap entry point](https://github.com/Unity-Technologies/ECSJobDemos/blob/master/ECSJobDemos/UnityPackageManager/com.unity.ecs/Unity.ECS/Injection/AutomaticWorldBootstrap.cs) 
+
+*We are currently working on multiplayer demos, that will show how to work in a setup with seperate simulation & presentation worlds. This is WIP, so right now have no clear guidelines and likely are also missing features in ECS to enable it.* 
+
 
 ## Shared component data
 IComponentData is appropriate for data that varies from entity to entity, such as storing a world position. ISharedComponentData is useful when many entities have something in common, for example in the boid demo we instantiate many entities from the same prefab and thus the InstanceRenderer between many boid entities is exactly the same. 
@@ -121,24 +137,52 @@ In the boid demo we never change the InstanceRenderer component, but we do move 
 
 The great thing about ISharedComponentData is that there is literally zero memory cost on a per entity basis for ISharedComponentData.
 
-We use ISharedComponentData to group all entities using the same InstanceRenderer data together and then efficiently extract all matrices for rendering. The resulting code is simple & efficient due to optimal memory layout.
+We use ISharedComponentData to group all entities using the same InstanceRenderer data together and then efficiently extract all matrices for rendering. The resulting code is simple & efficient because the data is laid out exactly as it is accessed.
 [InstanceRendererSystem.cs](https://github.com/Unity-Technologies/ECSJobDemos/blob/master/ECSJobDemos/Assets/ECS/InstanceRenderer/InstanceRendererSystem.cs)
 
 **Some important notes about SharedComponentData:**
 
-* Entities with the same SharedComponentData are grouped together in the same chunks. Thus the index to the shared data is stored once per chunk. As a result SharedComponentData have zero memory overhead on a per entity basis. 
-* Using ComponentGroup we can iterate over all entities with the same type
-* Additionally we can use ComponentGroup.GetVariation() to iterate specifically over entities that use a specific SharedComponentData. Due to the data layout this iteration has very low overhead.
+* Entities with the same SharedComponentData are grouped together in the same chunks. The index to the shared data is stored once per chunk, not per entity. As a result SharedComponentData have zero memory overhead on a per entity basis. 
+* Using ComponentGroup we can iterate over all entities with the same type.
+* Additionally we can use ComponentGroup.GetVariation() to iterate specifically over entities that have a specific SharedComponentData value. Due to the data layout this iteration has very low overhead.
 * Using EntityManager.GetAllUniqueSharedComponents we can retrieve all unique shared component data that are added to any alive entities.
 * SharedComponentData are automatically refcounted
-* SharedComponentData should change rarely (Changing a shared component data requires memcpying the entire entities component data into a different chunk)
+* SharedComponentData should change rarely. Changing a shared component data involes memcpy'ing the all component data for that entity into a different chunk)
 
 ## ComponentSystem
 
 ## JobComponentSystem
 
-## ComponentGroup
+# Iterating entities
+
+Iterating over all entities that have a matching set of components, is at the center of the ECS architecture.
 
 ## ComponentDataArray
+## ComponentArray
+## EntityArray
+
+## Injection
+
+
+## ComponentGroup
+
+ComponentGroup is the class on top of which all iteration logic is based.
+
+Essentially a ComponentGroup is constructed with a set of required components, subtractive components or specific shared component data values. 
+
+The ComponentGroup has API's to extract individual arrays. All these arrays are guranteed to be in sync (Same length, index of each array refers to the same entity)
+
+We do not recommend to use ComponentGroup directly. The injection pattern is a simpler way of doing the same thing.
+
+
+## ComponentFromEntity
+
 
 ## EntityTransaction
+
+EntityTransaction is an API to create & destroy entities from a job. The purpose is to enable procedural generation use cases where construction of massive scale instantiation must happen on jobs. This API is very much work in progress
+
+## GameObjectEntity
+ECS ships with GameObjectEntity component. It is a MonoBehaviour. In OnEnable, the GameObjectEntity component creates an entity with all components on the game object. As a result the full game object and all its components are now iteratable by ComponentSystems.
+
+*Thus for the time being you must add a GameObjectEntity component on each game object that you want to be visible / iteratable from the ComponentSystem.*

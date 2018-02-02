@@ -1,5 +1,7 @@
 # Intro
 
+(Early) [documentation](Documentation/index.md)
+
 Talk about C# job system & Entity Component System at Unite Austin
 https://youtu.be/tGmnZdY5Y-E
 

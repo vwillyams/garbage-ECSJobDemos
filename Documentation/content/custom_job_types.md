@@ -1,11 +1,63 @@
-# Custom Job types
+# custom_job_types
 On the very lowest level of the JobSystem jobs are scheduled by calling one of the Schedule functions in JobsUtility. The currently existing job types all use these functions, but it is also possible to create specialized job types using the same APIs.
 
 These API's use unsafe code and have to be crafted carefully since they can easily introduce unwanted race conditions. If you add your own job types, we strongly recommend to aim for full test coverage.
 
-As an example we have a custom job type [IJobParalelForBatch](https://github.com/Unity-Technologies/ECSJobDemos/blob/master/ECSJobDemos/UnityPackageManager/com.unity.jobs/Unity.Jobs/IJobParallelForBatch.cs)
+As an example we have a custom job type [IJobParallelForBatch](https://github.com/Unity-Technologies/ECSJobDemos/blob/master/ECSJobDemos/UnityPackageManager/com.unity.jobs/Unity.Jobs/IJobParallelForBatch.cs)
  
-It works like IJobParallelFor but instead of calling a single execute function per index it calls one execute function per batch being executed.
+It works like IJobParallelFor but instead of calling a single execute function per index it calls one execute function per batch being executed. This is useful if you need to do something for more than one item at the time but still want to do it parallel. A common use-case for this job type is if you need to create some temporary array and want to avoid doing it per item in the array. By using this you can instead create one temporary array per batch.
+
+The entrypoint where the job is actually scheduled in the IJobParallelForBatched example looks like this:
+```C#
+unsafe static public JobHandle ScheduleBatch<T>(this T jobData, int arrayLength, int minIndicesPerJobCount, JobHandle dependsOn = new JobHandle()) where T : struct, IJobParallelForBatch
+{
+    var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref jobData), ParallelForBatchJobStruct<T>.Initialize(), dependsOn, ScheduleMode.Batched);
+    return JobsUtility.ScheduleParallelFor(ref scheduleParams, arrayLength, minIndicesPerJobCount);
+}
+```
+The first line creates a struct containing the scheduling parameters. When creating it you need to set a pointer to the data which will be copied to the jobs. The reason this is a pointer is that the native code which uses it does not know about the type.
+You also need to pass it a pointer to the JobReflectionData created by calling
+```C#
+JobsUtility.CreateJobReflectionData(typeof(T), JobType.ParallelFor, (ExecuteJobFunction)Execute);
+```
+JobReflection stores information about the struct with the data for the job, such as which native containers it contains and how they need to be patched when scheduling a job. It lives on the native side of the engine and the managed code only have access to it though pointers without any information about what the type is. When creating job reflection data you need to specify the type of the struct implementing the job, the JobType and the method which will be called to execute the job. The job reflection data does not depend on the data in the struct you schedule, only its type so it should only be created once for all jobs implementing the same interface. There are currently only two job types, Single and ParallelFor. Single means the job will only get a single call, ParallelFor means there will be multiple calls to process it where each call is restricted to a subset of the range of indices to process. Which job type you choose affects which schedule function you are allowed to call.
+
+The third parameter is the JobHandle which the scheduled job should depend on.
+
+The final parameter is the schedule mode. There are two scheduling modes to choose from, Run and Batched. Batched means one or multiple jobs will be scheduled to do the processing while Run means the processing will be done on the main thread before Schedule returns.
+
+Once the schedule parameters are created we actually schedule the job. There are three ways to schedule jobs depending on their type.
+```C#
+JobHandle Schedule(ref JobScheduleParameters parameters);
+JobHandle ScheduleParallelFor(ref JobScheduleParameters parameters, int arrayLength, int innerloopBatchCount);
+JobHandle ScheduleParallelForTransform(ref JobScheduleParameters parameters, IntPtr transfromAccesssArray);
+```
+Schedule can only be used if the ScheduleParameters are created with JobType.Single, the other two schedule functions require JobType.ParallelFor.
+The arrayLength and innerloopbatchCount parameter passed to ScheduleParallelFor are used to determine how many indices the jobs should process and how many indices it should handle in the inner loop, see the section on Execution and JobRanges for more information on the inner loop count.
+ScheduleParallelForTransform is very similar to ScheduleParallelFor, but it also has access to a TransformAccessArray which allows you to modify Transform components on GameObjects. The number of indices and batch size is infered from the TransformAccessArray.
+
+## Execution and JobRanges
+After scheduling the job Unity will call the entrypoint you specified directly from the native side in a similar way to how Update is called on MonoBehaviours, but from within a job. You always get one call per job and there is either one job or one job per worker thread in the case of ParallelFor.
+
+The signature used for Execute is
+```C#
+public delegate void ExecuteJobFunction(ref T data, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref   JobRanges ranges, int jobIndex);
+```
+For Single jobs only the data is needed and you can just do your processing right away, but for ParallelFor jobs it requires some more work before you can start processing indices.
+
+The JobRanges contains the batches and indices a ParallelFor job is supposed to process. The indices are split into batches based on the batch size, the batches are evenly distributed between the jobs doing the execution in such a way that each job can iterate over a continous section of memory. The ParallelFor job should call
+```C#
+JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end)
+```
+until it return false, and after calling it process all items with index between begin and end.
+The reason you get batches of items rather than the full set of items the job should process is that Unity will apply work stealing if one job completes before the others. Work stealing in this context means that when one job is done it will look at the other jobs running and see if any of them still have a lot of work left. If it finds a job which is not complete it will steal some of the batches which it has not yet started to dynamicly redistribute the work.
+
+Before a ParallelFor job starts processing items it also needs to limit the write access to NativeContainers to the range of items which the job is processing. If it does not do this several jobs can potentially write to the same index which leads to race conditions. The native containers which need to be limited is passed to the job and there is a function to patch them so they cannot access items outisde the correct range. The code to do it looks like this:
+```C#
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+JobsUtility.PatchBufferMinMaxRanges(bufferRangePatchData, UnsafeUtility.AddressOf(ref jobData), begin, end - begin);
+#endif
+```
 
 # Custom NativeContainers
 When writing jobs the data communication between jobs is one of the hardest parts to get right. Just using NativeArray is very limiting. Using NativeQueue, NativeHashMap and NativeMultiHashMap and their concurrent versions solves most use-cases.
@@ -30,6 +82,7 @@ unsafe public struct NativeCounter
     AtomicSafetyHandle m_Safety;
     // The dispose sentinel tracks memory leaks. It is a managed type so it is cleared to null when scheduling a job
     // The job cannot dispose the container, and no one else can dispose it until the job has run so it is ok to not pass it along
+    // This attribute is required, without it this native container cannot be passed to a job since that would give the job access to a managed object
     [NativeSetClassTypeToNullOnSchedule]
     DisposeSentinel m_DisposeSentinel;
 #endif
@@ -37,7 +90,7 @@ unsafe public struct NativeCounter
     // Keep track of where the memory for this was allocated
     Allocator m_AllocatorLabel;
 
-    public unsafe NativeCounter(Allocator label)
+    public NativeCounter(Allocator label)
     {
         // This check is redundant since we always use an int which is blittable.
         // It is here as an example of how to check for type correctness for generic types.
@@ -58,7 +111,7 @@ unsafe public struct NativeCounter
         Count = 0;
     }
 
-    unsafe public void Increment()
+    public void Increment()
     {
         // Verify that the caller has write permission on this data. 
         // This is the race condition protection, without these checks the AtomicSafetyHandle is useless
@@ -68,7 +121,7 @@ unsafe public struct NativeCounter
         (*m_Counter)++;
     }
 
-    unsafe public int Count
+    public int Count
     {
         get
         {
@@ -125,7 +178,7 @@ unsafe public struct Concurrent
 #endif
 
     // This is what makes it possible to assign to NativeCounter.Concurrent from NativeCounter
-    unsafe public static implicit operator NativeCounter.Concurrent (NativeCounter cnt)
+    public static implicit operator NativeCounter.Concurrent (NativeCounter cnt)
     {
         NativeCounter.Concurrent concurrent;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -138,7 +191,7 @@ unsafe public struct Concurrent
         return concurrent;
     }
 
-    unsafe public void Increment()
+    public void Increment()
     {
         // Increment still needs to check for write permissions
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -161,7 +214,7 @@ struct CountZeros : IJobParallelFor
     {
         if (input[i] == 0)
         {
-            counter.Increase();
+            counter.Increment();
         }
     }
 }
@@ -200,7 +253,7 @@ m_Counter = (int*)UnsafeUtility.Malloc(UnsafeUtility.SizeOf<int>()*IntsPerCacheL
 When accessing the counter from the main, non-concurrent, version there can only be one writer so the increment function is fine with the new memory layout.
 For get and set of the count we need to loop over all potential worker indices.
 ```C#
-unsafe public int Count
+public int Count
 {
     get
     {
@@ -248,7 +301,7 @@ unsafe public struct Concurrent
     // The current worker thread index, it must use this exact name since it is injected
     int m_ThreadIndex;
 
-    unsafe public static implicit operator NativeCacheCounter.Concurrent (NativeCacheCounter cnt)
+    public static implicit operator NativeCacheCounter.Concurrent (NativeCacheCounter cnt)
     {
         NativeCacheCounter.Concurrent concurrent;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -262,7 +315,7 @@ unsafe public struct Concurrent
         return concurrent;
     }
 
-    unsafe public void Increment()
+    public void Increment()
     {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
@@ -277,3 +330,14 @@ Writing the counter this way significantly reduces the overhead of having multip
 The NativeCounter is not complete, the only thing left os to add tests for it to make sure it is correct and that it does not break in the future. When writing tests you should try to cover as many edge cases as possible. It is also a good idea to add some kind of stress test using jobs to detect race conditions, even if it is unlikely to find all race conditions. The NativeCounter API is very small so the set to test is not huge.
 Both versions of the counter from this document are available at https://github.com/Unity-Technologies/ECSJobDemos/tree/master/ECSJobDemos/Assets/NativeCounterDemo .
 The tests for them are in https://github.com/Unity-Technologies/ECSJobDemos/blob/master/ECSJobDemos/Assets/NativeCounterDemo/Editor/NativeCounterTests.cs .
+## Available attributes
+The NativeCounter uses many attributes, but there are a few more available for other types of containers. Here is a list of the available attributes you can use on the NativeContainer struct.
+* [NativeContainer](https://docs.unity3d.com/2018.1/Documentation/ScriptReference/Unity.Collections.LowLevel.Unsafe.NativeContainerAttribute.html) - marks a struct as a NativeContainer.Required for all native containers.
+* [NativeContainerSupportsMinMaxWriteRestriction](https://docs.unity3d.com/2018.1/Documentation/ScriptReference/Unity.Collections.LowLevel.Unsafe.NativeContainerSupportsMinMaxWriteRestrictionAttribute.html) - signals that the native container can restrict its writable ranges tobe between a min and max index. This is used when passing the container to an IJobParallelFor to make sure that the job does not write to indices it is not supposed to process. In order to use this the native container must have the members int m_Length, int m_MinIndex and int m_MaxIndex in that order with no other members between them. The container must also throw exception for writes outside the min/max range.
+* [NativeContainerIsAtomicWriteOnly](https://docs.unity3d.com/2018.1/Documentation/ScriptReference/Unity.Collections.LowLevel.Unsafe.NativeContainerIsAtomicWriteOnlyAttribute.html) - signals that the native container uses atomic writes and no reads. By adding this is is possible to pass the container to an IJobParallelFor as writable without restrictions on which indices can be written.
+* [NativeContainerSupportsDeallocateOnJobCompletion](https://docs.unity3d.com/2018.1/Documentation/ScriptReference/Unity.Collections.LowLevel.Unsafe.NativeContainerSupportsDeallocateOnJobCompletionAttribute.html) - makes the native container usable with [DeallocateOnJobCompletion](https://docs.unity3d.com/2018.1/Documentation/ScriptReference/Unity.Collections.DeallocateOnJobCompletionAttribute.html). In order to use this the native container must have a single allocation in m_Buffer, an allocator label in m_AllocatorLabel and a dispose sentinel in m_DisposeSentinel.
+* [NativeContainerNeedsThreadIndex](https://docs.unity3d.com/2018.1/Documentation/ScriptReference/Unity.Collections.LowLevel.Unsafe.NativeContainerNeedsThreadIndexAttribute.html) - signals that the native container needs to know the thread index it is executing on. When using this attribute the container must have an int m_ThreadIndex member which is set to the correct thread index when executing on a job.
+
+In addition to these attributes on the native container struct itself there are a few attributes which can be used on members of the native container.
+* [NativeDisableUnsafePtrRestriction](https://docs.unity3d.com/2018.1/Documentation/ScriptReference/Unity.Collections.LowLevel.Unsafe.NativeDisableUnsafePtrRestrictionAttribute.html) - allows the native container to be passed to a job even though it contains a pointer, which is usually not allowed to pass to a job.
+* [NativeSetClassTypeToNullOnSchedule](https://docs.unity3d.com/2018.1/Documentation/ScriptReference/Unity.Collections.LowLevel.Unsafe.NativeSetClassTypeToNullOnScheduleAttribute.html) - allows the native container to be passed to a job even though it contains a managed object. The managed object will be set to null on the copy passed to the job.

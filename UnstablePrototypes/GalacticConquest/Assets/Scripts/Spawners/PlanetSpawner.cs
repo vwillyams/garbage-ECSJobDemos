@@ -1,11 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using Components;
 using Data;
-using Unity.Collections;
 using Unity.Mathematics;
-using UnityEditor.EventSystems;
 using UnityEngine;
 using UnityEngine.ECS;
 

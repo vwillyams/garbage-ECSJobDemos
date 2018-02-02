@@ -150,7 +150,7 @@ namespace UnityEngine.ECS
 
         }
     }
-    
+
     [StructLayout(LayoutKind.Sequential)]
     unsafe struct MatchingArchetypes
     {
@@ -420,11 +420,13 @@ namespace UnityEngine.ECS
 
             if (m_TransformsDirty)
             {
+                Profiling.Profiler.BeginSample("DirtyTransformAccessArrayUpdate");
                 var trans = GetComponentArray<Transform>();
                 if (!m_Transforms.IsCreated)
                     m_Transforms = new TransformAccessArray(trans.ToArray());
                 else
                     m_Transforms.SetTransforms(trans.ToArray());
+                Profiling.Profiler.EndSample();
             }
 
             m_TransformsDirty = false;
@@ -478,7 +480,7 @@ namespace UnityEngine.ECS
 
             return variationComponentGroup;
         }
-        
+
         public int GetVariationVersion<SharedComponent1>(SharedComponent1 sharedComponent1)
             where SharedComponent1 : struct, ISharedComponentData
         {

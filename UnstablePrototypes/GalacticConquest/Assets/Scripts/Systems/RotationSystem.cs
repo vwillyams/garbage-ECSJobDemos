@@ -13,7 +13,7 @@ namespace Systems
             public ComponentArray<Transform> Transform;
         }
 
-        [InjectComponentGroup] private Planets _planets;
+        [Inject] private Planets _planets;
         protected override void OnUpdate()
         {
             for (var i = 0; i < _planets.Length; ++i)

@@ -3,97 +3,102 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Data;
 using Unity.Collections;
+using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.ECS;
+using UnityEngine.ECS.Transform;
+using UnityEngine.Jobs;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
 namespace Systems
 {
-    [UpdateAfter(typeof(ShipSpawnSystem))]
-    public class ShipMovementSystem : ComponentSystem
+    [UpdateAfter(typeof(ShipArrivalSystem))]
+    public class ShipMovementSystem : JobComponentSystem
     {
         public ShipMovementSystem()
         {
-            _entityManager = World.Active.GetOrCreateManager<EntityManager>();
+            _entitymanager = World.Active.GetOrCreateManager<EntityManager>();
         }
+
+        EntityManager _entitymanager;
+
         struct Ships
         {
             public int Length;
-            public ComponentArray<Transform> Transforms;
+            public ComponentDataArray<TransformPosition> Transforms;
             public ComponentDataArray<ShipData> Data;
+            public EntityArray Entities;
         }
 
         struct Planets
         {
             public int Length;
-            public ComponentArray<Transform> Transforms;
             public ComponentDataArray<PlanetData> Data;
         }
 
-        [InjectComponentGroup] private Ships _ships;
-        [InjectComponentGroup] private Planets _planets;
-        private EntityManager _entityManager;
-
-        protected override void OnUpdate()
+        struct CalculatePositionsJob : IJobParallelFor
         {
-            var arrivingShipData = new NativeList<ShipData>(Allocator.Temp);
-            var arrivingShipTransforms = new List<Transform>();
-            for (var shipIndex = 0; shipIndex < _ships.Length; shipIndex++)
+            public float DeltaTime;
+            [ReadOnly]
+            public ComponentDataArray<ShipData> Ships;
+            public EntityArray Entities;
+            public ComponentDataArray<TransformPosition> Transforms;
+
+            [ReadOnly] public ComponentDataArray<PlanetData> Planets;
+            [ReadOnly] public ComponentDataFromEntity<PlanetData> TargetPlanet;
+            public NativeQueue<AddComponentPayload<ShipArrivedTag>>.Concurrent AddShipArrivedTagDeferred;
+
+            public void Execute(int index)
             {
-                var shipData = _ships.Data[shipIndex];
-                var shipTransform = _ships.Transforms[shipIndex];
-                var targetPlanet = _entityManager.GetComponent<PlanetData>(shipData.TargetEntity);
-                //var targetTransform = shipData.TargetTransform;
+                var shipData = Ships[index];
 
-                var newPos = Vector3.MoveTowards(shipTransform.position, targetPlanet.Position, Time.deltaTime);
+                var targetPosition = TargetPlanet[shipData.TargetEntity].Position;
+                var transform = Transforms[index];
 
-                if (Vector3.Distance(targetPlanet.Position, newPos) <= targetPlanet.Radius)
+                var newPos = Vector3.MoveTowards(transform.position, targetPosition, DeltaTime);
+
+                for (var planetIndex = 0; planetIndex < Planets.Length; planetIndex++)
                 {
-                    arrivingShipData.Add(shipData);
-                    arrivingShipTransforms.Add(shipTransform);
-                    continue;
-                }
-                for (var planetIndex = 0; planetIndex < _planets.Length; planetIndex++)
-                {
-                    var planet = _planets.Data[planetIndex];
+                    var planet = Planets[planetIndex];
                     if (Vector3.Distance(newPos, planet.Position) < planet.Radius)
                     {
+                        if (planet.Position == targetPosition)
+                        {
+                            AddShipArrivedTagDeferred.Enqueue(new AddComponentPayload<ShipArrivedTag>(Entities[index], new ShipArrivedTag()));
+                        }
                         var direction = (newPos - planet.Position).normalized;
                         newPos = planet.Position + (direction * planet.Radius);
                         break;
                     }
                 }
-                shipTransform.position = newPos;
-
+                transform.position = newPos;
+                Transforms[index] = transform;
             }
-            for (var shipIndex = 0; shipIndex < arrivingShipData.Length; shipIndex++)
+        }
+
+        [Inject]
+        private DeferredEntityChangeSystem AddShipArrivedTagDeferred;
+        [Inject] private Ships _ships;
+        [Inject] private Planets _planets;
+
+        protected override JobHandle OnUpdate(JobHandle inputDeps)
+        {
+            if (_ships.Length == 0)
+                return inputDeps;
+            var job = new CalculatePositionsJob
             {
+                Ships = _ships.Data,
+                Planets = _planets.Data,
+                TargetPlanet = _entitymanager.GetComponentDataFromEntity<PlanetData>(),
+                DeltaTime = Time.deltaTime,
+                Entities = _ships.Entities,
+                Transforms = _ships.Transforms,
+                AddShipArrivedTagDeferred = AddShipArrivedTagDeferred.GetAddComponentQueue<ShipArrivedTag>()
+            };
 
-                var shipData = arrivingShipData[shipIndex];
-                var shipTransform = arrivingShipTransforms[shipIndex];
-                var planetData = _entityManager.GetComponent<PlanetData>(shipData.TargetEntity);
-
-                if (shipData.TeamOwnership != planetData.TeamOwnership)
-                {
-                    planetData.Occupants = planetData.Occupants - 1;
-                    if (planetData.Occupants <= 0)
-                    {
-                        planetData.TeamOwnership = shipData.TeamOwnership;
-                        PlanetSpawner.SetColor(shipData.TargetEntity, planetData.TeamOwnership);
-                    }
-                }
-                else
-                {
-                    planetData.Occupants = planetData.Occupants + 1;
-                }
-                _entityManager.SetComponent(shipData.TargetEntity, planetData);
-                Object.Destroy(shipTransform.gameObject);
-            }
-
-            arrivingShipData.Dispose();
-
+            return job.Schedule(_ships.Length, 32, inputDeps);
         }
     }
 }

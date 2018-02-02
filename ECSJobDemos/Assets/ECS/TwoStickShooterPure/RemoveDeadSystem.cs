@@ -17,14 +17,24 @@ namespace TwoStickPureExample
 
         [Inject] private Data m_Data;
 
+        private struct PlayerCheck
+        {
+            public int Length;
+            [ReadOnly] public ComponentDataArray<PlayerInput> PlayerInput;
+        }
+
+        [Inject] private PlayerCheck m_PlayerCheck;
+
         protected override void OnUpdate()
         {
             int removeCount = 0;
             var enemiesToRemove = new NativeArray<Entity>(m_Data.Length, Allocator.Temp);
 
+            bool playerDead = m_PlayerCheck.Length == 0;
+
             for (int i = 0; i < m_Data.Length; ++i)
             {
-                if (m_Data.Health[i].Value <= 0.0f)
+                if (m_Data.Health[i].Value <= 0.0f || playerDead)
                 {
                     enemiesToRemove[removeCount++] = m_Data.Entity[i];
                 }

@@ -1,4 +1,4 @@
-# How ECS Works 
+# how_ecs_works 
 
 **What is the problem?**
 When making games with GameObject/MonoBehaviour, it is easy to write code that ends up being difficult to read, maintain and optimize. This is the result of a combination of factors: [object-oriented model](https://en.wikipedia.org/wiki/Object-oriented_programming), slow compiled code from Mono, [garbage collection](https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)) and single threaded code.
@@ -111,16 +111,11 @@ You simply move the contents of your MonoBehaviour.Update into a ComponentSystem
 
 So using ComponentSystem, GameObject and MonoBehaviour is a great first step to writing ECS code. And it gives you some quick performance benefits. But it also doesn't give you the full performance benefits.
 
-TODO
-* ComponentArray examples
-* Foreach examples
-
-
 # Pure ECS: Full-on performance: IComponentData & Jobs
 
 One motivation to use ECS is because you want your game to have optimal performance. (By optimal performance we mean that if you were to hand write all of your code using SIMD intrinsics, custom data layouts for each loop, then you would end up with the similar performance as what you get when writing simple ECS code.)
 
-The C# Job System TODO LINK does not supported managed class types only structs and Native Containers. Thus only IComponentData can be safely accessed in a C# Job.
+The C# Job System TODO LINK does not support managed class types only structs and Native Containers. Thus only IComponentData can be safely accessed in a C# Job.
 
 The EntityManager makes hard guarantees about linear memory layout of the component data. This is a very important part of the great performance you can achieve with C# jobs using IComponentData.
 

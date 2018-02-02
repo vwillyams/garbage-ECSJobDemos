@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using Microsoft.Msagl.Core.Layout.ProximityOverlapRemoval.StressEnergy;
-using Unity.Collections;
-using Unity.Mathematics;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.ECS;
 
 namespace TwoStickHybridExample

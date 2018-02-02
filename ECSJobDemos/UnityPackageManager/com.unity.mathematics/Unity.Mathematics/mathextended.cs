@@ -130,7 +130,7 @@ namespace Unity.Mathematics
         public static float3 nfence(float3 value) { return value; }
         [MethodImpl((MethodImplOptions)0x100)]
         public static float4 nfence(float4 value) { return value; }
-
+        
 #if false
 
         //@TODO: Complete all versions of this also, this implementation doesn't actaully do  msb(y) ? -x : x...

@@ -21,7 +21,7 @@ namespace UnityEngine.ECS
             public Chunk*      chunk;
             public int         indexInChunk;
         }
-        
+
         EntityData*            m_Entities;
         int                    m_EntitiesCapacity;
         int                    m_EntitiesFreeIndex;
@@ -114,7 +114,7 @@ namespace UnityEngine.ECS
                 Entity* entity = entities + i;
                 bool exists = m_Entities[entity->index].version == entity->version;
                 if (!exists)
-                    throw new System.ArgumentException("All entities passed to EntityManager.Destroy must exist. One of the entities was already destroyed or never created.");
+                    throw new System.ArgumentException("All entities passed to EntityManager must exist. One of the entities has already been destroyed or was never created.");
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 EntityData* entityData = m_Entities + entity->index;
@@ -446,7 +446,7 @@ namespace UnityEngine.ECS
             --oldArchetype->entityCount;
             typeMan.SetChunkCount(oldChunk, lastIndex);
         }
-        
+
         public void AddComponent(Entity entity, ComponentType type, ArchetypeManager archetypeManager, EntityGroupManager groupManager, ComponentTypeInArchetype* componentTypeInArchetypeArray)
         {
             var componentType = new ComponentTypeInArchetype(type);
@@ -520,7 +520,7 @@ namespace UnityEngine.ECS
 
             SetArchetype(archetypeManager, entity, newType, sharedComponentDataIndices);
         }
-        
+
         public void RemoveComponent(Entity entity, ComponentType type, ArchetypeManager archetypeManager, EntityGroupManager groupManager, ComponentTypeInArchetype* componentTypeInArchetypeArray)
         {
             var componentType = new ComponentTypeInArchetype(type);
@@ -648,7 +648,7 @@ namespace UnityEngine.ECS
             int sharedComponentOffset = m_Entities[entity.index].archetype->sharedComponentOffset[indexInTypeArray];
             return sharedComponentValueArray[sharedComponentOffset];
         }
-        
+
         public void SetSharedComponentDataIndex(ArchetypeManager archetypeManager, Entity entity, int typeIndex, int newSharedComponentDataIndex)
         {
             var archetype = GetArchetype(entity);

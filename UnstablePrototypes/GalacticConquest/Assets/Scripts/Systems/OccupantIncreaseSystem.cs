@@ -4,12 +4,12 @@ using UnityEngine.ECS;
 
 namespace Systems
 {
-    [UpdateAfter(typeof(ShipMovementSystem))]
+    [UpdateAfter(typeof(ShipSpawnSystem))]
     public class OccupantIncreaseSystem : ComponentSystem
     {
         private float spawnCounter = 0.0f;
         private float spawnInterval = 0.1f;
-        private int occupantsToSpawn = 1;
+        private int occupantsToSpawn = 100;
 
         struct Planets
         {
@@ -18,7 +18,7 @@ namespace Systems
             public ComponentDataArray<PlanetData> Data;
         }
 
-        [InjectComponentGroup] private Planets _planets;
+        [Inject] private Planets _planets;
         protected override void OnUpdate()
         {
             spawnCounter += Time.deltaTime;

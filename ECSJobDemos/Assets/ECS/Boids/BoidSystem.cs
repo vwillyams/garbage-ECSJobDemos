@@ -18,6 +18,7 @@ namespace UnityEngine.ECS.Boids
     {
         NativeMultiHashMap<int, int> 		 m_Cells;
         NativeArray<int3> 					 m_CellOffsetsTable;
+        NativeArray<float>                   m_Bias;
 
         struct BoidSettingsGroup
         {
@@ -31,7 +32,8 @@ namespace UnityEngine.ECS.Boids
         {
             [ReadOnly] public ComponentDataArray<Boid>                boid; 
             [ReadOnly] public ComponentDataArray<TransformPosition>   positions;
-            public ComponentDataArray<TransformRotation>              rotations;
+            [ReadOnly] public ComponentDataArray<TransformRotation>   rotations;
+            public ComponentDataArray<ForwardRotation>                forwardRotations;
             public int Length;
         }
 
@@ -72,15 +74,17 @@ namespace UnityEngine.ECS.Boids
         [ComputeJobOptimization]
         struct Steer : IJob
         {
-            public ComponentDataArray<TransformRotation>              rotations;
+            public ComponentDataArray<ForwardRotation>                forwardRotations;
             [ReadOnly] public ComponentDataArray<TransformPosition>   positions;
+            [ReadOnly] public ComponentDataArray<TransformRotation>   rotations;
             [ReadOnly] public ComponentDataArray<TransformPosition>   targetPositions;
             [ReadOnly] public ComponentDataArray<TransformPosition>   obstaclePositions;
             [ReadOnly] public ComponentDataArray<BoidObstacle>        obstacles;
             [ReadOnly] public NativeMultiHashMap<int, int>            cells;
             [ReadOnly] public NativeArray<int3> 					  cellOffsetsTable;
-            [ReadOnly] public BoidSettings settings;
-            public float dt;
+            [ReadOnly] public BoidSettings                            settings;
+            [ReadOnly] public NativeArray<float>                      bias;
+            public float                                              dt;
             
             static float3 AvoidObstacle (float3 obstaclePosition, BoidObstacle obstacle, float3 position, float3 steer)
             {
@@ -140,7 +144,7 @@ namespace UnityEngine.ECS.Boids
                     NativeMultiHashMapIterator<int> iterator;
                     bool found = cells.TryGetFirstValue(hash, out i, out iterator);
                     int neighbors = 0;
-                    while (found && neighbors < 2)        // limit neighbors to help initial hiccup due to all boids starting from same point
+                    while (found)
                     {
                         if (i == index)
                         {
@@ -157,8 +161,7 @@ namespace UnityEngine.ECS.Boids
                         // to normalize, divided another time to get 1/d falloff)
                         var offset = otherPosition - (position + forward * 0.5f);
 
-                        // should we have sqrLength?
-                        var distanceSquared = math.dot(offset, offset);
+                        var distanceSquared = math.lengthSquared(offset);
                         separationSteering += (offset / -distanceSquared);
 
                         // accumulate sum of neighbor's heading
@@ -174,9 +177,9 @@ namespace UnityEngine.ECS.Boids
 
             public void Execute()
             {
-                for (int index = 0; index < rotations.Length; index++)
+                for (int index = 0; index < forwardRotations.Length; index++)
                 {
-                    var rotation = rotations[index].rotation;
+                    var forward = math.forward(rotations[index].rotation);
                     var position = positions[index].position;
                     
                     float3 alignmentSteering;
@@ -193,13 +196,10 @@ namespace UnityEngine.ECS.Boids
                     
                     for (int i = 0;i != obstacles.Length;i++)
                         steer = AvoidObstacle (obstaclePositions[i].position, obstacles[i], position, steer);
-
-                    var forward = math_experimental.normalizeSafe(math.forward(rotation) + steer * dt * Mathf.Deg2Rad * settings.rotationalSpeed);
-                    var forwardRotation = math.lookRotationToQuaternion(forward, math.up());
                     
-                    rotations[index] = new TransformRotation
+                    forwardRotations[index] = new ForwardRotation
                     {
-                        rotation = forwardRotation
+                        forward = math_experimental.normalizeSafe(forward + steer * bias[index&1023] * dt * Mathf.Deg2Rad * settings.rotationalSpeed)
                     };
                 }
             }
@@ -229,6 +229,7 @@ namespace UnityEngine.ECS.Boids
 
             var steerJob = new Steer
             {
+                forwardRotations = m_BoidGroup.forwardRotations,
                 positions = m_BoidGroup.positions,
                 rotations = m_BoidGroup.rotations,
                 cells = m_Cells,
@@ -237,6 +238,7 @@ namespace UnityEngine.ECS.Boids
                 targetPositions = m_TargetGroup.positions,
                 obstaclePositions = m_ObstacleGroup.positions,
                 obstacles = m_ObstacleGroup.obstacles,
+                bias = m_Bias,
                 dt = Time.deltaTime
             };
 
@@ -250,6 +252,11 @@ namespace UnityEngine.ECS.Boids
             base.OnCreateManager(capacity);
             m_Cells = new NativeMultiHashMap<int, int>(capacity, Allocator.Persistent);
             m_CellOffsetsTable = new NativeArray<int3>(HashUtility.cellOffsets, Allocator.Persistent);
+            m_Bias = new NativeArray<float>(1024,Allocator.Persistent);
+            for (int i = 0; i < 1024; i++)
+            {
+                m_Bias[i] = Random.Range(0.5f, 1.5f);
+            }
         }
 
         protected override void OnDestroyManager()
@@ -257,6 +264,7 @@ namespace UnityEngine.ECS.Boids
             base.OnDestroyManager();
             m_Cells.Dispose ();
             m_CellOffsetsTable.Dispose();
+            m_Bias.Dispose();
         }
 
     }

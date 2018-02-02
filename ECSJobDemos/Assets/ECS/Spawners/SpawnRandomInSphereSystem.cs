@@ -79,31 +79,19 @@ namespace ECS.Spawners
                 var entities = new NativeArray<Entity>(count,Allocator.Temp);
                 var prefab = spawner.prefab;
                 float radius = spawner.radius;
-                float radiusSquared = radius*radius;
                 var spawnPositions = new NativeArray<float3>(count, Allocator.Temp);
                 float3 center = spawnInstances[spawnIndex].position;
                 var sourceEntity = spawnInstances[spawnIndex].sourceEntity;
                 
-                var spawnPositionsFound = 0;
-                while (spawnPositionsFound < count)
-                {
-                    float x = Random.Range(-radius, radius);
-                    float y = Random.Range(-radius, radius);
-                    float z = Random.Range(-radius, radius);
-                    if (((x * x) + (y * y) + (z * z)) < radiusSquared)
-                    {
-                        spawnPositions[spawnPositionsFound] = new float3(x,y,z);
-                        spawnPositionsFound++;
-                    }
-                }
-
+                MathUtility.RandomPointsInSphere(center,radius,ref spawnPositions);
+                
                 EntityManager.Instantiate(prefab, entities);
                 
                 for (int i = 0; i < count; i++)
                 {
                     var position = new TransformPosition
                     {
-                        position = center + spawnPositions[i]
+                        position = spawnPositions[i]
                     };
                     EntityManager.SetComponent(entities[i],position);
                 }

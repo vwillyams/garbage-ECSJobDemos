@@ -11,7 +11,7 @@
 
 ## New Features
 * Burst Compiler Preview
-    * Used to compile an C# jobs, simply put  [ComputeCompiler] on each job 
+    * Used to compile an C# jobs, simply put  [ComputeJobOptimization] on each job 
     * Editor only for now, it is primarily meant to give you an idea of the performance you can expect when we ship the full AOT burst compiler
     * Compiles asynchronously, once compilation of the job completes. The runtime switches to using the burst compiled code.
 * EntityTransaction API added to allow for creating entities from a job

@@ -188,15 +188,18 @@ namespace UnityEngine.ECS.Boids
                     CalculateSeparationAndAlignment(index, out alignmentSteering, out separationSteering);
 
                     var targetSteering = CalculateNormalizedTargetDirection(index);
+                    
+                    var obstacleSteering = forward;
+                    for (int i = 0;i != obstacles.Length;i++)
+                        obstacleSteering = AvoidObstacle (obstaclePositions[i].position, obstacles[i], position, obstacleSteering);
 
                     var steer = (alignmentSteering * settings.alignmentWeight) +
                                 (separationSteering * settings.separationWeight) +
-                                (targetSteering * settings.targetWeight);
+                                (targetSteering * settings.targetWeight) +
+                                (obstacleSteering * 1.0f);
+                    
                     math_experimental.normalizeSafe(steer);
-                    
-                    for (int i = 0;i != obstacles.Length;i++)
-                        steer = AvoidObstacle (obstaclePositions[i].position, obstacles[i], position, steer);
-                    
+
                     forwardRotations[index] = new ForwardRotation
                     {
                         forward = math_experimental.normalizeSafe(forward + steer * bias[index&1023] * dt * Mathf.Deg2Rad * settings.rotationalSpeed)

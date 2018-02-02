@@ -11,10 +11,9 @@ namespace UnityEngine.ECS.Transform
     {
         struct WorldTransGroup
         {
-            [ReadOnly]
-            public ComponentDataArray<TransformPosition> positions;
             public ComponentDataArray<TransformMatrix> matrices;
-            public SubtractiveComponent<TransformRotation> rotations;
+            [ReadOnly] public ComponentDataArray<TransformPosition> positions;
+            [ReadOnly] public SubtractiveComponent<TransformRotation> rotations;
             public int Length;
         }
         
@@ -22,10 +21,9 @@ namespace UnityEngine.ECS.Transform
         
         struct WorldRotTransGroup
         {
-            [ReadOnly]
-            public ComponentDataArray<TransformPosition> positions;
             public ComponentDataArray<TransformMatrix> matrices;
-            public ComponentDataArray<TransformRotation> rotations;
+            [ReadOnly] public ComponentDataArray<TransformPosition> positions;
+            [ReadOnly] public ComponentDataArray<TransformRotation> rotations;
             public int Length;
         }
         
@@ -34,8 +32,7 @@ namespace UnityEngine.ECS.Transform
         [ComputeJobOptimization]
         struct WorldTransToMatrix : IJobParallelFor
         {
-            [ReadOnly]
-            public ComponentDataArray<TransformPosition> positions;
+            [ReadOnly] public ComponentDataArray<TransformPosition> positions;
             public ComponentDataArray<TransformMatrix> matrices;
         
             public void Execute(int i)
@@ -51,10 +48,8 @@ namespace UnityEngine.ECS.Transform
         [ComputeJobOptimization]
         struct WorldRotTransToMatrix : IJobParallelFor
         {
-            [ReadOnly]
-            public ComponentDataArray<TransformPosition> positions;
-            [ReadOnly]
-            public ComponentDataArray<TransformRotation> rotations;
+            [ReadOnly] public ComponentDataArray<TransformPosition> positions;
+            [ReadOnly] public ComponentDataArray<TransformRotation> rotations;
             public ComponentDataArray<TransformMatrix> matrices;
         
             public void Execute(int i)

@@ -6,9 +6,7 @@ using UnityEngine.ECS;
 
 namespace UnityEngine.ECS.SimpleRotation
 {
-    public struct RandomForwardRotationOnce : IComponentData
-    {
-    }
+    public struct RandomForwardRotationOnce : IComponentData { }
 
     public class RandomForwardRotationOnceComponent : ComponentDataWrapper<RandomForwardRotationOnce> { } 
 }

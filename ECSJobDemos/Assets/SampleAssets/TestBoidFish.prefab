@@ -26,7 +26,9 @@ GameObject:
   - component: {fileID: 114080190520665040}
   - component: {fileID: 114098415011594710}
   - component: {fileID: 114878148870236606}
-  - component: {fileID: 114134564653065468}
+  - component: {fileID: 114017445485928864}
+  - component: {fileID: 114577371648038814}
+  - component: {fileID: 114775137796125996}
   m_Layer: 0
   m_Name: TestBoidFish
   m_TagString: Untagged
@@ -47,6 +49,22 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &114017445485928864
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1501737747371270}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 206d9b88d9fd4c4c9e5a1a976224e421, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SerializedData:
+    forward:
+      x: 0
+      y: 0
+      z: 1
 --- !u!114 &114080190520665040
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -74,17 +92,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86ca4290c6b3473e913676ba4860db32, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &114134564653065468
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1501737747371270}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bff616740c8144f7b1e8ebad7fe8ed58, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &114569172725802478
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -94,6 +101,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5bf10cdea1344482e91a4f2b58506b77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &114577371648038814
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1501737747371270}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a3df74967fd46d88513d53354d812b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &114640073232692476
@@ -116,6 +134,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2327f3002fc94f2b91d287c740439550, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &114775137796125996
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1501737747371270}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bff616740c8144f7b1e8ebad7fe8ed58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &114846138717908042

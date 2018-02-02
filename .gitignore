@@ -39,3 +39,5 @@ UnstablePrototypes/GalacticConquest/.editorconfig
 *.userprefs
 *.app
 *.VC.*
+
+.vs/

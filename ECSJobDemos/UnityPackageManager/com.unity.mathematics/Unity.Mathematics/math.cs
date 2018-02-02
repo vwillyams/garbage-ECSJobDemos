@@ -287,6 +287,12 @@ namespace Unity.Mathematics
         public static float length(float2 v) { return sqrt(dot(v, v)); }
         public static float length(float3 v) { return sqrt(dot(v, v)); }
         public static float length(float4 v) { return sqrt(dot(v, v)); }
+        
+        // length squared
+        public static float lengthSquared(float v) { return v*v; }
+        public static float lengthSquared(float2 v) { return dot(v, v); }
+        public static float lengthSquared(float3 v) { return dot(v, v); }
+        public static float lengthSquared(float4 v) { return dot(v, v); }
 
         // distance
         public static float distance(float pt1, float pt2) { return length(pt2 - pt1); }

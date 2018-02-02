@@ -212,6 +212,11 @@ namespace UnityEngine.ECS
             DestroyEntityInternal((Entity*)entities.GetUnsafeReadOnlyPtr(), entities.Length);
         }
 
+        public void DestroyEntity(NativeSlice<Entity> entities)
+        {
+            DestroyEntityInternal((Entity*)entities.GetUnsafeReadOnlyPtr(), entities.Length);
+        }
+
         public void DestroyEntity(Entity entity)
         {
             DestroyEntityInternal(&entity, 1);

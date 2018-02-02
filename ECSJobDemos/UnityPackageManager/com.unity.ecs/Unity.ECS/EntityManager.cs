@@ -359,6 +359,16 @@ namespace UnityEngine.ECS
             UnsafeUtility.CopyStructureToPtr (ref componentData, ptr);
         }
 
+        internal void SetComponentRaw(Entity entity, int typeIndex, void* data, int size)
+        {
+            m_Entities->AssertEntityHasComponent(entity, typeIndex);
+
+            m_JobSafetyManager.CompleteReadAndWriteDependency(typeIndex);
+
+            byte* ptr = m_Entities->GetComponentDataWithType (entity, typeIndex);
+            UnsafeUtility.MemCpy(ptr, data, size);
+        }
+
         internal void SetComponentObject(Entity entity, ComponentType componentType, object componentObject)
         {
             m_Entities->AssertEntityHasComponent(entity, componentType.typeIndex);

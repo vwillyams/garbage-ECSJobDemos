@@ -1,25 +1,27 @@
+# index
+
 ![Unity](https://unity3d.com/files/images/ogimg.jpg?1)
 # ECS Easily Explained
 
 * [Introduction](content/introduction.md)
-    * [Naming Conventions](content/concepts.md)
-    * [ECS Principles](content/principles.md)
-* [How ECS Works](https://hackmd.io/JwExCZgFgMwNgLQAYl3AqcAcUECMRhgEBjGLAdiwFY4wpwkg?edit)
-* [Is ECS For You?](https://hackmd.io/KwJgLMBmCmDGsFpbAGwE4FgOwAYNrDA2B1gCMsBDaMWSMADiA?edit)
-* [ECS Features in Detail](https://hackmd.io/IwFgbAnArGBGCmBaEsAcAmZ720aghqiIsLAGYDGFIADGGRmUA===)
-* [ECS and Asset Store Compatibility]()
+    * [Naming Conventions](content/ecs_concepts.md)
+    * [ECS Principles](content/ecs_principles_and_vision.md)
+* [How ECS Works](how_ecs_works.md)
+* [Is ECS For You?](is_ecs_for_you.md)
+* [ECS Features in Detail](contents/ecs_in_detail.md)
+* [ECS and Asset Store Compatibility]
 
 # Job System Overview
 
-* [How the Job System Works](https://hackmd.io/JwUwrAzCCMDGBmBaeAWEtEoAwgEyICMwAOaZEgNjGmFywBMDig==)
-* [Low Level Overview - Creating Containers & Custom Job Types](https://hackmd.io/MYQwpgnALAbARgBgLRQMwA4AmKqKRYYAdiQDMpg5UxUR1SYYg===)
-* [How to Optimize for the Burst Compiler](https://hackmd.io/GYDgDAnBwKYIwFoAmBWAbCBAWYEBMCAhoQEYnYRpYRl5gpxxA===)
+* [How the Job System Works](content/job_system.md)
+* [Low Level Overview - Creating Containers & Custom Job Types](content/custom_job_types.md)
+* [How to Optimize for the Burst Compiler](content/burst_optimization.md)
 
 # Tutorials
 
-* [Tutorial Walk Through #1: MonoBehaviour vs Hybrid ECS](https://hackmd.io/KwBgLA7AzMCGsFowCNYE4kCYDGEHIFMCAOBNTKNKY2YTHWIA=?edit)
-* [Tutorial Walk Through #2: MonoBehaviour vs Pure ECS](https://hackmd.io/EYRgzApghgnArHAtDYA2A7IgLADgEyqI5TABmiYAxgCZSoQ5xakR5A==)
-* [Tutorial Walk Through #3: Two-Stick Shooter in ECS](https://hackmd.io/GzAsGNQRgUwMwLQwJwHZwNAIzgDgVgMxbIK4wAMU1c4hFcMQA===?both#Post-3-Enemies)
+* [Tutorial Walk Through #1: MonoBehaviour vs Hybrid ECS](content/tutorial_1.md)
+* [Tutorial Walk Through #2: MonoBehaviour vs Pure ECS](content/tutorial_2.md)
+* [Tutorial Walk Through #3: Two-Stick Shooter in ECS](content/tutorial_3.md)
 
 # Further Information
 

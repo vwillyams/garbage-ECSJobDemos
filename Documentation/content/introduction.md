@@ -1,4 +1,4 @@
-# Introduction
+# introduction
 
 The aim of this document is to introduce the ECS paradigm, how it has been implemented within Unity, and how you can take advantage of it to improve your game.
 

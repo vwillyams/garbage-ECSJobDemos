@@ -1,4 +1,4 @@
-# ECS Principles & Vision
+# ecs_principles_and_vision
 
 ## Performance by Default
 We want to make it simple to create efficient machine code for all platforms.

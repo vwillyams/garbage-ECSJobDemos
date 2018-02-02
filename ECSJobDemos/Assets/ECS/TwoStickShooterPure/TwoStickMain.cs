@@ -8,7 +8,7 @@ using UnityEngine.Experimental.LowLevel;
 using UnityEngine.PostProcessing;
 using UnityEngine.SceneManagement;
 
-namespace TwoStickExample
+namespace TwoStickPureExample
 {
     public sealed class TwoStickBootstrap
     {

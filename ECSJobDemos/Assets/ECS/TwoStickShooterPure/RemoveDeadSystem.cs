@@ -1,7 +1,7 @@
 ﻿using Unity.Collections;
 using UnityEngine.ECS;
 
-namespace TwoStickExample
+namespace TwoStickPureExample
 {
     /// <summary>
     /// This system deletes entities that have a Health component with a value less than or equal to zero.

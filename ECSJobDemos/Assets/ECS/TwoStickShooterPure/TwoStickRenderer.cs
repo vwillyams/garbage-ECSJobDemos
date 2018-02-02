@@ -11,7 +11,7 @@ using Unity.Mathematics;
 using UnityEngine.ECS.Transform;
 using UnityEngine.XR.WSA;
 
-namespace TwoStickExample
+namespace TwoStickPureExample
 {
     public class TwoStickRenderer : JobComponentSystem
     {

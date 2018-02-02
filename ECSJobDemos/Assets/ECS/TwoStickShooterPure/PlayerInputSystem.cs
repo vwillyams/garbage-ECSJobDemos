@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.ECS;
 
-namespace TwoStickExample
+namespace TwoStickPureExample
 {
     public class PlayerInputSystem : ComponentSystem
     {

@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.ECS;
 using UnityEngine.XR.WSA;
 
-namespace TwoStickExample
+namespace TwoStickPureExample
 {
     public class PlayerMoveSystem : ComponentSystem
     {

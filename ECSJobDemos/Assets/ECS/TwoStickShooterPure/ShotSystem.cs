@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.ECS;
 using UnityEngine.ECS.Transform;
 
-namespace TwoStickExample
+namespace TwoStickPureExample
 {
     public class ShotMoveSystem : JobComponentSystem
     {

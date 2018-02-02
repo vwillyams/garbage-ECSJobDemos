@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace TwoStickExample
+namespace TwoStickPureExample
 {
     public class TwoStickExampleSettings : MonoBehaviour
     {

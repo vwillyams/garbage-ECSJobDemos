@@ -6,7 +6,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.ECS;
 
-namespace TwoStickExample
+namespace TwoStickPureExample
 {
     // Spawns new enemies.
     public class EnemySpawnSystem : ComponentSystem

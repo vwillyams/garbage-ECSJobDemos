@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.ECS;
 
-namespace TwoStickExample
+namespace TwoStickPureExample
 {
     public struct Transform2D : IComponentData
     {

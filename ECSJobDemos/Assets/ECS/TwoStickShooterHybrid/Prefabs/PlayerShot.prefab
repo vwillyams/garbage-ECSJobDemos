@@ -20,12 +20,13 @@ GameObject:
   m_Component:
   - component: {fileID: 4266238771419476}
   - component: {fileID: 114870753745506052}
-  - component: {fileID: 23684661922704394}
-  - component: {fileID: 33794215263230426}
   - component: {fileID: 114503810983687088}
   - component: {fileID: 114058845182533826}
+  - component: {fileID: 23057318642185614}
+  - component: {fileID: 33803616345066654}
+  - component: {fileID: 114929982146115148}
   m_Layer: 0
-  m_Name: Shot
+  m_Name: PlayerShot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -44,7 +45,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!23 &23684661922704394
+--- !u!23 &23057318642185614
 MeshRenderer:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -79,7 +80,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!33 &33794215263230426
+--- !u!33 &33803616345066654
 MeshFilter:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -114,8 +115,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8df1b9f249b2540389714970d37eab7c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Speed: 0
-  TimeToLive: 0
+  Speed: 1
+  TimeToLive: 2
+  Energy: 1
+  Faction: {fileID: 114689111833512416, guid: 67bd73ba4d05e4d06a1a3593252f1ad2, type: 2}
 --- !u!114 &114870753745506052
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -127,3 +130,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5bf10cdea1344482e91a4f2b58506b77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &114929982146115148
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1440049258192928}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da01f766603a8446db5ea4a25c3997d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Value: 1

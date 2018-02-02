@@ -5,8 +5,5 @@ using UnityEngine.ECS;
 namespace TwoStickHybridExample
 {
 
-    public class Enemy : MonoBehaviour
-    {
-        [HideInInspector] public int Health;
-    }
+    public class Enemy : MonoBehaviour {} // Pure marker type
 }

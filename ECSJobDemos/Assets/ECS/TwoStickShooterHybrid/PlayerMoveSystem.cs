@@ -41,23 +41,23 @@ namespace TwoStickHybridExample
 
                 if (playerInput.Fire)
                 {
-                    firingPlayers.Add(xform);
+                    xform.Heading = math.normalize(playerInput.Shoot);
                     playerInput.FireCooldown = settings.playerFireCoolDown;
+                    
+                    firingPlayers.Add(xform);
                 }
             }
 
             foreach (var xform in firingPlayers)
             {
-                var playerInput = xform.GetComponent<PlayerInput>();
-                xform.Heading = math.normalize(playerInput.Shoot);
-                    
-                var newShot = Object.Instantiate(settings.ShotPrefab);
-                newShot.Speed = settings.bulletMoveSpeed;
-                newShot.TimeToLive = settings.bulletTimeToLive;
-                    
-                var shotXform = newShot.GetComponent<Transform2D>();
-                shotXform.Position = xform.Position;
-                shotXform.Heading = xform.Heading;
+                var newShotData = new ShotSpawnData()
+                {
+                    Position = xform.Position,
+                    Heading = xform.Heading,
+                    Faction = xform.GetComponent<Faction>()
+                };
+                
+                ShotSpawnSystem.SpawnShot(newShotData);
             }
         }
     }

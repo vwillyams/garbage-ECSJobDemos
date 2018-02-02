@@ -38,11 +38,9 @@ namespace TwoStickHybridExample
                 var settings = TwoStickBootstrap.Settings;
                 var enemy = Object.Instantiate(settings.EnemyPrefab);
                 //@TODO set transform
-                enemy.Health = 1;
-                ComputeSpawnLocation(enemy.GetComponent<Transform2D>());
+                ComputeSpawnLocation(enemy);
                 state.SpawnedEnemyCount++;
                 state.Cooldown = ComputeCooldown(state.SpawnedEnemyCount);
-                Debug.Log($"Spawned an enemy, count so far: {state.SpawnedEnemyCount}");
             }
 
             state.RandomState = Random.state;
@@ -52,17 +50,19 @@ namespace TwoStickHybridExample
 
         private float ComputeCooldown(int stateSpawnedEnemyCount)
         {
-            return 0.75f;
+            return 0.15f;
         }
 
         private void ComputeSpawnLocation(Transform2D xform)
         {
+            var settings = TwoStickBootstrap.Settings;
+            
             float r = Random.value;
-            const float x0 = -50.0f;
-            const float x1 = 50.0f;
+            float x0 = settings.playfield.xMin;
+            float x1 = settings.playfield.xMax;
             float x = x0 + (x1 - x0) * r;
 
-            xform.Position = new float2(x, 5);
+            xform.Position = new float2(x, settings.playfield.yMax);
             xform.Heading = new float2(0, 1);
         }
     }
@@ -71,7 +71,8 @@ namespace TwoStickHybridExample
     {
         struct Data
         {
-            public Enemy Enemy;
+            public Enemy Tag;
+            public Health Health;
             public Transform2D Transform2D;
         }
 
@@ -79,44 +80,82 @@ namespace TwoStickHybridExample
         {
             if (!TwoStickBootstrap.Settings)
                 return;
-            var speed = TwoStickBootstrap.Settings.enemySpeed;
-            var maxY = 10.0f; // TODO: Represent bounds somewhere
+            var settings = TwoStickBootstrap.Settings;
+            var speed = settings.enemySpeed;
+            var minY = settings.playfield.yMin;
+            var maxY = settings.playfield.yMax;
 
             foreach (var entity in GetEntities<Data>())
             {
                 var xform = entity.Transform2D;
                 xform.Position.y -= speed;
 
-                if (xform.Position.y > maxY || xform.Position.y < -maxY)
+                if (xform.Position.y > maxY || xform.Position.y < minY)
                 {
-                    entity.Enemy.Health = -1;
+                    entity.Health.Value = -1;
                 }
             }
         }
     }
-
-    public class EnemyDestroySystem : ComponentSystem
+    
+    public class EnemyShootSystem : ComponentSystem
     {
         public struct Data
         {
-            [ReadOnly] public Enemy Enemy;
+            public int Length;
+            public ComponentArray<Transform2D> Transform2D;
+            public ComponentArray<EnemyShootState> ShootState;
         }
+
+        [Inject] private Data m_Data;
+
+        public struct PlayerData
+        {
+            public int Length;
+            public ComponentArray<Transform2D> Transform2D;
+            public ComponentArray<PlayerInput> PlayerInput;
+        }
+
+        [Inject] private PlayerData m_Player;
 
         protected override void OnUpdate()
         {
-            var toDestroy = new List<GameObject>();
-            foreach (var entity in GetEntities<Data>())
+            if (m_Data.Length == 0 || m_Player.Length == 0)
+                return;
+
+            var playerPos = m_Player.Transform2D[0].Position;
+
+            var shotSpawnData = new List<ShotSpawnData>();
+
+            float dt = Time.deltaTime;
+            float shootRate = TwoStickBootstrap.Settings.enemyShootRate;
+
+            for (int i = 0; i < m_Data.Length; ++i)
             {
-                if (entity.Enemy.Health <= 0)
+                var state = m_Data.ShootState[i];
+
+                state.Cooldown -= dt;
+                if (state.Cooldown <= 0.0)
                 {
-                    toDestroy.Add(entity.Enemy.gameObject);
+                    state.Cooldown = shootRate;
+                    var position = m_Data.Transform2D[i].Position;
+
+                    ShotSpawnData spawn = new ShotSpawnData()
+                    {
+                        Position = position,
+                        Heading = math.normalize(playerPos - position),
+                        Faction = TwoStickBootstrap.Settings.EnemyFaction
+                    };
+                    shotSpawnData.Add(spawn);
                 }
             }
 
-            foreach (var go in toDestroy)
+            // TODO: Batch
+            foreach (var spawn in shotSpawnData)
             {
-                Object.Destroy(go);
+                ShotSpawnSystem.SpawnShot(spawn);
             }
         }
     }
+
 }

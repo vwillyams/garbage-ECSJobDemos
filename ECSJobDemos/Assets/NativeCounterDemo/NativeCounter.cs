@@ -17,6 +17,7 @@ unsafe public struct NativeCounter
     AtomicSafetyHandle m_Safety;
     // The dispose sentinel tracks memory leaks. It is a managed type so it is cleared to null when scheduling a job
     // The job cannot dispose the container, and no one else can dispose it until the job has run so it is ok to not pass it along
+    // This attribute is required, without it this native container cannot be passed to a job since that would give the job access to a managed object
     [NativeSetClassTypeToNullOnSchedule]
     DisposeSentinel m_DisposeSentinel;
 #endif
@@ -24,7 +25,7 @@ unsafe public struct NativeCounter
     // Keep track of where the memory for this was allocated
     Allocator m_AllocatorLabel;
 
-    public unsafe NativeCounter(Allocator label)
+    public NativeCounter(Allocator label)
     {
         // This check is redundant since we always use an int which is blittable.
         // It is here as an example of how to check for type correctness for generic types.
@@ -45,7 +46,7 @@ unsafe public struct NativeCounter
         Count = 0;
     }
 
-    unsafe public void Increment()
+    public void Increment()
     {
         // Verify that the caller has write permission on this data.
         // This is the race condition protection, without these checks the AtomicSafetyHandle is useless
@@ -55,7 +56,7 @@ unsafe public struct NativeCounter
         (*m_Counter)++;
     }
 
-    unsafe public int Count
+    public int Count
     {
         get
         {
@@ -107,7 +108,7 @@ unsafe public struct NativeCounter
     #endif
 
         // This is what makes it possible to assign to NativeCounter.Concurrent from NativeCounter
-        unsafe public static implicit operator NativeCounter.Concurrent (NativeCounter cnt)
+        public static implicit operator NativeCounter.Concurrent (NativeCounter cnt)
         {
             NativeCounter.Concurrent concurrent;
     #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -120,7 +121,7 @@ unsafe public struct NativeCounter
             return concurrent;
         }
 
-        unsafe public void Increment()
+        public void Increment()
         {
             // Increment still needs to check for write permissions
     #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -144,6 +145,7 @@ unsafe public struct NativePerThreadCounter
     AtomicSafetyHandle m_Safety;
     // The dispose sentinel tracks memory leaks. It is a managed type so it is cleared to null when scheduling a job
     // The job cannot dispose the container, and no one else can dispose it until the job has run so it is ok to not pass it along
+    // This attribute is required, without it this native container cannot be passed to a job since that would give the job access to a managed object
     [NativeSetClassTypeToNullOnSchedule]
     DisposeSentinel m_DisposeSentinel;
 #endif
@@ -153,7 +155,7 @@ unsafe public struct NativePerThreadCounter
 
     public const int IntsPerCacheLine = JobsUtility.CacheLineSize / sizeof(int);
 
-    public unsafe NativePerThreadCounter(Allocator label)
+    public NativePerThreadCounter(Allocator label)
     {
         // This check is redundant since we always use an int which is blittable.
         // It is here as an example of how to check for type correctness for generic types.
@@ -174,7 +176,7 @@ unsafe public struct NativePerThreadCounter
         Count = 0;
     }
 
-    unsafe public void Increment()
+    public void Increment()
     {
         // Verify that the caller has write permission on this data.
         // This is the race condition protection, without these checks the AtomicSafetyHandle is useless
@@ -184,7 +186,7 @@ unsafe public struct NativePerThreadCounter
         (*m_Counter)++;
     }
 
-    unsafe public int Count
+    public int Count
     {
         get
         {
@@ -245,7 +247,7 @@ unsafe public struct NativePerThreadCounter
         // The current worker thread index, it must use this exact name since it is injected
         int m_ThreadIndex;
 
-        unsafe public static implicit operator NativePerThreadCounter.Concurrent (NativePerThreadCounter cnt)
+        public static implicit operator NativePerThreadCounter.Concurrent (NativePerThreadCounter cnt)
         {
             NativePerThreadCounter.Concurrent concurrent;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -259,7 +261,7 @@ unsafe public struct NativePerThreadCounter
             return concurrent;
         }
 
-        unsafe public void Increment()
+        public void Increment()
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);

@@ -14,7 +14,7 @@ using Object = UnityEngine.Object;
 
 namespace Systems
 {
-    [UpdateBefore(typeof(DeferredEntityChangeSystem))]
+    [UpdateAfter(typeof(ShipArrivalSystem))]
     public class ShipMovementSystem : JobComponentSystem
     {
         public ShipMovementSystem()
@@ -98,7 +98,7 @@ namespace Systems
                 AddShipArrivedTagDeferred = AddShipArrivedTagDeferred.GetAddComponentQueue<ShipArrivedTag>()
             };
 
-            return job.Schedule(_ships.Length, 128, inputDeps);
+            return job.Schedule(_ships.Length, 32, inputDeps);
         }
     }
 }

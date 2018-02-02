@@ -3,11 +3,12 @@ using Data;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.ECS;
+using UnityEngine.ECS.Rendering;
 using UnityEngine.Jobs;
 
 namespace Systems
 {
-    [UpdateAfter(typeof(DeferredEntityChangeSystem))]
+    [UpdateAfter(typeof(InstanceRendererSystem))]
     public class ShipArrivalSystem : ComponentSystem
     {
         private EntityManager _entityManager;

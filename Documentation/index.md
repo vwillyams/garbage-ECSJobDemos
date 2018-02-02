@@ -6,9 +6,9 @@
 * [Introduction](content/introduction.md)
     * [Naming Conventions](content/ecs_concepts.md)
     * [ECS Principles](content/ecs_principles_and_vision.md)
-* [How ECS Works](how_ecs_works.md)
-* [Is ECS For You?](is_ecs_for_you.md)
-* [ECS Features in Detail](contents/ecs_in_detail.md)
+* [How ECS Works](content/how_ecs_works.md)
+* [Is ECS For You?](content/is_ecs_for_you.md)
+* [ECS Features in Detail](content/ecs_in_detail.md)
 * [ECS and Asset Store Compatibility]
 
 # Job System Overview

@@ -4,7 +4,7 @@ using UnityEngine.UI;
 using System;
 using Unity.Collections;
 
-namespace TwoStickExample
+namespace TwoStickPureExample
 {
     public class UpdatePlayerHUD : ComponentSystem
     {

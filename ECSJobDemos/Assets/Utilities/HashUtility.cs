@@ -27,16 +27,19 @@ struct HashUtility
 
 	public static int Hash(int3 grid)
 	{
-		// Simple int3 hash based on a pseudo mix of :
-		// 1) https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
-		// 2) https://en.wikipedia.org/wiki/Jenkins_hash_function
-		int hash = grid.x;
-		hash = (hash * 397) ^ grid.y;
-		hash = (hash * 397) ^ grid.z;
-		hash += hash << 3;
-		hash ^= hash >> 11;
-		hash += hash << 15;
-		return hash;
+	    unchecked
+	    {
+	        // Simple int3 hash based on a pseudo mix of :
+	        // 1) https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
+	        // 2) https://en.wikipedia.org/wiki/Jenkins_hash_function
+	        int hash = grid.x;
+	        hash = (hash * 397) ^ grid.y;
+	        hash = (hash * 397) ^ grid.z;
+	        hash += hash << 3;
+	        hash ^= hash >> 11;
+	        hash += hash << 15;
+	        return hash;
+	    }
 	}
 
 	public static ulong Hash(ulong hash, ulong key)

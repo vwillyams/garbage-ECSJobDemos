@@ -1,0 +1,50 @@
+﻿using Unity.Collections;
+using Unity.Jobs;
+using UnityEngine.Jobs;
+
+namespace UnityEngine.ECS.Transform
+{
+    public class CopyInitialTransformPositionFromGameObjectSystem : JobComponentSystem
+    {
+        struct InitialTransformGroup
+        {
+            [ReadOnly] public ComponentDataArray<CopyInitialTransformPositionFromGameObject> copyInitialTransformFromGameObjects;
+            public TransformAccessArray transforms;
+            public ComponentDataArray<TransformPosition> transformPositions;
+            public EntityArray entities;
+        }
+
+        [Inject] private InitialTransformGroup m_InitialTransformGroup;
+        [Inject] private DeferredEntityChangeSystem m_DeferredEntityChangeSystem;
+            
+        // [ComputeJobOptimization]
+        struct CopyInitialTransformPositions : IJobParallelForTransform
+        {
+            public ComponentDataArray<TransformPosition> positions;
+            public EntityArray entities;
+            public NativeQueue<Entity>.Concurrent removeComponentQueue;
+
+            public void Execute(int i, TransformAccess transform)
+            {
+                positions[i] = new TransformPosition
+                {
+                    position = transform.position
+                };
+                removeComponentQueue.Enqueue(entities[i]);
+            }
+        }
+
+        protected override JobHandle OnUpdate(JobHandle inputDeps)
+        {
+            var CopyInitialTransformPositionsJob = new CopyInitialTransformPositions
+            {
+                positions = m_InitialTransformGroup.transformPositions,
+                entities = m_InitialTransformGroup.entities,
+                removeComponentQueue = m_DeferredEntityChangeSystem
+                    .GetRemoveComponentQueue<CopyInitialTransformPositionFromGameObject>()
+            };
+
+            return CopyInitialTransformPositionsJob.Schedule(m_InitialTransformGroup.transforms, inputDeps);
+        }
+    }
+}

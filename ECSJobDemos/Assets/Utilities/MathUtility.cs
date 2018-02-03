@@ -20,7 +20,7 @@ public class MathUtility
             };
             if (math.lengthSquared(p) < radiusSquared)
             {
-                points[pointsFound] = p;
+                points[pointsFound] = center + p;
                 pointsFound++;
             }
         }
@@ -32,7 +32,7 @@ public class MathUtility
         for (int i = 0; i < count; i++)
         {
             float angle = Random.Range(0.0f, Mathf.PI * 2.0f);
-            points[i] = new float3
+            points[i] = center + new float3
             {
                 x = math.sin(angle) * radius,
                 y = 0,

@@ -98,11 +98,21 @@ namespace TwoStickPureExample
 
         [Inject] private Data m_Data;
 
+        private struct PlayerCheck
+        {
+            public int Length;
+            [ReadOnly] public ComponentDataArray<PlayerInput> PlayerInput;
+        }
+
+        [Inject] private PlayerCheck m_PlayerCheck;
+
         protected override void OnUpdate()
         {
             // Handle common no-op case.
             if (m_Data.Length == 0)
                 return;
+
+            bool playerDead = m_PlayerCheck.Length == 0;
 
             int removeCount = 0;
             var entitiesToRemove = new NativeArray<Entity>(m_Data.Length, Allocator.Temp);
@@ -113,7 +123,7 @@ namespace TwoStickPureExample
             {
                 Shot s = m_Data.Shot[i];
                 s.TimeToLive -= dt;
-                if (s.TimeToLive <= 0.0f)
+                if (s.TimeToLive <= 0.0f || playerDead)
                 {
                     entitiesToRemove[removeCount++] = m_Data.Entities[i];
                 }

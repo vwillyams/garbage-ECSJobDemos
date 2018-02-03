@@ -44,7 +44,7 @@ namespace UnityEngine.ECS
             World.Active = world;
             m_CreatedWorld = world;
 
-            PlayerLoopManager.RegisterDomainUnload (DomainUnloadShutdown);
+            PlayerLoopManager.RegisterDomainUnload (DomainUnloadShutdown, 10000);
 
             foreach (var ass in AppDomain.CurrentDomain.GetAssemblies())
             {

@@ -89,43 +89,4 @@ namespace TwoStickPureExample
             return faction == Faction.kPlayer ? settings.playerCollisionRadius : settings.enemyCollisionRadius;
         }
     }
-
-    public class UpdatePlayerHUD : ComponentSystem
-    {
-        public struct PlayerData
-        {
-            public int Length;
-            [ReadOnly] public EntityArray Entity;
-            [ReadOnly] public ComponentDataArray<PlayerInput> Input;
-            [ReadOnly] public ComponentDataArray<Health> Health;
-        }
-
-        [Inject] PlayerData m_Players;
-
-        private int m_CachedValue = Int32.MinValue;
-
-        protected override void OnUpdate()
-        {
-            int displayedHealth = 0;
-
-            if (m_Players.Length > 0)
-            {
-                displayedHealth = (int)m_Players.Health[0].Value;
-            }
-
-            if (m_CachedValue != displayedHealth)
-            {
-                Text t = GameObject.Find("HealthText")?.GetComponent<Text>();
-                if (t != null)
-                {
-                    if (displayedHealth > 0)
-                        t.text = $"HEALTH: {displayedHealth}";
-                    else
-                        t.text = "GAME OVER";
-                }
-
-                m_CachedValue = displayedHealth;
-            }
-        }
-    }
 }

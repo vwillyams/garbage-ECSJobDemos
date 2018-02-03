@@ -159,7 +159,7 @@ namespace UnityEngine.ECS.Boids
                         // add in steering contribution
                         // (opposite of the offset direction, divided once by distance
                         // to normalize, divided another time to get 1/d falloff)
-                        var offset = otherPosition - (position + forward * 0.5f);
+                        var offset = otherPosition - (position + forward * bias[index&1023] );
 
                         var distanceSquared = math.lengthSquared(offset);
                         separationSteering += (offset / -distanceSquared);
@@ -202,7 +202,7 @@ namespace UnityEngine.ECS.Boids
 
                     forwardRotations[index] = new ForwardRotation
                     {
-                        forward = math_experimental.normalizeSafe(forward + steer * bias[index&1023] * dt * Mathf.Deg2Rad * settings.rotationalSpeed)
+                        forward = math_experimental.normalizeSafe(forward + steer * 2.0f * bias[index&1023] * dt * Mathf.Deg2Rad * settings.rotationalSpeed)
                     };
                 }
             }
@@ -258,7 +258,7 @@ namespace UnityEngine.ECS.Boids
             m_Bias = new NativeArray<float>(1024,Allocator.Persistent);
             for (int i = 0; i < 1024; i++)
             {
-                m_Bias[i] = Random.Range(0.5f, 1.5f);
+                m_Bias[i] = Random.Range(0.5f, 0.6f);
             }
         }
 

@@ -44,8 +44,14 @@ namespace TwoStickPureExample
 
         private void UpdateDead()
         {
-            HealthText.gameObject.SetActive(false);
-            NewGameButton.gameObject.SetActive(true);
+            if (HealthText != null)
+            {
+                HealthText.gameObject.SetActive(false);
+            }
+            if (NewGameButton != null)
+            {
+                NewGameButton.gameObject.SetActive(true);
+            }
         }
 
         private void UpdateAlive()

@@ -417,9 +417,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1492288730}
   - component: {fileID: 1492288729}
-  - component: {fileID: 1492288728}
   - component: {fileID: 1492288727}
   - component: {fileID: 1492288731}
+  - component: {fileID: 1492288728}
   m_Layer: 0
   m_Name: RotatingCubeSpawner
   m_TagString: Untagged

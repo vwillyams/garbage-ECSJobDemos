@@ -37,7 +37,7 @@ namespace UnityEngine.ECS.Tests
             var go = new GameObject("test", typeof(EcsTestComponent));
             var entity = GameObjectEntity.AddToEntityManager(m_Manager, go);
             
-            m_Manager.SetComponent(entity, new EcsTestData(5));
+            m_Manager.SetComponentData(entity, new EcsTestData(5));
             
 			var grp = m_Manager.CreateComponentGroup(typeof(Transform), typeof(EcsTestData));
 			var arr = grp.GetComponentArray<Transform>();
@@ -92,8 +92,8 @@ namespace UnityEngine.ECS.Tests
             var go = new GameObject("test", typeof(Rigidbody), typeof(Light));
             var entity = GameObjectEntity.AddToEntityManager(m_Manager, go);
 
-            m_Manager.AddComponent(entity, new EcsTestData(5));
-            m_Manager.AddComponent(entity, new EcsTestData2(6));
+            m_Manager.AddComponentData(entity, new EcsTestData(5));
+            m_Manager.AddComponentData(entity, new EcsTestData2(6));
 
             var cache = new ComponentGroupArrayStaticCache(typeof(MyEntity), m_Manager);
             

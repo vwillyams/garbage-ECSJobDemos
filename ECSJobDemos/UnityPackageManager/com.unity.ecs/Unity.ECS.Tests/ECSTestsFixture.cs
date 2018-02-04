@@ -47,9 +47,9 @@ namespace UnityEngine.ECS.Tests
             Assert.IsFalse(m_Manager.HasComponent<EcsTestData3>(entity));
             Assert.IsTrue(m_Manager.Exists(entity));
 
-            Assert.AreEqual(-index, m_Manager.GetComponent<EcsTestData2>(entity).value0);
-            Assert.AreEqual(-index, m_Manager.GetComponent<EcsTestData2>(entity).value1);
-            Assert.AreEqual(index, m_Manager.GetComponent<EcsTestData>(entity).value);
+            Assert.AreEqual(-index, m_Manager.GetComponentData<EcsTestData2>(entity).value0);
+            Assert.AreEqual(-index, m_Manager.GetComponentData<EcsTestData2>(entity).value1);
+            Assert.AreEqual(index, m_Manager.GetComponentData<EcsTestData>(entity).value);
         }
 
         public Entity CreateEntityWithDefaultData(int index)
@@ -65,13 +65,13 @@ namespace UnityEngine.ECS.Tests
             Assert.IsTrue(m_Manager.Exists(entity));
 
             // Create must initialize values to zero
-            Assert.AreEqual(0, m_Manager.GetComponent<EcsTestData2>(entity).value0);
-            Assert.AreEqual(0, m_Manager.GetComponent<EcsTestData2>(entity).value1);
-            Assert.AreEqual(0, m_Manager.GetComponent<EcsTestData>(entity).value);
+            Assert.AreEqual(0, m_Manager.GetComponentData<EcsTestData2>(entity).value0);
+            Assert.AreEqual(0, m_Manager.GetComponentData<EcsTestData2>(entity).value1);
+            Assert.AreEqual(0, m_Manager.GetComponentData<EcsTestData>(entity).value);
 
             // Setup some non zero default values
-            m_Manager.SetComponent(entity, new EcsTestData2(-index));
-            m_Manager.SetComponent(entity, new EcsTestData(index));
+            m_Manager.SetComponentData(entity, new EcsTestData2(-index));
+            m_Manager.SetComponentData(entity, new EcsTestData(index));
 
             AssertComponentData(entity, index);
 

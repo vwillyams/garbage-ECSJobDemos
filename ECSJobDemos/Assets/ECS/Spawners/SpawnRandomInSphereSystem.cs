@@ -25,7 +25,7 @@ namespace ECS.Spawners
             var maingroup = EntityManager.CreateComponentGroup(typeof(SpawnRandomInSphere),typeof(TransformPosition));
             maingroup.CompleteDependency();
 
-            EntityManager.GetAllUniqueSharedComponents(uniqueTypes);
+            EntityManager.GetAllUniqueSharedComponentDatas(uniqueTypes);
 
             int spawnInstanceCount = 0;
             for (int sharedIndex = 0; sharedIndex != uniqueTypes.Count; sharedIndex++)
@@ -93,10 +93,10 @@ namespace ECS.Spawners
                     {
                         position = spawnPositions[i]
                     };
-                    EntityManager.SetComponent(entities[i],position);
+                    EntityManager.SetComponentData(entities[i],position);
                 }
 
-                EntityManager.RemoveSharedComponent<SpawnRandomInSphere>(sourceEntity);
+                EntityManager.RemoveComponent<SpawnRandomInSphere>(sourceEntity);
                 
                 spawnPositions.Dispose();
                 entities.Dispose();

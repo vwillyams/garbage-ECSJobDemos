@@ -43,7 +43,7 @@ namespace UnityEngine.ECS
 
         internal override void UpdateComponentData(EntityManager manager, Entity entity)
         {
-            manager.SetComponent(entity, m_SerializedData);
+            manager.SetComponentData(entity, m_SerializedData);
         }
     }
 
@@ -73,7 +73,7 @@ namespace UnityEngine.ECS
 
         internal override void UpdateComponentData(EntityManager manager, Entity entity)
         {
-            manager.SetSharedComponent(entity, m_SerializedData);
+            manager.SetSharedComponentData(entity, m_SerializedData);
         }
     }
 

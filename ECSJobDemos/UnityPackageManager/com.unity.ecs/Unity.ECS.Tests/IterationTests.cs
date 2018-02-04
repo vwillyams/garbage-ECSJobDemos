@@ -20,7 +20,7 @@ namespace UnityEngine.ECS.Tests
 			Assert.AreEqual(0, arr.Length);
 
 			var entity = m_Manager.CreateEntity(archetype);
-            m_Manager.SetComponent(entity, new EcsTestData(42));
+            m_Manager.SetComponentData(entity, new EcsTestData(42));
 			arr = group.GetComponentDataArray<EcsTestData>();
 			Assert.AreEqual(1, arr.Length);
 			Assert.AreEqual(42, arr[0].value);
@@ -62,12 +62,12 @@ namespace UnityEngine.ECS.Tests
             for (int i = 0; i < entities.Length/2;i++)
             {
 				entities[i] = m_Manager.CreateEntity(archetype1);
-				m_Manager.SetComponent(entities[i], new EcsTestData(i));
+				m_Manager.SetComponentData(entities[i], new EcsTestData(i));
             }
             for (int i = entities.Length/2; i < entities.Length;i++)
             {
 				entities[i] = m_Manager.CreateEntity(archetype2);
-				m_Manager.SetComponent(entities[i], new EcsTestData(i));
+				m_Manager.SetComponentData(entities[i], new EcsTestData(i));
             }
 
 			arr = group.GetComponentDataArray<EcsTestData>();
@@ -99,12 +99,12 @@ namespace UnityEngine.ECS.Tests
             for (int i = 0; i < entities.Length/2;i++)
             {
 				entities[i] = m_Manager.CreateEntity(archetype1);
-				m_Manager.SetComponent(entities[i], new EcsTestData(i));
+				m_Manager.SetComponentData(entities[i], new EcsTestData(i));
             }
             for (int i = entities.Length/2; i < entities.Length;i++)
             {
 				entities[i] = m_Manager.CreateEntity(archetype2);
-				m_Manager.SetComponent(entities[i], new EcsTestData(i));
+				m_Manager.SetComponentData(entities[i], new EcsTestData(i));
             }
 
 			arr = group.GetComponentDataArray<EcsTestData>();
@@ -139,12 +139,12 @@ namespace UnityEngine.ECS.Tests
             for (int i = 0; i < entities.Length/2;i++)
             {
 				entities[i] = m_Manager.CreateEntity(archetype1);
-				m_Manager.SetComponent(entities[i], new EcsTestData(i));
+				m_Manager.SetComponentData(entities[i], new EcsTestData(i));
             }
             for (int i = entities.Length/2; i < entities.Length;i++)
             {
 				entities[i] = m_Manager.CreateEntity(archetype2);
-				m_Manager.SetComponent(entities[i], new EcsTestData(i));
+				m_Manager.SetComponentData(entities[i], new EcsTestData(i));
             }
             for (int i = 0; i < entities.Length;i++)
 			{
@@ -207,12 +207,12 @@ namespace UnityEngine.ECS.Tests
             for (int i = 0; i < entities.Length/2;i++)
             {
 				entities[i] = m_Manager.CreateEntity(archetype1);
-				m_Manager.SetComponent(entities[i], new EcsTestData(i));
+				m_Manager.SetComponentData(entities[i], new EcsTestData(i));
             }
             for (int i = entities.Length/2; i < entities.Length;i++)
             {
 				entities[i] = m_Manager.CreateEntity(archetype2);
-				m_Manager.SetComponent(entities[i], new EcsTestData(i));
+				m_Manager.SetComponentData(entities[i], new EcsTestData(i));
             }
 
 			arr = group.GetEntityArray();

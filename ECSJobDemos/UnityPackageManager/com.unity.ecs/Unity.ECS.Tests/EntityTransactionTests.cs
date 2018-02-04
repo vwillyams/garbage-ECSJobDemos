@@ -119,9 +119,9 @@ namespace UnityEngine.ECS.Tests
             var transaction = m_Manager.BeginTransaction();
             var entity = transaction.CreateEntity(typeof(EcsTestData));
 
-            Assert.Throws<ArgumentException>(() => { m_Manager.GetComponent<EcsTestData>(entity); });
+            Assert.Throws<ArgumentException>(() => { m_Manager.GetComponentData<EcsTestData>(entity); });
             Assert.Throws<ArgumentException>(() => { var temp = m_Manager.GetComponentDataFromEntity<EcsTestData>()[entity]; });
-            Assert.Throws<ArgumentException>(() => { m_Manager.SetComponent<EcsTestData>(entity, new EcsTestData()); });
+            Assert.Throws<ArgumentException>(() => { m_Manager.SetComponentData<EcsTestData>(entity, new EcsTestData()); });
             Assert.Throws<ArgumentException>(() => { m_Manager.Exists(entity); });
         }
 

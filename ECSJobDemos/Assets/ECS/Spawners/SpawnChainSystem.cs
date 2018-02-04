@@ -24,7 +24,7 @@ namespace ECS.Spawners
             var maingroup = EntityManager.CreateComponentGroup(typeof(SpawnChain),typeof(TransformPosition));
             maingroup.CompleteDependency();
 
-            EntityManager.GetAllUniqueSharedComponents(uniqueTypes);
+            EntityManager.GetAllUniqueSharedComponentDatas(uniqueTypes);
 
             int spawnInstanceCount = 0;
             for (int sharedIndex = 0; sharedIndex != uniqueTypes.Count; sharedIndex++)
@@ -91,7 +91,7 @@ namespace ECS.Spawners
                     contraint.minDistance = minDistance;
                     contraint.maxDistance = maxDistance;
                     
-                    EntityManager.AddComponent(entities[0],contraint);
+                    EntityManager.AddComponentData(entities[0],contraint);
                 }
                 
                 for (int i = 1; i < count; i++ )
@@ -102,7 +102,7 @@ namespace ECS.Spawners
                     contraint.minDistance = minDistance;
                     contraint.maxDistance = maxDistance;
                     
-                    EntityManager.AddComponent(entities[i],contraint);
+                    EntityManager.AddComponentData(entities[i],contraint);
                 }
                 
                 float3 dv = new float3( 0.0f, minDistance, 0.0f );
@@ -112,10 +112,10 @@ namespace ECS.Spawners
                     {
                         position = center - (dv * (float) i)
                     };
-                    EntityManager.SetComponent(entities[i],position);
+                    EntityManager.SetComponentData(entities[i],position);
                 }
 
-                EntityManager.RemoveSharedComponent<SpawnChain>(sourceEntity);
+                EntityManager.RemoveComponent<SpawnChain>(sourceEntity);
                 
                 entities.Dispose();
             }

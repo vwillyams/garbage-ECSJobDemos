@@ -301,16 +301,16 @@ namespace UnityEngine.ECS
 
             m_Entities->RemoveComponent(entity, type, m_ArchetypeManager, m_SharedComponentManager, m_GroupManager, m_CachedComponentTypeInArchetypeArray);
         }
-
-        public void AddComponent<T>(Entity entity, T componentData) where T : struct, IComponentData
-        {
-            AddComponent(entity, ComponentType.Create<T>());
-            SetComponent<T>(entity, componentData);
-        }
-
-        public void RemoveComponent<T>(Entity entity) where T : struct, IComponentData
+        
+        public void RemoveComponent<T>(Entity entity)
         {
             RemoveComponent(entity, ComponentType.Create<T>());
+        }
+
+        public void AddComponentData<T>(Entity entity, T componentData) where T : struct, IComponentData
+        {
+            AddComponent(entity, ComponentType.Create<T>());
+            SetComponentData<T>(entity, componentData);
         }
 
         public ComponentDataFromEntity<T> GetComponentDataFromEntity<T>(bool isReadOnly = false) where T : struct, IComponentData
@@ -335,7 +335,7 @@ namespace UnityEngine.ECS
 #endif
         }
 
-        public T GetComponent<T>(Entity entity) where T : struct, IComponentData
+        public T GetComponentData<T>(Entity entity) where T : struct, IComponentData
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
             m_Entities->AssertEntityHasComponent(entity, typeIndex);
@@ -348,7 +348,7 @@ namespace UnityEngine.ECS
             return value;
         }
 
-        public void SetComponent<T>(Entity entity, T componentData) where T: struct, IComponentData
+        public void SetComponentData<T>(Entity entity, T componentData) where T: struct, IComponentData
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
             m_Entities->AssertEntityHasComponent(entity, typeIndex);
@@ -380,13 +380,13 @@ namespace UnityEngine.ECS
             return m_ArchetypeManager.GetManagedObject(chunk, componentType, chunkIndex) as T;
         }
 
-        public void GetAllUniqueSharedComponents<T>(System.Collections.Generic.List<T> sharedComponentValues)
+        public void GetAllUniqueSharedComponentDatas<T>(System.Collections.Generic.List<T> sharedComponentValues)
             where T : struct, ISharedComponentData
         {
             m_SharedComponentManager.GetAllUniqueSharedComponents(sharedComponentValues);
         }
 
-        unsafe public T GetSharedComponent<T>(Entity entity) where T : struct, ISharedComponentData
+        unsafe public T GetSharedComponentData<T>(Entity entity) where T : struct, ISharedComponentData
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
             m_Entities->AssertEntityHasComponent(entity, typeIndex);
@@ -395,19 +395,14 @@ namespace UnityEngine.ECS
             return m_SharedComponentManager.GetSharedComponentData<T>(sharedComponentIndex);
         }
 
-        public void AddSharedComponent<T>(Entity entity, T componentData) where T : struct, ISharedComponentData
+        public void AddSharedComponentData<T>(Entity entity, T componentData) where T : struct, ISharedComponentData
         {
             //TODO: optimize this (no need to move the entity to a new chunk twice)
             AddComponent(entity, ComponentType.Create<T>());
-            SetSharedComponent(entity, componentData);
+            SetSharedComponentData(entity, componentData);
         }
 
-        public void RemoveSharedComponent<T>(Entity entity) where T : struct, ISharedComponentData
-        {
-            RemoveComponent(entity, ComponentType.Create<T>());
-        }
-
-        unsafe public void SetSharedComponent<T>(Entity entity, T componentData) where T: struct, ISharedComponentData
+        public void SetSharedComponentData<T>(Entity entity, T componentData) where T: struct, ISharedComponentData
         {
             BeforeImmediateStructualChange();
             
@@ -419,7 +414,7 @@ namespace UnityEngine.ECS
             m_SharedComponentManager.RemoveReference(newSharedComponentDataIndex);
         }
 
-        unsafe public NativeArray<T> GetFixedArray<T>(Entity entity) where T : struct
+        public NativeArray<T> GetFixedArray<T>(Entity entity) where T : struct
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
 #if ENABLE_UNITY_COLLECTIONS_CHECKS

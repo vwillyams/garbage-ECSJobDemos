@@ -53,13 +53,13 @@ namespace TwoStickPureExample
             if (spawn)
             {
                 Entity e = EntityManager.CreateEntity(TwoStickBootstrap.BasicEnemyArchetype);
-                EntityManager.SetComponent(e, spawnXform);
-                EntityManager.SetComponent(e, default(Enemy));
-                EntityManager.SetComponent(e, new Health { Value = TwoStickBootstrap.Settings.enemyInitialHealth });
-                EntityManager.SetComponent(e, new EnemyShootState { Cooldown = 0.5f });
-                EntityManager.SetComponent(e, new Faction { Value = Faction.kEnemy });
+                EntityManager.SetComponentData(e, spawnXform);
+                EntityManager.SetComponentData(e, default(Enemy));
+                EntityManager.SetComponentData(e, new Health { Value = TwoStickBootstrap.Settings.enemyInitialHealth });
+                EntityManager.SetComponentData(e, new EnemyShootState { Cooldown = 0.5f });
+                EntityManager.SetComponentData(e, new Faction { Value = Faction.kEnemy });
 
-                EntityManager.AddSharedComponent(e, TwoStickBootstrap.EnemyLook);
+                EntityManager.AddSharedComponentData(e, TwoStickBootstrap.EnemyLook);
             }
         }
 
@@ -196,7 +196,7 @@ namespace TwoStickPureExample
             for (int i = 0; i < shotCount; ++i)
             {
                 var e = EntityManager.CreateEntity(TwoStickBootstrap.ShotSpawnArchetype);
-                EntityManager.SetComponent(e, shotLocations[i]);
+                EntityManager.SetComponentData(e, shotLocations[i]);
             }
 
             shotLocations.Dispose();

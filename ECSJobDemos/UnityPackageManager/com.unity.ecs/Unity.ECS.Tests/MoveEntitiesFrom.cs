@@ -25,7 +25,7 @@ namespace UnityEngine.ECS.Tests
             var entities = new NativeArray<Entity>(10000, Allocator.Temp);
             creationManager.CreateEntity(archetype, entities);
             for (int i = 0;i != entities.Length;i++)
-                creationManager.SetComponent(entities[i], new EcsTestData(i));
+                creationManager.SetComponentData(entities[i], new EcsTestData(i));
 
             m_Manager.CheckInternalConsistency();
             creationManager.CheckInternalConsistency();

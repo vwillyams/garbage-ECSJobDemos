@@ -34,7 +34,7 @@ namespace UnityEngine.ECS.Tests
         {
             var group = m_Manager.CreateComponentGroup(typeof(EcsTestData));
             var entity = m_Manager.CreateEntity(typeof(EcsTestData));
-            m_Manager.SetComponent(entity, new EcsTestData(42));
+            m_Manager.SetComponentData(entity, new EcsTestData(42));
 
             var job = new TestIncrementJob();
             job.data = group.GetComponentDataArray<EcsTestData>();
@@ -64,7 +64,7 @@ namespace UnityEngine.ECS.Tests
             group.AddDependency(job.Schedule());
 
             // Implicit Wait for job, returns value after job has completed.
-            Assert.AreEqual(1, m_Manager.GetComponent<EcsTestData>(entity).value);
+            Assert.AreEqual(1, m_Manager.GetComponentData<EcsTestData>(entity).value);
         }
 
         [Test]
@@ -126,7 +126,7 @@ namespace UnityEngine.ECS.Tests
             job.data = group.GetComponentDataArray<EcsTestData>();
             var jobHandle = job.Schedule();
 
-            Assert.Throws<System.InvalidOperationException>(() => { m_Manager.GetComponent<EcsTestData>(entity); });
+            Assert.Throws<System.InvalidOperationException>(() => { m_Manager.GetComponentData<EcsTestData>(entity); });
 
             jobHandle.Complete();
         }

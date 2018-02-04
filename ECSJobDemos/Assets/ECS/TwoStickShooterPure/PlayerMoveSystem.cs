@@ -70,7 +70,7 @@ namespace TwoStickPureExample
 
                 for (int i = 0; i < pendingShotCount; ++i)
                 {
-                    EntityManager.SetComponent(shotEvents[i], pendingShots[i]);
+                    EntityManager.SetComponentData(shotEvents[i], pendingShots[i]);
                 }
 
                 shotEvents.Dispose();

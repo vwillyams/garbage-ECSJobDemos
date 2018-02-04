@@ -47,7 +47,7 @@ namespace UnityEngine.ECS.Tests
             var group = m_Manager.CreateComponentGroup(typeof(EcsTestData2), ComponentType.ReadOnly(typeof(EcsTestData)));
 
             var entity = m_Manager.CreateEntity(typeof(EcsTestData), typeof(EcsTestData2));
-            m_Manager.SetComponent(entity, new EcsTestData(42));
+            m_Manager.SetComponentData(entity, new EcsTestData(42));
             
             // EcsTestData is read only
             var arr = group.GetComponentDataArray<EcsTestData>();
@@ -97,11 +97,11 @@ namespace UnityEngine.ECS.Tests
             var destroyedEntity = m_Manager.CreateEntity(typeof(EcsTestData));
             m_Manager.DestroyEntity(destroyedEntity);
 
-            Assert.Throws<System.ArgumentException>(() => { m_Manager.SetComponent(entity, new EcsTestData2()); });
-            Assert.Throws<System.ArgumentException>(() => { m_Manager.SetComponent(destroyedEntity, new EcsTestData2()); });
+            Assert.Throws<System.ArgumentException>(() => { m_Manager.SetComponentData(entity, new EcsTestData2()); });
+            Assert.Throws<System.ArgumentException>(() => { m_Manager.SetComponentData(destroyedEntity, new EcsTestData2()); });
 
-            Assert.Throws<System.ArgumentException>(() => { m_Manager.GetComponent<EcsTestData2>(entity); });
-            Assert.Throws<System.ArgumentException>(() => { m_Manager.GetComponent<EcsTestData2>(destroyedEntity); });
+            Assert.Throws<System.ArgumentException>(() => { m_Manager.GetComponentData<EcsTestData2>(entity); });
+            Assert.Throws<System.ArgumentException>(() => { m_Manager.GetComponentData<EcsTestData2>(destroyedEntity); });
         }
 
         [Test]
@@ -125,8 +125,8 @@ namespace UnityEngine.ECS.Tests
         {
             var entity = m_Manager.CreateEntity();
 
-            m_Manager.AddComponent(entity, new EcsTestData(1));
-            Assert.Throws<System.ArgumentException>(() => { m_Manager.AddComponent(entity, new EcsTestData(1)); });
+            m_Manager.AddComponentData(entity, new EcsTestData(1));
+            Assert.Throws<System.ArgumentException>(() => { m_Manager.AddComponentData(entity, new EcsTestData(1)); });
         }
 
         [Test]
@@ -135,7 +135,7 @@ namespace UnityEngine.ECS.Tests
             var destroyedEntity = m_Manager.CreateEntity();
             m_Manager.DestroyEntity(destroyedEntity);
 
-            Assert.Throws<System.ArgumentException>(() => { m_Manager.AddComponent(destroyedEntity, new EcsTestData(1)); });
+            Assert.Throws<System.ArgumentException>(() => { m_Manager.AddComponentData(destroyedEntity, new EcsTestData(1)); });
             Assert.Throws<System.ArgumentException>(() => { m_Manager.RemoveComponent<EcsTestData>(destroyedEntity); });
         }
 

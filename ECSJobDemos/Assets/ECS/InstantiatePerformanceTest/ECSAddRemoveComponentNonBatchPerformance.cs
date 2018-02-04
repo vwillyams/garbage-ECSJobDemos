@@ -48,7 +48,7 @@ public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
 
 	        addSampler.Begin();
 	        for (int i = 0; i < entities.Length; i++)
-	            entityManager.AddComponent(entities[i], new Component16Bytes());
+	            entityManager.AddComponentData(entities[i], new Component16Bytes());
 	        addSampler.End();
 
 	        removeSampler.Begin();

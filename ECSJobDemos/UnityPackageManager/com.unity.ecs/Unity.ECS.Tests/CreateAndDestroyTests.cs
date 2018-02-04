@@ -157,23 +157,23 @@ namespace UnityEngine.ECS.Tests
 			Assert.IsTrue(m_Manager.HasComponent<EcsTestData2>(entity));
 			Assert.IsFalse(m_Manager.HasComponent<EcsTestData3>(entity));
 
-			m_Manager.AddComponent<EcsTestData3>(entity, new EcsTestData3(3));
+			m_Manager.AddComponentData<EcsTestData3>(entity, new EcsTestData3(3));
 			Assert.IsTrue(m_Manager.HasComponent<EcsTestData>(entity));
 			Assert.IsTrue(m_Manager.HasComponent<EcsTestData2>(entity));
 			Assert.IsTrue(m_Manager.HasComponent<EcsTestData3>(entity));
 
-            Assert.AreEqual(3, m_Manager.GetComponent<EcsTestData3>(entity).value0);
-            Assert.AreEqual(3, m_Manager.GetComponent<EcsTestData3>(entity).value1);
-            Assert.AreEqual(3, m_Manager.GetComponent<EcsTestData3>(entity).value2);
+            Assert.AreEqual(3, m_Manager.GetComponentData<EcsTestData3>(entity).value0);
+            Assert.AreEqual(3, m_Manager.GetComponentData<EcsTestData3>(entity).value1);
+            Assert.AreEqual(3, m_Manager.GetComponentData<EcsTestData3>(entity).value2);
 
 			m_Manager.RemoveComponent<EcsTestData2>(entity);
 			Assert.IsTrue(m_Manager.HasComponent<EcsTestData>(entity));
 			Assert.IsFalse(m_Manager.HasComponent<EcsTestData2>(entity));
 			Assert.IsTrue(m_Manager.HasComponent<EcsTestData3>(entity));
 
-            Assert.AreEqual(3, m_Manager.GetComponent<EcsTestData3>(entity).value0);
-            Assert.AreEqual(3, m_Manager.GetComponent<EcsTestData3>(entity).value1);
-            Assert.AreEqual(3, m_Manager.GetComponent<EcsTestData3>(entity).value2);
+            Assert.AreEqual(3, m_Manager.GetComponentData<EcsTestData3>(entity).value0);
+            Assert.AreEqual(3, m_Manager.GetComponentData<EcsTestData3>(entity).value1);
+            Assert.AreEqual(3, m_Manager.GetComponentData<EcsTestData3>(entity).value2);
 
 			m_Manager.DestroyEntity(entity);
 		}
@@ -199,7 +199,7 @@ namespace UnityEngine.ECS.Tests
 			m_Manager.RemoveComponent<EcsTestData>(entity);
 			Assert.AreEqual(1, subtractiveArch.GetComponentDataArray<EcsTestData2>().Length);
 
-			m_Manager.AddComponent<EcsTestData>(entity, new EcsTestData());
+			m_Manager.AddComponentData<EcsTestData>(entity, new EcsTestData());
 			Assert.AreEqual(0, subtractiveArch.GetComponentDataArray<EcsTestData2>().Length);
 
 			m_Manager.DestroyEntity(entity);

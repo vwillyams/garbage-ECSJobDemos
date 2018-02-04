@@ -18,16 +18,16 @@ namespace UnityEngine.ECS.Tests
             for (int i = 0; i < 100; i++)
             {
                 Entity e = m_Manager.CreateEntity(archetype);
-                var testData = m_Manager.GetComponent<EcsTestData>(e);
+                var testData = m_Manager.GetComponentData<EcsTestData>(e);
                 testData.value = i;
-                m_Manager.SetComponent(e, testData);
+                m_Manager.SetComponentData(e, testData);
                 if ((i & 0x01) == 0)
                 {
-                    m_Manager.AddSharedComponent(e, evenShared);
+                    m_Manager.AddSharedComponentData(e, evenShared);
                 }
                 else
                 {
-                    m_Manager.AddSharedComponent(e, oddShared);
+                    m_Manager.AddSharedComponentData(e, oddShared);
                 }
             }
         }
@@ -38,7 +38,7 @@ namespace UnityEngine.ECS.Tests
             var maingroup = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(SharedData1));
             maingroup.CompleteDependency();
 
-            m_Manager.GetAllUniqueSharedComponents(uniqueTypes);
+            m_Manager.GetAllUniqueSharedComponentDatas(uniqueTypes);
 
             for (int sharedIndex = 0; sharedIndex != uniqueTypes.Count; sharedIndex++)
             {
@@ -113,7 +113,7 @@ namespace UnityEngine.ECS.Tests
                 if ((i & 0x01) == 0)
                 {
                     var testData2 = new EcsTestData2(i);
-                    m_Manager.AddComponent(e, testData2);
+                    m_Manager.AddComponentData(e, testData2);
                 }
             }
 
@@ -195,7 +195,7 @@ namespace UnityEngine.ECS.Tests
         public void AddComponent()
         {
             var entity = m_Manager.CreateEntity(typeof(EcsTestData));
-            m_Manager.AddComponent(entity, new EcsTestData2());
+            m_Manager.AddComponentData(entity, new EcsTestData2());
             
             Assert.AreEqual(2, m_Manager.GetComponentOrderVersion<EcsTestData>());
             Assert.AreEqual(1, m_Manager.GetComponentOrderVersion<EcsTestData2>());
@@ -215,7 +215,7 @@ namespace UnityEngine.ECS.Tests
         public void SetSharedComponent()
         {
             var entity = m_Manager.CreateEntity(typeof(SharedData1), typeof(SharedData2));
-            m_Manager.SetSharedComponent(entity, new SharedData1(1));
+            m_Manager.SetSharedComponentData(entity, new SharedData1(1));
 
             Assert.AreEqual(2, m_Manager.GetComponentOrderVersion<SharedData2>());
             Assert.AreEqual(2, m_Manager.GetComponentOrderVersion<SharedData1>());
@@ -229,7 +229,7 @@ namespace UnityEngine.ECS.Tests
             var sharedData = new SharedData1(1);
             
             var destroyEntity = m_Manager.CreateEntity(typeof(SharedData1));
-            m_Manager.SetSharedComponent(destroyEntity, sharedData );
+            m_Manager.SetSharedComponentData(destroyEntity, sharedData );
             var dontDestroyEntity = m_Manager.Instantiate(destroyEntity);
 
             Assert.AreEqual(2, m_Manager.GetSharedComponentOrderVersion(sharedData));
@@ -245,7 +245,7 @@ namespace UnityEngine.ECS.Tests
         {
             var sharedData = new SharedData1(1);
             var entity = m_Manager.CreateEntity();
-            m_Manager.AddSharedComponent(entity, sharedData);
+            m_Manager.AddSharedComponentData(entity, sharedData);
             
             m_Manager.DestroyEntity(entity);
 

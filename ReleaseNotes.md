@@ -4,6 +4,18 @@
 
 ## Changes
 * [InjectComponentGroup] and [InjectComponentFromEntity] were replaced by simply [Inject] handling all injection cases.
+* EntityManager component naming consistency renaming
+	EntityManager can access both components and component data thus:
+	- HasComponent(ComponentType type), RemoveComponent(ComponentType type), AddComponent(ComponentType type)
+	- AddComponentData(Entity entity, T componentData) where T : struct, IComponentData
+
+	* EntityManager.RemoveComponentData -> EntityManager.RemoveComponent
+	* EntityManager.AddComponent(...) : IComponentData -> EntityManager.AddComponentData(...) : IComponentData
+	* EntityManager.AddSharedComponent -> EntityManager.AddSharedComponentData
+	* EntityManager.SetSharedComponent -> EntityManager.SetSharedComponentData
+	* EntityManager.SetComponent -> EntityManager.SetComponentData
+	* EntityManager.GetAllUniqueSharedComponents -> EntityManager.GetAllUniqueSharedComponentDatas
+
 
 ## Fixes
 

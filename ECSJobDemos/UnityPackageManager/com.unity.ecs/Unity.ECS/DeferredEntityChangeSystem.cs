@@ -54,7 +54,7 @@ namespace UnityEngine.ECS
                     var component = payload.component;
                     if (!manager.HasComponent<T>(entity))
                     {
-                        manager.AddComponent(entity, component);
+                        manager.AddComponentData(entity, component);
                     }
                 }
             }

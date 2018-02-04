@@ -44,7 +44,7 @@ namespace UnityEngine.ECS.Rendering
 		    // We want to iterate over all unique InstanceRenderer shared component data,
 		    // that are attached to any entities in the world
 		    var uniqueRendererTypes = new List<InstanceRenderer>(10);
-            EntityManager.GetAllUniqueSharedComponents(uniqueRendererTypes);
+            EntityManager.GetAllUniqueSharedComponentDatas(uniqueRendererTypes);
 
             for (int i = 0;i != uniqueRendererTypes.Count;i++)
             {

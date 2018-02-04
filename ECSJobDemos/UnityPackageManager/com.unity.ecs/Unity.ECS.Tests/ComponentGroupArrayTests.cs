@@ -86,14 +86,14 @@ namespace UnityEngine.ECS.Tests
 			var arch = m_Manager.CreateArchetype(typeof(EcsTestData), typeof(EcsTestData2));
 			m_Manager.CreateEntity(arch, entities);
 			for (int i = 0; i < entities.Length; i++)
-				m_Manager.SetComponent(entities[i], new EcsTestData(i));
+				m_Manager.SetComponentData(entities[i], new EcsTestData(i));
 
 			var job = new TestCopy1To2ProcessEntityJob();
 			job.Schedule(new ComponentGroupArray<TestEntity>(entityArrayCache), 1).Complete();
 
 			// not sure why this works. Shouldn't schedule throw an exception because parallelFor restriction
 			for (int i = 0; i < entities.Length; i++)
-				Assert.AreEqual(i, m_Manager.GetComponent<EcsTestData2>(entities[i]).value0);;
+				Assert.AreEqual(i, m_Manager.GetComponentData<EcsTestData2>(entities[i]).value0);;
 			
 			entities.Dispose();
 			entityArrayCache.Dispose();
@@ -104,7 +104,7 @@ namespace UnityEngine.ECS.Tests
 	    {
 	        var entityArrayCache = new ComponentGroupArrayStaticCache(typeof(TestEntity), m_Manager);
 	        var entity = m_Manager.CreateEntity(typeof(EcsTestData), typeof(EcsTestData2));
-	        m_Manager.SetComponent(entity, new EcsTestData(42));
+	        m_Manager.SetComponentData(entity, new EcsTestData(42));
 
 	        var job = new TestCopy1To2Job();
 	        job.entities = new ComponentGroupArray<TestEntity>(entityArrayCache);
@@ -122,7 +122,7 @@ namespace UnityEngine.ECS.Tests
 		{
 			var entityArrayCache = new ComponentGroupArrayStaticCache(typeof(TestEntityReadOnly), m_Manager);
 			var entity = m_Manager.CreateEntity(typeof(EcsTestData), typeof(EcsTestData2));
-			m_Manager.SetComponent(entity, new EcsTestData(42));
+			m_Manager.SetComponentData(entity, new EcsTestData(42));
 
 			var job = new TestReadOnlyJob();
 			job.entities = new ComponentGroupArray<TestEntityReadOnly>(entityArrayCache);

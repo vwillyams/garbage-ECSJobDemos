@@ -71,7 +71,7 @@ namespace UnityEngine.ECS.Tests
             var readOnlySystem = World.GetOrCreateManager<PureReadOnlySystem> ();
 
             var go = m_Manager.CreateEntity (new ComponentType[0]);
-            m_Manager.AddComponent (go, new EcsTestData(2));
+            m_Manager.AddComponentData (go, new EcsTestData(2));
 
             readOnlySystem.Update ();
             Assert.AreEqual (2, readOnlySystem.Group.Data[0].value);
@@ -84,12 +84,12 @@ namespace UnityEngine.ECS.Tests
             var subtractiveSystem = World.GetOrCreateManager<SubtractiveSystem> ();
 
             var go = m_Manager.CreateEntity (new ComponentType[0]);
-            m_Manager.AddComponent (go, new EcsTestData(2));
+            m_Manager.AddComponentData (go, new EcsTestData(2));
 
             subtractiveSystem.Update ();
             Assert.AreEqual (1, subtractiveSystem.Group.Data.Length);
             Assert.AreEqual (2, subtractiveSystem.Group.Data[0].value);
-            m_Manager.AddComponent (go, new EcsTestData2());
+            m_Manager.AddComponentData (go, new EcsTestData2());
             subtractiveSystem.Update ();
             Assert.AreEqual (0, subtractiveSystem.Group.Data.Length);
         }
@@ -100,10 +100,10 @@ namespace UnityEngine.ECS.Tests
             var pureSystem = World.GetOrCreateManager<PureEcsTestSystem> ();
 
             var go0 = m_Manager.CreateEntity (new ComponentType[0]);
-            m_Manager.AddComponent (go0, new EcsTestData(10));
+            m_Manager.AddComponentData (go0, new EcsTestData(10));
 
             var go1 = m_Manager.CreateEntity ();
-            m_Manager.AddComponent (go1, new EcsTestData(20));
+            m_Manager.AddComponentData (go1, new EcsTestData(20));
 
             pureSystem.Update ();
             Assert.AreEqual (2, pureSystem.Group.Length);
@@ -127,7 +127,7 @@ namespace UnityEngine.ECS.Tests
             var pureSystem = World.GetOrCreateManager<PureEcsTestSystem> ();
 
             var go = m_Manager.CreateEntity (new ComponentType[0]);
-            m_Manager.AddComponent (go, new EcsTestData(2));
+            m_Manager.AddComponentData (go, new EcsTestData(2));
 
             pureSystem.Update ();
             Assert.AreEqual (1, pureSystem.Group.Length);
@@ -188,7 +188,7 @@ namespace UnityEngine.ECS.Tests
 			system.Update();
 			system.Update();
 
-			Assert.AreEqual(2, m_Manager.GetComponent<EcsTestData>(entity).value);
+			Assert.AreEqual(2, m_Manager.GetComponentData<EcsTestData>(entity).value);
 			Assert.AreEqual(2, m_Manager.GetFixedArray<int>(entity)[0]);
 		}
 
@@ -263,7 +263,7 @@ namespace UnityEngine.ECS.Tests
 		public void OnCreateManagerComponentGroupInjectionWorks()
 		{
 			var entity = m_Manager.CreateEntity (typeof(EcsTestData));
-			m_Manager.SetComponent(entity, new EcsTestData(42));
+			m_Manager.SetComponentData(entity, new EcsTestData(42));
 			World.GetOrCreateManager<OnCreateManagerComponentGroupInjectionSystem>();
 		}
 	}

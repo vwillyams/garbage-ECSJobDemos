@@ -73,11 +73,11 @@ namespace TwoStickPureExample
                 var sd = spawnData[i];
                 var shotEntity = entities[i];
                 em.RemoveComponent<ShotSpawnData>(shotEntity);
-                em.AddComponent(shotEntity, sd.Shot);
-                em.AddComponent(shotEntity, sd.Transform);
-                em.AddComponent(shotEntity, sd.Faction);
-                em.AddComponent(shotEntity, default(TransformMatrix));
-                em.AddSharedComponent(shotEntity, sd.Faction.Value == Faction.kPlayer ? TwoStickBootstrap.PlayerShotLook : TwoStickBootstrap.EnemyShotLook);
+                em.AddComponentData(shotEntity, sd.Shot);
+                em.AddComponentData(shotEntity, sd.Transform);
+                em.AddComponentData(shotEntity, sd.Faction);
+                em.AddComponentData(shotEntity, default(TransformMatrix));
+                em.AddSharedComponentData(shotEntity, sd.Faction.Value == Faction.kPlayer ? TwoStickBootstrap.PlayerShotLook : TwoStickBootstrap.EnemyShotLook);
             }
 
             spawnData.Dispose();

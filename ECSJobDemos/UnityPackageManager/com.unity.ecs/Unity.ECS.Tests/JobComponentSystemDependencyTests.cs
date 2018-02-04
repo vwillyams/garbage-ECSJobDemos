@@ -133,7 +133,7 @@ namespace UnityEngine.ECS.Tests
         public void ReturningWrongJobThrowsInCorrectSystemUpdate()
         {
             var entity = m_Manager.CreateEntity (typeof(EcsTestData));
-            m_Manager.SetComponent(entity, new EcsTestData(42));
+            m_Manager.SetComponentData(entity, new EcsTestData(42));
             ReadSystem1 rs1 = World.GetOrCreateManager<ReadSystem1>();
             ReadSystem2 rs2 = World.GetOrCreateManager<ReadSystem2>();
 
@@ -147,7 +147,7 @@ namespace UnityEngine.ECS.Tests
         public void IgnoredInputDepsThrowsInCorrectSystemUpdate()
         {
             var entity = m_Manager.CreateEntity (typeof(EcsTestData));
-            m_Manager.SetComponent(entity, new EcsTestData(42));
+            m_Manager.SetComponentData(entity, new EcsTestData(42));
             WriteSystem ws1 = World.GetOrCreateManager<WriteSystem>();
             ReadSystem2 rs2 = World.GetOrCreateManager<ReadSystem2>();
 
@@ -161,7 +161,7 @@ namespace UnityEngine.ECS.Tests
         public void NotSchedulingWriteJobIsHarmless()
         {
             var entity = m_Manager.CreateEntity (typeof(EcsTestData));
-            m_Manager.SetComponent(entity, new EcsTestData(42));
+            m_Manager.SetComponentData(entity, new EcsTestData(42));
             WriteSystem ws1 = World.GetOrCreateManager<WriteSystem>();
 
             ws1.Update();
@@ -173,7 +173,7 @@ namespace UnityEngine.ECS.Tests
         public void NotUsingDataIsHarmless()
         {
             var entity = m_Manager.CreateEntity (typeof(EcsTestData));
-            m_Manager.SetComponent(entity, new EcsTestData(42));
+            m_Manager.SetComponentData(entity, new EcsTestData(42));
             ReadSystem1 rs1 = World.GetOrCreateManager<ReadSystem1>();
             ReadSystem3 rs3 = World.GetOrCreateManager<ReadSystem3>();
 

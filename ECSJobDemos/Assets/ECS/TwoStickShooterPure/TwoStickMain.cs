@@ -39,10 +39,10 @@ namespace TwoStickPureExample
             initialXform.Position = new float2(0, 0);
             initialXform.Heading = new float2(0, 1);
 
-            entityManager.SetComponent(player, initialXform);
-            entityManager.SetComponent(player, new Faction { Value = Faction.kPlayer });
-            entityManager.SetComponent(player, new Health { Value = Settings.playerInitialHealth });
-            entityManager.AddSharedComponent(player, PlayerLook);
+            entityManager.SetComponentData(player, initialXform);
+            entityManager.SetComponentData(player, new Faction { Value = Faction.kPlayer });
+            entityManager.SetComponentData(player, new Health { Value = Settings.playerInitialHealth });
+            entityManager.AddSharedComponentData(player, PlayerLook);
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -63,7 +63,7 @@ namespace TwoStickPureExample
             var stateEntity = entityManager.CreateEntity(arch);
             var oldState = Random.state;
             Random.InitState(0xaf77);
-            entityManager.SetComponent(stateEntity, new EnemySpawnSystemState
+            entityManager.SetComponentData(stateEntity, new EnemySpawnSystemState
             {
                 Cooldown = 0.0f,
                 SpawnedEnemyCount = 0,

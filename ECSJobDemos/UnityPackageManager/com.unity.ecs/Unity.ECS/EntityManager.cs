@@ -60,16 +60,14 @@ namespace UnityEngine.ECS
         ComponentType*                    m_CachedComponentTypeArray;
         ComponentTypeInArchetype*         m_CachedComponentTypeInArchetypeArray;
 
-        //@TODO: EntityTransaction doesn't increment type order version at all.
-        //       Need to figure out some way of sharing code better to not go out of sync.
-        int*                              m_ComponentTypeOrderVersion;
-
         protected sealed override void OnCreateManagerInternal(World world, int capacity)
         {
         }
 
         protected override void OnCreateManager(int capacity)
         {
+            TypeManager.Initialize();
+
             m_Entities = (EntityDataManager*)UnsafeUtility.Malloc(sizeof(EntityDataManager), 64, Allocator.Persistent);
             m_Entities->OnCreate(capacity);
 
@@ -85,12 +83,9 @@ namespace UnityEngine.ECS
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_EntityTransaction.SetAtomicSafetyHandle(ComponentJobSafetyManager.CreationSafety);
 #endif
-            TypeManager.Initialize();
 
             m_CachedComponentTypeArray = (ComponentType*)UnsafeUtility.Malloc(sizeof(ComponentType) * 32 * 1024, 16, Allocator.Persistent);
             m_CachedComponentTypeInArchetypeArray = (ComponentTypeInArchetype*)UnsafeUtility.Malloc(sizeof(ComponentTypeInArchetype) * 32 * 1024, 16, Allocator.Persistent);
-
-            m_ComponentTypeOrderVersion = (int*)UnsafeUtility.Malloc(sizeof(int) * TypeManager.MaximumTypesCount, UnsafeUtility.AlignOf<int>(), Allocator.Persistent);
         }
 
         protected override void OnDestroyManager()
@@ -112,8 +107,6 @@ namespace UnityEngine.ECS
 
             UnsafeUtility.Free(m_CachedComponentTypeInArchetypeArray, Allocator.Persistent);
             m_CachedComponentTypeInArchetypeArray = null;
-            
-            UnsafeUtility.Free(m_ComponentTypeOrderVersion, Allocator.Persistent);
         }
 
         internal override void InternalUpdate()
@@ -200,10 +193,6 @@ namespace UnityEngine.ECS
 
             m_Entities->CreateEntities(m_ArchetypeManager, archetype.archetype, entities, count, true);
             
-            //@TODO: count might be 0, this might crash...
-            // need to at least enforce count >=1 at public API entrypoint
-            IncrementSharedComponentsVersion(entities[0]);
-
             AfterImmediateStructuralTransaction();
         }
 
@@ -228,16 +217,7 @@ namespace UnityEngine.ECS
 
             m_Entities->AssertEntitiesExist(entities, count);
 
-            for (int i = 0; i < count; i++)
-            {
-                Entity entity = entities[i];
-                Archetype* archetype = m_Entities->GetArchetype(entity);
-                
-                // @TODO: Integrate in Deallocate entities innerloop so we can optimize per chunk / archetype
-                IncrementSharedComponentsVersion(entity);
-            }
-
-            m_Entities->DeallocateEnties(m_ArchetypeManager, entities, count);
+            m_Entities->DeallocateEnties(m_ArchetypeManager, m_SharedComponentManager, entities, count);
         }
 
         public bool Exists(Entity entity)
@@ -293,7 +273,6 @@ namespace UnityEngine.ECS
             InstantiateInternal(srcEntity, (Entity*)outputEntities.GetUnsafePtr(), outputEntities.Length);
         }
 
-
         void InstantiateInternal(Entity srcEntity, Entity* outputEntities, int count)
         {
             BeforeImmediateStructualTransaction();
@@ -301,8 +280,7 @@ namespace UnityEngine.ECS
             if (!m_Entities->Exists(srcEntity))
                 throw new System.ArgumentException("srcEntity is not a valid entity");
 
-            m_Entities->InstantiateEntities(m_ArchetypeManager, srcEntity, outputEntities, count, true);
-            IncrementSharedComponentsVersion(srcEntity);
+            m_Entities->InstantiateEntities(m_ArchetypeManager, m_SharedComponentManager, srcEntity, outputEntities, count, true);
 
             AfterImmediateStructuralTransaction();
         }
@@ -313,11 +291,7 @@ namespace UnityEngine.ECS
 
             m_Entities->AssertEntitiesExist(&entity, 1);
 
-            //@TODO: Shouldn't this be after the new archetype is known,
-            // so it covers the added component?
-            IncrementSharedComponentsVersion(entity);
-
-            m_Entities->AddComponent(entity, type, m_ArchetypeManager, m_GroupManager, m_CachedComponentTypeInArchetypeArray);
+            m_Entities->AddComponent(entity, type, m_ArchetypeManager, m_SharedComponentManager, m_GroupManager, m_CachedComponentTypeInArchetypeArray);
         }
         
         public void RemoveComponent(Entity entity, ComponentType type)
@@ -325,9 +299,7 @@ namespace UnityEngine.ECS
             BeforeImmediateStructualChange();
             m_Entities->AssertEntityHasComponent(entity, type);
 
-            IncrementSharedComponentsVersion(entity);
-            
-            m_Entities->RemoveComponent(entity, type, m_ArchetypeManager, m_GroupManager, m_CachedComponentTypeInArchetypeArray);
+            m_Entities->RemoveComponent(entity, type, m_ArchetypeManager, m_SharedComponentManager, m_GroupManager, m_CachedComponentTypeInArchetypeArray);
         }
 
         public void AddComponent<T>(Entity entity, T componentData) where T : struct, IComponentData
@@ -441,9 +413,9 @@ namespace UnityEngine.ECS
             
             int typeIndex = TypeManager.GetTypeIndex<T>();
             m_Entities->AssertEntityHasComponent(entity, typeIndex);
-            
+                        
             int newSharedComponentDataIndex = m_SharedComponentManager.InsertSharedComponent(componentData);
-            m_Entities->SetSharedComponentDataIndex(m_ArchetypeManager, entity, typeIndex, newSharedComponentDataIndex);
+            m_Entities->SetSharedComponentDataIndex(m_ArchetypeManager, m_SharedComponentManager, entity, typeIndex, newSharedComponentDataIndex);
             m_SharedComponentManager.RemoveReference(newSharedComponentDataIndex);
         }
 
@@ -471,32 +443,14 @@ namespace UnityEngine.ECS
             return array;
         }
 
-        void IncrementSharedComponentsVersion(Entity entity)
-        {
-            Archetype* archetype = m_Entities->GetArchetype(entity);
-            
-            // Increment shared component version
-            var sharedComponentDataIndices = m_Entities->GetComponentChunk(entity)->sharedComponentValueArray;
-            for (int i = 0; i < archetype->numSharedComponents; i++)
-            {
-                m_SharedComponentManager.IncrementSharedComponentVersion(sharedComponentDataIndices[i]);
-            }
-            
-            // Increment type component version
-            for (int t = 0; t < archetype->typesCount; ++t)
-            {
-                int typeIndex = archetype->types[t].typeIndex;
-                bool sharedComponent = (TypeManager.TypeCategory.ISharedComponentData == TypeManager.GetComponentType(typeIndex).category);
-                if (!sharedComponent)
-                    m_ComponentTypeOrderVersion[typeIndex]++;
-            }
-        }
-        
         public int GetComponentOrderVersion<T>()
         {
-            int typeVersion = 0;
-            int typeIndex = TypeManager.GetTypeIndex<T>();
-            return m_ComponentTypeOrderVersion[typeIndex];
+            return m_Entities->GetComponentTypeOrderVersion(TypeManager.GetTypeIndex<T>());
+        }
+        
+        public int GetSharedComponentOrderVersion<T>(T sharedComponent) where T : struct, ISharedComponentData
+        {
+            return m_SharedComponentManager.GetSharedComponentVersion(sharedComponent);
         }
         
         internal ComponentJobSafetyManager ComponentJobSafetyManager { get { return m_JobSafetyManager; } }

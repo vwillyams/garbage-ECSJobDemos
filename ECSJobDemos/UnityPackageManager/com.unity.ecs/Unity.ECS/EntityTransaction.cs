@@ -97,9 +97,6 @@ namespace UnityEngine.ECS
             var archetypeManager = (ArchetypeManager)m_ArchetypeManager.Target;
             m_Entities->CreateEntities(archetypeManager, archetype.archetype, entities, count, false);
         }
-        
-        //@TODO: None of this code is calling IncrementSharedComponentsVersion...
-        
 
         public bool Exists(Entity entity)
         {

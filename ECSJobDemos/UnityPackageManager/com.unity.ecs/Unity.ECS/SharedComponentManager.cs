@@ -80,7 +80,7 @@ namespace UnityEngine.ECS
 
         public void IncrementSharedComponentVersion(int index)
         {
-          m_SharedComponentVersion[index]++;
+            m_SharedComponentVersion[index]++;
         }
         
         public int GetSharedComponentVersion<T>(T sharedData) where T: struct

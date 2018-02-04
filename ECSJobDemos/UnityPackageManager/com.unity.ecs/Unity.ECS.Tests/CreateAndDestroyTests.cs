@@ -42,7 +42,6 @@ namespace UnityEngine.ECS.Tests
         }
 
 	    [Test]
-	    [Ignore("Failing, either throw argument exception or make it work")]
 	    unsafe public void CreateZeroEntities()
 	    {
 	        var array = new NativeArray<Entity>(0, Allocator.Temp);

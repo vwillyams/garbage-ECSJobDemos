@@ -11,23 +11,22 @@ using NUnit.Framework.Internal.Execution;
 
 namespace UnityEngine.ECS.Tests
 {
-    public partial class SharedComponentDataTests : ECSTestsFixture
+    struct SharedData1 : ISharedComponentData
     {
-        struct SharedData1 : ISharedComponentData
-        {
-            public int value;
+        public int value;
 
-            public SharedData1(int val) { value = val; }
-        }
+        public SharedData1(int val) { value = val; }
+    }
 
-        struct SharedData2 : ISharedComponentData
-        {
-            public int value;
+    struct SharedData2 : ISharedComponentData
+    {
+        public int value;
 
-            public SharedData2(int val) { value = val; }
-        }
+        public SharedData2(int val) { value = val; }
+    }
 
-
+    public class SharedComponentDataTests : ECSTestsFixture
+    {
         //@TODO: No tests for invalid shared components / destroyed shared component data
         //@TODO: No tests for if we leak shared data when last entity is destroyed...
         //@TODO: No tests for invalid shared component type?

@@ -8,24 +8,29 @@ namespace UnityEngine.ECS
     {
         static public uint fletcher32(ushort* data, int count)
         {
-            uint sum1 = 0xff;
-            uint sum2 = 0xff;
-            while (count > 0)
+            unchecked
             {
-                int batchCount = count < 359 ? count : 359;
-                for (int i = 0; i < batchCount; ++i)
+                uint sum1 = 0xff;
+                uint sum2 = 0xff;
+                while (count > 0)
                 {
-                    sum1 += data[i];
-                    sum2 += sum1;
+                    int batchCount = count < 359 ? count : 359;
+                    for (int i = 0; i < batchCount; ++i)
+                    {
+                        sum1 += data[i];
+                        sum2 += sum1;
+                    }
+
+                    sum1 = (sum1 & 0xffff) + (sum1 >> 16);
+                    sum2 = (sum2 & 0xffff) + (sum2 >> 16);
+                    count -= batchCount;
+                    data += batchCount;
                 }
-                sum1 = (sum1 & 0xffff) + (sum1 >> 16);
-                sum2 = (sum2 & 0xffff) + (sum2 >> 16);
-                count -= batchCount;
-                data += batchCount;
+
+                sum1 = (sum1 & 0xffff) | (sum1 >> 16);
+                sum2 = (sum2 & 0xffff) | (sum2 >> 16);
+                return (sum2 << 16) | sum1;
             }
-            sum1 = (sum1 & 0xffff) | (sum1 >> 16);
-            sum2 = (sum2 & 0xffff) | (sum2 >> 16);
-            return (sum2 << 16) | sum1;
         }
     }
 }

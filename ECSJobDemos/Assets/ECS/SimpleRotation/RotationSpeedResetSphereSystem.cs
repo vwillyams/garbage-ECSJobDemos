@@ -2,6 +2,7 @@
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine.ECS;
+using UnityEngine.ECS.SimpleBounds;
 using UnityEngine.ECS.SimpleRotation;
 using UnityEngine.ECS.Transform;
 
@@ -12,10 +13,9 @@ namespace UnityEngine.ECS.SimpleRotation
     {
         struct RotationSpeedResetSphereGroup
         {
-            [ReadOnly]
-            public ComponentDataArray<RotationSpeedResetSphere> rotationSpeedResetSpheres;
-            [ReadOnly]
-            public ComponentDataArray<TransformPosition> positions;
+            [ReadOnly] public ComponentDataArray<RotationSpeedResetSphere> rotationSpeedResetSpheres;
+            [ReadOnly] public ComponentDataArray<Sphere> spheres;
+            [ReadOnly] public ComponentDataArray<TransformPosition> positions;
             public int Length;
         }
 
@@ -24,8 +24,7 @@ namespace UnityEngine.ECS.SimpleRotation
         struct RotationSpeedGroup
         {
             public ComponentDataArray<RotationSpeed> rotationSpeeds;
-            [ReadOnly]
-            public ComponentDataArray<TransformPosition> positions;
+            [ReadOnly] public ComponentDataArray<TransformPosition> positions;
             public int Length;
         }
 
@@ -34,20 +33,18 @@ namespace UnityEngine.ECS.SimpleRotation
         [ComputeJobOptimization]
         struct RotationSpeedResetSphereRotation : IJob
         {
-            [ReadOnly]
-            public ComponentDataArray<RotationSpeedResetSphere> rotationSpeedResetSpheres;
             public ComponentDataArray<RotationSpeed> rotationSpeeds;
-            [ReadOnly]
-            public ComponentDataArray<TransformPosition> rotationSpeedResetSpherePositions;
-            [ReadOnly]
-            public ComponentDataArray<TransformPosition> positions;
+            [ReadOnly] public ComponentDataArray<RotationSpeedResetSphere> rotationSpeedResetSpheres;
+            [ReadOnly] public ComponentDataArray<Sphere> spheres;
+            [ReadOnly] public ComponentDataArray<TransformPosition> rotationSpeedResetSpherePositions;
+            [ReadOnly] public ComponentDataArray<TransformPosition> positions;
         
             public void Execute()
             {
                 for (int i = 0; i < rotationSpeedResetSpheres.Length; i++)
                 {
                     var center = rotationSpeedResetSpherePositions[i].position;
-                    var radius = rotationSpeedResetSpheres[i].radius;
+                    var radius = spheres[i].radius;
                     var speed = rotationSpeedResetSpheres[i].speed;
 
                     for (int positionIndex = 0; positionIndex < positions.Length; positionIndex++)
@@ -69,6 +66,7 @@ namespace UnityEngine.ECS.SimpleRotation
             var rotationSpeedResetSphereRotationJob = new RotationSpeedResetSphereRotation
             {
                 rotationSpeedResetSpheres = m_RotationSpeedResetSphereGroup.rotationSpeedResetSpheres,
+                spheres = m_RotationSpeedResetSphereGroup.spheres,
                 rotationSpeeds = m_RotationSpeedGroup.rotationSpeeds,
                 rotationSpeedResetSpherePositions = m_RotationSpeedResetSphereGroup.positions,
                 positions = m_RotationSpeedGroup.positions

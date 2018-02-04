@@ -73,7 +73,7 @@ namespace UnityEngine.ECS.Boids
             }
         }
         
-        // [ComputeJobOptimization]
+        [ComputeJobOptimization]
         struct Steer : IJob
         {
             public ComponentDataArray<ForwardRotation>                forwardRotations;

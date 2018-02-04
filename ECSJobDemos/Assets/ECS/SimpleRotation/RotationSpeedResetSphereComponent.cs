@@ -10,7 +10,6 @@ namespace UnityEngine.ECS.SimpleRotation
     public struct RotationSpeedResetSphere : IComponentData
     {
         public float speed;
-        public float radius;
     }
 
     public class RotationSpeedResetSphereComponent : ComponentDataWrapper<RotationSpeedResetSphere> { } 

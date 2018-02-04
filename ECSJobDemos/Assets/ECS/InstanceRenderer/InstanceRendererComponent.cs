@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.ECS.Rendering
 {
-    [System.Serializable]
+    [Serializable]
 	public struct InstanceRenderer : ISharedComponentData
 	{
         public Mesh                 mesh;

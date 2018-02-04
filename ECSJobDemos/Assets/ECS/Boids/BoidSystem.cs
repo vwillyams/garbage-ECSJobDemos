@@ -8,6 +8,7 @@ using Unity.Mathematics.Experimental;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.ECS;
+using UnityEngine.ECS.SimpleBounds;
 using UnityEngine.ECS.SimpleRotation;
 using UnityEngine.ECS.Transform;
 using UnityEngine.XR.WSA;
@@ -42,6 +43,7 @@ namespace UnityEngine.ECS.Boids
         struct ObstacleGroup
         {
             [ReadOnly] public ComponentDataArray<BoidObstacle>        obstacles;
+            [ReadOnly] public ComponentDataArray<Sphere>              spheres;
             [ReadOnly] public ComponentDataArray<TransformPosition>   positions;
             public int Length;
         }
@@ -71,7 +73,7 @@ namespace UnityEngine.ECS.Boids
             }
         }
         
-        [ComputeJobOptimization]
+        // [ComputeJobOptimization]
         struct Steer : IJob
         {
             public ComponentDataArray<ForwardRotation>                forwardRotations;
@@ -80,23 +82,24 @@ namespace UnityEngine.ECS.Boids
             [ReadOnly] public ComponentDataArray<TransformPosition>   targetPositions;
             [ReadOnly] public ComponentDataArray<TransformPosition>   obstaclePositions;
             [ReadOnly] public ComponentDataArray<BoidObstacle>        obstacles;
+            [ReadOnly] public ComponentDataArray<Sphere>              obstacleSpheres;
             [ReadOnly] public NativeMultiHashMap<int, int>            cells;
             [ReadOnly] public NativeArray<int3> 					  cellOffsetsTable;
             [ReadOnly] public BoidSettings                            settings;
             [ReadOnly] public NativeArray<float>                      bias;
             public float                                              dt;
             
-            static float3 AvoidObstacle (float3 obstaclePosition, BoidObstacle obstacle, float3 position, float3 steer)
+            static float3 AvoidObstacle (float3 obstaclePosition, float obstacleRadius, BoidObstacle obstacle, float3 position, float3 steer)
             {
                 // avoid obstacle
                 float3 obstacleDelta1 = obstaclePosition - position;
                 float sqrDist = math.dot(obstacleDelta1, obstacleDelta1);
-                float orad = obstacle.size + obstacle.aversionDistance;
+                float orad = obstacleRadius + obstacle.aversionDistance;
                 if (sqrDist < orad * orad)
                 {
                     float dist = math.sqrt(sqrDist);
                     float3 obs1Dir = obstacleDelta1 / dist;
-                    float a = dist - obstacle.size;
+                    float a = dist - obstacleRadius;
                     if (a < 0)
                         a = 0;
                     float f = a / obstacle.aversionDistance;
@@ -191,12 +194,12 @@ namespace UnityEngine.ECS.Boids
                     
                     var obstacleSteering = forward;
                     for (int i = 0;i != obstacles.Length;i++)
-                        obstacleSteering = AvoidObstacle (obstaclePositions[i].position, obstacles[i], position, obstacleSteering);
+                        obstacleSteering = AvoidObstacle (obstaclePositions[i].position, obstacleSpheres[i].radius, obstacles[i], position, obstacleSteering);
 
                     var steer = (alignmentSteering * settings.alignmentWeight) +
                                 (separationSteering * settings.separationWeight) +
                                 (targetSteering * settings.targetWeight) +
-                                (obstacleSteering * 1.0f);
+                                (obstacleSteering * settings.obstacleWeight);
                     
                     math_experimental.normalizeSafe(steer);
 
@@ -241,6 +244,7 @@ namespace UnityEngine.ECS.Boids
                 targetPositions = m_TargetGroup.positions,
                 obstaclePositions = m_ObstacleGroup.positions,
                 obstacles = m_ObstacleGroup.obstacles,
+                obstacleSpheres = m_ObstacleGroup.spheres,
                 bias = m_Bias,
                 dt = Time.deltaTime
             };

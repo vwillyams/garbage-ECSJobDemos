@@ -1833,6 +1833,7 @@ MonoBehaviour:
     separationWeight: 2
     alignmentWeight: 1
     targetWeight: 0.5
+    obstacleWeight: 5
     rotationalSpeed: 160
 --- !u!114 &614494512
 MonoBehaviour:
@@ -4029,6 +4030,7 @@ GameObject:
   - component: {fileID: 1359442720}
   - component: {fileID: 1359442721}
   - component: {fileID: 1359442722}
+  - component: {fileID: 1359442723}
   m_Layer: 0
   m_Name: Shark
   m_TagString: Untagged
@@ -4119,7 +4121,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SerializedData:
-    size: 20
     aversionDistance: 20
 --- !u!114 &1359442720
 MonoBehaviour:
@@ -4154,6 +4155,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68e6fc7e92084133939f81972d460859, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1359442723
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1359442714}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1fcbe01e62ca4813a1300b9a5173dc47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SerializedData:
+    radius: 4
 --- !u!1001 &1381793912
 Prefab:
   m_ObjectHideFlags: 0

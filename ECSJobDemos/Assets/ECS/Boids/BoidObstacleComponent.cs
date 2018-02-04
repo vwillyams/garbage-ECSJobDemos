@@ -10,7 +10,6 @@ namespace UnityEngine.ECS.Boids
 	[Serializable]
 	public struct BoidObstacle : IComponentData
 	{
-		public float size;
 		public float aversionDistance;
 	}
 

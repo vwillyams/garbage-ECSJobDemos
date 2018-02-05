@@ -29,6 +29,7 @@ namespace TwoStickPureExample
             var em = EntityManager;
 
             // Need to copy the data out so we can spawn without invalidating these arrays.
+            // TODO: This cannot use an entity command buffer atm because it doesn't have shared component data support.
             var entities = new NativeArray<Entity>(m_Data.Length, Allocator.Temp);
             var spawnData = new NativeArray<ShotSpawnData>(m_Data.Length, Allocator.Temp);
             m_Data.SpawnedEntities.CopyTo(entities);

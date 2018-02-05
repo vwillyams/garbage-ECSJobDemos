@@ -120,7 +120,7 @@ namespace UnityEngine.ECS
             data->Entity = e;
         }
 
-        private void AddEntityComponentCommand<T>(Command op, Entity e, T component) where T : struct, IComponentData
+        private void AddEntityComponentCommand<T>(Command op, Entity e, T component) where T : struct
         {
             int typeSize = UnsafeUtility.SizeOf<T>();
             int typeIndex = TypeManager.GetTypeIndex<T>();
@@ -142,7 +142,7 @@ namespace UnityEngine.ECS
             return (size + alignmentPowerOfTwo - 1) & ~(alignmentPowerOfTwo - 1);
         }
 
-        private void AddEntityComponentTypeCommand<T>(Command op, Entity e) where T : struct, IComponentData
+        private void AddEntityComponentTypeCommand<T>(Command op, Entity e) where T : struct
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
             int sizeNeeded = Align(sizeof(EntityComponentCommand), 8);
@@ -227,12 +227,8 @@ namespace UnityEngine.ECS
                 {
                     BasicCommand* header = (BasicCommand*)(buf + off);
 
-                    switch ((Command) header->CommandType)
+                    switch ((Command)header->CommandType)
                     {
-                        case Command.CreateEntityImplicit:
-                            lastEntity = mgr.CreateEntity();
-                            break;
-
                         case Command.DestroyEntityExplicit:
                             mgr.DestroyEntity(((EntityCommand*)header)->Entity);
                             break;
@@ -243,15 +239,6 @@ namespace UnityEngine.ECS
                                 var componentType = (ComponentType)TypeManager.GetType(cmd->ComponentTypeIndex);
                                 mgr.AddComponent(cmd->Header.Entity, componentType);
                                 mgr.SetComponentRaw(cmd->Header.Entity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
-                            }
-                            break;
-
-                        case Command.AddComponentImplicit:
-                            {
-                                EntityComponentCommand* cmd = (EntityComponentCommand*)header;
-                                var componentType = (ComponentType)TypeManager.GetType(cmd->ComponentTypeIndex);
-                                mgr.AddComponent(lastEntity, componentType);
-                                mgr.SetComponentRaw(lastEntity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
                             }
                             break;
 
@@ -266,6 +253,19 @@ namespace UnityEngine.ECS
                             {
                                 EntityComponentCommand* cmd = (EntityComponentCommand*)header;
                                 mgr.SetComponentRaw(cmd->Header.Entity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
+                            }
+                            break;
+
+                        case Command.CreateEntityImplicit:
+                            lastEntity = mgr.CreateEntity();
+                            break;
+
+                        case Command.AddComponentImplicit:
+                            {
+                                EntityComponentCommand* cmd = (EntityComponentCommand*)header;
+                                var componentType = (ComponentType)TypeManager.GetType(cmd->ComponentTypeIndex);
+                                mgr.AddComponent(lastEntity, componentType);
+                                mgr.SetComponentRaw(lastEntity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
                             }
                             break;
                     }

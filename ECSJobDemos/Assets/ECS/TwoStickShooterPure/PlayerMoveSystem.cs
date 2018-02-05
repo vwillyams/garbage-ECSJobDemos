@@ -29,8 +29,7 @@ namespace TwoStickPureExample
             if (m_Data.Length == 0)
                 return;
 
-            int pendingShotCount = 0;
-            var pendingShots = new NativeArray<ShotSpawnData>(m_Data.Length, Allocator.Temp);
+            var cmds = new EntityCommandBuffer();
 
             var settings = TwoStickBootstrap.Settings;
 
@@ -50,7 +49,8 @@ namespace TwoStickPureExample
 
                     playerInput.FireCooldown = settings.playerFireCoolDown;
 
-                    pendingShots[pendingShotCount++] = new ShotSpawnData
+                    cmds.CreateEntity();
+                    cmds.AddComponent(new ShotSpawnData
                     {
                         Shot = new Shot
                         {
@@ -60,7 +60,7 @@ namespace TwoStickPureExample
                         Position = new Position2D{ position = position },
                         Heading = new Heading2D{ heading = heading },
                         Faction = new Faction { Value = Faction.kPlayer },
-                    };
+                    });
                 }
 
                 m_Data.Position[index] = new Position2D {position = position};
@@ -68,20 +68,8 @@ namespace TwoStickPureExample
                 m_Data.Input[index] = playerInput;
             }
 
-            if (pendingShotCount > 0)
-            {
-                var shotEvents = new NativeArray<Entity>(pendingShotCount, Allocator.Temp);
-                EntityManager.CreateEntity(TwoStickBootstrap.ShotSpawnArchetype, shotEvents);
-
-                for (int i = 0; i < pendingShotCount; ++i)
-                {
-                    EntityManager.SetComponentData(shotEvents[i], pendingShots[i]);
-                }
-
-                shotEvents.Dispose();
-            }
-
-            pendingShots.Dispose();
+            cmds.Playback(EntityManager);
+            cmds.Dispose();
         }
     }
 }

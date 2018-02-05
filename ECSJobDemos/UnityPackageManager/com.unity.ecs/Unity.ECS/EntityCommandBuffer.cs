@@ -60,6 +60,13 @@ namespace UnityEngine.ECS
         }
 
         [StructLayout(LayoutKind.Sequential)]
+        struct CreateCommand
+        {
+            public BasicCommand Header;
+            public EntityArchetype Archetype;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
         struct EntityCommand
         {
             public BasicCommand Header;
@@ -103,12 +110,13 @@ namespace UnityEngine.ECS
             return ptr;
         }
 
-        private void AddBasicCommand(Command op)
+        private void AddCreateCommand(Command op, EntityArchetype archetype)
         {
-            BasicCommand* data = (BasicCommand*) Reserve(sizeof(BasicCommand));
+            CreateCommand* data = (CreateCommand*) Reserve(sizeof(CreateCommand));
 
-            data->CommandType = (int) op;
-            data->TotalSize = sizeof(BasicCommand);
+            data->Header.CommandType = (int) op;
+            data->Header.TotalSize = sizeof(CreateCommand);
+            data->Archetype = archetype;
         }
 
         private void AddEntityCommand(Command op, Entity e)
@@ -168,7 +176,12 @@ namespace UnityEngine.ECS
 
         public void CreateEntity()
         {
-            AddBasicCommand(Command.CreateEntityImplicit);
+            AddCreateCommand(Command.CreateEntityImplicit, new EntityArchetype());
+        }
+
+        public void CreateEntity(EntityArchetype archetype)
+        {
+            AddCreateCommand(Command.CreateEntityImplicit, archetype);
         }
 
         public void DestroyEntity(Entity e)
@@ -179,6 +192,11 @@ namespace UnityEngine.ECS
         public void AddComponent<T>(Entity e, T component) where T: struct, IComponentData
         {
             AddEntityComponentCommand(Command.AddComponentExplicit, e, component);
+        }
+
+        public void SetComponent<T>(T component) where T: struct, IComponentData
+        {
+            AddEntityComponentCommand(Command.SetComponentImplicit, Entity.Null, component);
         }
 
         public void SetComponent<T>(Entity e, T component) where T: struct, IComponentData
@@ -207,6 +225,7 @@ namespace UnityEngine.ECS
             // Commands that either create a new entity or operate implicitly on a just-created entity (which doesn't yet exist when the command is buffered)
             CreateEntityImplicit,
             AddComponentImplicit,
+            SetComponentImplicit,
         }
 
         /// <summary>
@@ -257,14 +276,28 @@ namespace UnityEngine.ECS
                             break;
 
                         case Command.CreateEntityImplicit:
-                            lastEntity = mgr.CreateEntity();
-                            break;
+                            {
+                                CreateCommand* cmd = (CreateCommand*)header;
+                                if (cmd->Archetype.Valid)
+                                    lastEntity = mgr.CreateEntity(cmd->Archetype);
+                                else
+                                    lastEntity = mgr.CreateEntity();
+                                break;
+                            }
 
                         case Command.AddComponentImplicit:
                             {
                                 EntityComponentCommand* cmd = (EntityComponentCommand*)header;
                                 var componentType = (ComponentType)TypeManager.GetType(cmd->ComponentTypeIndex);
                                 mgr.AddComponent(lastEntity, componentType);
+                                mgr.SetComponentRaw(lastEntity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
+                            }
+                            break;
+
+                        case Command.SetComponentImplicit:
+                            {
+                                EntityComponentCommand* cmd = (EntityComponentCommand*)header;
+                                var componentType = (ComponentType)TypeManager.GetType(cmd->ComponentTypeIndex);
                                 mgr.SetComponentRaw(lastEntity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
                             }
                             break;

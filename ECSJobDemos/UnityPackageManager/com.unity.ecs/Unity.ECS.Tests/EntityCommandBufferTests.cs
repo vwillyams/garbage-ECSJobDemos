@@ -34,6 +34,24 @@ namespace UnityEngine.ECS.Tests
         }
 
         [Test]
+        public void ImplicitCreateEntityWithArchetype()
+        {
+            var a = m_Manager.CreateArchetype(typeof(EcsTestData));
+
+            var cmds = new EntityCommandBuffer();
+            cmds.CreateEntity(a);
+            cmds.SetComponent(new EcsTestData { value = 12 });
+            cmds.Playback(m_Manager);
+            cmds.Dispose();
+
+            var group = m_Manager.CreateComponentGroup(typeof(EcsTestData));
+            var arr = group.GetComponentDataArray<EcsTestData>();
+            Assert.AreEqual(1, arr.Length);
+            Assert.AreEqual(12, arr[0].value);
+            group.Dispose();
+        }
+
+        [Test]
         public void ImplicitCreateEntityTwice()
         {
             var cmds = new EntityCommandBuffer();

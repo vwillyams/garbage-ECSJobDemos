@@ -157,17 +157,14 @@ namespace Unity.Multiplayer
             return true;
         }
 
-        public bool WriteMessage(NativeSlice<byte> message, int connection)
+        public void WriteMessage(NativeSlice<byte> message, int connection)
         {
-            // TODO FIXME: should handle proper send to single instance.
-            var length = m_Socket.SendData(message, ((NativeArray<int>)m_Connections).Slice());
-            return message.Length == length;
+            m_Socket.SendData(message, connection);
         }
 
-        public bool WriteMessage(NativeSlice<byte> message)
+        public void WriteMessage(NativeSlice<byte> message)
         {
-            var length = m_Socket.SendData(message, ((NativeArray<int>)m_Connections).Slice());
-            return message.Length == length;
+            m_Socket.SendData(message, ((NativeArray<int>)m_Connections).Slice());
         }
 
         struct SliceInformation

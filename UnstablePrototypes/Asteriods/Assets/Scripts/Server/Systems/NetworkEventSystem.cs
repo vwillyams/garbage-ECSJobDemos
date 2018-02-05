@@ -43,6 +43,12 @@ namespace Asteriods.Server
             m_NetworkServer.Update();
 
             NetworkConnection connection;
+            while (m_NetworkServer.TryPopDisconnectionQueue(out connection))
+            {
+                m_NetworkStateSystem.PlayerDestroy(connection);
+                Debug.Log("OnDisconnect: ConnectionId = " + connection.Id);
+            }
+
             while (m_NetworkServer.TryPopConnectionQueue(out connection))
             {
                 m_NetworkStateSystem.PlayerCreate(connection);
@@ -90,6 +96,9 @@ namespace Asteriods.Server
 
     public class NetworkStateSystem : ComponentSystem
     {
+        [Inject]
+        NetworkMessageSystem m_NetworkMessageSystem;
+
         int m_NetworkId;
 
         NativeHashMap<int, Entity> m_Connections;
@@ -118,6 +127,22 @@ namespace Asteriods.Server
         public int GetNextNetworkId()
         {
             return m_NetworkId++;
+        }
+
+        public void PlayerDestroy(NetworkConnection nc)
+        {
+            Entity e;
+            if (!m_Connections.TryGetValue(nc.Id, out e))
+            {
+                return;
+            }
+
+            //m_NetworkMessageSystem.DespawnQueue.;
+            var nid = EntityManager.GetComponent<NetworkIdCompmonentData>(e);
+            m_NetworkMessageSystem.DespawnQueue.Enqueue(new DespawnCommand(nid.id));
+
+            m_Connections.Remove(nc.Id);
+            EntityManager.DestroyEntity(e);
         }
 
         public void PlayerCreate(NetworkConnection nc)

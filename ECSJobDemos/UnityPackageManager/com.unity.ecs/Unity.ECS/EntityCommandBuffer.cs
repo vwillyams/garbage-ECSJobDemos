@@ -1,21 +1,28 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.ECS
 {
+    /// <summary>
+    /// A thread-safe command buffer that can buffer commands that affect entities and components for later playback.
+    /// </summary>
     public unsafe struct EntityCommandBuffer
     {
-        private const int kMinimumChunkSize = 64 * 1024;
+        /// <summary>
+        /// The minimum chunk size to allocate from the job allocator.
+        /// </summary>
+        ///
+        /// We keep this relatively small as we don't want to overload the temp allocator in case people make a ton of command buffers.
+        public const int kDefaultMinimumChunkSize = 4 * 1024;
 
+        /// <summary>
+        /// Organized in memory like a single block with Chunk header followed by Size bytes of data.
+        /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         struct Chunk
         {
-            //public byte* Base;
             internal int Used;
             internal int Size;
             internal Chunk* Next;
@@ -33,6 +40,17 @@ namespace UnityEngine.ECS
 
         private Chunk* m_Tail;
         private Chunk* m_Head;
+        private int m_MinimumChunkSize;
+
+        /// <summary>
+        /// Allows controlling the size of chunks allocated from the temp job allocator to back the command buffer.
+        /// </summary>
+        /// Larger sizes are more efficient, but create more waste in the allocator.
+        public int MinimumChunkSize
+        {
+            get { return m_MinimumChunkSize > 0 ? m_MinimumChunkSize : kDefaultMinimumChunkSize; }
+            set { m_MinimumChunkSize = Math.Max(0, value); }
+        }
 
         [StructLayout(LayoutKind.Sequential)]
         struct BasicCommand
@@ -57,33 +75,27 @@ namespace UnityEngine.ECS
             // Data follows if command has an associated component payload
         }
 
-        private void AllocChunk(int size)
-        {
-            Chunk* c = (Chunk*) UnsafeUtility.Malloc(sizeof(Chunk) + size, 16, Unity.Collections.Allocator.Temp);
-            c->Next = null;
-            c->Prev = m_Tail != null ? m_Tail : null;
-            c->Used = 0;
-            c->Size = size;
-
-            if (m_Tail != null)
-            {
-                m_Tail->Next = c;
-            }
-
-            if (m_Head == null)
-            {
-                m_Head = c;
-            }
-
-            m_Tail = c;
-
-        }
-
         private byte* Reserve(int size)
         {
             if (m_Tail == null || m_Tail->Capacity < size)
             {
-                AllocChunk(Math.Max(size, kMinimumChunkSize));
+                Chunk* c = (Chunk*)UnsafeUtility.Malloc(sizeof(Chunk) + size, 16, Allocator.TempJob);
+                c->Next = null;
+                c->Prev = m_Tail != null ? m_Tail : null;
+                c->Used = 0;
+                c->Size = size;
+
+                if (m_Tail != null)
+                {
+                    m_Tail->Next = c;
+                }
+
+                if (m_Head == null)
+                {
+                    m_Head = c;
+                }
+
+                m_Tail = c;
             }
 
             int offset = m_Tail->Bump(size);
@@ -148,7 +160,7 @@ namespace UnityEngine.ECS
             while (m_Tail != null)
             {
                 Chunk* prev = m_Tail->Prev;
-                UnsafeUtility.Free(m_Tail, Unity.Collections.Allocator.Temp);
+                UnsafeUtility.Free(m_Tail, Allocator.TempJob);
                 m_Tail = prev;
             }
             m_Head = null;
@@ -159,9 +171,9 @@ namespace UnityEngine.ECS
             AddBasicCommand(Command.CreateEntityImplicit);
         }
 
-        public void RemoveEntity(Entity e)
+        public void DestroyEntity(Entity e)
         {
-            AddEntityCommand(Command.RemoveEntityExplicit, e);
+            AddEntityCommand(Command.DestroyEntityExplicit, e);
         }
 
         public void AddComponent<T>(Entity e, T component) where T: struct, IComponentData
@@ -187,7 +199,7 @@ namespace UnityEngine.ECS
         private enum Command
         {
             // Commands that operate on a known entity
-            RemoveEntityExplicit,
+            DestroyEntityExplicit,
             AddComponentExplicit,
             RemoveComponentExplicit,
             SetComponentExplicit,
@@ -197,6 +209,10 @@ namespace UnityEngine.ECS
             AddComponentImplicit,
         }
 
+        /// <summary>
+        /// Play back all recorded operations against an entity manager.
+        /// </summary>
+        /// <param name="mgr">The entity manager that will receive the operations</param>
         public void Playback(EntityManager mgr)
         {
             Chunk* head = m_Head;
@@ -217,7 +233,7 @@ namespace UnityEngine.ECS
                             lastEntity = mgr.CreateEntity();
                             break;
 
-                        case Command.RemoveEntityExplicit:
+                        case Command.DestroyEntityExplicit:
                             mgr.DestroyEntity(((EntityCommand*)header)->Entity);
                             break;
 

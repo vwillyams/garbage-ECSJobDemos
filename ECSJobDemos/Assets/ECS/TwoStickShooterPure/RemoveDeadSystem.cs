@@ -3,10 +3,6 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.ECS;
 
-namespace Experiment
-{
-}
-
 namespace TwoStickPureExample
 {
     /// <summary>
@@ -41,7 +37,7 @@ namespace TwoStickPureExample
             {
                 if (m_Data.Health[i].Value <= 0.0f || playerDead)
                 {
-                    commands.RemoveEntity(m_Data.Entity[i]);
+                    commands.DestroyEntity(m_Data.Entity[i]);
                 }
             }
 

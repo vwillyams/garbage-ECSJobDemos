@@ -6,6 +6,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.ECS;
+using UnityEngine.ECS.Boids;
 using UnityEngine.ECS.SimpleMovement;
 using UnityEngine.ECS.SimpleMovement2D;
 using UnityEngine.ECS.Transform;

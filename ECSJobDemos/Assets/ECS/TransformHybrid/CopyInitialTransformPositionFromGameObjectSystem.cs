@@ -36,15 +36,14 @@ namespace UnityEngine.ECS.Transform
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            var CopyInitialTransformPositionsJob = new CopyInitialTransformPositions
+            var copyInitialTransformPositionsJob = new CopyInitialTransformPositions
             {
                 positions = m_InitialTransformGroup.transformPositions,
                 entities = m_InitialTransformGroup.entities,
-                removeComponentQueue = m_DeferredEntityChangeSystem
-                    .GetRemoveComponentQueue<CopyInitialTransformPositionFromGameObject>()
+                removeComponentQueue = m_DeferredEntityChangeSystem.GetRemoveComponentQueue<CopyInitialTransformPositionFromGameObject>()
             };
 
-            return CopyInitialTransformPositionsJob.Schedule(m_InitialTransformGroup.transforms, inputDeps);
+            return copyInitialTransformPositionsJob.Schedule(m_InitialTransformGroup.transforms, inputDeps);
         }
     }
 }

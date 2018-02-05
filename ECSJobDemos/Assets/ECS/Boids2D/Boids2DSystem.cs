@@ -5,13 +5,14 @@ using Unity.Mathematics.Experimental;
 using UnityEngine.ECS.SimpleBounds;
 using UnityEngine.ECS.SimpleRotation;
 using UnityEngine.ECS.Transform;
+using UnityEngine.ECS.Transform2D;
 
 namespace UnityEngine.ECS.Boids
 {
-    public class BoidSystem : JobComponentSystem
+    public class Boid2DSystem : JobComponentSystem
     {
         NativeMultiHashMap<int, int> 		 m_Cells;
-        NativeArray<int3> 					 m_CellOffsetsTable;
+        NativeArray<int2> 					 m_CellOffsetsTable;
         NativeArray<float>                   m_Bias;
 
         struct BoidSettingsGroup
@@ -25,9 +26,8 @@ namespace UnityEngine.ECS.Boids
         struct BoidGroup
         {
             [ReadOnly] public ComponentDataArray<Boid>       boid; 
-            [ReadOnly] public ComponentDataArray<Position>   positions;
-            [ReadOnly] public ComponentDataArray<Rotation>   rotations;
-            public ComponentDataArray<Heading>               headings;
+            [ReadOnly] public ComponentDataArray<Position2D> positions;
+            public ComponentDataArray<Heading2D>             headings;
             public int Length;
         }
 
@@ -37,7 +37,7 @@ namespace UnityEngine.ECS.Boids
         {
             [ReadOnly] public ComponentDataArray<BoidObstacle> obstacles;
             [ReadOnly] public ComponentDataArray<Sphere>       spheres;
-            [ReadOnly] public ComponentDataArray<Position>     positions;
+            [ReadOnly] public ComponentDataArray<Position2D>   positions;
             public int Length;
         }
 
@@ -45,7 +45,7 @@ namespace UnityEngine.ECS.Boids
 
         struct TargetGroup
         {
-            [ReadOnly] public ComponentDataArray<Position>   positions;
+            [ReadOnly] public ComponentDataArray<Position2D> positions;
             [ReadOnly] public ComponentDataArray<BoidTarget> target;
             public int Length;
         }
@@ -55,9 +55,9 @@ namespace UnityEngine.ECS.Boids
         [ComputeJobOptimization]
         struct HashBoidLocations : IJobParallelFor
         {
-            [ReadOnly] public ComponentDataArray<Position> positions;
-            public NativeMultiHashMap<int, int>.Concurrent cells;
-            public float 				     			   cellRadius;
+            [ReadOnly] public ComponentDataArray<Position2D> positions;
+            public NativeMultiHashMap<int, int>.Concurrent   cells;
+            public float 				     			     cellRadius;
 
             public void Execute(int index)
             {
@@ -69,29 +69,28 @@ namespace UnityEngine.ECS.Boids
         [ComputeJobOptimization]
         struct Steer : IJob
         {
-            public ComponentDataArray<Heading>                   headings;
-            [ReadOnly] public ComponentDataArray<Position>       positions;
-            [ReadOnly] public ComponentDataArray<Rotation>       rotations;
-            [ReadOnly] public ComponentDataArray<Position>       targetPositions;
-            [ReadOnly] public ComponentDataArray<Position>       obstaclePositions;
+            public ComponentDataArray<Heading2D>                 headings;
+            [ReadOnly] public ComponentDataArray<Position2D>     positions;
+            [ReadOnly] public ComponentDataArray<Position2D>     targetPositions;
+            [ReadOnly] public ComponentDataArray<Position2D>     obstaclePositions;
             [ReadOnly] public ComponentDataArray<BoidObstacle>   obstacles;
             [ReadOnly] public ComponentDataArray<Sphere>         obstacleSpheres;
             [ReadOnly] public NativeMultiHashMap<int, int>       cells;
-            [ReadOnly] public NativeArray<int3> 				 cellOffsetsTable;
+            [ReadOnly] public NativeArray<int2> 				 cellOffsetsTable;
             [ReadOnly] public BoidSettings                       settings;
             [ReadOnly] public NativeArray<float>                 bias;
             public float                                         dt;
             
-            static float3 AvoidObstacle (float3 obstaclePosition, float obstacleRadius, BoidObstacle obstacle, float3 position, float3 steer)
+            static float2 AvoidObstacle (float2 obstaclePosition, float obstacleRadius, BoidObstacle obstacle, float2 position, float2 steer)
             {
                 // avoid obstacle
-                float3 obstacleDelta1 = obstaclePosition - position;
+                float2 obstacleDelta1 = obstaclePosition - position;
                 float sqrDist = math.dot(obstacleDelta1, obstacleDelta1);
                 float orad = obstacleRadius + obstacle.aversionDistance;
                 if (sqrDist < orad * orad)
                 {
                     float dist = math.sqrt(sqrDist);
-                    float3 obs1Dir = obstacleDelta1 / dist;
+                    float2 obs1Dir = obstacleDelta1 / dist;
                     float a = dist - obstacleRadius;
                     if (a < 0)
                         a = 0;
@@ -102,7 +101,7 @@ namespace UnityEngine.ECS.Boids
                 return steer;
             } 
             
-            float3 CalculateNormalizedTargetDirection(int index)
+            float2 CalculateNormalizedTargetDirection(int index)
             {
                 var position = positions[index].position;
                 float closestDistance = math.distance (position, targetPositions[0].position);
@@ -120,17 +119,17 @@ namespace UnityEngine.ECS.Boids
                 return (targetPositions[closestIndex].position - position ) / math.max(0.0001F, closestDistance);
             }
             
-            void CalculateSeparationAndAlignment(int index, out float3 separationSteering, out float3 alignmentSteering )
+            void CalculateSeparationAndAlignment(int index, out float2 separationSteering, out float2 alignmentSteering )
             {
                 var position = positions[index].position;
-                var forward = math.forward(rotations[index].rotation);
+                var forward = headings[index].heading;
                 
-                separationSteering = new float3(0);
-                alignmentSteering = new float3(0);
+                separationSteering = new float2(0);
+                alignmentSteering = new float2(0);
                 
                 int hash;
-                int3 gridPos = HashUtility.Quantize(position, settings.cellRadius);
-                for (int oi = 0; oi < 7; oi++)
+                var gridPos = HashUtility.Quantize(position, settings.cellRadius);
+                for (int oi = 0; oi < 4; oi++)
                 {
                     var gridOffset = cellOffsetsTable[oi];
 
@@ -150,7 +149,7 @@ namespace UnityEngine.ECS.Boids
                         neighbors++;
 
                         var otherPosition = positions[i].position;
-                        var otherForward = math.forward(rotations[i].rotation);
+                        var otherForward = headings[i].heading;
 
                         // add in steering contribution
                         // (opposite of the offset direction, divided once by distance
@@ -175,11 +174,11 @@ namespace UnityEngine.ECS.Boids
             {
                 for (int index = 0; index < headings.Length; index++)
                 {
-                    var forward = math.forward(rotations[index].rotation);
+                    var forward = headings[index].heading;
                     var position = positions[index].position;
                     
-                    float3 alignmentSteering;
-                    float3 separationSteering;
+                    float2 alignmentSteering;
+                    float2 separationSteering;
 
                     CalculateSeparationAndAlignment(index, out alignmentSteering, out separationSteering);
 
@@ -196,9 +195,9 @@ namespace UnityEngine.ECS.Boids
                     
                     math_experimental.normalizeSafe(steer);
 
-                    headings[index] = new Heading
+                    headings[index] = new Heading2D
                     {
-                        forward = math_experimental.normalizeSafe(forward + steer * 2.0f * bias[index&1023] * dt * Mathf.Deg2Rad * settings.rotationalSpeed)
+                        heading = math_experimental.normalizeSafe(forward + steer * 2.0f * bias[index&1023] * dt * Mathf.Deg2Rad * settings.rotationalSpeed)
                     };
                 }
             }
@@ -230,7 +229,6 @@ namespace UnityEngine.ECS.Boids
             {
                 headings = m_BoidGroup.headings,
                 positions = m_BoidGroup.positions,
-                rotations = m_BoidGroup.rotations,
                 cells = m_Cells,
                 settings = settings,
                 cellOffsetsTable = m_CellOffsetsTable,
@@ -251,7 +249,7 @@ namespace UnityEngine.ECS.Boids
         {
             base.OnCreateManager(capacity);
             m_Cells = new NativeMultiHashMap<int, int>(capacity, Allocator.Persistent);
-            m_CellOffsetsTable = new NativeArray<int3>(HashUtility.cellOffsets, Allocator.Persistent);
+            m_CellOffsetsTable = new NativeArray<int2>(HashUtility.cell2DOffsets, Allocator.Persistent);
             m_Bias = new NativeArray<float>(1024,Allocator.Persistent);
             for (int i = 0; i < 1024; i++)
             {

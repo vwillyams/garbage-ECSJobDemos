@@ -2,7 +2,6 @@
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.ECS;
-using UnityEngine.ECS.Rendering;
 using UnityEngine.ECS.Transform;
 using UnityEngine.Experimental.LowLevel;
 using UnityEngine.PostProcessing;

@@ -4,10 +4,10 @@ using Unity.Collections;
 using UnityEngine.ECS;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.ECS.Rendering
+namespace UnityEngine.ECS.MeshInstancedHybrid
 {
     [Serializable]
-	public struct InstanceRenderer : ISharedComponentData
+	public struct MeshInstancedHybrid : ISharedComponentData
 	{
         public Mesh                 mesh;
         public Material             material;
@@ -16,5 +16,5 @@ namespace UnityEngine.ECS.Rendering
         public bool                 receiveShadows;
 	}
 
-	public class InstanceRendererComponent : SharedComponentDataWrapper<InstanceRenderer> { }
+	public class MeshInstancedHybridComponent : SharedComponentDataWrapper<MeshInstancedHybrid> { }
 }

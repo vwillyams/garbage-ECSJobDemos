@@ -38,7 +38,9 @@ namespace UnityEngine.ECS
             }
         }
 
+        [NativeDisableUnsafePtrRestriction]
         private Chunk* m_Tail;
+        [NativeDisableUnsafePtrRestriction]
         private Chunk* m_Head;
         private int m_MinimumChunkSize;
 

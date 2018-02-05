@@ -1,7 +1,7 @@
 ﻿using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.ECS;
-using UnityEngine.ECS.Rendering;
+using UnityEngine.ECS.MeshInstancedHybrid;
 using UnityEngine.ECS.SimpleMovement;
 using UnityEngine.ECS.Transform;
 using UnityEngine.ECS.Transform2D;
@@ -15,10 +15,10 @@ namespace TwoStickPureExample
         public static EntityArchetype BasicEnemyArchetype;
         public static EntityArchetype ShotSpawnArchetype;
 
-        public static InstanceRenderer PlayerLook;
-        public static InstanceRenderer PlayerShotLook;
-        public static InstanceRenderer EnemyShotLook;
-        public static InstanceRenderer EnemyLook;
+        public static MeshInstancedHybrid PlayerLook;
+        public static MeshInstancedHybrid PlayerShotLook;
+        public static MeshInstancedHybrid EnemyShotLook;
+        public static MeshInstancedHybrid EnemyLook;
 
         public static TwoStickExampleSettings Settings;
 
@@ -27,10 +27,13 @@ namespace TwoStickPureExample
         {
             var entityManager = World.Active.GetOrCreateManager<EntityManager>();
 
-            PlayerArchetype = entityManager.CreateArchetype(typeof(Position2D), typeof(Heading2D), typeof(PlayerInput), typeof(Faction), typeof(Health), typeof(TransformMatrix));
+            PlayerArchetype = entityManager.CreateArchetype(typeof(Position2D), typeof(Heading2D), typeof(PlayerInput),
+                typeof(Faction), typeof(Health), typeof(TransformMatrix));
             ShotArchetype = entityManager.CreateArchetype(typeof(Position2D), typeof(Heading2D), typeof(Shot), typeof(TransformMatrix), typeof(Faction), typeof(MoveSpeed), typeof(MoveForward));
             ShotSpawnArchetype = entityManager.CreateArchetype(typeof(ShotSpawnData));
-            BasicEnemyArchetype = entityManager.CreateArchetype(typeof(Enemy), typeof(Health), typeof(EnemyShootState), typeof(Faction), typeof(Position2D), typeof(Heading2D), typeof(TransformMatrix), typeof(MoveSpeed), typeof(MoveForward) );
+            BasicEnemyArchetype = entityManager.CreateArchetype(typeof(Enemy), typeof(Health), typeof(EnemyShootState),
+                typeof(Faction), typeof(Position2D), typeof(Heading2D), typeof(TransformMatrix), typeof(MoveSpeed),
+                typeof(MoveForward));
         }
 
         public static void NewGame()
@@ -73,10 +76,10 @@ namespace TwoStickPureExample
             World.Active.GetOrCreateManager<UpdatePlayerHUD>().SetupGameObjects();
         }
 
-        private static InstanceRenderer GetLookFromPrototype(string protoName)
+        private static MeshInstancedHybrid GetLookFromPrototype(string protoName)
         {
             var proto = GameObject.Find(protoName);
-            var result = proto.GetComponent<InstanceRendererComponent>().Value;
+            var result = proto.GetComponent<MeshInstancedHybridComponent>().Value;
             Object.Destroy(proto);
             return result;
         }

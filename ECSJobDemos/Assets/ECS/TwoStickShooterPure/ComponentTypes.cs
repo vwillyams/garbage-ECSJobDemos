@@ -17,7 +17,6 @@ namespace TwoStickPureExample
 
     public struct Shot : IComponentData
     {
-        public float Speed;
         public float TimeToLive;
         public float Energy;
     }

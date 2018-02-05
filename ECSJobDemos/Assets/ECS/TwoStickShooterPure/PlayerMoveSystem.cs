@@ -54,7 +54,6 @@ namespace TwoStickPureExample
                     {
                         Shot = new Shot
                         {
-                            Speed = settings.bulletMoveSpeed,
                             TimeToLive = settings.bulletTimeToLive,
                             Energy = settings.playerShotEnergy,
                         },

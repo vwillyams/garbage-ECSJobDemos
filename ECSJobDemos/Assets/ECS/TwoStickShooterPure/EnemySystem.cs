@@ -179,7 +179,6 @@ namespace TwoStickPureExample
                     state.Cooldown = shootRate;
 
                     ShotSpawnData spawn;
-                    spawn.Shot.Speed = shotSpeed;
                     spawn.Shot.TimeToLive = shotTtl;
                     spawn.Shot.Energy = shotEnergy;
                     spawn.Position = m_Data.Position[i];

@@ -154,12 +154,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerMoveSpeed: 15
-  bulletMoveSpeed: 1
+  bulletMoveSpeed: 60
   bulletTimeToLive: 2
   playerFireCoolDown: 0.1
-  enemySpeed: 0.1
+  enemySpeed: 6
   enemyShootRate: 2
-  enemyShotSpeed: 0.7
+  enemyShotSpeed: 42
   enemyShotTimeToLive: 2
   playerInitialHealth: 100
   enemyInitialHealth: 1

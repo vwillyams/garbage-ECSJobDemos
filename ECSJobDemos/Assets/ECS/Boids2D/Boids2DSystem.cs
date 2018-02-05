@@ -36,7 +36,7 @@ namespace UnityEngine.ECS.Boids
         struct ObstacleGroup
         {
             [ReadOnly] public ComponentDataArray<BoidObstacle> obstacles;
-            [ReadOnly] public ComponentDataArray<Sphere>       spheres;
+            [ReadOnly] public ComponentDataArray<Radius>       spheres;
             [ReadOnly] public ComponentDataArray<Position2D>   positions;
             public int Length;
         }
@@ -74,7 +74,7 @@ namespace UnityEngine.ECS.Boids
             [ReadOnly] public ComponentDataArray<Position2D>     targetPositions;
             [ReadOnly] public ComponentDataArray<Position2D>     obstaclePositions;
             [ReadOnly] public ComponentDataArray<BoidObstacle>   obstacles;
-            [ReadOnly] public ComponentDataArray<Sphere>         obstacleSpheres;
+            [ReadOnly] public ComponentDataArray<Radius>         obstacleSpheres;
             [ReadOnly] public NativeMultiHashMap<int, int>       cells;
             [ReadOnly] public NativeArray<int2> 				 cellOffsetsTable;
             [ReadOnly] public BoidSettings                       settings;

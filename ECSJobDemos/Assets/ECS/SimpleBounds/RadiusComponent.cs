@@ -7,10 +7,10 @@ using UnityEngine.ECS;
 namespace UnityEngine.ECS.SimpleBounds
 {
     [Serializable]
-    public struct Sphere : IComponentData
+    public struct Radius : IComponentData
     {
         public float radius;
     }
 
-    public class SphereComponent : ComponentDataWrapper<Sphere> { } 
+    public class RadiusComponent : ComponentDataWrapper<Radius> { } 
 }

@@ -5,6 +5,8 @@ using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.ECS;
+using UnityEngine.ECS.Transform;
+using UnityEngine.ECS.Transform2D;
 
 namespace TwoStickPureExample
 {
@@ -26,7 +28,6 @@ namespace TwoStickPureExample
                 return;
 
             var spawn = false;
-            Transform2D spawnXform = new Transform2D();
 
             // This is currently a copy in-out but will be nicer when C# 7 ref returns are in
             var state = m_State.S[0];
@@ -36,9 +37,10 @@ namespace TwoStickPureExample
 
             state.Cooldown -= Time.deltaTime;
 
+            float2 spawnPosition = new float2();
             if (state.Cooldown <= 0.0f)
             {
-                ComputeSpawnLocation(out spawnXform);
+                spawnPosition = ComputeSpawnLocation();
                 state.SpawnedEnemyCount++;
                 state.Cooldown = ComputeCooldown(state.SpawnedEnemyCount);
                 spawn = true;
@@ -53,12 +55,12 @@ namespace TwoStickPureExample
             if (spawn)
             {
                 Entity e = EntityManager.CreateEntity(TwoStickBootstrap.BasicEnemyArchetype);
-                EntityManager.SetComponentData(e, spawnXform);
+                EntityManager.SetComponentData(e, new Position2D {position = spawnPosition});
+                EntityManager.SetComponentData(e, new Heading2D {heading = new float2(0.0f, -1.0f)});
                 EntityManager.SetComponentData(e, default(Enemy));
                 EntityManager.SetComponentData(e, new Health { Value = TwoStickBootstrap.Settings.enemyInitialHealth });
                 EntityManager.SetComponentData(e, new EnemyShootState { Cooldown = 0.5f });
                 EntityManager.SetComponentData(e, new Faction { Value = Faction.kEnemy });
-
                 EntityManager.AddSharedComponentData(e, TwoStickBootstrap.EnemyLook);
             }
         }
@@ -68,7 +70,7 @@ namespace TwoStickPureExample
             return 0.15f;
         }
 
-        private void ComputeSpawnLocation(out Transform2D xform)
+        private float2 ComputeSpawnLocation()
         {
             var settings = TwoStickBootstrap.Settings;
 
@@ -77,8 +79,7 @@ namespace TwoStickPureExample
             float x1 = settings.playfield.xMax;
             float x = x0 + (x1 - x0) * r;
 
-            xform.Position = new float2(x, settings.playfield.yMax); // Y axis is positive up
-            xform.Heading = new float2(0, 1);
+            return new float2(x, settings.playfield.yMax); // Y axis is positive up
         }
     }
 
@@ -89,7 +90,7 @@ namespace TwoStickPureExample
             public int Length;
             [ReadOnly] public ComponentDataArray<Enemy> EnemyTag;
             public ComponentDataArray<Health> Health;
-            public ComponentDataArray<Transform2D> Transform2D;
+            public ComponentDataArray<Position2D> Position;
         }
 
         [Inject] private Data m_Data;
@@ -97,7 +98,7 @@ namespace TwoStickPureExample
         public struct MoveJob : IJobParallelFor
         {
             public ComponentDataArray<Health> Health;
-            public ComponentDataArray<Transform2D> Transform2D;
+            public ComponentDataArray<Position2D> Position;
 
             public float Speed;
             public float MinY;
@@ -105,15 +106,15 @@ namespace TwoStickPureExample
 
             public void Execute(int index)
             {
-                var xform = Transform2D[index];
-                xform.Position.y -= Speed;
+                var position = Position[index].position;
+                position.y -= Speed;
 
-                if (xform.Position.y > MaxY || xform.Position.y < MinY)
+                if (position.y > MaxY || position.y < MinY)
                 {
                     Health[index] = new Health { Value = -1.0f };
                 }
 
-                Transform2D[index] = xform;
+                Position[index] = new Position2D {position = position};
             }
         }
 
@@ -124,7 +125,7 @@ namespace TwoStickPureExample
             var moveJob = new MoveJob
             {
                 Health = m_Data.Health,
-                Transform2D = m_Data.Transform2D,
+                Position = m_Data.Position,
                 Speed = TwoStickBootstrap.Settings.enemySpeed,
                 MinY = TwoStickBootstrap.Settings.playfield.yMin,
                 MaxY = TwoStickBootstrap.Settings.playfield.yMax,
@@ -139,7 +140,7 @@ namespace TwoStickPureExample
         public struct Data
         {
             public int Length;
-            [ReadOnly] public ComponentDataArray<Transform2D> Transform2D;
+            [ReadOnly] public ComponentDataArray<Position2D> Position;
             public ComponentDataArray<EnemyShootState> ShootState;
         }
 
@@ -148,7 +149,7 @@ namespace TwoStickPureExample
         public struct PlayerData
         {
             public int Length;
-            [ReadOnly] public ComponentDataArray<Transform2D> Transform2D;
+            [ReadOnly] public ComponentDataArray<Position2D> Position;
             [ReadOnly] public ComponentDataArray<PlayerInput> PlayerInput;
         }
 
@@ -159,7 +160,7 @@ namespace TwoStickPureExample
             if (m_Data.Length == 0 || m_Player.Length == 0)
                 return;
 
-            var playerPos = m_Player.Transform2D[0].Position;
+            var playerPos = m_Player.Position[0].position;
 
             int shotCount = 0;
             var shotLocations = new NativeArray<ShotSpawnData>(m_Data.Length, Allocator.Temp);
@@ -183,8 +184,8 @@ namespace TwoStickPureExample
                     spawn.Shot.Speed = shotSpeed;
                     spawn.Shot.TimeToLive = shotTtl;
                     spawn.Shot.Energy = shotEnergy;
-                    spawn.Transform = m_Data.Transform2D[i];
-                    spawn.Transform.Heading = math.normalize(playerPos - spawn.Transform.Position);
+                    spawn.Position = m_Data.Position[i];
+                    spawn.Heading = new Heading2D {heading = math.normalize(playerPos - m_Data.Position[i].position)};
                     spawn.Faction = new Faction { Value = Faction.kEnemy };
                     shotLocations[shotCount++] = spawn;
                 }

@@ -11,7 +11,7 @@ namespace UnityEngine.ECS.Transform
         struct RotationGroup
         {
             public ComponentDataArray<CopyTransformRotationFromGameObject> copyTransformRotationFromGameObjects;
-            public ComponentDataArray<TransformRotation> rotations;
+            public ComponentDataArray<Rotation> rotations;
             public TransformAccessArray transforms;
             public int Length;
         }
@@ -21,11 +21,11 @@ namespace UnityEngine.ECS.Transform
         [ComputeJobOptimization]
         struct RotationToMatrix : IJobParallelForTransform
         {
-            public ComponentDataArray<TransformRotation> rotations;
+            public ComponentDataArray<Rotation> rotations;
 
             public void Execute(int i, TransformAccess transform)
             {
-                rotations[i] = new TransformRotation
+                rotations[i] = new Rotation
                 {
                     rotation = new quaternion(
                         transform.rotation.x, 

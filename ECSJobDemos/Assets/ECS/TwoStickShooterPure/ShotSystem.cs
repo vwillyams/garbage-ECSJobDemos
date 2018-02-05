@@ -7,6 +7,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.ECS;
 using UnityEngine.ECS.Transform;
+using UnityEngine.ECS.Transform2D;
 
 namespace TwoStickPureExample
 {
@@ -16,7 +17,8 @@ namespace TwoStickPureExample
         {
             public int Length;
             [ReadOnly] public ComponentDataArray<Shot> Shot;
-            public ComponentDataArray<Transform2D> Transform;
+            [ReadOnly] public ComponentDataArray<Heading2D> Heading;
+            public ComponentDataArray<Position2D> Position;
         }
 
         [Inject] private Data m_Data;
@@ -24,24 +26,25 @@ namespace TwoStickPureExample
         private struct ShotMoveJob : IJobParallelFor
         {
             [ReadOnly] public ComponentDataArray<Shot> Shot;
-            public ComponentDataArray<Transform2D> Transform;
+            [ReadOnly] public ComponentDataArray<Heading2D> Heading;
+            public ComponentDataArray<Position2D> Position;
 
             public void Execute(int index)
             {
-                float2 pos = Transform[index].Position;
-                float2 dir = Transform[index].Heading;
+                float2 pos = Position[index].position;
+                float2 dir = Heading[index].heading;
 
                 pos += dir * Shot[index].Speed;
 
                 // Ref return will make this nicer.
-                Transform[index] = new Transform2D {Position = pos, Heading = dir};
 
+                Position[index] = new Position2D {position = pos};
             }
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            var moveJob = new ShotMoveJob {Shot = m_Data.Shot, Transform = m_Data.Transform};
+            var moveJob = new ShotMoveJob {Shot = m_Data.Shot, Position = m_Data.Position, Heading = m_Data.Heading};
 
             return moveJob.Schedule(m_Data.Length, 64, inputDeps);
         }
@@ -74,7 +77,8 @@ namespace TwoStickPureExample
                 var shotEntity = entities[i];
                 em.RemoveComponent<ShotSpawnData>(shotEntity);
                 em.AddComponentData(shotEntity, sd.Shot);
-                em.AddComponentData(shotEntity, sd.Transform);
+                em.AddComponentData(shotEntity, sd.Position);
+                em.AddComponentData(shotEntity, sd.Heading);
                 em.AddComponentData(shotEntity, sd.Faction);
                 em.AddComponentData(shotEntity, default(TransformMatrix));
                 em.AddSharedComponentData(shotEntity, sd.Faction.Value == Faction.kPlayer ? TwoStickBootstrap.PlayerShotLook : TwoStickBootstrap.EnemyShotLook);

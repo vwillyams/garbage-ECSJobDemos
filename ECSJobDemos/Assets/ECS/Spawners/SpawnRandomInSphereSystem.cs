@@ -22,7 +22,7 @@ namespace ECS.Spawners
         protected override void OnUpdate()
         {
             var uniqueTypes = new List<SpawnRandomInSphere>(10);
-            var maingroup = EntityManager.CreateComponentGroup(typeof(SpawnRandomInSphere),typeof(TransformPosition));
+            var maingroup = EntityManager.CreateComponentGroup(typeof(SpawnRandomInSphere),typeof(Position));
             maingroup.CompleteDependency();
 
             EntityManager.GetAllUniqueSharedComponentDatas(uniqueTypes);
@@ -51,7 +51,7 @@ namespace ECS.Spawners
                     var spawner = uniqueTypes[sharedIndex];
                     var group = maingroup.GetVariation(spawner);
                     var entities = group.GetEntityArray();
-                    var positions = group.GetComponentDataArray<TransformPosition>();
+                    var positions = group.GetComponentDataArray<Position>();
 
                     for (int entityIndex = 0; entityIndex < entities.Length; entityIndex++)
                     {
@@ -89,7 +89,7 @@ namespace ECS.Spawners
                 
                 for (int i = 0; i < count; i++)
                 {
-                    var position = new TransformPosition
+                    var position = new Position
                     {
                         position = spawnPositions[i]
                     };

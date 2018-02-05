@@ -12,7 +12,7 @@ namespace UnityEngine.ECS.SimpleMovement
     {
         struct BounceGroup
         {
-            public ComponentDataArray<TransformPosition> positions;
+            public ComponentDataArray<Position> positions;
             public ComponentDataArray<Bounce> bounce;
             public int Length;
         }
@@ -23,7 +23,7 @@ namespace UnityEngine.ECS.SimpleMovement
         [ComputeJobOptimization]
         struct BouncePosition : IJobParallelFor
         {
-            public ComponentDataArray<TransformPosition> positions;
+            public ComponentDataArray<Position> positions;
             public ComponentDataArray<Bounce> bounce;
             public float dt;
         
@@ -34,7 +34,7 @@ namespace UnityEngine.ECS.SimpleMovement
                 float3 prevPosition = positions[i].position;
                 Bounce prevBounce = bounce[i];
                 
-                positions[i] = new TransformPosition
+                positions[i] = new Position
                 {
                     position = prevPosition + new float3( st*prevBounce.height.x, st*prevBounce.height.y, st*prevBounce.height.z )
                 };

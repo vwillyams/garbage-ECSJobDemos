@@ -7,13 +7,13 @@ using UnityEngine.ECS.Transform;
 
 namespace UnityEngine.ECS.Transform2D
 {
-    public class TransformSystem : JobComponentSystem
+    public class Transform2DSystem : JobComponentSystem
     {
         struct TransGroup
         {
             public ComponentDataArray<TransformMatrix> matrices;
-            [ReadOnly] public ComponentDataArray<Position> positions;
-            [ReadOnly] public SubtractiveComponent<Rotation> rotations;
+            [ReadOnly] public ComponentDataArray<Position2D> positions;
+            [ReadOnly] public SubtractiveComponent<Heading2D> headings;
             public int Length;
         }
         
@@ -22,8 +22,8 @@ namespace UnityEngine.ECS.Transform2D
         struct RotTransGroup
         {
             public ComponentDataArray<TransformMatrix> matrices;
-            [ReadOnly] public ComponentDataArray<Position> positions;
-            [ReadOnly] public ComponentDataArray<Rotation> rotations;
+            [ReadOnly] public ComponentDataArray<Position2D> positions;
+            [ReadOnly] public ComponentDataArray<Heading2D> headings;
             public int Length;
         }
         
@@ -32,7 +32,7 @@ namespace UnityEngine.ECS.Transform2D
         [ComputeJobOptimization]
         struct TransToMatrix : IJobParallelFor
         {
-            [ReadOnly] public ComponentDataArray<Position> positions;
+            [ReadOnly] public ComponentDataArray<Position2D> positions;
             public ComponentDataArray<TransformMatrix> matrices;
         
             public void Execute(int i)
@@ -40,24 +40,31 @@ namespace UnityEngine.ECS.Transform2D
                 var position = positions[i].position;
                 matrices[i] = new TransformMatrix
                 {
-                    matrix = math.translate(position)
+                    matrix = math.translate(new float3(position.x,0.0f,position.y))
                 };
             }
         }
         
-        [ComputeJobOptimization]
+        // [ComputeJobOptimization]
         struct RotTransToMatrix : IJobParallelFor
         {
-            [ReadOnly] public ComponentDataArray<Position> positions;
-            [ReadOnly] public ComponentDataArray<Rotation> rotations;
+            [ReadOnly] public ComponentDataArray<Position2D> positions;
+            [ReadOnly] public ComponentDataArray<Heading2D> headings;
             public ComponentDataArray<TransformMatrix> matrices;
         
             public void Execute(int i)
             {
-                float3 position = positions[i].position;
+                float2 position = positions[i].position;
+                float2 heading = math.normalize(headings[i].heading);
                 matrices[i] = new TransformMatrix
                 {
-                    matrix = math.rottrans( math.normalize(rotations[i].rotation), position )
+                    matrix = new float4x4
+                    {
+                        m0 = new float4( heading.y, 0.0f, -heading.x, 0.0f ),
+                        m1 = new float4( 0.0f, 1.0f, 0.0f, 0.0f ),
+                        m2 = new float4( heading.x, 0.0f, heading.y, 0.0f ),
+                        m3 = new float4( position.x, 0.0f, position.y, 1.0f )
+                    }
                 };
             }
         }
@@ -72,9 +79,8 @@ namespace UnityEngine.ECS.Transform2D
             var rotTransToMatrixJob = new RotTransToMatrix();
             rotTransToMatrixJob.positions = m_RotTransGroup.positions;
             rotTransToMatrixJob.matrices = m_RotTransGroup.matrices;
-            rotTransToMatrixJob.rotations = m_RotTransGroup.rotations;
-            // var rotTransToMatrixJobHandle = rotTransToMatrixJob.Schedule(m_RotTransGroup.Length, 64, inputDeps);
-            // return JobHandle.CombineDependencies(rotTransToMatrixJobHandle, transToMatrixJobHandle);
+            rotTransToMatrixJob.headings = m_RotTransGroup.headings;
+            
             return rotTransToMatrixJob.Schedule(m_RotTransGroup.Length, 64, transToMatrixJobHandle);
         } 
     }

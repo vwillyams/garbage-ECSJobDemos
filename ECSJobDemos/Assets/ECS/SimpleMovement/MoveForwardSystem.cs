@@ -11,8 +11,8 @@ namespace UnityEngine.ECS.SimpleMovement
     {
         struct MoveForwardGroup
         {
-            public ComponentDataArray<TransformPosition> positions;
-            [ReadOnly] public ComponentDataArray<TransformRotation> rotations;
+            public ComponentDataArray<Position> positions;
+            [ReadOnly] public ComponentDataArray<Rotation> rotations;
             [ReadOnly] public ComponentDataArray<MoveForward> moveForwards;
             [ReadOnly] public ComponentDataArray<MoveSpeed> moveSpeeds;
             public int Length;
@@ -23,14 +23,14 @@ namespace UnityEngine.ECS.SimpleMovement
         [ComputeJobOptimization]
         struct MoveForwardPosition : IJobParallelFor
         {
-            public ComponentDataArray<TransformPosition> positions;
-            [ReadOnly] public ComponentDataArray<TransformRotation> rotations;
+            public ComponentDataArray<Position> positions;
+            [ReadOnly] public ComponentDataArray<Rotation> rotations;
             [ReadOnly] public ComponentDataArray<MoveSpeed> moveSpeeds;
             public float dt;
         
             public void Execute(int i)
             {
-                positions[i] = new TransformPosition
+                positions[i] = new Position
                 {
                     position = positions[i].position + (dt * moveSpeeds[i].speed * math.forward(rotations[i].rotation))
                 };

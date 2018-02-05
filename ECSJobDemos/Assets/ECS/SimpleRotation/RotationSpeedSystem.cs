@@ -11,7 +11,7 @@ namespace UnityEngine.ECS.SimpleRotation
     {
         struct RotationSpeedGroup
         {
-            public ComponentDataArray<TransformRotation> rotations;
+            public ComponentDataArray<Rotation> rotations;
             [ReadOnly]
             public ComponentDataArray<RotationSpeed> rotationSpeeds;
             public int Length;
@@ -22,7 +22,7 @@ namespace UnityEngine.ECS.SimpleRotation
         [ComputeJobOptimization]
         struct RotationSpeedRotation : IJobParallelFor
         {
-            public ComponentDataArray<TransformRotation> rotations;
+            public ComponentDataArray<Rotation> rotations;
             [ReadOnly]
             public ComponentDataArray<RotationSpeed> rotationSpeeds;
             public float dt;
@@ -32,7 +32,7 @@ namespace UnityEngine.ECS.SimpleRotation
                 var speed = rotationSpeeds[i].speed;
                 if (speed > 0.0f)
                 {
-                    rotations[i] = new TransformRotation
+                    rotations[i] = new Rotation
                     {
                         rotation = math.mul(math.normalize(rotations[i].rotation), math.axisAngle(math.up(),speed*dt))
                     };

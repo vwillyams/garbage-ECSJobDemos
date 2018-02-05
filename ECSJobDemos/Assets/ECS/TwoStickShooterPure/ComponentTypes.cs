@@ -1,15 +1,11 @@
 ﻿using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.ECS;
+using UnityEngine.ECS.Transform;
+using UnityEngine.ECS.Transform2D;
 
 namespace TwoStickPureExample
 {
-    public struct Transform2D : IComponentData
-    {
-        public float2 Position;
-        public float2 Heading;
-    }
-
     public struct PlayerInput : IComponentData
     {
         public float2 Move;
@@ -29,7 +25,8 @@ namespace TwoStickPureExample
     public struct ShotSpawnData : IComponentData
     {
         public Shot Shot;
-        public Transform2D Transform;
+        public Position2D Position;
+        public Heading2D Heading;
         public Faction Faction;
     }
 

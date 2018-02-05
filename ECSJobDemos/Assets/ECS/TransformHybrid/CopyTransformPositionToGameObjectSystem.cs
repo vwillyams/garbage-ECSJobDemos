@@ -11,7 +11,7 @@ namespace UnityEngine.ECS.Transform
         struct PositionGroup
         {
             public ComponentDataArray<CopyTransformPositionToGameObject> copyTransformPositionToGameObjects;
-            [ReadOnly] public ComponentDataArray<TransformPosition> positions;
+            [ReadOnly] public ComponentDataArray<Position> positions;
             public TransformAccessArray transforms;
             public int Length;
         }
@@ -21,7 +21,7 @@ namespace UnityEngine.ECS.Transform
         [ComputeJobOptimization]
         struct PositionToMatrix : IJobParallelForTransform
         {
-            [ReadOnly] public ComponentDataArray<TransformPosition> positions;
+            [ReadOnly] public ComponentDataArray<Position> positions;
 
             public void Execute(int i, TransformAccess transform)
             {

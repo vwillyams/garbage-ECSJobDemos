@@ -12,7 +12,7 @@ namespace UnityEngine.ECS.Transform
         struct RotationGroup
         {
             public ComponentDataArray<CopyTransformRotationToGameObject> copyTransformRotationToGameObjects;
-            [ReadOnly] public ComponentDataArray<TransformRotation> rotations;
+            [ReadOnly] public ComponentDataArray<Rotation> rotations;
             public TransformAccessArray transforms;
             public int Length;
         }
@@ -22,7 +22,7 @@ namespace UnityEngine.ECS.Transform
         [ComputeJobOptimization]
         struct RotationToMatrix : IJobParallelForTransform
         {
-            [ReadOnly] public ComponentDataArray<TransformRotation> rotations;
+            [ReadOnly] public ComponentDataArray<Rotation> rotations;
 
             public void Execute(int i, TransformAccess transform)
             {

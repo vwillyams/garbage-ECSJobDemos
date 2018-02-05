@@ -10,7 +10,7 @@ namespace UnityEngine.ECS.Transform
         {
             [ReadOnly] public ComponentDataArray<CopyInitialTransformPositionFromGameObject> copyInitialTransformFromGameObjects;
             public TransformAccessArray transforms;
-            public ComponentDataArray<TransformPosition> transformPositions;
+            public ComponentDataArray<Position> transformPositions;
             public EntityArray entities;
         }
 
@@ -20,13 +20,13 @@ namespace UnityEngine.ECS.Transform
         // [ComputeJobOptimization]
         struct CopyInitialTransformPositions : IJobParallelForTransform
         {
-            public ComponentDataArray<TransformPosition> positions;
+            public ComponentDataArray<Position> positions;
             public EntityArray entities;
             public NativeQueue<Entity>.Concurrent removeComponentQueue;
 
             public void Execute(int i, TransformAccess transform)
             {
-                positions[i] = new TransformPosition
+                positions[i] = new Position
                 {
                     position = transform.position
                 };

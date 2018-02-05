@@ -6,6 +6,8 @@ using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.ECS;
+using UnityEngine.ECS.Transform;
+using UnityEngine.ECS.Transform2D;
 using UnityEngine.XR.WSA;
 
 namespace TwoStickPureExample
@@ -15,7 +17,8 @@ namespace TwoStickPureExample
         public struct Data
         {
             public int Length;
-            public ComponentDataArray<Transform2D> Transform;
+            public ComponentDataArray<Position2D> Position;
+            public ComponentDataArray<Heading2D> Heading;
             public ComponentDataArray<PlayerInput> Input;
         }
 
@@ -34,15 +37,16 @@ namespace TwoStickPureExample
             float dt = Time.deltaTime;
             for (int index = 0; index < m_Data.Length; ++index)
             {
-                Transform2D xform = m_Data.Transform[index];
+                var position = m_Data.Position[index].position;
+                var heading = m_Data.Heading[index].heading;
 
                 var playerInput = m_Data.Input[index];
 
-                xform.Position += dt * playerInput.Move * settings.playerMoveSpeed;
+                position += dt * playerInput.Move * settings.playerMoveSpeed;
 
                 if (playerInput.Fire)
                 {
-                    xform.Heading = math.normalize(playerInput.Shoot);
+                    heading = math.normalize(playerInput.Shoot);
 
                     playerInput.FireCooldown = settings.playerFireCoolDown;
 
@@ -54,12 +58,14 @@ namespace TwoStickPureExample
                             TimeToLive = settings.bulletTimeToLive,
                             Energy = settings.playerShotEnergy,
                         },
-                        Transform = xform,
+                        Position = new Position2D{ position = position },
+                        Heading = new Heading2D{ heading = heading },
                         Faction = new Faction { Value = Faction.kPlayer },
                     };
                 }
 
-                m_Data.Transform[index] = xform;
+                m_Data.Position[index] = new Position2D {position = position};
+                m_Data.Heading[index] = new Heading2D {heading = heading};
                 m_Data.Input[index] = playerInput;
             }
 

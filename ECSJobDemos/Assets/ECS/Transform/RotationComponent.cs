@@ -6,10 +6,10 @@ using UnityEngine.ECS;
 
 namespace UnityEngine.ECS.Transform
 {
-    public struct TransformRotation : IComponentData
+    public struct Rotation : IComponentData
     {
         public quaternion rotation;
     }
 
-    public class TransformRotationComponent : ComponentDataWrapper<TransformRotation> { } 
+    public class RotationComponent : ComponentDataWrapper<Rotation> { } 
 }

@@ -11,7 +11,7 @@ namespace UnityEngine.ECS.SimpleMovement
     {
         struct MoveAlongCircleGroup
         {
-            public ComponentDataArray<TransformPosition> positions;
+            public ComponentDataArray<Position> positions;
             public ComponentDataArray<MoveAlongCircle> moveAlongCircles;
             [ReadOnly]
             public ComponentDataArray<MoveSpeed> moveSpeeds;
@@ -23,7 +23,7 @@ namespace UnityEngine.ECS.SimpleMovement
         [ComputeJobOptimization]
         struct MoveAlongCirclePosition : IJobParallelFor
         {
-            public ComponentDataArray<TransformPosition> positions;
+            public ComponentDataArray<Position> positions;
             public ComponentDataArray<MoveAlongCircle> moveAlongCircles;
             [ReadOnly]
             public ComponentDataArray<MoveSpeed> moveSpeeds;
@@ -43,7 +43,7 @@ namespace UnityEngine.ECS.SimpleMovement
                     radius = moveAlongCircles[i].radius
                 };
                 
-                positions[i] = new TransformPosition
+                positions[i] = new Position
                 {
                     position = new float3(x,y,z)
                 };

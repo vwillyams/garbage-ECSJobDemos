@@ -11,7 +11,7 @@ namespace UnityEngine.ECS.Transform
         {
             [ReadOnly] public ComponentDataArray<CopyInitialTransformRotationFromGameObject> copyInitialTransformFromGameObjects;
             public TransformAccessArray transforms;
-            public ComponentDataArray<TransformRotation> transformRotations;
+            public ComponentDataArray<Rotation> transformRotations;
             public EntityArray entities;
         }
 
@@ -21,13 +21,13 @@ namespace UnityEngine.ECS.Transform
         // [ComputeJobOptimization]
         struct CopyInitialTransformRotations : IJobParallelForTransform
         {
-            public ComponentDataArray<TransformRotation> rotations;
+            public ComponentDataArray<Rotation> rotations;
             public EntityArray entities;
             public NativeQueue<Entity>.Concurrent removeComponentQueue;
 
             public void Execute(int i, TransformAccess transform)
             {
-                rotations[i] = new TransformRotation
+                rotations[i] = new Rotation
                 {
                     rotation = new quaternion(
                         transform.rotation.x, 

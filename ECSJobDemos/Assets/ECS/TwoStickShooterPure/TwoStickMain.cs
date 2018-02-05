@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.ECS;
 using UnityEngine.ECS.Rendering;
 using UnityEngine.ECS.Transform;
+using UnityEngine.ECS.Transform2D;
 
 namespace TwoStickPureExample
 {
@@ -25,21 +26,18 @@ namespace TwoStickPureExample
         {
             var entityManager = World.Active.GetOrCreateManager<EntityManager>();
 
-            PlayerArchetype = entityManager.CreateArchetype(typeof(Transform2D), typeof(PlayerInput), typeof(Faction), typeof(Health), typeof(TransformMatrix));
-            ShotArchetype = entityManager.CreateArchetype(typeof(Transform2D), typeof(Shot), typeof(TransformMatrix), typeof(Faction));
+            PlayerArchetype = entityManager.CreateArchetype(typeof(Position2D), typeof(Heading2D), typeof(PlayerInput), typeof(Faction), typeof(Health), typeof(TransformMatrix));
+            ShotArchetype = entityManager.CreateArchetype(typeof(Position2D), typeof(Heading2D), typeof(Shot), typeof(TransformMatrix), typeof(Faction));
             ShotSpawnArchetype = entityManager.CreateArchetype(typeof(ShotSpawnData));
-            BasicEnemyArchetype = entityManager.CreateArchetype(typeof(Enemy), typeof(Health), typeof(EnemyShootState), typeof(Faction), typeof(Transform2D), typeof(TransformMatrix));
+            BasicEnemyArchetype = entityManager.CreateArchetype(typeof(Enemy), typeof(Health), typeof(EnemyShootState), typeof(Faction), typeof(Position2D), typeof(Heading2D), typeof(TransformMatrix));
         }
 
         public static void NewGame()
         {
             var entityManager = World.Active.GetOrCreateManager<EntityManager>();
             Entity player = entityManager.CreateEntity(PlayerArchetype);
-            Transform2D initialXform;
-            initialXform.Position = new float2(0, 0);
-            initialXform.Heading = new float2(0, 1);
-
-            entityManager.SetComponentData(player, initialXform);
+            entityManager.SetComponentData(player, new Position2D {position = new float2(0.0f, 0.0f)});
+            entityManager.SetComponentData(player, new Heading2D  {heading = new float2(0.0f, 1.0f)});
             entityManager.SetComponentData(player, new Faction { Value = Faction.kPlayer });
             entityManager.SetComponentData(player, new Health { Value = Settings.playerInitialHealth });
             entityManager.AddSharedComponentData(player, PlayerLook);

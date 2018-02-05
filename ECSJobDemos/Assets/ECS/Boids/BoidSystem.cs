@@ -32,8 +32,8 @@ namespace UnityEngine.ECS.Boids
         struct BoidGroup
         {
             [ReadOnly] public ComponentDataArray<Boid>                boid; 
-            [ReadOnly] public ComponentDataArray<TransformPosition>   positions;
-            [ReadOnly] public ComponentDataArray<TransformRotation>   rotations;
+            [ReadOnly] public ComponentDataArray<Position>   positions;
+            [ReadOnly] public ComponentDataArray<Rotation>   rotations;
             public ComponentDataArray<Heading>                forwardRotations;
             public int Length;
         }
@@ -44,7 +44,7 @@ namespace UnityEngine.ECS.Boids
         {
             [ReadOnly] public ComponentDataArray<BoidObstacle>        obstacles;
             [ReadOnly] public ComponentDataArray<Sphere>              spheres;
-            [ReadOnly] public ComponentDataArray<TransformPosition>   positions;
+            [ReadOnly] public ComponentDataArray<Position>   positions;
             public int Length;
         }
 
@@ -52,7 +52,7 @@ namespace UnityEngine.ECS.Boids
 
         struct TargetGroup
         {
-            [ReadOnly] public ComponentDataArray<TransformPosition>   positions;
+            [ReadOnly] public ComponentDataArray<Position>   positions;
             [ReadOnly] public ComponentDataArray<BoidTarget> target;
             public int Length;
         }
@@ -62,7 +62,7 @@ namespace UnityEngine.ECS.Boids
         [ComputeJobOptimization]
         struct HashBoidLocations : IJobParallelFor
         {
-            [ReadOnly] public ComponentDataArray<TransformPosition> positions;
+            [ReadOnly] public ComponentDataArray<Position> positions;
             public NativeMultiHashMap<int, int>.Concurrent 			cells;
             public float 											cellRadius;
 
@@ -77,10 +77,10 @@ namespace UnityEngine.ECS.Boids
         struct Steer : IJob
         {
             public ComponentDataArray<Heading>                forwardRotations;
-            [ReadOnly] public ComponentDataArray<TransformPosition>   positions;
-            [ReadOnly] public ComponentDataArray<TransformRotation>   rotations;
-            [ReadOnly] public ComponentDataArray<TransformPosition>   targetPositions;
-            [ReadOnly] public ComponentDataArray<TransformPosition>   obstaclePositions;
+            [ReadOnly] public ComponentDataArray<Position>   positions;
+            [ReadOnly] public ComponentDataArray<Rotation>   rotations;
+            [ReadOnly] public ComponentDataArray<Position>   targetPositions;
+            [ReadOnly] public ComponentDataArray<Position>   obstaclePositions;
             [ReadOnly] public ComponentDataArray<BoidObstacle>        obstacles;
             [ReadOnly] public ComponentDataArray<Sphere>              obstacleSpheres;
             [ReadOnly] public NativeMultiHashMap<int, int>            cells;

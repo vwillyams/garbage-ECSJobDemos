@@ -15,7 +15,7 @@ namespace UnityEngine.ECS.SimpleRotation
         {
             [ReadOnly] public ComponentDataArray<RotationSpeedResetSphere> rotationSpeedResetSpheres;
             [ReadOnly] public ComponentDataArray<Sphere> spheres;
-            [ReadOnly] public ComponentDataArray<TransformPosition> positions;
+            [ReadOnly] public ComponentDataArray<Position> positions;
             public int Length;
         }
 
@@ -24,7 +24,7 @@ namespace UnityEngine.ECS.SimpleRotation
         struct RotationSpeedGroup
         {
             public ComponentDataArray<RotationSpeed> rotationSpeeds;
-            [ReadOnly] public ComponentDataArray<TransformPosition> positions;
+            [ReadOnly] public ComponentDataArray<Position> positions;
             public int Length;
         }
 
@@ -36,8 +36,8 @@ namespace UnityEngine.ECS.SimpleRotation
             public ComponentDataArray<RotationSpeed> rotationSpeeds;
             [ReadOnly] public ComponentDataArray<RotationSpeedResetSphere> rotationSpeedResetSpheres;
             [ReadOnly] public ComponentDataArray<Sphere> spheres;
-            [ReadOnly] public ComponentDataArray<TransformPosition> rotationSpeedResetSpherePositions;
-            [ReadOnly] public ComponentDataArray<TransformPosition> positions;
+            [ReadOnly] public ComponentDataArray<Position> rotationSpeedResetSpherePositions;
+            [ReadOnly] public ComponentDataArray<Position> positions;
         
             public void Execute()
             {

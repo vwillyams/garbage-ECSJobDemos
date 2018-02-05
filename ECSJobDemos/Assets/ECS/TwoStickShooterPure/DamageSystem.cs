@@ -3,6 +3,8 @@ using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.ECS;
+using UnityEngine.ECS.Transform;
+using UnityEngine.ECS.Transform2D;
 using UnityEngine.UI;
 
 namespace TwoStickPureExample
@@ -21,7 +23,7 @@ namespace TwoStickPureExample
             public int Length;
             public ComponentDataArray<Health> Health;
             [ReadOnly] public ComponentDataArray<Faction> Faction;
-            [ReadOnly] public ComponentDataArray<Transform2D> Transform2D;
+            [ReadOnly] public ComponentDataArray<Position2D> Position;
         }
 
         [Inject] ReceiverData m_Receivers;
@@ -33,7 +35,7 @@ namespace TwoStickPureExample
         {
             public int Length;
             public ComponentDataArray<Shot> Shot;
-            [ReadOnly] public ComponentDataArray<Transform2D> Transform2D;
+            [ReadOnly] public ComponentDataArray<Position2D> Position;
             [ReadOnly] public ComponentDataArray<Faction> Faction;
         }
         [Inject] ShotData m_Shots;
@@ -52,14 +54,14 @@ namespace TwoStickPureExample
                 float collisionRadius = GetCollisionRadius(settings, m_Receivers.Faction[pi].Value);
                 float collisionRadiusSquared = collisionRadius * collisionRadius;
 
-                float2 receiverPos = m_Receivers.Transform2D[pi].Position;
+                float2 receiverPos = m_Receivers.Position[pi].position;
                 int receiverFaction = m_Receivers.Faction[pi].Value;
 
                 for (int si = 0; si < m_Shots.Length; ++si)
                 {
                     if (m_Shots.Faction[si].Value != receiverFaction)
                     {
-                        float2 shotPos = m_Shots.Transform2D[si].Position;
+                        float2 shotPos = m_Shots.Position[si].position;
                         float2 delta = shotPos - receiverPos;
                         float distSquared = math.dot(delta, delta);
                         if (distSquared <= collisionRadiusSquared)

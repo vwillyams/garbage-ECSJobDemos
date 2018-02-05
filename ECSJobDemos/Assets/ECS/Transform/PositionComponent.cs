@@ -6,11 +6,11 @@ using UnityEngine.ECS;
 
 namespace UnityEngine.ECS.Transform
 {
-    [System.Serializable]
-    public struct TransformPosition : IComponentData
+    [Serializable]
+    public struct Position : IComponentData
     {
         public float3 position;
     }
 
-    public class TransformPositionComponent : ComponentDataWrapper<TransformPosition> { } 
+    public class PositionComponent : ComponentDataWrapper<Position> { } 
 }

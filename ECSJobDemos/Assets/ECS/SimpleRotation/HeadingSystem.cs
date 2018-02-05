@@ -11,7 +11,7 @@ namespace UnityEngine.ECS.SimpleRotation
     {
         struct HeadingsGroup
         {
-            public ComponentDataArray<TransformRotation> rotations;
+            public ComponentDataArray<Rotation> rotations;
             [ReadOnly]
             public ComponentDataArray<Heading> headings;
             public int Length;
@@ -22,13 +22,13 @@ namespace UnityEngine.ECS.SimpleRotation
         [ComputeJobOptimization]
         struct HeadingRotation : IJobParallelFor
         {
-            public ComponentDataArray<TransformRotation> rotations;
+            public ComponentDataArray<Rotation> rotations;
             [ReadOnly]
             public ComponentDataArray<Heading> headings;
         
             public void Execute(int i)
             {
-                rotations[i] = new TransformRotation
+                rotations[i] = new Rotation
                 {
                     rotation = math.lookRotationToQuaternion(headings[i].forward, math.up())
                 };

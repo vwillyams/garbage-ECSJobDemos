@@ -5,6 +5,7 @@ using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.ECS;
+using UnityEngine.ECS.SimpleMovement;
 using UnityEngine.ECS.Transform;
 using UnityEngine.ECS.Transform2D;
 
@@ -61,8 +62,10 @@ namespace TwoStickPureExample
                 EntityManager.SetComponentData(e, new Health { Value = TwoStickBootstrap.Settings.enemyInitialHealth });
                 EntityManager.SetComponentData(e, new EnemyShootState { Cooldown = 0.5f });
                 EntityManager.SetComponentData(e, new Faction { Value = Faction.kEnemy });
+                EntityManager.SetComponentData(e, new MoveSpeed {speed = TwoStickBootstrap.Settings.enemySpeed});
                 EntityManager.AddSharedComponentData(e, TwoStickBootstrap.EnemyLook);
             }
+            
         }
 
         private float ComputeCooldown(int stateSpawnedEnemyCount)
@@ -95,26 +98,22 @@ namespace TwoStickPureExample
 
         [Inject] private Data m_Data;
 
-        public struct MoveJob : IJobParallelFor
+        public struct boundaryKillJob : IJobParallelFor
         {
             public ComponentDataArray<Health> Health;
-            public ComponentDataArray<Position2D> Position;
+            [ReadOnly] public ComponentDataArray<Position2D> Position;
 
-            public float Speed;
             public float MinY;
             public float MaxY;
 
             public void Execute(int index)
             {
                 var position = Position[index].position;
-                position.y -= Speed;
 
                 if (position.y > MaxY || position.y < MinY)
                 {
                     Health[index] = new Health { Value = -1.0f };
                 }
-
-                Position[index] = new Position2D {position = position};
             }
         }
 
@@ -122,16 +121,15 @@ namespace TwoStickPureExample
         {
             if (!TwoStickBootstrap.Settings)
                 return inputDeps;
-            var moveJob = new MoveJob
+            var boundaryKillJob = new boundaryKillJob
             {
                 Health = m_Data.Health,
                 Position = m_Data.Position,
-                Speed = TwoStickBootstrap.Settings.enemySpeed,
                 MinY = TwoStickBootstrap.Settings.playfield.yMin,
                 MaxY = TwoStickBootstrap.Settings.playfield.yMax,
             };
 
-            return moveJob.Schedule(m_Data.Length, 64, inputDeps);
+            return boundaryKillJob.Schedule(m_Data.Length, 64, inputDeps);
         }
     }
 

@@ -6,50 +6,13 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.ECS;
+using UnityEngine.ECS.SimpleMovement;
+using UnityEngine.ECS.SimpleMovement2D;
 using UnityEngine.ECS.Transform;
 using UnityEngine.ECS.Transform2D;
 
 namespace TwoStickPureExample
 {
-    public class ShotMoveSystem : JobComponentSystem
-    {
-        public struct Data
-        {
-            public int Length;
-            [ReadOnly] public ComponentDataArray<Shot> Shot;
-            [ReadOnly] public ComponentDataArray<Heading2D> Heading;
-            public ComponentDataArray<Position2D> Position;
-        }
-
-        [Inject] private Data m_Data;
-
-        private struct ShotMoveJob : IJobParallelFor
-        {
-            [ReadOnly] public ComponentDataArray<Shot> Shot;
-            [ReadOnly] public ComponentDataArray<Heading2D> Heading;
-            public ComponentDataArray<Position2D> Position;
-
-            public void Execute(int index)
-            {
-                float2 pos = Position[index].position;
-                float2 dir = Heading[index].heading;
-
-                pos += dir * Shot[index].Speed;
-
-                // Ref return will make this nicer.
-
-                Position[index] = new Position2D {position = pos};
-            }
-        }
-
-        protected override JobHandle OnUpdate(JobHandle inputDeps)
-        {
-            var moveJob = new ShotMoveJob {Shot = m_Data.Shot, Position = m_Data.Position, Heading = m_Data.Heading};
-
-            return moveJob.Schedule(m_Data.Length, 64, inputDeps);
-        }
-    }
-
     public class ShotSpawnSystem : ComponentSystem
     {
         public struct Data
@@ -76,11 +39,20 @@ namespace TwoStickPureExample
                 var sd = spawnData[i];
                 var shotEntity = entities[i];
                 em.RemoveComponent<ShotSpawnData>(shotEntity);
+                em.AddComponentData(shotEntity, default(MoveForward));
                 em.AddComponentData(shotEntity, sd.Shot);
                 em.AddComponentData(shotEntity, sd.Position);
                 em.AddComponentData(shotEntity, sd.Heading);
                 em.AddComponentData(shotEntity, sd.Faction);
                 em.AddComponentData(shotEntity, default(TransformMatrix));
+                if (sd.Faction.Value == Faction.kPlayer)
+                {
+                    em.AddComponentData(shotEntity, new MoveSpeed {speed = TwoStickBootstrap.Settings.bulletMoveSpeed});
+                }
+                else
+                {
+                    em.AddComponentData(shotEntity, new MoveSpeed {speed = TwoStickBootstrap.Settings.enemyShotSpeed});
+                }
                 em.AddSharedComponentData(shotEntity, sd.Faction.Value == Faction.kPlayer ? TwoStickBootstrap.PlayerShotLook : TwoStickBootstrap.EnemyShotLook);
             }
 
@@ -90,7 +62,7 @@ namespace TwoStickPureExample
     }
 
     [UpdateAfter(typeof(ShotSpawnSystem))]
-    [UpdateAfter(typeof(ShotMoveSystem))]
+    [UpdateAfter(typeof(MoveForward2DSystem))]
     public class ShotDestroySystem : ComponentSystem
     {
         public struct Data

@@ -45,7 +45,7 @@ namespace UnityEngine.ECS.Transform2D
             }
         }
         
-        // [ComputeJobOptimization]
+        [ComputeJobOptimization]
         struct RotTransToMatrix : IJobParallelFor
         {
             [ReadOnly] public ComponentDataArray<Position2D> positions;

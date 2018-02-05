@@ -266,5 +266,115 @@ namespace UnityEngine.ECS.Tests
 			m_Manager.SetComponent(entity, new EcsTestData(42));
 			World.GetOrCreateManager<OnCreateManagerComponentGroupInjectionSystem>();
 		}
+	    
+	    [DisableAutoCreation]
+	    public class GameObjectArraySystem : ComponentSystem
+	    {
+	        public struct Group
+	        {
+	            public int Length;
+	            public GameObjectArray gameObjects;
+
+	            public ComponentArray<BoxCollider> colliders;
+	        }
+
+	        [Inject] 
+	        public Group group;
+
+	        protected override void OnUpdate()
+	        {
+	        }
+	    }
+        
+	    [Test]
+	    public void GameObjectArrayIsPopulated()
+	    {
+	        var go = new GameObject("test", typeof(BoxCollider));
+	        GameObjectEntity.AddToEntityManager(m_Manager, go);
+	        
+	        var manager = World.GetOrCreateManager<GameObjectArraySystem>();
+	        
+	        manager.UpdateInjectedComponentGroups();
+	        
+	        Assert.AreEqual(1, manager.group.Length);
+	        Assert.AreEqual(go, manager.group.gameObjects[0]);
+	        Assert.AreEqual(go, manager.group.colliders[0].gameObject);
+	        
+	        Object.DestroyImmediate (go);
+	        TearDown();
+	    }
+	    
+	    [DisableAutoCreation]
+	    public class GameObjectArrayWithTransformAccessSystem : ComponentSystem
+	    {
+	        public struct Group
+	        {
+	            public int Length;
+	            public GameObjectArray gameObjects;
+
+	            public TransformAccessArray transforms;
+	        }
+
+	        [Inject] 
+	        public Group group;
+
+	        protected override void OnUpdate()
+	        {
+	        }
+	    }
+        
+	    [Test]
+	    public void GameObjectArrayWorksWithTransformAccessArray()
+	    {
+	        var go = new GameObject("test");
+	        GameObjectEntity.AddToEntityManager(m_Manager, go);
+	        
+	        var manager = World.GetOrCreateManager<GameObjectArrayWithTransformAccessSystem>();
+	        
+	        manager.UpdateInjectedComponentGroups();
+	        
+	        Assert.AreEqual(1, manager.group.Length);
+	        Assert.AreEqual(go, manager.group.gameObjects[0]);
+	        Assert.AreEqual(go, manager.group.transforms[0].gameObject);
+	        
+	        Object.DestroyImmediate (go);
+	        TearDown();
+	    }
+	    
+	    [DisableAutoCreation]
+	    public class TransformWithTransformAccessSystem : ComponentSystem
+	    {
+	        public struct Group
+	        {
+	            public int Length;
+	            public ComponentArray<Transform> transforms;
+
+	            public TransformAccessArray transformAccesses;
+	        }
+
+	        [Inject] 
+	        public Group group;
+
+	        protected override void OnUpdate()
+	        {
+	        }
+	    }
+        
+	    [Test]
+	    public void TransformArrayWorksWithTransformAccessArray()
+	    {
+	        var go = new GameObject("test");
+	        GameObjectEntity.AddToEntityManager(m_Manager, go);
+	        
+	        var manager = World.GetOrCreateManager<TransformWithTransformAccessSystem>();
+	        
+	        manager.UpdateInjectedComponentGroups();
+	        
+	        Assert.AreEqual(1, manager.group.Length);
+	        Assert.AreEqual(manager.group.transforms[0].gameObject, manager.group.transformAccesses[0].gameObject);
+	        
+	        Object.DestroyImmediate (go);
+	        TearDown();
+	    }
 	}
 }

@@ -7,10 +7,10 @@ using UnityEngine.ECS;
 namespace UnityEngine.ECS.SimpleRotation
 {
     [Serializable]
-    public struct ForwardRotation : IComponentData
+    public struct Heading : IComponentData
     {
         public float3 forward;
     }
 
-    public class ForwardRotationComponent : ComponentDataWrapper<ForwardRotation> { } 
+    public class HeadingComponent : ComponentDataWrapper<Heading> { } 
 }

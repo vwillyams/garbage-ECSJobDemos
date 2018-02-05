@@ -7,42 +7,42 @@ using UnityEngine.ECS.Transform;
 
 namespace UnityEngine.ECS.SimpleRotation
 {
-    public class ForwardRotationSystem : JobComponentSystem
+    public class HeadingSystem : JobComponentSystem
     {
-        struct ForwardRotationGroup
+        struct HeadingsGroup
         {
             public ComponentDataArray<TransformRotation> rotations;
             [ReadOnly]
-            public ComponentDataArray<ForwardRotation> forwardRotations;
+            public ComponentDataArray<Heading> headings;
             public int Length;
         }
 
-        [Inject] private ForwardRotationGroup m_ForwardRotationGroup;
+        [Inject] private HeadingsGroup m_HeadingsGroup;
     
         [ComputeJobOptimization]
-        struct ForwardRotationRotation : IJobParallelFor
+        struct HeadingRotation : IJobParallelFor
         {
             public ComponentDataArray<TransformRotation> rotations;
             [ReadOnly]
-            public ComponentDataArray<ForwardRotation> forwardRotations;
+            public ComponentDataArray<Heading> headings;
         
             public void Execute(int i)
             {
                 rotations[i] = new TransformRotation
                 {
-                    rotation = math.lookRotationToQuaternion(forwardRotations[i].forward, math.up())
+                    rotation = math.lookRotationToQuaternion(headings[i].forward, math.up())
                 };
             }
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            var forwardRotationRotationJob = new ForwardRotationRotation
+            var headingRotationJob = new HeadingRotation
             {
-                rotations = m_ForwardRotationGroup.rotations,
-                forwardRotations = m_ForwardRotationGroup.forwardRotations,
+                rotations = m_HeadingsGroup.rotations,
+                headings = m_HeadingsGroup.headings,
             };
-            return forwardRotationRotationJob.Schedule(m_ForwardRotationGroup.Length, 64, inputDeps);
+            return headingRotationJob.Schedule(m_HeadingsGroup.Length, 64, inputDeps);
         } 
     }
 }

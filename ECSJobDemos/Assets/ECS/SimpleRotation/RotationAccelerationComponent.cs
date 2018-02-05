@@ -7,10 +7,10 @@ using UnityEngine.ECS;
 namespace UnityEngine.ECS.SimpleRotation
 {
     [Serializable]
-    public struct RotationSpeedSlowdown : IComponentData
+    public struct RotationAcceleration : IComponentData
     {
         public float speed;
     }
 
-    public class RotationSpeedSlowdownComponent : ComponentDataWrapper<RotationSpeedSlowdown> { } 
+    public class RotationAccelerationComponent : ComponentDataWrapper<RotationAcceleration> { } 
 }

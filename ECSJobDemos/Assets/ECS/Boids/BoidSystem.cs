@@ -34,7 +34,7 @@ namespace UnityEngine.ECS.Boids
             [ReadOnly] public ComponentDataArray<Boid>                boid; 
             [ReadOnly] public ComponentDataArray<TransformPosition>   positions;
             [ReadOnly] public ComponentDataArray<TransformRotation>   rotations;
-            public ComponentDataArray<ForwardRotation>                forwardRotations;
+            public ComponentDataArray<Heading>                forwardRotations;
             public int Length;
         }
 
@@ -76,7 +76,7 @@ namespace UnityEngine.ECS.Boids
         [ComputeJobOptimization]
         struct Steer : IJob
         {
-            public ComponentDataArray<ForwardRotation>                forwardRotations;
+            public ComponentDataArray<Heading>                forwardRotations;
             [ReadOnly] public ComponentDataArray<TransformPosition>   positions;
             [ReadOnly] public ComponentDataArray<TransformRotation>   rotations;
             [ReadOnly] public ComponentDataArray<TransformPosition>   targetPositions;
@@ -203,7 +203,7 @@ namespace UnityEngine.ECS.Boids
                     
                     math_experimental.normalizeSafe(steer);
 
-                    forwardRotations[index] = new ForwardRotation
+                    forwardRotations[index] = new Heading
                     {
                         forward = math_experimental.normalizeSafe(forward + steer * 2.0f * bias[index&1023] * dt * Mathf.Deg2Rad * settings.rotationalSpeed)
                     };

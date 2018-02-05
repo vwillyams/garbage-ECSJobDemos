@@ -32,10 +32,10 @@ namespace UnityEngine.ECS.SimpleRotation
                 var speed = rotationSpeeds[i].speed;
                 if (speed > 0.0f)
                 {
-                    var prevRotation = math.normalize(rotations[i].rotation);
-                    var changeRotation = math.axisAngle(math.up(), speed * dt);
-                    var rotation = math.mul(prevRotation, changeRotation);
-                    rotations[i] = new TransformRotation {rotation = rotation};
+                    rotations[i] = new TransformRotation
+                    {
+                        rotation = math.mul(math.normalize(rotations[i].rotation), math.axisAngle(math.up(),speed*dt))
+                    };
                 }
             }
         }

@@ -399,6 +399,16 @@ namespace UnityEngine.ECS
             return new ComponentArray<T>(cache, length, m_TypeManager);
         }
 
+        public GameObjectArray GetGameObjectArray()
+        {
+            int length;
+            int componentIndex;
+
+            var cache = GetComponentChunkIterator(TypeManager.GetTypeIndex<Transform>(), out length,
+                out componentIndex);
+            return new GameObjectArray(cache, length, m_TypeManager);
+        }
+
         public unsafe int CalculateLength()
         {
             int length;

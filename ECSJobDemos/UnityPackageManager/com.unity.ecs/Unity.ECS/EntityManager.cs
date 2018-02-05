@@ -17,6 +17,8 @@ namespace UnityEngine.ECS
         [NativeDisableUnsafePtrRestriction]
         internal Archetype* archetype;
 
+        public bool Valid => archetype != null; 
+
         public static bool operator ==(EntityArchetype lhs, EntityArchetype rhs) { return lhs.archetype == rhs.archetype; }
         public static bool operator !=(EntityArchetype lhs, EntityArchetype rhs) { return lhs.archetype != rhs.archetype; }
         public override bool Equals(object compare) { return this == (EntityArchetype)compare; }

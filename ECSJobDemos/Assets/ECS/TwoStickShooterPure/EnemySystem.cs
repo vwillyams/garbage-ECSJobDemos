@@ -182,8 +182,8 @@ namespace TwoStickPureExample
                     spawn.Heading = new Heading2D {heading = math.normalize(playerPos - m_Data.Position[i].position)};
                     spawn.Faction = new Faction { Value = Faction.kEnemy };
 
-                    cmds.CreateEntity();
-                    cmds.AddComponent(spawn);
+                    cmds.CreateEntity(TwoStickBootstrap.ShotSpawnArchetype);
+                    cmds.SetComponent(spawn);
                 }
 
                 m_Data.ShootState[i] = state;

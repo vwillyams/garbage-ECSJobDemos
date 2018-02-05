@@ -49,8 +49,8 @@ namespace TwoStickPureExample
 
                     playerInput.FireCooldown = settings.playerFireCoolDown;
 
-                    cmds.CreateEntity();
-                    cmds.AddComponent(new ShotSpawnData
+                    cmds.CreateEntity(TwoStickBootstrap.ShotSpawnArchetype);
+                    cmds.SetComponent(new ShotSpawnData
                     {
                         Shot = new Shot
                         {

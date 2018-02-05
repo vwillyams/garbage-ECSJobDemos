@@ -1,9 +1,10 @@
 ﻿using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
+using UnityEngine.ECS.Transform;
 using UnityEngine.Jobs;
 
-namespace UnityEngine.ECS.Transform
+namespace UnityEngine.ECS.TransformShim
 {
     public class CopyInitialTransformRotationFromGameObjectSystem : JobComponentSystem
     {

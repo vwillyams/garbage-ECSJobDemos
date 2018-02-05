@@ -4,10 +4,10 @@ using Unity.Mathematics;
 using System.Collections.Generic;
 using UnityEngine.ECS.Transform;
 
-namespace UnityEngine.ECS.MeshInstancedHybrid
+namespace UnityEngine.ECS.MeshInstancedShim
 {
     /// <summary>
-    /// Renders all Entities containing both MeshInstancedHybrid & TransformMatrix components.
+    /// Renders all Entities containing both MeshInstancedShim & TransformMatrix components.
     /// </summary>
 	[UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.PreLateUpdate.ParticleSystemBeginUpdateAll))]
 	public class MeshInstancedHybridSystem : ComponentSystem
@@ -35,20 +35,20 @@ namespace UnityEngine.ECS.MeshInstancedHybrid
 
         protected override void OnUpdate()
 		{
-            // We want to find all MeshInstancedHybrid & TransformMatrix combinations and render them
-		    var maingroup = EntityManager.CreateComponentGroup(typeof(MeshInstancedHybrid), typeof(TransformMatrix));
+            // We want to find all MeshInstancedShim & TransformMatrix combinations and render them
+		    var maingroup = EntityManager.CreateComponentGroup(typeof(MeshInstancedShim), typeof(TransformMatrix));
 		    // We didn't declare the ComponentGroup via injection so we need to manually
 		    // Complete any jobs that are writing to TransformMatrices
 		    maingroup.CompleteDependency();
 
-		    // We want to iterate over all unique MeshInstancedHybrid shared component data,
+		    // We want to iterate over all unique MeshInstancedShim shared component data,
 		    // that are attached to any entities in the world
-		    var uniqueRendererTypes = new List<MeshInstancedHybrid>(10);
+		    var uniqueRendererTypes = new List<MeshInstancedShim>(10);
             EntityManager.GetAllUniqueSharedComponentDatas(uniqueRendererTypes);
 
             for (int i = 0;i != uniqueRendererTypes.Count;i++)
             {
-                // For each unique MeshInstancedHybrid data, we want to get all entities with a TransformMatrix
+                // For each unique MeshInstancedShim data, we want to get all entities with a TransformMatrix
                 // SharedComponentData gurantees that all those entities are packed togehter in a chunk with linear memory layout.
                 // As a result the copy of the matrices out is internally done via memcpy. 
                 var renderer = uniqueRendererTypes[i];

@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.ECS;
 using UnityEngine.ECS.SimpleMovement;
 using UnityEngine.ECS.Transform2D;
-using UnityEngine.ECS.MeshInstancedHybrid;
+using UnityEngine.ECS.MeshInstancedShim;
 
 namespace TwoStickPureExample
 {

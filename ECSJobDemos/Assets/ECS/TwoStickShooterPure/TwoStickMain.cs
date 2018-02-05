@@ -1,7 +1,7 @@
 ﻿using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.ECS;
-using UnityEngine.ECS.MeshInstancedHybrid;
+using UnityEngine.ECS.MeshInstancedShim;
 using UnityEngine.ECS.SimpleMovement;
 using UnityEngine.ECS.Transform;
 using UnityEngine.ECS.Transform2D;
@@ -15,10 +15,10 @@ namespace TwoStickPureExample
         public static EntityArchetype BasicEnemyArchetype;
         public static EntityArchetype ShotSpawnArchetype;
 
-        public static MeshInstancedHybrid PlayerLook;
-        public static MeshInstancedHybrid PlayerShotLook;
-        public static MeshInstancedHybrid EnemyShotLook;
-        public static MeshInstancedHybrid EnemyLook;
+        public static MeshInstancedShim PlayerLook;
+        public static MeshInstancedShim PlayerShotLook;
+        public static MeshInstancedShim EnemyShotLook;
+        public static MeshInstancedShim EnemyLook;
 
         public static TwoStickExampleSettings Settings;
 
@@ -76,10 +76,10 @@ namespace TwoStickPureExample
             World.Active.GetOrCreateManager<UpdatePlayerHUD>().SetupGameObjects();
         }
 
-        private static MeshInstancedHybrid GetLookFromPrototype(string protoName)
+        private static MeshInstancedShim GetLookFromPrototype(string protoName)
         {
             var proto = GameObject.Find(protoName);
-            var result = proto.GetComponent<MeshInstancedHybridComponent>().Value;
+            var result = proto.GetComponent<MeshInstancedShimComponent>().Value;
             Object.Destroy(proto);
             return result;
         }

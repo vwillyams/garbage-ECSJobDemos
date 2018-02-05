@@ -1,16 +1,17 @@
-﻿using Unity.Jobs;
+﻿using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine.ECS;
 using UnityEngine.ECS.Transform;
 using UnityEngine.Jobs;
 
-namespace UnityEngine.ECS.Transform
+namespace UnityEngine.ECS.TransformShim
 {
-    public class CopyTransformPositionFromGameObjectSystem : JobComponentSystem
+    public class CopyTransformPositionToGameObjectSystem : JobComponentSystem
     {
         struct PositionGroup
         {
-            public ComponentDataArray<CopyTransformPositionFromGameObject> copyTransformPositionFromGameObjects;
-            public ComponentDataArray<Position> positions;
+            public ComponentDataArray<CopyTransformPositionToGameObject> copyTransformPositionToGameObjects;
+            [ReadOnly] public ComponentDataArray<Position> positions;
             public TransformAccessArray transforms;
             public int Length;
         }
@@ -20,14 +21,11 @@ namespace UnityEngine.ECS.Transform
         [ComputeJobOptimization]
         struct PositionToMatrix : IJobParallelForTransform
         {
-            public ComponentDataArray<Position> positions;
+            [ReadOnly] public ComponentDataArray<Position> positions;
 
             public void Execute(int i, TransformAccess transform)
             {
-                positions[i] = new Position
-                {
-                    position = transform.position
-                };
+                transform.position = positions[i].position;
             }
         }
 

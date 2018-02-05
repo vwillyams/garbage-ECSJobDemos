@@ -1,17 +1,18 @@
-﻿using Unity.Jobs;
+﻿using Unity.Collections;
+using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine.ECS;
 using UnityEngine.ECS.Transform;
 using UnityEngine.Jobs;
 
-namespace UnityEngine.ECS.Transform
+namespace UnityEngine.ECS.TransformShim
 {
-    public class CopyTransformRotationFromGameObjectSystem : JobComponentSystem
+    public class CopyTransformRotationToGameObjectSystem : JobComponentSystem
     {
         struct RotationGroup
         {
-            public ComponentDataArray<CopyTransformRotationFromGameObject> copyTransformRotationFromGameObjects;
-            public ComponentDataArray<Rotation> rotations;
+            public ComponentDataArray<CopyTransformRotationToGameObject> copyTransformRotationToGameObjects;
+            [ReadOnly] public ComponentDataArray<Rotation> rotations;
             public TransformAccessArray transforms;
             public int Length;
         }
@@ -21,17 +22,16 @@ namespace UnityEngine.ECS.Transform
         [ComputeJobOptimization]
         struct RotationToMatrix : IJobParallelForTransform
         {
-            public ComponentDataArray<Rotation> rotations;
+            [ReadOnly] public ComponentDataArray<Rotation> rotations;
 
             public void Execute(int i, TransformAccess transform)
             {
-                rotations[i] = new Rotation
+                transform.rotation = new Quaternion
                 {
-                    rotation = new quaternion(
-                        transform.rotation.x, 
-                        transform.rotation.y, 
-                        transform.rotation.z, 
-                        transform.rotation.w )
+                    x = rotations[i].rotation.value.x,
+                    y = rotations[i].rotation.value.y,
+                    z = rotations[i].rotation.value.z,
+                    w = rotations[i].rotation.value.w
                 };
             }
         }

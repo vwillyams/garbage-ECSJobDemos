@@ -1,8 +1,9 @@
 ﻿using Unity.Collections;
 using Unity.Jobs;
+using UnityEngine.ECS.Transform;
 using UnityEngine.Jobs;
 
-namespace UnityEngine.ECS.Transform
+namespace UnityEngine.ECS.TransformShim
 {
     public class CopyInitialTransformPositionFromGameObjectSystem : JobComponentSystem
     {

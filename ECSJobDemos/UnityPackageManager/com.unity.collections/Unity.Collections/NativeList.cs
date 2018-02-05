@@ -26,6 +26,8 @@ namespace Unity.Collections
 
 	[StructLayout (LayoutKind.Sequential)]
 	[NativeContainer]
+	[DebuggerDisplay("Length = {Length}")]
+	[DebuggerTypeProxy(typeof(NativeListDebugView < >))]
 	unsafe public struct NativeList<T> where T : struct
 	{
 		[NativeDisableUnsafePtrRestriction]
@@ -243,6 +245,21 @@ namespace Unity.Collections
 			data->length = length;
 		}
 	}
+    
+    internal sealed class NativeListDebugView<T> where T : struct
+    {
+        private NativeList<T> m_Array;
+
+        public NativeListDebugView(NativeList<T> array)
+        {
+            m_Array = array;
+        }
+
+        public T[] Items
+        {
+            get { return m_Array.ToArray(); }
+        }
+    }
 }
 namespace Unity.Collections.LowLevel.Unsafe
 {

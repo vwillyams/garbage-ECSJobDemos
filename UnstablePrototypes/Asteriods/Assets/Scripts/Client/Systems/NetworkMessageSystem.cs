@@ -50,7 +50,7 @@ namespace Asteriods.Client
 
         unsafe override protected void OnUpdate()
         {
-            if (player.Length == 0)
+            if (player.Length == 0 || player.state[0].State < (int)PlayerState.Loading)
                 return;
 
             if (player.state[0].State == (int)PlayerState.Loading)

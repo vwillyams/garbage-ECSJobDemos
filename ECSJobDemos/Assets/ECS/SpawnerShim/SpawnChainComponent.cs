@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace UnityEngine.ECS.Spawners
+namespace UnityEngine.ECS.SpawnerShim
 {
     [Serializable]
     public struct SpawnChain : ISharedComponentData

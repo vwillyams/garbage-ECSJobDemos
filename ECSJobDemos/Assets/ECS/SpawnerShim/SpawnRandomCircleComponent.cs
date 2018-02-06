@@ -5,15 +5,15 @@ using Unity.Mathematics;
 using UnityEngine.ECS;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.ECS.Spawners
+namespace UnityEngine.ECS.SpawnerShim
 {
     [Serializable]
-    public struct SpawnRandomInSphere : ISharedComponentData
+    public struct SpawnRandomCircle : ISharedComponentData
     {
         public GameObject prefab;
         public float radius;
         public int count;
     }
 
-    public class SpawnRandomInSphereComponent : SharedComponentDataWrapper<SpawnRandomInSphere> { }
+    public class SpawnRandomCircleComponent : SharedComponentDataWrapper<SpawnRandomCircle> { }
 }

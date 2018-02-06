@@ -1,4 +1,5 @@
-﻿using Unity.Collections;
+﻿using System.Security.Principal;
+using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Mathematics.Experimental;
@@ -65,26 +66,20 @@ namespace UnityEngine.ECS.Boids
                 cells.Add(hash, index);
             }
         }
-        
+
         [ComputeJobOptimization]
-        struct Steer : IJob
+        struct AvoidObstaclesSteer : IJob
         {
-            public ComponentDataArray<Heading>                   headings;
-            [ReadOnly] public ComponentDataArray<Position>       positions;
-            [ReadOnly] public ComponentDataArray<Rotation>       rotations;
-            [ReadOnly] public ComponentDataArray<Position>       targetPositions;
+            [ReadOnly] public ComponentDataArray<Heading>        headings;
             [ReadOnly] public ComponentDataArray<Position>       obstaclePositions;
             [ReadOnly] public ComponentDataArray<BoidObstacle>   obstacles;
             [ReadOnly] public ComponentDataArray<Radius>         obstacleSpheres;
-            [ReadOnly] public NativeMultiHashMap<int, int>       cells;
-            [ReadOnly] public NativeArray<int3> 				 cellOffsetsTable;
-            [ReadOnly] public BoidSettings                       settings;
-            [ReadOnly] public NativeArray<float>                 bias;
-            public float                                         dt;
+            [ReadOnly] public ComponentDataArray<Position>       positions;
+            [ReadOnly] public ComponentDataArray<Rotation>       rotations;
+            public NativeArray<float3> results;
             
             static float3 AvoidObstacle (float3 obstaclePosition, float obstacleRadius, BoidObstacle obstacle, float3 position, float3 steer)
             {
-                // avoid obstacle
                 float3 obstacleDelta1 = obstaclePosition - position;
                 float sqrDist = math.dot(obstacleDelta1, obstacleDelta1);
                 float orad = obstacleRadius + obstacle.aversionDistance;
@@ -102,97 +97,143 @@ namespace UnityEngine.ECS.Boids
                 return steer;
             } 
             
-            float3 CalculateNormalizedTargetDirection(int index)
-            {
-                var position = positions[index].position;
-                float closestDistance = math.distance (position, targetPositions[0].position);
-                int closestIndex = 0;
-                for (int i = 1; i < targetPositions.Length; i++)
-                {
-                    float distance = math.distance (position, targetPositions[i].position);
-                    if (distance < closestDistance)
-                    {
-                        closestIndex = i;
-                        closestDistance = distance;
-                    }
-                }
-
-                return (targetPositions[closestIndex].position - position ) / math.max(0.0001F, closestDistance);
-            }
-            
-            void CalculateSeparationAndAlignment(int index, out float3 separationSteering, out float3 alignmentSteering )
-            {
-                var position = positions[index].position;
-                var forward = math.forward(rotations[index].rotation);
-                
-                separationSteering = new float3(0);
-                alignmentSteering = new float3(0);
-                
-                int hash;
-                int3 gridPos = HashUtility.Quantize(position, settings.cellRadius);
-                for (int oi = 0; oi < 7; oi++)
-                {
-                    var gridOffset = cellOffsetsTable[oi];
-
-                    hash = HashUtility.Hash(gridPos + gridOffset);
-                    int i;
-
-                    NativeMultiHashMapIterator<int> iterator;
-                    bool found = cells.TryGetFirstValue(hash, out i, out iterator);
-                    int neighbors = 0;
-                    while (found)
-                    {
-                        if (i == index)
-                        {
-                            found = cells.TryGetNextValue(out i, ref iterator);
-                            continue;
-                        }
-                        neighbors++;
-
-                        var otherPosition = positions[i].position;
-                        var otherForward = math.forward(rotations[i].rotation);
-
-                        // add in steering contribution
-                        // (opposite of the offset direction, divided once by distance
-                        // to normalize, divided another time to get 1/d falloff)
-                        var offset = otherPosition - (position + forward * bias[index&1023] );
-
-                        var distanceSquared = math.lengthSquared(offset);
-                        separationSteering += (offset / -distanceSquared);
-
-                        // accumulate sum of neighbor's heading
-                        alignmentSteering += otherForward;
-
-                        found = cells.TryGetNextValue(out i, ref iterator);
-                    }
-                }
-
-                separationSteering = math_experimental.normalizeSafe(separationSteering);
-                alignmentSteering = math_experimental.normalizeSafe(alignmentSteering);
-            }
-
             public void Execute()
             {
                 for (int index = 0; index < headings.Length; index++)
                 {
-                    var forward = math.forward(rotations[index].rotation);
                     var position = positions[index].position;
-                    
-                    float3 alignmentSteering;
-                    float3 separationSteering;
-
-                    CalculateSeparationAndAlignment(index, out alignmentSteering, out separationSteering);
-
-                    var targetSteering = CalculateNormalizedTargetDirection(index);
+                    var forward = math.forward(rotations[index].rotation);
                     
                     var obstacleSteering = forward;
                     for (int i = 0;i != obstacles.Length;i++)
                         obstacleSteering = AvoidObstacle (obstaclePositions[i].position, obstacleSpheres[i].radius, obstacles[i], position, obstacleSteering);
 
-                    var steer = (alignmentSteering * settings.alignmentWeight) +
-                                (separationSteering * settings.separationWeight) +
-                                (targetSteering * settings.targetWeight) +
-                                (obstacleSteering * settings.obstacleWeight);
+                    results[index] = obstacleSteering;
+                }
+            }
+        }
+
+        [ComputeJobOptimization]
+        struct TargetSteer : IJob
+        {
+            [ReadOnly] public ComponentDataArray<Position> positions;
+            [ReadOnly] public ComponentDataArray<Position> targetPositions;
+            public NativeArray<float3> results;
+
+            public void Execute()
+            {
+                for (int index = 0; index < positions.Length; index++)
+                {
+                    var position = positions[index].position;
+                    float closestDistance = math.distance(position, targetPositions[0].position);
+                    int closestIndex = 0;
+                    for (int i = 1; i < targetPositions.Length; i++)
+                    {
+                        float distance = math.distance(position, targetPositions[i].position);
+                        if (distance < closestDistance)
+                        {
+                            closestIndex = i;
+                            closestDistance = distance;
+                        }
+                    }
+
+                    results[index] = (targetPositions[closestIndex].position - position) /
+                                     math.max(0.0001F, closestDistance);
+                }
+            }
+        }
+
+        [ComputeJobOptimization]
+        struct SeparationAndAlignmentSteer : IJob
+        {
+            [ReadOnly] public ComponentDataArray<Position> positions;
+            [ReadOnly] public ComponentDataArray<Rotation> rotations;
+            [ReadOnly] public NativeMultiHashMap<int, int> cells;
+            [ReadOnly] public NativeArray<int3> 		   cellOffsetsTable;
+            [ReadOnly] public NativeArray<float>           bias;
+            [ReadOnly] public BoidSettings                 settings;
+            public NativeArray<float3> alignmentResults;
+            public NativeArray<float3> separationResults;
+
+            public void Execute()
+            {
+                for (int index = 0; index < positions.Length; index++)
+                {
+                    var position = positions[index].position;
+                    var forward = math.forward(rotations[index].rotation);
+                
+                    var separationSteering = new float3(0);
+                    var alignmentSteering = new float3(0);
+                
+                    int hash;
+                    int3 gridPos = HashUtility.Quantize(position, settings.cellRadius);
+                    for (int oi = 0; oi < 7; oi++)
+                    {
+                        var gridOffset = cellOffsetsTable[oi];
+
+                        hash = HashUtility.Hash(gridPos + gridOffset);
+                        int i;
+
+                        NativeMultiHashMapIterator<int> iterator;
+                        bool found = cells.TryGetFirstValue(hash, out i, out iterator);
+                        int neighbors = 0;
+                        while (found)
+                        {
+                            if (i == index)
+                            {
+                                found = cells.TryGetNextValue(out i, ref iterator);
+                                continue;
+                            }
+                            neighbors++;
+
+                            var otherPosition = positions[i].position;
+                            var otherForward = math.forward(rotations[i].rotation);
+
+                            // add in steering contribution
+                            // (opposite of the offset direction, divided once by distance
+                            // to normalize, divided another time to get 1/d falloff)
+                            var offset = otherPosition - (position + forward * bias[index&1023] );
+
+                            var distanceSquared = math.lengthSquared(offset);
+                            separationSteering += (offset / -distanceSquared);
+
+                            // accumulate sum of neighbor's heading
+                            alignmentSteering += otherForward;
+
+                            found = cells.TryGetNextValue(out i, ref iterator);
+                        }
+                    }
+
+                    separationResults[index] = math_experimental.normalizeSafe(separationSteering);
+                    alignmentResults[index] = math_experimental.normalizeSafe(alignmentSteering);
+                }
+            }
+        }
+
+        [ComputeJobOptimization]
+        struct Steer : IJob
+        {
+            public ComponentDataArray<Heading>                   headings;
+            [ReadOnly] public BoidSettings                       settings;
+            [ReadOnly] public ComponentDataArray<Rotation>       rotations;
+            [ReadOnly] public NativeArray<float>                 bias;
+
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> targetSteering;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> obstacleSteering;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> alignmentSteering;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> separationSteering;
+            public float dt;
+            
+            public void Execute()
+            {
+                for (int index = 0; index < headings.Length; index++)
+                {
+                    var forward = math.forward(rotations[index].rotation);
+
+                    var steer = (alignmentSteering[index] * settings.alignmentWeight) +
+                                (separationSteering[index] * settings.separationWeight) +
+                                (targetSteering[index] * settings.targetWeight) +
+                                (obstacleSteering[index] * settings.obstacleWeight);
                     
                     math_experimental.normalizeSafe(steer);
 
@@ -226,23 +267,58 @@ namespace UnityEngine.ECS.Boids
 
             var hashBoidLocationsJobHandle = hashBoidLocationsJob.Schedule(m_BoidGroup.Length, 64, inputDeps);
 
-            var steerJob = new Steer
+            var avoidObstaclesSteerResults = new NativeArray<float3>(m_BoidGroup.Length, Allocator.TempJob);
+            var avoidObstaclesSteerJob = new AvoidObstaclesSteer
             {
                 headings = m_BoidGroup.headings,
+                positions = m_BoidGroup.positions,
+                rotations = m_BoidGroup.rotations,
+                obstaclePositions = m_ObstacleGroup.positions,
+                obstacles = m_ObstacleGroup.obstacles,
+                obstacleSpheres = m_ObstacleGroup.spheres,
+                results = avoidObstaclesSteerResults
+            };
+            var avoidObstaclesSteerJobHandle = avoidObstaclesSteerJob.Schedule(inputDeps);
+            
+            var targetSteerResults = new NativeArray<float3>(m_BoidGroup.Length, Allocator.TempJob);
+            var targetSteerJob = new TargetSteer
+            {
+                positions = m_BoidGroup.positions,
+                targetPositions = m_TargetGroup.positions,
+                results = targetSteerResults
+            };
+            var targetSteerJobHandle = targetSteerJob.Schedule(inputDeps);
+            
+            var separationResults = new NativeArray<float3>(m_BoidGroup.Length, Allocator.TempJob);
+            var alignmentResults = new NativeArray<float3>(m_BoidGroup.Length, Allocator.TempJob);
+            var separationAndAlignmentSteerJob = new SeparationAndAlignmentSteer
+            {
                 positions = m_BoidGroup.positions,
                 rotations = m_BoidGroup.rotations,
                 cells = m_Cells,
                 settings = settings,
                 cellOffsetsTable = m_CellOffsetsTable,
-                targetPositions = m_TargetGroup.positions,
-                obstaclePositions = m_ObstacleGroup.positions,
-                obstacles = m_ObstacleGroup.obstacles,
-                obstacleSpheres = m_ObstacleGroup.spheres,
+                bias = m_Bias,
+                separationResults = separationResults,
+                alignmentResults = alignmentResults,
+            };
+            var separationAndAlignmentSteerJobHandle = separationAndAlignmentSteerJob.Schedule(hashBoidLocationsJobHandle);
+
+            var steerJob = new Steer
+            {
+                headings = m_BoidGroup.headings,
+                rotations = m_BoidGroup.rotations,
+                settings = settings,
+                obstacleSteering = avoidObstaclesSteerResults,
+                targetSteering = targetSteerResults,
+                alignmentSteering = alignmentResults,
+                separationSteering = separationResults,
                 bias = m_Bias,
                 dt = Time.deltaTime
             };
 
-            var steerJobHandle = steerJob.Schedule(hashBoidLocationsJobHandle);
+            var steerJobHandle =
+                steerJob.Schedule(JobHandle.CombineDependencies(avoidObstaclesSteerJobHandle, targetSteerJobHandle, separationAndAlignmentSteerJobHandle));
                 
             return steerJobHandle;
         }

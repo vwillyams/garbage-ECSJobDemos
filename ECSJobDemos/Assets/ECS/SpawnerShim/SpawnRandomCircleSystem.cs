@@ -4,7 +4,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.ECS;
 using UnityEngine.ECS.SimpleMovement;
-using UnityEngine.ECS.Spawners;
+using UnityEngine.ECS.SpawnerShim;
 using UnityEngine.ECS.Transform;
 
 namespace ECS.Spawners

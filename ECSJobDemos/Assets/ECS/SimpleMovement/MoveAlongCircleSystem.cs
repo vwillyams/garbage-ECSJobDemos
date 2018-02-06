@@ -32,9 +32,10 @@ namespace UnityEngine.ECS.SimpleMovement
             public void Execute(int i)
             {
                 float t = moveAlongCircles[i].t + (dt * moveSpeeds[i].speed);
-                float x = moveAlongCircles[i].center.x + (math.cos(t) * moveAlongCircles[i].radius);
+                float offsetT = t + (0.01f * i);
+                float x = moveAlongCircles[i].center.x + (math.cos(offsetT) * moveAlongCircles[i].radius);
                 float y = moveAlongCircles[i].center.y;
-                float z = moveAlongCircles[i].center.z + (math.sin(t) * moveAlongCircles[i].radius);
+                float z = moveAlongCircles[i].center.z + (math.sin(offsetT) * moveAlongCircles[i].radius);
 
                 moveAlongCircles[i] = new MoveAlongCircle
                 {

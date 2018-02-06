@@ -745,11 +745,6 @@ namespace UnityEngine.ECS
             for (int t = 0; t < archetype->typesCount; ++t)
             {
                 int typeIndex = archetype->types[t].typeIndex;
-                
-//              @TODO: Ask mike why this was necessary 
-//              bool sharedComponent = (TypeManager.TypeCategory.ISharedComponentData == TypeManager.GetComponentType(typeIndex).category);
-//              if (!sharedComponent)
-                
                 m_ComponentTypeOrderVersion[typeIndex]++;
             }
         }

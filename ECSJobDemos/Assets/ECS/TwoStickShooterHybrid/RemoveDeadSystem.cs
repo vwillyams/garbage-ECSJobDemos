@@ -7,19 +7,24 @@ namespace TwoStickHybridExample
 {
     public class RemoveDeadSystem : ComponentSystem
     {
-        public struct Data
+        public struct Entities
         {
-            [ReadOnly] public Health Health;
+            public int Length;
+            public GameObjectArray gameObjects;
+            public ComponentArray<Health> healths;
         }
+
+        [Inject] private Entities entities;
 
         protected override void OnUpdate()
         {
             var toDestroy = new List<GameObject>();
-            foreach (var entity in GetEntities<Data>())
+            for (var i = 0; i < entities.Length; ++i)
             {
-                if (entity.Health.Value <= 0)
+                
+                if (entities.healths[i].Value <= 0)
                 {
-                    toDestroy.Add(entity.Health.gameObject);
+                    toDestroy.Add(entities.gameObjects[i]);
                 }
             }
 

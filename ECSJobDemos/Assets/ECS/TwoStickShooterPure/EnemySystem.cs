@@ -162,7 +162,6 @@ namespace TwoStickPureExample
 
             float dt = Time.deltaTime;
             float shootRate = TwoStickBootstrap.Settings.enemyShootRate;
-            float shotSpeed = TwoStickBootstrap.Settings.enemyShotSpeed;
             float shotTtl = TwoStickBootstrap.Settings.enemyShotTimeToLive;
             float shotEnergy = TwoStickBootstrap.Settings.enemyShotEnergy;
 

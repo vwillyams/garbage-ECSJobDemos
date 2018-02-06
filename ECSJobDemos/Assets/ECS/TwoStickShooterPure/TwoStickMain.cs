@@ -61,13 +61,13 @@ namespace TwoStickPureExample
             EnemyLook = GetLookFromPrototype("EnemyRenderPrototype");
 
             var entityManager = World.Active.GetOrCreateManager<EntityManager>();
-            var arch = entityManager.CreateArchetype(typeof(EnemySpawnSystemState));
+            var arch = entityManager.CreateArchetype(typeof(EnemySpawnCooldown), typeof(EnemySpawnSystemState));
             var stateEntity = entityManager.CreateEntity(arch);
             var oldState = Random.state;
             Random.InitState(0xaf77);
+            entityManager.SetComponentData(stateEntity, new EnemySpawnCooldown { Value = 0.0f });
             entityManager.SetComponentData(stateEntity, new EnemySpawnSystemState
             {
-                Cooldown = 0.0f,
                 SpawnedEnemyCount = 0,
                 RandomState = Random.state
             });

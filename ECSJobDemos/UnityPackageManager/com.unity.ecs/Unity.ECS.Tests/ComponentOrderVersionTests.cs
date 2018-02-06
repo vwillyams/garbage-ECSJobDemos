@@ -230,7 +230,7 @@ namespace UnityEngine.ECS.Tests
             
             var destroyEntity = m_Manager.CreateEntity(typeof(SharedData1));
             m_Manager.SetSharedComponentData(destroyEntity, sharedData );
-            var dontDestroyEntity = m_Manager.Instantiate(destroyEntity);
+            /*var dontDestroyEntity = */ m_Manager.Instantiate(destroyEntity);
 
             Assert.AreEqual(2, m_Manager.GetSharedComponentOrderVersion(sharedData));
 

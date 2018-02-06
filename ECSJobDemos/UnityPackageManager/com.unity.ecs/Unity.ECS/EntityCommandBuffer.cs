@@ -299,7 +299,7 @@ namespace UnityEngine.ECS
                         case Command.SetComponentImplicit:
                             {
                                 EntityComponentCommand* cmd = (EntityComponentCommand*)header;
-                                var componentType = (ComponentType)TypeManager.GetType(cmd->ComponentTypeIndex);
+                                //var componentType = (ComponentType)TypeManager.GetType(cmd->ComponentTypeIndex);
                                 mgr.SetComponentRaw(lastEntity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
                             }
                             break;

@@ -142,74 +142,96 @@ namespace UnityEngine.ECS.Boids
         }
 
         [ComputeJobOptimization]
-        struct SeparationAndAlignmentSteer : IJob
+        struct CopyPosition : IJobParallelFor
         {
             [ReadOnly] public ComponentDataArray<Position> positions;
-            [ReadOnly] public ComponentDataArray<Heading>  headings;
+            public NativeArray<float3> results;
+
+            public void Execute(int index)
+            {
+                results[index] = positions[index].position;
+            }
+        }
+        
+        [ComputeJobOptimization]
+        struct CopyHeading : IJobParallelFor
+        {
+            [ReadOnly] public ComponentDataArray<Heading> headings;
+            public NativeArray<float3> results;
+
+            public void Execute(int index)
+            {
+                results[index] = headings[index].forward;
+            }
+        }
+            
+
+        [ComputeJobOptimization]
+        struct SeparationAndAlignmentSteer : IJobParallelFor
+        {
             [ReadOnly] public NativeMultiHashMap<int, int> cells;
             [ReadOnly] public NativeArray<int3> 		   cellOffsetsTable;
             [ReadOnly] public NativeArray<float>           bias;
             [ReadOnly] public BoidSettings                 settings;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> positions;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> headings;
             public NativeArray<float3> alignmentResults;
             public NativeArray<float3> separationResults;
 
-            public void Execute()
+            public void Execute(int index)
             {
-                for (int index = 0; index < positions.Length; index++)
+                var position = positions[index];
+                var forward = headings[index];
+                
+                var separationSteering = new float3(0);
+                var alignmentSteering = new float3(0);
+                
+                int hash;
+                int3 gridPos = HashUtility.Quantize(position, settings.cellRadius);
+                for (int oi = 0; oi < 7; oi++)
                 {
-                    var position = positions[index].position;
-                    var forward = headings[index].forward;
-                
-                    var separationSteering = new float3(0);
-                    var alignmentSteering = new float3(0);
-                
-                    int hash;
-                    int3 gridPos = HashUtility.Quantize(position, settings.cellRadius);
-                    for (int oi = 0; oi < 7; oi++)
+                    var gridOffset = cellOffsetsTable[oi];
+
+                    hash = HashUtility.Hash(gridPos + gridOffset);
+                    int i;
+
+                    NativeMultiHashMapIterator<int> iterator;
+                    bool found = cells.TryGetFirstValue(hash, out i, out iterator);
+                    int neighbors = 0;
+                    while (found)
                     {
-                        var gridOffset = cellOffsetsTable[oi];
-
-                        hash = HashUtility.Hash(gridPos + gridOffset);
-                        int i;
-
-                        NativeMultiHashMapIterator<int> iterator;
-                        bool found = cells.TryGetFirstValue(hash, out i, out iterator);
-                        int neighbors = 0;
-                        while (found)
+                        if (i == index)
                         {
-                            if (i == index)
-                            {
-                                found = cells.TryGetNextValue(out i, ref iterator);
-                                continue;
-                            }
-                            neighbors++;
-
-                            var otherPosition = positions[i].position;
-                            var otherForward = headings[i].forward;
-
-                            // add in steering contribution
-                            // (opposite of the offset direction, divided once by distance
-                            // to normalize, divided another time to get 1/d falloff)
-                            var offset = otherPosition - (position + forward * bias[index&1023] );
-
-                            var distanceSquared = math.lengthSquared(offset);
-                            separationSteering += (offset / -distanceSquared);
-
-                            // accumulate sum of neighbor's heading
-                            alignmentSteering += otherForward;
-
                             found = cells.TryGetNextValue(out i, ref iterator);
+                            continue;
                         }
-                    }
+                        neighbors++;
 
-                    separationResults[index] = math_experimental.normalizeSafe(separationSteering);
-                    alignmentResults[index] = math_experimental.normalizeSafe(alignmentSteering);
+                        var otherPosition = positions[i];
+                        var otherForward = headings[i];
+
+                        // add in steering contribution
+                        // (opposite of the offset direction, divided once by distance
+                        // to normalize, divided another time to get 1/d falloff)
+                        var offset = otherPosition - (position + forward * bias[index&1023] );
+
+                        var distanceSquared = math.lengthSquared(offset);
+                        separationSteering += (offset / -distanceSquared);
+
+                        // accumulate sum of neighbor's heading
+                        alignmentSteering += otherForward;
+
+                        found = cells.TryGetNextValue(out i, ref iterator);
+                    }
                 }
+
+                separationResults[index] = math_experimental.normalizeSafe(separationSteering);
+                alignmentResults[index] = math_experimental.normalizeSafe(alignmentSteering);
             }
         }
 
         [ComputeJobOptimization]
-        struct Steer : IJob
+        struct Steer : IJobParallelFor
         {
             public ComponentDataArray<Heading>                   headings;
             [ReadOnly] public BoidSettings                       settings;
@@ -221,30 +243,31 @@ namespace UnityEngine.ECS.Boids
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> separationSteering;
             public float dt;
             
-            public void Execute()
+            public void Execute(int index)
             {
-                for (int index = 0; index < headings.Length; index++)
-                {
-                    var forward = headings[index].forward;
-
-                    var steer = (alignmentSteering[index] * settings.alignmentWeight) +
-                                (separationSteering[index] * settings.separationWeight) +
-                                (targetSteering[index] * settings.targetWeight) +
-                                (obstacleSteering[index] * settings.obstacleWeight);
+                var forward = headings[index].forward;
+                var steer = (alignmentSteering[index] * settings.alignmentWeight) +
+                            (separationSteering[index] * settings.separationWeight) +
+                            (targetSteering[index] * settings.targetWeight) +
+                            (obstacleSteering[index] * settings.obstacleWeight);
                     
-                    math_experimental.normalizeSafe(steer);
+                math_experimental.normalizeSafe(steer);
 
-                    headings[index] = new Heading
-                    {
-                        forward = math_experimental.normalizeSafe(forward + steer * 2.0f * bias[index&1023] * dt * Mathf.Deg2Rad * settings.rotationalSpeed)
-                    };
-                }
+                headings[index] = new Heading
+                {
+                    forward = math_experimental.normalizeSafe(forward + steer * 2.0f * bias[index&1023] * dt * Mathf.Deg2Rad * settings.rotationalSpeed)
+                };
             }
         }
         
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
             if (m_BoidSettingsGroup.Length == 0)
+            {
+                return inputDeps;
+            }
+
+            if (m_BoidGroup.Length == 0)
             {
                 return inputDeps;
             }
@@ -285,12 +308,28 @@ namespace UnityEngine.ECS.Boids
             };
             var targetSteerJobHandle = targetSteerJob.Schedule(inputDeps);
             
+            var copyPositionsResults = new NativeArray<float3>(m_BoidGroup.Length, Allocator.TempJob);
+            var copyPositionsJob = new CopyPosition
+            {
+                positions = m_BoidGroup.positions,
+                results = copyPositionsResults
+            };
+            var copyPositionsJobHandle = copyPositionsJob.Schedule(m_BoidGroup.Length,64,inputDeps);
+            
+            var copyHeadingsResults = new NativeArray<float3>(m_BoidGroup.Length, Allocator.TempJob);
+            var copyHeadingsJob = new CopyHeading
+            {
+                headings = m_BoidGroup.headings,
+                results = copyHeadingsResults
+            };
+            var copyHeadingsJobHandle = copyHeadingsJob.Schedule(m_BoidGroup.Length,64,inputDeps);
+            
             var separationResults = new NativeArray<float3>(m_BoidGroup.Length, Allocator.TempJob);
             var alignmentResults = new NativeArray<float3>(m_BoidGroup.Length, Allocator.TempJob);
             var separationAndAlignmentSteerJob = new SeparationAndAlignmentSteer
             {
-                positions = m_BoidGroup.positions,
-                headings = m_BoidGroup.headings,
+                positions = copyPositionsResults,
+                headings = copyHeadingsResults,
                 cells = m_Cells,
                 settings = settings,
                 cellOffsetsTable = m_CellOffsetsTable,
@@ -298,7 +337,7 @@ namespace UnityEngine.ECS.Boids
                 separationResults = separationResults,
                 alignmentResults = alignmentResults,
             };
-            var separationAndAlignmentSteerJobHandle = separationAndAlignmentSteerJob.Schedule(hashBoidLocationsJobHandle);
+            var separationAndAlignmentSteerJobHandle = separationAndAlignmentSteerJob.Schedule(m_BoidGroup.Length,64,JobHandle.CombineDependencies(hashBoidLocationsJobHandle,copyHeadingsJobHandle,copyPositionsJobHandle));
 
             var steerJob = new Steer
             {
@@ -313,7 +352,7 @@ namespace UnityEngine.ECS.Boids
             };
 
             var steerJobHandle =
-                steerJob.Schedule(JobHandle.CombineDependencies(avoidObstaclesSteerJobHandle, targetSteerJobHandle, separationAndAlignmentSteerJobHandle));
+                steerJob.Schedule(m_BoidGroup.Length,64,JobHandle.CombineDependencies(avoidObstaclesSteerJobHandle, targetSteerJobHandle, separationAndAlignmentSteerJobHandle));
                 
             return steerJobHandle;
         }

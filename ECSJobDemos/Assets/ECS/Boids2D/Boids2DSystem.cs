@@ -209,6 +209,11 @@ namespace UnityEngine.ECS.Boids
             {
                 return inputDeps;
             }
+
+            if (m_BoidGroup.Length == 0)
+            {
+                return inputDeps;
+            }
             
             // Only support one boid type until we can destroy m_Cells after jobs
             var settings = m_BoidSettingsGroup.settings[0];

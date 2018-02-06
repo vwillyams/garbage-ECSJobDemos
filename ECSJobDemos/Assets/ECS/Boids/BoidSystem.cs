@@ -27,7 +27,6 @@ namespace UnityEngine.ECS.Boids
         {
             [ReadOnly] public ComponentDataArray<Boid>       boid; 
             [ReadOnly] public ComponentDataArray<Position>   positions;
-            [ReadOnly] public ComponentDataArray<Rotation>   rotations;
             public ComponentDataArray<Heading>               headings;
             public int Length;
         }
@@ -75,7 +74,6 @@ namespace UnityEngine.ECS.Boids
             [ReadOnly] public ComponentDataArray<BoidObstacle>   obstacles;
             [ReadOnly] public ComponentDataArray<Radius>         obstacleSpheres;
             [ReadOnly] public ComponentDataArray<Position>       positions;
-            [ReadOnly] public ComponentDataArray<Rotation>       rotations;
             public NativeArray<float3> results;
             
             static float3 AvoidObstacle (float3 obstaclePosition, float obstacleRadius, BoidObstacle obstacle, float3 position, float3 steer)
@@ -102,7 +100,7 @@ namespace UnityEngine.ECS.Boids
                 for (int index = 0; index < headings.Length; index++)
                 {
                     var position = positions[index].position;
-                    var forward = math.forward(rotations[index].rotation);
+                    var forward = headings[index].forward;
                     
                     var obstacleSteering = forward;
                     for (int i = 0;i != obstacles.Length;i++)
@@ -147,7 +145,7 @@ namespace UnityEngine.ECS.Boids
         struct SeparationAndAlignmentSteer : IJob
         {
             [ReadOnly] public ComponentDataArray<Position> positions;
-            [ReadOnly] public ComponentDataArray<Rotation> rotations;
+            [ReadOnly] public ComponentDataArray<Heading>  headings;
             [ReadOnly] public NativeMultiHashMap<int, int> cells;
             [ReadOnly] public NativeArray<int3> 		   cellOffsetsTable;
             [ReadOnly] public NativeArray<float>           bias;
@@ -160,7 +158,7 @@ namespace UnityEngine.ECS.Boids
                 for (int index = 0; index < positions.Length; index++)
                 {
                     var position = positions[index].position;
-                    var forward = math.forward(rotations[index].rotation);
+                    var forward = headings[index].forward;
                 
                     var separationSteering = new float3(0);
                     var alignmentSteering = new float3(0);
@@ -187,7 +185,7 @@ namespace UnityEngine.ECS.Boids
                             neighbors++;
 
                             var otherPosition = positions[i].position;
-                            var otherForward = math.forward(rotations[i].rotation);
+                            var otherForward = headings[i].forward;
 
                             // add in steering contribution
                             // (opposite of the offset direction, divided once by distance
@@ -215,7 +213,6 @@ namespace UnityEngine.ECS.Boids
         {
             public ComponentDataArray<Heading>                   headings;
             [ReadOnly] public BoidSettings                       settings;
-            [ReadOnly] public ComponentDataArray<Rotation>       rotations;
             [ReadOnly] public NativeArray<float>                 bias;
 
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> targetSteering;
@@ -228,7 +225,7 @@ namespace UnityEngine.ECS.Boids
             {
                 for (int index = 0; index < headings.Length; index++)
                 {
-                    var forward = math.forward(rotations[index].rotation);
+                    var forward = headings[index].forward;
 
                     var steer = (alignmentSteering[index] * settings.alignmentWeight) +
                                 (separationSteering[index] * settings.separationWeight) +
@@ -272,7 +269,6 @@ namespace UnityEngine.ECS.Boids
             {
                 headings = m_BoidGroup.headings,
                 positions = m_BoidGroup.positions,
-                rotations = m_BoidGroup.rotations,
                 obstaclePositions = m_ObstacleGroup.positions,
                 obstacles = m_ObstacleGroup.obstacles,
                 obstacleSpheres = m_ObstacleGroup.spheres,
@@ -294,7 +290,7 @@ namespace UnityEngine.ECS.Boids
             var separationAndAlignmentSteerJob = new SeparationAndAlignmentSteer
             {
                 positions = m_BoidGroup.positions,
-                rotations = m_BoidGroup.rotations,
+                headings = m_BoidGroup.headings,
                 cells = m_Cells,
                 settings = settings,
                 cellOffsetsTable = m_CellOffsetsTable,
@@ -307,7 +303,6 @@ namespace UnityEngine.ECS.Boids
             var steerJob = new Steer
             {
                 headings = m_BoidGroup.headings,
-                rotations = m_BoidGroup.rotations,
                 settings = settings,
                 obstacleSteering = avoidObstaclesSteerResults,
                 targetSteering = targetSteerResults,

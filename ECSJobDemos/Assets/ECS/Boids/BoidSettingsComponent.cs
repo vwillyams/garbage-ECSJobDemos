@@ -11,6 +11,7 @@ namespace UnityEngine.ECS.Boids
         public float alignmentWeight;
         public float targetWeight;
         public float obstacleWeight;
+        public float obstacleAversionDistance;
         public float rotationalSpeed;
     }
     public class BoidSettingsComponent : ComponentDataWrapper<BoidSettings> { }

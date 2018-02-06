@@ -1834,6 +1834,7 @@ MonoBehaviour:
     alignmentWeight: 1
     targetWeight: 0.5
     obstacleWeight: 8
+    obstacleAversionDistance: 20
     rotationalSpeed: 160
 --- !u!114 &614494512
 MonoBehaviour:
@@ -4130,8 +4131,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33ce991994a6c4305b324d5f4b9a9528, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SerializedData:
-    aversionDistance: 20
 --- !u!114 &1359442720
 MonoBehaviour:
   m_ObjectHideFlags: 0

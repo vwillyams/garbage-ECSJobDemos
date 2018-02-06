@@ -74,13 +74,14 @@ namespace UnityEngine.ECS.Boids
             [ReadOnly] public ComponentDataArray<BoidObstacle>   obstacles;
             [ReadOnly] public ComponentDataArray<Radius>         obstacleSpheres;
             [ReadOnly] public ComponentDataArray<Position>       positions;
+            [ReadOnly] public BoidSettings                       settings;
             public NativeArray<float3> results;
             
-            static float3 AvoidObstacle (float3 obstaclePosition, float obstacleRadius, BoidObstacle obstacle, float3 position, float3 steer)
+            static float3 AvoidObstacle (float3 obstaclePosition, float obstacleRadius, BoidObstacle obstacle, float3 position, float3 steer, float aversionDistance)
             {
                 float3 obstacleDelta1 = obstaclePosition - position;
                 float sqrDist = math.dot(obstacleDelta1, obstacleDelta1);
-                float orad = obstacleRadius + obstacle.aversionDistance;
+                float orad = obstacleRadius + aversionDistance;
                 if (sqrDist < orad * orad)
                 {
                     float dist = math.sqrt(sqrDist);
@@ -88,7 +89,7 @@ namespace UnityEngine.ECS.Boids
                     float a = dist - obstacleRadius;
                     if (a < 0)
                         a = 0;
-                    float f = a / obstacle.aversionDistance;
+                    float f = a / aversionDistance;
                     steer = steer + (-obs1Dir - steer) * (1 - f);
                     steer = math_experimental.normalizeSafe(steer);
                 }
@@ -101,10 +102,11 @@ namespace UnityEngine.ECS.Boids
                 {
                     var position = positions[index].position;
                     var forward = headings[index].forward;
+                    var aversionDistance = settings.obstacleAversionDistance;
                     
                     var obstacleSteering = forward;
                     for (int i = 0;i != obstacles.Length;i++)
-                        obstacleSteering = AvoidObstacle (obstaclePositions[i].position, obstacleSpheres[i].radius, obstacles[i], position, obstacleSteering);
+                        obstacleSteering = AvoidObstacle (obstaclePositions[i].position, obstacleSpheres[i].radius, obstacles[i], position, obstacleSteering, aversionDistance);
 
                     results[index] = obstacleSteering;
                 }
@@ -255,7 +257,7 @@ namespace UnityEngine.ECS.Boids
 
                 headings[index] = new Heading
                 {
-                    forward = math_experimental.normalizeSafe(forward + steer * 2.0f * bias[index&1023] * dt * Mathf.Deg2Rad * settings.rotationalSpeed)
+                    forward = math_experimental.normalizeSafe(forward + steer * 2.0f * bias[index&1023] * dt * Mathf.Deg2Rad * settings.rotationalSpeed )
                 };
             }
         }
@@ -295,6 +297,7 @@ namespace UnityEngine.ECS.Boids
                 obstaclePositions = m_ObstacleGroup.positions,
                 obstacles = m_ObstacleGroup.obstacles,
                 obstacleSpheres = m_ObstacleGroup.spheres,
+                settings = settings,
                 results = avoidObstaclesSteerResults
             };
             var avoidObstaclesSteerJobHandle = avoidObstaclesSteerJob.Schedule(inputDeps);

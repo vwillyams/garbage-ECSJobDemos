@@ -81,12 +81,12 @@ namespace UnityEngine.ECS.Boids
             [ReadOnly] public NativeArray<float>                 bias;
             public float                                         dt;
             
-            static float2 AvoidObstacle (float2 obstaclePosition, float obstacleRadius, BoidObstacle obstacle, float2 position, float2 steer)
+            static float2 AvoidObstacle (float2 obstaclePosition, float obstacleRadius, BoidObstacle obstacle, float2 position, float2 steer, float aversionDistance)
             {
                 // avoid obstacle
                 float2 obstacleDelta1 = obstaclePosition - position;
                 float sqrDist = math.dot(obstacleDelta1, obstacleDelta1);
-                float orad = obstacleRadius + obstacle.aversionDistance;
+                float orad = obstacleRadius + aversionDistance;
                 if (sqrDist < orad * orad)
                 {
                     float dist = math.sqrt(sqrDist);
@@ -94,7 +94,7 @@ namespace UnityEngine.ECS.Boids
                     float a = dist - obstacleRadius;
                     if (a < 0)
                         a = 0;
-                    float f = a / obstacle.aversionDistance;
+                    float f = a / aversionDistance;
                     steer = steer + (-obs1Dir - steer) * (1 - f);
                     steer = math_experimental.normalizeSafe(steer);
                 }
@@ -186,7 +186,7 @@ namespace UnityEngine.ECS.Boids
                     
                     var obstacleSteering = forward;
                     for (int i = 0;i != obstacles.Length;i++)
-                        obstacleSteering = AvoidObstacle (obstaclePositions[i].position, obstacleSpheres[i].radius, obstacles[i], position, obstacleSteering);
+                        obstacleSteering = AvoidObstacle (obstaclePositions[i].position, obstacleSpheres[i].radius, obstacles[i], position, obstacleSteering, settings.obstacleAversionDistance);
 
                     var steer = (alignmentSteering * settings.alignmentWeight) +
                                 (separationSteering * settings.separationWeight) +
@@ -197,7 +197,7 @@ namespace UnityEngine.ECS.Boids
 
                     headings[index] = new Heading2D
                     {
-                        heading = math_experimental.normalizeSafe(forward + steer * 2.0f * bias[index&1023] * dt * Mathf.Deg2Rad * settings.rotationalSpeed)
+                        heading = math_experimental.normalizeSafe(forward + steer * 2.0f * bias[index & 1023] * dt * Mathf.Deg2Rad * settings.rotationalSpeed )
                     };
                 }
             }

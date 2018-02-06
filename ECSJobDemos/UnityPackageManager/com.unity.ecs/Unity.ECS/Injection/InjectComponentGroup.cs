@@ -51,17 +51,13 @@ namespace UnityEngine.ECS
 
 		InjectComponentGroupData(EntityManager entityManager, FieldInfo groupField, InjectionData[] componentInjections, FieldInfo entityArrayInjection, FieldInfo transformAccessArrayInjection, FieldInfo gameObjectArrayInjection, FieldInfo lengthInjection, ComponentType[] componentRequirements)
 		{
-            var transformsCount = transformAccessArrayInjection != null ? 1 : 0;
-			var requiredComponentTypes = new ComponentType[componentInjections.Length + transformsCount + componentRequirements.Length];
+			var requiredComponentTypes = new ComponentType[componentInjections.Length + componentRequirements.Length];
 
             for (int i = 0; i != componentInjections.Length; i++)
                 requiredComponentTypes[i] = new ComponentType(componentInjections[i].genericType, componentInjections[i].isReadOnly ? ComponentType.AccessMode.ReadOnly : ComponentType.AccessMode.ReadWrite);
 
-		    if (transformsCount != 0)
-		        requiredComponentTypes[componentInjections.Length] = typeof(Transform);
-
             for (int i = 0; i != componentRequirements.Length; i++)
-                requiredComponentTypes[componentInjections.Length + transformsCount + i] = componentRequirements[i];
+                requiredComponentTypes[componentInjections.Length + i] = componentRequirements[i];
 
             m_EntityGroup = entityManager.CreateComponentGroup(requiredComponentTypes);
 
@@ -153,6 +149,8 @@ namespace UnityEngine.ECS
 		    entityArrayField = null;
 	        gameObjectArrayField = null;
 		    lengthField = null;
+	        var explicitTransformRequirement = false;
+	        var implicitTransformRequirement = false;
 
 			foreach(var field in fields)
     		{
@@ -191,6 +189,9 @@ namespace UnityEngine.ECS
 					injection.injection = (IUpdateInjection)Activator.CreateInstance(injectionType);
 
 					componentInjections.Add (injection);
+
+				    if (injection.genericType == typeof(Transform))
+				        explicitTransformRequirement = true;
 				}
 				else if (field.FieldType == typeof(TransformAccessArray))
 				{
@@ -201,6 +202,7 @@ namespace UnityEngine.ECS
 						return "A [Inject] struct, may only contain a single TransformAccessArray";
 
 					transformAccessArrayField = field;
+				    implicitTransformRequirement = true;
 				}
 				else if (field.FieldType == typeof(EntityArray))
 				{
@@ -212,13 +214,14 @@ namespace UnityEngine.ECS
 				}
 			    else if (field.FieldType == typeof(GameObjectArray))
 			    {
+			        if (isReadOnly)
+			            return "[ReadOnly] may not be used on GameObjectArray, it can only be used on ComponentDataArray<>";
 			        // Error on multiple GameObjectArray
 			        if (gameObjectArrayField != null)
 			            return "A [Inject] struct, may only contain a single GameObjectArray";
 
 			        gameObjectArrayField = field;
-			        
-			        componentRequirements.Add (ComponentType.Create<Transform>());
+			        implicitTransformRequirement = true;
 			    }
 				else if (field.FieldType == typeof(int))
 			    {
@@ -233,6 +236,11 @@ namespace UnityEngine.ECS
 					    "[Inject] may only be used on ComponentDataArray<>, ComponentArray<>, TransformAccessArray, EntityArray, GameObjectArray and int Length.";
 			    }
 		    }
+
+	        if (!explicitTransformRequirement && implicitTransformRequirement)
+	        {
+	            componentRequirements.Add(typeof(Transform));
+	        }
 
 		    return null;
 	    }

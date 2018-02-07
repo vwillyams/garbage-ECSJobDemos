@@ -6,7 +6,7 @@ using UnityEngine.Jobs;
 
 namespace UnityEngine.ECS.TransformShim
 {
-    public class CopyInitialTransformPositionFromGameObjectSystem : JobComponentSystem
+    public class CopyInitialTransformFromGameObjectSystem : JobComponentSystem
     {
         [Inject] private ComponentDataFromEntity<LocalPosition> m_LocalPositions;
         [Inject] private ComponentDataFromEntity<LocalRotation> m_LocalRotations;
@@ -34,7 +34,7 @@ namespace UnityEngine.ECS.TransformShim
         }
 
         [ComputeJobOptimization]
-        struct CopyTransforms : IJobParallelForTransform
+        struct StashTransforms : IJobParallelForTransform
         {
             public NativeArray<TransformStash> transformStashes;
             public EntityArray entities;
@@ -52,8 +52,8 @@ namespace UnityEngine.ECS.TransformShim
             }
         }
             
-        // [ComputeJobOptimization]
-        struct CopyInitialTransformPositions : IJob
+        [ComputeJobOptimization]
+        struct CopyInitialTransforms : IJob
         {
             public ComponentDataFromEntity<LocalPosition> localPositions;
             public ComponentDataFromEntity<LocalRotation> localRotations;
@@ -104,14 +104,14 @@ namespace UnityEngine.ECS.TransformShim
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
             var transformStashes = new NativeArray<TransformStash>(m_InitialTransformGroup.Length, Allocator.TempJob);
-            var copyTransformsJob = new CopyTransforms
+            var stashTransformsJob = new StashTransforms
             {
                 transformStashes = transformStashes,
                 entities = m_InitialTransformGroup.entities
             };
-            var copyTransformsJobHandle = copyTransformsJob.Schedule(m_InitialTransformGroup.transforms, inputDeps);
+            var stashTransformsJobHandle = stashTransformsJob.Schedule(m_InitialTransformGroup.transforms, inputDeps);
             
-            var copyInitialTransformPositionsJob = new CopyInitialTransformPositions
+            var copyInitialTransformsJob = new CopyInitialTransforms
             {
                 positions = m_Positions,
                 rotations = m_Rotations,
@@ -121,7 +121,7 @@ namespace UnityEngine.ECS.TransformShim
                 removeComponentQueue = m_DeferredEntityChangeSystem.GetRemoveComponentQueue<CopyInitialTransformFromGameObject>()
             };
 
-            return copyInitialTransformPositionsJob.Schedule(copyTransformsJobHandle);
+            return copyInitialTransformsJob.Schedule(stashTransformsJobHandle);
         }
     }
 }

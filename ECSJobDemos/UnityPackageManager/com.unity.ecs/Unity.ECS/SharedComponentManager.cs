@@ -7,16 +7,21 @@ namespace UnityEngine.ECS
 {
     class SharedComponentDataManager
     {
+        NativeMultiHashMap<int, int> m_TypeLookup;
+
         List<object>    m_SharedComponentData = new List<object>();
         NativeList<int> m_SharedComponentRefCount = new NativeList<int>(0, Allocator.Persistent);
         NativeList<int> m_SharedComponentVersion = new NativeList<int>(0, Allocator.Persistent);
+        NativeList<int> m_SharedComponentType = new NativeList<int>(0, Allocator.Persistent);
         int             m_RefCount = 0;
 
         public SharedComponentDataManager()
         {
+            m_TypeLookup = new NativeMultiHashMap<int, int>(128, Allocator.Persistent);
             m_SharedComponentData.Add(null);
             m_SharedComponentRefCount.Add(1);
             m_SharedComponentVersion.Add(1);
+            m_SharedComponentType.Add(-1);
         }
 
         public void Retain()
@@ -28,10 +33,12 @@ namespace UnityEngine.ECS
         {
             if (--m_RefCount == 0)
             {
+                m_SharedComponentType.Dispose();
                 m_SharedComponentRefCount.Dispose();
                 m_SharedComponentVersion.Dispose();
                 m_SharedComponentData.Clear();
                 m_SharedComponentData = null;
+                m_TypeLookup.Dispose();
                 return true;
             }
             else
@@ -53,29 +60,53 @@ namespace UnityEngine.ECS
 
         public int InsertSharedComponent<T>(T newData) where T : struct
         {
+            int typeIndex = TypeManager.GetTypeIndex<T>();
+            int index = FindSharedComponentIndex(typeIndex, newData);
+
+            if (-1 == index)
+            {
+                index = m_SharedComponentData.Count;
+                m_TypeLookup.Add(typeIndex, index);
+                m_SharedComponentData.Add(newData);
+                m_SharedComponentRefCount.Add(1);
+                m_SharedComponentVersion.Add(1);
+                m_SharedComponentType.Add(typeIndex);
+            }
+            else
+            {
+                m_SharedComponentRefCount[index] += 1;
+            }
+
+            return index;
+        }
+
+        private int FindSharedComponentIndex<T>(int typeIndex, T newData) where T : struct
+        {
+            int itemIndex;
+            NativeMultiHashMapIterator<int> iter;
+
             if (newData.Equals(default(T)))
             {
                 return 0;
             }
 
-            for (int i = 1; i != m_SharedComponentData.Count; i++)
+            if (m_TypeLookup.TryGetFirstValue(typeIndex, out itemIndex, out iter))
             {
-                object data = m_SharedComponentData[i];
-                if (data != null && data.GetType() == typeof(T))
+                do
                 {
-                    if (newData.Equals(data))
+                    object data = m_SharedComponentData[itemIndex];
+                    if (data != null)
                     {
-                        m_SharedComponentRefCount[i]++;
-                        return i;
+                        if (newData.Equals(data))
+                        {
+                            return itemIndex;
+                        }
                     }
                 }
+                while (m_TypeLookup.TryGetNextValue(out itemIndex, ref iter));
             }
 
-            m_SharedComponentData.Add(newData);
-            m_SharedComponentRefCount.Add(1);
-            m_SharedComponentVersion.Add(1);
-
-            return m_SharedComponentData.Count - 1;
+            return -1;
         }
 
         public void IncrementSharedComponentVersion(int index)
@@ -85,18 +116,8 @@ namespace UnityEngine.ECS
         
         public int GetSharedComponentVersion<T>(T sharedData) where T: struct
         {
-            for (int i = 0; i != m_SharedComponentData.Count; i++)
-            {
-                object data = m_SharedComponentData[i];
-                if (data != null && data.GetType() == typeof(T))
-                {
-                    if (sharedData.Equals(data))
-                    {
-                        return m_SharedComponentVersion[i];
-                    }
-                }
-            }
-            return 0;
+            int index = FindSharedComponentIndex(TypeManager.GetTypeIndex<T>(), sharedData);
+            return index == -1 ? 0 : m_SharedComponentVersion[index];
         }
 
         public T GetSharedComponentData<T>(int index) where T : struct
@@ -121,10 +142,30 @@ namespace UnityEngine.ECS
         {
             if (index == 0)
                 return;
+
             int newCount = --m_SharedComponentRefCount[index];
+
             if (newCount == 0)
             {
+                int typeIndex = m_SharedComponentType[index];
+
                 m_SharedComponentData[index] = null;
+                m_SharedComponentType[index] = -1;
+
+                int itemIndex;
+                NativeMultiHashMapIterator<int> iter;
+                if (m_TypeLookup.TryGetFirstValue(typeIndex, out itemIndex, out iter))
+                {
+                    do
+                    {
+                        if (itemIndex == index)
+                        {
+                            m_TypeLookup.Remove(iter);
+                            break;
+                        }
+                    }
+                    while (m_TypeLookup.TryGetNextValue(out itemIndex, ref iter));
+                }
             }
         }
     }

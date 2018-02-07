@@ -68,7 +68,7 @@ namespace UnityEngine.ECS.Transform2D
             }
         }
 
-        // [ComputeJobOptimization]
+        [ComputeJobOptimization]
         struct UpdateHierarchy : IJob
         {
             [ReadOnly] public NativeMultiHashMap<Entity, Entity> hierarchy;

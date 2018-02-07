@@ -16,6 +16,7 @@ namespace TwoStickPureExample
         public struct State
         {
             public int Length;
+            public ComponentDataArray<EnemySpawnCooldown> Cooldown;
             public ComponentDataArray<EnemySpawnSystemState> S;
         }
 
@@ -26,24 +27,32 @@ namespace TwoStickPureExample
             if (m_State.Length == 0)
                 return;
 
-            var spawn = false;
+            float cooldown = m_State.Cooldown[0].Value;
+ 
+            cooldown = Mathf.Max(0.0f, m_State.Cooldown[0].Value - Time.deltaTime);
+            bool spawn = cooldown <= 0.0f;
 
-            // This is currently a copy in-out but will be nicer when C# 7 ref returns are in
+            if (spawn)
+            {
+                cooldown = ComputeCooldown();
+            }
+
+            m_State.Cooldown[0] = new EnemySpawnCooldown { Value = cooldown };
+
+            if (spawn)
+            {
+                SpawnEnemy();
+            }
+        }
+
+        void SpawnEnemy()
+        {
             var state = m_State.S[0];
-
             var oldState = Random.state;
             Random.state = state.RandomState;
 
-            state.Cooldown -= Time.deltaTime;
-
-            float2 spawnPosition = new float2();
-            if (state.Cooldown <= 0.0f)
-            {
-                spawnPosition = ComputeSpawnLocation();
-                state.SpawnedEnemyCount++;
-                state.Cooldown = ComputeCooldown(state.SpawnedEnemyCount);
-                spawn = true;
-            }
+            float2 spawnPosition = ComputeSpawnLocation();
+            state.SpawnedEnemyCount++;
 
             state.RandomState = Random.state;
 
@@ -51,22 +60,18 @@ namespace TwoStickPureExample
             Random.state = oldState;
 
             // Need to do this after we're done accessing our injected arrays.
-            if (spawn)
-            {
-                Entity e = EntityManager.CreateEntity(TwoStickBootstrap.BasicEnemyArchetype);
-                EntityManager.SetComponentData(e, new Position2D {position = spawnPosition});
-                EntityManager.SetComponentData(e, new Heading2D {heading = new float2(0.0f, -1.0f)});
-                EntityManager.SetComponentData(e, default(Enemy));
-                EntityManager.SetComponentData(e, new Health { Value = TwoStickBootstrap.Settings.enemyInitialHealth });
-                EntityManager.SetComponentData(e, new EnemyShootState { Cooldown = 0.5f });
-                EntityManager.SetComponentData(e, new Faction { Value = Faction.kEnemy });
-                EntityManager.SetComponentData(e, new MoveSpeed {speed = TwoStickBootstrap.Settings.enemySpeed});
-                EntityManager.AddSharedComponentData(e, TwoStickBootstrap.EnemyLook);
-            }
-            
+            Entity e = EntityManager.CreateEntity(TwoStickBootstrap.BasicEnemyArchetype);
+            EntityManager.SetComponentData(e, new Position2D { position = spawnPosition });
+            EntityManager.SetComponentData(e, new Heading2D { heading = new float2(0.0f, -1.0f) });
+            EntityManager.SetComponentData(e, default(Enemy));
+            EntityManager.SetComponentData(e, new Health { Value = TwoStickBootstrap.Settings.enemyInitialHealth });
+            EntityManager.SetComponentData(e, new EnemyShootState { Cooldown = 0.5f });
+            EntityManager.SetComponentData(e, new Faction { Value = Faction.kEnemy });
+            EntityManager.SetComponentData(e, new MoveSpeed { speed = TwoStickBootstrap.Settings.enemySpeed });
+            EntityManager.AddSharedComponentData(e, TwoStickBootstrap.EnemyLook);
         }
 
-        private float ComputeCooldown(int stateSpawnedEnemyCount)
+        private float ComputeCooldown()
         {
             return 0.15f;
         }

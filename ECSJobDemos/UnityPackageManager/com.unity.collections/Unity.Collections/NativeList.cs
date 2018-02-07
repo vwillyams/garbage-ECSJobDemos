@@ -2,10 +2,7 @@
 using System.Runtime.InteropServices;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
-
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
 using System.Diagnostics;
-#endif
 
 namespace Unity.Collections
 {

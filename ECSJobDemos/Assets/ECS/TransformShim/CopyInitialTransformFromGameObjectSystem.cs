@@ -30,12 +30,14 @@ namespace UnityEngine.ECS.TransformShim
             public float3 position;
             public quaternion localRotation;
             public quaternion rotation;
+            public Entity entity;
         }
 
         [ComputeJobOptimization]
         struct CopyTransforms : IJobParallelForTransform
         {
             public NativeArray<TransformStash> transformStashes;
+            public EntityArray entities;
 
             public void Execute(int index, TransformAccess transform)
             {
@@ -44,7 +46,8 @@ namespace UnityEngine.ECS.TransformShim
                     localPosition = transform.localPosition,
                     rotation = new quaternion(transform.rotation.x, transform.rotation.y, transform.rotation.z, transform.rotation.w),
                     position = transform.position,
-                    localRotation= new quaternion(transform.localRotation.x, transform.localRotation.y, transform.localRotation.z, transform.localRotation.w)
+                    localRotation= new quaternion(transform.localRotation.x, transform.localRotation.y, transform.localRotation.z, transform.localRotation.w),
+                    entity = entities[index]
                 };
             }
         }
@@ -57,7 +60,6 @@ namespace UnityEngine.ECS.TransformShim
             public ComponentDataFromEntity<Position> positions;
             public ComponentDataFromEntity<Rotation> rotations;
             [DeallocateOnJobCompletion] public NativeArray<TransformStash> transformStashes;
-            public EntityArray entities;
             public NativeQueue<Entity>.Concurrent removeComponentQueue;
 
             public void Execute()
@@ -65,7 +67,7 @@ namespace UnityEngine.ECS.TransformShim
                 for (int index=0;index<transformStashes.Length;index++)
                 {
                     var transformStash = transformStashes[index];
-                    var entity = entities[index];
+                    var entity = transformStashes[index].entity;
                     if (positions.Exists(entity))
                     {
                         positions[entity] = new Position
@@ -94,7 +96,7 @@ namespace UnityEngine.ECS.TransformShim
                             rotation = transformStash.localRotation
                         };
                     }
-                    removeComponentQueue.Enqueue(entities[index]);
+                    removeComponentQueue.Enqueue(entity);
                 }
             }
         }
@@ -104,7 +106,8 @@ namespace UnityEngine.ECS.TransformShim
             var transformStashes = new NativeArray<TransformStash>(m_InitialTransformGroup.Length, Allocator.TempJob);
             var copyTransformsJob = new CopyTransforms
             {
-                transformStashes = transformStashes
+                transformStashes = transformStashes,
+                entities = m_InitialTransformGroup.entities
             };
             var copyTransformsJobHandle = copyTransformsJob.Schedule(m_InitialTransformGroup.transforms, inputDeps);
             
@@ -115,7 +118,6 @@ namespace UnityEngine.ECS.TransformShim
                 localPositions = m_LocalPositions,
                 localRotations = m_LocalRotations,
                 transformStashes = transformStashes,
-                entities = m_InitialTransformGroup.entities,
                 removeComponentQueue = m_DeferredEntityChangeSystem.GetRemoveComponentQueue<CopyInitialTransformFromGameObject>()
             };
 

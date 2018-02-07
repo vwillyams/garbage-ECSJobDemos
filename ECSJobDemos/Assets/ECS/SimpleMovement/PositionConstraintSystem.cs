@@ -35,7 +35,12 @@ namespace UnityEngine.ECS.SimpleMovement
 
                     float3 d   = childPosition - parentPosition;
                     float  len = math.length(d);
-                    float  nl  = math.min(math.max(len, positionConstraints[i].minDistance), positionConstraints[i].maxDistance);
+                    float nl = len;
+                    if (len > positionConstraints[i].maxDistance)
+                    {
+                        nl = positionConstraints[i].maxDistance;
+                    }
+                    // float  nl  = math.min(math.max(len, positionConstraints[i].minDistance), positionConstraints[i].maxDistance);
 
                     positions[childEntity] = new Position
                     {

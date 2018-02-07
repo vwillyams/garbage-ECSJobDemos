@@ -52,7 +52,7 @@ namespace UnityEngine.ECS.TransformShim
             }
         }
             
-        [ComputeJobOptimization]
+        // [ComputeJobOptimization] #BURST-CRASH
         struct CopyInitialTransforms : IJob
         {
             public ComponentDataFromEntity<LocalPosition> localPositions;

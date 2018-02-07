@@ -1,81 +1,204 @@
-﻿using Boo.Lang;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEngine.ECS;
 using UnityEngine.ECS.Transform;
 
 namespace UnityEngine.ECS.Transform2D
 {
     public class TransformSystem : JobComponentSystem
     {
-        struct TransGroup
+        [Inject] [ReadOnly] private ComponentDataFromEntity<LocalPosition> m_LocalPositions;
+        [Inject] [ReadOnly] private ComponentDataFromEntity<LocalRotation> m_LocalRotations;
+        [Inject] private ComponentDataFromEntity<Position> m_Positions;
+        [Inject] private ComponentDataFromEntity<Rotation> m_Rotations;
+        [Inject] private ComponentDataFromEntity<TransformMatrix> m_TransformMatrices;
+
+        struct RootTransGroup
         {
-            public ComponentDataArray<TransformMatrix> matrices;
-            [ReadOnly] public ComponentDataArray<Position> positions;
             [ReadOnly] public SubtractiveComponent<Rotation> rotations;
+            [ReadOnly] public SubtractiveComponent<TransformParent> parents;
+            [ReadOnly] public ComponentDataArray<Position> positions;
+            public EntityArray entities;
             public int Length;
         }
+
+        [Inject] private RootTransGroup m_RootTransGroup;
         
-        [Inject] private TransGroup m_TransGroup;
-        
-        struct RotTransGroup
+        struct RootRotGroup
         {
-            public ComponentDataArray<TransformMatrix> matrices;
-            [ReadOnly] public ComponentDataArray<Position> positions;
             [ReadOnly] public ComponentDataArray<Rotation> rotations;
+            [ReadOnly] public SubtractiveComponent<TransformParent> parents;
+            [ReadOnly] public SubtractiveComponent<Position> positions;
+            public EntityArray entities;
             public int Length;
         }
+
+        [Inject] private RootRotGroup m_RootRotGroup;
         
-        [Inject] private RotTransGroup m_RotTransGroup;
-    
-        [ComputeJobOptimization]
-        struct TransToMatrix : IJobParallelFor
+        struct RootRotTransGroup
         {
-            [ReadOnly] public ComponentDataArray<Position> positions;
-            public ComponentDataArray<TransformMatrix> matrices;
-        
-            public void Execute(int i)
-            {
-                var position = positions[i].position;
-                matrices[i] = new TransformMatrix
-                {
-                    matrix = math.translate(position)
-                };
-            }
-        }
-        
-        [ComputeJobOptimization]
-        struct RotTransToMatrix : IJobParallelFor
-        {
-            [ReadOnly] public ComponentDataArray<Position> positions;
             [ReadOnly] public ComponentDataArray<Rotation> rotations;
-            public ComponentDataArray<TransformMatrix> matrices;
-        
-            public void Execute(int i)
+            [ReadOnly] public SubtractiveComponent<TransformParent> parents;
+            [ReadOnly] public ComponentDataArray<Position> positions;
+            public EntityArray entities;
+            public int Length;
+        }
+
+        [Inject] private RootRotTransGroup m_RootRotTransGroup;
+
+        struct ParentGroup
+        {
+            [ReadOnly] public ComponentDataArray<TransformParent> transformParents;
+            public EntityArray entities;
+            public int Length;
+        }
+
+        [Inject] private ParentGroup m_ParentGroup;
+
+        [ComputeJobOptimization]
+        struct BuildHierarchy : IJobParallelFor
+        {
+            public NativeMultiHashMap<Entity, Entity>.Concurrent hierarchy;
+            [ReadOnly] public ComponentDataArray<TransformParent> transformParents;
+            public EntityArray entities;
+
+            public void Execute(int index)
             {
-                float3 position = positions[i].position;
-                matrices[i] = new TransformMatrix
-                {
-                    matrix = math.rottrans( math.normalize(rotations[i].rotation), position )
-                };
+                hierarchy.Add(transformParents[index].parent,entities[index]);
             }
         }
-        
+
+        // [ComputeJobOptimization]
+        struct UpdateHierarchy : IJob
+        {
+            [ReadOnly] public NativeMultiHashMap<Entity, Entity> hierarchy;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<Entity> roots;
+            [ReadOnly] public ComponentDataFromEntity<LocalPosition> localPositions;
+            [ReadOnly] public ComponentDataFromEntity<LocalRotation> localRotations;
+
+            public ComponentDataFromEntity<Position> positions;
+            public ComponentDataFromEntity<Rotation> rotations;
+            public ComponentDataFromEntity<TransformMatrix> transformMatrices;
+
+            void TransformTree(Entity entity,float4x4 parentMatrix)
+            {
+                var position = new float3();
+                var rotation = quaternion.identity;
+                
+                if (positions.Exists(entity))
+                {
+                    position = positions[entity].position;
+                }
+                
+                if (rotations.Exists(entity))
+                {
+                    rotation = rotations[entity].rotation;
+                }
+                
+                if (localPositions.Exists(entity))
+                {
+                    var worldPosition = math.mul(parentMatrix,new float4(localPositions[entity].position,1.0f));
+                    position = new float3(worldPosition.x,worldPosition.y,worldPosition.z);
+                    if (positions.Exists(entity))
+                    {
+                        positions[entity] = new Position {position = position};
+                    }
+                }
+                
+                if (localRotations.Exists(entity))
+                {
+                    var localRotation = math.matrixToQuat(
+                        new float3(parentMatrix.m0.x, parentMatrix.m0.y, parentMatrix.m0.z),
+                        new float3(parentMatrix.m1.x, parentMatrix.m1.y, parentMatrix.m1.z),
+                        new float3(parentMatrix.m2.x, parentMatrix.m2.y, parentMatrix.m2.z));
+
+                    rotation = math.mul(localRotation, localRotations[entity].rotation);
+                    if (rotations.Exists(entity))
+                    {
+                        rotations[entity] = new Rotation {rotation = rotation};
+                    }
+                }
+
+                float4x4 matrix = math.rottrans(rotation, position);
+                if (transformMatrices.Exists(entity))
+                {
+                    transformMatrices[entity] = new TransformMatrix {matrix = matrix};
+                }
+
+                Entity child;
+                NativeMultiHashMapIterator<Entity> iterator;
+                bool found = hierarchy.TryGetFirstValue(entity, out child, out iterator);
+                while (found)
+                {
+                    TransformTree(child,matrix);
+                    found = hierarchy.TryGetNextValue(out child, ref iterator);
+                }
+            }
+
+            public void Execute()
+            {
+                float4x4 identity = float4x4.identity;
+                for (int i = 0; i < roots.Length; i++)
+                {
+                    TransformTree(roots[i],identity);
+                }
+            }
+        }
+
+        private NativeMultiHashMap<Entity, Entity> m_Hierarchy;
+
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            var transToMatrixJob = new TransToMatrix();
-            transToMatrixJob.positions = m_TransGroup.positions;
-            transToMatrixJob.matrices = m_TransGroup.matrices;
-            var transToMatrixJobHandle = transToMatrixJob.Schedule(m_TransGroup.Length, 64, inputDeps);
+            int rootCount = m_RootRotGroup.Length + m_RootTransGroup.Length + m_RootRotTransGroup.Length;
+            var roots = new NativeArray<Entity>(rootCount, Allocator.TempJob);
             
-            var rotTransToMatrixJob = new RotTransToMatrix();
-            rotTransToMatrixJob.positions = m_RotTransGroup.positions;
-            rotTransToMatrixJob.matrices = m_RotTransGroup.matrices;
-            rotTransToMatrixJob.rotations = m_RotTransGroup.rotations;
-            // var rotTransToMatrixJobHandle = rotTransToMatrixJob.Schedule(m_RotTransGroup.Length, 64, inputDeps);
-            // return JobHandle.CombineDependencies(rotTransToMatrixJobHandle, transToMatrixJobHandle);
-            return rotTransToMatrixJob.Schedule(m_RotTransGroup.Length, 64, transToMatrixJobHandle);
+            m_Hierarchy.Capacity = math.max(m_ParentGroup.Length + rootCount,m_Hierarchy.Capacity);
+            m_Hierarchy.Clear();
+        
+            int count = 0;
+            for (int i = 0; i < m_RootRotGroup.Length; i++, count++)
+                roots[count] = m_RootRotGroup.entities[i];
+            for (int i = 0; i < m_RootTransGroup.Length; i++, count++)
+                roots[count] = m_RootTransGroup.entities[i];
+            for (int i = 0; i < m_RootRotTransGroup.Length; i++, count++)
+                roots[count] = m_RootRotTransGroup.entities[i];
+
+            var buildHierarchyJob = new BuildHierarchy
+            {
+                hierarchy = m_Hierarchy,
+                transformParents = m_ParentGroup.transformParents,
+                entities = m_ParentGroup.entities
+            };
+            var buildHierarchyJobHandle = buildHierarchyJob.Schedule(m_ParentGroup.Length, 64, inputDeps);
+
+            var updateHierarchyJob = new UpdateHierarchy
+            {
+                hierarchy = m_Hierarchy,
+                roots = roots,
+                localPositions = m_LocalPositions,
+                localRotations = m_LocalRotations,
+                positions = m_Positions,
+                rotations = m_Rotations,
+                transformMatrices = m_TransformMatrices
+            };
+
+            var updateHierarchyJobHandle = updateHierarchyJob.Schedule(buildHierarchyJobHandle);
+            return updateHierarchyJobHandle;
         } 
+        
+        protected override void OnCreateManager(int capacity)
+        {
+            base.OnCreateManager(capacity);
+
+            m_Hierarchy = new NativeMultiHashMap<Entity, Entity>(capacity, Allocator.Persistent);
+        }
+
+        protected override void OnDestroyManager()
+        {
+            base.OnDestroyManager();
+            
+            m_Hierarchy.Dispose();
+        }
+        
     }
 }

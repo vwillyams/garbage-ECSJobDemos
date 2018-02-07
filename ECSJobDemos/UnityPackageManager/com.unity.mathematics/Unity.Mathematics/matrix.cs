@@ -30,6 +30,14 @@
         {
             return new float4x4(mat.m0 * s, mat.m1 * s, mat.m2 * s, mat.m3 * s);
         }
+
+        public static float4x4 identity => new float4x4
+        {
+            m0 = new float4(1.0f, 0.0f, 0.0f, 0.0f),
+            m1 = new float4(0.0f, 1.0f, 0.0f, 0.0f),
+            m2 = new float4(0.0f, 0.0f, 1.0f, 0.0f),
+            m3 = new float4(0.0f, 0.0f, 0.0f, 1.0f)
+        };
     }
 
     public partial struct float2x2

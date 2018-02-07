@@ -1850,7 +1850,7 @@ MonoBehaviour:
   m_SerializedData:
     prefab: {fileID: 1501737747371270, guid: 009834b439a0e455b843299085c2fbff, type: 2}
     radius: 75
-    count: 10000
+    count: 25000
 --- !u!114 &614494513
 MonoBehaviour:
   m_ObjectHideFlags: 0

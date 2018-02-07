@@ -11,6 +11,7 @@ namespace UnityEngine.ECS.SpawnerShim
     public struct SpawnRandomCircle : ISharedComponentData
     {
         public GameObject prefab;
+        public bool spawnLocal;
         public float radius;
         public int count;
     }

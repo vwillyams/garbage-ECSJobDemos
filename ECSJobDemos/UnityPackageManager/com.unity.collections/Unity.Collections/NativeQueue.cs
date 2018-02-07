@@ -12,30 +12,14 @@ namespace Unity.Collections
         public int itemsInBlock;
     }
     [StructLayout(LayoutKind.Sequential)]
-    internal unsafe static class NativeQueueBlockPool
+    internal unsafe struct NativeQueueBlockPoolData
     {
-        static IntPtr firstBlock;
-        static int allocatedBlocks;
-        public static int MaxBlocks = 256;
-        public const int BlockSize = 16*1024;
+        internal IntPtr firstBlock;
+        internal int allocatedBlocks;
+        internal int MaxBlocks;
+        internal const int BlockSize = 16*1024;
 
-        public static void Initialize()
-        {
-            if (allocatedBlocks > 0)
-                return;
-            // Allocate MaxBlocks items
-            byte* prev = null;
-            for (int i = 0; i < MaxBlocks; ++i)
-            {
-                NativeQueueBlockHeader* block = (NativeQueueBlockHeader*)UnsafeUtility.Malloc(BlockSize, 16, Allocator.Persistent);
-                block->nextBlock = prev;
-                prev = (byte*)block;
-                firstBlock = (IntPtr)block;
-            }
-            AppDomain.CurrentDomain.DomainUnload += OnDomainUnload;
-        }
-
-        public static byte* AllocateBlock()
+        public byte* AllocateBlock()
         {
             byte* block;
             do
@@ -50,7 +34,7 @@ namespace Unity.Collections
             } while (Interlocked.CompareExchange(ref firstBlock, (IntPtr)((NativeQueueBlockHeader*)block)->nextBlock, (IntPtr)block) != (IntPtr)block);
             return block;
         }
-        public static void FreeBlock(byte* block)
+        public void FreeBlock(byte* block)
         {
             if (allocatedBlocks > MaxBlocks)
             {
@@ -66,15 +50,40 @@ namespace Unity.Collections
                 ((NativeQueueBlockHeader*)block)->nextBlock = (byte*)firstBlock;
             } while (Interlocked.CompareExchange(ref firstBlock, (IntPtr)block, (IntPtr)((NativeQueueBlockHeader*)block)->nextBlock) != (IntPtr)((NativeQueueBlockHeader*)block)->nextBlock);
         }
+    }
+    internal unsafe static class NativeQueueBlockPool
+    {
+        static NativeQueueBlockPoolData data;
+        public static NativeQueueBlockPoolData* QueueBlockPool
+        {
+            get
+            {
+                if (data.allocatedBlocks == 0)
+                {
+                    data.allocatedBlocks = data.MaxBlocks = 256;
+                    // Allocate MaxBlocks items
+                    byte* prev = null;
+                    for (int i = 0; i < data.MaxBlocks; ++i)
+                    {
+                        NativeQueueBlockHeader* block = (NativeQueueBlockHeader*)UnsafeUtility.Malloc(NativeQueueBlockPoolData.BlockSize, 16, Allocator.Persistent);
+                        block->nextBlock = prev;
+                        prev = (byte*)block;
+                        data.firstBlock = (IntPtr)block;
+                    }
+                    AppDomain.CurrentDomain.DomainUnload += OnDomainUnload;
+                }
+                return (NativeQueueBlockPoolData*)UnsafeUtility.AddressOf<NativeQueueBlockPoolData>(ref data);
+            }
+        }
 
         static void OnDomainUnload(object sender, EventArgs e)
         {
-            while (firstBlock != IntPtr.Zero)
+            while (data.firstBlock != IntPtr.Zero)
             {
-                NativeQueueBlockHeader* block = (NativeQueueBlockHeader*)firstBlock;
-                firstBlock = (IntPtr)(block->nextBlock);
+                NativeQueueBlockHeader* block = (NativeQueueBlockHeader*)data.firstBlock;
+                data.firstBlock = (IntPtr)(block->nextBlock);
                 UnsafeUtility.Free(block, Allocator.Persistent);
-                --allocatedBlocks;
+                --data.allocatedBlocks;
             }
         }
 
@@ -94,7 +103,7 @@ namespace Unity.Collections
 
         public byte** m_CurrentWriteBlockTLS;
 
-        public static byte* AllocateWriteBlockMT<T>(NativeQueueData* data, int threadIndex) where T : struct
+        public static byte* AllocateWriteBlockMT<T>(NativeQueueData* data, NativeQueueBlockPoolData* pool, int threadIndex) where T : struct
         {
             int tlsIdx = threadIndex;
 
@@ -103,7 +112,7 @@ namespace Unity.Collections
                 currentWriteBlock = null;
             if (currentWriteBlock == null)
             {
-                currentWriteBlock = NativeQueueBlockPool.AllocateBlock();
+                currentWriteBlock = pool->AllocateBlock();
                 ((NativeQueueBlockHeader*)currentWriteBlock)->nextBlock = null;
                 ((NativeQueueBlockHeader*)currentWriteBlock)->itemsInBlock = 0;
                 if (data->m_LastBlock == IntPtr.Zero && Interlocked.CompareExchange(ref data->m_LastBlock, (IntPtr)currentWriteBlock, IntPtr.Zero) == IntPtr.Zero)
@@ -118,9 +127,8 @@ namespace Unity.Collections
             return currentWriteBlock;
         }
 
-        public unsafe static void AllocateQueue<T>( Allocator label, out NativeQueueData* outBuf) where T : struct
+        public unsafe static void AllocateQueue<T>(Allocator label, out NativeQueueData* outBuf) where T : struct
         {
-            NativeQueueBlockPool.Initialize();
             var data = (NativeQueueData*)UnsafeUtility.Malloc(UnsafeUtility.SizeOf<NativeQueueData>() + UnsafeUtility.SizeOf<IntPtr>()*JobsUtility.MaxJobThreadCount * IntsPerCacheLine, UnsafeUtility.AlignOf<NativeQueueData>(), label);
 
             data->m_CurrentWriteBlockTLS = (byte**)(((byte*)data) + UnsafeUtility.SizeOf<NativeQueueData>());
@@ -128,7 +136,7 @@ namespace Unity.Collections
             data->m_FirstBlock = null;
             data->m_LastBlock = IntPtr.Zero;
             data->m_FreeBlocks = null;
-            data->m_ItemsPerBlock = (NativeQueueBlockPool.BlockSize - UnsafeUtility.SizeOf<NativeQueueBlockHeader>()) / UnsafeUtility.SizeOf<T>();
+            data->m_ItemsPerBlock = (NativeQueueBlockPoolData.BlockSize - UnsafeUtility.SizeOf<NativeQueueBlockHeader>()) / UnsafeUtility.SizeOf<T>();
 
             data->m_CurrentReadIndexInBlock = 0;
             for (int tls = 0; tls < JobsUtility.MaxJobThreadCount; ++tls)
@@ -137,13 +145,13 @@ namespace Unity.Collections
             outBuf = data;
         }
 
-        public unsafe static void DeallocateQueue(NativeQueueData* data, Allocator allocation)
+        public unsafe static void DeallocateQueue(NativeQueueData* data, NativeQueueBlockPoolData* pool, Allocator allocation)
         {
             NativeQueueBlockHeader* firstBlock = (NativeQueueBlockHeader*)data->m_FirstBlock;
             while (firstBlock != null)
             {
                 NativeQueueBlockHeader* next = (NativeQueueBlockHeader*)firstBlock->nextBlock;
-                NativeQueueBlockPool.FreeBlock((byte*)firstBlock);
+                pool->FreeBlock((byte*)firstBlock);
                 firstBlock = next;
             }
             UnsafeUtility.Free(data, allocation);
@@ -156,6 +164,9 @@ namespace Unity.Collections
 	    [NativeDisableUnsafePtrRestriction]
         NativeQueueData* m_Buffer;
 
+        [NativeDisableUnsafePtrRestriction]
+        NativeQueueBlockPoolData* m_QueuePool;
+
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         AtomicSafetyHandle m_Safety;
 	    [NativeSetClassTypeToNullOnSchedule]
@@ -166,6 +177,7 @@ namespace Unity.Collections
 
         public unsafe NativeQueue(Allocator label)
         {
+            m_QueuePool = NativeQueueBlockPool.QueueBlockPool;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             if (!UnsafeUtility.IsBlittable<T>())
                 throw new ArgumentException(string.Format("{0} used in NativeQueue<{0}> must be blittable", typeof(T)));
@@ -195,12 +207,12 @@ namespace Unity.Collections
 
         static public int PersistentMemoryBlockCount
         {
-            get {return NativeQueueBlockPool.MaxBlocks;}
-            set {Interlocked.Exchange(ref NativeQueueBlockPool.MaxBlocks, value);}
+            get {return NativeQueueBlockPool.QueueBlockPool->MaxBlocks;}
+            set {Interlocked.Exchange(ref NativeQueueBlockPool.QueueBlockPool->MaxBlocks, value);}
         }
         static public int MemoryBlockSize
         {
-            get {return NativeQueueBlockPool.BlockSize;}
+            get {return NativeQueueBlockPoolData.BlockSize;}
         }
 
 		unsafe public T Peek()
@@ -220,7 +232,7 @@ namespace Unity.Collections
 			AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
 
-			byte* writeBlock = NativeQueueData.AllocateWriteBlockMT<T>(m_Buffer, 0);
+			byte* writeBlock = NativeQueueData.AllocateWriteBlockMT<T>(m_Buffer, m_QueuePool, 0);
 			UnsafeUtility.WriteArrayElement(writeBlock + UnsafeUtility.SizeOf<NativeQueueBlockHeader>(), ((NativeQueueBlockHeader*)writeBlock)->itemsInBlock, entry);
 			++((NativeQueueBlockHeader*)writeBlock)->itemsInBlock;
 		}
@@ -249,7 +261,7 @@ namespace Unity.Collections
             if (m_Buffer->m_CurrentReadIndexInBlock >= ((NativeQueueBlockHeader*)firstBlock)->itemsInBlock)
             {
                 m_Buffer->m_FirstBlock = ((NativeQueueBlockHeader*)firstBlock)->nextBlock;
-                NativeQueueBlockPool.FreeBlock(firstBlock);
+                m_QueuePool->FreeBlock(firstBlock);
                 if (m_Buffer->m_FirstBlock == null)
                     m_Buffer->m_LastBlock = IntPtr.Zero;
                 for (int tls = 0; tls < JobsUtility.MaxJobThreadCount; ++tls)
@@ -271,7 +283,7 @@ namespace Unity.Collections
             while (firstBlock != null)
             {
                 NativeQueueBlockHeader* next = (NativeQueueBlockHeader*)firstBlock->nextBlock;
-                NativeQueueBlockPool.FreeBlock((byte*)firstBlock);
+                m_QueuePool->FreeBlock((byte*)firstBlock);
                 firstBlock = next;
             }
             m_Buffer->m_FirstBlock = null;
@@ -292,7 +304,7 @@ namespace Unity.Collections
             DisposeSentinel.Dispose(m_Safety, ref m_DisposeSentinel);
 #endif
 
-			NativeQueueData.DeallocateQueue(m_Buffer, m_AllocatorLabel);
+			NativeQueueData.DeallocateQueue(m_Buffer, m_QueuePool, m_AllocatorLabel);
 			m_Buffer = null;
 		}
 		[NativeContainer]
@@ -302,6 +314,8 @@ namespace Unity.Collections
 		{
 			[NativeDisableUnsafePtrRestriction]
 			NativeQueueData* 	m_Buffer;
+			[NativeDisableUnsafePtrRestriction]
+			NativeQueueBlockPoolData* 	m_QueuePool;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			AtomicSafetyHandle m_Safety;
@@ -319,6 +333,7 @@ namespace Unity.Collections
 #endif
 
 				concurrent.m_Buffer = queue.m_Buffer;
+                concurrent.m_QueuePool = queue.m_QueuePool;
 				concurrent.m_ThreadIndex = 0;
 				return concurrent;
 			}
@@ -328,7 +343,7 @@ namespace Unity.Collections
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
-                byte* writeBlock = NativeQueueData.AllocateWriteBlockMT<T>(m_Buffer, m_ThreadIndex);
+                byte* writeBlock = NativeQueueData.AllocateWriteBlockMT<T>(m_Buffer, m_QueuePool, m_ThreadIndex);
                 UnsafeUtility.WriteArrayElement(writeBlock + UnsafeUtility.SizeOf<NativeQueueBlockHeader>(), ((NativeQueueBlockHeader*)writeBlock)->itemsInBlock, entry);
                 ++((NativeQueueBlockHeader*)writeBlock)->itemsInBlock;
 			}

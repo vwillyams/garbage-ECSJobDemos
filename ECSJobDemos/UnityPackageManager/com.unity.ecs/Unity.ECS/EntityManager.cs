@@ -82,10 +82,6 @@ namespace UnityEngine.ECS
             m_GroupManager = new EntityGroupManager(m_JobSafetyManager);
 
             m_EntityTransaction = new EntityTransaction(m_ArchetypeManager, m_Entities);
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            //@TODO_TRANSACTION
-//            m_EntityTransaction.SetAtomicSafetyHandle(ComponentJobSafetyManager.CreationSafety);
-#endif
 
             m_CachedComponentTypeArray = (ComponentType*)UnsafeUtility.Malloc(sizeof(ComponentType) * 32 * 1024, 16, Allocator.Persistent);
             m_CachedComponentTypeInArchetypeArray = (ComponentTypeInArchetype*)UnsafeUtility.Malloc(sizeof(ComponentTypeInArchetype) * 32 * 1024, 16, Allocator.Persistent);
@@ -191,7 +187,7 @@ namespace UnityEngine.ECS
         void CreateEntityInternal(EntityArchetype archetype, Entity* entities, int count)
         {
             BeforeStructuralChange();
-            m_Entities->CreateEntities(m_ArchetypeManager, archetype.archetype, entities, count, true);
+            m_Entities->CreateEntities(m_ArchetypeManager, archetype.archetype, entities, count);
         }
 
         public void DestroyEntity(NativeArray<Entity> entities)
@@ -275,7 +271,7 @@ namespace UnityEngine.ECS
             if (!m_Entities->Exists(srcEntity))
                 throw new System.ArgumentException("srcEntity is not a valid entity");
 
-            m_Entities->InstantiateEntities(m_ArchetypeManager, m_SharedComponentManager, srcEntity, outputEntities, count, true);
+            m_Entities->InstantiateEntities(m_ArchetypeManager, m_SharedComponentManager, srcEntity, outputEntities, count);
         }
 
         public void AddComponent(Entity entity, ComponentType type)
@@ -452,32 +448,30 @@ namespace UnityEngine.ECS
 
         public EntityTransaction BeginTransaction()
         {
+            m_JobSafetyManager.BeginTransaction();
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            m_EntityTransaction.SetAtomicSafetyHandle(m_JobSafetyManager.ExclusiveTransactionSafety);
+#endif
             return m_EntityTransaction;
         }
 
         public JobHandle EntityTransactionDependency
         {
-            get { return m_JobSafetyManager.GetAllDependencies(); }
-            set
-            {
-                m_JobSafetyManager.SetAllDependencies(value);
-            }
+            get { return m_JobSafetyManager.ExclusiveTransactionDependency; }
+            set { m_JobSafetyManager.ExclusiveTransactionDependency = value; }
         }
 
         public void EndTransaction()
         {
-            /*
-            // We are going to mutate ComponentGroup iteration state, so no iteration jobs may be running in parallel to this
-            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
-            // Creation is exclusive to one job or main thread at a time, thus make sure any creation jobs are done
-            m_JobSafetyManager.CompleteCreationJob();
-            // Ensure that all transaction state has been applied
-            m_ArchetypeManager.IntegrateChunks();
-            */
+            m_JobSafetyManager.EndTransaction();
         }
 
         void BeforeStructuralChange()
         {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            if (m_JobSafetyManager.IsInTransaction)
+                throw new System.InvalidOperationException("Access to EntityManager is not allowed after EntityManager.BeginTransaction(); has been called.");
+#endif
             m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
         }
 
@@ -505,8 +499,6 @@ namespace UnityEngine.ECS
         public void CheckInternalConsistency()
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-
-            EndTransaction();
 
             //@TODO: Validate from perspective of componentgroup...
             //@TODO: Validate shared component data refcounts...

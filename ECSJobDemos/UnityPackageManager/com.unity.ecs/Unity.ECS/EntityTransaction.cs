@@ -33,6 +33,13 @@ namespace UnityEngine.ECS
             m_ArchetypeManager = GCHandle.Alloc(archetypes, GCHandleType.Weak);
             m_CachedComponentTypeInArchetypeArray = (ComponentTypeInArchetype*)UnsafeUtility.Malloc(sizeof(ComponentTypeInArchetype) * 32 * 1024, 16, Allocator.Persistent);
         }
+        
+        internal void OnDestroyManager()
+        {
+            UnsafeUtility.Free(m_CachedComponentTypeInArchetypeArray, Allocator.Persistent);
+            m_ArchetypeManager.Free();
+            m_Entities = null;
+        }
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal void SetAtomicSafetyHandle(AtomicSafetyHandle safety)
@@ -97,14 +104,14 @@ namespace UnityEngine.ECS
         {
             CheckAccess();
             var archetypeManager = (ArchetypeManager)m_ArchetypeManager.Target;
-            m_Entities->CreateEntities(archetypeManager, archetype.archetype, entities, count, false);
+            m_Entities->CreateEntities(archetypeManager, archetype.archetype, entities, count);
         }
 
         public bool Exists(Entity entity)
         {
             CheckAccess();
 
-            return m_Entities->ExistsFromTransaction(entity);
+            return m_Entities->Exists(entity);
         }
 
         public T GetComponentData<T>(Entity entity) where T : struct, IComponentData
@@ -112,7 +119,7 @@ namespace UnityEngine.ECS
             CheckAccess();
 
             int typeIndex = TypeManager.GetTypeIndex<T>();
-            m_Entities->AssertEntityHasComponentFromTransaction(entity, typeIndex);
+            m_Entities->AssertEntityHasComponent(entity, typeIndex);
 
             byte* ptr = m_Entities->GetComponentDataWithType (entity, typeIndex);
 
@@ -126,18 +133,12 @@ namespace UnityEngine.ECS
             CheckAccess();
 
             int typeIndex = TypeManager.GetTypeIndex<T>();
-            m_Entities->AssertEntityHasComponentFromTransaction(entity, typeIndex);
+            m_Entities->AssertEntityHasComponent(entity, typeIndex);
 
             byte* ptr = m_Entities->GetComponentDataWithType (entity, typeIndex);
             UnsafeUtility.CopyStructureToPtr (ref componentData, ptr);
         }
 
-        internal void OnDestroyManager()
-        {
-            UnsafeUtility.Free(m_CachedComponentTypeInArchetypeArray, Allocator.Persistent);
-            m_ArchetypeManager.Free();
-            m_Entities = null;
-        }
 
         //@TODO: SharedComponentData API, Fixed Array API
     }

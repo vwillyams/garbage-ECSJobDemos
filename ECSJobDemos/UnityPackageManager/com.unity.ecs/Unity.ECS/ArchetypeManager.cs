@@ -648,7 +648,7 @@ namespace UnityEngine.ECS
                         Chunk* chunk = (Chunk*) c;
 
                         EntityDataManager.FreeDataEntitiesInChunk(srcEntityDataManager, chunk, chunk->count);
-                        dstEntityDataManager->AllocateEntities(dstArchetype, chunk, 0, chunk->count, entitiesPtr, true);
+                        dstEntityDataManager->AllocateEntities(dstArchetype, chunk, 0, chunk->count, entitiesPtr);
 
                         chunk->archetype = dstArchetype;
                     }

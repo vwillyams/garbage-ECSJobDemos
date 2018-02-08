@@ -7,6 +7,8 @@ using Unity.Jobs;
 
 namespace UnityEngine.ECS
 {
+    //@TODO: NOTE THIS CODE HAS NO PROTECTION AGAINST ACTUALLY PREVENTING RACE CONDITIONS!!!
+    
     [NativeContainer]
     unsafe public struct EntityTransaction
     {
@@ -105,7 +107,7 @@ namespace UnityEngine.ECS
             return m_Entities->ExistsFromTransaction(entity);
         }
 
-        public T GetComponent<T>(Entity entity) where T : struct, IComponentData
+        public T GetComponentData<T>(Entity entity) where T : struct, IComponentData
         {
             CheckAccess();
 
@@ -119,7 +121,7 @@ namespace UnityEngine.ECS
             return data;
         }
 
-        unsafe public void SetComponent<T>(Entity entity, T componentData) where T: struct, IComponentData
+        unsafe public void SetComponentData<T>(Entity entity, T componentData) where T: struct, IComponentData
         {
             CheckAccess();
 

@@ -7,6 +7,7 @@ using Unity.Collections;
 
 namespace UnityEngine.ECS.Tests
 {
+    #if false
     public class EntityTransactionTests : ECSTestsFixture
     {
         ComponentGroup m_Group;
@@ -35,8 +36,8 @@ namespace UnityEngine.ECS.Tests
             public void Execute()
             {
                 var entity = entities.CreateEntity(ComponentType.Create<EcsTestData>());
-                entities.SetComponent(entity, new EcsTestData(42));
-                Assert.AreEqual(42, entities.GetComponent<EcsTestData>(entity).value);
+                entities.SetComponentData(entity, new EcsTestData(42));
+                Assert.AreEqual(42, entities.GetComponentData<EcsTestData>(entity).value);
 
                 createdEntities.Add(entity);
             }
@@ -49,8 +50,8 @@ namespace UnityEngine.ECS.Tests
             public void Execute()
             {
                 var entity = entities.CreateEntity(ComponentType.Create<EcsTestData>());
-                entities.SetComponent(entity, new EcsTestData(42));
-                Assert.AreEqual(42, entities.GetComponent<EcsTestData>(entity).value);
+                entities.SetComponentData(entity, new EcsTestData(42));
+                Assert.AreEqual(42, entities.GetComponentData<EcsTestData>(entity).value);
             }
         }
 
@@ -65,7 +66,7 @@ namespace UnityEngine.ECS.Tests
             m_Manager.EntityTransactionDependency = job.Schedule(m_Manager.EntityTransactionDependency);
             m_Manager.EntityTransactionDependency = job.Schedule(m_Manager.EntityTransactionDependency);
 
-            m_Manager.CommitTransaction();
+            m_Manager.EndTransaction();
 
             Assert.AreEqual(2, m_Group.CalculateLength());
             Assert.AreEqual(42, m_Group.GetComponentDataArray<EcsTestData>()[0].value);
@@ -88,7 +89,7 @@ namespace UnityEngine.ECS.Tests
 
             // Commit transaction expects an error not exception otherwise errors might occurr after a system has completed...
             TestTools.LogAssert.Expect(LogType.Error, new Regex("EntityTransaction job has not been registered"));
-            m_Manager.CommitTransaction();
+            m_Manager.EndTransaction();
         }
 
         [Test]
@@ -132,8 +133,8 @@ namespace UnityEngine.ECS.Tests
             var transaction = m_Manager.BeginTransaction();
             var entity = m_Manager.CreateEntity(typeof(EcsTestData));
 
-            Assert.Throws<ArgumentException>(() => { transaction.GetComponent<EcsTestData>(entity); });
-            Assert.Throws<ArgumentException>(() => { transaction.SetComponent<EcsTestData>(entity, new EcsTestData()); });
+            Assert.Throws<ArgumentException>(() => { transaction.GetComponentData<EcsTestData>(entity); });
+            Assert.Throws<ArgumentException>(() => { transaction.SetComponentData<EcsTestData>(entity, new EcsTestData()); });
             Assert.Throws<ArgumentException>(() => { transaction.Exists(entity); });
         }
 
@@ -173,4 +174,5 @@ namespace UnityEngine.ECS.Tests
             entities.Dispose();
         }
     }
+    #endif
 }

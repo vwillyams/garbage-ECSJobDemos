@@ -17,7 +17,7 @@ namespace UnityEngine.ECS
         }
 
         const int kMaxReadJobHandles = 17;
-        const int kMaxTypes = 5000;
+        const int kMaxTypes = TypeManager.MaximumTypesCount;
 
         bool                    m_HasCleanHandles;
 
@@ -26,11 +26,6 @@ namespace UnityEngine.ECS
         #if ENABLE_UNITY_COLLECTIONS_CHECKS
         AtomicSafetyHandle      m_TempSafety;
         #endif
-
-        public JobHandle               CreationJob;
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-        public AtomicSafetyHandle      CreationSafety;
-#endif
 
         JobHandle*              m_JobDependencyCombineBuffer;
         int                     m_JobDependencyCombineBufferCount;
@@ -41,7 +36,6 @@ namespace UnityEngine.ECS
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_TempSafety = AtomicSafetyHandle.Create();
-            CreationSafety = AtomicSafetyHandle.Create();
 #endif
 
 
@@ -104,8 +98,6 @@ namespace UnityEngine.ECS
 
         public void Dispose()
         {
-            CreationJob.Complete();
-
             for (int i = 0; i < kMaxTypes;i++)
                 m_ComponentSafetyHandles[i].writeFence.Complete();
 
@@ -124,13 +116,6 @@ namespace UnityEngine.ECS
             }
 
             AtomicSafetyHandle.Release(m_TempSafety);
-
-            var creationRes = AtomicSafetyHandle.EnforceAllBufferJobsHaveCompletedAndRelease(CreationSafety);
-            if (creationRes == EnforceJobResult.DidSyncRunningJobs)
-            {
-                //@TODO: EnforceAllBufferJobsHaveCompletedAndRelease should probably print the error message and locate the exact job...
-                Debug.LogError("Disposing EntityManager but a EntityTransaction job is still running. It appears the job has not been registered with EntityManager.EntityTransactionDependency.");
-            }
 
 #endif
 
@@ -241,16 +226,46 @@ namespace UnityEngine.ECS
             m_ComponentSafetyHandles[type].numReadFences = 1;
         }
 
-        public void CompleteCreationJob()
+        public JobHandle GetAllDependencies()
         {
-            CreationJob.Complete();
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            var res = AtomicSafetyHandle.EnforceAllBufferJobsHaveCompleted(CreationSafety);
-            if (res != EnforceJobResult.AllJobsAlreadySynced)
+            var jobHandles = new NativeArray<JobHandle>(TypeManager.GetTypeCount() * (kMaxReadJobHandles + 1), Allocator.Temp);
+            
+            int count = 0;
+            for (int i = 0; i != TypeManager.GetTypeCount(); i++)
             {
-                Debug.LogError("A EntityTransaction job has not been registered with the EntityManager.EntityTransactionDependency. This is necessary for safe execution.");
+                jobHandles[count++] = m_ComponentSafetyHandles[i].writeFence;
+
+                int numReadFences = m_ComponentSafetyHandles[i].numReadFences;
+                for (int j = 0; j != numReadFences; j++)
+                    jobHandles[count++] = m_ReadJobFences[i * kMaxReadJobHandles + j];
             }
+
+            return JobHandle.CombineDependencies(jobHandles);
+        }
+
+        public void SetAllDependencies(JobHandle jobHandle)
+        {
+            for (int i = 0; i != TypeManager.GetTypeCount(); i++)
+            {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(m_ComponentSafetyHandles[i].writeFence, jobHandle))
+                    throw new System.ArgumentException("The assigned job dependency does not depend on the previous EntityTransactionDependency. You must schedule all jobs using EntityTransaction with a dependency on EntityManager.EntityTransactionDependency.");
 #endif
+                m_ComponentSafetyHandles[i].writeFence = jobHandle;
+                
+                int numReadFences = m_ComponentSafetyHandles[i].numReadFences;
+                for (int j = 0; j != numReadFences; j++)
+                {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                    
+                    if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(m_ReadJobFences[i * kMaxReadJobHandles + j], jobHandle))
+                        throw new System.ArgumentException("The assigned job dependency does not depend on the previous EntityTransactionDependency. You must schedule all jobs using EntityTransaction with a dependency on EntityManager.EntityTransactionDependency.");
+#endif
+                }
+
+                m_ComponentSafetyHandles[i].numReadFences = 1;
+                m_ReadJobFences[i * kMaxReadJobHandles + 0] = jobHandle;
+            }
         }
     }
 }

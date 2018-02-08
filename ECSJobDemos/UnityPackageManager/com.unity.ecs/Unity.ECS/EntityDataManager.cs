@@ -113,7 +113,7 @@ namespace UnityEngine.ECS
             EntityData* entityData = m_Entities + entity.index;
             if (exists && entityData->indexInChunk >= entityData->chunk->count)
                 throw new System.ArgumentException(
-                    "The entity has been created in a transaction but not yet committed, you are not allowed to access it via EntityManager before calling EntityManager.CommitTransaction();");
+                    "The entity has been created in a transaction but not yet committed, you are not allowed to access it via EntityManager before calling EntityManager.EndTransaction();");
 #endif
 
             return exists;
@@ -134,7 +134,7 @@ namespace UnityEngine.ECS
                 EntityData* entityData = m_Entities + entity->index;
                 if (entityData->indexInChunk >= entityData->chunk->count)
                     throw new System.ArgumentException(
-                        "The entity has been created in a transaction but not yet committed, you are not allowed to access it via EntityManager before calling EntityManager.CommitTransaction();");
+                        "The entity has been created in a transaction but not yet committed, you are not allowed to access it via EntityManager before calling EntityManager.EndTransaction();");
 #endif
             }
         }
@@ -448,7 +448,7 @@ namespace UnityEngine.ECS
             int* sharedComponentDataIndices)
         {
             Chunk* chunk = typeMan.GetChunkWithEmptySlots(archetype, sharedComponentDataIndices);
-            int chunkIndex = typeMan.AllocateIntoChunkImmediate(chunk);
+            int chunkIndex = typeMan.AllocateIntoChunk(chunk);
 
             Archetype* oldArchetype = m_Entities[entity.index].archetype;
             Chunk* oldChunk = m_Entities[entity.index].chunk;
@@ -718,10 +718,9 @@ namespace UnityEngine.ECS
                 sharedComponentIndices[sharedComponentOffset] = newSharedComponentDataIndex;
 
                 var newChunk = archetypeManager.GetChunkWithEmptySlots(archetype, sharedComponentIndices);
-                int newChunkIndex = archetypeManager.AllocateIntoChunkImmediate(newChunk);
+                int newChunkIndex = archetypeManager.AllocateIntoChunk(newChunk);
 
                 IncrementComponentOrderVersion(archetype, srcChunk, sharedComponentDataManager);
-//              sharedComponentDataManager.IncrementSharedComponentVersion(newSharedComponentDataIndex);
 
                 MoveEntityToChunk(archetypeManager, entity, newChunk, newChunkIndex);
             }

@@ -81,7 +81,7 @@ namespace UnityEngine.ECS
             m_JobSafetyManager = new ComponentJobSafetyManager();
             m_GroupManager = new EntityGroupManager(m_JobSafetyManager);
 
-            m_EntityTransaction = new EntityTransaction(m_ArchetypeManager, m_Entities);
+            m_EntityTransaction = new EntityTransaction(m_ArchetypeManager, m_GroupManager, m_SharedComponentManager, m_Entities);
 
             m_CachedComponentTypeArray = (ComponentType*)UnsafeUtility.Malloc(sizeof(ComponentType) * 32 * 1024, 16, Allocator.Persistent);
             m_CachedComponentTypeInArchetypeArray = (ComponentTypeInArchetype*)UnsafeUtility.Malloc(sizeof(ComponentTypeInArchetype) * 32 * 1024, 16, Allocator.Persistent);

@@ -22,6 +22,8 @@ namespace UnityEngine.ECS
 			OnDestroyManager();
 		}
 
+	    //@TODO: OnDestroyManager and LastJob.Complete(); should auto-sync previous jobs. 
+	    
 		protected abstract void OnCreateManagerInternal(World world, int capacity);
 
 		/// <summary>

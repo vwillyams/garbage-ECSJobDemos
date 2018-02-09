@@ -11,6 +11,9 @@ namespace UnityEngine.ECS
 
     struct InjectionData
     {
+        //@TODO: NOT GOOD
+        public int                 indexInComponentGroup;
+        
         public int                 fieldOffset;
         public Type                genericType;
         public bool                isReadOnly;
@@ -19,6 +22,7 @@ namespace UnityEngine.ECS
 
         public InjectionData(FieldInfo field, Type containerType, Type genericType, bool isReadOnly)
         {
+            this.indexInComponentGroup = -1;
             this.fieldOffset = UnsafeUtility.GetFieldOffset(field);
             this.genericType = genericType;
             this.isReadOnly = isReadOnly;

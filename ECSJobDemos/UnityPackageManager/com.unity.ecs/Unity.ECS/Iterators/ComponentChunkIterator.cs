@@ -96,6 +96,11 @@ namespace UnityEngine.ECS
             m_filteredSharedComponents = filteredSharedComponents;
         }
 
+        public void SetComponentIndex(int componentIndex)
+        {
+            m_ComponentIndex = componentIndex;
+        }
+
         public object GetManagedObject(ArchetypeManager typeMan, int typeIndexInArchetype, int cachedBeginIndex, int index)
         {
             return typeMan.GetManagedObject(m_CurrentChunk, typeIndexInArchetype, index - cachedBeginIndex);

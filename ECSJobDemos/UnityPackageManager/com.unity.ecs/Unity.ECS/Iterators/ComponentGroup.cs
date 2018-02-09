@@ -289,16 +289,8 @@ namespace UnityEngine.ECS
             }
         }
 
-        internal ComponentChunkIterator GetComponentChunkIterator(int componentType, out int outLength, out int componentIndex)
+        ComponentChunkIterator GetComponentChunkIterator(int indexInComponentGroup, out int outLength)
         {
-            componentIndex = 0;
-            while (componentIndex < m_GroupData->requiredComponentsCount && m_GroupData->requiredComponents[componentIndex].typeIndex != componentType)
-                ++componentIndex;
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            if (componentIndex >= m_GroupData->requiredComponentsCount)
-                throw new InvalidOperationException(string.Format("Trying to get ComponentDataArray for {0} but the required component type was not declared in the EntityGroup.", TypeManager.GetType(componentType)));
-#endif
-
             // Update the archetype segments
             int length = 0;
             MatchingArchetypes* first = null;
@@ -347,9 +339,39 @@ namespace UnityEngine.ECS
 
             if (first == null)
                 return new ComponentChunkIterator(null, 0, 0, null, null);
-            return new ComponentChunkIterator(first, componentIndex, length, firstNonEmptyChunk, m_filteredSharedComponents);
+            return new ComponentChunkIterator(first, indexInComponentGroup, length, firstNonEmptyChunk, m_filteredSharedComponents);
         }
 
+        internal ComponentChunkIterator GetComponentChunkIterator(int componentType, out int outLength, out int componentIndex)
+        {
+            componentIndex = GetIndexInComponentGroup(componentType);
+            return GetComponentChunkIterator(componentIndex, out outLength);
+        }
+
+        internal int GetIndexInComponentGroup(int componentType)
+        {
+            int componentIndex = 0;
+            while (componentIndex < m_GroupData->requiredComponentsCount && m_GroupData->requiredComponents[componentIndex].typeIndex != componentType)
+                ++componentIndex;
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            if (componentIndex >= m_GroupData->requiredComponentsCount)
+                throw new InvalidOperationException(string.Format("Trying to get ComponentDataArray for {0} but the required component type was not declared in the EntityGroup.", TypeManager.GetType(componentType)));
+#endif
+            return componentIndex;
+        }
+
+        internal ComponentDataArrayUntyped GetComponentDataArrayUntyped(out int length)
+        {
+            var cache = GetComponentChunkIterator(-1, out length);
+            return new ComponentDataArrayUntyped(cache, length);
+        }
+        
+        internal void SetDataArrayType(int indexInComponentGroup, ref ComponentDataArrayUntyped untypedArray)
+        {
+            int typeIndex = m_GroupData->requiredComponents[indexInComponentGroup].typeIndex; 
+            untypedArray.SetType(indexInComponentGroup, m_SafetyManager.GetSafetyHandle(typeIndex, IsReadOnly(indexInComponentGroup)));
+        }
+        
         public ComponentDataArray<T> GetComponentDataArray<T>() where T : struct, IComponentData
         {
             int length;

@@ -27,7 +27,7 @@ namespace UnityEngine.ECS.SimpleRotation
                 entities[i] = m_RandomInitialHeadingGroup.entities[i];
                 m_RandomInitialHeadingGroup.headings[i] = new Heading
                 {
-                    forward = math.normalize(new float3(Random.Range(-1, 1), Random.Range(-1,1), Random.Range(-1, 1)))
+                    value = math.normalize(new float3(Random.Range(-1, 1), Random.Range(-1,1), Random.Range(-1, 1)))
                 };
             }
             for (int i = 0; i < entities.Length; i++)

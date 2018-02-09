@@ -10,19 +10,8 @@ namespace UnityEngine.ECS.SimpleMovement2D
 {
     public class MoveForward2DSystem : JobComponentSystem
     {
-        struct MoveForwardGroup
-        {
-            public ComponentDataArray<Position2D> positions;
-            [ReadOnly] public ComponentDataArray<Heading2D> headings;
-            [ReadOnly] public ComponentDataArray<MoveForward> moveForwards;
-            [ReadOnly] public ComponentDataArray<MoveSpeed> moveSpeeds;
-            public int Length;
-        }
-
-        [Inject] private MoveForwardGroup m_MoveForwardGroup;
-    
         [ComputeJobOptimization]
-        struct MoveForwardPosition2D : IJobParallelFor
+        struct MoveForwardPosition : IJobParallelFor
         {
             public ComponentDataArray<Position2D> positions;
             [ReadOnly] public ComponentDataArray<Heading2D> headings;
@@ -31,21 +20,38 @@ namespace UnityEngine.ECS.SimpleMovement2D
         
             public void Execute(int i)
             {
-                positions[i] = new Position2D
-                {
-                    position = positions[i].position + (dt * moveSpeeds[i].speed * headings[i].heading)
-                };
+                positions[i] = new Position2D { position = positions[i].position + (dt * moveSpeeds[i].speed * headings[i].heading) };
             }
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            var moveForwardPosition2DJob = new MoveForwardPosition2D();
-            moveForwardPosition2DJob.positions = m_MoveForwardGroup.positions;
-            moveForwardPosition2DJob.headings = m_MoveForwardGroup.headings;
-            moveForwardPosition2DJob.moveSpeeds = m_MoveForwardGroup.moveSpeeds;
-            moveForwardPosition2DJob.dt = Time.deltaTime;
-            return moveForwardPosition2DJob.Schedule(m_MoveForwardGroup.Length, 64, inputDeps);
+            var moveForwardGroup = EntityManager.CreateComponentGroup(
+                ComponentType.ReadOnly(typeof(MoveForward)),
+                ComponentType.ReadOnly(typeof(Heading2D)),
+                ComponentType.ReadOnly(typeof(MoveSpeed)),
+                typeof(Position2D));
+            
+            var positions  = moveForwardGroup.GetComponentDataArray<Position2D>();
+            var headings   = moveForwardGroup.GetComponentDataArray<Heading2D>();
+            var moveSpeeds = moveForwardGroup.GetComponentDataArray<MoveSpeed>();
+
+            var moveForwardPositionJob = new MoveForwardPosition
+            {
+                positions = positions,
+                headings = headings,
+                moveSpeeds = moveSpeeds,
+                dt = Time.deltaTime
+            };
+            
+            var moveForwardPositionJobHandle = moveForwardPositionJob.Schedule(positions.Length, 64, inputDeps);
+            
+            moveForwardGroup.AddDependency(moveForwardPositionJobHandle);
+            
+            var moveForwardGroupJobHandle = moveForwardGroup.GetDependency();
+            moveForwardGroup.Dispose();
+
+            return moveForwardGroupJobHandle;
         } 
     }
 }

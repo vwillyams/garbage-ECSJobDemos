@@ -28,10 +28,10 @@ namespace UnityEngine.ECS.TransformShim
             {
                 transform.rotation = new Quaternion
                 {
-                    x = rotations[i].rotation.value.x,
-                    y = rotations[i].rotation.value.y,
-                    z = rotations[i].rotation.value.z,
-                    w = rotations[i].rotation.value.w
+                    x = rotations[i].value.value.x,
+                    y = rotations[i].value.value.y,
+                    z = rotations[i].value.value.z,
+                    w = rotations[i].value.value.w
                 };
             }
         }

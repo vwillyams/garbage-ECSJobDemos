@@ -41,7 +41,7 @@ namespace TwoStickPureExample
                 var sd = spawnData[i];
                 var shotEntity = entities[i];
                 em.RemoveComponent<ShotSpawnData>(shotEntity);
-                em.AddComponentData(shotEntity, default(MoveForward));
+                em.AddSharedComponentData(shotEntity, default(MoveForward));
                 em.AddComponentData(shotEntity, sd.Shot);
                 em.AddComponentData(shotEntity, sd.Position);
                 em.AddComponentData(shotEntity, sd.Heading);

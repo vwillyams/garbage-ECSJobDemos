@@ -6,9 +6,7 @@ using UnityEngine.ECS;
 
 namespace UnityEngine.ECS.SimpleMovement
 {
-    public struct MoveForward : IComponentData
-    {
-    }
+    public struct MoveForward : ISharedComponentData { }
 
-    public class MoveForwardComponent : ComponentDataWrapper<MoveForward> { } 
+    public class MoveForwardComponent : SharedComponentDataWrapper<MoveForward> { } 
 }

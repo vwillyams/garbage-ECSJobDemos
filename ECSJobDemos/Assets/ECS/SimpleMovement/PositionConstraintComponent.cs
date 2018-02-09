@@ -9,7 +9,6 @@ namespace UnityEngine.ECS.SimpleMovement
     public struct PositionConstraint : IComponentData
     {
         public Entity parentEntity;
-        public float minDistance;
         public float maxDistance;
     }
 

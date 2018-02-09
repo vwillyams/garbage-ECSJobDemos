@@ -101,7 +101,7 @@ namespace UnityEngine.ECS.Boids
                 for (int index = 0; index < headings.Length; index++)
                 {
                     var position = positions[index].position;
-                    var forward = headings[index].forward;
+                    var forward = headings[index].value;
                     var aversionDistance = settings.obstacleAversionDistance;
                     
                     var obstacleSteering = forward;
@@ -163,7 +163,7 @@ namespace UnityEngine.ECS.Boids
 
             public void Execute(int index)
             {
-                results[index] = headings[index].forward;
+                results[index] = headings[index].value;
             }
         }
             
@@ -247,7 +247,7 @@ namespace UnityEngine.ECS.Boids
             
             public void Execute(int index)
             {
-                var forward = headings[index].forward;
+                var forward = headings[index].value;
                 var steer = (alignmentSteering[index] * settings.alignmentWeight) +
                             (separationSteering[index] * settings.separationWeight) +
                             (targetSteering[index] * settings.targetWeight) +
@@ -257,7 +257,7 @@ namespace UnityEngine.ECS.Boids
 
                 headings[index] = new Heading
                 {
-                    forward = math_experimental.normalizeSafe(forward + steer * 2.0f * bias[index&1023] * dt * Mathf.Deg2Rad * settings.rotationalSpeed )
+                    value = math_experimental.normalizeSafe(forward + steer * 2.0f * bias[index&1023] * dt * Mathf.Deg2Rad * settings.rotationalSpeed )
                 };
             }
         }

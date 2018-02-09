@@ -6,9 +6,7 @@ using UnityEngine.ECS;
 
 namespace UnityEngine.ECS.SimpleMovement
 {
-    public struct Gravity : IComponentData
-    {
-    }
+    public struct Gravity : ISharedComponentData { }
 
-    public class GravityComponent : ComponentDataWrapper<Gravity> { } 
+    public class GravityComponent : SharedComponentDataWrapper<Gravity> { } 
 }

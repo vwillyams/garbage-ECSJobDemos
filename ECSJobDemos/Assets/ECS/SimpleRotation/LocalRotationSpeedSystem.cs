@@ -12,8 +12,7 @@ namespace UnityEngine.ECS.SimpleRotation
         struct LocalRotationSpeedGroup
         {
             public ComponentDataArray<LocalRotation> rotations;
-            [ReadOnly]
-            public ComponentDataArray<LocalRotationSpeed> rotationSpeeds;
+            [ReadOnly] public ComponentDataArray<LocalRotationSpeed> rotationSpeeds;
             public int Length;
         }
 
@@ -23,8 +22,7 @@ namespace UnityEngine.ECS.SimpleRotation
         struct LocalRotationSpeedLocalRotation : IJobParallelFor
         {
             public ComponentDataArray<LocalRotation> rotations;
-            [ReadOnly]
-            public ComponentDataArray<LocalRotationSpeed> rotationSpeeds;
+            [ReadOnly] public ComponentDataArray<LocalRotationSpeed> rotationSpeeds;
             public float dt;
         
             public void Execute(int i)
@@ -34,7 +32,7 @@ namespace UnityEngine.ECS.SimpleRotation
                 {
                     rotations[i] = new LocalRotation
                     {
-                        rotation = math.mul(math.normalize(rotations[i].rotation), math.axisAngle(math.up(),speed*dt))
+                        value = math.mul(math.normalize(rotations[i].value), math.axisAngle(math.up(),speed*dt))
                     };
                 }
             }

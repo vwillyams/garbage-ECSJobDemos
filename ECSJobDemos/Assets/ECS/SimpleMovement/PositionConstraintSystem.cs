@@ -14,13 +14,13 @@ namespace UnityEngine.ECS.SimpleMovement
             public int                                               Length;
         }
 
-        [Inject] private PositionConstraintsGroup           m_PositionContraintsGroup;
+        [Inject] private PositionConstraintsGroup  m_PositionContraintsGroup;
         [Inject] ComponentDataFromEntity<Position> m_TransformPositions;
 
         [ComputeJobOptimization]
         struct ContrainPositions : IJob
         {
-            public ComponentDataFromEntity<Position>        positions;
+            public ComponentDataFromEntity<Position>                 positions;
             [ReadOnly] public ComponentDataArray<PositionConstraint> positionConstraints;
             [ReadOnly] public EntityArray                            positionConstraintEntities;
 
@@ -32,16 +32,10 @@ namespace UnityEngine.ECS.SimpleMovement
                     var parentEntity   = positionConstraints[i].parentEntity;
                     var childPosition  = positions[childEntity].position;
                     var parentPosition = positions[parentEntity].position;
-
-                    float3 d   = childPosition - parentPosition;
-                    float  len = math.length(d);
-                    float nl = len;
-                    if (len > positionConstraints[i].maxDistance)
-                    {
-                        nl = positionConstraints[i].maxDistance;
-                    }
-                    // float  nl  = math.min(math.max(len, positionConstraints[i].minDistance), positionConstraints[i].maxDistance);
-
+                    var d              = childPosition - parentPosition;
+                    var len            = math.length(d);
+                    var nl             = math.min(len,positionConstraints[i].maxDistance);
+                    
                     positions[childEntity] = new Position
                     {
                         position = parentPosition + ((d * nl) / len)

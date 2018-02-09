@@ -12,37 +12,64 @@ namespace UnityEngine.ECS.SimpleRotation
         struct HeadingsGroup
         {
             public ComponentDataArray<Rotation> rotations;
-            [ReadOnly]
-            public ComponentDataArray<Heading> headings;
+            [ReadOnly] public ComponentDataArray<Heading> headings;
             public int Length;
         }
 
         [Inject] private HeadingsGroup m_HeadingsGroup;
-    
+        
+        struct LocalHeadingsGroup
+        {
+            public ComponentDataArray<LocalRotation> rotations;
+            [ReadOnly] public ComponentDataArray<LocalHeading> headings;
+            public int Length;
+        }
+
+        [Inject] private LocalHeadingsGroup m_LocalHeadingsGroup;
+        
         [ComputeJobOptimization]
-        struct HeadingRotation : IJobParallelFor
+        struct RotationFromHeading : IJobParallelFor
         {
             public ComponentDataArray<Rotation> rotations;
-            [ReadOnly]
-            public ComponentDataArray<Heading> headings;
+            [ReadOnly] public ComponentDataArray<Heading> headings;
         
             public void Execute(int i)
             {
-                rotations[i] = new Rotation
-                {
-                    rotation = math.lookRotationToQuaternion(headings[i].forward, math.up())
-                };
+                var heading = headings[i].value;
+                var rotation = math.lookRotationToQuaternion(heading, math.up());
+                rotations[i] = new Rotation { value = rotation };
             }
         }
-
+        
+        [ComputeJobOptimization]
+        struct LocalRotationFromLocalHeading : IJobParallelFor
+        {
+            public ComponentDataArray<LocalRotation> rotations;
+            [ReadOnly] public ComponentDataArray<LocalHeading> headings;
+        
+            public void Execute(int i)
+            {
+                rotations[i] = new LocalRotation { value = math.lookRotationToQuaternion(headings[i].value, math.up()) };
+            }
+        }
+    
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            var headingRotationJob = new HeadingRotation
+            var rotationFromHeadingJob = new RotationFromHeading
             {
                 rotations = m_HeadingsGroup.rotations,
                 headings = m_HeadingsGroup.headings,
             };
-            return headingRotationJob.Schedule(m_HeadingsGroup.Length, 64, inputDeps);
+            var rotationFromHeadingJobHandle = rotationFromHeadingJob.Schedule(m_HeadingsGroup.Length, 64, inputDeps);
+            
+            var localRotationFromLocalHeadingJob = new LocalRotationFromLocalHeading
+            {
+                rotations = m_LocalHeadingsGroup.rotations,
+                headings = m_LocalHeadingsGroup.headings,
+            };
+            var localRotationFromLocalHeadingJobHandle = localRotationFromLocalHeadingJob.Schedule(m_LocalHeadingsGroup.Length, 64, inputDeps);
+            
+            return JobHandle.CombineDependencies(rotationFromHeadingJobHandle,localRotationFromLocalHeadingJobHandle);
         } 
     }
 }

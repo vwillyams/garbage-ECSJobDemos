@@ -88,7 +88,6 @@ namespace ECS.Spawners
                     PositionConstraint contraint = new PositionConstraint();
 
                     contraint.parentEntity = sourceEntity;
-                    contraint.minDistance = minDistance;
                     contraint.maxDistance = maxDistance;
                     
                     EntityManager.AddComponentData(entities[0],contraint);
@@ -99,7 +98,6 @@ namespace ECS.Spawners
                     PositionConstraint contraint = new PositionConstraint();
                     
                     contraint.parentEntity = entities[i - 1];
-                    contraint.minDistance = minDistance;
                     contraint.maxDistance = maxDistance;
                     
                     EntityManager.AddComponentData(entities[i],contraint);

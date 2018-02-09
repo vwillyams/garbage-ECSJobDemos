@@ -27,7 +27,7 @@ namespace UnityEngine.ECS.TransformShim
             {
                 rotations[i] = new Rotation
                 {
-                    rotation = new quaternion(
+                    value = new quaternion(
                         transform.rotation.x, 
                         transform.rotation.y, 
                         transform.rotation.z, 

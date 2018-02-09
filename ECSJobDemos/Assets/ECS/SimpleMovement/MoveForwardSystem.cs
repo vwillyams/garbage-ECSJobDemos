@@ -9,17 +9,6 @@ namespace UnityEngine.ECS.SimpleMovement
 {
     public class MoveForwardSystem : JobComponentSystem
     {
-        struct MoveForwardGroup
-        {
-            public ComponentDataArray<Position> positions;
-            [ReadOnly] public ComponentDataArray<Rotation> rotations;
-            [ReadOnly] public ComponentDataArray<MoveForward> moveForwards;
-            [ReadOnly] public ComponentDataArray<MoveSpeed> moveSpeeds;
-            public int Length;
-        }
-
-        [Inject] private MoveForwardGroup m_MoveForwardGroup;
-    
         [ComputeJobOptimization]
         struct MoveForwardPosition : IJobParallelFor
         {
@@ -32,19 +21,40 @@ namespace UnityEngine.ECS.SimpleMovement
             {
                 positions[i] = new Position
                 {
-                    position = positions[i].position + (dt * moveSpeeds[i].speed * math.forward(rotations[i].rotation))
+                    position = positions[i].position + (dt * moveSpeeds[i].speed * math.forward(rotations[i].value))
                 };
             }
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            var moveForwardPositionJob = new MoveForwardPosition();
-            moveForwardPositionJob.positions = m_MoveForwardGroup.positions;
-            moveForwardPositionJob.rotations = m_MoveForwardGroup.rotations;
-            moveForwardPositionJob.moveSpeeds = m_MoveForwardGroup.moveSpeeds;
-            moveForwardPositionJob.dt = Time.deltaTime;
-            return moveForwardPositionJob.Schedule(m_MoveForwardGroup.Length, 64, inputDeps);
+            var moveForwardGroup = EntityManager.CreateComponentGroup(
+                ComponentType.ReadOnly(typeof(MoveForward)),
+                ComponentType.ReadOnly(typeof(Rotation)),
+                ComponentType.Subtractive(typeof(LocalRotation)),
+                ComponentType.ReadOnly(typeof(MoveSpeed)),
+                typeof(Position));
+            
+            var positions = moveForwardGroup.GetComponentDataArray<Position>();
+            var rotations = moveForwardGroup.GetComponentDataArray<Rotation>();
+            var moveSpeeds = moveForwardGroup.GetComponentDataArray<MoveSpeed>();
+
+            var moveForwardPositionJob = new MoveForwardPosition
+            {
+                positions = positions,
+                rotations = rotations,
+                moveSpeeds = moveSpeeds,
+                dt = Time.deltaTime
+            };
+            
+            var moveForwardPositionJobHandle = moveForwardPositionJob.Schedule(positions.Length, 64, inputDeps);
+            
+            moveForwardGroup.AddDependency(moveForwardPositionJobHandle);
+            
+            var moveForwardGroupJobHandle = moveForwardGroup.GetDependency();
+            moveForwardGroup.Dispose();
+
+            return moveForwardGroupJobHandle;
         } 
     }
 }

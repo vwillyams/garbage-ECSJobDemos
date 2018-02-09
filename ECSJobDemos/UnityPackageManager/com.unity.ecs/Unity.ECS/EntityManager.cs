@@ -325,7 +325,7 @@ namespace UnityEngine.ECS
             return new ComponentDataFromEntity<T>(typeIndex, m_Entities);
 #endif
         }
-
+        
         public FixedArrayFromEntity<T> GetFixedArrayFromEntity<T>(bool isReadOnly = false) where T : struct
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();

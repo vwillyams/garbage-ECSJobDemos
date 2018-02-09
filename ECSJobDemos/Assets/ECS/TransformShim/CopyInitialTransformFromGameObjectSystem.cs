@@ -13,17 +13,6 @@ namespace UnityEngine.ECS.TransformShim
         [Inject] private ComponentDataFromEntity<Position> m_Positions;
         [Inject] private ComponentDataFromEntity<Rotation> m_Rotations;
  
-        struct InitialTransformGroup
-        {
-            [ReadOnly] public ComponentDataArray<CopyInitialTransformFromGameObject> copyInitialTransformFromGameObjects;
-            public TransformAccessArray transforms;
-            public EntityArray entities;
-            public int Length;
-        }
-
-        [Inject] private InitialTransformGroup m_InitialTransformGroup;
-        [Inject] private DeferredEntityChangeSystem m_DeferredEntityChangeSystem;
-
         struct TransformStash
         {
             public float3 localPosition;
@@ -43,17 +32,17 @@ namespace UnityEngine.ECS.TransformShim
             {
                 transformStashes[index] = new TransformStash
                 {
-                    localPosition = transform.localPosition,
-                    rotation = new quaternion(transform.rotation.x, transform.rotation.y, transform.rotation.z, transform.rotation.w),
-                    position = transform.position,
-                    localRotation= new quaternion(transform.localRotation.x, transform.localRotation.y, transform.localRotation.z, transform.localRotation.w),
-                    entity = entities[index]
+                    localPosition  = transform.localPosition,
+                    rotation       = new quaternion(transform.rotation.x, transform.rotation.y, transform.rotation.z, transform.rotation.w),
+                    position       = transform.position,
+                    localRotation  = new quaternion(transform.localRotation.x, transform.localRotation.y, transform.localRotation.z, transform.localRotation.w),
+                    entity         = entities[index]
                 };
             }
         }
             
         // [ComputeJobOptimization] #BURST-CRASH
-        struct CopyInitialTransforms : IJob
+        struct CopyTransforms : IJob
         {
             public ComponentDataFromEntity<LocalPosition> localPositions;
             public ComponentDataFromEntity<LocalRotation> localRotations;
@@ -70,48 +59,44 @@ namespace UnityEngine.ECS.TransformShim
                     var entity = transformStashes[index].entity;
                     if (positions.Exists(entity))
                     {
-                        positions[entity] = new Position
-                        {
-                            position = transformStash.position
-                        };
+                        positions[entity] = new Position { position = transformStash.position };
                     }
                     if (rotations.Exists(entity))
                     {
-                        rotations[entity] = new Rotation
-                        {
-                            rotation = transformStash.rotation
-                        };
+                        rotations[entity] = new Rotation { value = transformStash.rotation };
                     }
                     if (localPositions.Exists(entity))
                     {
-                        localPositions[entity] = new LocalPosition
-                        {
-                            position = transformStash.localPosition
-                        };
+                        localPositions[entity] = new LocalPosition { position = transformStash.localPosition };
                     }
                     if (localRotations.Exists(entity))
                     {
-                        localRotations[entity] = new LocalRotation
-                        {
-                            rotation = transformStash.localRotation
-                        };
+                        localRotations[entity] = new LocalRotation { value = transformStash.localRotation };
                     }
                     removeComponentQueue.Enqueue(entity);
                 }
             }
         }
 
+        [Inject] private DeferredEntityChangeSystem m_DeferredEntityChangeSystem;
+
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            var transformStashes = new NativeArray<TransformStash>(m_InitialTransformGroup.Length, Allocator.TempJob);
+            var initialTransformGroup = EntityManager.CreateComponentGroup(ComponentType.ReadOnly(typeof(CopyInitialTransformFromGameObject)),typeof(UnityEngine.Transform));
+            var transforms = initialTransformGroup.GetTransformAccessArray();
+            var entities = initialTransformGroup.GetEntityArray();
+
+            var transformStashes = new NativeArray<TransformStash>(transforms.Length, Allocator.TempJob);
             var stashTransformsJob = new StashTransforms
             {
                 transformStashes = transformStashes,
-                entities = m_InitialTransformGroup.entities
+                entities = entities
             };
-            var stashTransformsJobHandle = stashTransformsJob.Schedule(m_InitialTransformGroup.transforms, inputDeps);
+            var stashTransformsJobHandle = stashTransformsJob.Schedule(transforms, inputDeps);
+
+            UpdateInjectedComponentGroups();
             
-            var copyInitialTransformsJob = new CopyInitialTransforms
+            var copyTransformsJob = new CopyTransforms
             {
                 positions = m_Positions,
                 rotations = m_Rotations,
@@ -120,8 +105,15 @@ namespace UnityEngine.ECS.TransformShim
                 transformStashes = transformStashes,
                 removeComponentQueue = m_DeferredEntityChangeSystem.GetRemoveComponentQueue<CopyInitialTransformFromGameObject>()
             };
-
-            return copyInitialTransformsJob.Schedule(stashTransformsJobHandle);
+            
+            var copyTransformJobHandle = copyTransformsJob.Schedule(stashTransformsJobHandle);
+            
+            initialTransformGroup.AddDependency(copyTransformJobHandle);
+            
+            JobHandle transformGroupJobHandle = initialTransformGroup.GetDependency();
+            initialTransformGroup.Dispose();
+            
+            return transformGroupJobHandle;
         }
     }
 }

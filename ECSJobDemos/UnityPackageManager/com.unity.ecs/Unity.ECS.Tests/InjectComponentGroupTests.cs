@@ -21,7 +21,7 @@ namespace UnityEngine.ECS.Tests
 				public int                             Length;
 			}
 
-			[Inject] 
+			[Inject]
 			public DataAndEntites Group;
 
 			protected override void OnUpdate()
@@ -38,7 +38,7 @@ namespace UnityEngine.ECS.Tests
 				public ComponentDataArray<EcsTestData> Data;
 			}
 
-			[Inject] 
+			[Inject]
 			public Datas Group;
 
 			protected override void OnUpdate()
@@ -55,7 +55,7 @@ namespace UnityEngine.ECS.Tests
 				public SubtractiveComponent<EcsTestData2> Data2;
 			}
 
-			[Inject] 
+			[Inject]
 			public Datas Group;
 
 			protected override void OnUpdate()
@@ -63,8 +63,30 @@ namespace UnityEngine.ECS.Tests
 			}
 		}
 
-		
-		
+	    public struct SharedData : ISharedComponentData
+	    {
+	        public int value;
+
+	        public SharedData(int val) { value = val; }
+	    }
+
+	    [DisableAutoCreation]
+	    public class SharedComponentSystem : ComponentSystem
+	    {
+	        public struct Datas
+	        {
+	            public ComponentDataArray<EcsTestData> Data;
+	            [ReadOnly] public SharedComponentDataArray<SharedData> SharedData;
+	        }
+
+	        [Inject]
+	        public Datas Group;
+
+	        protected override void OnUpdate()
+	        {
+	        }
+	    }
+
 		[Test]
         public void ReadOnlyComponentDataArray()
         {
@@ -93,7 +115,23 @@ namespace UnityEngine.ECS.Tests
             subtractiveSystem.Update ();
             Assert.AreEqual (0, subtractiveSystem.Group.Data.Length);
         }
-        
+
+	    [Test]
+	    public void SharedComponentDataArray()
+	    {
+	        var sharedComponentSystem = World.GetOrCreateManager<SharedComponentSystem> ();
+
+	        var go = m_Manager.CreateEntity(new ComponentType[0]);
+	        m_Manager.AddComponentData (go, new EcsTestData(2));
+	        m_Manager.AddSharedComponentData(go, new SharedData(3));
+
+	        sharedComponentSystem.Update ();
+	        Assert.AreEqual (1, sharedComponentSystem.Group.Data.Length);
+	        Assert.AreEqual (2, sharedComponentSystem.Group.Data[0].value);
+	        Assert.AreEqual (3, sharedComponentSystem.Group.SharedData[0].value);
+	    }
+
+
         [Test]
         public void RemoveComponentGroupTracking()
         {
@@ -136,14 +174,14 @@ namespace UnityEngine.ECS.Tests
             Assert.AreEqual (2, pureSystem.Group.Data[0].value);
             Assert.AreEqual (go, pureSystem.Group.Entities[0]);
         }
-		
+
 		[DisableAutoCreation]
 		public class FromEntitySystemIncrementInJob : JobComponentSystem
 		{
 			public struct IncrementValueJob : IJob
 			{
 				public Entity entity;
-				
+
 				public ComponentDataFromEntity<EcsTestData> ecsTestDataFromEntity;
 				public FixedArrayFromEntity<int> intArrayFromEntity;
 
@@ -161,12 +199,12 @@ namespace UnityEngine.ECS.Tests
 
 			[Inject]
 			FixedArrayFromEntity<int> intArrayFromEntity;
-			
+
 		    [Inject]
 			ComponentDataFromEntity<EcsTestData> ecsTestDataFromEntity;
 
 			public Entity entity;
-			
+
 			protected override JobHandle OnUpdate(JobHandle inputDeps)
 			{
 				var job = new IncrementValueJob();
@@ -177,7 +215,7 @@ namespace UnityEngine.ECS.Tests
 				return job.Schedule(inputDeps);
 			}
 		}
-		
+
 		[Test]
 		public void FromEntitySystemIncrementInJobWorks()
 		{
@@ -204,28 +242,28 @@ namespace UnityEngine.ECS.Tests
 	                data[0] = new EcsTestData(42);
 	            }
 	        }
-        
+
 	        public struct Group
 	        {
 	            public ComponentDataArray<EcsTestData> Data;
 	        }
 
-	        [Inject] 
+	        [Inject]
 	        public Group group;
 
 	        protected override void OnDestroyManager()
 	        {
 		        UpdateInjectedComponentGroups();
-		        
+
 	            var job = new Job();
 	            job.data = group.Data;
 	            AddDependencyInternal(job.Schedule());
 
 	            base.OnDestroyManager();
-            
+
 	            // base.OnDestroyManager(); will wait for the job
 	            // and ensure that you can safely access the injected groups
-	            Assert.AreEqual(42, group.Data[0].value);   
+	            Assert.AreEqual(42, group.Data[0].value);
 	        }
 	    }
 
@@ -245,7 +283,7 @@ namespace UnityEngine.ECS.Tests
 				public ComponentDataArray<EcsTestData> Data;
 			}
 
-			[Inject] 
+			[Inject]
 			public Group group;
 
 			protected override void OnCreateManager(int capacity)
@@ -253,12 +291,12 @@ namespace UnityEngine.ECS.Tests
 				// base.OnCreateManager should inject the component group,
 				// so that any code in OnCreateManager can access them
 				base.OnCreateManager(capacity);
-				
+
 				Assert.AreEqual(1, group.Data.Length);
 				Assert.AreEqual(42, group.Data[0].value);
 			}
 		}
-		
+
 		[Test]
 		public void OnCreateManagerComponentGroupInjectionWorks()
 		{
@@ -266,7 +304,7 @@ namespace UnityEngine.ECS.Tests
 			m_Manager.SetComponentData(entity, new EcsTestData(42));
 			World.GetOrCreateManager<OnCreateManagerComponentGroupInjectionSystem>();
 		}
-	    
+
 	    [DisableAutoCreation]
 	    public class GameObjectArraySystem : ComponentSystem
 	    {
@@ -278,32 +316,32 @@ namespace UnityEngine.ECS.Tests
 	            public ComponentArray<BoxCollider> colliders;
 	        }
 
-	        [Inject] 
+	        [Inject]
 	        public Group group;
 
 	        protected override void OnUpdate()
 	        {
 	        }
 	    }
-        
+
 	    [Test]
 	    public void GameObjectArrayIsPopulated()
 	    {
 	        var go = new GameObject("test", typeof(BoxCollider));
 	        GameObjectEntity.AddToEntityManager(m_Manager, go);
-	        
+
 	        var manager = World.GetOrCreateManager<GameObjectArraySystem>();
-	        
+
 	        manager.UpdateInjectedComponentGroups();
-	        
+
 	        Assert.AreEqual(1, manager.group.Length);
 	        Assert.AreEqual(go, manager.group.gameObjects[0]);
 	        Assert.AreEqual(go, manager.group.colliders[0].gameObject);
-	        
+
 	        Object.DestroyImmediate (go);
 	        TearDown();
 	    }
-	    
+
 	    [DisableAutoCreation]
 	    public class GameObjectArrayWithTransformAccessSystem : ComponentSystem
 	    {
@@ -315,32 +353,32 @@ namespace UnityEngine.ECS.Tests
 	            public TransformAccessArray transforms;
 	        }
 
-	        [Inject] 
+	        [Inject]
 	        public Group group;
 
 	        protected override void OnUpdate()
 	        {
 	        }
 	    }
-        
+
 	    [Test]
 	    public void GameObjectArrayWorksWithTransformAccessArray()
 	    {
 	        var go = new GameObject("test");
 	        GameObjectEntity.AddToEntityManager(m_Manager, go);
-	        
+
 	        var manager = World.GetOrCreateManager<GameObjectArrayWithTransformAccessSystem>();
-	        
+
 	        manager.UpdateInjectedComponentGroups();
-	        
+
 	        Assert.AreEqual(1, manager.group.Length);
 	        Assert.AreEqual(go, manager.group.gameObjects[0]);
 	        Assert.AreEqual(go, manager.group.transforms[0].gameObject);
-	        
+
 	        Object.DestroyImmediate (go);
 	        TearDown();
 	    }
-	    
+
 	    [DisableAutoCreation]
 	    public class TransformWithTransformAccessSystem : ComponentSystem
 	    {
@@ -352,27 +390,27 @@ namespace UnityEngine.ECS.Tests
 	            public TransformAccessArray transformAccesses;
 	        }
 
-	        [Inject] 
+	        [Inject]
 	        public Group group;
 
 	        protected override void OnUpdate()
 	        {
 	        }
 	    }
-        
+
 	    [Test]
 	    public void TransformArrayWorksWithTransformAccessArray()
 	    {
 	        var go = new GameObject("test");
 	        GameObjectEntity.AddToEntityManager(m_Manager, go);
-	        
+
 	        var manager = World.GetOrCreateManager<TransformWithTransformAccessSystem>();
-	        
+
 	        manager.UpdateInjectedComponentGroups();
-	        
+
 	        Assert.AreEqual(1, manager.group.Length);
 	        Assert.AreEqual(manager.group.transforms[0].gameObject, manager.group.transformAccesses[0].gameObject);
-	        
+
 	        Object.DestroyImmediate (go);
 	        TearDown();
 	    }

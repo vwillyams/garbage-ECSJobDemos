@@ -56,20 +56,6 @@ namespace UnityEngine.ECS
                 int sharedComponent = m_Iterator.GetSharedComponentFromCurrentChunk(m_sharedComponentIndex);
                 return m_sharedComponentDataManager.GetSharedComponentData<T>(sharedComponent);
             }
-
-			set
-			{
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
-				if (index < m_MinIndex || index > m_MaxIndex)
-					FailOutOfRangeError(index);
-#endif
-
-                if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
-                    m_Iterator.UpdateCache(index, out m_Cache);
-
-				UnsafeUtility.WriteArrayElement(m_Cache.CachedPtr, index, value);
-			}
 		}
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS

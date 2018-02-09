@@ -18,7 +18,7 @@ namespace UnityEngine.ECS.Transform2D
             [ReadOnly] public SubtractiveComponent<Rotation> rotations;
             [ReadOnly] public SubtractiveComponent<TransformParent> parents;
             [ReadOnly] public ComponentDataArray<Position> positions;
-            public EntityArray entities;
+            [ReadOnly] public EntityArray entities;
             public int Length;
         }
 
@@ -29,7 +29,7 @@ namespace UnityEngine.ECS.Transform2D
             [ReadOnly] public ComponentDataArray<Rotation> rotations;
             [ReadOnly] public SubtractiveComponent<TransformParent> parents;
             [ReadOnly] public SubtractiveComponent<Position> positions;
-            public EntityArray entities;
+            [ReadOnly] public EntityArray entities;
             public int Length;
         }
 
@@ -40,7 +40,7 @@ namespace UnityEngine.ECS.Transform2D
             [ReadOnly] public ComponentDataArray<Rotation> rotations;
             [ReadOnly] public SubtractiveComponent<TransformParent> parents;
             [ReadOnly] public ComponentDataArray<Position> positions;
-            public EntityArray entities;
+            [ReadOnly] public EntityArray entities;
             public int Length;
         }
 
@@ -49,7 +49,7 @@ namespace UnityEngine.ECS.Transform2D
         struct ParentGroup
         {
             [ReadOnly] public ComponentDataArray<TransformParent> transformParents;
-            public EntityArray entities;
+            [ReadOnly] public EntityArray entities;
             public int Length;
         }
 
@@ -60,11 +60,23 @@ namespace UnityEngine.ECS.Transform2D
         {
             public NativeMultiHashMap<Entity, Entity>.Concurrent hierarchy;
             [ReadOnly] public ComponentDataArray<TransformParent> transformParents;
-            public EntityArray entities;
+            [ReadOnly] public EntityArray entities;
 
             public void Execute(int index)
             {
                 hierarchy.Add(transformParents[index].parent,entities[index]);
+            }
+        }
+        
+        [ComputeJobOptimization]
+        struct CopyEntities : IJobParallelFor
+        {
+            [ReadOnly] public EntityArray source;
+            public NativeArray<Entity> result;
+
+            public void Execute(int index)
+            {
+                result[index] = source[index];
             }
         }
 
@@ -150,19 +162,39 @@ namespace UnityEngine.ECS.Transform2D
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
             int rootCount = m_RootRotGroup.Length + m_RootTransGroup.Length + m_RootRotTransGroup.Length;
-            var roots = new NativeArray<Entity>(rootCount, Allocator.TempJob);
+            if (rootCount == 0)
+            {
+                return inputDeps;
+            }
+            
+            var transRoots = new NativeArray<Entity>(m_RootTransGroup.Length, Allocator.TempJob);
+            var rotTransRoots = new NativeArray<Entity>(m_RootRotTransGroup.Length, Allocator.TempJob);
+            var rotRoots = new NativeArray<Entity>(m_RootRotGroup.Length, Allocator.TempJob);
             
             m_Hierarchy.Capacity = math.max(m_ParentGroup.Length + rootCount,m_Hierarchy.Capacity);
             m_Hierarchy.Clear();
-        
-            int count = 0;
-            for (int i = 0; i < m_RootRotGroup.Length; i++, count++)
-                roots[count] = m_RootRotGroup.entities[i];
-            for (int i = 0; i < m_RootTransGroup.Length; i++, count++)
-                roots[count] = m_RootTransGroup.entities[i];
-            for (int i = 0; i < m_RootRotTransGroup.Length; i++, count++)
-                roots[count] = m_RootRotTransGroup.entities[i];
 
+            var copyTransRootsJob = new CopyEntities
+            {
+                source = m_RootTransGroup.entities,
+                result = transRoots
+            };
+            var copyTransRootsJobHandle = copyTransRootsJob.Schedule(m_RootTransGroup.Length, 64, inputDeps);
+            
+            var copyRotTransRootsJob = new CopyEntities
+            {
+                source = m_RootRotTransGroup.entities,
+                result = rotTransRoots
+            };
+            var copyRotTransRootsJobHandle = copyRotTransRootsJob.Schedule(m_RootRotTransGroup.Length, 64, inputDeps);
+            
+            var copyRotRootsJob = new CopyEntities
+            {
+                source = m_RootRotGroup.entities,
+                result = rotTransRoots
+            };
+            var copyRotRootsJobHandle = copyRotRootsJob.Schedule(m_RootRotGroup.Length, 64, inputDeps);
+        
             var buildHierarchyJob = new BuildHierarchy
             {
                 hierarchy = m_Hierarchy,
@@ -171,19 +203,47 @@ namespace UnityEngine.ECS.Transform2D
             };
             var buildHierarchyJobHandle = buildHierarchyJob.Schedule(m_ParentGroup.Length, 64, inputDeps);
 
-            var updateHierarchyJob = new UpdateHierarchy
+            var jh0 = JobHandle.CombineDependencies(copyTransRootsJobHandle, copyRotTransRootsJobHandle);
+            var jh1 = JobHandle.CombineDependencies(copyRotRootsJobHandle, buildHierarchyJobHandle);
+            var jh2 = JobHandle.CombineDependencies(jh0, jh1);
+
+            var updateTransHierarchyJob = new UpdateHierarchy
             {
                 hierarchy = m_Hierarchy,
-                roots = roots,
+                roots = transRoots,
                 localPositions = m_LocalPositions,
                 localRotations = m_LocalRotations,
                 positions = m_Positions,
                 rotations = m_Rotations,
                 transformMatrices = m_TransformMatrices
             };
+            var updateTransHierarchyJobHandle = updateTransHierarchyJob.Schedule(jh2);
+            
+            var updateRotTransHierarchyJob = new UpdateHierarchy
+            {
+                hierarchy = m_Hierarchy,
+                roots = rotTransRoots,
+                localPositions = m_LocalPositions,
+                localRotations = m_LocalRotations,
+                positions = m_Positions,
+                rotations = m_Rotations,
+                transformMatrices = m_TransformMatrices
+            };
+            var updateRotTransHierarchyJobHandle = updateRotTransHierarchyJob.Schedule(updateTransHierarchyJobHandle);
+            
+            var updateRotHierarchyJob = new UpdateHierarchy
+            {
+                hierarchy = m_Hierarchy,
+                roots = rotRoots,
+                localPositions = m_LocalPositions,
+                localRotations = m_LocalRotations,
+                positions = m_Positions,
+                rotations = m_Rotations,
+                transformMatrices = m_TransformMatrices
+            };
+            var updateRotHierarchyJobHandle = updateRotHierarchyJob.Schedule(updateRotTransHierarchyJobHandle);
 
-            var updateHierarchyJobHandle = updateHierarchyJob.Schedule(buildHierarchyJobHandle);
-            return updateHierarchyJobHandle;
+            return updateRotHierarchyJobHandle;
         } 
         
         protected override void OnCreateManager(int capacity)

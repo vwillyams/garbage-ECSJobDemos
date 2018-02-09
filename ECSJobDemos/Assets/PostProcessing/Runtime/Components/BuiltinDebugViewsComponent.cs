@@ -3,8 +3,6 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.PostProcessing
 {
-    using Mode = BuiltinDebugViewsModel.Mode;
-
     public sealed class BuiltinDebugViewsComponent : PostProcessingComponentCommandBuffer<BuiltinDebugViewsModel>
     {
         static class Uniforms
@@ -102,9 +100,9 @@ namespace UnityEngine.PostProcessing
         {
             get
             {
-                return model.IsModeActive(Mode.Depth)
-                       || model.IsModeActive(Mode.Normals)
-                       || model.IsModeActive(Mode.MotionVectors);
+                return model.IsModeActive(BuiltinDebugViewsModel.Mode.Depth)
+                       || model.IsModeActive(BuiltinDebugViewsModel.Mode.Normals)
+                       || model.IsModeActive(BuiltinDebugViewsModel.Mode.MotionVectors);
             }
         }
 
@@ -115,13 +113,13 @@ namespace UnityEngine.PostProcessing
 
             switch (mode)
             {
-                case Mode.Normals:
+                case BuiltinDebugViewsModel.Mode.Normals:
                     flags |= DepthTextureMode.DepthNormals;
                     break;
-                case Mode.MotionVectors:
+                case BuiltinDebugViewsModel.Mode.MotionVectors:
                     flags |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
                     break;
-                case Mode.Depth:
+                case BuiltinDebugViewsModel.Mode.Depth:
                     flags |= DepthTextureMode.Depth;
                     break;
             }
@@ -131,7 +129,7 @@ namespace UnityEngine.PostProcessing
 
         public override CameraEvent GetCameraEvent()
         {
-            return model.settings.mode == Mode.MotionVectors
+            return model.settings.mode == BuiltinDebugViewsModel.Mode.MotionVectors
                    ? CameraEvent.BeforeImageEffects
                    : CameraEvent.BeforeImageEffectsOpaque;
         }
@@ -152,13 +150,13 @@ namespace UnityEngine.PostProcessing
 
             switch (settings.mode)
             {
-                case Mode.Depth:
+                case BuiltinDebugViewsModel.Mode.Depth:
                     DepthPass(cb);
                     break;
-                case Mode.Normals:
+                case BuiltinDebugViewsModel.Mode.Normals:
                     DepthNormalsPass(cb);
                     break;
-                case Mode.MotionVectors:
+                case BuiltinDebugViewsModel.Mode.MotionVectors:
                     MotionVectorsPass(cb);
                     break;
             }

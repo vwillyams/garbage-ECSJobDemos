@@ -1,15 +1,16 @@
-﻿using Unity.Collections;
+﻿using System.Collections.Generic;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
-using System.Collections.Generic;
+using UnityEngine.Assertions;
 using UnityEngine.ECS.Transform;
+using UnityEngine.Experimental.PlayerLoop;
 
 namespace UnityEngine.ECS.MeshInstancedShim
 {
     /// <summary>
     /// Renders all Entities containing both MeshInstancedShim & TransformMatrix components.
     /// </summary>
-	[UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.PreLateUpdate.ParticleSystemBeginUpdateAll))]
+	[UpdateAfter(typeof(PreLateUpdate.ParticleSystemBeginUpdateAll))]
 	public class MeshInstancedHybridSystem : ComponentSystem
 	{
         // Instance renderer takes only batches of 1023
@@ -24,10 +25,10 @@ namespace UnityEngine.ECS.MeshInstancedShim
 	        // if the nativeslice layout matches the layout of the component data. It's very fast...
             fixed (Matrix4x4* matricesPtr = outMatrices)
             {
-                UnityEngine.Assertions.Assert.AreEqual(sizeof(Matrix4x4), sizeof(TransformMatrix));
-	            var matricesSlice = Unity.Collections.LowLevel.Unsafe.NativeSliceUnsafeUtility.ConvertExistingDataToNativeSlice<TransformMatrix>(matricesPtr, sizeof(Matrix4x4), length);
+                Assert.AreEqual(sizeof(Matrix4x4), sizeof(TransformMatrix));
+	            var matricesSlice = NativeSliceUnsafeUtility.ConvertExistingDataToNativeSlice<TransformMatrix>(matricesPtr, sizeof(Matrix4x4), length);
 	            #if ENABLE_UNITY_COLLECTIONS_CHECKS
-	            Unity.Collections.LowLevel.Unsafe.NativeSliceUnsafeUtility.SetAtomicSafetyHandle(ref matricesSlice, AtomicSafetyHandle.GetTempUnsafePtrSliceHandle());
+	            NativeSliceUnsafeUtility.SetAtomicSafetyHandle(ref matricesSlice, AtomicSafetyHandle.GetTempUnsafePtrSliceHandle());
 	            #endif
                 transforms.CopyTo(matricesSlice, beginIndex);
             }

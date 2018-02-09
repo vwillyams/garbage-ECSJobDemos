@@ -1,13 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Security.Cryptography;
-using Boo.Lang.Environments;
-using Unity.Jobs;
-using Unity.Collections;
+﻿using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.ECS;
-using UnityEngine.XR.WSA;
 
 namespace TwoStickHybridExample
 {

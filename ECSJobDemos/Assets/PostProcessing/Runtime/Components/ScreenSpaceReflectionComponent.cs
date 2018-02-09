@@ -2,9 +2,6 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.PostProcessing
 {
-    using SSRResolution = ScreenSpaceReflectionModel.SSRResolution;
-    using SSRReflectionBlendType = ScreenSpaceReflectionModel.SSRReflectionBlendType;
-
     public sealed class ScreenSpaceReflectionComponent : PostProcessingComponentCommandBuffer<ScreenSpaceReflectionModel>
     {
         static class Uniforms
@@ -117,7 +114,7 @@ namespace UnityEngine.PostProcessing
             var camera = context.camera;
 
             // Material setup
-            int downsampleAmount = (settings.reflection.reflectionQuality == SSRResolution.High) ? 1 : 2;
+            int downsampleAmount = (settings.reflection.reflectionQuality == ScreenSpaceReflectionModel.SSRResolution.High) ? 1 : 2;
 
             var rtW = context.width / downsampleAmount;
             var rtH = context.height / downsampleAmount;
@@ -131,14 +128,14 @@ namespace UnityEngine.PostProcessing
             var material = context.materialFactory.Get("Hidden/Post FX/Screen Space Reflection");
 
             material.SetInt(Uniforms._RayStepSize, settings.reflection.stepSize);
-            material.SetInt(Uniforms._AdditiveReflection, settings.reflection.blendType == SSRReflectionBlendType.Additive ? 1 : 0);
+            material.SetInt(Uniforms._AdditiveReflection, settings.reflection.blendType == ScreenSpaceReflectionModel.SSRReflectionBlendType.Additive ? 1 : 0);
             material.SetInt(Uniforms._BilateralUpsampling, k_BilateralUpsample ? 1 : 0);
             material.SetInt(Uniforms._TreatBackfaceHitAsMiss, k_TreatBackfaceHitAsMiss ? 1 : 0);
             material.SetInt(Uniforms._AllowBackwardsRays, settings.reflection.reflectBackfaces ? 1 : 0);
             material.SetInt(Uniforms._TraceBehindObjects, k_TraceBehindObjects ? 1 : 0);
             material.SetInt(Uniforms._MaxSteps, settings.reflection.iterationCount);
             material.SetInt(Uniforms._FullResolutionFiltering, 0);
-            material.SetInt(Uniforms._HalfResolution, (settings.reflection.reflectionQuality != SSRResolution.High) ? 1 : 0);
+            material.SetInt(Uniforms._HalfResolution, (settings.reflection.reflectionQuality != ScreenSpaceReflectionModel.SSRResolution.High) ? 1 : 0);
             material.SetInt(Uniforms._HighlightSuppression, k_HighlightSuppression ? 1 : 0);
 
             // The height in pixels of a 1m object if viewed from 1m away.

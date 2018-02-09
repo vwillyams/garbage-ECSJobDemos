@@ -1,6 +1,4 @@
-﻿using System;
-using UnityEngine;
-using Unity.Mathematics;
+﻿using Unity.Mathematics;
 
 struct HashUtility
 {

@@ -1,11 +1,11 @@
-﻿using UnityEngine;
-using Unity.Collections;
+﻿using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
+using Unity.Jobs.LowLevel.Unsafe;
+using Unity.Mathematics;
+using UnityEngine;
 using UnityEngine.ECS;
 using UnityEngine.Profiling;
-using Unity.Collections.LowLevel.Unsafe;
-using Unity.Mathematics;
-using Unity.Jobs.LowLevel.Unsafe;
 
 // 64 + 16 + 12 + 128 + 4 + 4 = 228 bytes
 

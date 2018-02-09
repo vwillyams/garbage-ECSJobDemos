@@ -1,12 +1,5 @@
-﻿using System.CodeDom;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using Unity.Collections;
-using Unity.Jobs;
-using Unity.Mathematics;
+﻿using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.ECS;
-using UnityEngine.ECS.Transform;
 
 namespace TwoStickClassicExample
 {

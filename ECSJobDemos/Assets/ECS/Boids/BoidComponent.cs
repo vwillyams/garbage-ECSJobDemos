@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace UnityEngine.ECS.Boids
+﻿namespace UnityEngine.ECS.Boids
 {
     public struct Boid : IComponentData { }
 

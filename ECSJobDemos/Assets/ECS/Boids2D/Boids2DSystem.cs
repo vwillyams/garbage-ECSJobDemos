@@ -3,8 +3,6 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Mathematics.Experimental;
 using UnityEngine.ECS.SimpleBounds;
-using UnityEngine.ECS.SimpleRotation;
-using UnityEngine.ECS.Transform;
 using UnityEngine.ECS.Transform2D;
 
 namespace UnityEngine.ECS.Boids

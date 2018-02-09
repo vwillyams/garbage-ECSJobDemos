@@ -1,7 +1,4 @@
 ﻿using System;
-using UnityEngine;
-using Unity.Collections;
-using UnityEngine.ECS;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.ECS.MeshInstancedShim

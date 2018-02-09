@@ -1,8 +1,6 @@
 ﻿using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEngine.ECS;
-using UnityEngine.ECS.SimpleRotation;
 using UnityEngine.ECS.Transform;
 
 namespace UnityEngine.ECS.SimpleRotation

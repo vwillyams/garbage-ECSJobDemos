@@ -1,5 +1,4 @@
-﻿using System.Security.Principal;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Mathematics.Experimental;

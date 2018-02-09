@@ -1,16 +1,9 @@
-﻿using System;
-using System.CodeDom;
-using System.Runtime.InteropServices;
-using Unity.Collections;
-using Unity.Jobs;
-using Unity.Mathematics;
+﻿using Unity.Collections;
 using UnityEngine;
 using UnityEngine.ECS;
-using UnityEngine.ECS.Boids;
 using UnityEngine.ECS.SimpleMovement;
 using UnityEngine.ECS.SimpleMovement2D;
 using UnityEngine.ECS.Transform;
-using UnityEngine.ECS.Transform2D;
 
 namespace TwoStickPureExample
 {

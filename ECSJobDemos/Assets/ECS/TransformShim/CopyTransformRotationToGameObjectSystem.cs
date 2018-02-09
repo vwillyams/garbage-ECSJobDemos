@@ -1,7 +1,5 @@
 ﻿using Unity.Collections;
 using Unity.Jobs;
-using Unity.Mathematics;
-using UnityEngine.ECS;
 using UnityEngine.ECS.Transform;
 using UnityEngine.Jobs;
 

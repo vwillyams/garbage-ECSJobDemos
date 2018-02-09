@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Mathematics;
-using UnityEngine;
 using UnityEngine.ECS;
 using UnityEngine.ECS.SimpleMovement;
 using UnityEngine.ECS.SpawnerShim;

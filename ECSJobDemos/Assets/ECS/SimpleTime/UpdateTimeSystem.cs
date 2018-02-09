@@ -1,9 +1,4 @@
-﻿using Unity.Collections;
-using Unity.Jobs;
-using Unity.Mathematics;
-using UnityEngine;
-using UnityEngine.ECS;
-using UnityEngine.ECS.SimpleTime;
+﻿using Unity.Jobs;
 
 namespace UnityEngine.ECS.SimpleTime
 {

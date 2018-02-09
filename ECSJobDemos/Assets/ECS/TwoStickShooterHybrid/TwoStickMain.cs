@@ -1,11 +1,5 @@
-﻿using System.Collections.Concurrent;
-using Unity.Mathematics;
+﻿using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.ECS;
-using UnityEngine.ECS.Transform;
-using UnityEngine.Experimental.LowLevel;
-using UnityEngine.PostProcessing;
-using UnityEngine.SceneManagement;
 
 namespace TwoStickHybridExample
 {

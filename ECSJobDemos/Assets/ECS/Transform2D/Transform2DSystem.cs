@@ -1,8 +1,6 @@
-﻿using Boo.Lang;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEngine.ECS;
 using UnityEngine.ECS.Transform;
 
 namespace UnityEngine.ECS.Transform2D

@@ -364,6 +364,21 @@ namespace UnityEngine.ECS
 #endif
         }
 
+        public SharedComponentDataArray<T> GetSharedComponentDataArray<T>() where T : struct, ISharedComponentData
+        {
+            int length;
+            int componentIndex;
+            int sharedComponentIndex = GetComponentIndexForVariation<T>();
+            int entityTypeIndex = TypeManager.GetTypeIndex<Entity>();
+
+            var cache = GetComponentChunkIterator(entityTypeIndex, out length, out componentIndex);
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            return new SharedComponentDataArray<T>(m_TypeManager.GetSharedComponentDataManager(), sharedComponentIndex, cache, length, m_SafetyManager.GetSafetyHandle(entityTypeIndex, true));
+#else
+			return new SharedComponentDataArray<T>(m_TypeManager.GetSharedComponentDataManager(), sharedComponentIndex, cache, length);
+#endif
+        }
+
         public FixedArrayArray<T> GetFixedArrayArray<T>() where T : struct
         {
             int length;

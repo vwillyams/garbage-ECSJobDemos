@@ -49,6 +49,15 @@ namespace UnityEngine.ECS
             }
         }
 
+        class UpdateInjectionSharedComponentDataArray<T> : IUpdateInjection where T : struct, ISharedComponentData
+        {
+            unsafe public void UpdateInjection(byte* groupData, EntityManager entityManager, ComponentGroup group, InjectionData injection)
+            {
+                var array = group.GetSharedComponentDataArray<T>();
+                UnsafeUtility.CopyStructureToPtr(ref array, groupData + injection.fieldOffset);
+            }
+        }
+
 		InjectComponentGroupData(EntityManager entityManager, FieldInfo groupField, InjectionData[] componentInjections, FieldInfo entityArrayInjection, FieldInfo transformAccessArrayInjection, FieldInfo gameObjectArrayInjection, FieldInfo lengthInjection, ComponentType[] componentRequirements)
 		{
 			var requiredComponentTypes = new ComponentType[componentInjections.Length + componentRequirements.Length];
@@ -193,6 +202,18 @@ namespace UnityEngine.ECS
 				    if (injection.genericType == typeof(Transform))
 				        explicitTransformRequirement = true;
 				}
+		        else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition() == typeof(SharedComponentDataArray<>))
+			    {
+			        if (!isReadOnly)
+			            return "SharedComponentDataArray<> must always be injected as [ReadOnly]";
+			        var injection = new InjectionData(field, typeof(SharedComponentDataArray<>), field.FieldType.GetGenericArguments()[0], true);
+
+			        var injectionType = typeof(UpdateInjectionSharedComponentDataArray<>).MakeGenericType(injection.genericType);
+			        injection.injection = (IUpdateInjection)Activator.CreateInstance(injectionType);
+
+			        componentInjections.Add (injection);
+
+			    }
 				else if (field.FieldType == typeof(TransformAccessArray))
 				{
 					if (isReadOnly)

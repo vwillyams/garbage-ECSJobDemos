@@ -34,8 +34,6 @@ namespace UnityEngine.ECS
         JobHandle* m_JobDependencyCombineBuffer;
         int m_JobDependencyCombineBufferCount;
 
-        //@TODO: Check against too many types created...
-
         public ComponentJobSafetyManager()
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS

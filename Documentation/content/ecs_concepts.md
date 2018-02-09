@@ -1,4 +1,4 @@
-# ecs_concepts
+# ECS Concepts
 If you are familiar with ECS concepts, you might see the potential for naming conflicts with Unity's existing GameObject/Component setup. Here are how ECS concepts map to Unity's implemenation:
 
 ### Entity → **Entity**

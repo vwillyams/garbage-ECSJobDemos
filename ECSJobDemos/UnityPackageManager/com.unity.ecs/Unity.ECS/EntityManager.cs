@@ -81,10 +81,7 @@ namespace UnityEngine.ECS
             m_JobSafetyManager = new ComponentJobSafetyManager();
             m_GroupManager = new EntityGroupManager(m_JobSafetyManager);
 
-            m_EntityTransaction = new EntityTransaction(m_ArchetypeManager, m_Entities);
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            m_EntityTransaction.SetAtomicSafetyHandle(ComponentJobSafetyManager.CreationSafety);
-#endif
+            m_EntityTransaction = new EntityTransaction(m_ArchetypeManager, m_GroupManager, m_SharedComponentManager, m_Entities);
 
             m_CachedComponentTypeArray = (ComponentType*)UnsafeUtility.Malloc(sizeof(ComponentType) * 32 * 1024, 16, Allocator.Persistent);
             m_CachedComponentTypeInArchetypeArray = (ComponentTypeInArchetype*)UnsafeUtility.Malloc(sizeof(ComponentTypeInArchetype) * 32 * 1024, 16, Allocator.Persistent);
@@ -122,7 +119,7 @@ namespace UnityEngine.ECS
             get { return m_Entities->Capacity; }
             set
             {
-                BeforeImmediateStructualChange();
+                BeforeStructuralChange();
                 m_Entities->Capacity = value;
             }
         }
@@ -147,8 +144,8 @@ namespace UnityEngine.ECS
         {
             //@TODO: Better would be to seperate creation of archetypes and getting existing archetypes
             // and only flush when creating new ones...
-            BeforeImmediateStructualChange();
-
+            BeforeStructuralChange();
+            
             return m_GroupManager.CreateEntityGroup(m_ArchetypeManager, m_CachedComponentTypeArray, PopulatedCachedTypeArray(requiredComponents), new TransformAccessArray());
         }
 
@@ -164,12 +161,10 @@ namespace UnityEngine.ECS
             
             // Creating an archetype invalidates all iterators / jobs etc
             // because it affects the live iteration linked lists... 
-            
-            BeforeImmediateStructualChange();
+            BeforeStructuralChange();
 
-            EntityArchetype type;
-            type.archetype = m_ArchetypeManager.GetOrCreateArchetype(m_CachedComponentTypeInArchetypeArray, cachedComponentCount, m_GroupManager);
-            return type;
+            entityArchetype.archetype = m_ArchetypeManager.GetOrCreateArchetype(m_CachedComponentTypeInArchetypeArray, cachedComponentCount, m_GroupManager);
+            return entityArchetype;
         }
 
         public void CreateEntity(EntityArchetype archetype, NativeArray<Entity> entities)
@@ -191,11 +186,8 @@ namespace UnityEngine.ECS
 
         void CreateEntityInternal(EntityArchetype archetype, Entity* entities, int count)
         {
-            BeforeImmediateStructualTransaction();
-
-            m_Entities->CreateEntities(m_ArchetypeManager, archetype.archetype, entities, count, true);
-            
-            AfterImmediateStructuralTransaction();
+            BeforeStructuralChange();
+            m_Entities->CreateEntities(m_ArchetypeManager, archetype.archetype, entities, count);
         }
 
         public void DestroyEntity(NativeArray<Entity> entities)
@@ -215,10 +207,8 @@ namespace UnityEngine.ECS
 
         void DestroyEntityInternal(Entity* entities, int count)
         {
-            BeforeImmediateStructualChange();
-
+            BeforeStructuralChange();
             m_Entities->AssertEntitiesExist(entities, count);
-
             m_Entities->DeallocateEnties(m_ArchetypeManager, m_SharedComponentManager, entities, count);
         }
 
@@ -277,30 +267,24 @@ namespace UnityEngine.ECS
 
         void InstantiateInternal(Entity srcEntity, Entity* outputEntities, int count)
         {
-            BeforeImmediateStructualTransaction();
-
+            BeforeStructuralChange();
             if (!m_Entities->Exists(srcEntity))
                 throw new System.ArgumentException("srcEntity is not a valid entity");
 
-            m_Entities->InstantiateEntities(m_ArchetypeManager, m_SharedComponentManager, srcEntity, outputEntities, count, true);
-
-            AfterImmediateStructuralTransaction();
+            m_Entities->InstantiateEntities(m_ArchetypeManager, m_SharedComponentManager, srcEntity, outputEntities, count);
         }
 
         public void AddComponent(Entity entity, ComponentType type)
         {
-            BeforeImmediateStructualChange();
-
+            BeforeStructuralChange();
             m_Entities->AssertEntitiesExist(&entity, 1);
-
             m_Entities->AddComponent(entity, type, m_ArchetypeManager, m_SharedComponentManager, m_GroupManager, m_CachedComponentTypeInArchetypeArray);
         }
         
         public void RemoveComponent(Entity entity, ComponentType type)
         {
-            BeforeImmediateStructualChange();
+            BeforeStructuralChange();
             m_Entities->AssertEntityHasComponent(entity, type);
-
             m_Entities->RemoveComponent(entity, type, m_ArchetypeManager, m_SharedComponentManager, m_GroupManager, m_CachedComponentTypeInArchetypeArray);
         }
         
@@ -416,7 +400,7 @@ namespace UnityEngine.ECS
 
         public void SetSharedComponentData<T>(Entity entity, T componentData) where T: struct, ISharedComponentData
         {
-            BeforeImmediateStructualChange();
+            BeforeStructuralChange();
             
             int typeIndex = TypeManager.GetTypeIndex<T>();
             m_Entities->AssertEntityHasComponent(entity, typeIndex);
@@ -464,53 +448,37 @@ namespace UnityEngine.ECS
 
         public EntityTransaction BeginTransaction()
         {
+            m_JobSafetyManager.BeginTransaction();
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            m_EntityTransaction.SetAtomicSafetyHandle(m_JobSafetyManager.ExclusiveTransactionSafety);
+#endif
             return m_EntityTransaction;
         }
 
         public JobHandle EntityTransactionDependency
         {
-            get { return m_JobSafetyManager.CreationJob; }
-            set
-            {
+            get { return m_JobSafetyManager.ExclusiveTransactionDependency; }
+            set { m_JobSafetyManager.ExclusiveTransactionDependency = value; }
+        }
+
+        public void EndTransaction()
+        {
+            m_JobSafetyManager.EndTransaction();
+        }
+
+        void BeforeStructuralChange()
+        {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-                if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(m_JobSafetyManager.CreationJob, value))
-                    throw new System.ArgumentException("The assigned job dependency does not depend on the previous EntityTransactionDependency. You must schedule all jobs using EntityTransaction with a dependency on EntityManager.EntityTransactionDependency.");
+            if (m_JobSafetyManager.IsInTransaction)
+                throw new System.InvalidOperationException("Access to EntityManager is not allowed after EntityManager.BeginTransaction(); has been called.");
 #endif
-
-                m_JobSafetyManager.CreationJob = value;
-            }
-        }
-
-        // Call this transactionable structure changes (instantiate, create entity etc)
-        void BeforeImmediateStructualTransaction()
-        {
-            CommitTransaction();
-        }
-        // Call this after transactionable structure changes to integrate them
-        void AfterImmediateStructuralTransaction()
-        {
-            m_ArchetypeManager.IntegrateChunks();
-        }
-        // Call this before doing a change that has to be applied immediately anyway.
-        // Thus no need to do anything after the transaction
-        void BeforeImmediateStructualChange()
-        {
-            CommitTransaction();
-        }
-
-        public void CommitTransaction()
-        {
-            // We are going to mutate ComponentGroup iteration state, so no iteration jobs may be running in parallel to this
             m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
-            // Creation is exclusive to one job or main thread at a time, thus make sure any creation jobs are done
-            m_JobSafetyManager.CompleteCreationJob();
-            // Ensure that all transaction state has been applied
-            m_ArchetypeManager.IntegrateChunks();
         }
 
+        //@TODO: Not clear to me what this method is really for...
         public void CompleteAllJobs()
         {
-            CommitTransaction();
+            m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
         }
 
         public void MoveEntitiesFrom(EntityManager srcEntities)
@@ -520,9 +488,9 @@ namespace UnityEngine.ECS
                 throw new System.ArgumentException("srcEntities must not be the same as this EntityManager.");
 #endif
 
-            BeforeImmediateStructualChange();
-            srcEntities.BeforeImmediateStructualChange();
-            
+            BeforeStructuralChange();
+            srcEntities.BeforeStructuralChange();
+
             ArchetypeManager.MoveChunks(srcEntities.m_ArchetypeManager, srcEntities.m_Entities, m_ArchetypeManager, m_GroupManager, m_SharedComponentManager, m_Entities);
             
             //@TODO: Need to incrmeent the component versions based the moved chunks...
@@ -531,8 +499,6 @@ namespace UnityEngine.ECS
         public void CheckInternalConsistency()
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-
-            CommitTransaction();
 
             //@TODO: Validate from perspective of componentgroup...
             //@TODO: Validate shared component data refcounts...

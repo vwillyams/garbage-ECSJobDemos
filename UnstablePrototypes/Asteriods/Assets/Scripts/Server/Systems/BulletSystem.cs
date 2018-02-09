@@ -17,7 +17,7 @@ namespace Asteriods.Server
         }
 
 
-        [InjectComponentGroup]
+        [Inject]
         Bullet bullets;
 
         override protected void OnCreateManager(int capacity)

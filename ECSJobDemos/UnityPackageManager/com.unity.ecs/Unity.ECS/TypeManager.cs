@@ -38,13 +38,14 @@ namespace UnityEngine.ECS
         static ComponentType[]    m_Types;
         static volatile int       m_Count;
         static SpinLock           m_CreateTypeLock;
+        public const int MaximumTypesCount = 1024 * 10;
 
         public static void Initialize()
         {
             if (m_Types == null)
             {
                 m_CreateTypeLock = new SpinLock();
-                m_Types = new ComponentType[1024 * 10];
+                m_Types = new ComponentType[MaximumTypesCount];
                 m_Count = 0;
 
                 m_Types[m_Count++] = new ComponentType(null, 0, TypeCategory.IComponentData);
@@ -53,10 +54,6 @@ namespace UnityEngine.ECS
             }
         }
 
-        public static int MaximumTypesCount
-        {
-            get { return m_Types.Length; }
-        }
 
         public static int GetTypeIndex<T>()
         {

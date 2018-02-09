@@ -48,6 +48,14 @@ namespace UnityEngine.ECS
             return true;
         }
 
+        internal int GetSharedComponentFromCurrentChunk(int sharedComponentIndex)
+        {
+            var archetype = m_CurrentMatchingArchetype->archetype;
+            var indexInArchetype = m_CurrentMatchingArchetype->typeIndexInArchetypeArray[sharedComponentIndex];
+            int sharedComponentOffset = archetype->sharedComponentOffset[indexInArchetype];
+            return m_CurrentChunk->sharedComponentValueArray[sharedComponentOffset];
+        }
+
         private void MoveToNextMatchingChunk()
         {
             var m = m_CurrentMatchingArchetype;

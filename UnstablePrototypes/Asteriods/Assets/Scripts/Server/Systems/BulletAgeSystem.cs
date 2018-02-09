@@ -21,7 +21,7 @@ namespace Asteriods.Server
             public EntityArray entities;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         Bullets bullets;
 
         override protected void OnUpdate()

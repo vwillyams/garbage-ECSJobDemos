@@ -22,7 +22,7 @@ namespace Asteriods.Client
         {
             public ComponentDataArray<LineRendererComponentData> line;
         }
-        [InjectComponentGroup]
+        [Inject]
         LineList m_LineListComponent;
         struct Particles
         {
@@ -35,7 +35,7 @@ namespace Asteriods.Client
             public ComponentDataArray<RotationComponentData> rotation;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         Particles particles;
 
         [ComputeJobOptimization]
@@ -91,11 +91,11 @@ namespace Asteriods.Client
             public EntityArray entities;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         Particles particles;
 
-
-        [ComputeJobOptimization]
+        // Burst crashes when using NativeQueue
+        //[ComputeJobOptimization]
         struct ParticleAgeJob : IJobParallelFor
         {
             public float deltaTime;
@@ -156,7 +156,7 @@ namespace Asteriods.Client
             public ComponentDataArray<PositionComponentData> position;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         Particles particles;
 
         [ComputeJobOptimization]
@@ -199,7 +199,7 @@ namespace Asteriods.Client
             public ComponentDataArray<ParticleComponentData> particle;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         Particles particles;
 
         [ComputeJobOptimization]
@@ -253,7 +253,7 @@ namespace Asteriods.Client
             }
         }
 
-        [InjectComponentGroup]
+        [Inject]
         Particles particles;
 
         override protected JobHandle OnUpdate(JobHandle inputDep)

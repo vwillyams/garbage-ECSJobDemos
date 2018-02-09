@@ -26,14 +26,14 @@ namespace Asteriods.Client
             public ComponentDataArray<RotationComponentData> rotation;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         Asteroid asteroids;
 
         struct LineList
         {
             public ComponentDataArray<LineRendererComponentData> line;
         }
-        [InjectComponentGroup]
+        [Inject]
         LineList m_LineListComponent;
 
         static float pulse = 1;

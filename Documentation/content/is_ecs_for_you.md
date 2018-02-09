@@ -1,4 +1,3 @@
-# is_ecs_for_you
 # Is ECS for you?
 If you're considering Unity's ECS, you probably fall into one of two camps:
 ## You already have a game, but it's slow

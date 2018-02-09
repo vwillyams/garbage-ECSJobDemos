@@ -16,7 +16,7 @@ namespace Asteriods.Server
             ComponentDataArray<AsteroidTagComponentData> tags;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         Asteroids asteroids;
 
         override protected void OnUpdate()

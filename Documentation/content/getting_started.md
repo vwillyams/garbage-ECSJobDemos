@@ -1,14 +1,14 @@
-# getting_started 
+# Getting Started 
 
-**What is the problem?**
-When making games with GameObject/MonoBehaviour, it is easy to write code that ends up being difficult to read, maintain and optimize. This is the result of a combination of factors: [object-oriented model](https://en.wikipedia.org/wiki/Object-oriented_programming), slow compiled code from Mono, [garbage collection](https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)) and single threaded code.
+**What are we trying to solve?**
+When making games with GameObject/MonoBehaviour, it is easy to write code that ends up being difficult to read, maintain and optimize. This is the result of a combination of factors: [object-oriented model](https://en.wikipedia.org/wiki/Object-oriented_programming), non-optimal machine code compiled from Mono, [garbage collection](https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)) and single threaded code.
 
 **ECS to the rescue**
 ECS is a way of writing code that focuses on the actual problems you are solving: the data and behavior that make up your game.
 
-In addition to being a better way of approaching game programming for design reasons, using ECS puts you in an ideal position to leverage Unity's job system, letting you take full advantage of today's multi-core processors.
+In addition to being a better way of approaching game programming for design reasons, using ECS puts you in an ideal position to leverage Unity's job system and burst compiler, letting you take full advantage of today's multi-core processors.
 
-We have exposed the Native Unity Job system so that users can gain the benefits of multithreaded batch processing from within their ECS C# scripts. The Native Job system has built in safety features such as avoiding [race conditions](https://en.wikipedia.org/wiki/Race_condition), dependancy analaysis and [injection](http://www.jamesshore.com/Blog/Dependency-Injection-Demystified.html), and feedback should a problem arise.
+We have exposed the Native Unity Job system so that users can gain the benefits of multithreaded batch processing from within their ECS C# scripts. The Native Job system has built in safety features for detecting [race conditions](https://en.wikipedia.org/wiki/Race_condition).
 
 However we need to introduce a new way of thinking and coding to take full advantage of the Job System.
 

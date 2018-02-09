@@ -111,6 +111,31 @@ namespace UnityEngine.ECS
             var archetypeManager = (ArchetypeManager)m_ArchetypeManager.Target;
             m_Entities->CreateEntities(archetypeManager, archetype.archetype, entities, count);
         }
+        
+        public Entity Instantiate(Entity srcEntity)
+        {
+            Entity entity;
+            InstantiateInternal(srcEntity, &entity, 1);
+            return entity;
+        }
+
+        public void Instantiate(Entity srcEntity, NativeArray<Entity> outputEntities)
+        {
+            InstantiateInternal(srcEntity, (Entity*)outputEntities.GetUnsafePtr(), outputEntities.Length);
+        }
+
+        void InstantiateInternal(Entity srcEntity, Entity* outputEntities, int count)
+        {
+            CheckAccess();
+
+            if (!m_Entities->Exists(srcEntity))
+                throw new System.ArgumentException("srcEntity is not a valid entity");
+
+            var archetypeManager = (ArchetypeManager)m_ArchetypeManager.Target;
+            var sharedComponentDataManager = (SharedComponentDataManager)m_SharedComponentDataManager.Target;
+
+            m_Entities->InstantiateEntities(archetypeManager, sharedComponentDataManager, srcEntity, outputEntities, count);
+        }
 
         public void DestroyEntity(NativeArray<Entity> entities)
         {

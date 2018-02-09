@@ -249,10 +249,6 @@ namespace UnityEngine.ECS
         {
             get
             {
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-                if (!m_IsInTransaction)
-                    throw new System.InvalidOperationException("EntityManager.TransactionDependency can only after EntityManager.BeginTransaction has been called.");
-#endif    
                 return m_ExclusiveTransactionDependency;
             }
             set

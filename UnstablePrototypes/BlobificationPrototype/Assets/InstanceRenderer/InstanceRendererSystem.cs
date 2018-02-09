@@ -34,7 +34,7 @@ namespace UnityEngine.ECS.Rendering
 
 		    maingroup.CompleteDependency();
 
-            EntityManager.GetAllUniqueSharedComponents(uniqueRendererTypes);
+            EntityManager.GetAllUniqueSharedComponentDatas(uniqueRendererTypes);
 
             for (int i = 0;i != uniqueRendererTypes.Count;i++)
             {

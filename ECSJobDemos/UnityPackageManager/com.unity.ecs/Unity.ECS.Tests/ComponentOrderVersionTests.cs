@@ -240,7 +240,6 @@ namespace UnityEngine.ECS.Tests
         }
         
         [Test]
-        [Ignore("Fails, DestroyEntity does not release the shared component data")]
         public void DestroySharedComponentDataSetsOrderVersionToZero()
         {
             var sharedData = new SharedData1(1);
@@ -249,7 +248,7 @@ namespace UnityEngine.ECS.Tests
             
             m_Manager.DestroyEntity(entity);
 
-            Assert.AreEqual(1, m_Manager.GetSharedComponentOrderVersion(sharedData));
+            Assert.AreEqual(0, m_Manager.GetSharedComponentOrderVersion(sharedData));
         }
     }
 }

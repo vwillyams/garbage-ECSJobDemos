@@ -17,19 +17,37 @@ namespace UnityEngine.ECS
         GCHandle                           m_ArchetypeManager;
 
         [NativeDisableUnsafePtrRestriction]
+        GCHandle                           m_EntityGroupManager;
+
+        [NativeDisableUnsafePtrRestriction]
+        GCHandle                           m_SharedComponentDataManager;
+
+        [NativeDisableUnsafePtrRestriction]
         EntityDataManager*                 m_Entities;
 
         [NativeDisableUnsafePtrRestriction]
         ComponentTypeInArchetype*          m_CachedComponentTypeInArchetypeArray;
 
-        internal EntityTransaction(ArchetypeManager archetypes, EntityDataManager* data)
+        internal EntityTransaction(ArchetypeManager archetypes, EntityGroupManager entityGroupManager, SharedComponentDataManager sharedComponentDataManager, EntityDataManager* data)
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_Safety = new AtomicSafetyHandle();
 #endif
             m_Entities = data;
             m_ArchetypeManager = GCHandle.Alloc(archetypes, GCHandleType.Weak);
+            m_EntityGroupManager = GCHandle.Alloc(entityGroupManager, GCHandleType.Weak);
+            m_SharedComponentDataManager = GCHandle.Alloc(sharedComponentDataManager, GCHandleType.Weak);
+            
             m_CachedComponentTypeInArchetypeArray = (ComponentTypeInArchetype*)UnsafeUtility.Malloc(sizeof(ComponentTypeInArchetype) * 32 * 1024, 16, Allocator.Persistent);
+        }
+        
+        internal void OnDestroyManager()
+        {
+            UnsafeUtility.Free(m_CachedComponentTypeInArchetypeArray, Allocator.Persistent);
+            m_ArchetypeManager.Free();
+            m_EntityGroupManager.Free();
+            m_SharedComponentDataManager.Free();
+            m_Entities = null;
         }
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -60,14 +78,10 @@ namespace UnityEngine.ECS
             CheckAccess();
 
             var archetypeManager = (ArchetypeManager)m_ArchetypeManager.Target;
+            var groupManager = (EntityGroupManager)m_EntityGroupManager.Target;
 
             EntityArchetype type;
-            type.archetype = archetypeManager.GetExistingArchetype(m_CachedComponentTypeInArchetypeArray, PopulatedCachedTypeInArchetypeArray(types));
-            
-            #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            if (type.archetype == null)
-                throw new System.ArgumentException("EntityTransaction.CreateArchetype may only lookup existing archetypes");
-            #endif
+            type.archetype = archetypeManager.GetOrCreateArchetype(m_CachedComponentTypeInArchetypeArray, PopulatedCachedTypeInArchetypeArray(types), groupManager);
             
             return type;
         }
@@ -95,22 +109,98 @@ namespace UnityEngine.ECS
         {
             CheckAccess();
             var archetypeManager = (ArchetypeManager)m_ArchetypeManager.Target;
-            m_Entities->CreateEntities(archetypeManager, archetype.archetype, entities, count, false);
+            m_Entities->CreateEntities(archetypeManager, archetype.archetype, entities, count);
+        }
+        
+        public Entity Instantiate(Entity srcEntity)
+        {
+            Entity entity;
+            InstantiateInternal(srcEntity, &entity, 1);
+            return entity;
         }
 
+        public void Instantiate(Entity srcEntity, NativeArray<Entity> outputEntities)
+        {
+            InstantiateInternal(srcEntity, (Entity*)outputEntities.GetUnsafePtr(), outputEntities.Length);
+        }
+
+        void InstantiateInternal(Entity srcEntity, Entity* outputEntities, int count)
+        {
+            CheckAccess();
+
+            if (!m_Entities->Exists(srcEntity))
+                throw new System.ArgumentException("srcEntity is not a valid entity");
+
+            var archetypeManager = (ArchetypeManager)m_ArchetypeManager.Target;
+            var sharedComponentDataManager = (SharedComponentDataManager)m_SharedComponentDataManager.Target;
+
+            m_Entities->InstantiateEntities(archetypeManager, sharedComponentDataManager, srcEntity, outputEntities, count);
+        }
+
+        public void DestroyEntity(NativeArray<Entity> entities)
+        {
+            DestroyEntityInternal((Entity*)entities.GetUnsafeReadOnlyPtr(), entities.Length);
+        }
+
+        public void DestroyEntity(NativeSlice<Entity> entities)
+        {
+            DestroyEntityInternal((Entity*)entities.GetUnsafeReadOnlyPtr(), entities.Length);
+        }
+
+        public void DestroyEntity(Entity entity)
+        {
+            DestroyEntityInternal(&entity, 1);
+        }
+
+        void DestroyEntityInternal(Entity* entities, int count)
+        {
+            CheckAccess();
+            m_Entities->AssertEntitiesExist(entities, count);
+            
+            var archetypeManager = (ArchetypeManager)m_ArchetypeManager.Target;
+            var sharedComponentDataManager = (SharedComponentDataManager)m_SharedComponentDataManager.Target;
+
+            m_Entities->DeallocateEnties(archetypeManager, sharedComponentDataManager, entities, count);
+        }
+        
+        public void AddComponent(Entity entity, ComponentType type)
+        {
+            CheckAccess();
+
+            var archetypeManager = (ArchetypeManager)m_ArchetypeManager.Target;
+            var sharedComponentDataManager = (SharedComponentDataManager)m_SharedComponentDataManager.Target;
+            var groupManager = (EntityGroupManager)m_EntityGroupManager.Target;
+
+            m_Entities->AssertEntitiesExist(&entity, 1);
+            m_Entities->AddComponent(entity, type, archetypeManager, sharedComponentDataManager, groupManager, m_CachedComponentTypeInArchetypeArray);
+        }
+        
+        public void RemoveComponent(Entity entity, ComponentType type)
+        {
+            CheckAccess();
+
+            var archetypeManager = (ArchetypeManager)m_ArchetypeManager.Target;
+            var sharedComponentDataManager = (SharedComponentDataManager)m_SharedComponentDataManager.Target;
+            var groupManager = (EntityGroupManager)m_EntityGroupManager.Target;
+
+            m_Entities->AssertEntityHasComponent(entity, type);
+            m_Entities->RemoveComponent(entity, type, archetypeManager, sharedComponentDataManager, groupManager, m_CachedComponentTypeInArchetypeArray);
+        }
+        
+        
         public bool Exists(Entity entity)
         {
             CheckAccess();
 
-            return m_Entities->ExistsFromTransaction(entity);
+            return m_Entities->Exists(entity);
         }
 
-        public T GetComponent<T>(Entity entity) where T : struct, IComponentData
+        public T GetComponentData<T>(Entity entity) where T : struct, IComponentData
         {
             CheckAccess();
 
             int typeIndex = TypeManager.GetTypeIndex<T>();
-            m_Entities->AssertEntityHasComponentFromTransaction(entity, typeIndex);
+            m_Entities->AssertEntityHasComponent(entity, typeIndex);
 
             byte* ptr = m_Entities->GetComponentDataWithType (entity, typeIndex);
 
@@ -119,24 +209,41 @@ namespace UnityEngine.ECS
             return data;
         }
 
-        unsafe public void SetComponent<T>(Entity entity, T componentData) where T: struct, IComponentData
+        unsafe public void SetComponentData<T>(Entity entity, T componentData) where T: struct, IComponentData
         {
             CheckAccess();
 
             int typeIndex = TypeManager.GetTypeIndex<T>();
-            m_Entities->AssertEntityHasComponentFromTransaction(entity, typeIndex);
+            m_Entities->AssertEntityHasComponent(entity, typeIndex);
 
             byte* ptr = m_Entities->GetComponentDataWithType (entity, typeIndex);
             UnsafeUtility.CopyStructureToPtr (ref componentData, ptr);
         }
-
-        internal void OnDestroyManager()
+        
+        unsafe public T GetSharedComponentData<T>(Entity entity) where T : struct, ISharedComponentData
         {
-            UnsafeUtility.Free(m_CachedComponentTypeInArchetypeArray, Allocator.Persistent);
-            m_ArchetypeManager.Free();
-            m_Entities = null;
-        }
+            int typeIndex = TypeManager.GetTypeIndex<T>();
+            m_Entities->AssertEntityHasComponent(entity, typeIndex);
 
-        //@TODO: SharedComponentData API, Fixed Array API
+            var sharedComponentDataManager = (SharedComponentDataManager)m_SharedComponentDataManager.Target;
+
+            int sharedComponentIndex = m_Entities->GetSharedComponentDataIndex(entity, typeIndex);
+            return sharedComponentDataManager.GetSharedComponentData<T>(sharedComponentIndex);
+        }
+        
+        public void SetSharedComponentData<T>(Entity entity, T componentData) where T: struct, ISharedComponentData
+        {
+            CheckAccess();
+            
+            int typeIndex = TypeManager.GetTypeIndex<T>();
+            m_Entities->AssertEntityHasComponent(entity, typeIndex);
+            
+            var archetypeManager = (ArchetypeManager)m_ArchetypeManager.Target;
+            var sharedComponentDataManager = (SharedComponentDataManager)m_SharedComponentDataManager.Target;
+            
+            int newSharedComponentDataIndex = sharedComponentDataManager.InsertSharedComponent(componentData);
+            m_Entities->SetSharedComponentDataIndex(archetypeManager, sharedComponentDataManager, entity, typeIndex, newSharedComponentDataIndex);
+            sharedComponentDataManager.RemoveReference(newSharedComponentDataIndex);
+        }
     }
 }

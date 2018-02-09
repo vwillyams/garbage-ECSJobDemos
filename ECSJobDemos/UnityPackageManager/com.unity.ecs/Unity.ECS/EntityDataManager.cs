@@ -73,14 +73,8 @@ namespace UnityEngine.ECS
             m_Entities[m_EntitiesCapacity - 1].indexInChunk = -1;
         }
 
-        void IncreaseCapacity(bool allowIncreaseCapacity)
+        void IncreaseCapacity()
         {
-            //@TODO: This is not a good long term solution. Better would be to use virtual alloc,
-            //       so we can increase the size from any thread...
-            if (!allowIncreaseCapacity)
-                throw new System.InvalidOperationException(
-                    "EntityManager.EntityCapacity is not large enough to support the number of created Entities from a Transaction.");
-
             Capacity = 2 * Capacity;
         }
 
@@ -108,14 +102,6 @@ namespace UnityEngine.ECS
         public bool Exists(Entity entity)
         {
             bool exists = m_Entities[entity.index].version == entity.version;
-
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            EntityData* entityData = m_Entities + entity.index;
-            if (exists && entityData->indexInChunk >= entityData->chunk->count)
-                throw new System.ArgumentException(
-                    "The entity has been created in a transaction but not yet committed, you are not allowed to access it via EntityManager before calling EntityManager.CommitTransaction();");
-#endif
-
             return exists;
         }
 
@@ -127,30 +113,8 @@ namespace UnityEngine.ECS
                 Entity* entity = entities + i;
                 bool exists = m_Entities[entity->index].version == entity->version;
                 if (!exists)
-                    throw new System.ArgumentException(
-                        "All entities passed to EntityManager must exist. One of the entities has already been destroyed or was never created.");
-
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-                EntityData* entityData = m_Entities + entity->index;
-                if (entityData->indexInChunk >= entityData->chunk->count)
-                    throw new System.ArgumentException(
-                        "The entity has been created in a transaction but not yet committed, you are not allowed to access it via EntityManager before calling EntityManager.CommitTransaction();");
-#endif
+                    throw new System.ArgumentException("All entities passed to EntityManager must exist. One of the entities has already been destroyed or was never created.");
             }
-        }
-
-
-        public bool ExistsFromTransaction(Entity entity)
-        {
-            bool exists = m_Entities[entity.index].version == entity.version;
-
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            EntityData* entityData = m_Entities + entity.index;
-            if (exists && entityData->indexInChunk < entityData->chunk->count)
-                throw new System.ArgumentException(
-                    "You are accessing the entity from a transaction, but the entity has already been committed and is thus not available from the transaction. Another thread might otherwise mutate the component data while the transaction job is running.");
-#endif
-            return exists;
         }
 
         [System.Diagnostics.Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
@@ -183,19 +147,6 @@ namespace UnityEngine.ECS
             }
         }
 
-        [System.Diagnostics.Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
-        public void AssertEntityHasComponentFromTransaction(Entity entity, int componentType)
-        {
-            if (!HasComponentFromTransaction(entity, componentType))
-            {
-                if (!ExistsFromTransaction(entity))
-                    throw new System.ArgumentException("The entity does not exist");
-                else
-                    //@TODO: Throw with specific type...
-                    throw new System.ArgumentException("The component has not been added to the entity.");
-            }
-        }
-
         public void DeallocateEnties(ArchetypeManager typeMan, SharedComponentDataManager sharedComponentDataManager, Entity* entities, int count)
         {
             while (count != 0)
@@ -208,8 +159,7 @@ namespace UnityEngine.ECS
                 fixed (EntityDataManager* manager = &this)
                 {
 #if USE_BURST_DESTROY
-                    chunk =
- ms_DeallocateDataEntitiesInChunkDelegate(manager , entities, count, out indexInChunk, out batchCount);
+                    chunk = ms_DeallocateDataEntitiesInChunkDelegate(manager , entities, count, out indexInChunk, out batchCount);
 #else
                     chunk = DeallocateDataEntitiesInChunk(manager, entities, count, out indexInChunk, out batchCount);
 #endif
@@ -335,8 +285,7 @@ namespace UnityEngine.ECS
         }
 #endif
 
-        public void AllocateEntities(Archetype* arch, Chunk* chunk, int baseIndex, int count, Entity* outputEntities,
-            bool allowIncreaseCapacity)
+        public void AllocateEntities(Archetype* arch, Chunk* chunk, int baseIndex, int count, Entity* outputEntities)
         {
             Assert.AreEqual(chunk->archetype->offsets[0], 0);
             Assert.AreEqual(chunk->archetype->sizeOfs[0], sizeof(Entity));
@@ -348,7 +297,7 @@ namespace UnityEngine.ECS
                 EntityData* entity = m_Entities + m_EntitiesFreeIndex;
                 if (entity->indexInChunk == -1)
                 {
-                    IncreaseCapacity(allowIncreaseCapacity);
+                    IncreaseCapacity();
                     entity = m_Entities + m_EntitiesFreeIndex;
                 }
 
@@ -371,15 +320,6 @@ namespace UnityEngine.ECS
         public bool HasComponent(Entity entity, int type)
         {
             if (!Exists(entity))
-                return false;
-
-            Archetype* archetype = m_Entities[entity.index].archetype;
-            return ChunkDataUtility.GetIndexInTypeArray(archetype, type) != -1;
-        }
-
-        public bool HasComponentFromTransaction(Entity entity, int type)
-        {
-            if (!ExistsFromTransaction(entity))
                 return false;
 
             Archetype* archetype = m_Entities[entity.index].archetype;
@@ -448,7 +388,7 @@ namespace UnityEngine.ECS
             int* sharedComponentDataIndices)
         {
             Chunk* chunk = typeMan.GetChunkWithEmptySlots(archetype, sharedComponentDataIndices);
-            int chunkIndex = typeMan.AllocateIntoChunkImmediate(chunk);
+            int chunkIndex = typeMan.AllocateIntoChunk(chunk);
 
             Archetype* oldArchetype = m_Entities[entity.index].archetype;
             Chunk* oldChunk = m_Entities[entity.index].chunk;
@@ -645,14 +585,14 @@ namespace UnityEngine.ECS
             typeMan.SetChunkCount(oldChunk, oldChunk->count - 1);
         }
 
-        public void CreateEntities(ArchetypeManager archetypeManager, Archetype* archetype, Entity* entities, int count, bool allowIncreaseCapacity)
+        public void CreateEntities(ArchetypeManager archetypeManager, Archetype* archetype, Entity* entities, int count)
         {
             while (count != 0)
             {
                 Chunk* chunk = archetypeManager.GetChunkWithEmptySlots(archetype, null);
                 int allocatedIndex;
                 int allocatedCount = archetypeManager.AllocateIntoChunk(chunk, count, out allocatedIndex);
-                AllocateEntities(archetype, chunk, allocatedIndex, allocatedCount, entities, allowIncreaseCapacity);
+                AllocateEntities(archetype, chunk, allocatedIndex, allocatedCount, entities);
                 ChunkDataUtility.ClearComponents(chunk, allocatedIndex, allocatedCount);
 
                 entities += allocatedCount;
@@ -662,7 +602,7 @@ namespace UnityEngine.ECS
             IncrementComponentTypeOrderVersion(archetype);
         }
 
-        public void InstantiateEntities(ArchetypeManager archetypeManager, SharedComponentDataManager sharedComponentDataManager, Entity srcEntity, Entity* outputEntities, int count, bool allowIncreaseCapacity)
+        public void InstantiateEntities(ArchetypeManager archetypeManager, SharedComponentDataManager sharedComponentDataManager, Entity srcEntity, Entity* outputEntities, int count)
         {
             int srcIndex = m_Entities[srcEntity.index].indexInChunk;
             Chunk* srcChunk = m_Entities[srcEntity.index].chunk;
@@ -677,8 +617,7 @@ namespace UnityEngine.ECS
 
                 ChunkDataUtility.ReplicateComponents(srcChunk, srcIndex, chunk, indexInChunk, allocatedCount);
 
-                AllocateEntities(srcArchetype, chunk, indexInChunk, allocatedCount, outputEntities,
-                    allowIncreaseCapacity);
+                AllocateEntities(srcArchetype, chunk, indexInChunk, allocatedCount, outputEntities);
 
                 outputEntities += allocatedCount;
                 count -= allocatedCount;
@@ -718,10 +657,9 @@ namespace UnityEngine.ECS
                 sharedComponentIndices[sharedComponentOffset] = newSharedComponentDataIndex;
 
                 var newChunk = archetypeManager.GetChunkWithEmptySlots(archetype, sharedComponentIndices);
-                int newChunkIndex = archetypeManager.AllocateIntoChunkImmediate(newChunk);
+                int newChunkIndex = archetypeManager.AllocateIntoChunk(newChunk);
 
                 IncrementComponentOrderVersion(archetype, srcChunk, sharedComponentDataManager);
-//              sharedComponentDataManager.IncrementSharedComponentVersion(newSharedComponentDataIndex);
 
                 MoveEntityToChunk(archetypeManager, entity, newChunk, newChunkIndex);
             }

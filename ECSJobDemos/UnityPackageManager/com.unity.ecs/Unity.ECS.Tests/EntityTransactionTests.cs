@@ -35,8 +35,8 @@ namespace UnityEngine.ECS.Tests
             public void Execute()
             {
                 var entity = entities.CreateEntity(ComponentType.Create<EcsTestData>());
-                entities.SetComponent(entity, new EcsTestData(42));
-                Assert.AreEqual(42, entities.GetComponent<EcsTestData>(entity).value);
+                entities.SetComponentData(entity, new EcsTestData(42));
+                Assert.AreEqual(42, entities.GetComponentData<EcsTestData>(entity).value);
 
                 createdEntities.Add(entity);
             }
@@ -49,11 +49,10 @@ namespace UnityEngine.ECS.Tests
             public void Execute()
             {
                 var entity = entities.CreateEntity(ComponentType.Create<EcsTestData>());
-                entities.SetComponent(entity, new EcsTestData(42));
-                Assert.AreEqual(42, entities.GetComponent<EcsTestData>(entity).value);
+                entities.SetComponentData(entity, new EcsTestData(42));
+                Assert.AreEqual(42, entities.GetComponentData<EcsTestData>(entity).value);
             }
         }
-
 
         [Test]
         public void CreateEntitiesChainedJob()
@@ -65,7 +64,7 @@ namespace UnityEngine.ECS.Tests
             m_Manager.EntityTransactionDependency = job.Schedule(m_Manager.EntityTransactionDependency);
             m_Manager.EntityTransactionDependency = job.Schedule(m_Manager.EntityTransactionDependency);
 
-            m_Manager.CommitTransaction();
+            m_Manager.EndTransaction();
 
             Assert.AreEqual(2, m_Group.CalculateLength());
             Assert.AreEqual(42, m_Group.GetComponentDataArray<EcsTestData>()[0].value);
@@ -88,53 +87,38 @@ namespace UnityEngine.ECS.Tests
 
             // Commit transaction expects an error not exception otherwise errors might occurr after a system has completed...
             TestTools.LogAssert.Expect(LogType.Error, new Regex("EntityTransaction job has not been registered"));
-            m_Manager.CommitTransaction();
+            m_Manager.EndTransaction();
         }
 
         [Test]
-        public void CreateEntityAfterCreationJobAutomaticallyCommitsTransaction()
+        public void EntityManagerAccessDuringTransactionThrows()
         {
             var job = new CreateEntityAddToListJob();
             job.entities = m_Manager.BeginTransaction();
-            job.createdEntities = new NativeList<Entity>(0, Allocator.TempJob);
 
-            m_Manager.EntityTransactionDependency = job.Schedule(m_Manager.EntityTransactionDependency);
-
-            var entity = m_Manager.CreateEntity(typeof(EcsTestData));
-
-            Assert.AreEqual(2, m_Group.CalculateLength());
-            Assert.AreEqual(42, m_Group.GetComponentDataArray<EcsTestData>()[0].value);
-            Assert.AreEqual(0, m_Group.GetComponentDataArray<EcsTestData>()[1].value);
-
-            Assert.IsTrue(m_Manager.Exists(job.createdEntities[0]));
-            Assert.IsTrue(m_Manager.Exists(entity));
-            Assert.AreNotEqual(entity, job.createdEntities[0]);
-
-            job.createdEntities.Dispose();
+            Assert.Throws<InvalidOperationException>(() => { m_Manager.CreateEntity(typeof(EcsTestData)); });
+            
+            //@TODO:
+            //Assert.Throws<InvalidOperationException>(() => { m_Manager.Exists(new Entity()); });
         }
 
         [Test]
-        public void AccessInTransactionEntityFromEntityManagerThrows()
+        public void AccessTransactionAfterEndTransactionThrows()
         {
             var transaction = m_Manager.BeginTransaction();
-            var entity = transaction.CreateEntity(typeof(EcsTestData));
+            m_Manager.EndTransaction();
 
-            Assert.Throws<ArgumentException>(() => { m_Manager.GetComponentData<EcsTestData>(entity); });
-            Assert.Throws<ArgumentException>(() => { var temp = m_Manager.GetComponentDataFromEntity<EcsTestData>()[entity]; });
-            Assert.Throws<ArgumentException>(() => { m_Manager.SetComponentData<EcsTestData>(entity, new EcsTestData()); });
-            Assert.Throws<ArgumentException>(() => { m_Manager.Exists(entity); });
+            Assert.Throws<InvalidOperationException>(() => { transaction.CreateEntity(typeof(EcsTestData)); });
         }
 
-
         [Test]
-        public void AccessExistingEntityFromTransactionThrows()
+        public void AccessExistingEntityFromTransactionWorks()
         {
-            var transaction = m_Manager.BeginTransaction();
             var entity = m_Manager.CreateEntity(typeof(EcsTestData));
-
-            Assert.Throws<ArgumentException>(() => { transaction.GetComponent<EcsTestData>(entity); });
-            Assert.Throws<ArgumentException>(() => { transaction.SetComponent<EcsTestData>(entity, new EcsTestData()); });
-            Assert.Throws<ArgumentException>(() => { transaction.Exists(entity); });
+            m_Manager.SetComponentData(entity, new EcsTestData(42));
+            
+            var transaction = m_Manager.BeginTransaction();
+            Assert.AreEqual(42, transaction.GetComponentData<EcsTestData>(entity).value);
         }
 
         [Test]
@@ -163,13 +147,13 @@ namespace UnityEngine.ECS.Tests
         }
 
         [Test]
-        public void CreatingEntitiesBeyondCapacityInTransactionThrows()
+        public void CreatingEntitiesBeyondCapacityInTransactionWorks()
         {
             var arch = m_Manager.CreateArchetype(typeof(EcsTestData));
 
             var transaction = m_Manager.BeginTransaction();
             var entities = new NativeArray<Entity>(1000, Allocator.Persistent);
-            Assert.Throws<InvalidOperationException>(() => { transaction.CreateEntity(arch, entities); });
+            transaction.CreateEntity(arch, entities);
             entities.Dispose();
         }
     }

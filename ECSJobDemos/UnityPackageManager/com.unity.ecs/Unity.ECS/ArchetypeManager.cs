@@ -88,7 +88,6 @@ namespace UnityEngine.ECS
         //       to allow for casting & grabbing Chunk* from nodes...
         public UnsafeLinkedListNode  chunkListNode;
         public UnsafeLinkedListNode  chunkListWithEmptySlotsNode;
-        public UnsafeLinkedListNode  chunkListNotYetIntegratedNode;
 
         public Archetype*            archetype;
         public int* 		         sharedComponentValueArray;
@@ -99,7 +98,8 @@ namespace UnityEngine.ECS
         public int 		             capacity;
 
         public int                   managedArrayIndex;
-        public int 		             notYetIntegratedCount;
+        
+        public int                   padding0;
         
         // Component data buffer
         public fixed byte 		     buffer[4];
@@ -153,7 +153,6 @@ namespace UnityEngine.ECS
         internal Archetype*                 m_LastArchetype;
 
         UnsafeLinkedListNode*               m_EmptyChunkPool;
-        UnsafeLinkedListNode*               m_NotIntegratedChunks;
 
 
         unsafe struct ManagedArrayStorage
@@ -179,10 +178,6 @@ namespace UnityEngine.ECS
             m_EmptyChunkPool = (UnsafeLinkedListNode*)m_ArchetypeChunkAllocator.Allocate(sizeof(UnsafeLinkedListNode), UnsafeUtility.AlignOf<UnsafeLinkedListNode>());
             UnsafeLinkedListNode.InitializeList(m_EmptyChunkPool);
 
-            m_NotIntegratedChunks = (UnsafeLinkedListNode*)m_ArchetypeChunkAllocator.Allocate(sizeof(UnsafeLinkedListNode), UnsafeUtility.AlignOf<UnsafeLinkedListNode>());
-            UnsafeLinkedListNode.InitializeList(m_NotIntegratedChunks);
-		    
-		    
             // Buffer should be 16 byte aligned to ensure component data layout itself can gurantee being aligned
             int offset = UnsafeUtility.GetFieldOffset(typeof(Chunk).GetField("buffer"));
             Assert.AreEqual(0, offset % 16);
@@ -389,11 +384,6 @@ namespace UnityEngine.ECS
             return (Chunk*) (node - 1);
         }
 
-        public static Chunk* GetChunkFromNotYetIntegratedNode(UnsafeLinkedListNode* node)
-        {
-            return (Chunk*) (node - 2);
-        }
-
         unsafe public Chunk* AllocateChunk(Archetype* archetype, int* sharedComponentDataIndices)
         {
             byte* buffer = (byte*) UnsafeUtility.Malloc(Chunk.kChunkSize, 64, Allocator.Persistent);
@@ -428,13 +418,15 @@ namespace UnityEngine.ECS
             chunk->capacity = archetype->chunkCapacity;
             chunk->chunkListNode = new UnsafeLinkedListNode();
             chunk->chunkListWithEmptySlotsNode = new UnsafeLinkedListNode();
-            chunk->chunkListNotYetIntegratedNode = new UnsafeLinkedListNode();
-            chunk->notYetIntegratedCount = 0;
             chunk->sharedComponentValueArray = (int*)((byte*)(chunk) + Chunk.GetSharedComponentOffset(archetype->numSharedComponents));
 	        
+            archetype->chunkList.Add(&chunk->chunkListNode);
             archetype->chunkListWithEmptySlots.Add(&chunk->chunkListWithEmptySlotsNode);
 
+            Assert.IsTrue(!archetype->chunkList.IsEmpty);
             Assert.IsTrue(!archetype->chunkListWithEmptySlots.IsEmpty);
+            
+            Assert.IsTrue(chunk == (Chunk*)(archetype->chunkList.Back()));
             Assert.IsTrue(chunk == GetChunkFromEmptySlotNode(archetype->chunkListWithEmptySlots.Back()));
 
             if (archetype->numManagedArrays > 0)
@@ -499,7 +491,7 @@ namespace UnityEngine.ECS
                 if (archetype->numSharedComponents == 0)
                 {
                     var chunk = GetChunkFromEmptySlotNode(archetype->chunkListWithEmptySlots.Begin());
-                    Assert.AreNotEqual(chunk->count + chunk->notYetIntegratedCount, chunk->capacity);
+                    Assert.AreNotEqual(chunk->count, chunk->capacity);
                     return chunk;
                 }
 
@@ -531,71 +523,26 @@ namespace UnityEngine.ECS
             }
         }
 
-        public void IntegrateChunks()
+        public int AllocateIntoChunk(Chunk* chunk)
         {
-            while (!m_NotIntegratedChunks->IsEmpty)
-            {
-                var chunk = GetChunkFromNotYetIntegratedNode(m_NotIntegratedChunks->Begin());
-                chunk->chunkListNotYetIntegratedNode.Remove();
-
-                var archetype = chunk->archetype;
-
-                int notYetIntegrated = chunk->notYetIntegratedCount;
-                chunk->notYetIntegratedCount = 0;
-                Assert.IsTrue(notYetIntegrated > 0);
-
-                archetype->entityCount += notYetIntegrated;
-
-                if (!chunk->chunkListNode.IsInList)
-                    archetype->chunkList.Add(&chunk->chunkListNode);
-
-                SetChunkCount(chunk, chunk->count + notYetIntegrated);
-            }
+            int outIndex;
+            int res = AllocateIntoChunk(chunk, 1, out outIndex);
+            Assert.AreEqual(1, res);            
+            return outIndex;
         }
-
-        public int AllocateIntoChunk (Chunk* chunk, int desiredCount, out int outIndex)
+        
+        public int AllocateIntoChunk(Chunk* chunk, int count, out int outIndex)
         {
-            int oldChunkCount = chunk->count + chunk->notYetIntegratedCount;
-
-            int allocatedCount = Math.Min(chunk->capacity - oldChunkCount, desiredCount);
-
-            chunk->notYetIntegratedCount += allocatedCount;
-
-            if (!chunk->chunkListNotYetIntegratedNode.IsInList)
-                m_NotIntegratedChunks->Add(&chunk->chunkListNotYetIntegratedNode);
-            if (oldChunkCount + allocatedCount == chunk->capacity)
-                chunk->chunkListWithEmptySlotsNode.Remove();
-
-            outIndex = oldChunkCount;
+            int allocatedCount = Math.Min(chunk->capacity - chunk->count, count);
+            outIndex = chunk->count;
+            SetChunkCount(chunk, chunk->count + allocatedCount);
+            chunk->archetype->entityCount += allocatedCount;
             return allocatedCount;
-        }
-
-        public int AllocateIntoChunkImmediate(Chunk* chunk)
-        {
-            Assert.AreEqual(0, chunk->notYetIntegratedCount);
-            Assert.AreNotEqual(chunk->capacity, chunk->count);
-            Assert.IsFalse(chunk->chunkListNotYetIntegratedNode.IsInList);
-
-            int oldChunkCount = chunk->count;
-
-            // Chunk is no longer full
-            if (oldChunkCount + 1 == chunk->capacity)
-                chunk->chunkListWithEmptySlotsNode.Remove();
-            if (!chunk->chunkListNode.IsInList)
-                chunk->archetype->chunkList.Add(&chunk->chunkListNode);
-
-            chunk->archetype->entityCount++;
-
-            SetChunkCount(chunk, oldChunkCount + 1);
-
-            return oldChunkCount;
         }
 
         public void SetChunkCount(Chunk* chunk, int newCount)
         {
             Assert.AreNotEqual(newCount, chunk->count);
-            Assert.AreEqual(0, chunk->notYetIntegratedCount);
-            Assert.IsFalse(chunk->chunkListNotYetIntegratedNode.IsInList);
 
             int capacity = chunk->capacity;
 
@@ -626,7 +573,7 @@ namespace UnityEngine.ECS
             // Chunk is now full
             else if (newCount == capacity)
             {
-                Assert.IsFalse(chunk->chunkListWithEmptySlotsNode.IsInList);
+                chunk->chunkListWithEmptySlotsNode.Remove();
             }
             // Chunk is no longer full
             else if (chunk->count == capacity)
@@ -684,7 +631,6 @@ namespace UnityEngine.ECS
 
         public static void MoveChunks(ArchetypeManager srcArchetypeManager, EntityDataManager* srcEntityDataManager, ArchetypeManager dstArchetypeManager, EntityGroupManager dstGroupManager, SharedComponentDataManager dstSharedComponentDataManager, EntityDataManager* dstEntityDataManager)
         {
-            Assert.IsTrue(srcArchetypeManager.m_NotIntegratedChunks->IsEmpty);
             var entitiesArray = new NativeArray<Entity>(Chunk.kMaximumEntitiesPerChunk, Allocator.Temp);
             var entitiesPtr = (Entity*) entitiesArray.GetUnsafePtr();
 
@@ -700,10 +646,9 @@ namespace UnityEngine.ECS
                     for (var c = srcArchetype->chunkList.Begin();c != srcArchetype->chunkList.End();c = c->next)
                     {
                         Chunk* chunk = (Chunk*) c;
-                        Assert.AreEqual(0, chunk->notYetIntegratedCount);
 
                         EntityDataManager.FreeDataEntitiesInChunk(srcEntityDataManager, chunk, chunk->count);
-                        dstEntityDataManager->AllocateEntities(dstArchetype, chunk, 0, chunk->count, entitiesPtr, true);
+                        dstEntityDataManager->AllocateEntities(dstArchetype, chunk, 0, chunk->count, entitiesPtr);
 
                         chunk->archetype = dstArchetype;
                     }
@@ -724,8 +669,6 @@ namespace UnityEngine.ECS
 
         public int CheckInternalConsistency()
         {
-            Assert.IsTrue(m_NotIntegratedChunks->IsEmpty);
-
             var archetype = m_LastArchetype;
             int totalCount = 0;
             while (archetype != null)
@@ -734,7 +677,6 @@ namespace UnityEngine.ECS
                 for (var c = archetype->chunkList.Begin();c != archetype->chunkList.End();c = c->next)
                 {
                     Chunk* chunk = (Chunk*) c;
-                    Assert.AreEqual(0, chunk->notYetIntegratedCount);
                     Assert.IsTrue(chunk->archetype == archetype);
                     Assert.IsTrue(chunk->capacity >= chunk->count);
                     Assert.AreEqual(chunk->chunkListWithEmptySlotsNode.IsInList, chunk->capacity != chunk->count);

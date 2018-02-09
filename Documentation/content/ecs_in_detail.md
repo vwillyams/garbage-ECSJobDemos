@@ -1,4 +1,3 @@
-# ecs_in_detail
 # ECS Features in Detail
 
 ## Entity

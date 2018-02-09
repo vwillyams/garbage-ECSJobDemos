@@ -1,4 +1,3 @@
-# burst_optimization
 # How to Optimize for the Burst Compiler
 
 * Use Unity.Mathematics, burst natively understands the math operations and is optimized for it.

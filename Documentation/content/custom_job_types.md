@@ -1,4 +1,4 @@
-# custom_job_types
+# Custom job types
 On the very lowest level of the JobSystem jobs are scheduled by calling one of the Schedule functions in JobsUtility. The currently existing job types all use these functions, but it is also possible to create specialized job types using the same APIs.
 
 These API's use unsafe code and have to be crafted carefully since they can easily introduce unwanted race conditions. If you add your own job types, we strongly recommend to aim for full test coverage.

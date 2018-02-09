@@ -1,5 +1,3 @@
-# tutorial_3
-
 # Two-Stick Shooter ECS Tutorial
 
 In this series of posts, we're going to make a simple game using the Unity ECS and jobs as much as possible. The game type we picked for this was a simple two-stick shooter, something everyone can imagine building in a traditional way pretty easily.

@@ -12,7 +12,7 @@ namespace Asteriods.Client
             ComponentDataArray<PlayerTagComponentData> tags;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         Player player;
 
         override protected void OnCreateManager(int capacity)

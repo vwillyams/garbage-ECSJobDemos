@@ -19,7 +19,7 @@ namespace Asteriods.Server
             public EntityArray refs;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         DamagedEntities entities;
 
         [Inject]

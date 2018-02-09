@@ -19,7 +19,7 @@ namespace Asteriods.Client
             public ComponentDataArray<PlayerInputComponentData> input;
             public ComponentDataArray<ParticleEmitterComponentData> emitter;
         }
-        [InjectComponentGroup]
+        [Inject]
         Spaceships spaceships;
 
         override protected void OnUpdate()
@@ -52,14 +52,14 @@ namespace Asteriods.Client
             public ComponentDataArray<RotationComponentData> rotation;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         Spaceships spaceships;
 
         struct LineList
         {
             public ComponentDataArray<LineRendererComponentData> line;
         }
-        [InjectComponentGroup]
+        [Inject]
         LineList m_LineListComponent;
         override protected void OnUpdate()
         {

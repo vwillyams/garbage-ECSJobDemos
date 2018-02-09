@@ -16,7 +16,7 @@ namespace Asteriods.Client
             public ComponentDataArray<PlayerInputComponentData> input;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         SerializableData data;
 
         NetworkClient m_NetworkClient;

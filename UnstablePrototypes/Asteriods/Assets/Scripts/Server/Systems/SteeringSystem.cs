@@ -21,7 +21,7 @@ namespace Asteriods.Server
             ComponentDataArray<PlayerTagComponentData> tags;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         Spaceships spaceships;
 
         override protected void OnCreateManager(int capacity)

@@ -26,7 +26,7 @@ namespace Asteriods.Server
             public ComponentDataArray<EntityTypeComponentData> types;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         NetworkedItems networkedItems;
 
         override protected void OnCreateManager(int capacity)

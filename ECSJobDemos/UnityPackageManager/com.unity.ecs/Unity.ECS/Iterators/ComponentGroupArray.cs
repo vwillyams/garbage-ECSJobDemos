@@ -153,8 +153,8 @@ namespace UnityEngine.ECS
         public ComponentGroupArrayData(ComponentGroupArrayStaticCache staticCache)
         {
             int length = 0;
-            var chunkIterator = staticCache.ComponentGroup.GetComponentChunkIterator(out length);
-            chunkIterator.IndexInComponentGroup = 0;
+            staticCache.ComponentGroup.GetComponentChunkIterator(out length, out m_ChunkIterator);
+            m_ChunkIterator.IndexInComponentGroup = 0;
 
             m_Length = length;
             m_MinIndex = 0;
@@ -163,9 +163,6 @@ namespace UnityEngine.ECS
             CacheBeginIndex = 0;
             CacheEndIndex = 0;
             m_ArchetypeManager = staticCache.ComponentGroup.GetArchetypeManager();
-
-
-            m_ChunkIterator = chunkIterator;
 
             m_ComponentDataCount = staticCache.ComponentDataCount;
             m_ComponentCount = staticCache.ComponentCount;

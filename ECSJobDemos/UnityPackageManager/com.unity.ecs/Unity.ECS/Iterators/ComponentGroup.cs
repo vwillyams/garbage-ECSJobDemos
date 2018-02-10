@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.WindowsRuntime;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
@@ -286,7 +287,7 @@ namespace UnityEngine.ECS
             }
         }
 
-        internal ComponentChunkIterator GetComponentChunkIterator(out int outLength)
+        internal void GetComponentChunkIterator(out int outLength, out ComponentChunkIterator outIterator)
         {
             // Update the archetype segments
             int length = 0;
@@ -335,8 +336,9 @@ namespace UnityEngine.ECS
             outLength = length;
 
             if (first == null)
-                return new ComponentChunkIterator(null, 0, null, null);
-            return new ComponentChunkIterator(first, length, firstNonEmptyChunk, m_filteredSharedComponents);
+                outIterator = new ComponentChunkIterator(null, 0, null, null);
+            else 
+                outIterator = new ComponentChunkIterator(first, length, firstNonEmptyChunk, m_filteredSharedComponents);
         }
 
         internal int GetIndexInComponentGroup(int componentType)
@@ -351,114 +353,129 @@ namespace UnityEngine.ECS
             return componentIndex;
         }
 
-        internal ComponentDataArray<T> GetComponentDataArray<T>(ComponentChunkIterator iterator, int indexInComponentGroup, int length) where T : struct, IComponentData
+        internal void GetComponentDataArray<T>(ref ComponentChunkIterator iterator, int indexInComponentGroup, int length, out ComponentDataArray<T> output) where T : struct, IComponentData
         {
             iterator.IndexInComponentGroup = indexInComponentGroup;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            return new ComponentDataArray<T>(iterator, length, GetSafetyHandle(indexInComponentGroup));
+            output = new ComponentDataArray<T>(iterator, length, GetSafetyHandle(indexInComponentGroup));
 #else
-			return new ComponentDataArray<T>(iterator, length);
+			output = new ComponentDataArray<T>(iterator, length);
 #endif        
         }
 
         public ComponentDataArray<T> GetComponentDataArray<T>() where T : struct, IComponentData
         {
             int length;
-            var cache = GetComponentChunkIterator(out length);
+            ComponentChunkIterator iterator;
+            GetComponentChunkIterator(out length, out iterator);
             int indexInComponentGroup = GetIndexInComponentGroup(TypeManager.GetTypeIndex<T>());
-            return GetComponentDataArray<T>(cache, indexInComponentGroup, length);
+            
+            ComponentDataArray<T> res;
+            GetComponentDataArray<T>(ref iterator, indexInComponentGroup, length, out res);
+            return res;
         }
 
-        internal SharedComponentDataArray<T> GetSharedComponentDataArray<T>(ComponentChunkIterator iterator, int indexInComponentGroup, int length) where T : struct, ISharedComponentData
+        internal void GetSharedComponentDataArray<T>(ref ComponentChunkIterator iterator, int indexInComponentGroup, int length, out SharedComponentDataArray<T> output) where T : struct, ISharedComponentData
         {
             iterator.IndexInComponentGroup = indexInComponentGroup;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             int typeIndex = m_GroupData->requiredComponents[indexInComponentGroup].typeIndex;
-            return new SharedComponentDataArray<T>(m_TypeManager.GetSharedComponentDataManager(), indexInComponentGroup, iterator, length, m_SafetyManager.GetSafetyHandle(typeIndex, true));
+            output = new SharedComponentDataArray<T>(m_TypeManager.GetSharedComponentDataManager(), indexInComponentGroup, iterator, length, m_SafetyManager.GetSafetyHandle(typeIndex, true));
 #else
-			return new SharedComponentDataArray<T>(m_TypeManager.GetSharedComponentDataManager(), indexInComponentGroup, iterator, length);
+			output = new SharedComponentDataArray<T>(m_TypeManager.GetSharedComponentDataManager(), indexInComponentGroup, iterator, length);
 #endif
         }
         
         public SharedComponentDataArray<T> GetSharedComponentDataArray<T>() where T : struct, ISharedComponentData
         {
             int length;
-            var cache = GetComponentChunkIterator(out length);
+            ComponentChunkIterator iterator;
+            GetComponentChunkIterator(out length, out iterator);
             int indexInComponentGroup = GetIndexInComponentGroup(TypeManager.GetTypeIndex<T>());
-            return GetSharedComponentDataArray<T>(cache, indexInComponentGroup , length);
+
+            SharedComponentDataArray<T> res;
+            GetSharedComponentDataArray<T>(ref iterator, indexInComponentGroup, length, out res);
+            return res;
         }
 
-        internal FixedArrayArray<T> GetFixedArrayArray<T>(ComponentChunkIterator iterator, int indexInComponentGroup, int length) where T : struct
+        internal void GetFixedArrayArray<T>(ref ComponentChunkIterator iterator, int indexInComponentGroup, int length, out FixedArrayArray<T> output) where T : struct
         {
             iterator.IndexInComponentGroup = indexInComponentGroup;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            return new FixedArrayArray<T>(iterator, length, GetSafetyHandle(indexInComponentGroup));
+            output = new FixedArrayArray<T>(iterator, length, GetSafetyHandle(indexInComponentGroup));
 #else
-			return new FixedArrayArray<T>(iterator, length);
+			output = new FixedArrayArray<T>(iterator, length);
 #endif
         }
         
         public FixedArrayArray<T> GetFixedArrayArray<T>() where T : struct
         {
             int length;
-            var cache = GetComponentChunkIterator(out length);
+            ComponentChunkIterator iterator;
+            GetComponentChunkIterator(out length, out iterator);
             int indexInComponentGroup = GetIndexInComponentGroup(TypeManager.GetTypeIndex<T>());
-            return GetFixedArrayArray<T>(cache, indexInComponentGroup, length);
+
+            FixedArrayArray<T> res;
+            GetFixedArrayArray<T>(ref iterator, indexInComponentGroup, length, out res);
+            return res;
         }
 
-        internal EntityArray GetEntityArray(ComponentChunkIterator iterator, int length)
+        internal void GetEntityArray(ref ComponentChunkIterator iterator, int length, out EntityArray output)
         {
             iterator.IndexInComponentGroup = 0;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             //@TODO: Comment on why this has to be false...
-            return new EntityArray(iterator, length, m_SafetyManager.GetSafetyHandle(TypeManager.GetTypeIndex<Entity>(), false));
+            output = new EntityArray(iterator, length, m_SafetyManager.GetSafetyHandle(TypeManager.GetTypeIndex<Entity>(), false));
 #else
-			return new EntityArray(iterator, length);
+			output = new EntityArray(iterator, length);
 #endif
         }
         
         public EntityArray GetEntityArray()
         {
             int length;
-            var cache = GetComponentChunkIterator(out length);
-            return GetEntityArray(cache, length);
+            ComponentChunkIterator iterator;
+            GetComponentChunkIterator(out length, out iterator);
+
+            EntityArray res;
+            GetEntityArray(ref iterator, length, out res);
+            return res;
         }
 
-        internal ComponentArray<T> GetComponentArray<T>(ComponentChunkIterator iterator, int indexInComponentGroup, int length) where T : Component
+        internal void GetComponentArray<T>(ref ComponentChunkIterator iterator, int indexInComponentGroup, int length, out ComponentArray<T> output) where T : Component
         {
             iterator.IndexInComponentGroup = indexInComponentGroup;
-            return new ComponentArray<T>(iterator, length, m_TypeManager);
+            output = new ComponentArray<T>(iterator, length, m_TypeManager);
         }
         
         public ComponentArray<T> GetComponentArray<T>() where T : Component
         {
             int length;
-            var cache = GetComponentChunkIterator(out length);
+            ComponentChunkIterator iterator;
+            GetComponentChunkIterator(out length, out iterator);
             var indexInComponentGroup = GetIndexInComponentGroup(TypeManager.GetTypeIndex<T>());
-            
-            return GetComponentArray<T>(cache, indexInComponentGroup, length);
+
+
+            ComponentArray<T> res;
+            GetComponentArray<T>(ref iterator, indexInComponentGroup, length, out res);
+            return res;
         }
 
-        internal GameObjectArray GetGameObjectArray(ComponentChunkIterator iterator, int indexInComponentGroup, int length)
-        {
-            iterator.IndexInComponentGroup = indexInComponentGroup;
-            return new GameObjectArray(iterator, length, m_TypeManager);
-        }
-        
         public GameObjectArray GetGameObjectArray()
         {
             int length;
-            var cache = GetComponentChunkIterator(out length);
-            var indexInComponentGroup = GetIndexInComponentGroup(TypeManager.GetTypeIndex<Transform>());
-            
-            return GetGameObjectArray(cache, length, indexInComponentGroup);
+            ComponentChunkIterator iterator;
+            GetComponentChunkIterator(out length, out iterator);
+            iterator.IndexInComponentGroup = GetIndexInComponentGroup(TypeManager.GetTypeIndex<Transform>());
+            return new GameObjectArray(iterator, length, m_TypeManager);
         }
 
         public int CalculateLength()
         {
             int length;
-            GetComponentChunkIterator(out length);
+            ComponentChunkIterator iterator;
+            GetComponentChunkIterator(out length, out iterator);
             return length;
         }
 

@@ -91,29 +91,34 @@ namespace UnityEngine.ECS
 	        var groupStructPtr = systemPtr + m_GroupFieldOffset;
 
             int length;
-            var iterator = m_EntityGroup.GetComponentChunkIterator(out length);
+            ComponentChunkIterator iterator;
+            m_EntityGroup.GetComponentChunkIterator(out length, out iterator);
 
             for (var i = 0; i != m_ComponentDataInjections.Length; i++)
             {
-                var data = m_EntityGroup.GetComponentDataArray<ProxyComponentData>(iterator, m_ComponentDataInjections[i].indexInComponentGroup, length);
+                ComponentDataArray<ProxyComponentData> data;
+                m_EntityGroup.GetComponentDataArray(ref iterator, m_ComponentDataInjections[i].indexInComponentGroup, length, out data);
                 UnsafeUtility.CopyStructureToPtr(ref data, groupStructPtr + m_ComponentDataInjections[i].fieldOffset);
             }
 
             for (var i = 0; i != m_ComponentInjections.Length; i++)
             {
-                var data = m_EntityGroup.GetComponentArray<Component>(iterator, m_ComponentInjections[i].indexInComponentGroup, length);
+                ComponentArray<Component> data;
+                m_EntityGroup.GetComponentArray(ref iterator, m_ComponentInjections[i].indexInComponentGroup, length, out data);
                 UnsafeUtility.CopyStructureToPtr(ref data, groupStructPtr + m_ComponentInjections[i].fieldOffset);
             }
 
             for (var i = 0; i != m_SharedComponentInjections.Length; i++)
             {
-                var data = m_EntityGroup.GetSharedComponentDataArray<ProxySharedComponentData>(iterator, m_SharedComponentInjections[i].indexInComponentGroup, length);
+                SharedComponentDataArray<ProxySharedComponentData> data;
+                m_EntityGroup.GetSharedComponentDataArray(ref iterator, m_SharedComponentInjections[i].indexInComponentGroup, length, out data);
                 UnsafeUtility.CopyStructureToPtr(ref data, groupStructPtr + m_SharedComponentInjections[i].fieldOffset);
             }
 
             for (var i = 0; i != m_FixedArrayInjections.Length; i++)
             {
-                var data = m_EntityGroup.GetFixedArrayArray<int>(iterator, m_FixedArrayInjections[i].indexInComponentGroup, length);
+                FixedArrayArray<int> data;
+                m_EntityGroup.GetFixedArrayArray(ref iterator, m_FixedArrayInjections[i].indexInComponentGroup, length, out data);
                 UnsafeUtility.CopyStructureToPtr(ref data, groupStructPtr + m_FixedArrayInjections[i].fieldOffset);
             }
             
@@ -125,13 +130,14 @@ namespace UnityEngine.ECS
 
             if (m_EntityArrayOffset != -1)
             {
-                var entityArray = m_EntityGroup.GetEntityArray(iterator, length);
+                EntityArray entityArray;
+                m_EntityGroup.GetEntityArray(ref iterator, length, out entityArray);
                 UnsafeUtility.CopyStructureToPtr(ref entityArray, groupStructPtr + m_EntityArrayOffset);
             }
 
             if (m_GameObjectArrayOffset != -1)
             {
-                var gameObjectArray = m_EntityGroup.GetGameObjectArray();
+                GameObjectArray gameObjectArray = m_EntityGroup.GetGameObjectArray();
                 UnsafeUtility.CopyStructureToPtr(ref gameObjectArray, groupStructPtr + m_GameObjectArrayOffset);
             }
 

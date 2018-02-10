@@ -1,6 +1,7 @@
 ﻿using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using System;
+using UnityEngine.Assertions;
 
 namespace UnityEngine.ECS
 {
@@ -117,6 +118,8 @@ namespace UnityEngine.ECS
 
         public void UpdateCache(int index, out ComponentChunkCache cache)
         {
+            Assert.IsTrue(-1 != IndexInComponentGroup);
+            
             if (m_filteredSharedComponents == null)
             {
                 if (index < m_CurrentArchetypeIndex)

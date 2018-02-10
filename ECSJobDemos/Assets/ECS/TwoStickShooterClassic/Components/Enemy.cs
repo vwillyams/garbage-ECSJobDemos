@@ -1,6 +1,5 @@
 ﻿using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.ECS;
 
 namespace TwoStickClassicExample
 {

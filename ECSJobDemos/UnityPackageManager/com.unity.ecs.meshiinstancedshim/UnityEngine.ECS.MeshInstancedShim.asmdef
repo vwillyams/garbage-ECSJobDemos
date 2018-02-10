@@ -1,0 +1,14 @@
+{
+    "name": "UnityEngine.ECS.MeshInstancedShim",
+    "references": [
+        "UnityEngine.ECS",
+        "UnityEngine.ECS.Transform",
+        "Unity.Collections",
+        "Unity.Burst",
+        "Unity.Jobs",
+        "Unity.Mathematics"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": []
+}

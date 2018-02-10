@@ -1,6 +1,5 @@
 ﻿using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.ECS;
 
 namespace TwoStickClassicExample
 {
@@ -21,7 +20,7 @@ namespace TwoStickClassicExample
             // Collision
             var settings = TwoStickBootstrap.Settings;
 
-            var receivers = GameObject.FindObjectsOfType(typeof(Health));
+            var receivers = FindObjectsOfType(typeof(Health));
 
             var faction = GetComponent<Faction>().Value;
             

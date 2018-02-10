@@ -1,0 +1,10 @@
+{
+  "name": "com.unity.ecs.boids2d",
+  "version": "0.0.1",
+  "unity": "2018.1",
+  "description": "Unity ECS Boids2D Components",
+  "keywords": [
+    "unity"
+  ],
+  "category": "AssetStore/Unity"
+}

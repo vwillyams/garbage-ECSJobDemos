@@ -1,9 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using Unity.Collections;
 using UnityEngine;
 using UnityEngine.ECS;
 using UnityEngine.Profiling;
-using Unity.Collections;
 
 public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
 {

@@ -1,6 +1,4 @@
-﻿using System;
-using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
+﻿using Unity.Collections;
 using UnityEngine.ECS;
 
 namespace TwoStickPureExample

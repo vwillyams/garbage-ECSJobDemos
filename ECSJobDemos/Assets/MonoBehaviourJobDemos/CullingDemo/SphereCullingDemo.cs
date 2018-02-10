@@ -1,10 +1,8 @@
-﻿using UnityEngine;
-using Unity.Collections;
-using Unity.Mathematics;
+﻿using Unity.Collections;
 using Unity.Jobs;
+using Unity.Mathematics;
+using UnityEngine;
 using UnityEngine.Jobs;
-using Random = UnityEngine.Random;
-
 
 [ComputeJobOptimization]
 struct SphereCullingDemoJob: IJobParallelForFilter

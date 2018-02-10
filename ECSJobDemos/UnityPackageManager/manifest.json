@@ -3,10 +3,25 @@
 		"com.unity.burst": "0.1.17"
 	},
 	"testables": [
-		"com.unity.collections",
-		"com.unity.ecs",
-		"com.unity.jobs",
-		"com.unity.mathematics"
+    "com.unity.collections",
+    "com.unity.ecs",
+    "com.unity.ecs.boids",
+    "com.unity.ecs.boids2d",
+    "com.unity.ecs.meshiinstancedshim",
+    "com.unity.ecs.simplebounds",
+    "com.unity.ecs.simplemovement",
+    "com.unity.ecs.simplemovement2d",
+    "com.unity.ecs.simplerotation",
+    "com.unity.ecs.simplerotationhybrid",
+    "com.unity.ecs.simpletime",
+    "com.unity.ecs.spawnerhybrid",
+    "com.unity.ecs.spawnershim",
+    "com.unity.ecs.transform",
+    "com.unity.ecs.transform2d",
+    "com.unity.ecs.transformshim",
+    "com.unity.ecs.utilities",
+    "com.unity.jobs",
+    "com.unity.mathematics"
 	],
 	"registry": "https://staging-packages.unity.com"
 }

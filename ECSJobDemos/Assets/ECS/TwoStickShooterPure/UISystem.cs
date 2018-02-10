@@ -1,8 +1,8 @@
-﻿using UnityEngine;
+﻿using System;
+using Unity.Collections;
+using UnityEngine;
 using UnityEngine.ECS;
 using UnityEngine.UI;
-using System;
-using Unity.Collections;
 
 namespace TwoStickPureExample
 {

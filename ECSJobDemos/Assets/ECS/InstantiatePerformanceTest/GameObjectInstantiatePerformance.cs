@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.ECS;
+﻿using UnityEngine;
 using UnityEngine.Profiling;
 
 public class GameObjectInstantiatePerformance : MonoBehaviour
@@ -26,7 +23,7 @@ public class GameObjectInstantiatePerformance : MonoBehaviour
 
 		createSampler.Begin ();
 		for (int i = 0; i != array.Length; i++)
-			array[i] = Object.Instantiate(temp);
+			array[i] = Instantiate(temp);
 		createSampler.End ();
 
 		destroySampler.Begin ();

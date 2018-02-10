@@ -1,9 +1,9 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs.LowLevel.Unsafe;
-using System.Threading;
 
 [StructLayout(LayoutKind.Sequential)]
 [NativeContainer]
@@ -108,9 +108,9 @@ unsafe public struct NativeCounter
     #endif
 
         // This is what makes it possible to assign to NativeCounter.Concurrent from NativeCounter
-        public static implicit operator NativeCounter.Concurrent (NativeCounter cnt)
+        public static implicit operator Concurrent (NativeCounter cnt)
         {
-            NativeCounter.Concurrent concurrent;
+            Concurrent concurrent;
     #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckWriteAndThrow(cnt.m_Safety);
             concurrent.m_Safety = cnt.m_Safety;
@@ -247,9 +247,9 @@ unsafe public struct NativePerThreadCounter
         // The current worker thread index, it must use this exact name since it is injected
         int m_ThreadIndex;
 
-        public static implicit operator NativePerThreadCounter.Concurrent (NativePerThreadCounter cnt)
+        public static implicit operator Concurrent (NativePerThreadCounter cnt)
         {
-            NativePerThreadCounter.Concurrent concurrent;
+            Concurrent concurrent;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckWriteAndThrow(cnt.m_Safety);
             concurrent.m_Safety = cnt.m_Safety;

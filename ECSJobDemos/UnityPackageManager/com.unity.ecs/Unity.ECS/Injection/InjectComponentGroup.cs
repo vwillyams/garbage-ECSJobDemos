@@ -7,11 +7,11 @@ using UnityEngine.Jobs;
 
 namespace UnityEngine.ECS
 {
+    struct ProxyComponentData : IComponentData { }
+    struct ProxySharedComponentData : ISharedComponentData { }
+
     class InjectComponentGroupData
     {
-        struct ProxyComponentData : IComponentData { }
-        struct ProxySharedComponentData : ISharedComponentData { }
-
         int 				m_EntityArrayOffset;
 	    int 				m_TransformAccessArrayOffset;
 	    int 				m_LengthOffset;

@@ -11,7 +11,7 @@ namespace UnityEngine.ECS
             return $"{info.DeclaringType.Name}.{info.Name}";
         }
         
-        static public void Inject(ComponentSystemBase componentSystem, World world, EntityManager entityManager, out InjectComponentGroupData[] outInjectGroups, out InjectionData[] outInjectFromEntity)
+        static public void Inject(ComponentSystemBase componentSystem, World world, EntityManager entityManager, out InjectComponentGroupData[] outInjectGroups, out InjectFromEntityData outInjectFromEntityData)
         {
             Type componentSystemType = componentSystem.GetType();
 
@@ -19,7 +19,10 @@ namespace UnityEngine.ECS
                         
             var fields = componentSystemType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             var injectGroups = new List<InjectComponentGroupData>();
+            
             var injectFromEntity = new List<InjectionData>();
+            var injectFromFixedArray = new List<InjectionData>();
+            
             foreach (var field in fields)
             {
                 var attr = field.GetCustomAttributes(typeof(InjectAttribute), true);
@@ -33,14 +36,15 @@ namespace UnityEngine.ECS
                 else
                 {
                     if (InjectFromEntityData.SupportsInjections(field))
-                        injectFromEntity.Add(InjectFromEntityData.CreateInjection(field, entityManager));
+                        InjectFromEntityData.CreateInjection(field, entityManager, injectFromEntity, injectFromFixedArray);
                     else
                         injectGroups.Add(InjectComponentGroupData.CreateInjection(field.FieldType, field, entityManager));
                 }
             }
 
             outInjectGroups = injectGroups.ToArray();
-            outInjectFromEntity = injectFromEntity.ToArray();
+            
+            outInjectFromEntityData = new InjectFromEntityData(injectFromEntity.ToArray(), injectFromFixedArray.ToArray());   
         }
         
         static void ValidateNoStaticInjectDependencies(Type type)

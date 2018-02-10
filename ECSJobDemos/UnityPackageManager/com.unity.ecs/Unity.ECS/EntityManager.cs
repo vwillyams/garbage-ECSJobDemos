@@ -299,10 +299,8 @@ namespace UnityEngine.ECS
             SetComponentData<T>(entity, componentData);
         }
 
-        public ComponentDataFromEntity<T> GetComponentDataFromEntity<T>(bool isReadOnly = false) where T : struct, IComponentData
+        internal ComponentDataFromEntity<T> GetComponentDataFromEntity<T>(int typeIndex, bool isReadOnly) where T : struct, IComponentData
         {
-            int typeIndex = TypeManager.GetTypeIndex<T>();
-
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             return new ComponentDataFromEntity<T>(typeIndex, m_Entities, m_JobSafetyManager.GetSafetyHandle(typeIndex, isReadOnly));
 #else
@@ -310,15 +308,23 @@ namespace UnityEngine.ECS
 #endif
         }
         
-        public FixedArrayFromEntity<T> GetFixedArrayFromEntity<T>(bool isReadOnly = false) where T : struct
+        public ComponentDataFromEntity<T> GetComponentDataFromEntity<T>(bool isReadOnly = false) where T : struct, IComponentData
         {
-            int typeIndex = TypeManager.GetTypeIndex<T>();
+            return GetComponentDataFromEntity<T>(TypeManager.GetTypeIndex<T>(), isReadOnly);
+        }
 
+        public FixedArrayFromEntity<T> GetFixedArrayFromEntity<T>(int typeIndex, bool isReadOnly = false) where T : struct
+        {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             return new FixedArrayFromEntity<T>(typeIndex, m_Entities, m_JobSafetyManager.GetSafetyHandle(typeIndex, isReadOnly));
 #else
             return new FixedArrayFromEntity<T>(typeIndex, m_Entities);
 #endif
+        }
+
+        public FixedArrayFromEntity<T> GetFixedArrayFromEntity<T>(bool isReadOnly = false) where T : struct
+        {
+            return GetFixedArrayFromEntity<T>(TypeManager.GetTypeIndex<T>(), isReadOnly);
         }
 
         public T GetComponentData<T>(Entity entity) where T : struct, IComponentData

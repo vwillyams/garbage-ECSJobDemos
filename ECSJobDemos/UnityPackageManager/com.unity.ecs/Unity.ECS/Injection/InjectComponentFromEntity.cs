@@ -33,14 +33,12 @@ namespace UnityEngine.ECS
 
 			if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition() == typeof(ComponentDataFromEntity<>))
 			{
-				var injection = new InjectionData(field, typeof(ComponentDataFromEntity<>), field.FieldType.GetGenericArguments()[0], isReadOnly);
-			    injection.indexInComponentGroup = TypeManager.GetTypeIndex(injection.genericType);
+				var injection = new InjectionData(field, field.FieldType.GetGenericArguments()[0], isReadOnly);
 			    componentDataFromEntity.Add(injection);
 			}
 			else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition() == typeof(FixedArrayFromEntity<>))
 			{
-				var injection = new InjectionData(field, typeof(FixedArrayFromEntity<>), field.FieldType.GetGenericArguments()[0], isReadOnly);
-			    injection.indexInComponentGroup = TypeManager.GetTypeIndex(injection.genericType);
+				var injection = new InjectionData(field, field.FieldType.GetGenericArguments()[0], isReadOnly);
 			    fixedArrayFromEntity.Add(injection);
 			}
 			else
@@ -53,32 +51,23 @@ namespace UnityEngine.ECS
 		{
 		    for (var i = 0; i != m_InjectComponentDataFromEntity.Length; i++)
 		    {
-		        var array = entityManager.GetComponentDataFromEntity<ProxyComponentData>(m_InjectComponentDataFromEntity[i].indexInComponentGroup, m_InjectComponentDataFromEntity[i].isReadOnly);
+		        var array = entityManager.GetComponentDataFromEntity<ProxyComponentData>(m_InjectComponentDataFromEntity[i].componentType.typeIndex, m_InjectComponentDataFromEntity[i].isReadOnly);
 		        UnsafeUtility.CopyStructureToPtr(ref array, pinnedSystemPtr + m_InjectComponentDataFromEntity[i].fieldOffset);
 		    }
 
 		    for (var i = 0; i != m_InjectFixedArrayFromEntity.Length; i++)
 		    {
-		        var array = entityManager.GetFixedArrayFromEntity<int>(m_InjectFixedArrayFromEntity[i].indexInComponentGroup, m_InjectFixedArrayFromEntity[i].isReadOnly);
+		        var array = entityManager.GetFixedArrayFromEntity<int>(m_InjectFixedArrayFromEntity[i].componentType.typeIndex, m_InjectFixedArrayFromEntity[i].isReadOnly);
 		        UnsafeUtility.CopyStructureToPtr(ref array, pinnedSystemPtr + m_InjectFixedArrayFromEntity[i].fieldOffset);
 		    }
 		}
 
 	    public void ExtractJobDependencyTypes(List<int> reading, List<int> writing)
 	    {
-	        ExtractJobDependencyTypes(m_InjectComponentDataFromEntity, reading, writing);
-	        ExtractJobDependencyTypes(m_InjectFixedArrayFromEntity, reading, writing);
+	        foreach (var injection in m_InjectComponentDataFromEntity)
+	            ComponentGroup.AddReaderWriter(injection.componentType, reading, writing);
+	        foreach (var injection in m_InjectFixedArrayFromEntity)
+	            ComponentGroup.AddReaderWriter(injection.componentType, reading, writing);
 	    }
-
-	    static void ExtractJobDependencyTypes(InjectionData[] injections, List<int> reading, List<int> writing)
-		{
-			foreach (var injection in injections)
-			{
-				ComponentType type = new ComponentType(injection.genericType);
-				type.accessMode = injection.isReadOnly ? ComponentType.AccessMode.ReadOnly : ComponentType.AccessMode.ReadWrite;
-				ComponentGroup.AddReaderWriter(type, reading, writing);
-			}
-		}
-
 	}
 }

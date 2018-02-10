@@ -28,12 +28,6 @@ namespace UnityEngine.ECS
 
 	    int 				m_GroupFieldOffset;
 
-        void PatchGetIndexInComponentGroup(InjectionData[] componentInjections)
-        {
-            for (int i = 0; i != componentInjections.Length; i++)
-                componentInjections[i].indexInComponentGroup = m_EntityGroup.GetIndexInComponentGroup(TypeManager.GetTypeIndex(componentInjections[i].genericType));
-        }
-
         InjectComponentGroupData(EntityManager entityManager, FieldInfo groupField, 
 		    InjectionData[] componentDataInjections, InjectionData[] componentInjections, InjectionData[] fixedArrayInjections, InjectionData[] sharedComponentInjections,
 		    FieldInfo entityArrayInjection, FieldInfo transformAccessArrayInjection, FieldInfo gameObjectArrayInjection, FieldInfo lengthInjection, ComponentType[] componentRequirements)
@@ -86,6 +80,12 @@ namespace UnityEngine.ECS
 
 		public ComponentGroup EntityGroup          { get { return m_EntityGroup; } }
 
+        void PatchGetIndexInComponentGroup(InjectionData[] componentInjections)
+        {
+            for (int i = 0; i != componentInjections.Length; i++)
+                componentInjections[i].indexInComponentGroup = m_EntityGroup.GetIndexInComponentGroup(componentInjections[i].componentType.typeIndex);
+        }
+        
         public unsafe void UpdateInjection(byte* systemPtr)
         {
 	        var groupStructPtr = systemPtr + m_GroupFieldOffset;
@@ -176,14 +176,13 @@ namespace UnityEngine.ECS
 			foreach(var field in fields)
     		{
 				var isReadOnly = field.GetCustomAttributes(typeof(ReadOnlyAttribute), true).Length != 0;
-		        var accessMode = isReadOnly ? ComponentType.AccessMode.ReadOnly : ComponentType.AccessMode.ReadWrite;
 		        //@TODO: Prevent using GameObjectEntity, it will never show up. Point to GameObjectArray instead...
 		        
 			    if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(ComponentDataArray<>))
 			    {
-				    var injection = new InjectionData(field, typeof(ComponentDataArray<>), field.FieldType.GetGenericArguments()[0], isReadOnly);
+				    var injection = new InjectionData(field, field.FieldType.GetGenericArguments()[0], isReadOnly);
 			        componentDataInjections.Add (injection);
-			        componentRequirements.Add(new ComponentType(injection.genericType, accessMode));
+			        componentRequirements.Add(injection.componentType);
 			    }
 			    else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(SubtractiveComponent<>))
 			    {
@@ -191,32 +190,33 @@ namespace UnityEngine.ECS
 			    }
 			    else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(FixedArrayArray<>))
 			    {
-				    var injection = new InjectionData(field, typeof(FixedArrayArray<>), field.FieldType.GetGenericArguments()[0], isReadOnly);
+				    var injection = new InjectionData(field, field.FieldType.GetGenericArguments()[0], isReadOnly);
 
 			        fixedArrayInjections.Add (injection);
-			        componentRequirements.Add(new ComponentType(injection.genericType, accessMode));
+			        componentRequirements.Add(injection.componentType);
 			    }
 				else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(ComponentArray<>))
 				{
 					if (isReadOnly)
 						return "[ReadOnly] may not be used on ComponentArray<>, it can only be used on ComponentDataArray<>";
 
-					var injection = new InjectionData(field, typeof(ComponentArray<>), field.FieldType.GetGenericArguments()[0], false);
+				    var type = field.FieldType.GetGenericArguments()[0];
+					var injection = new InjectionData(field, type , false);
 
 					componentInjections.Add (injection);
-				    componentRequirements.Add(new ComponentType(injection.genericType, accessMode));
+				    componentRequirements.Add(injection.componentType);
 
-				    if (injection.genericType == typeof(Transform))
+				    if (type == typeof(Transform))
 				        explicitTransformRequirement = true;
 				}
 		        else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition() == typeof(SharedComponentDataArray<>))
 			    {
 			        if (!isReadOnly)
 			            return "SharedComponentDataArray<> must always be injected as [ReadOnly]";
-			        var injection = new InjectionData(field, typeof(SharedComponentDataArray<>), field.FieldType.GetGenericArguments()[0], true);
+			        var injection = new InjectionData(field, field.FieldType.GetGenericArguments()[0], true);
 
 			        sharedComponentInjections.Add (injection);
-			        componentRequirements.Add(new ComponentType(injection.genericType, accessMode));
+			        componentRequirements.Add(injection.componentType);
 			    }
 				else if (field.FieldType == typeof(TransformAccessArray))
 				{

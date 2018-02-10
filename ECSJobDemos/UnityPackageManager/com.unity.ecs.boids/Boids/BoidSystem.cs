@@ -5,6 +5,7 @@ using Unity.Mathematics.Experimental;
 using UnityEngine.ECS.SimpleBounds;
 using UnityEngine.ECS.SimpleRotation;
 using UnityEngine.ECS.Transform;
+using UnityEngine.ECS.Utilities;
 
 namespace UnityEngine.ECS.Boids
 {
@@ -60,7 +61,7 @@ namespace UnityEngine.ECS.Boids
 
             public void Execute(int index)
             {
-                var hash = HashUtility.Hash(positions[index].position, cellRadius);
+                var hash = GridHash.Hash(positions[index].position, cellRadius);
                 cells.Add(hash, index);
             }
         }
@@ -188,12 +189,12 @@ namespace UnityEngine.ECS.Boids
                 var alignmentSteering = new float3(0);
                 
                 int hash;
-                int3 gridPos = HashUtility.Quantize(position, settings.cellRadius);
+                int3 gridPos = GridHash.Quantize(position, settings.cellRadius);
                 for (int oi = 0; oi < 7; oi++)
                 {
                     var gridOffset = cellOffsetsTable[oi];
 
-                    hash = HashUtility.Hash(gridPos + gridOffset);
+                    hash = GridHash.Hash(gridPos + gridOffset);
                     int i;
 
                     NativeMultiHashMapIterator<int> iterator;
@@ -363,7 +364,7 @@ namespace UnityEngine.ECS.Boids
         {
             base.OnCreateManager(capacity);
             m_Cells = new NativeMultiHashMap<int, int>(capacity, Allocator.Persistent);
-            m_CellOffsetsTable = new NativeArray<int3>(HashUtility.cellOffsets, Allocator.Persistent);
+            m_CellOffsetsTable = new NativeArray<int3>(GridHash.cellOffsets, Allocator.Persistent);
             m_Bias = new NativeArray<float>(1024,Allocator.Persistent);
             for (int i = 0; i < 1024; i++)
             {

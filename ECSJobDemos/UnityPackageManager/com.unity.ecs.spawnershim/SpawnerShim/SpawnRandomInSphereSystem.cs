@@ -4,12 +4,13 @@ using Unity.Mathematics;
 using UnityEngine.ECS;
 using UnityEngine.ECS.SpawnerShim;
 using UnityEngine.ECS.Transform;
+using UnityEngine.ECS.Utilities;
 
 namespace ECS.Spawners
 {
-    public class SpawnRandomCircleSystem : ComponentSystem
+    public class SpawnRandomInSphereSystem : ComponentSystem
     {
-        struct SpawnRandomCircleInstance
+        struct SpawnRandomInSphereInstance
         {
             public int spawnerIndex;
             public Entity sourceEntity;
@@ -19,8 +20,8 @@ namespace ECS.Spawners
 
         protected override void OnUpdate()
         {
-            var uniqueTypes = new List<SpawnRandomCircle>(10);
-            var maingroup = EntityManager.CreateComponentGroup(typeof(SpawnRandomCircle),typeof(Position));
+            var uniqueTypes = new List<SpawnRandomInSphere>(10);
+            var maingroup = EntityManager.CreateComponentGroup(typeof(SpawnRandomInSphere),typeof(Position));
             maingroup.CompleteDependency();
 
             EntityManager.GetAllUniqueSharedComponentDatas(uniqueTypes);
@@ -41,7 +42,7 @@ namespace ECS.Spawners
                 return;
             }
 
-            var spawnInstances = new NativeArray<SpawnRandomCircleInstance>(spawnInstanceCount, Allocator.Temp);
+            var spawnInstances = new NativeArray<SpawnRandomInSphereInstance>(spawnInstanceCount, Allocator.Temp);
             {
                 int spawnIndex = 0;
                 for (int sharedIndex = 0; sharedIndex != uniqueTypes.Count; sharedIndex++)
@@ -53,7 +54,7 @@ namespace ECS.Spawners
 
                     for (int entityIndex = 0; entityIndex < entities.Length; entityIndex++)
                     {
-                        var spawnInstance = new SpawnRandomCircleInstance();
+                        var spawnInstance = new SpawnRandomInSphereInstance();
 
                         spawnInstance.sourceEntity = entities[entityIndex];
                         spawnInstance.spawnerIndex = sharedIndex;
@@ -75,44 +76,29 @@ namespace ECS.Spawners
                 var spawner = uniqueTypes[spawnerIndex];
                 int count = spawner.count;
                 var entities = new NativeArray<Entity>(count,Allocator.Temp);
-                var positions = new NativeArray<float3>(count,Allocator.Temp);
                 var prefab = spawner.prefab;
                 float radius = spawner.radius;
+                var spawnPositions = new NativeArray<float3>(count, Allocator.Temp);
                 float3 center = spawnInstances[spawnIndex].position;
                 var sourceEntity = spawnInstances[spawnIndex].sourceEntity;
                 
-                EntityManager.Instantiate(prefab, entities);
-
-                if (spawner.spawnLocal)
-                {
-                    MathUtility.RandomPointsOnCircle(new float3(),radius, ref positions);
-                    for (int i = 0; i < count; i++)
-                    {
-                        var position = new LocalPosition
-                        {
-                            position = positions[i]
-                        };
-                        EntityManager.SetComponentData(entities[i],position);
-                        EntityManager.AddComponentData(entities[i], new TransformParent { parent = sourceEntity});
-                    }
-                }
-                else
-                {
-                    MathUtility.RandomPointsOnCircle(center,radius,ref positions);
-                    for (int i = 0; i < count; i++)
-                    {
-                        var position = new Position
-                        {
-                            position = positions[i]
-                        };
-                        EntityManager.SetComponentData(entities[i],position);
-                    }
-                }
-
-                EntityManager.RemoveComponent<SpawnRandomCircle>(sourceEntity);
+                GeneratePoints.RandomPointsInSphere(center,radius,ref spawnPositions);
                 
+                EntityManager.Instantiate(prefab, entities);
+                
+                for (int i = 0; i < count; i++)
+                {
+                    var position = new Position
+                    {
+                        position = spawnPositions[i]
+                    };
+                    EntityManager.SetComponentData(entities[i],position);
+                }
+
+                EntityManager.RemoveComponent<SpawnRandomInSphere>(sourceEntity);
+                
+                spawnPositions.Dispose();
                 entities.Dispose();
-                positions.Dispose();
             }
             spawnInstances.Dispose();
         } 

@@ -1,0 +1,10 @@
+{
+  "name": "com.unity.ecs.simplemovement",
+  "version": "0.0.1",
+  "unity": "2018.1",
+  "description": "Unity ECS SimpleMovement Components",
+  "keywords": [
+    "unity"
+  ],
+  "category": "AssetStore/Unity"
+}

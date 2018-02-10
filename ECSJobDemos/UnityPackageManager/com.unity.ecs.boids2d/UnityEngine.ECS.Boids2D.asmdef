@@ -1,0 +1,17 @@
+{
+    "name": "UnityEngine.ECS.Boids2D",
+    "references": [
+        "UnityEngine.ECS.Boids",
+        "UnityEngine.ECS.Utilities",
+        "UnityEngine.ECS.SimpleBounds",
+        "UnityEngine.ECS.Transform2D",
+        "UnityEngine.ECS",
+        "Unity.Collections",
+        "Unity.Burst",
+        "Unity.Jobs",
+        "Unity.Mathematics"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": []
+}

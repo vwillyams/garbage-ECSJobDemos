@@ -4,42 +4,6 @@ using System;
 
 namespace UnityEngine.ECS
 {
-    struct ComponentDataArrayUntyped
-    {
-        ComponentChunkIterator m_Iterator;
-        ComponentChunkCache    m_Cache;
-
-        int m_Length;
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-        int m_MinIndex;
-        int m_MaxIndex;
-        AtomicSafetyHandle m_Safety;
-#endif
-        
-        public ComponentDataArrayUntyped(ComponentChunkIterator iterator, int length)
-        {
-            m_Iterator = iterator;
-            m_Cache = default(ComponentChunkCache);
-
-            m_Length = length;
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            m_MinIndex = 0;
-            m_MaxIndex = length - 1;
-            m_Safety = default(AtomicSafetyHandle);
-#endif
-        }
-
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-
-        public void SetType(int componentIndex, AtomicSafetyHandle safety)
-        {
-            m_Safety = safety;
-            m_Iterator.SetComponentIndex(componentIndex);
-        }
-#endif
-    }
-
-
     [NativeContainer]
     [NativeContainerSupportsMinMaxWriteRestriction]
     public unsafe struct ComponentDataArray<T> where T : struct, IComponentData

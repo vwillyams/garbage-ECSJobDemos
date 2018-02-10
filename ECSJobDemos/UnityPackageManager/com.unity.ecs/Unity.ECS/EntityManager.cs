@@ -47,7 +47,7 @@ namespace UnityEngine.ECS
         }
     }
 
-    public unsafe class EntityManager : ScriptBehaviourManager
+    public sealed unsafe class EntityManager : ScriptBehaviourManager
     {
         EntityDataManager*                m_Entities;
 
@@ -62,9 +62,9 @@ namespace UnityEngine.ECS
         ComponentType*                    m_CachedComponentTypeArray;
         ComponentTypeInArchetype*         m_CachedComponentTypeInArchetypeArray;
 
-        protected sealed override void OnCreateManagerInternal(World world, int capacity)
-        {
-        }
+        protected override void OnCreateManagerInternal(World world, int capacity) { }
+        protected override void OnBeforeDestroyManagerInternal() { }
+        protected override void OnAfterDestroyManagerInternal() { }
 
         protected override void OnCreateManager(int capacity)
         {

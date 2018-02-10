@@ -129,7 +129,6 @@ namespace UnityEngine.ECS
 
         protected override void OnDestroyManager()
         {
-            base.OnDestroyManager();
             for (var i = 0; i < m_AddComponentQueue.Length; i++)
             {
                 if (m_AddComponentQueue[i] == null)

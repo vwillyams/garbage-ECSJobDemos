@@ -60,39 +60,42 @@ namespace UnityEngine.ECS
 		    m_JobDependencyForWritingManagers = writingTypes.ToArray();
 	    }
 
-	    protected override void OnDestroyManager()
+        protected sealed override void OnAfterDestroyManagerInternal()
+        {
+            if (null != m_InjectedComponentGroups)
+            {
+                for (int i = 0; i != m_InjectedComponentGroups.Length; i++)
+                {
+                    if (m_InjectedComponentGroups[i] != null)
+                        m_InjectedComponentGroups[i].Dispose();
+                }
+                m_InjectedComponentGroups = null;
+            }
+
+            if (null != m_CachedComponentGroupArrays)
+            {
+                for (int i = 0; i != m_CachedComponentGroupArrays.Length; i++)
+                {
+                    if (m_CachedComponentGroupArrays[i] != null)
+                        m_CachedComponentGroupArrays[i].Dispose();
+                }
+                m_CachedComponentGroupArrays = null;
+            }
+
+            for (int i = 0; i != m_ComponentGroups.Length; i++)
+            {
+                if (m_ComponentGroups[i] != null)
+                    m_ComponentGroups[i].Dispose();
+            }
+
+            m_JobDependencyForReadingManagers = null;
+            m_JobDependencyForWritingManagers = null;
+        }
+
+        protected override void OnBeforeDestroyManagerInternal()
     	{
 		    CompleteDependencyInternal();
 		    UpdateInjectedComponentGroups();
-
-		    if (null != m_InjectedComponentGroups)
-		    {
-			    for (int i = 0; i != m_InjectedComponentGroups.Length; i++)
-			    {
-				    if (m_InjectedComponentGroups[i] != null)
-					    m_InjectedComponentGroups[i].Dispose();
-			    }
-                m_InjectedComponentGroups = null;
-		    }
-
-		    if (null != m_CachedComponentGroupArrays)
-		    {
-			    for (int i = 0; i != m_CachedComponentGroupArrays.Length; i++)
-			    {
-				    if (m_CachedComponentGroupArrays[i] != null)
-					    m_CachedComponentGroupArrays[i].Dispose();
-			    }
-			    m_CachedComponentGroupArrays = null;
-		    }
-
-		    for (int i = 0; i != m_ComponentGroups.Length; i++)
-		    {
-			    if (m_ComponentGroups[i] != null)
-				    m_ComponentGroups[i].Dispose();
-		    }
-
-			m_JobDependencyForReadingManagers = null;
-			m_JobDependencyForWritingManagers = null;
     	}
 
         protected EntityManager EntityManager { get { return m_EntityManager; }  }
@@ -180,6 +183,11 @@ namespace UnityEngine.ECS
 			base.OnCreateManagerInternal(world, capacity);
 		}
 
+	    override sealed protected void OnBeforeDestroyManagerInternal()
+	    {
+	        base.OnBeforeDestroyManagerInternal();
+	    }
+	    
 		/// <summary>
 		/// Called once per frame on the main thread.
 		/// </summary>
@@ -267,11 +275,12 @@ namespace UnityEngine.ECS
 			base.OnCreateManagerInternal(world, capacity);
 		}
 
-		override protected void OnDestroyManager()
+		override sealed protected void OnBeforeDestroyManagerInternal()
 		{
-			base.OnDestroyManager();
+			base.OnBeforeDestroyManagerInternal();
+		    m_PreviousFrameDependency.Complete();
 		}
-
+	    
 	    protected virtual JobHandle OnUpdate(JobHandle inputDeps)
 	    {
 		    return inputDeps;
@@ -331,7 +340,7 @@ namespace UnityEngine.ECS
 			}
 		}
 
-		protected unsafe void AddDependencyInternal(JobHandle dependency)
+		internal protected unsafe void AddDependencyInternal(JobHandle dependency)
 		{
 			fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
 			{

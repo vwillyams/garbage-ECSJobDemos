@@ -9,15 +9,6 @@ namespace UnityEditor.ECS
     [InitializeOnLoad]
     public sealed class ExtraTypesProvider
     {
-        private static readonly Dictionary<Type, Type> _updateInjectionTypeMap = new Dictionary<Type, Type>
-        {
-            { typeof(ComponentDataArray<>), typeof(InjectComponentGroupData.UpdateInjectionComponentDataArray<>)},
-            { typeof(FixedArrayArray<>), typeof(InjectComponentGroupData.UpdateInjectionComponentDataFixedArray<>)},
-            { typeof(ComponentArray<>), typeof(InjectComponentGroupData.UpdateInjectionComponentArray<>)},
-            { typeof(ComponentDataFromEntity<>), typeof(InjectFromEntityData.UpdateInjectionComponentDataFromEntity<>)},
-            { typeof(FixedArrayFromEntity<>), typeof(InjectFromEntityData.UpdateInjectionFixedArrayFromEntity<>)}
-        };
-
         static ExtraTypesProvider()
         {
             PlayerBuildInterface.ExtraTypesProvider += () =>
@@ -32,18 +23,6 @@ namespace UnityEditor.ECS
 
                     foreach (var type in assembly.GetTypes())
                     {
-                        foreach (var fieldType in type.GetFields().Where(f => f.FieldType.IsGenericType)
-                            .Select(f => f.FieldType))
-                        {
-                            if (fieldType.GetGenericArguments().Any(g => g.IsGenericParameter))
-                                continue;
-
-                            Type updateInjectionType;
-                            var genericTypeDefinition = fieldType.GetGenericTypeDefinition();
-                            if (_updateInjectionTypeMap.TryGetValue(genericTypeDefinition, out updateInjectionType))
-                                extraTypes.Add(updateInjectionType.MakeGenericType(fieldType.GetGenericArguments()[0]).ToString());
-                        }
-
                         if (typeof(IAutoComponentSystemJob).IsAssignableFrom(type) && !type.IsAbstract &&
                             type.GetCustomAttributes(typeof(DisableAutoCreationAttribute), true).Length == 0)
                         {

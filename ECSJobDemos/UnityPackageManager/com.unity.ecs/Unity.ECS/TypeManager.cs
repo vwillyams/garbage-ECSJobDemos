@@ -155,6 +155,10 @@ namespace UnityEngine.ECS
             else if (type.IsClass)
             {
                 category = TypeCategory.Class;
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                if (type == typeof(GameObjectEntity))
+                    throw new System.ArgumentException("GameObjectEntity can not be used from EntityManager. The component is ignored when creating entities for a GameObject.");
+#endif
             }
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             else

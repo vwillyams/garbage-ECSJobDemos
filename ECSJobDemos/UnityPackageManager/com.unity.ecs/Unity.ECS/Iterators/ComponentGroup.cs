@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.WindowsRuntime;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
@@ -239,18 +240,15 @@ namespace UnityEngine.ECS
         {
             m_TransformsDirty = true;
         }
-
-        bool IsReadOnly(int componentIndex)
+        
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+        AtomicSafetyHandle GetSafetyHandle(int indexInComponentGroup)
         {
-            return m_GroupData->requiredComponents[componentIndex].accessMode == ComponentType.AccessMode.ReadOnly;
+            ComponentType* type = m_GroupData->requiredComponents + indexInComponentGroup;
+            bool isReadOnly = type->accessMode == ComponentType.AccessMode.ReadOnly;
+            return m_SafetyManager.GetSafetyHandle(type->typeIndex, isReadOnly);
         }
-
-        #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        internal AtomicSafetyHandle GetSafetyHandle(int componentType, bool isReadOnly)
-        {
-            return m_SafetyManager.GetSafetyHandle(componentType, isReadOnly);
-        }
-        #endif
+#endif
 
         internal static void AddReaderWriter(ComponentType type, List<int> reading, List<int> writing)
         {
@@ -289,16 +287,8 @@ namespace UnityEngine.ECS
             }
         }
 
-        internal ComponentChunkIterator GetComponentChunkIterator(int componentType, out int outLength, out int componentIndex)
+        internal void GetComponentChunkIterator(out int outLength, out ComponentChunkIterator outIterator)
         {
-            componentIndex = 0;
-            while (componentIndex < m_GroupData->requiredComponentsCount && m_GroupData->requiredComponents[componentIndex].typeIndex != componentType)
-                ++componentIndex;
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            if (componentIndex >= m_GroupData->requiredComponentsCount)
-                throw new InvalidOperationException(string.Format("Trying to get ComponentDataArray for {0} but the required component type was not declared in the EntityGroup.", TypeManager.GetType(componentType)));
-#endif
-
             // Update the archetype segments
             int length = 0;
             MatchingArchetypes* first = null;
@@ -314,7 +304,7 @@ namespace UnityEngine.ECS
                             first = match;
                     }
                 }
-                if(first != null)
+                if (first != null)
                     firstNonEmptyChunk = (Chunk*)first->archetype->chunkList.Begin();
             }
             else
@@ -346,89 +336,146 @@ namespace UnityEngine.ECS
             outLength = length;
 
             if (first == null)
-                return new ComponentChunkIterator(null, 0, 0, null, null);
-            return new ComponentChunkIterator(first, componentIndex, length, firstNonEmptyChunk, m_filteredSharedComponents);
+                outIterator = new ComponentChunkIterator(null, 0, null, null);
+            else 
+                outIterator = new ComponentChunkIterator(first, length, firstNonEmptyChunk, m_filteredSharedComponents);
+        }
+
+        internal int GetIndexInComponentGroup(int componentType)
+        {
+            int componentIndex = 0;
+            while (componentIndex < m_GroupData->requiredComponentsCount && m_GroupData->requiredComponents[componentIndex].typeIndex != componentType)
+                ++componentIndex;
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            if (componentIndex >= m_GroupData->requiredComponentsCount)
+                throw new InvalidOperationException(string.Format("Trying to get iterator for {0} but the required component type was not declared in the EntityGroup.", TypeManager.GetType(componentType)));
+#endif
+            return componentIndex;
+        }
+
+        internal void GetComponentDataArray<T>(ref ComponentChunkIterator iterator, int indexInComponentGroup, int length, out ComponentDataArray<T> output) where T : struct, IComponentData
+        {
+            iterator.IndexInComponentGroup = indexInComponentGroup;
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            output = new ComponentDataArray<T>(iterator, length, GetSafetyHandle(indexInComponentGroup));
+#else
+			output = new ComponentDataArray<T>(iterator, length);
+#endif        
         }
 
         public ComponentDataArray<T> GetComponentDataArray<T>() where T : struct, IComponentData
         {
             int length;
-            int componentIndex;
-            int typeIndex = TypeManager.GetTypeIndex<T>();
-
-            var cache = GetComponentChunkIterator(typeIndex, out length, out componentIndex);
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            return new ComponentDataArray<T>(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex, IsReadOnly(componentIndex)));
-#else
-			return new ComponentDataArray<T>(cache, length);
-#endif
+            ComponentChunkIterator iterator;
+            GetComponentChunkIterator(out length, out iterator);
+            int indexInComponentGroup = GetIndexInComponentGroup(TypeManager.GetTypeIndex<T>());
+            
+            ComponentDataArray<T> res;
+            GetComponentDataArray<T>(ref iterator, indexInComponentGroup, length, out res);
+            return res;
         }
 
+        internal void GetSharedComponentDataArray<T>(ref ComponentChunkIterator iterator, int indexInComponentGroup, int length, out SharedComponentDataArray<T> output) where T : struct, ISharedComponentData
+        {
+            iterator.IndexInComponentGroup = indexInComponentGroup;
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            int typeIndex = m_GroupData->requiredComponents[indexInComponentGroup].typeIndex;
+            output = new SharedComponentDataArray<T>(m_TypeManager.GetSharedComponentDataManager(), indexInComponentGroup, iterator, length, m_SafetyManager.GetSafetyHandle(typeIndex, true));
+#else
+			output = new SharedComponentDataArray<T>(m_TypeManager.GetSharedComponentDataManager(), indexInComponentGroup, iterator, length);
+#endif
+        }
+        
         public SharedComponentDataArray<T> GetSharedComponentDataArray<T>() where T : struct, ISharedComponentData
         {
             int length;
-            int componentIndex;
-            int sharedComponentIndex = GetComponentIndexForVariation<T>();
-            int typeIndex = TypeManager.GetTypeIndex<T>();
+            ComponentChunkIterator iterator;
+            GetComponentChunkIterator(out length, out iterator);
+            int indexInComponentGroup = GetIndexInComponentGroup(TypeManager.GetTypeIndex<T>());
 
-            var cache = GetComponentChunkIterator(typeIndex, out length, out componentIndex);
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            return new SharedComponentDataArray<T>(m_TypeManager.GetSharedComponentDataManager(), sharedComponentIndex, cache, length, m_SafetyManager.GetSafetyHandle(typeIndex, true));
-#else
-			return new SharedComponentDataArray<T>(m_TypeManager.GetSharedComponentDataManager(), sharedComponentIndex, cache, length);
-#endif
+            SharedComponentDataArray<T> res;
+            GetSharedComponentDataArray<T>(ref iterator, indexInComponentGroup, length, out res);
+            return res;
         }
 
+        internal void GetFixedArrayArray<T>(ref ComponentChunkIterator iterator, int indexInComponentGroup, int length, out FixedArrayArray<T> output) where T : struct
+        {
+            iterator.IndexInComponentGroup = indexInComponentGroup;
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            output = new FixedArrayArray<T>(iterator, length, GetSafetyHandle(indexInComponentGroup));
+#else
+			output = new FixedArrayArray<T>(iterator, length);
+#endif
+        }
+        
         public FixedArrayArray<T> GetFixedArrayArray<T>() where T : struct
         {
             int length;
-            int componentIndex;
-            int typeIndex = TypeManager.GetTypeIndex<T>();
+            ComponentChunkIterator iterator;
+            GetComponentChunkIterator(out length, out iterator);
+            int indexInComponentGroup = GetIndexInComponentGroup(TypeManager.GetTypeIndex<T>());
 
-            var cache = GetComponentChunkIterator(typeIndex, out length, out componentIndex);
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            return new FixedArrayArray<T>(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex, false));
-#else
-			return new FixedArrayArray<T>(cache, length);
-#endif
+            FixedArrayArray<T> res;
+            GetFixedArrayArray<T>(ref iterator, indexInComponentGroup, length, out res);
+            return res;
         }
 
+        internal void GetEntityArray(ref ComponentChunkIterator iterator, int length, out EntityArray output)
+        {
+            iterator.IndexInComponentGroup = 0;
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            //@TODO: Comment on why this has to be false...
+            output = new EntityArray(iterator, length, m_SafetyManager.GetSafetyHandle(TypeManager.GetTypeIndex<Entity>(), false));
+#else
+			output = new EntityArray(iterator, length);
+#endif
+        }
+        
         public EntityArray GetEntityArray()
         {
             int length;
-            int componentIndex;
-            int typeIndex = TypeManager.GetTypeIndex<Entity>();
-            var cache = GetComponentChunkIterator(typeIndex, out length, out componentIndex);
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            return new EntityArray(cache, length, m_SafetyManager.GetSafetyHandle(typeIndex, false));
-#else
-			return new EntityArray(cache, length);
-#endif
+            ComponentChunkIterator iterator;
+            GetComponentChunkIterator(out length, out iterator);
+
+            EntityArray res;
+            GetEntityArray(ref iterator, length, out res);
+            return res;
         }
+
+        internal void GetComponentArray<T>(ref ComponentChunkIterator iterator, int indexInComponentGroup, int length, out ComponentArray<T> output) where T : Component
+        {
+            iterator.IndexInComponentGroup = indexInComponentGroup;
+            output = new ComponentArray<T>(iterator, length, m_TypeManager);
+        }
+        
         public ComponentArray<T> GetComponentArray<T>() where T : Component
         {
             int length;
-            int componentIndex;
+            ComponentChunkIterator iterator;
+            GetComponentChunkIterator(out length, out iterator);
+            var indexInComponentGroup = GetIndexInComponentGroup(TypeManager.GetTypeIndex<T>());
 
-            var cache = GetComponentChunkIterator(TypeManager.GetTypeIndex<T>(), out length, out componentIndex);
-            return new ComponentArray<T>(cache, length, m_TypeManager);
+
+            ComponentArray<T> res;
+            GetComponentArray<T>(ref iterator, indexInComponentGroup, length, out res);
+            return res;
         }
 
         public GameObjectArray GetGameObjectArray()
         {
             int length;
-            int componentIndex;
-
-            var cache = GetComponentChunkIterator(TypeManager.GetTypeIndex<Transform>(), out length,
-                out componentIndex);
-            return new GameObjectArray(cache, length, m_TypeManager);
+            ComponentChunkIterator iterator;
+            GetComponentChunkIterator(out length, out iterator);
+            iterator.IndexInComponentGroup = GetIndexInComponentGroup(TypeManager.GetTypeIndex<Transform>());
+            return new GameObjectArray(iterator, length, m_TypeManager);
         }
 
-        public unsafe int CalculateLength()
+        public int CalculateLength()
         {
             int length;
-            int componentIndex;
-            GetComponentChunkIterator(TypeManager.GetTypeIndex<Entity>(), out length, out componentIndex);
+            ComponentChunkIterator iterator;
+            GetComponentChunkIterator(out length, out iterator);
             return length;
         }
 
@@ -474,25 +521,12 @@ namespace UnityEngine.ECS
 		}
 
 
-        private int GetComponentIndexForVariation<T>()
-        {
-            int componentType = TypeManager.GetTypeIndex<T>();
-            int componentIndex = 0;
-            while (componentIndex < m_GroupData->requiredComponentsCount && m_GroupData->requiredComponents[componentIndex].typeIndex != componentType)
-                ++componentIndex;
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-            if (componentIndex >= m_GroupData->requiredComponentsCount)
-                throw new InvalidOperationException(string.Format("Trying to get a component group variation for {0} but the required component type was not declared in the ComponentGroup.", typeof(T)));
-#endif
-            return componentIndex;
-        }
-
         public ComponentGroup GetVariation<SharedComponent1>(SharedComponent1 sharedComponent1)
             where SharedComponent1 : struct, ISharedComponentData
         {
             var variationComponentGroup = new ComponentGroup(m_GroupData, m_SafetyManager, m_TypeManager);
 
-            int componetIndex1 = GetComponentIndexForVariation<SharedComponent1>();
+            int componetIndex1 = GetIndexInComponentGroup(TypeManager.GetTypeIndex<SharedComponent1>());
             int filteredCount = 1;
 
             var filtered = (int*)UnsafeUtility.Malloc((filteredCount * 2 + 1) * sizeof(int), sizeof(int), Allocator.Temp); // TODO: does temp allocator make sense here?
@@ -512,8 +546,8 @@ namespace UnityEngine.ECS
         {
             var variationComponentGroup = new ComponentGroup(m_GroupData, m_SafetyManager, m_TypeManager);
 
-            int componetIndex1 = GetComponentIndexForVariation<SharedComponent1>();
-            int componetIndex2 = GetComponentIndexForVariation<SharedComponent2>();
+            int componetIndex1 = GetIndexInComponentGroup(TypeManager.GetTypeIndex<SharedComponent1>());
+            int componetIndex2 = GetIndexInComponentGroup(TypeManager.GetTypeIndex<SharedComponent2>());
             int filteredCount = 2;
 
             var filtered = (int*)UnsafeUtility.Malloc((filteredCount * 2 + 1) * sizeof(int), sizeof(int), Allocator.Temp);

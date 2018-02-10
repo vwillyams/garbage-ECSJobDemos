@@ -4,25 +4,21 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.ECS
 {
-    interface IUpdateInjection
-    {
-        unsafe void UpdateInjection(byte* targetObject, EntityManager entityManager, ComponentGroup group, InjectionData injection);
-    }
-
     struct InjectionData
     {
         public int                 fieldOffset;
-        public Type                genericType;
+        public ComponentType       componentType;
+        public int                 indexInComponentGroup;
         public bool                isReadOnly;
 
-        internal IUpdateInjection  injection;
-
-        public InjectionData(FieldInfo field, Type containerType, Type genericType, bool isReadOnly)
+        public InjectionData(FieldInfo field, Type genericType, bool isReadOnly)
         {
+            this.indexInComponentGroup = -1;
             this.fieldOffset = UnsafeUtility.GetFieldOffset(field);
-            this.genericType = genericType;
+
+            var accessMode = isReadOnly ? ComponentType.AccessMode.ReadOnly : ComponentType.AccessMode.ReadWrite;
+            this.componentType = new ComponentType(genericType, accessMode);
             this.isReadOnly = isReadOnly;
-            this.injection = null;
         }
     }
 }

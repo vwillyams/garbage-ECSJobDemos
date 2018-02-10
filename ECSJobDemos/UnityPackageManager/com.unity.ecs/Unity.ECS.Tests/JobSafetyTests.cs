@@ -130,5 +130,11 @@ namespace UnityEngine.ECS.Tests
 
             jobHandle.Complete();
         }
+	    
+	    [Test]
+	    [Ignore("Should work, need to write test")]
+	    public void TwoJobsAccessingEntityArrayCanRunInParallel()
+	    {
+	    }
     }
 }

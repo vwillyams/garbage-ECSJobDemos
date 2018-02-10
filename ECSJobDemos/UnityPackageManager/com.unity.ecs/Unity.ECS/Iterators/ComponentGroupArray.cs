@@ -20,6 +20,7 @@ namespace UnityEngine.ECS
         internal int                   ComponentDataCount;
         internal int                   ComponentCount;
         internal ComponentGroup        ComponentGroup;
+        internal ComponentJobSafetyManager SafetyManager;
 
         public ComponentGroupArrayStaticCache(Type type, EntityManager entityManager)
         {
@@ -92,6 +93,8 @@ namespace UnityEngine.ECS
 
             ComponentGroup = entityManager.CreateComponentGroup(ComponentTypes);
             CachedType = type;
+
+            SafetyManager = entityManager.ComponentJobSafetyManager;
         }
 
         public void Dispose()
@@ -150,8 +153,8 @@ namespace UnityEngine.ECS
         public ComponentGroupArrayData(ComponentGroupArrayStaticCache staticCache)
         {
             int length = 0;
-            int componentIndex;
-            var chunkIterator = staticCache.ComponentGroup.GetComponentChunkIterator(staticCache.ComponentTypes[0].typeIndex, out length, out componentIndex);
+            staticCache.ComponentGroup.GetComponentChunkIterator(out length, out m_ChunkIterator);
+            m_ChunkIterator.IndexInComponentGroup = 0;
 
             m_Length = length;
             m_MinIndex = 0;
@@ -160,9 +163,6 @@ namespace UnityEngine.ECS
             CacheBeginIndex = 0;
             CacheEndIndex = 0;
             m_ArchetypeManager = staticCache.ComponentGroup.GetArchetypeManager();
-
-
-            m_ChunkIterator = chunkIterator;
 
             m_ComponentDataCount = staticCache.ComponentDataCount;
             m_ComponentCount = staticCache.ComponentCount;
@@ -192,6 +192,7 @@ namespace UnityEngine.ECS
 
             m_SafetyReadWriteCount = 0;
             m_SafetyReadOnlyCount = 0;
+            var safetyManager = staticCache.SafetyManager;
             fixed (AtomicSafetyHandle* safety = &m_Safety0)
             {
                 for (int i = 0; i != staticCache.ComponentTypes.Length; i++)
@@ -199,7 +200,7 @@ namespace UnityEngine.ECS
                     var type = staticCache.ComponentTypes[i];
                     if (type.accessMode == ComponentType.AccessMode.ReadOnly)
                     {
-                        safety[m_SafetyReadOnlyCount] = staticCache.ComponentGroup.GetSafetyHandle(type.typeIndex, true);
+                        safety[m_SafetyReadOnlyCount] = safetyManager.GetSafetyHandle(type.typeIndex, true);
                         m_SafetyReadOnlyCount++;
                     }
                 }
@@ -209,7 +210,7 @@ namespace UnityEngine.ECS
                     var type = staticCache.ComponentTypes[i];
                     if (type.accessMode == ComponentType.AccessMode.ReadWrite)
                     {
-                        safety[m_SafetyReadOnlyCount + m_SafetyReadWriteCount] = staticCache.ComponentGroup.GetSafetyHandle(type.typeIndex, false);
+                        safety[m_SafetyReadOnlyCount + m_SafetyReadWriteCount] = safetyManager.GetSafetyHandle(type.typeIndex, false);
                         m_SafetyReadWriteCount++;
                     }
                 }

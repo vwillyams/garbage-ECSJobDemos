@@ -4,7 +4,6 @@ using System;
 
 namespace UnityEngine.ECS
 {
-
     [NativeContainer]
     [NativeContainerSupportsMinMaxWriteRestriction]
     public unsafe struct ComponentDataArray<T> where T : struct, IComponentData

@@ -9,11 +9,11 @@ namespace UnityEngine.ECS
 {
     public abstract class ComponentSystemBase : ScriptBehaviourManager
     {
-	    InjectComponentGroupData[] 			m_InjectedComponentGroups;
-	    InjectionData[] 					m_InjectedFromEntity;
+        InjectComponentGroupData[] 			m_InjectedComponentGroups;
+        InjectFromEntityData                m_InjectFromEntityData;
 
-	    ComponentGroupArrayStaticCache[] 	m_CachedComponentGroupArrays;
-	    ComponentGroup[] 				    m_ComponentGroups;
+        ComponentGroupArrayStaticCache[] 	m_CachedComponentGroupArrays;
+        ComponentGroup[] 				    m_ComponentGroups;
 
 
         internal int[]		    			m_JobDependencyForReadingManagers;
@@ -35,7 +35,7 @@ namespace UnityEngine.ECS
 	        m_EntityManager = world.GetOrCreateManager<EntityManager>();
             m_SafetyManager = m_EntityManager.ComponentJobSafetyManager;
 
-		    ComponentSystemInjection.Inject(this, world, m_EntityManager, out m_InjectedComponentGroups, out m_InjectedFromEntity);
+		    ComponentSystemInjection.Inject(this, world, m_EntityManager, out m_InjectedComponentGroups, out m_InjectFromEntityData);
 
 		    m_ComponentGroups = new ComponentGroup[m_InjectedComponentGroups.Length];
 		    for (var i = 0; i < m_InjectedComponentGroups.Length; ++i)
@@ -54,7 +54,7 @@ namespace UnityEngine.ECS
 		    var writingTypes = new List<int>();
 
 		    ComponentGroup.ExtractJobDependencyTypes(ComponentGroups, readingTypes, writingTypes);
-		    InjectFromEntityData.ExtractJobDependencyTypes(m_InjectedFromEntity, readingTypes, writingTypes);
+	        m_InjectFromEntityData.ExtractJobDependencyTypes(readingTypes, writingTypes);
 
 		    m_JobDependencyForReadingManagers = readingTypes.ToArray();
 		    m_JobDependencyForWritingManagers = writingTypes.ToArray();
@@ -136,7 +136,7 @@ namespace UnityEngine.ECS
 			    foreach (var group in m_InjectedComponentGroups)
 				    group.UpdateInjection (pinnedSystemPtr);
 
-			    InjectFromEntityData.UpdateInjection(pinnedSystemPtr, EntityManager, m_InjectedFromEntity);
+		        m_InjectFromEntityData.UpdateInjection(pinnedSystemPtr, EntityManager);
 		    }
 		    catch
 		    {

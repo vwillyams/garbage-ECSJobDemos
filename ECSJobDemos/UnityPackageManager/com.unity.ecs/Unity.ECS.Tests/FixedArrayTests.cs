@@ -161,5 +161,23 @@ namespace UnityEngine.ECS.Tests
 			
 			Assert.AreEqual(2, intLookup[entityInt][1]);
 		}
+	    
+	    [Test]
+	    [Ignore("Should work, need to write test")]
+	    public void FixedArrayReadingFromTwoJobsInParallel()
+	    {
+	    }
+
+	    [Test]
+	    [Ignore("Should work, need to write test")]
+	    public void FixedArrayWritingInJob()
+	    {
+	    }
+	    
+	    [Test]
+	    [Ignore("Should work, need to write test")]
+	    public void FixedArrayCantBeWrittenFromTwoJobsInParallel()
+	    {
+	    }
 	}
 }

@@ -25,33 +25,16 @@ namespace UnityEngine.ECS.Boids
 
         struct BoidGroup
         {
-            [ReadOnly] public ComponentDataArray<Boid>       boid; 
+            [ReadOnly] public ComponentDataArray<Boid>       boid;
             [ReadOnly] public ComponentDataArray<Position>   positions;
+            [ReadOnly] public ComponentDataArray<BoidNearestTargetPosition> nearestTargetPositions;
+            [ReadOnly] public ComponentDataArray<BoidNearestObstaclePosition> nearestObstaclePositions;
             public ComponentDataArray<Heading>               headings;
             public int Length;
         }
 
         [Inject] private BoidGroup m_BoidGroup;
 
-        struct ObstacleGroup
-        {
-            [ReadOnly] public ComponentDataArray<BoidObstacle> obstacles;
-            [ReadOnly] public ComponentDataArray<Radius>       spheres;
-            [ReadOnly] public ComponentDataArray<Position>     positions;
-            public int Length;
-        }
-
-        [Inject] private ObstacleGroup m_ObstacleGroup;
-
-        struct TargetGroup
-        {
-            [ReadOnly] public ComponentDataArray<Position>   positions;
-            [ReadOnly] public ComponentDataArray<BoidTarget> target;
-            public int Length;
-        }
-
-        [Inject] private TargetGroup m_TargetGroup;
-        
         [ComputeJobOptimization]
         struct HashBoidLocations : IJobParallelFor
         {
@@ -67,83 +50,6 @@ namespace UnityEngine.ECS.Boids
         }
 
         [ComputeJobOptimization]
-        struct AvoidObstaclesSteer : IJob
-        {
-            [ReadOnly] public ComponentDataArray<Heading>        headings;
-            [ReadOnly] public ComponentDataArray<Position>       obstaclePositions;
-            [ReadOnly] public ComponentDataArray<BoidObstacle>   obstacles;
-            [ReadOnly] public ComponentDataArray<Radius>         obstacleSpheres;
-            [ReadOnly] public ComponentDataArray<Position>       positions;
-            [ReadOnly] public BoidSettings                       settings;
-            public NativeArray<float3> results;
-            
-            static float3 AvoidObstacle (float3 obstaclePosition, float obstacleRadius, BoidObstacle obstacle, float3 position, float3 steer, float aversionDistance)
-            {
-                float3 obstacleDelta1 = obstaclePosition - position;
-                float sqrDist = math.dot(obstacleDelta1, obstacleDelta1);
-                float orad = obstacleRadius + aversionDistance;
-                if (sqrDist < orad * orad)
-                {
-                    float dist = math.sqrt(sqrDist);
-                    float3 obs1Dir = obstacleDelta1 / dist;
-                    float a = dist - obstacleRadius;
-                    if (a < 0)
-                        a = 0;
-                    float f = a / aversionDistance;
-                    steer = steer + (-obs1Dir - steer) * (1 - f);
-                    steer = math_experimental.normalizeSafe(steer);
-                }
-                return steer;
-            } 
-            
-            public void Execute()
-            {
-                for (int index = 0; index < headings.Length; index++)
-                {
-                    var position = positions[index].position;
-                    var forward = headings[index].value;
-                    var aversionDistance = settings.obstacleAversionDistance;
-                    
-                    var obstacleSteering = forward;
-                    for (int i = 0;i != obstacles.Length;i++)
-                        obstacleSteering = AvoidObstacle (obstaclePositions[i].position, obstacleSpheres[i].radius, obstacles[i], position, obstacleSteering, aversionDistance);
-
-                    results[index] = obstacleSteering;
-                }
-            }
-        }
-
-        [ComputeJobOptimization]
-        struct TargetSteer : IJob
-        {
-            [ReadOnly] public ComponentDataArray<Position> positions;
-            [ReadOnly] public ComponentDataArray<Position> targetPositions;
-            public NativeArray<float3> results;
-
-            public void Execute()
-            {
-                for (int index = 0; index < positions.Length; index++)
-                {
-                    var position = positions[index].position;
-                    float closestDistance = math.distance(position, targetPositions[0].position);
-                    int closestIndex = 0;
-                    for (int i = 1; i < targetPositions.Length; i++)
-                    {
-                        float distance = math.distance(position, targetPositions[i].position);
-                        if (distance < closestDistance)
-                        {
-                            closestIndex = i;
-                            closestDistance = distance;
-                        }
-                    }
-
-                    results[index] = (targetPositions[closestIndex].position - position) /
-                                     math.max(0.0001F, closestDistance);
-                }
-            }
-        }
-
-        [ComputeJobOptimization]
         struct CopyPosition : IJobParallelFor
         {
             [ReadOnly] public ComponentDataArray<Position> positions;
@@ -154,7 +60,7 @@ namespace UnityEngine.ECS.Boids
                 results[index] = positions[index].position;
             }
         }
-        
+
         [ComputeJobOptimization]
         struct CopyHeading : IJobParallelFor
         {
@@ -166,7 +72,6 @@ namespace UnityEngine.ECS.Boids
                 results[index] = headings[index].value;
             }
         }
-            
 
         [ComputeJobOptimization]
         struct SeparationAndAlignmentSteer : IJobParallelFor
@@ -175,7 +80,7 @@ namespace UnityEngine.ECS.Boids
             [ReadOnly] public NativeArray<int3> 		   cellOffsetsTable;
             [ReadOnly] public NativeArray<float>           bias;
             [ReadOnly] public BoidSettings                 settings;
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> positions;
+            [ReadOnly] public NativeArray<float3> positions;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> headings;
             public NativeArray<float3> alignmentResults;
             public NativeArray<float3> separationResults;
@@ -184,10 +89,10 @@ namespace UnityEngine.ECS.Boids
             {
                 var position = positions[index];
                 var forward = headings[index];
-                
+
                 var separationSteering = new float3(0);
                 var alignmentSteering = new float3(0);
-                
+
                 int hash;
                 int3 gridPos = GridHash.Quantize(position, settings.cellRadius);
                 for (int oi = 0; oi < 7; oi++)
@@ -235,24 +140,42 @@ namespace UnityEngine.ECS.Boids
         [ComputeJobOptimization]
         struct Steer : IJobParallelFor
         {
-            public ComponentDataArray<Heading>                   headings;
-            [ReadOnly] public BoidSettings                       settings;
-            [ReadOnly] public NativeArray<float>                 bias;
+            public ComponentDataArray<Heading> headings;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> positions;
+            [ReadOnly] public ComponentDataArray<BoidNearestTargetPosition> nearestTargetPositions;
+            [ReadOnly] public ComponentDataArray<BoidNearestObstaclePosition> nearestObstaclePositions;
+            [ReadOnly] public BoidSettings settings;
+            [ReadOnly] public NativeArray<float> bias;
 
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> targetSteering;
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> obstacleSteering;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> alignmentSteering;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> separationSteering;
             public float dt;
-            
+
             public void Execute(int index)
             {
+                var position = positions[index];
                 var forward = headings[index].value;
+                var targetSteering = math_experimental.normalizeSafe(nearestTargetPositions[index].value - position);
+
                 var steer = (alignmentSteering[index] * settings.alignmentWeight) +
                             (separationSteering[index] * settings.separationWeight) +
-                            (targetSteering[index] * settings.targetWeight) +
-                            (obstacleSteering[index] * settings.obstacleWeight);
+                            (targetSteering * settings.targetWeight);
+                
+                {
+                    var obstaclePosition = nearestObstaclePositions[index].value;
+                    var obstacleRadius = 10.0f;
+                    var obstacleDelta1 = obstaclePosition - position;
+                    var dist = math.length(obstacleDelta1);
+                    var obs1Dir = obstacleDelta1 / dist;
+                    var a = dist - obstacleRadius;
+                    if (a < 0)
+                        a = 0;
+                    var f = a / settings.obstacleAversionDistance;
                     
+                    steer = steer + (-obs1Dir - steer) * (1 - f) * settings.obstacleWeight;
+                    steer = math_experimental.normalizeSafe(steer);
+                }
+
                 math_experimental.normalizeSafe(steer);
 
                 headings[index] = new Heading
@@ -261,7 +184,7 @@ namespace UnityEngine.ECS.Boids
                 };
             }
         }
-        
+
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
             if (m_BoidSettingsGroup.Length == 0)
@@ -273,10 +196,10 @@ namespace UnityEngine.ECS.Boids
             {
                 return inputDeps;
             }
-            
+
             // Only support one boid type until we can destroy m_Cells after jobs
             var settings = m_BoidSettingsGroup.settings[0];
-            
+
             m_Cells.Capacity = math.max (m_Cells.Capacity, m_BoidGroup.Length);
             m_Cells.Clear();
 
@@ -289,28 +212,6 @@ namespace UnityEngine.ECS.Boids
 
             var hashBoidLocationsJobHandle = hashBoidLocationsJob.Schedule(m_BoidGroup.Length, 64, inputDeps);
 
-            var avoidObstaclesSteerResults = new NativeArray<float3>(m_BoidGroup.Length, Allocator.TempJob);
-            var avoidObstaclesSteerJob = new AvoidObstaclesSteer
-            {
-                headings = m_BoidGroup.headings,
-                positions = m_BoidGroup.positions,
-                obstaclePositions = m_ObstacleGroup.positions,
-                obstacles = m_ObstacleGroup.obstacles,
-                obstacleSpheres = m_ObstacleGroup.spheres,
-                settings = settings,
-                results = avoidObstaclesSteerResults
-            };
-            var avoidObstaclesSteerJobHandle = avoidObstaclesSteerJob.Schedule(inputDeps);
-            
-            var targetSteerResults = new NativeArray<float3>(m_BoidGroup.Length, Allocator.TempJob);
-            var targetSteerJob = new TargetSteer
-            {
-                positions = m_BoidGroup.positions,
-                targetPositions = m_TargetGroup.positions,
-                results = targetSteerResults
-            };
-            var targetSteerJobHandle = targetSteerJob.Schedule(inputDeps);
-            
             var copyPositionsResults = new NativeArray<float3>(m_BoidGroup.Length, Allocator.TempJob);
             var copyPositionsJob = new CopyPosition
             {
@@ -318,7 +219,7 @@ namespace UnityEngine.ECS.Boids
                 results = copyPositionsResults
             };
             var copyPositionsJobHandle = copyPositionsJob.Schedule(m_BoidGroup.Length,64,inputDeps);
-            
+
             var copyHeadingsResults = new NativeArray<float3>(m_BoidGroup.Length, Allocator.TempJob);
             var copyHeadingsJob = new CopyHeading
             {
@@ -326,7 +227,7 @@ namespace UnityEngine.ECS.Boids
                 results = copyHeadingsResults
             };
             var copyHeadingsJobHandle = copyHeadingsJob.Schedule(m_BoidGroup.Length,64,inputDeps);
-            
+
             var separationResults = new NativeArray<float3>(m_BoidGroup.Length, Allocator.TempJob);
             var alignmentResults = new NativeArray<float3>(m_BoidGroup.Length, Allocator.TempJob);
             var separationAndAlignmentSteerJob = new SeparationAndAlignmentSteer
@@ -344,26 +245,26 @@ namespace UnityEngine.ECS.Boids
 
             var steerJob = new Steer
             {
+                positions = copyPositionsResults,
                 headings = m_BoidGroup.headings,
+                nearestTargetPositions = m_BoidGroup.nearestTargetPositions,
+                nearestObstaclePositions = m_BoidGroup.nearestObstaclePositions,
                 settings = settings,
-                obstacleSteering = avoidObstaclesSteerResults,
-                targetSteering = targetSteerResults,
                 alignmentSteering = alignmentResults,
                 separationSteering = separationResults,
                 bias = m_Bias,
                 dt = Time.deltaTime
             };
 
-            var steerJobHandle =
-                steerJob.Schedule(m_BoidGroup.Length,64,JobHandle.CombineDependencies(avoidObstaclesSteerJobHandle, targetSteerJobHandle, separationAndAlignmentSteerJobHandle));
-                
+            var steerJobHandle = steerJob.Schedule(m_BoidGroup.Length,64,separationAndAlignmentSteerJobHandle);
+
             return steerJobHandle;
         }
-        
+
         protected override void OnCreateManager(int capacity)
         {
             base.OnCreateManager(capacity);
-            m_Cells = new NativeMultiHashMap<int, int>(capacity, Allocator.Persistent);
+            m_Cells = new NativeMultiHashMap<int, int>(capacity,Allocator.Persistent);
             m_CellOffsetsTable = new NativeArray<int3>(GridHash.cellOffsets, Allocator.Persistent);
             m_Bias = new NativeArray<float>(1024,Allocator.Persistent);
             for (int i = 0; i < 1024; i++)
@@ -382,3 +283,7 @@ namespace UnityEngine.ECS.Boids
 
     }
 }
+
+// Accumulate obstacles
+// Accumulate targets
+// Accumulate Headings with HeadingTarget tag

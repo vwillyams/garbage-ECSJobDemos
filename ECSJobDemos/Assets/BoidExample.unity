@@ -1832,7 +1832,7 @@ MonoBehaviour:
     cellRadius: 4
     separationWeight: 2
     alignmentWeight: 1
-    targetWeight: 0.5
+    targetWeight: 0.75
     obstacleWeight: 8
     obstacleAversionDistance: 20
     rotationalSpeed: 160

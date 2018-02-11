@@ -29,6 +29,8 @@ GameObject:
   - component: {fileID: 114017445485928864}
   - component: {fileID: 114577371648038814}
   - component: {fileID: 114775137796125996}
+  - component: {fileID: 114441362472732218}
+  - component: {fileID: 114153346486449396}
   m_Layer: 0
   m_Name: TestBoidFish
   m_TagString: Untagged
@@ -61,10 +63,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SerializedData:
-    forward:
+    value:
       x: 0
       y: 0
-      z: 1
+      z: 0
 --- !u!114 &114080190520665040
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -90,6 +92,28 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 86ca4290c6b3473e913676ba4860db32, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &114153346486449396
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1501737747371270}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1fa20c9110def4908879410bc9e38929, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &114441362472732218
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1501737747371270}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 148c12af3c0294f78a282321bc35cf75, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &114569172725802478
@@ -158,6 +182,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 168b0e3756704251859c57ee75912ca1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_SerializedData:
+    position:
+      x: 0
+      y: 0
+      z: 0
 --- !u!114 &114878148870236606
 MonoBehaviour:
   m_ObjectHideFlags: 1

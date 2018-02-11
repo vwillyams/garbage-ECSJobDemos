@@ -275,7 +275,6 @@ namespace UnityEngine.ECS.Boids
 
         protected override void OnDestroyManager()
         {
-            base.OnDestroyManager();
             m_Cells.Dispose ();
             m_CellOffsetsTable.Dispose();
             m_Bias.Dispose();

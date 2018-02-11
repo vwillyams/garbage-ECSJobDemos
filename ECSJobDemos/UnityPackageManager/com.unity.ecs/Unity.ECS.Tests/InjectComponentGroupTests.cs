@@ -231,51 +231,6 @@ namespace UnityEngine.ECS.Tests
 		}
 
 		[DisableAutoCreation]
-	    public class OnDestroyManagerJobsHaveCompletedJobSystem : JobComponentSystem
-	    {
-	        struct Job : IJob
-	        {
-	            public ComponentDataArray<EcsTestData> data;
-
-	            public void Execute()
-	            {
-	                data[0] = new EcsTestData(42);
-	            }
-	        }
-
-	        public struct Group
-	        {
-	            public ComponentDataArray<EcsTestData> Data;
-	        }
-
-	        [Inject]
-	        public Group group;
-
-	        protected override void OnDestroyManager()
-	        {
-		        UpdateInjectedComponentGroups();
-
-	            var job = new Job();
-	            job.data = group.Data;
-	            AddDependencyInternal(job.Schedule());
-
-	            base.OnDestroyManager();
-
-	            // base.OnDestroyManager(); will wait for the job
-	            // and ensure that you can safely access the injected groups
-	            Assert.AreEqual(42, group.Data[0].value);
-	        }
-	    }
-
-		[Test]
-		public void OnDestroyManagerJobsHaveCompleted()
-		{
-			m_Manager.CreateEntity (typeof(EcsTestData));
-			World.GetOrCreateManager<OnDestroyManagerJobsHaveCompletedJobSystem>();
-			TearDown();
-		}
-
-		[DisableAutoCreation]
 		public class OnCreateManagerComponentGroupInjectionSystem : JobComponentSystem
 		{
 			public struct Group
@@ -288,10 +243,6 @@ namespace UnityEngine.ECS.Tests
 
 			protected override void OnCreateManager(int capacity)
 			{
-				// base.OnCreateManager should inject the component group,
-				// so that any code in OnCreateManager can access them
-				base.OnCreateManager(capacity);
-
 				Assert.AreEqual(1, group.Data.Length);
 				Assert.AreEqual(42, group.Data[0].value);
 			}
@@ -305,6 +256,33 @@ namespace UnityEngine.ECS.Tests
 			World.GetOrCreateManager<OnCreateManagerComponentGroupInjectionSystem>();
 		}
 
+	    [DisableAutoCreation]
+	    public class OnDestroyManagerComponentGroupInjectionSystem : JobComponentSystem
+	    {
+	        public struct Group
+	        {
+	            public ComponentDataArray<EcsTestData> Data;
+	        }
+
+	        [Inject]
+	        public Group group;
+
+	        protected override void OnDestroyManager()
+	        {
+	            Assert.AreEqual(1, group.Data.Length);
+	            Assert.AreEqual(42, group.Data[0].value);
+	        }
+	    }
+
+	    [Test]
+	    public void OnDestroyManagerComponentGroupInjectionWorks()
+	    {
+	        var system = World.GetOrCreateManager<OnDestroyManagerComponentGroupInjectionSystem>();
+	        var entity = m_Manager.CreateEntity (typeof(EcsTestData));
+	        m_Manager.SetComponentData(entity, new EcsTestData(42));
+	        World.DestroyManager(system);
+	    }
+	    
 	    [DisableAutoCreation]
 	    public class GameObjectArraySystem : ComponentSystem
 	    {

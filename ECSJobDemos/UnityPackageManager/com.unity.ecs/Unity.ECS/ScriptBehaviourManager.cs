@@ -19,10 +19,14 @@ namespace UnityEngine.ECS
 
 		internal void DestroyInstance()
 		{
+		    OnBeforeDestroyManagerInternal();
 			OnDestroyManager();
+		    OnAfterDestroyManagerInternal();
 		}
-
-		protected abstract void OnCreateManagerInternal(World world, int capacity);
+	    
+	    protected abstract void OnCreateManagerInternal(World world, int capacity);
+	    protected abstract void OnBeforeDestroyManagerInternal();
+	    protected abstract void OnAfterDestroyManagerInternal();
 
 		/// <summary>
 		/// Called when the ScriptBehaviourManager is created.

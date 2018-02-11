@@ -9,7 +9,7 @@ using UnityEngine.ECS.Utilities;
 namespace UnityEngine.ECS.Boids
 {
     public class Boid2DSystem : JobComponentSystem
-    {
+    {        
         NativeMultiHashMap<int, int> 		 m_Cells;
         NativeArray<int2> 					 m_CellOffsetsTable;
         NativeArray<float>                   m_Bias;
@@ -251,7 +251,6 @@ namespace UnityEngine.ECS.Boids
         
         protected override void OnCreateManager(int capacity)
         {
-            base.OnCreateManager(capacity);
             m_Cells = new NativeMultiHashMap<int, int>(capacity, Allocator.Persistent);
             m_CellOffsetsTable = new NativeArray<int2>(GridHash.cell2DOffsets, Allocator.Persistent);
             m_Bias = new NativeArray<float>(1024,Allocator.Persistent);
@@ -263,7 +262,6 @@ namespace UnityEngine.ECS.Boids
 
         protected override void OnDestroyManager()
         {
-            base.OnDestroyManager();
             m_Cells.Dispose ();
             m_CellOffsetsTable.Dispose();
             m_Bias.Dispose();

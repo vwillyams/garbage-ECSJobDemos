@@ -1,4 +1,5 @@
-﻿using UnityEngine.ECS;
+﻿using System;
+using UnityEngine.ECS;
 using NUnit.Framework;
 using Unity.Collections;
 using System.Collections.Generic;
@@ -28,7 +29,7 @@ namespace UnityEngine.ECS.Tests
         {
             var go = new GameObject("test", typeof(GameObjectEntity));
             var entity = GameObjectEntity.AddToEntityManager(m_Manager, go);
-            Assert.IsFalse(m_Manager.HasComponent<GameObjectEntity>(entity));
+            Assert.Throws<ArgumentException>(() => { m_Manager.HasComponent<GameObjectEntity>(entity); });
         }
         
         [Test]

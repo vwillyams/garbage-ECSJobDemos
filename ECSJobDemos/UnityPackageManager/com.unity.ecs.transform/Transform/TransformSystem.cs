@@ -248,15 +248,11 @@ namespace UnityEngine.ECS.Transform2D
         
         protected override void OnCreateManager(int capacity)
         {
-            base.OnCreateManager(capacity);
-
             m_Hierarchy = new NativeMultiHashMap<Entity, Entity>(capacity, Allocator.Persistent);
         }
 
         protected override void OnDestroyManager()
         {
-            base.OnDestroyManager();
-            
             m_Hierarchy.Dispose();
         }
         

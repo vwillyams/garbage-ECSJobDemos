@@ -6,8 +6,8 @@ Talk about C# job system & Entity Component System at Unite Austin
 https://youtu.be/tGmnZdY5Y-E
 
 # unity build (compatible with "stable" branch)
-https://beta.unity3d.com/download/10ec571547d0/download.html
-unity source code revision: 10ec571547d0 branch: 2018.1/scripting/jobsystem/playground
+https://beta.unity3d.com/download/89b72894c1ef/download.html
+unity source code revision: 89b72894c1ef branch: 2018.1/scripting/jobsystem/playground
 
 # active development against master
 unity source code branch: 2018.1/scripting/jobsystem/playground

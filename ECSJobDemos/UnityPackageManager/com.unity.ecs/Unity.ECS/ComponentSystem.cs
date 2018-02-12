@@ -287,7 +287,7 @@ namespace UnityEngine.ECS
 	    }
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-		private void CheckJobDependencies(int type, bool isReading, JobHandle dependency)
+		void CheckJobDependencies(int type, bool isReading, JobHandle dependency)
 		{
             AtomicSafetyHandle h = m_SafetyManager.GetSafetyHandle(type, true);
 
@@ -316,7 +316,7 @@ namespace UnityEngine.ECS
             }
 		}
 
-		private void EmergencySyncAllJobs()
+		void EmergencySyncAllJobs()
 		{
             for (int i = 0; i < m_JobDependencyForReadingManagers.Length; ++i)
             {
@@ -340,7 +340,7 @@ namespace UnityEngine.ECS
 			}
 		}
 
-		internal protected unsafe void AddDependencyInternal(JobHandle dependency)
+		unsafe void AddDependencyInternal(JobHandle dependency)
 		{
 			fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
 			{

@@ -146,6 +146,8 @@ namespace UnityEngine.ECS
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         public override string ToString()
         {
+            //@TODO: Empty ComponentType should visualize that it is null or something
+            
             if (IsFixedArray)
                 return $"FixedArray(typeof({GetManagedType()}, {FixedArrayLength}))";
             else

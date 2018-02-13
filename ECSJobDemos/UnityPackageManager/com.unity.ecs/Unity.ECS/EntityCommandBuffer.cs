@@ -259,7 +259,7 @@ namespace UnityEngine.ECS
                                 EntityComponentCommand* cmd = (EntityComponentCommand*)header;
                                 var componentType = (ComponentType)TypeManager.GetType(cmd->ComponentTypeIndex);
                                 mgr.AddComponent(cmd->Header.Entity, componentType);
-                                mgr.SetComponentRaw(cmd->Header.Entity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
+                                mgr.SetComponentDataRaw(cmd->Header.Entity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
                             }
                             break;
 
@@ -273,7 +273,7 @@ namespace UnityEngine.ECS
                         case Command.SetComponentExplicit:
                             {
                                 EntityComponentCommand* cmd = (EntityComponentCommand*)header;
-                                mgr.SetComponentRaw(cmd->Header.Entity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
+                                mgr.SetComponentDataRaw(cmd->Header.Entity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
                             }
                             break;
 
@@ -292,7 +292,7 @@ namespace UnityEngine.ECS
                                 EntityComponentCommand* cmd = (EntityComponentCommand*)header;
                                 var componentType = (ComponentType)TypeManager.GetType(cmd->ComponentTypeIndex);
                                 mgr.AddComponent(lastEntity, componentType);
-                                mgr.SetComponentRaw(lastEntity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
+                                mgr.SetComponentDataRaw(lastEntity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
                             }
                             break;
 
@@ -300,7 +300,7 @@ namespace UnityEngine.ECS
                             {
                                 EntityComponentCommand* cmd = (EntityComponentCommand*)header;
                                 //var componentType = (ComponentType)TypeManager.GetType(cmd->ComponentTypeIndex);
-                                mgr.SetComponentRaw(lastEntity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
+                                mgr.SetComponentDataRaw(lastEntity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
                             }
                             break;
                     }

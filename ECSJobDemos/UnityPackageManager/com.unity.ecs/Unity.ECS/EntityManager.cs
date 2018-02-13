@@ -354,16 +354,6 @@ namespace UnityEngine.ECS
             UnsafeUtility.CopyStructureToPtr (ref componentData, ptr);
         }
 
-        internal void SetComponentRaw(Entity entity, int typeIndex, void* data, int size)
-        {
-            m_Entities->AssertEntityHasComponent(entity, typeIndex);
-
-            m_JobSafetyManager.CompleteReadAndWriteDependency(typeIndex);
-
-            byte* ptr = m_Entities->GetComponentDataWithType (entity, typeIndex);
-            UnsafeUtility.MemCpy(ptr, data, size);
-        }
-
         internal void SetComponentObject(Entity entity, ComponentType componentType, object componentObject)
         {
             m_Entities->AssertEntityHasComponent(entity, componentType.typeIndex);
@@ -443,6 +433,50 @@ namespace UnityEngine.ECS
             return array;
         }
 
+        public NativeArray<Entity> GetAllEntities(Allocator allocator = Allocator.Temp)
+        {
+            var entityGroup = CreateComponentGroup();
+            var groupArray = entityGroup.GetEntityArray();
+            
+            var array = new NativeArray<Entity>(groupArray.Length, allocator);
+            groupArray.CopyTo(array);
+            return array;
+        }
+
+        unsafe public NativeArray<ComponentType> GetComponentTypes(Entity entity, Allocator allocator = Allocator.Temp)
+        {
+            m_Entities->AssertEntitiesExist(&entity, 1);
+            
+            Archetype* archetype = m_Entities->GetArchetype(entity);
+
+            var components = new NativeArray<ComponentType>(archetype->typesCount - 1, allocator);
+
+            for (int i = 1; i < archetype->typesCount;i++)
+                components[i-1] = archetype->types[i].ToComponentType();
+
+            return components;
+        }
+        
+        public void SetComponentDataRaw(Entity entity, int typeIndex, void* data, int size)
+        {
+            m_Entities->AssertEntityHasComponent(entity, typeIndex);
+
+            m_JobSafetyManager.CompleteReadAndWriteDependency(typeIndex);
+
+            byte* ptr = m_Entities->GetComponentDataWithType (entity, typeIndex);
+            UnsafeUtility.MemCpy(ptr, data, size);
+        }
+        
+        public void* GetComponentDataRaw(Entity entity, int typeIndex)
+        {
+            m_Entities->AssertEntityHasComponent(entity, typeIndex);
+
+            m_JobSafetyManager.CompleteReadAndWriteDependency(typeIndex);
+
+            byte* ptr = m_Entities->GetComponentDataWithType (entity, typeIndex);
+            return ptr;
+        }
+        
         public int GetComponentOrderVersion<T>()
         {
             return m_Entities->GetComponentTypeOrderVersion(TypeManager.GetTypeIndex<T>());

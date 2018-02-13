@@ -6,7 +6,7 @@ using UnityEngine.Jobs;
 using UnityEngine.ECS;
 
 [UpdateAfter(typeof(CrowdSystem))]
-class CrowdAgentsToTransformSystem : JobComponentSystem
+public class CrowdAgentsToTransformSystem : JobComponentSystem
 {
     struct CrowdGroup
     {

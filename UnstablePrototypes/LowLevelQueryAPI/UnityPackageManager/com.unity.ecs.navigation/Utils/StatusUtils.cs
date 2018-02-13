@@ -1,6 +1,6 @@
 using UnityEngine.Experimental.AI;
 
-static class StatusUtils
+public static class StatusUtils
 {
     public static bool IsSuccess(this PathQueryStatus status)
     {

@@ -1,7 +1,7 @@
 ﻿using System;
-using Unity.ECS;
+using UnityEngine;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
 	public struct GameObjectArray
 	{

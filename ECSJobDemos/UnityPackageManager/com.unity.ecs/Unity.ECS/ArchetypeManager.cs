@@ -191,7 +191,7 @@ namespace UnityEngine.ECS
             {
                 while (!m_LastArchetype->chunkList.IsEmpty)
                 {
-                    var chunk = m_LastArchetype->chunkList.Begin();
+                    var chunk = m_LastArchetype->chunkList.Begin;
                     chunk->Remove();
                     UnsafeUtility.Free(chunk, Allocator.Persistent);
                 }
@@ -201,7 +201,7 @@ namespace UnityEngine.ECS
             // And all pooled chunks
             while (!m_EmptyChunkPool->IsEmpty)
             {
-                var chunk = m_EmptyChunkPool->Begin();
+                var chunk = m_EmptyChunkPool->Begin;
                 chunk->Remove();
                 UnsafeUtility.Free(chunk, Allocator.Persistent);
             }
@@ -427,8 +427,8 @@ namespace UnityEngine.ECS
             Assert.IsTrue(!archetype->chunkList.IsEmpty);
             Assert.IsTrue(!archetype->chunkListWithEmptySlots.IsEmpty);
 
-            Assert.IsTrue(chunk == (Chunk*)(archetype->chunkList.Back()));
-            Assert.IsTrue(chunk == GetChunkFromEmptySlotNode(archetype->chunkListWithEmptySlots.Back()));
+            Assert.IsTrue(chunk == (Chunk*)(archetype->chunkList.Back));
+            Assert.IsTrue(chunk == GetChunkFromEmptySlotNode(archetype->chunkListWithEmptySlots.Back));
 
             if (archetype->numManagedArrays > 0)
             {
@@ -491,13 +491,13 @@ namespace UnityEngine.ECS
             {
                 if (archetype->numSharedComponents == 0)
                 {
-                    var chunk = GetChunkFromEmptySlotNode(archetype->chunkListWithEmptySlots.Begin());
+                    var chunk = GetChunkFromEmptySlotNode(archetype->chunkListWithEmptySlots.Begin);
                     Assert.AreNotEqual(chunk->count, chunk->capacity);
                     return chunk;
                 }
 
-                var end = archetype->chunkListWithEmptySlots.End();
-                for (var it = archetype->chunkListWithEmptySlots.Begin(); it != end; it = it->next)
+                var end = archetype->chunkListWithEmptySlots.End;
+                for (var it = archetype->chunkListWithEmptySlots.Begin; it != end; it = it->Next)
                 {
                     var chunk = GetChunkFromEmptySlotNode(it);
                     Assert.AreNotEqual(chunk->count, chunk->capacity);
@@ -511,7 +511,7 @@ namespace UnityEngine.ECS
             // Try empty chunk pool
             if (!m_EmptyChunkPool->IsEmpty)
             {
-                Chunk* pooledChunk = (Chunk*)m_EmptyChunkPool->Begin();
+                Chunk* pooledChunk = (Chunk*)m_EmptyChunkPool->Begin;
                 pooledChunk->chunkListNode.Remove();
 
                 ConstructChunk(archetype, pooledChunk, sharedComponentDataIndices);
@@ -644,7 +644,7 @@ namespace UnityEngine.ECS
                         throw new System.ArgumentException("MoveEntitiesFrom is not supported with managed arrays");
                     Archetype* dstArchetype = dstArchetypeManager.GetOrCreateArchetype(srcArchetype->types, srcArchetype->typesCount, dstGroupManager);
 
-                    for (var c = srcArchetype->chunkList.Begin();c != srcArchetype->chunkList.End();c = c->next)
+                    for (var c = srcArchetype->chunkList.Begin;c != srcArchetype->chunkList.End;c = c->Next)
                     {
                         Chunk* chunk = (Chunk*) c;
 
@@ -656,8 +656,8 @@ namespace UnityEngine.ECS
 
                     //@TODO: Patch Entity references in IComponentData...
 
-                    UnsafeLinkedListNode.InsertListBefore(dstArchetype->chunkList.End(), &srcArchetype->chunkList);
-                    UnsafeLinkedListNode.InsertListBefore(dstArchetype->chunkListWithEmptySlots.End(), &srcArchetype->chunkListWithEmptySlots);
+                    UnsafeLinkedListNode.InsertListBefore(dstArchetype->chunkList.End, &srcArchetype->chunkList);
+                    UnsafeLinkedListNode.InsertListBefore(dstArchetype->chunkListWithEmptySlots.End, &srcArchetype->chunkListWithEmptySlots);
 
                     dstArchetype->entityCount += srcArchetype->entityCount;
                     srcArchetype->entityCount = 0;
@@ -675,7 +675,7 @@ namespace UnityEngine.ECS
             while (archetype != null)
             {
                 int countInArchetype = 0;
-                for (var c = archetype->chunkList.Begin();c != archetype->chunkList.End();c = c->next)
+                for (var c = archetype->chunkList.Begin;c != archetype->chunkList.End;c = c->Next)
                 {
                     Chunk* chunk = (Chunk*) c;
                     Assert.IsTrue(chunk->archetype == archetype);

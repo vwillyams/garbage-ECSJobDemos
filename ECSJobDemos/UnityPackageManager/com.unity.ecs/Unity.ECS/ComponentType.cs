@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using Unity.ECS;
 
 
 namespace UnityEngine.ECS

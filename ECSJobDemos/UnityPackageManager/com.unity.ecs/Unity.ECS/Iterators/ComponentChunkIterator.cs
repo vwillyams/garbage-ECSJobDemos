@@ -62,11 +62,11 @@ namespace UnityEngine.ECS
         {
             var m = m_CurrentMatchingArchetype;
             var c = m_CurrentChunk;
-            var e = (Chunk*)m->archetype->chunkList.End();
+            var e = (Chunk*)m->archetype->chunkList.End;
 
             do
             {
-                c = (Chunk*)c->chunkListNode.next;
+                c = (Chunk*)c->chunkListNode.Next;
                 while (c == e)
                 {
                     m_CurrentArchetypeIndex += m_CurrentChunkIndex;
@@ -79,8 +79,8 @@ namespace UnityEngine.ECS
                         return;
                     }
 
-                    c = (Chunk*)m->archetype->chunkList.Begin();
-                    e = (Chunk*)m->archetype->chunkList.End();
+                    c = (Chunk*)m->archetype->chunkList.Begin;
+                    e = (Chunk*)m->archetype->chunkList.End;
                 }
             } while (!(ChunkMatchesFilter(m, c, m_filteredSharedComponents) && (c->capacity > 0)));
             m_CurrentMatchingArchetype = m;
@@ -126,7 +126,7 @@ namespace UnityEngine.ECS
                 {
                     m_CurrentMatchingArchetype = m_FirstMatchingArchetype;
                     m_CurrentArchetypeIndex = 0;
-                    m_CurrentChunk = (Chunk*) m_CurrentMatchingArchetype->archetype->chunkList.Begin();
+                    m_CurrentChunk = (Chunk*) m_CurrentMatchingArchetype->archetype->chunkList.Begin;
                     m_CurrentChunkIndex = 0;
                 }
 
@@ -134,21 +134,21 @@ namespace UnityEngine.ECS
                 {
                     m_CurrentArchetypeIndex += m_CurrentMatchingArchetype->archetype->entityCount;
                     m_CurrentMatchingArchetype = m_CurrentMatchingArchetype->next;
-                    m_CurrentChunk = (Chunk*) m_CurrentMatchingArchetype->archetype->chunkList.Begin();
+                    m_CurrentChunk = (Chunk*) m_CurrentMatchingArchetype->archetype->chunkList.Begin;
                     m_CurrentChunkIndex = 0;
                 }
 
                 index -= m_CurrentArchetypeIndex;
                 if (index < m_CurrentChunkIndex)
                 {
-                    m_CurrentChunk = (Chunk*) m_CurrentMatchingArchetype->archetype->chunkList.Begin();
+                    m_CurrentChunk = (Chunk*) m_CurrentMatchingArchetype->archetype->chunkList.Begin;
                     m_CurrentChunkIndex = 0;
                 }
 
                 while (index >= m_CurrentChunkIndex + m_CurrentChunk->count)
                 {
                     m_CurrentChunkIndex += m_CurrentChunk->count;
-                    m_CurrentChunk = (Chunk*) m_CurrentChunk->chunkListNode.next;
+                    m_CurrentChunk = (Chunk*) m_CurrentChunk->chunkListNode.Next;
                 }
             }
             else
@@ -161,7 +161,7 @@ namespace UnityEngine.ECS
                         m_CurrentArchetypeIndex = 0;
                     }
 
-                    m_CurrentChunk = (Chunk*) m_CurrentMatchingArchetype->archetype->chunkList.Begin();
+                    m_CurrentChunk = (Chunk*) m_CurrentMatchingArchetype->archetype->chunkList.Begin;
                     m_CurrentChunkIndex = 0;
                     if (!(ChunkMatchesFilter(m_CurrentMatchingArchetype, m_CurrentChunk, m_filteredSharedComponents) &&
                           (m_CurrentChunk->count > 0)))

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Collections;
+using Unity.ECS;
 
 namespace UnityEngine.ECS
 {
@@ -113,7 +114,7 @@ namespace UnityEngine.ECS
         {
             m_SharedComponentVersion[index]++;
         }
-        
+
         public int GetSharedComponentVersion<T>(T sharedData) where T: struct
         {
             int index = FindSharedComponentIndex(TypeManager.GetTypeIndex<T>(), sharedData);

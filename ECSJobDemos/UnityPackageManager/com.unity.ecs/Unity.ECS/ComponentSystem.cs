@@ -3,6 +3,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using System.Collections.Generic;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.ECS;
 using Unity.Jobs.LowLevel.Unsafe;
 
 namespace UnityEngine.ECS
@@ -26,7 +27,7 @@ namespace UnityEngine.ECS
 
         protected ComponentSystemBase()
         {
-            
+
         }
 
     	protected override void OnCreateManagerInternal(World world, int capacity)
@@ -187,7 +188,7 @@ namespace UnityEngine.ECS
 	    {
 	        base.OnBeforeDestroyManagerInternal();
 	    }
-	    
+
 		/// <summary>
 		/// Called once per frame on the main thread.
 		/// </summary>
@@ -280,7 +281,7 @@ namespace UnityEngine.ECS
 			base.OnBeforeDestroyManagerInternal();
 		    m_PreviousFrameDependency.Complete();
 		}
-	    
+
 	    protected virtual JobHandle OnUpdate(JobHandle inputDeps)
 	    {
 		    return inputDeps;

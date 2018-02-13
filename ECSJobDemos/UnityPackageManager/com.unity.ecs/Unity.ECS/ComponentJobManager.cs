@@ -2,6 +2,7 @@
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Collections;
+using Unity.ECS;
 
 namespace UnityEngine.ECS
 {
@@ -270,7 +271,7 @@ namespace UnityEngine.ECS
         {
             if (m_IsInTransaction)
                 return;
-            
+
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             for (int i = 0; i != TypeManager.GetTypeCount(); i++)
                 AtomicSafetyHandle.CheckDeallocateAndThrow(m_ComponentSafetyHandles[i].safetyHandle);
@@ -293,17 +294,17 @@ namespace UnityEngine.ECS
         {
             if (!m_IsInTransaction)
                 return;
-            
+
             m_ExclusiveTransactionDependency.Complete();
-            
+
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             var res = AtomicSafetyHandle.EnforceAllBufferJobsHaveCompletedAndRelease(m_ExclusiveTransactionSafety);
             if (res != EnforceJobResult.AllJobsAlreadySynced)
                 //@TODO: Better message
-                Debug.LogError("EntityTransaction job has not been registered");                
+                Debug.LogError("EntityTransaction job has not been registered");
 #endif
             m_IsInTransaction = false;
-            
+
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             for (int i = 0; i != TypeManager.GetTypeCount(); i++)
             {
@@ -316,7 +317,7 @@ namespace UnityEngine.ECS
         JobHandle GetAllDependencies()
         {
             var jobHandles = new NativeArray<JobHandle>(TypeManager.GetTypeCount() * (kMaxReadJobHandles + 1), Allocator.Temp);
-            
+
             int count = 0;
             for (int i = 0; i != TypeManager.GetTypeCount(); i++)
             {

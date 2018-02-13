@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.ECS;
 using Unity.Jobs;
 
 namespace UnityEngine.ECS
@@ -37,10 +38,10 @@ namespace UnityEngine.ECS
             m_ArchetypeManager = GCHandle.Alloc(archetypes, GCHandleType.Weak);
             m_EntityGroupManager = GCHandle.Alloc(entityGroupManager, GCHandleType.Weak);
             m_SharedComponentDataManager = GCHandle.Alloc(sharedComponentDataManager, GCHandleType.Weak);
-            
+
             m_CachedComponentTypeInArchetypeArray = (ComponentTypeInArchetype*)UnsafeUtility.Malloc(sizeof(ComponentTypeInArchetype) * 32 * 1024, 16, Allocator.Persistent);
         }
-        
+
         internal void OnDestroyManager()
         {
             UnsafeUtility.Free(m_CachedComponentTypeInArchetypeArray, Allocator.Persistent);
@@ -82,7 +83,7 @@ namespace UnityEngine.ECS
 
             EntityArchetype type;
             type.archetype = archetypeManager.GetOrCreateArchetype(m_CachedComponentTypeInArchetypeArray, PopulatedCachedTypeInArchetypeArray(types), groupManager);
-            
+
             return type;
         }
 
@@ -111,7 +112,7 @@ namespace UnityEngine.ECS
             var archetypeManager = (ArchetypeManager)m_ArchetypeManager.Target;
             m_Entities->CreateEntities(archetypeManager, archetype.archetype, entities, count);
         }
-        
+
         public Entity Instantiate(Entity srcEntity)
         {
             Entity entity;
@@ -156,13 +157,13 @@ namespace UnityEngine.ECS
         {
             CheckAccess();
             m_Entities->AssertEntitiesExist(entities, count);
-            
+
             var archetypeManager = (ArchetypeManager)m_ArchetypeManager.Target;
             var sharedComponentDataManager = (SharedComponentDataManager)m_SharedComponentDataManager.Target;
 
             m_Entities->DeallocateEnties(archetypeManager, sharedComponentDataManager, entities, count);
         }
-        
+
         public void AddComponent(Entity entity, ComponentType type)
         {
             CheckAccess();
@@ -174,7 +175,7 @@ namespace UnityEngine.ECS
             m_Entities->AssertEntitiesExist(&entity, 1);
             m_Entities->AddComponent(entity, type, archetypeManager, sharedComponentDataManager, groupManager, m_CachedComponentTypeInArchetypeArray);
         }
-        
+
         public void RemoveComponent(Entity entity, ComponentType type)
         {
             CheckAccess();
@@ -186,8 +187,8 @@ namespace UnityEngine.ECS
             m_Entities->AssertEntityHasComponent(entity, type);
             m_Entities->RemoveComponent(entity, type, archetypeManager, sharedComponentDataManager, groupManager, m_CachedComponentTypeInArchetypeArray);
         }
-        
-        
+
+
         public bool Exists(Entity entity)
         {
             CheckAccess();
@@ -219,7 +220,7 @@ namespace UnityEngine.ECS
             byte* ptr = m_Entities->GetComponentDataWithType (entity, typeIndex);
             UnsafeUtility.CopyStructureToPtr (ref componentData, ptr);
         }
-        
+
         unsafe public T GetSharedComponentData<T>(Entity entity) where T : struct, ISharedComponentData
         {
             int typeIndex = TypeManager.GetTypeIndex<T>();
@@ -230,17 +231,17 @@ namespace UnityEngine.ECS
             int sharedComponentIndex = m_Entities->GetSharedComponentDataIndex(entity, typeIndex);
             return sharedComponentDataManager.GetSharedComponentData<T>(sharedComponentIndex);
         }
-        
+
         public void SetSharedComponentData<T>(Entity entity, T componentData) where T: struct, ISharedComponentData
         {
             CheckAccess();
-            
+
             int typeIndex = TypeManager.GetTypeIndex<T>();
             m_Entities->AssertEntityHasComponent(entity, typeIndex);
-            
+
             var archetypeManager = (ArchetypeManager)m_ArchetypeManager.Target;
             var sharedComponentDataManager = (SharedComponentDataManager)m_SharedComponentDataManager.Target;
-            
+
             int newSharedComponentDataIndex = sharedComponentDataManager.InsertSharedComponent(componentData);
             m_Entities->SetSharedComponentDataIndex(archetypeManager, sharedComponentDataManager, entity, typeIndex, newSharedComponentDataIndex);
             sharedComponentDataManager.RemoveReference(newSharedComponentDataIndex);

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Unity.Jobs;
 using System;
 using System.ComponentModel;
+using Unity.ECS;
 using UnityEngine.ECS;
 using UnityEngine.Jobs;
 

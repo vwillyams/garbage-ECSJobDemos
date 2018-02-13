@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.ECS;
 using Unity.Jobs;
 using UnityEngine.Jobs;
 
@@ -240,7 +241,7 @@ namespace UnityEngine.ECS
         {
             m_TransformsDirty = true;
         }
-        
+
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         AtomicSafetyHandle GetSafetyHandle(int indexInComponentGroup)
         {
@@ -305,7 +306,7 @@ namespace UnityEngine.ECS
                     }
                 }
                 if (first != null)
-                    firstNonEmptyChunk = (Chunk*)first->archetype->chunkList.Begin();
+                    firstNonEmptyChunk = (Chunk*)first->archetype->chunkList.Begin;
             }
             else
             {
@@ -314,7 +315,7 @@ namespace UnityEngine.ECS
                     if (match->archetype->entityCount > 0)
                     {
                         var archeType = match->archetype;
-                        for (Chunk* c = (Chunk*)archeType->chunkList.Begin(); c != archeType->chunkList.End(); c = (Chunk*)c->chunkListNode.next)
+                        for (Chunk* c = (Chunk*)archeType->chunkList.Begin; c != archeType->chunkList.End; c = (Chunk*)c->chunkListNode.Next)
                         {
                             if (ComponentChunkIterator.ChunkMatchesFilter(match, c, m_filteredSharedComponents))
                             {
@@ -337,7 +338,7 @@ namespace UnityEngine.ECS
 
             if (first == null)
                 outIterator = new ComponentChunkIterator(null, 0, null, null);
-            else 
+            else
                 outIterator = new ComponentChunkIterator(first, length, firstNonEmptyChunk, m_filteredSharedComponents);
         }
 
@@ -360,7 +361,7 @@ namespace UnityEngine.ECS
             output = new ComponentDataArray<T>(iterator, length, GetSafetyHandle(indexInComponentGroup));
 #else
 			output = new ComponentDataArray<T>(iterator, length);
-#endif        
+#endif
         }
 
         public ComponentDataArray<T> GetComponentDataArray<T>() where T : struct, IComponentData
@@ -369,19 +370,19 @@ namespace UnityEngine.ECS
             ComponentChunkIterator iterator;
             GetComponentChunkIterator(out length, out iterator);
             int indexInComponentGroup = GetIndexInComponentGroup(TypeManager.GetTypeIndex<T>());
-            
+
             ComponentDataArray<T> res;
             GetComponentDataArray<T>(ref iterator, indexInComponentGroup, length, out res);
             return res;
         }
-        
+
         public ComponentDataArray<T> GetComponentDataArray<T>(Type componentType) where T : struct, IComponentData
         {
             int length;
             ComponentChunkIterator iterator;
             GetComponentChunkIterator(out length, out iterator);
             int indexInComponentGroup = GetIndexInComponentGroup(TypeManager.GetTypeIndex(componentType));
-            
+
             ComponentDataArray<T> res;
             GetComponentDataArray<T>(ref iterator, indexInComponentGroup, length, out res);
             return res;
@@ -397,7 +398,7 @@ namespace UnityEngine.ECS
 			output = new SharedComponentDataArray<T>(m_TypeManager.GetSharedComponentDataManager(), indexInComponentGroup, iterator, length);
 #endif
         }
-        
+
         public SharedComponentDataArray<T> GetSharedComponentDataArray<T>() where T : struct, ISharedComponentData
         {
             int length;
@@ -420,7 +421,7 @@ namespace UnityEngine.ECS
 			output = new FixedArrayArray<T>(iterator, length);
 #endif
         }
-        
+
         public FixedArrayArray<T> GetFixedArrayArray<T>() where T : struct
         {
             int length;
@@ -443,7 +444,7 @@ namespace UnityEngine.ECS
 			output = new EntityArray(iterator, length);
 #endif
         }
-        
+
         public EntityArray GetEntityArray()
         {
             int length;
@@ -460,7 +461,7 @@ namespace UnityEngine.ECS
             iterator.IndexInComponentGroup = indexInComponentGroup;
             output = new ComponentArray<T>(iterator, length, m_TypeManager);
         }
-        
+
         public ComponentArray<T> GetComponentArray<T>() where T : Component
         {
             int length;

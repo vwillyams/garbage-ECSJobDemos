@@ -23,24 +23,14 @@ namespace Unity.ECS
             m_SharedComponentType.Add(-1);
         }
 
-        public void Retain()
+        public void Dispose()
         {
-            m_RefCount++;
-        }
-
-        public bool Release()
-        {
-            if (--m_RefCount != 0)
-                return false;
-
             m_SharedComponentType.Dispose();
             m_SharedComponentRefCount.Dispose();
             m_SharedComponentVersion.Dispose();
             m_SharedComponentData.Clear();
             m_SharedComponentData = null;
             m_TypeLookup.Dispose();
-            return true;
-
         }
 
         public void GetAllUniqueSharedComponents<T>(List<T> sharedComponentValues) where T : struct, ISharedComponentData
@@ -56,35 +46,27 @@ namespace Unity.ECS
 
         public int InsertSharedComponent<T>(T newData) where T : struct
         {
+            if (newData.Equals(default(T)))
+                return 0;
+
             var typeIndex = TypeManager.GetTypeIndex<T>();
-            var index = FindSharedComponentIndex(typeIndex, newData);
 
-            if (-1 == index)
-            {
-                index = m_SharedComponentData.Count;
-                m_TypeLookup.Add(typeIndex, index);
-                m_SharedComponentData.Add(newData);
-                m_SharedComponentRefCount.Add(1);
-                m_SharedComponentVersion.Add(1);
-                m_SharedComponentType.Add(typeIndex);
-            }
-            else
-            {
-                m_SharedComponentRefCount[index] += 1;
-            }
-
-            return index;
+            return InsertSharedComponentAssumeNonDefault(typeIndex, newData);
         }
-
+        
         private int FindSharedComponentIndex<T>(int typeIndex, T newData) where T : struct
         {
-            int itemIndex;
-            NativeMultiHashMapIterator<int> iter;
-
             if (newData.Equals(default(T)))
-            {
                 return 0;
-            }
+            else
+                return FindNonDefaultSharedComponentIndex(typeIndex, newData);
+        }
+
+        
+        private int FindNonDefaultSharedComponentIndex(int typeIndex, object newData)
+        {
+          int itemIndex;
+            NativeMultiHashMapIterator<int> iter;
 
             if (!m_TypeLookup.TryGetFirstValue(typeIndex, out itemIndex, out iter))
                 return -1;
@@ -104,6 +86,29 @@ namespace Unity.ECS
 
             return -1;
         }
+        
+        
+        int InsertSharedComponentAssumeNonDefault(int typeIndex, object newData)
+        {
+            int index = FindNonDefaultSharedComponentIndex(typeIndex, newData);
+
+            if (-1 == index)
+            {
+                index = m_SharedComponentData.Count;
+                m_TypeLookup.Add(typeIndex, index);
+                m_SharedComponentData.Add(newData);
+                m_SharedComponentRefCount.Add(1);
+                m_SharedComponentVersion.Add(1);
+                m_SharedComponentType.Add(typeIndex);
+            }
+            else
+            {
+                m_SharedComponentRefCount[index] += 1;
+            }
+
+            return index;
+        }
+
 
         public void IncrementSharedComponentVersion(int index)
         {
@@ -159,6 +164,22 @@ namespace Unity.ECS
                 break;
             }
             while (m_TypeLookup.TryGetNextValue(out itemIndex, ref iter));
+        }
+
+        
+        unsafe public void MoveSharedComponents(SharedComponentDataManager srcSharedComponents, int* sharedComponentIndices, int sharedComponentIndicesCount)
+        {
+            for (int i = 0;i != sharedComponentIndicesCount;i++)
+            {
+                int srcIndex = sharedComponentIndices[i];
+                if (srcIndex == 0)
+                    continue;
+
+                int dstIndex = InsertSharedComponentAssumeNonDefault(srcSharedComponents.m_SharedComponentType[srcIndex], srcSharedComponents.m_SharedComponentData[srcIndex]);
+                srcSharedComponents.RemoveReference(srcIndex);
+
+                sharedComponentIndices[i] = dstIndex;
+            }
         }
     }
 }

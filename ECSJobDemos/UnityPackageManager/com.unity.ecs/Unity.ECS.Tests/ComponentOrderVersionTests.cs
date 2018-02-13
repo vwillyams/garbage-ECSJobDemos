@@ -45,7 +45,7 @@ namespace UnityEngine.ECS.Tests
             {
                 var sharedData = uniqueTypes[sharedIndex];
                 var group = maingroup.GetVariation(sharedData);
-                var version = EntityManager.GetSharedComponentOrderVersion(sharedData);
+                var version = m_Manager.GetSharedComponentOrderVersion(sharedData);
 
                 if (sharedData.value == evenTestValue)
                 {
@@ -221,7 +221,7 @@ namespace UnityEngine.ECS.Tests
             Assert.AreEqual(2, m_Manager.GetComponentOrderVersion<SharedData2>());
             Assert.AreEqual(2, m_Manager.GetComponentOrderVersion<SharedData1>());
             
-            Assert.AreEqual(1, EntityManager.GetSharedComponentOrderVersion(new SharedData1(1)));
+            Assert.AreEqual(1, m_Manager.GetSharedComponentOrderVersion(new SharedData1(1)));
         }
         
         [Test]
@@ -233,11 +233,11 @@ namespace UnityEngine.ECS.Tests
             m_Manager.SetSharedComponentData(destroyEntity, sharedData );
             /*var dontDestroyEntity = */ m_Manager.Instantiate(destroyEntity);
 
-            Assert.AreEqual(2, EntityManager.GetSharedComponentOrderVersion(sharedData));
+            Assert.AreEqual(2, m_Manager.GetSharedComponentOrderVersion(sharedData));
 
             m_Manager.DestroyEntity(destroyEntity);
 
-            Assert.AreEqual(3, EntityManager.GetSharedComponentOrderVersion(sharedData));
+            Assert.AreEqual(3, m_Manager.GetSharedComponentOrderVersion(sharedData));
         }
         
         [Test]
@@ -249,7 +249,7 @@ namespace UnityEngine.ECS.Tests
             
             m_Manager.DestroyEntity(entity);
 
-            Assert.AreEqual(0, EntityManager.GetSharedComponentOrderVersion(sharedData));
+            Assert.AreEqual(0, m_Manager.GetSharedComponentOrderVersion(sharedData));
         }
     }
 }

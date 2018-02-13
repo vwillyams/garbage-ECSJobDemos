@@ -199,13 +199,13 @@ namespace UnityEngine.ECS.Tests
             Assert.AreEqual(17, m_Manager.GetSharedComponentData<SharedData1>(e).value);
             Assert.AreEqual(34, m_Manager.GetSharedComponentData<SharedData2>(e).value);
         }
-
+        
         [Test]
         public void RemoveSharedComponent()
         {
-            var archetype = m_Manager.CreateArchetype(typeof(EcsTestData));
-            Entity e = m_Manager.CreateEntity(archetype);
+            Entity e = m_Manager.CreateEntity();
 
+            m_Manager.AddComponentData(e, new EcsTestData(42));
             m_Manager.AddSharedComponentData(e, new SharedData1(17));
             m_Manager.AddSharedComponentData(e, new SharedData2(34));
 
@@ -216,11 +216,14 @@ namespace UnityEngine.ECS.Tests
 
             m_Manager.RemoveComponent<SharedData1>(e);
             Assert.IsFalse(m_Manager.HasComponent<SharedData1>(e));
+            Assert.AreEqual(34, m_Manager.GetSharedComponentData<SharedData2>(e).value);
 
             m_Manager.RemoveComponent<SharedData2>(e);
             Assert.IsFalse(m_Manager.HasComponent<SharedData2>(e));
+            
+            Assert.AreEqual(42, m_Manager.GetComponentData<EcsTestData>(e).value);
         }
-
+        
         [Test]
         public void GetSharedComponentArray()
         {

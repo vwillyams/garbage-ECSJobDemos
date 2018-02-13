@@ -116,8 +116,8 @@ public class PathUtils
             var startPolyWorldToLocal = query.PolygonWorldToLocalMatrix(path[0]);
 
             var apex = startPolyWorldToLocal.MultiplyPoint(startPos);
-            var left = Vector3.zero;
-            var right = Vector3.zero;
+            var left = new Vector3(0, 0, 0); // Vector3.zero accesses a static readonly which does not work in burst yet
+            var right = new Vector3(0, 0, 0);
             var leftIndex = -1;
             var rightIndex = -1;
 

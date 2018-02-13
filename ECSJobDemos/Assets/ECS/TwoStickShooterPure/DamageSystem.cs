@@ -1,4 +1,5 @@
 ﻿using Unity.Collections;
+using Unity.ECS;
 using Unity.Mathematics;
 using UnityEngine.ECS;
 using UnityEngine.ECS.Transform2D;

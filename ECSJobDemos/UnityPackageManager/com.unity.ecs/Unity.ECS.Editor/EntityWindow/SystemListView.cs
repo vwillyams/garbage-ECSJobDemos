@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.ECS;
 
 namespace UnityEditor.ECS
 {

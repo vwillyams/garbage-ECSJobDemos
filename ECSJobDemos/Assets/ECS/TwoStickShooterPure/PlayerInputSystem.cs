@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.ECS;
+using UnityEngine;
 using UnityEngine.ECS;
 
 namespace TwoStickPureExample

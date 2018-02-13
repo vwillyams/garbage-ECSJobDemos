@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Unity.Collections;
+using Unity.ECS;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.ECS;

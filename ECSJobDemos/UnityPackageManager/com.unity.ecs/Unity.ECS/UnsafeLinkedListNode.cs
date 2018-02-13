@@ -1,4 +1,4 @@
-﻿using UnityEngine.Assertions;
+﻿using Unity.Assertions;
 
 namespace Unity.ECS
 {

@@ -1,4 +1,5 @@
 ﻿using System;
+using Unity.ECS;
 using Unity.Mathematics;
 
 namespace UnityEngine.ECS.Transform2D

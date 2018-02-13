@@ -1,4 +1,6 @@
-﻿namespace UnityEngine.ECS.SimpleRotation
+﻿using Unity.ECS;
+
+namespace UnityEngine.ECS.SimpleRotation
 {
     public struct RandomInitialHeading : IComponentData { }
 

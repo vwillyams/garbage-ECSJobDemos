@@ -1,4 +1,6 @@
-﻿namespace UnityEngine.ECS.TransformShim
+﻿using Unity.ECS;
+
+namespace UnityEngine.ECS.TransformShim
 {
     public struct CopyInitialTransformFromGameObject : IComponentData { }
 

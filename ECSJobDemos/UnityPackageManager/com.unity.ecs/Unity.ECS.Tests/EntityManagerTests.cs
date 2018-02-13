@@ -3,6 +3,7 @@ using UnityEngine.ECS;
 using UnityEditor;
 using Unity.Collections;
 using NUnit.Framework;
+using Unity.ECS;
 
 namespace UnityEngine.ECS.Tests
 {

@@ -6,6 +6,7 @@ using System.Reflection;
 using Unity.Burst;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Collections;
+using Unity.ECS;
 using UnityEngine.Assertions;
 
 namespace UnityEngine.ECS

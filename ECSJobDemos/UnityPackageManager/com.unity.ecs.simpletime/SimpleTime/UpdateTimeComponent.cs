@@ -1,4 +1,6 @@
-﻿namespace UnityEngine.ECS.SimpleTime
+﻿using Unity.ECS;
+
+namespace UnityEngine.ECS.SimpleTime
 {
     public struct UpdateTime : IComponentData
     {

@@ -1,4 +1,6 @@
-﻿namespace UnityEngine.ECS.SimpleMovement
+﻿using Unity.ECS;
+
+namespace UnityEngine.ECS.SimpleMovement
 {
     public struct PositionConstraint : IComponentData
     {

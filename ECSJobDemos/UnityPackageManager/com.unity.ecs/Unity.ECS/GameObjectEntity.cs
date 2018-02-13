@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
 using System.Linq;
+using Unity.ECS;
 
 namespace UnityEngine.ECS
 {

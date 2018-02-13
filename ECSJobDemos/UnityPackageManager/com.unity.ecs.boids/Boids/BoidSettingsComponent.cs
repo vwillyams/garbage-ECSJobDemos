@@ -1,4 +1,5 @@
 ﻿using System;
+using Unity.ECS;
 
 namespace UnityEngine.ECS.Boids
 {

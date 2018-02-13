@@ -15,7 +15,7 @@ public class RandomDestinationSystem : JobComponentSystem
         public ComponentDataArray<CrowdAgentNavigator> agentNavigators;
     }
 
-    [InjectComponentGroup]
+    [Inject]
     CrowdGroup m_Crowd;
 
     NavMeshQuery m_NavMeshQuery;

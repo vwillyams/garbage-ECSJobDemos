@@ -23,7 +23,7 @@ public partial class CrowdSystem : JobComponentSystem
         public FixedArrayArray<PolygonID> paths;
     }
 
-    [InjectComponentGroup]
+    [Inject]
     CrowdGroup m_Crowd;
 
     NativeList<bool1> m_PlanPathForAgent;

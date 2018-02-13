@@ -19,7 +19,7 @@ class CrowdAgentsToTransformSystem : JobComponentSystem
         public ComponentDataArray<WriteToTransformMarker> m_WriteToTrasformFlag;
     }
 
-    [InjectComponentGroup]
+    [Inject]
     CrowdGroup m_Crowd;
 
     struct WriteCrowdAgentsToTransformsJob : IJobParallelForTransform

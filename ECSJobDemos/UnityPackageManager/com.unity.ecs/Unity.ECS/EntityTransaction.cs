@@ -1,33 +1,26 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.ECS;
-using Unity.Jobs;
+using UnityEngine.ECS;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
     [NativeContainer]
-    unsafe public struct EntityTransaction
+    public unsafe struct EntityTransaction
     {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        AtomicSafetyHandle                 m_Safety;
+        private AtomicSafetyHandle                 m_Safety;
 #endif
-        [NativeDisableUnsafePtrRestriction]
-        GCHandle                           m_ArchetypeManager;
+        [NativeDisableUnsafePtrRestriction] private GCHandle                           m_ArchetypeManager;
 
-        [NativeDisableUnsafePtrRestriction]
-        GCHandle                           m_EntityGroupManager;
+        [NativeDisableUnsafePtrRestriction] private GCHandle                           m_EntityGroupManager;
 
-        [NativeDisableUnsafePtrRestriction]
-        GCHandle                           m_SharedComponentDataManager;
+        [NativeDisableUnsafePtrRestriction] private GCHandle                           m_SharedComponentDataManager;
 
-        [NativeDisableUnsafePtrRestriction]
-        EntityDataManager*                 m_Entities;
+        [NativeDisableUnsafePtrRestriction] private EntityDataManager*                 m_Entities;
 
-        [NativeDisableUnsafePtrRestriction]
-        ComponentTypeInArchetype*          m_CachedComponentTypeInArchetypeArray;
+        [NativeDisableUnsafePtrRestriction] private ComponentTypeInArchetype*          m_CachedComponentTypeInArchetypeArray;
 
         internal EntityTransaction(ArchetypeManager archetypes, EntityGroupManager entityGroupManager, SharedComponentDataManager sharedComponentDataManager, EntityDataManager* data)
         {
@@ -58,10 +51,10 @@ namespace UnityEngine.ECS
         }
 #endif
 
-        unsafe int PopulatedCachedTypeInArchetypeArray(ComponentType[] requiredComponents)
+        private int PopulatedCachedTypeInArchetypeArray(ComponentType[] requiredComponents)
         {
             m_CachedComponentTypeInArchetypeArray[0] = new ComponentTypeInArchetype(ComponentType.Create<Entity>());
-            for (int i = 0; i < requiredComponents.Length; ++i)
+            for (var i = 0; i < requiredComponents.Length; ++i)
                 SortingUtilities.InsertSorted(m_CachedComponentTypeInArchetypeArray, i + 1, requiredComponents[i]);
             return requiredComponents.Length + 1;
         }
@@ -74,7 +67,7 @@ namespace UnityEngine.ECS
             #endif
         }
 
-        unsafe public EntityArchetype CreateArchetype(params ComponentType[] types)
+        public EntityArchetype CreateArchetype(params ComponentType[] types)
         {
             CheckAccess();
 
@@ -87,7 +80,7 @@ namespace UnityEngine.ECS
             return type;
         }
 
-        unsafe public Entity CreateEntity(EntityArchetype archetype)
+        public Entity CreateEntity(EntityArchetype archetype)
         {
             CheckAccess();
 
@@ -96,17 +89,17 @@ namespace UnityEngine.ECS
             return entity;
         }
 
-        unsafe public void CreateEntity(EntityArchetype archetype, NativeArray<Entity> entities)
+        public void CreateEntity(EntityArchetype archetype, NativeArray<Entity> entities)
         {
             CreateEntityInternal(archetype, (Entity*)entities.GetUnsafePtr(), entities.Length);
         }
 
-        unsafe public Entity CreateEntity(params ComponentType[] types)
+        public Entity CreateEntity(params ComponentType[] types)
         {
             return CreateEntity(CreateArchetype(types));
         }
 
-        unsafe void CreateEntityInternal(EntityArchetype archetype, Entity* entities, int count)
+        private void CreateEntityInternal(EntityArchetype archetype, Entity* entities, int count)
         {
             CheckAccess();
             var archetypeManager = (ArchetypeManager)m_ArchetypeManager.Target;
@@ -125,7 +118,7 @@ namespace UnityEngine.ECS
             InstantiateInternal(srcEntity, (Entity*)outputEntities.GetUnsafePtr(), outputEntities.Length);
         }
 
-        void InstantiateInternal(Entity srcEntity, Entity* outputEntities, int count)
+        private void InstantiateInternal(Entity srcEntity, Entity* outputEntities, int count)
         {
             CheckAccess();
 
@@ -153,7 +146,7 @@ namespace UnityEngine.ECS
             DestroyEntityInternal(&entity, 1);
         }
 
-        void DestroyEntityInternal(Entity* entities, int count)
+        private void DestroyEntityInternal(Entity* entities, int count)
         {
             CheckAccess();
             m_Entities->AssertEntitiesExist(entities, count);
@@ -188,7 +181,6 @@ namespace UnityEngine.ECS
             m_Entities->RemoveComponent(entity, type, archetypeManager, sharedComponentDataManager, groupManager, m_CachedComponentTypeInArchetypeArray);
         }
 
-
         public bool Exists(Entity entity)
         {
             CheckAccess();
@@ -200,35 +192,35 @@ namespace UnityEngine.ECS
         {
             CheckAccess();
 
-            int typeIndex = TypeManager.GetTypeIndex<T>();
+            var typeIndex = TypeManager.GetTypeIndex<T>();
             m_Entities->AssertEntityHasComponent(entity, typeIndex);
 
-            byte* ptr = m_Entities->GetComponentDataWithType (entity, typeIndex);
+            var ptr = m_Entities->GetComponentDataWithType (entity, typeIndex);
 
             T data;
             UnsafeUtility.CopyPtrToStructure(ptr, out data);
             return data;
         }
 
-        unsafe public void SetComponentData<T>(Entity entity, T componentData) where T: struct, IComponentData
+        public void SetComponentData<T>(Entity entity, T componentData) where T: struct, IComponentData
         {
             CheckAccess();
 
-            int typeIndex = TypeManager.GetTypeIndex<T>();
+            var typeIndex = TypeManager.GetTypeIndex<T>();
             m_Entities->AssertEntityHasComponent(entity, typeIndex);
 
-            byte* ptr = m_Entities->GetComponentDataWithType (entity, typeIndex);
+            var ptr = m_Entities->GetComponentDataWithType (entity, typeIndex);
             UnsafeUtility.CopyStructureToPtr (ref componentData, ptr);
         }
 
-        unsafe public T GetSharedComponentData<T>(Entity entity) where T : struct, ISharedComponentData
+        public T GetSharedComponentData<T>(Entity entity) where T : struct, ISharedComponentData
         {
-            int typeIndex = TypeManager.GetTypeIndex<T>();
+            var typeIndex = TypeManager.GetTypeIndex<T>();
             m_Entities->AssertEntityHasComponent(entity, typeIndex);
 
             var sharedComponentDataManager = (SharedComponentDataManager)m_SharedComponentDataManager.Target;
 
-            int sharedComponentIndex = m_Entities->GetSharedComponentDataIndex(entity, typeIndex);
+            var sharedComponentIndex = m_Entities->GetSharedComponentDataIndex(entity, typeIndex);
             return sharedComponentDataManager.GetSharedComponentData<T>(sharedComponentIndex);
         }
 
@@ -236,13 +228,13 @@ namespace UnityEngine.ECS
         {
             CheckAccess();
 
-            int typeIndex = TypeManager.GetTypeIndex<T>();
+            var typeIndex = TypeManager.GetTypeIndex<T>();
             m_Entities->AssertEntityHasComponent(entity, typeIndex);
 
             var archetypeManager = (ArchetypeManager)m_ArchetypeManager.Target;
             var sharedComponentDataManager = (SharedComponentDataManager)m_SharedComponentDataManager.Target;
 
-            int newSharedComponentDataIndex = sharedComponentDataManager.InsertSharedComponent(componentData);
+            var newSharedComponentDataIndex = sharedComponentDataManager.InsertSharedComponent(componentData);
             m_Entities->SetSharedComponentDataIndex(archetypeManager, sharedComponentDataManager, entity, typeIndex, newSharedComponentDataIndex);
             sharedComponentDataManager.RemoveReference(newSharedComponentDataIndex);
         }

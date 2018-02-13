@@ -1,11 +1,9 @@
 ﻿using System;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Collections;
-using Unity.ECS;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
-
 	[NativeContainer]
 	[NativeContainerSupportsMinMaxWriteRestriction]
 	public unsafe struct EntityArray
@@ -20,11 +18,11 @@ namespace UnityEngine.ECS
 	    private readonly AtomicSafetyHandle       	m_Safety;
 		#endif
 
-		#if ENABLE_UNITY_COLLECTIONS_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal EntityArray(ComponentChunkIterator iterator, int length, AtomicSafetyHandle safety)
-		#else
+#else
         internal unsafe EntityArray(ComponentChunkIterator iterator, int length)
-		#endif
+#endif
 		{
             m_Length = length;
             m_Iterator = iterator;

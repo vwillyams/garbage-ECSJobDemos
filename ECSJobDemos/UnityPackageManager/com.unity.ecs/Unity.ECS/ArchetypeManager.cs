@@ -273,7 +273,7 @@ namespace UnityEngine.ECS
 
         static uint GetHash(ComponentTypeInArchetype* types, int count)
         {
-            uint hash = HashUtility.fletcher32((ushort*)types, count * sizeof(ComponentTypeInArchetype) / sizeof(ushort));
+            uint hash = HashUtility.Fletcher32((ushort*)types, count * sizeof(ComponentTypeInArchetype) / sizeof(ushort));
             return hash;
         }
 

@@ -1,12 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-namespace UnityEngine.ECS
+﻿namespace Unity.ECS
 {
-    static unsafe class HashUtility
+    internal static unsafe class HashUtility
     {
-        static public uint fletcher32(ushort* data, int count)
+        public static uint Fletcher32(ushort* data, int count)
         {
             unchecked
             {
@@ -14,8 +10,8 @@ namespace UnityEngine.ECS
                 uint sum2 = 0xff;
                 while (count > 0)
                 {
-                    int batchCount = count < 359 ? count : 359;
-                    for (int i = 0; i < batchCount; ++i)
+                    var batchCount = count < 359 ? count : 359;
+                    for (var i = 0; i < batchCount; ++i)
                     {
                         sum1 += data[i];
                         sum2 += sum1;

@@ -2,9 +2,9 @@
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.ECS;
+using UnityEngine.ECS;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
     /// <summary>
     /// A thread-safe command buffer that can buffer commands that affect entities and components for later playback.
@@ -22,7 +22,7 @@ namespace UnityEngine.ECS
         /// Organized in memory like a single block with Chunk header followed by Size bytes of data.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        struct Chunk
+        private struct Chunk
         {
             internal int Used;
             internal int Size;
@@ -33,7 +33,7 @@ namespace UnityEngine.ECS
 
             internal int Bump(int size)
             {
-                int off = Used;
+                var off = Used;
                 Used += size;
                 return off;
             }
@@ -56,28 +56,28 @@ namespace UnityEngine.ECS
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct BasicCommand
+        private struct BasicCommand
         {
             public int CommandType;
             public int TotalSize;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct CreateCommand
+        private struct CreateCommand
         {
             public BasicCommand Header;
             public EntityArchetype Archetype;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct EntityCommand
+        private struct EntityCommand
         {
             public BasicCommand Header;
             public Entity Entity;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct EntityComponentCommand
+        private struct EntityComponentCommand
         {
             public EntityCommand Header;
             public int ComponentTypeIndex;
@@ -89,7 +89,7 @@ namespace UnityEngine.ECS
         {
             if (m_Tail == null || m_Tail->Capacity < size)
             {
-                Chunk* c = (Chunk*)UnsafeUtility.Malloc(sizeof(Chunk) + size, 16, Allocator.TempJob);
+                var c = (Chunk*)UnsafeUtility.Malloc(sizeof(Chunk) + size, 16, Allocator.TempJob);
                 c->Next = null;
                 c->Prev = m_Tail != null ? m_Tail : null;
                 c->Used = 0;
@@ -108,14 +108,14 @@ namespace UnityEngine.ECS
                 m_Tail = c;
             }
 
-            int offset = m_Tail->Bump(size);
-            byte* ptr = ((byte*)m_Tail) + sizeof(Chunk) + offset;
+            var offset = m_Tail->Bump(size);
+            var ptr = ((byte*)m_Tail) + sizeof(Chunk) + offset;
             return ptr;
         }
 
         private void AddCreateCommand(Command op, EntityArchetype archetype)
         {
-            CreateCommand* data = (CreateCommand*) Reserve(sizeof(CreateCommand));
+            var data = (CreateCommand*) Reserve(sizeof(CreateCommand));
 
             data->Header.CommandType = (int) op;
             data->Header.TotalSize = sizeof(CreateCommand);
@@ -124,7 +124,7 @@ namespace UnityEngine.ECS
 
         private void AddEntityCommand(Command op, Entity e)
         {
-            EntityCommand* data = (EntityCommand*) Reserve(sizeof(EntityCommand));
+            var data = (EntityCommand*) Reserve(sizeof(EntityCommand));
 
             data->Header.CommandType = (int) op;
             data->Header.TotalSize = sizeof(EntityCommand);
@@ -133,11 +133,11 @@ namespace UnityEngine.ECS
 
         private void AddEntityComponentCommand<T>(Command op, Entity e, T component) where T : struct
         {
-            int typeSize = UnsafeUtility.SizeOf<T>();
-            int typeIndex = TypeManager.GetTypeIndex<T>();
-            int sizeNeeded = Align(sizeof(EntityComponentCommand) + typeSize, 8);
+            var typeSize = UnsafeUtility.SizeOf<T>();
+            var typeIndex = TypeManager.GetTypeIndex<T>();
+            var sizeNeeded = Align(sizeof(EntityComponentCommand) + typeSize, 8);
 
-            EntityComponentCommand* data = (EntityComponentCommand*) Reserve(sizeNeeded);
+            var data = (EntityComponentCommand*) Reserve(sizeNeeded);
 
             data->Header.Header.CommandType = (int) op;
             data->Header.Header.TotalSize = sizeNeeded;
@@ -155,10 +155,10 @@ namespace UnityEngine.ECS
 
         private void AddEntityComponentTypeCommand<T>(Command op, Entity e) where T : struct
         {
-            int typeIndex = TypeManager.GetTypeIndex<T>();
-            int sizeNeeded = Align(sizeof(EntityComponentCommand), 8);
+            var typeIndex = TypeManager.GetTypeIndex<T>();
+            var sizeNeeded = Align(sizeof(EntityComponentCommand), 8);
 
-            EntityComponentCommand* data = (EntityComponentCommand*) Reserve(sizeNeeded);
+            var data = (EntityComponentCommand*) Reserve(sizeNeeded);
 
             data->Header.Header.CommandType = (int) op;
             data->Header.Header.TotalSize = sizeNeeded;
@@ -170,7 +170,7 @@ namespace UnityEngine.ECS
         {
             while (m_Tail != null)
             {
-                Chunk* prev = m_Tail->Prev;
+                var prev = m_Tail->Prev;
                 UnsafeUtility.Free(m_Tail, Allocator.TempJob);
                 m_Tail = prev;
             }
@@ -228,7 +228,7 @@ namespace UnityEngine.ECS
             // Commands that either create a new entity or operate implicitly on a just-created entity (which doesn't yet exist when the command is buffered)
             CreateEntityImplicit,
             AddComponentImplicit,
-            SetComponentImplicit,
+            SetComponentImplicit
         }
 
         /// <summary>
@@ -237,17 +237,17 @@ namespace UnityEngine.ECS
         /// <param name="mgr">The entity manager that will receive the operations</param>
         public void Playback(EntityManager mgr)
         {
-            Chunk* head = m_Head;
-            Entity lastEntity = new Entity();
+            var head = m_Head;
+            var lastEntity = new Entity();
 
             while (head != null)
             {
-                int off = 0;
-                byte* buf = ((byte*)head) + sizeof(Chunk);
+                var off = 0;
+                var buf = ((byte*)head) + sizeof(Chunk);
 
                 while (off < head->Used)
                 {
-                    BasicCommand* header = (BasicCommand*)(buf + off);
+                    var header = (BasicCommand*)(buf + off);
 
                     switch ((Command)header->CommandType)
                     {
@@ -257,7 +257,7 @@ namespace UnityEngine.ECS
 
                         case Command.AddComponentExplicit:
                             {
-                                EntityComponentCommand* cmd = (EntityComponentCommand*)header;
+                                var cmd = (EntityComponentCommand*)header;
                                 var componentType = (ComponentType)TypeManager.GetType(cmd->ComponentTypeIndex);
                                 mgr.AddComponent(cmd->Header.Entity, componentType);
                                 mgr.SetComponentRaw(cmd->Header.Entity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
@@ -266,21 +266,21 @@ namespace UnityEngine.ECS
 
                         case Command.RemoveComponentExplicit:
                             {
-                                EntityComponentCommand* cmd = (EntityComponentCommand*)header;
+                                var cmd = (EntityComponentCommand*)header;
                                 mgr.RemoveComponent(cmd->Header.Entity, TypeManager.GetType(cmd->ComponentTypeIndex));
                             }
                             break;
 
                         case Command.SetComponentExplicit:
                             {
-                                EntityComponentCommand* cmd = (EntityComponentCommand*)header;
+                                var cmd = (EntityComponentCommand*)header;
                                 mgr.SetComponentRaw(cmd->Header.Entity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
                             }
                             break;
 
                         case Command.CreateEntityImplicit:
                             {
-                                CreateCommand* cmd = (CreateCommand*)header;
+                                var cmd = (CreateCommand*)header;
                                 if (cmd->Archetype.Valid)
                                     lastEntity = mgr.CreateEntity(cmd->Archetype);
                                 else
@@ -290,7 +290,7 @@ namespace UnityEngine.ECS
 
                         case Command.AddComponentImplicit:
                             {
-                                EntityComponentCommand* cmd = (EntityComponentCommand*)header;
+                                var cmd = (EntityComponentCommand*)header;
                                 var componentType = (ComponentType)TypeManager.GetType(cmd->ComponentTypeIndex);
                                 mgr.AddComponent(lastEntity, componentType);
                                 mgr.SetComponentRaw(lastEntity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
@@ -299,7 +299,7 @@ namespace UnityEngine.ECS
 
                         case Command.SetComponentImplicit:
                             {
-                                EntityComponentCommand* cmd = (EntityComponentCommand*)header;
+                                var cmd = (EntityComponentCommand*)header;
                                 //var componentType = (ComponentType)TypeManager.GetType(cmd->ComponentTypeIndex);
                                 mgr.SetComponentRaw(lastEntity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
                             }

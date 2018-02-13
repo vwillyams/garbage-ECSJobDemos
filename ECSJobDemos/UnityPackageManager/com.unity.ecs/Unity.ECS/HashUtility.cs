@@ -1,6 +1,6 @@
 ﻿namespace Unity.ECS
 {
-    internal static unsafe class HashUtility
+    static unsafe class HashUtility
     {
         public static uint Fletcher32(ushort* data, int count)
         {

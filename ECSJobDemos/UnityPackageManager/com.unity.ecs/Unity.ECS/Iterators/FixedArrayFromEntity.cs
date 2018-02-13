@@ -1,9 +1,8 @@
 ﻿using System;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Collections;
-using Unity.ECS;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
     [NativeContainer]
     public unsafe struct FixedArrayFromEntity<T> where T : struct

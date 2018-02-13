@@ -9,17 +9,22 @@ namespace Unity.ECS
     public unsafe struct EntityTransaction
     {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        private AtomicSafetyHandle                 m_Safety;
+        AtomicSafetyHandle                 m_Safety;
 #endif
-        [NativeDisableUnsafePtrRestriction] private GCHandle                           m_ArchetypeManager;
+        [NativeDisableUnsafePtrRestriction]
+        GCHandle                           m_ArchetypeManager;
 
-        [NativeDisableUnsafePtrRestriction] private GCHandle                           m_EntityGroupManager;
+        [NativeDisableUnsafePtrRestriction]
+        GCHandle                           m_EntityGroupManager;
 
-        [NativeDisableUnsafePtrRestriction] private GCHandle                           m_SharedComponentDataManager;
+        [NativeDisableUnsafePtrRestriction]
+        GCHandle                           m_SharedComponentDataManager;
 
-        [NativeDisableUnsafePtrRestriction] private EntityDataManager*                 m_Entities;
+        [NativeDisableUnsafePtrRestriction]
+        EntityDataManager*                 m_Entities;
 
-        [NativeDisableUnsafePtrRestriction] private ComponentTypeInArchetype*          m_CachedComponentTypeInArchetypeArray;
+        [NativeDisableUnsafePtrRestriction]
+        ComponentTypeInArchetype*          m_CachedComponentTypeInArchetypeArray;
 
         internal EntityTransaction(ArchetypeManager archetypes, EntityGroupManager entityGroupManager, SharedComponentDataManager sharedComponentDataManager, EntityDataManager* data)
         {
@@ -50,7 +55,7 @@ namespace Unity.ECS
         }
 #endif
 
-        private int PopulatedCachedTypeInArchetypeArray(ComponentType[] requiredComponents)
+        int PopulatedCachedTypeInArchetypeArray(ComponentType[] requiredComponents)
         {
             m_CachedComponentTypeInArchetypeArray[0] = new ComponentTypeInArchetype(ComponentType.Create<Entity>());
             for (var i = 0; i < requiredComponents.Length; ++i)
@@ -98,7 +103,7 @@ namespace Unity.ECS
             return CreateEntity(CreateArchetype(types));
         }
 
-        private void CreateEntityInternal(EntityArchetype archetype, Entity* entities, int count)
+        void CreateEntityInternal(EntityArchetype archetype, Entity* entities, int count)
         {
             CheckAccess();
             var archetypeManager = (ArchetypeManager)m_ArchetypeManager.Target;
@@ -117,7 +122,7 @@ namespace Unity.ECS
             InstantiateInternal(srcEntity, (Entity*)outputEntities.GetUnsafePtr(), outputEntities.Length);
         }
 
-        private void InstantiateInternal(Entity srcEntity, Entity* outputEntities, int count)
+        void InstantiateInternal(Entity srcEntity, Entity* outputEntities, int count)
         {
             CheckAccess();
 
@@ -145,7 +150,7 @@ namespace Unity.ECS
             DestroyEntityInternal(&entity, 1);
         }
 
-        private void DestroyEntityInternal(Entity* entities, int count)
+        void DestroyEntityInternal(Entity* entities, int count)
         {
             CheckAccess();
             m_Entities->AssertEntitiesExist(entities, count);

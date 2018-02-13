@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using Unity.Jobs;
 using Unity.Collections;
+using Unity.ECS;
 using UnityEngine.TestTools;
 
 namespace UnityEngine.ECS.Tests

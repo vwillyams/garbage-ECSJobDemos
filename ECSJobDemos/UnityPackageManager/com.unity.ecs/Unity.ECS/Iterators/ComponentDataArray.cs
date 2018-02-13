@@ -1,9 +1,8 @@
 ﻿using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using System;
-using Unity.ECS;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
     [NativeContainer]
     [NativeContainerSupportsMinMaxWriteRestriction]

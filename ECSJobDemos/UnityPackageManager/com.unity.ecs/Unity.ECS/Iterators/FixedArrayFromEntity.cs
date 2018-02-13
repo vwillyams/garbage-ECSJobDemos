@@ -1,6 +1,7 @@
 ﻿using System;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Collections;
+using Unity.ECS;
 
 namespace UnityEngine.ECS
 {
@@ -20,7 +21,7 @@ namespace UnityEngine.ECS
             m_Safety = safety;
             m_TypeIndex = typeIndex;
             m_Entities = entityData;
-            if (TypeManager.GetComponentType(m_TypeIndex).category != TypeManager.TypeCategory.OtherValueType)
+            if (TypeManager.GetComponentType(m_TypeIndex).Category != TypeManager.TypeCategory.OtherValueType)
                 throw new ArgumentException($"GetComponentFixedArray<{typeof(T)}> may not be IComponentData or ISharedComponentData");
         }
 #else

@@ -3,6 +3,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using System;
 using System.Collections.Generic;
+using Unity.ECS;
 using Unity.Jobs;
 using UnityEngine.Assertions;
 using UnityEngine.Profiling;
@@ -18,7 +19,7 @@ namespace UnityEngine.ECS
         [NativeDisableUnsafePtrRestriction]
         internal Archetype* archetype;
 
-        public bool Valid => archetype != null; 
+        public bool Valid => archetype != null;
 
         public static bool operator ==(EntityArchetype lhs, EntityArchetype rhs) { return lhs.archetype == rhs.archetype; }
         public static bool operator !=(EntityArchetype lhs, EntityArchetype rhs) { return lhs.archetype != rhs.archetype; }
@@ -91,7 +92,7 @@ namespace UnityEngine.ECS
         protected override void OnDestroyManager()
         {
             EndTransaction();
-            
+
             m_JobSafetyManager.Dispose(); m_JobSafetyManager = null;
 
             m_Entities->OnDestroy();
@@ -148,22 +149,22 @@ namespace UnityEngine.ECS
             //@TODO: Better would be to seperate creation of archetypes and getting existing archetypes
             // and only flush when creating new ones...
             BeforeStructuralChange();
-            
+
             return m_GroupManager.CreateEntityGroup(m_ArchetypeManager, m_CachedComponentTypeArray, PopulatedCachedTypeArray(requiredComponents), new TransformAccessArray());
         }
 
         public EntityArchetype CreateArchetype(params ComponentType[] types)
         {
             int cachedComponentCount = PopulatedCachedTypeInArchetypeArray(types);
-            
+
             // Lookup existing archetype (cheap)
             EntityArchetype entityArchetype;
             entityArchetype.archetype = m_ArchetypeManager.GetExistingArchetype(m_CachedComponentTypeInArchetypeArray, cachedComponentCount);
             if (entityArchetype.archetype != null)
                 return entityArchetype;
-            
+
             // Creating an archetype invalidates all iterators / jobs etc
-            // because it affects the live iteration linked lists... 
+            // because it affects the live iteration linked lists...
             BeforeStructuralChange();
 
             entityArchetype.archetype = m_ArchetypeManager.GetOrCreateArchetype(m_CachedComponentTypeInArchetypeArray, cachedComponentCount, m_GroupManager);
@@ -283,14 +284,14 @@ namespace UnityEngine.ECS
             m_Entities->AssertEntitiesExist(&entity, 1);
             m_Entities->AddComponent(entity, type, m_ArchetypeManager, m_SharedComponentManager, m_GroupManager, m_CachedComponentTypeInArchetypeArray);
         }
-        
+
         public void RemoveComponent(Entity entity, ComponentType type)
         {
             BeforeStructuralChange();
             m_Entities->AssertEntityHasComponent(entity, type);
             m_Entities->RemoveComponent(entity, type, m_ArchetypeManager, m_SharedComponentManager, m_GroupManager, m_CachedComponentTypeInArchetypeArray);
         }
-        
+
         public void RemoveComponent<T>(Entity entity)
         {
             RemoveComponent(entity, ComponentType.Create<T>());
@@ -310,7 +311,7 @@ namespace UnityEngine.ECS
             return new ComponentDataFromEntity<T>(typeIndex, m_Entities);
 #endif
         }
-        
+
         public ComponentDataFromEntity<T> GetComponentDataFromEntity<T>(bool isReadOnly = false) where T : struct, IComponentData
         {
             return GetComponentDataFromEntity<T>(TypeManager.GetTypeIndex<T>(), isReadOnly);
@@ -410,10 +411,10 @@ namespace UnityEngine.ECS
         public void SetSharedComponentData<T>(Entity entity, T componentData) where T: struct, ISharedComponentData
         {
             BeforeStructuralChange();
-            
+
             int typeIndex = TypeManager.GetTypeIndex<T>();
             m_Entities->AssertEntityHasComponent(entity, typeIndex);
-                        
+
             int newSharedComponentDataIndex = m_SharedComponentManager.InsertSharedComponent(componentData);
             m_Entities->SetSharedComponentDataIndex(m_ArchetypeManager, m_SharedComponentManager, entity, typeIndex, newSharedComponentDataIndex);
             m_SharedComponentManager.RemoveReference(newSharedComponentDataIndex);
@@ -424,7 +425,7 @@ namespace UnityEngine.ECS
             int typeIndex = TypeManager.GetTypeIndex<T>();
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_Entities->AssertEntityHasComponent(entity, typeIndex);
-            if (TypeManager.GetComponentType<T>().category != TypeManager.TypeCategory.OtherValueType)
+            if (TypeManager.GetComponentType<T>().Category != TypeManager.TypeCategory.OtherValueType)
                 throw new ArgumentException($"GetComponentFixedArray<{typeof(T)}> may not be IComponentData or ISharedComponentData");
 #endif
 
@@ -447,12 +448,12 @@ namespace UnityEngine.ECS
         {
             return m_Entities->GetComponentTypeOrderVersion(TypeManager.GetTypeIndex<T>());
         }
-        
+
         public int GetSharedComponentOrderVersion<T>(T sharedComponent) where T : struct, ISharedComponentData
         {
             return m_SharedComponentManager.GetSharedComponentVersion(sharedComponent);
         }
-        
+
         internal ComponentJobSafetyManager ComponentJobSafetyManager { get { return m_JobSafetyManager; } }
 
         public EntityTransaction BeginTransaction()
@@ -501,7 +502,7 @@ namespace UnityEngine.ECS
             srcEntities.BeforeStructuralChange();
 
             ArchetypeManager.MoveChunks(srcEntities.m_ArchetypeManager, srcEntities.m_Entities, m_ArchetypeManager, m_GroupManager, m_SharedComponentManager, m_Entities);
-            
+
             //@TODO: Need to incrmeent the component versions based the moved chunks...
         }
 

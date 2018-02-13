@@ -2,6 +2,7 @@
 
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.ECS;
 using UnityEngine.Assertions;
 using UnityEngine.Profiling;
 
@@ -47,7 +48,7 @@ namespace UnityEngine.ECS
 
             int componentTypeOrderVersionSize = sizeof(int) * TypeManager.MaximumTypesCount;
             m_ComponentTypeOrderVersion = (int*) UnsafeUtility.Malloc(componentTypeOrderVersionSize , UnsafeUtility.AlignOf<int>(), Allocator.Persistent);
-            UnsafeUtility.MemClear(m_ComponentTypeOrderVersion, componentTypeOrderVersionSize );            
+            UnsafeUtility.MemClear(m_ComponentTypeOrderVersion, componentTypeOrderVersionSize );
         }
 
         public void OnDestroy()
@@ -448,7 +449,7 @@ namespace UnityEngine.ECS
             {
                 var oldSharedComponentDataIndices = GetComponentChunk(entity)->sharedComponentValueArray;
                 var newComponentIsShared = (TypeManager.TypeCategory.ISharedComponentData ==
-                                            TypeManager.GetComponentType(type.typeIndex).category);
+                                            TypeManager.GetComponentType(type.typeIndex).Category);
                 if (newComponentIsShared)
                 {
                     int* stackAlloced = stackalloc int[newType->numSharedComponents];
@@ -495,7 +496,7 @@ namespace UnityEngine.ECS
             }
 
             SetArchetype(archetypeManager, entity, newType, sharedComponentDataIndices);
-            
+
             IncrementComponentOrderVersion(newType, GetComponentChunk(entity), sharedComponentDataManager);
         }
 
@@ -525,7 +526,7 @@ namespace UnityEngine.ECS
             {
                 var oldSharedComponentDataIndices = GetComponentChunk(entity)->sharedComponentValueArray;
                 bool removedComponentIsShared = TypeManager.TypeCategory.ISharedComponentData ==
-                                                TypeManager.GetComponentType(type.typeIndex).category;
+                                                TypeManager.GetComponentType(type.typeIndex).Category;
                 removedTypes = 0;
                 if (removedComponentIsShared)
                 {
@@ -547,7 +548,7 @@ namespace UnityEngine.ECS
             }
 
             IncrementComponentOrderVersion(archetype, GetComponentChunk(entity), sharedComponentDataManager);
-            
+
             SetArchetype(archetypeManager, entity, newType, sharedComponentDataIndices);
         }
 

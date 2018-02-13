@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using Unity.ECS;
+using UnityEngine;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
-    class DefaultWorldInitialization
+    internal static class DefaultWorldInitialization
     {
         private const string defaultWorldName = "Default World";
-        static World m_CreatedWorld;
+        private static World m_CreatedWorld;
 
-        static void DomainUnloadShutdown()
+        private static void DomainUnloadShutdown()
         {
             if (World.Active == m_CreatedWorld)
             {
@@ -26,7 +25,7 @@ namespace UnityEngine.ECS
             }
         }
 
-        static void GetBehaviourManagerAndLogException(World world, Type type)
+        private static void GetBehaviourManagerAndLogException(World world, Type type)
         {
             try
             {
@@ -38,10 +37,9 @@ namespace UnityEngine.ECS
             }
         }
 
-
         public static void Initialize()
         {
-            World world = new World(defaultWorldName);
+            var world = new World(defaultWorldName);
             World.Active = world;
             m_CreatedWorld = world;
 
@@ -85,7 +83,8 @@ namespace UnityEngine.ECS
                     }
                     else
                     {
-                        Debug.LogError(string.Format("{0} implements the IAutoComponentSystemJob interface, for it to run, you also need to IJobProcessComponentData", jobType));
+                        Debug.LogError(
+                            $"{jobType} implements the IAutoComponentSystemJob interface, for it to run, you also need to IJobProcessComponentData");
                     }
                 }
             }

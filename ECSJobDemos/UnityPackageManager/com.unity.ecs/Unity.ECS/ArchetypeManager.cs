@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine.Assertions;
+using Unity.Assertions;
 
 namespace Unity.ECS
 {
-    internal interface IManagedObjectModificationListener
+    interface IManagedObjectModificationListener
     {
         void OnManagedObjectModified();
     }
 
-    internal struct ComponentTypeInArchetype
+    struct ComponentTypeInArchetype
     {
         public readonly int TypeIndex;
         public readonly int FixedArrayLength;
@@ -82,7 +82,7 @@ namespace Unity.ECS
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal unsafe struct Chunk
+    unsafe struct Chunk
     {
         // NOTE: Order of the UnsafeLinkedListNode is required to be this in order
         //       to allow for casting & grabbing Chunk* from nodes...
@@ -120,7 +120,7 @@ namespace Unity.ECS
         }
     }
 
-    internal unsafe struct Archetype
+    unsafe struct Archetype
     {
         public UnsafeLinkedListNode         ChunkList;
         public UnsafeLinkedListNode         ChunkListWithEmptySlots;
@@ -145,33 +145,32 @@ namespace Unity.ECS
         public Archetype*                   PrevArchetype;
     }
 
-    internal unsafe class ArchetypeManager : IDisposable
+    unsafe class ArchetypeManager : IDisposable
     {
-        private NativeMultiHashMap<uint, IntPtr>    m_TypeLookup;
-        private ChunkAllocator                      m_ArchetypeChunkAllocator;
+        NativeMultiHashMap<uint, IntPtr>    m_TypeLookup;
+        ChunkAllocator                      m_ArchetypeChunkAllocator;
 
         internal Archetype*                 m_LastArchetype;
 
-        private readonly SharedComponentDataManager          m_SharedComponentManager;
-        private readonly UnsafeLinkedListNode*               m_EmptyChunkPool;
+        readonly SharedComponentDataManager          m_SharedComponentManager;
+        readonly UnsafeLinkedListNode*               m_EmptyChunkPool;
 
-
-        private struct ManagedArrayStorage
+        struct ManagedArrayStorage
         {
             // For patching when we start releasing chunks
             public Chunk*    Chunk;
             public object[]  ManagedArray;
         }
 
-        private readonly List<ManagedArrayStorage> m_ManagedArrays = new List<ManagedArrayStorage>();
+        readonly List<ManagedArrayStorage> m_ManagedArrays = new List<ManagedArrayStorage>();
 
-        private struct ManagedArrayListeners
+        struct ManagedArrayListeners
         {
             public Archetype* Archetype;
             public List<IManagedObjectModificationListener>[] ManagedObjectListeners;
         }
 
-        private readonly List<ManagedArrayListeners> m_ManagedArrayListeners = new List<ManagedArrayListeners>();
+        readonly List<ManagedArrayListeners> m_ManagedArrayListeners = new List<ManagedArrayListeners>();
 
         public ArchetypeManager(SharedComponentDataManager sharedComponentManager)
         {
@@ -276,7 +275,7 @@ namespace Unity.ECS
             return null;
         }
 
-        private static uint GetHash(ComponentTypeInArchetype* types, int count)
+        static uint GetHash(ComponentTypeInArchetype* types, int count)
         {
             var hash = HashUtility.Fletcher32((ushort*)types, count * sizeof(ComponentTypeInArchetype) / sizeof(ushort));
             return hash;
@@ -460,7 +459,7 @@ namespace Unity.ECS
                 m_SharedComponentManager.AddReference(sharedComponentValueArray[i]);
         }
 
-        private static bool ChunkHasSharedComponents(Chunk* chunk, int* sharedComponentDataIndices)
+        static bool ChunkHasSharedComponents(Chunk* chunk, int* sharedComponentDataIndices)
         {
             var sharedComponentValueArray = chunk->SharedComponentValueArray;
             var numSharedComponents = chunk->Archetype->NumSharedComponents;
@@ -607,6 +606,7 @@ namespace Unity.ECS
             rangeLength = chunk->Count;
             return m_ManagedArrays[chunk->ManagedArrayIndex].ManagedArray;
         }
+
         public void SetManagedObject(Chunk* chunk, int type, int index, object val)
         {
             var managedStart = chunk->Archetype->ManagedArrayOffset[type] * chunk->Capacity;
@@ -622,6 +622,7 @@ namespace Unity.ECS
             foreach (var listener in listeners.ManagedObjectListeners[type])
                 listener.OnManagedObjectModified();
         }
+
         public void SetManagedObject(Chunk* chunk, ComponentType type, int index, object val)
         {
             var typeOfs = ChunkDataUtility.GetIndexInTypeArray(chunk->Archetype, type.TypeIndex);

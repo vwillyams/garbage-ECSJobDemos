@@ -11,14 +11,14 @@ namespace UnityEngine.ECS
     {
         private ComponentChunkIterator m_Iterator;
         private ComponentChunkCache    m_Cache;
-        private SharedComponentDataManager m_sharedComponentDataManager;
-        private int m_sharedComponentIndex;
+        private readonly SharedComponentDataManager m_sharedComponentDataManager;
+        private readonly int m_sharedComponentIndex;
 
-        private int m_Length;
+        private readonly int m_Length;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        private int m_MinIndex;
-        private int m_MaxIndex;
-        private AtomicSafetyHandle m_Safety;
+        private readonly int m_MinIndex;
+        private readonly int m_MaxIndex;
+        private readonly AtomicSafetyHandle m_Safety;
 #endif
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS

@@ -1,12 +1,10 @@
-﻿using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
-using System;
-using Unity.ECS;
+﻿using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Assertions;
+using UnityEngine.ECS;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
-    unsafe struct ComponentChunkCache
+    internal unsafe struct ComponentChunkCache
     {
         [NativeDisableUnsafePtrRestriction]
         public void*                           CachedPtr;
@@ -15,35 +13,32 @@ namespace UnityEngine.ECS
         public int                             CachedSizeOf;
     }
 
-    unsafe struct ComponentChunkIterator
+    internal unsafe struct ComponentChunkIterator
     {
-        [NativeDisableUnsafePtrRestriction]
-        MatchingArchetypes*                     m_FirstMatchingArchetype;
-        [NativeDisableUnsafePtrRestriction]
-        MatchingArchetypes*                     m_CurrentMatchingArchetype;
+        [NativeDisableUnsafePtrRestriction] private readonly MatchingArchetypes*                     m_FirstMatchingArchetype;
+        [NativeDisableUnsafePtrRestriction] private MatchingArchetypes*                     m_CurrentMatchingArchetype;
         public int                              IndexInComponentGroup;
-        int                                     m_CurrentArchetypeIndex;
-        [NativeDisableUnsafePtrRestriction]
-        Chunk*                                  m_CurrentChunk;
-        int                                     m_CurrentChunkIndex;
+        private int                                     m_CurrentArchetypeIndex;
+        [NativeDisableUnsafePtrRestriction] private Chunk*                                  m_CurrentChunk;
+        private int                                     m_CurrentChunkIndex;
 
 
         [NativeDisableUnsafePtrRestriction]
         // The first element is the amount of filtered components
-        int*                                    m_filteredSharedComponents;
+        private readonly int*                                    m_filteredSharedComponents;
 
 
         internal static bool ChunkMatchesFilter(MatchingArchetypes* match, Chunk* chunk, int* filteredSharedComponents)
         {
-            int* sharedComponentsInChunk = chunk->SharedComponentValueArray;
-            int filteredCount = filteredSharedComponents[0];
+            var sharedComponentsInChunk = chunk->SharedComponentValueArray;
+            var filteredCount = filteredSharedComponents[0];
             var filtered = filteredSharedComponents + 1;
-            for(int i=0; i<filteredCount; ++i)
+            for(var i=0; i<filteredCount; ++i)
             {
-                int componetIndexInComponentGroup = filtered[i * 2];
-                int sharedComponentIndex = filtered[i * 2 + 1];
-                int componentIndexInArcheType = match->typeIndexInArchetypeArray[componetIndexInComponentGroup];
-                int componentIndexInChunk = match->archetype->SharedComponentOffset[componentIndexInArcheType];
+                var componetIndexInComponentGroup = filtered[i * 2];
+                var sharedComponentIndex = filtered[i * 2 + 1];
+                var componentIndexInArcheType = match->typeIndexInArchetypeArray[componetIndexInComponentGroup];
+                var componentIndexInChunk = match->archetype->SharedComponentOffset[componentIndexInArcheType];
                 if (sharedComponentsInChunk[componentIndexInChunk] != sharedComponentIndex)
                     return false;
             }
@@ -55,7 +50,7 @@ namespace UnityEngine.ECS
         {
             var archetype = m_CurrentMatchingArchetype->archetype;
             var indexInArchetype = m_CurrentMatchingArchetype->typeIndexInArchetypeArray[sharedComponentIndex];
-            int sharedComponentOffset = archetype->SharedComponentOffset[indexInArchetype];
+            var sharedComponentOffset = archetype->SharedComponentOffset[indexInArchetype];
             return m_CurrentChunk->SharedComponentValueArray[sharedComponentOffset];
         }
 
@@ -120,7 +115,7 @@ namespace UnityEngine.ECS
         public void UpdateCache(int index, out ComponentChunkCache cache)
         {
             Assert.IsTrue(-1 != IndexInComponentGroup);
-            
+
             if (m_filteredSharedComponents == null)
             {
                 if (index < m_CurrentArchetypeIndex)
@@ -192,10 +187,10 @@ namespace UnityEngine.ECS
             var archetype = m_CurrentMatchingArchetype->archetype;
 
             typeIndexInArchetype = ChunkDataUtility.GetIndexInTypeArray(archetype, componentType);
-            #if ENABLE_UNITY_COLLECTIONS_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             if (typeIndexInArchetype == -1)
                 throw new System.ArgumentException("componentType does not exist in the iterated archetype");
-            #endif
+#endif
 
             cache.CachedBeginIndex = m_CurrentChunkIndex + m_CurrentArchetypeIndex;
             cache.CachedEndIndex = cache.CachedBeginIndex + m_CurrentChunk->Count;

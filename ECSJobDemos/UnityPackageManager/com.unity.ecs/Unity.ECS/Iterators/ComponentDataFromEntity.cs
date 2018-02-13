@@ -1,5 +1,4 @@
-﻿using System;
-using Unity.Collections.LowLevel.Unsafe;
+﻿using Unity.Collections.LowLevel.Unsafe;
 using Unity.ECS;
 
 namespace UnityEngine.ECS
@@ -8,12 +7,11 @@ namespace UnityEngine.ECS
     public unsafe struct ComponentDataFromEntity<T> where T : struct, IComponentData
     {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        AtomicSafetyHandle      m_Safety;
+        private readonly AtomicSafetyHandle      m_Safety;
 #endif
-        [NativeDisableUnsafePtrRestriction]
-        EntityDataManager*      m_Entities;
-        int                     m_TypeIndex;
-        int                     m_TypeLookupCache;
+        [NativeDisableUnsafePtrRestriction] private readonly EntityDataManager*      m_Entities;
+        private readonly int                     m_TypeIndex;
+        private int                     m_TypeLookupCache;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal ComponentDataFromEntity(int typeIndex, EntityDataManager* entityData, AtomicSafetyHandle safety)
@@ -42,7 +40,7 @@ namespace UnityEngine.ECS
             return m_Entities->HasComponent(entity, m_TypeIndex);
         }
 
-        public unsafe T this[Entity entity]
+        public T this[Entity entity]
         {
             get
             {

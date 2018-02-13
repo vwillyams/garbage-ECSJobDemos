@@ -9,18 +9,18 @@ namespace UnityEngine.ECS
     [NativeContainerSupportsMinMaxWriteRestriction]
     public unsafe struct ComponentDataArray<T> where T : struct, IComponentData
     {
-        ComponentChunkIterator m_Iterator;
-	    ComponentChunkCache    m_Cache;
+        private ComponentChunkIterator m_Iterator;
+        private ComponentChunkCache    m_Cache;
 
-        int m_Length;
+        private readonly int m_Length;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        int m_MinIndex;
-        int m_MaxIndex;
-        AtomicSafetyHandle m_Safety;
+        private readonly int m_MinIndex;
+        private readonly int m_MaxIndex;
+        private readonly AtomicSafetyHandle m_Safety;
 #endif
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        internal unsafe ComponentDataArray(ComponentChunkIterator iterator, int length, AtomicSafetyHandle safety)
+        internal ComponentDataArray(ComponentChunkIterator iterator, int length, AtomicSafetyHandle safety)
 #else
         internal unsafe ComponentDataArray(ComponentChunkIterator iterator, int length)
 #endif
@@ -50,7 +50,7 @@ namespace UnityEngine.ECS
             m_Iterator.UpdateCache(startIndex, out m_Cache);
 
             void* ptr = (byte*)m_Cache.CachedPtr + startIndex * m_Cache.CachedSizeOf;
-            int count = Math.Min(maxCount, m_Cache.CachedEndIndex - startIndex);
+            var count = Math.Min(maxCount, m_Cache.CachedEndIndex - startIndex);
 
 	        var arr = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(ptr, count, Allocator.Invalid);
 
@@ -63,7 +63,7 @@ namespace UnityEngine.ECS
 
         public void CopyTo(NativeSlice<T> dst, int startIndex = 0)
         {
-            int copiedCount = 0;
+            var copiedCount = 0;
             while (copiedCount < dst.Length)
             {
                 var chunkArray = GetChunkArray(startIndex + copiedCount, dst.Length - copiedCount);
@@ -73,7 +73,7 @@ namespace UnityEngine.ECS
             }
         }
 
-        public unsafe T this[int index]
+        public T this[int index]
         {
             get
             {
@@ -105,21 +105,20 @@ namespace UnityEngine.ECS
 		}
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        void FailOutOfRangeError(int index)
+        private void FailOutOfRangeError(int index)
 		{
 			//@TODO: Make error message utility and share with NativeArray...
 			if (index < Length && (m_MinIndex != 0 || m_MaxIndex != Length - 1))
-				throw new IndexOutOfRangeException(string.Format(
-					"Index {0} is out of restricted IJobParallelFor range [{1}...{2}] in ReadWriteBuffer.\n" +
-					"ReadWriteBuffers are restricted to only read & write the element at the job index. " +
-					"You can use double buffering strategies to avoid race conditions due to " +
-					"reading & writing in parallel to the same elements from a job.",
-					index, m_MinIndex, m_MaxIndex));
+				throw new IndexOutOfRangeException(
+				        $"Index {index} is out of restricted IJobParallelFor range [{m_MinIndex}...{m_MaxIndex}] in ReadWriteBuffer.\n" +
+				        "ReadWriteBuffers are restricted to only read & write the element at the job index. " +
+				        "You can use double buffering strategies to avoid race conditions due to " +
+				        "reading & writing in parallel to the same elements from a job.");
 
-			throw new IndexOutOfRangeException(string.Format("Index {0} is out of range of '{1}' Length.", index, Length));
+			throw new IndexOutOfRangeException($"Index {index} is out of range of '{Length}' Length.");
 		}
 #endif
 
-        public int Length { get { return m_Length; } }
-	}
+        public int Length => m_Length;
+    }
 }

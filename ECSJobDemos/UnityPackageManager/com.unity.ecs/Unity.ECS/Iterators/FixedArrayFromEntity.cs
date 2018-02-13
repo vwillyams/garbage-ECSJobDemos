@@ -9,11 +9,10 @@ namespace UnityEngine.ECS
     public unsafe struct FixedArrayFromEntity<T> where T : struct
     {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        AtomicSafetyHandle      m_Safety;
+        private readonly AtomicSafetyHandle      m_Safety;
 #endif
-        [NativeDisableUnsafePtrRestriction]
-        EntityDataManager*      m_Entities;
-        int                     m_TypeIndex;
+        [NativeDisableUnsafePtrRestriction] private readonly EntityDataManager*      m_Entities;
+        private readonly int                     m_TypeIndex;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal FixedArrayFromEntity(int typeIndex, EntityDataManager* entityData, AtomicSafetyHandle safety)

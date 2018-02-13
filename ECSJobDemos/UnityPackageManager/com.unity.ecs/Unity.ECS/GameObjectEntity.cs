@@ -1,5 +1,10 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
+using RequireComponent = UnityEngine.RequireComponent;
+using SerializeField = UnityEngine.SerializeField;
+using MonoBehaviour = UnityEngine.MonoBehaviour;
+using DisallowMultipleComponent = UnityEngine.DisallowMultipleComponent;
+using GameObject = UnityEngine.GameObject;
+using Component = UnityEngine.Component;
 
 namespace Unity.ECS
 {
@@ -92,7 +97,7 @@ namespace Unity.ECS
             return entity;
         }
 
-        private static void GetComponents(EntityManager entityManager, GameObject gameObject, bool includeGameObjectComponents, out ComponentType[] types, out Component[] components)
+        static void GetComponents(EntityManager entityManager, GameObject gameObject, bool includeGameObjectComponents, out ComponentType[] types, out Component[] components)
         {
             components = gameObject.GetComponents<Component>();
 
@@ -108,7 +113,6 @@ namespace Unity.ECS
                 {
                     if (components[i] is ComponentDataWrapperBase)
                         componentCount++;
-
                 }
             }
 
@@ -127,7 +131,7 @@ namespace Unity.ECS
             }
         }
 
-        private static Entity CreateEntity(EntityManager entityManager, EntityArchetype archetype, IReadOnlyList<Component> components, IReadOnlyList<ComponentType> types)
+        static Entity CreateEntity(EntityManager entityManager, EntityArchetype archetype, IReadOnlyList<Component> components, IReadOnlyList<ComponentType> types)
         {
             var entity = entityManager.CreateEntity(archetype);
             var t = 0;
@@ -149,7 +153,6 @@ namespace Unity.ECS
             }
             return entity;
         }
-
 
         public void OnEnable()
         {

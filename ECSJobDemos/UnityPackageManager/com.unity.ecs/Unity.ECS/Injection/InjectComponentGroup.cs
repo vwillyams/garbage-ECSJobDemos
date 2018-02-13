@@ -38,7 +38,7 @@ namespace UnityEngine.ECS
             m_EntityGroup = entityManager.CreateComponentGroup(requiredComponentTypes);
 
 		    for (int i = 0; i != componentInjections.Length; i++)
-		        componentInjections[i].indexInComponentGroup = m_EntityGroup.GetIndexInComponentGroup(requiredComponentTypes[i].TypeIndex);
+		        componentInjections[i].IndexInComponentGroup = m_EntityGroup.GetIndexInComponentGroup(requiredComponentTypes[i].TypeIndex);
 
 		    m_ComponentDataInjections = componentDataInjections;
 		    m_ComponentInjections = componentInjections;
@@ -84,7 +84,7 @@ namespace UnityEngine.ECS
         void PatchGetIndexInComponentGroup(InjectionData[] componentInjections)
         {
             for (int i = 0; i != componentInjections.Length; i++)
-                componentInjections[i].indexInComponentGroup = m_EntityGroup.GetIndexInComponentGroup(componentInjections[i].componentType.TypeIndex);
+                componentInjections[i].IndexInComponentGroup = m_EntityGroup.GetIndexInComponentGroup(componentInjections[i].ComponentType.TypeIndex);
         }
         
         public unsafe void UpdateInjection(byte* systemPtr)
@@ -98,29 +98,29 @@ namespace UnityEngine.ECS
             for (var i = 0; i != m_ComponentDataInjections.Length; i++)
             {
                 ComponentDataArray<ProxyComponentData> data;
-                m_EntityGroup.GetComponentDataArray(ref iterator, m_ComponentDataInjections[i].indexInComponentGroup, length, out data);
-                UnsafeUtility.CopyStructureToPtr(ref data, groupStructPtr + m_ComponentDataInjections[i].fieldOffset);
+                m_EntityGroup.GetComponentDataArray(ref iterator, m_ComponentDataInjections[i].IndexInComponentGroup, length, out data);
+                UnsafeUtility.CopyStructureToPtr(ref data, groupStructPtr + m_ComponentDataInjections[i].FieldOffset);
             }
 
             for (var i = 0; i != m_ComponentInjections.Length; i++)
             {
                 ComponentArray<Component> data;
-                m_EntityGroup.GetComponentArray(ref iterator, m_ComponentInjections[i].indexInComponentGroup, length, out data);
-                UnsafeUtility.CopyStructureToPtr(ref data, groupStructPtr + m_ComponentInjections[i].fieldOffset);
+                m_EntityGroup.GetComponentArray(ref iterator, m_ComponentInjections[i].IndexInComponentGroup, length, out data);
+                UnsafeUtility.CopyStructureToPtr(ref data, groupStructPtr + m_ComponentInjections[i].FieldOffset);
             }
 
             for (var i = 0; i != m_SharedComponentInjections.Length; i++)
             {
                 SharedComponentDataArray<ProxySharedComponentData> data;
-                m_EntityGroup.GetSharedComponentDataArray(ref iterator, m_SharedComponentInjections[i].indexInComponentGroup, length, out data);
-                UnsafeUtility.CopyStructureToPtr(ref data, groupStructPtr + m_SharedComponentInjections[i].fieldOffset);
+                m_EntityGroup.GetSharedComponentDataArray(ref iterator, m_SharedComponentInjections[i].IndexInComponentGroup, length, out data);
+                UnsafeUtility.CopyStructureToPtr(ref data, groupStructPtr + m_SharedComponentInjections[i].FieldOffset);
             }
 
             for (var i = 0; i != m_FixedArrayInjections.Length; i++)
             {
                 FixedArrayArray<int> data;
-                m_EntityGroup.GetFixedArrayArray(ref iterator, m_FixedArrayInjections[i].indexInComponentGroup, length, out data);
-                UnsafeUtility.CopyStructureToPtr(ref data, groupStructPtr + m_FixedArrayInjections[i].fieldOffset);
+                m_EntityGroup.GetFixedArrayArray(ref iterator, m_FixedArrayInjections[i].IndexInComponentGroup, length, out data);
+                UnsafeUtility.CopyStructureToPtr(ref data, groupStructPtr + m_FixedArrayInjections[i].FieldOffset);
             }
             
 	        if (m_TransformAccessArrayOffset != -1)
@@ -189,7 +189,7 @@ namespace UnityEngine.ECS
 			    {
 				    var injection = new InjectionData(field, field.FieldType.GetGenericArguments()[0], isReadOnly);
 			        componentDataInjections.Add (injection);
-			        componentRequirements.Add(injection.componentType);
+			        componentRequirements.Add(injection.ComponentType);
 			    }
 			    else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(SubtractiveComponent<>))
 			    {
@@ -200,7 +200,7 @@ namespace UnityEngine.ECS
 				    var injection = new InjectionData(field, field.FieldType.GetGenericArguments()[0], isReadOnly);
 
 			        fixedArrayInjections.Add (injection);
-			        componentRequirements.Add(injection.componentType);
+			        componentRequirements.Add(injection.ComponentType);
 			    }
 				else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition () == typeof(ComponentArray<>))
 				{
@@ -211,7 +211,7 @@ namespace UnityEngine.ECS
 					var injection = new InjectionData(field, type , false);
 
 					componentInjections.Add (injection);
-				    componentRequirements.Add(injection.componentType);
+				    componentRequirements.Add(injection.ComponentType);
 
 				    if (type == typeof(Transform))
 				        explicitTransformRequirement = true;
@@ -223,7 +223,7 @@ namespace UnityEngine.ECS
 			        var injection = new InjectionData(field, field.FieldType.GetGenericArguments()[0], true);
 
 			        sharedComponentInjections.Add (injection);
-			        componentRequirements.Add(injection.componentType);
+			        componentRequirements.Add(injection.ComponentType);
 			    }
 				else if (field.FieldType == typeof(TransformAccessArray))
 				{

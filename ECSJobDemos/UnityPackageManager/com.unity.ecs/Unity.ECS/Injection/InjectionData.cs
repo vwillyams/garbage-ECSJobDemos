@@ -1,25 +1,24 @@
 ﻿using System.Reflection;
 using System;
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.ECS;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
-    struct InjectionData
+    internal struct InjectionData
     {
-        public int                 fieldOffset;
-        public ComponentType       componentType;
-        public int                 indexInComponentGroup;
-        public bool                isReadOnly;
+        public ComponentType       ComponentType;
+        public int                 IndexInComponentGroup;
+        public readonly bool                IsReadOnly;
+        public readonly int                 FieldOffset;
 
         public InjectionData(FieldInfo field, Type genericType, bool isReadOnly)
         {
-            this.indexInComponentGroup = -1;
-            this.fieldOffset = UnsafeUtility.GetFieldOffset(field);
+            IndexInComponentGroup = -1;
+            FieldOffset = UnsafeUtility.GetFieldOffset(field);
 
             var accessMode = isReadOnly ? ComponentType.AccessMode.ReadOnly : ComponentType.AccessMode.ReadWrite;
-            this.componentType = new ComponentType(genericType, accessMode);
-            this.isReadOnly = isReadOnly;
+            ComponentType = new ComponentType(genericType, accessMode);
+            IsReadOnly = isReadOnly;
         }
     }
 }

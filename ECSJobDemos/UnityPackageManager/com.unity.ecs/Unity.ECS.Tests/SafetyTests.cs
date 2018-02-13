@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using Unity.Jobs;
 using System;
+using Unity.ECS;
 using UnityEngine.TestTools;
 
 //@TODO: We should really design systems / jobs / exceptions / errors 

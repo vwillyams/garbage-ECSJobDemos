@@ -1,4 +1,5 @@
 ﻿using Unity.Collections;
+using Unity.ECS;
 using Unity.Mathematics;
 
 namespace UnityEngine.ECS.SimpleRotation

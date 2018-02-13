@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.ECS;
+using Object = UnityEngine.Object;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
-    public class PlayerLoopManager
+    public static class PlayerLoopManager
     {
         private struct UnloadMethod : IComparable<UnloadMethod>
         {
@@ -17,15 +19,15 @@ namespace UnityEngine.ECS
             }
         };
 
-        private static List<UnloadMethod> s_DomainUnloadMethods = new List<UnloadMethod>();
+        private static readonly List<UnloadMethod> s_DomainUnloadMethods = new List<UnloadMethod>();
 
         static PlayerLoopManager()
         {
             var go = new GameObject();
-            go.AddComponent<PlayerLoopDisableManager>().isActive = true;
+            go.AddComponent<PlayerLoopDisableManager>().IsActive = true;
             go.hideFlags = HideFlags.HideInHierarchy;
             if (Application.isPlaying)
-                GameObject.DontDestroyOnLoad(go);
+                Object.DontDestroyOnLoad(go);
             else
                 go.hideFlags = HideFlags.HideAndDontSave;
         }
@@ -67,7 +69,7 @@ namespace UnityEngine.ECS
                 {
                     callback();
                 }
-                catch (System.Exception exc)
+                catch (Exception exc)
                 {
                     Debug.LogException(exc);
                 }

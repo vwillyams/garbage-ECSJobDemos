@@ -3,6 +3,7 @@ using UnityEngine.ECS;
 using UnityEditor;
 using Unity.Collections;
 using NUnit.Framework;
+using Unity.ECS;
 
 namespace UnityEngine.ECS.Tests
 {
@@ -87,7 +88,7 @@ namespace UnityEngine.ECS.Tests
             entityMan.CreateEntity (archetype, array);
             for (int i = 0; i < count; i++)
             {
-                Assert.AreEqual(i, array[i].index);
+                Assert.AreEqual(i, array[i].Index);
             }
             array.Dispose();
             

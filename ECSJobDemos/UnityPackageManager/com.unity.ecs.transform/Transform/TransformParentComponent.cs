@@ -1,4 +1,6 @@
-﻿namespace UnityEngine.ECS.Transform
+﻿using Unity.ECS;
+
+namespace UnityEngine.ECS.Transform
 {
     public struct TransformParent : IComponentData
     {

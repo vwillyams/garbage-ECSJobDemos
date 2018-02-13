@@ -1,3 +1,5 @@
+using Unity.ECS;
+
 namespace UnityEngine.ECS.Boids
 {
 	public struct BoidTarget : IComponentData { }

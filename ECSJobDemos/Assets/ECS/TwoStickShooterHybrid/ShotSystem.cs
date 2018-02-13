@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Unity.Collections;
+using Unity.ECS;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.ECS;
@@ -29,7 +30,7 @@ namespace TwoStickHybridExample
         public float2 Heading;
         public Faction Faction;
     }
-    
+
     public static class ShotSpawnSystem
     {
         public static void SpawnShot(ShotSpawnData data)
@@ -39,7 +40,7 @@ namespace TwoStickHybridExample
                 ? settings.PlayerShotPrefab
                 : settings.EnemyShotPrefab;
             var newShot = Object.Instantiate(prefab);
-                    
+
             var shotXform = newShot.GetComponent<Transform2D>();
             shotXform.Position = data.Position;
             shotXform.Heading = data.Heading;

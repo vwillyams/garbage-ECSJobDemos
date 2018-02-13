@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.ECS;
 using Unity.Mathematics;
 using UnityEngine.Assertions;
 using UnityEngine.ECS.Transform;
@@ -51,7 +52,7 @@ namespace UnityEngine.ECS.MeshInstancedShim
             {
                 // For each unique MeshInstancedShim data, we want to get all entities with a TransformMatrix
                 // SharedComponentData gurantees that all those entities are packed togehter in a chunk with linear memory layout.
-                // As a result the copy of the matrices out is internally done via memcpy. 
+                // As a result the copy of the matrices out is internally done via memcpy.
                 var renderer = uniqueRendererTypes[i];
                 var group = maingroup.GetVariation(renderer);
                 var transforms = group.GetComponentDataArray<TransformMatrix>();

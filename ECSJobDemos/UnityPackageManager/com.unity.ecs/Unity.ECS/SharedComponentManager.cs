@@ -1,19 +1,18 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using System.Collections.Generic;
 using Unity.Collections;
+using UnityEngine.ECS;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
-    class SharedComponentDataManager
+    internal class SharedComponentDataManager
     {
         NativeMultiHashMap<int, int> m_TypeLookup;
 
+        int             m_RefCount;
         List<object>    m_SharedComponentData = new List<object>();
         NativeList<int> m_SharedComponentRefCount = new NativeList<int>(0, Allocator.Persistent);
         NativeList<int> m_SharedComponentVersion = new NativeList<int>(0, Allocator.Persistent);
         NativeList<int> m_SharedComponentType = new NativeList<int>(0, Allocator.Persistent);
-        int             m_RefCount = 0;
 
         public SharedComponentDataManager()
         {
@@ -31,28 +30,25 @@ namespace UnityEngine.ECS
 
         public bool Release()
         {
-            if (--m_RefCount == 0)
-            {
-                m_SharedComponentType.Dispose();
-                m_SharedComponentRefCount.Dispose();
-                m_SharedComponentVersion.Dispose();
-                m_SharedComponentData.Clear();
-                m_SharedComponentData = null;
-                m_TypeLookup.Dispose();
-                return true;
-            }
-            else
-            {
+            if (--m_RefCount != 0)
                 return false;
-            }
+
+            m_SharedComponentType.Dispose();
+            m_SharedComponentRefCount.Dispose();
+            m_SharedComponentVersion.Dispose();
+            m_SharedComponentData.Clear();
+            m_SharedComponentData = null;
+            m_TypeLookup.Dispose();
+            return true;
+
         }
 
         public void GetAllUniqueSharedComponents<T>(List<T> sharedComponentValues) where T : struct, ISharedComponentData
         {
             sharedComponentValues.Add(default(T));
-            for (int i = 1; i != m_SharedComponentData.Count; i++)
+            for (var i = 1; i != m_SharedComponentData.Count; i++)
             {
-                object data = m_SharedComponentData[i];
+                var data = m_SharedComponentData[i];
                 if (data != null && data.GetType() == typeof(T))
                     sharedComponentValues.Add((T)m_SharedComponentData[i]);
             }
@@ -60,8 +56,8 @@ namespace UnityEngine.ECS
 
         public int InsertSharedComponent<T>(T newData) where T : struct
         {
-            int typeIndex = TypeManager.GetTypeIndex<T>();
-            int index = FindSharedComponentIndex(typeIndex, newData);
+            var typeIndex = TypeManager.GetTypeIndex<T>();
+            var index = FindSharedComponentIndex(typeIndex, newData);
 
             if (-1 == index)
             {
@@ -90,21 +86,21 @@ namespace UnityEngine.ECS
                 return 0;
             }
 
-            if (m_TypeLookup.TryGetFirstValue(typeIndex, out itemIndex, out iter))
+            if (!m_TypeLookup.TryGetFirstValue(typeIndex, out itemIndex, out iter))
+                return -1;
+
+            do
             {
-                do
+                var data = m_SharedComponentData[itemIndex];
+                if (data != null)
                 {
-                    object data = m_SharedComponentData[itemIndex];
-                    if (data != null)
+                    if (newData.Equals(data))
                     {
-                        if (newData.Equals(data))
-                        {
-                            return itemIndex;
-                        }
+                        return itemIndex;
                     }
                 }
-                while (m_TypeLookup.TryGetNextValue(out itemIndex, ref iter));
             }
+            while (m_TypeLookup.TryGetNextValue(out itemIndex, ref iter));
 
             return -1;
         }
@@ -113,23 +109,19 @@ namespace UnityEngine.ECS
         {
             m_SharedComponentVersion[index]++;
         }
-        
+
         public int GetSharedComponentVersion<T>(T sharedData) where T: struct
         {
-            int index = FindSharedComponentIndex(TypeManager.GetTypeIndex<T>(), sharedData);
+            var index = FindSharedComponentIndex(TypeManager.GetTypeIndex<T>(), sharedData);
             return index == -1 ? 0 : m_SharedComponentVersion[index];
         }
 
         public T GetSharedComponentData<T>(int index) where T : struct
         {
             if (index == 0)
-            {
                 return default(T);
-            }
-            else
-            {
-                return (T)m_SharedComponentData[index];
-            }
+
+            return (T)m_SharedComponentData[index];
         }
 
         public void AddReference(int index)
@@ -143,30 +135,30 @@ namespace UnityEngine.ECS
             if (index == 0)
                 return;
 
-            int newCount = --m_SharedComponentRefCount[index];
+            var newCount = --m_SharedComponentRefCount[index];
 
-            if (newCount == 0)
+            if (newCount != 0)
+                return;
+
+            var typeIndex = m_SharedComponentType[index];
+
+            m_SharedComponentData[index] = null;
+            m_SharedComponentType[index] = -1;
+
+            int itemIndex;
+            NativeMultiHashMapIterator<int> iter;
+            if (!m_TypeLookup.TryGetFirstValue(typeIndex, out itemIndex, out iter))
+                return;
+
+            do
             {
-                int typeIndex = m_SharedComponentType[index];
+                if (itemIndex != index)
+                    continue;
 
-                m_SharedComponentData[index] = null;
-                m_SharedComponentType[index] = -1;
-
-                int itemIndex;
-                NativeMultiHashMapIterator<int> iter;
-                if (m_TypeLookup.TryGetFirstValue(typeIndex, out itemIndex, out iter))
-                {
-                    do
-                    {
-                        if (itemIndex == index)
-                        {
-                            m_TypeLookup.Remove(iter);
-                            break;
-                        }
-                    }
-                    while (m_TypeLookup.TryGetNextValue(out itemIndex, ref iter));
-                }
+                m_TypeLookup.Remove(iter);
+                break;
             }
+            while (m_TypeLookup.TryGetNextValue(out itemIndex, ref iter));
         }
     }
 }

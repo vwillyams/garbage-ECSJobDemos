@@ -1,4 +1,5 @@
 ﻿using Unity.Collections;
+using Unity.ECS;
 using Unity.Jobs;
 using UnityEngine.ECS.SimpleMovement;
 using UnityEngine.ECS.Transform2D;

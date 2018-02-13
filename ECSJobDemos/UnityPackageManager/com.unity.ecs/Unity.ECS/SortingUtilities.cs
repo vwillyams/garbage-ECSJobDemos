@@ -1,6 +1,8 @@
-namespace UnityEngine.ECS
+using UnityEngine.ECS;
+
+namespace Unity.ECS
 {
-	struct SortingUtilities
+    internal struct SortingUtilities
 	{
         public static unsafe void InsertSorted(ComponentType* data, int length, ComponentType newValue)
         {
@@ -11,7 +13,7 @@ namespace UnityEngine.ECS
             }
             data[length] = newValue;
         }
-		
+
 		public static unsafe void InsertSorted(ComponentTypeInArchetype* data, int length, ComponentType newValue)
 		{
 			var newVal= new ComponentTypeInArchetype(newValue);
@@ -22,6 +24,6 @@ namespace UnityEngine.ECS
 			}
 			data[length] = newVal;
 		}
-		
+
 	}
 }

@@ -8,6 +8,7 @@ using Unity.Collections;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using NUnit.Framework.Internal.Execution;
+using Unity.ECS;
 
 namespace UnityEngine.ECS.Tests
 {

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System;
 using Unity.Jobs;
 using System.Linq;
+using Unity.ECS;
 
 namespace UnityEditor.ECS
 {

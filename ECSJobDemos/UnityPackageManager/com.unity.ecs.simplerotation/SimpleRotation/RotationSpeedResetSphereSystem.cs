@@ -1,4 +1,5 @@
 ﻿using Unity.Collections;
+using Unity.ECS;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine.ECS.SimpleBounds;
@@ -18,7 +19,7 @@ namespace UnityEngine.ECS.SimpleRotation
         }
 
         [Inject] private RotationSpeedResetSphereGroup m_RotationSpeedResetSphereGroup;
-        
+
         struct RotationSpeedGroup
         {
             public ComponentDataArray<RotationSpeed> rotationSpeeds;
@@ -27,7 +28,7 @@ namespace UnityEngine.ECS.SimpleRotation
         }
 
         [Inject] private RotationSpeedGroup m_RotationSpeedGroup;
-    
+
         [ComputeJobOptimization]
         struct RotationSpeedResetSphereRotation : IJob
         {
@@ -36,7 +37,7 @@ namespace UnityEngine.ECS.SimpleRotation
             [ReadOnly] public ComponentDataArray<Radius> spheres;
             [ReadOnly] public ComponentDataArray<Position> rotationSpeedResetSpherePositions;
             [ReadOnly] public ComponentDataArray<Position> positions;
-        
+
             public void Execute()
             {
                 for (int i = 0; i < rotationSpeedResetSpheres.Length; i++)
@@ -70,6 +71,6 @@ namespace UnityEngine.ECS.SimpleRotation
                 positions = m_RotationSpeedGroup.positions
             };
             return rotationSpeedResetSphereRotationJob.Schedule(inputDeps);
-        } 
+        }
     }
 }

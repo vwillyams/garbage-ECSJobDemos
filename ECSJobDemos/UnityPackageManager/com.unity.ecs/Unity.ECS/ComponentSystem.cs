@@ -1,70 +1,65 @@
 ﻿using System;
-using Unity.Collections;
 using Unity.Jobs;
 using System.Collections.Generic;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs.LowLevel.Unsafe;
+using UnityEngine.ECS;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
     public abstract class ComponentSystemBase : ScriptBehaviourManager
     {
-        InjectComponentGroupData[] 			m_InjectedComponentGroups;
-        InjectFromEntityData                m_InjectFromEntityData;
+        private InjectComponentGroupData[] 			m_InjectedComponentGroups;
+        private InjectFromEntityData                m_InjectFromEntityData;
 
-        ComponentGroupArrayStaticCache[] 	m_CachedComponentGroupArrays;
-        ComponentGroup[] 				    m_ComponentGroups;
+        private ComponentGroupArrayStaticCache[] 	m_CachedComponentGroupArrays;
+        private ComponentGroup[] 				    m_ComponentGroups;
 
 
         internal int[]		    			m_JobDependencyForReadingManagers;
         internal int[]		    			m_JobDependencyForWritingManagers;
         internal ComponentJobSafetyManager  m_SafetyManager;
-        EntityManager                       m_EntityManager;
-        World                               m_World;
+        private EntityManager                       m_EntityManager;
+        private World                               m_World;
 
-	    public ComponentGroup[] 			ComponentGroups { get { return m_ComponentGroups; } }
+        public ComponentGroup[] 			ComponentGroups => m_ComponentGroups;
 
-        protected ComponentSystemBase()
+        protected override void OnCreateManagerInternal(World world, int capacity)
         {
-            
-        }
-
-    	protected override void OnCreateManagerInternal(World world, int capacity)
-	    {
-	        m_World = world;
-	        m_EntityManager = world.GetOrCreateManager<EntityManager>();
+            m_World = world;
+            m_EntityManager = world.GetOrCreateManager<EntityManager>();
             m_SafetyManager = m_EntityManager.ComponentJobSafetyManager;
 
-		    ComponentSystemInjection.Inject(this, world, m_EntityManager, out m_InjectedComponentGroups, out m_InjectFromEntityData);
+            ComponentSystemInjection.Inject(this, world, m_EntityManager, out m_InjectedComponentGroups, out m_InjectFromEntityData);
 
-		    m_ComponentGroups = new ComponentGroup[m_InjectedComponentGroups.Length];
-		    for (var i = 0; i < m_InjectedComponentGroups.Length; ++i)
-			    m_ComponentGroups [i] = m_InjectedComponentGroups[i].EntityGroup;
+            m_ComponentGroups = new ComponentGroup[m_InjectedComponentGroups.Length];
+            for (var i = 0; i < m_InjectedComponentGroups.Length; ++i)
+                m_ComponentGroups [i] = m_InjectedComponentGroups[i].EntityGroup;
 
-		    m_CachedComponentGroupArrays = new ComponentGroupArrayStaticCache[0];
+            m_CachedComponentGroupArrays = new ComponentGroupArrayStaticCache[0];
 
-		    RecalculateTypesFromComponentGroups();
+            RecalculateTypesFromComponentGroups();
 
-		    UpdateInjectedComponentGroups();
-	    }
+            UpdateInjectedComponentGroups();
+        }
 
-	    void RecalculateTypesFromComponentGroups()
-	    {
-		    var readingTypes = new List<int>();
-		    var writingTypes = new List<int>();
+        private void RecalculateTypesFromComponentGroups()
+        {
+            var readingTypes = new List<int>();
+            var writingTypes = new List<int>();
 
-		    ComponentGroup.ExtractJobDependencyTypes(ComponentGroups, readingTypes, writingTypes);
-	        m_InjectFromEntityData.ExtractJobDependencyTypes(readingTypes, writingTypes);
+            ComponentGroup.ExtractJobDependencyTypes(ComponentGroups, readingTypes, writingTypes);
+            m_InjectFromEntityData.ExtractJobDependencyTypes(readingTypes, writingTypes);
 
-		    m_JobDependencyForReadingManagers = readingTypes.ToArray();
-		    m_JobDependencyForWritingManagers = writingTypes.ToArray();
-	    }
+            m_JobDependencyForReadingManagers = readingTypes.ToArray();
+            m_JobDependencyForWritingManagers = writingTypes.ToArray();
+        }
 
         protected sealed override void OnAfterDestroyManagerInternal()
         {
             if (null != m_InjectedComponentGroups)
             {
-                for (int i = 0; i != m_InjectedComponentGroups.Length; i++)
+                for (var i = 0; i != m_InjectedComponentGroups.Length; i++)
                 {
                     if (m_InjectedComponentGroups[i] != null)
                         m_InjectedComponentGroups[i].Dispose();
@@ -74,7 +69,7 @@ namespace UnityEngine.ECS
 
             if (null != m_CachedComponentGroupArrays)
             {
-                for (int i = 0; i != m_CachedComponentGroupArrays.Length; i++)
+                for (var i = 0; i != m_CachedComponentGroupArrays.Length; i++)
                 {
                     if (m_CachedComponentGroupArrays[i] != null)
                         m_CachedComponentGroupArrays[i].Dispose();
@@ -82,7 +77,7 @@ namespace UnityEngine.ECS
                 m_CachedComponentGroupArrays = null;
             }
 
-            for (int i = 0; i != m_ComponentGroups.Length; i++)
+            for (var i = 0; i != m_ComponentGroups.Length; i++)
             {
                 if (m_ComponentGroups[i] != null)
                     m_ComponentGroups[i].Dispose();
@@ -93,260 +88,254 @@ namespace UnityEngine.ECS
         }
 
         protected override void OnBeforeDestroyManagerInternal()
-    	{
-		    CompleteDependencyInternal();
-		    UpdateInjectedComponentGroups();
-    	}
+        {
+            CompleteDependencyInternal();
+            UpdateInjectedComponentGroups();
+        }
 
-        protected EntityManager EntityManager { get { return m_EntityManager; }  }
-        protected World World                 { get { return m_World; }  }
+        protected EntityManager EntityManager => m_EntityManager;
+        protected World World => m_World;
 
         // TODO: this should be made part of UnityEngine?
-        static void ArrayUtilityAdd<T>(ref T[] array, T item)
+        private static void ArrayUtilityAdd<T>(ref T[] array, T item)
         {
-            System.Array.Resize(ref array, array.Length + 1);
+            Array.Resize(ref array, array.Length + 1);
             array[array.Length - 1] = item;
         }
 
-	    public ComponentGroupArray<T> GetEntities<T>() where T : struct
-	    {
-		    for (int i = 0; i != m_CachedComponentGroupArrays.Length; i++)
-		    {
-			    if (m_CachedComponentGroupArrays[i].CachedType == typeof(T))
-			        return new ComponentGroupArray<T>(m_CachedComponentGroupArrays[i]);
-		    }
+        public ComponentGroupArray<T> GetEntities<T>() where T : struct
+        {
+            for (var i = 0; i != m_CachedComponentGroupArrays.Length; i++)
+            {
+                if (m_CachedComponentGroupArrays[i].CachedType == typeof(T))
+                    return new ComponentGroupArray<T>(m_CachedComponentGroupArrays[i]);
+            }
 
-		    var cache = new ComponentGroupArrayStaticCache(typeof(T), EntityManager);
+            var cache = new ComponentGroupArrayStaticCache(typeof(T), EntityManager);
 
-		    ArrayUtilityAdd(ref m_CachedComponentGroupArrays, cache );
-		    ArrayUtilityAdd(ref m_ComponentGroups, cache.ComponentGroup);
+            ArrayUtilityAdd(ref m_CachedComponentGroupArrays, cache );
+            ArrayUtilityAdd(ref m_ComponentGroups, cache.ComponentGroup);
 
-		    RecalculateTypesFromComponentGroups();
+            RecalculateTypesFromComponentGroups();
 
-		    return new ComponentGroupArray<T>(cache);
-	    }
+            return new ComponentGroupArray<T>(cache);
+        }
 
-	    unsafe public void UpdateInjectedComponentGroups()
-	    {
-		    if (null == m_InjectedComponentGroups)
-			    return;
+        public unsafe void UpdateInjectedComponentGroups()
+        {
+            if (null == m_InjectedComponentGroups)
+                return;
 
-		    ulong gchandle;
-	        byte* pinnedSystemPtr = (byte*)UnsafeUtility.PinGCObjectAndGetAddress(this, out gchandle);
+            ulong gchandle;
+            var pinnedSystemPtr = (byte*)UnsafeUtility.PinGCObjectAndGetAddress(this, out gchandle);
 
-		    try
-		    {
-			    foreach (var group in m_InjectedComponentGroups)
-				    group.UpdateInjection (pinnedSystemPtr);
+            try
+            {
+                foreach (var group in m_InjectedComponentGroups)
+                    group.UpdateInjection (pinnedSystemPtr);
 
-		        m_InjectFromEntityData.UpdateInjection(pinnedSystemPtr, EntityManager);
-		    }
-		    catch
-		    {
-			    UnsafeUtility.ReleaseGCObject(gchandle);
-			    throw;
-		    }
-		    UnsafeUtility.ReleaseGCObject(gchandle);
-    	}
+                m_InjectFromEntityData.UpdateInjection(pinnedSystemPtr, EntityManager);
+            }
+            catch
+            {
+                UnsafeUtility.ReleaseGCObject(gchandle);
+                throw;
+            }
+            UnsafeUtility.ReleaseGCObject(gchandle);
+        }
 
         internal unsafe void CompleteDependencyInternal()
         {
-	        fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
-	        {
-		        m_SafetyManager.CompleteDependencies(readersPtr, m_JobDependencyForReadingManagers.Length, writersPtr, m_JobDependencyForWritingManagers.Length);
-	        }
+            fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
+            {
+                m_SafetyManager.CompleteDependencies(readersPtr, m_JobDependencyForReadingManagers.Length, writersPtr, m_JobDependencyForWritingManagers.Length);
+            }
         }
     }
 
-	public abstract class ComponentSystem : ComponentSystemBase
-	{
-	    void BeforeOnUpdate()
-	    {
-	        CompleteDependencyInternal();
-	        UpdateInjectedComponentGroups ();
-	    }
+    public abstract class ComponentSystem : ComponentSystemBase
+    {
+        private void BeforeOnUpdate()
+        {
+            CompleteDependencyInternal();
+            UpdateInjectedComponentGroups ();
+        }
 
-	    void AfterOnUpdate()
-	    {
-	        JobHandle.ScheduleBatchedJobs();
-	    }
+        private void AfterOnUpdate()
+        {
+            JobHandle.ScheduleBatchedJobs();
+        }
 
-	    internal sealed override void InternalUpdate()
-	    {
-	        BeforeOnUpdate();
-		    OnUpdate();
-	        AfterOnUpdate();
-	    }
+        internal sealed override void InternalUpdate()
+        {
+            BeforeOnUpdate();
+            OnUpdate();
+            AfterOnUpdate();
+        }
 
-		protected sealed override void OnCreateManagerInternal(World world, int capacity)
-		{
-			base.OnCreateManagerInternal(world, capacity);
-		}
+        protected sealed override void OnCreateManagerInternal(World world, int capacity)
+        {
+            base.OnCreateManagerInternal(world, capacity);
+        }
 
-	    override sealed protected void OnBeforeDestroyManagerInternal()
-	    {
-	        base.OnBeforeDestroyManagerInternal();
-	    }
-	    
-		/// <summary>
-		/// Called once per frame on the main thread.
-		/// </summary>
-		protected abstract void OnUpdate();
-	}
+        protected sealed override void OnBeforeDestroyManagerInternal()
+        {
+            base.OnBeforeDestroyManagerInternal();
+        }
 
-	public abstract class JobComponentSystem : ComponentSystemBase
-	{
-		JobHandle m_PreviousFrameDependency;
+        /// <summary>
+        /// Called once per frame on the main thread.
+        /// </summary>
+        protected abstract void OnUpdate();
+    }
 
-	    JobHandle BeforeOnUpdate()
-	    {
-	        UpdateInjectedComponentGroups();
+    public abstract class JobComponentSystem : ComponentSystemBase
+    {
+        private JobHandle m_PreviousFrameDependency;
 
-	        // We need to wait on all previous frame dependencies, otherwise it is possible that we create infinitely long dependency chains
-	        // without anyone ever waiting on it
-	        m_PreviousFrameDependency.Complete();
+        private JobHandle BeforeOnUpdate()
+        {
+            UpdateInjectedComponentGroups();
 
-	        return GetDependency();
-	    }
+            // We need to wait on all previous frame dependencies, otherwise it is possible that we create infinitely long dependency chains
+            // without anyone ever waiting on it
+            m_PreviousFrameDependency.Complete();
 
-	    unsafe void AfterOnUpdate(JobHandle outputJob)
-	    {
-	        JobHandle.ScheduleBatchedJobs();
+            return GetDependency();
+        }
 
-	        AddDependencyInternal(outputJob);
-	        m_PreviousFrameDependency = outputJob;
+        private unsafe void AfterOnUpdate(JobHandle outputJob)
+        {
+            JobHandle.ScheduleBatchedJobs();
+
+            AddDependencyInternal(outputJob);
+            m_PreviousFrameDependency = outputJob;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 
+            if (!JobsUtility.JobDebuggerEnabled)
+                return;
 
-	        if (JobsUtility.JobDebuggerEnabled)
-	        {
-	            // Check that all reading and writing jobs are a dependency of the output job, to
-	            // catch systems that forget to add one of their jobs to the dependency graph.
-	            //
-	            // Note that this check is not strictly needed as we would catch the mistake anyway later,
-	            // but checking it here means we can flag the system that has the mistake, rather than some
-	            // other (innocent) system that is doing things correctly.
+            // Check that all reading and writing jobs are a dependency of the output job, to
+            // catch systems that forget to add one of their jobs to the dependency graph.
+            //
+            // Note that this check is not strictly needed as we would catch the mistake anyway later,
+            // but checking it here means we can flag the system that has the mistake, rather than some
+            // other (innocent) system that is doing things correctly.
 
-	            try
-	            {
-	                for (int i = 0; i < m_JobDependencyForReadingManagers.Length; ++i)
-	                {
-	                    int type = m_JobDependencyForReadingManagers[i];
+            try
+            {
+                for (var index = 0; index < m_JobDependencyForReadingManagers.Length; index++)
+                {
+                    var type = m_JobDependencyForReadingManagers[index];
+                    var readerDependency = m_SafetyManager.GetDependency(&type, 1, null, 0);
+                    CheckJobDependencies(type, true, readerDependency);
 
-	                    var readerDependency = m_SafetyManager.GetDependency(&type, 1, null, 0);
-	                    CheckJobDependencies(type, true, readerDependency);
+                    var writerDependency = m_SafetyManager.GetDependency(null, 0, &type, 1);
+                    CheckJobDependencies(type, false, writerDependency);
+                }
 
-	                    var writerDependency = m_SafetyManager.GetDependency(null, 0, &type, 1);
-	                    CheckJobDependencies(type, false, writerDependency);
-	                }
+                for (var index = 0; index < m_JobDependencyForWritingManagers.Length; index++)
+                {
+                    var type = m_JobDependencyForWritingManagers[index];
+                    var readerDependency = m_SafetyManager.GetDependency(&type, 1, null, 0);
+                    CheckJobDependencies(type, true, readerDependency);
 
-	                for (int i = 0; i < m_JobDependencyForWritingManagers.Length; ++i)
-	                {
-	                    int type = m_JobDependencyForWritingManagers[i];
-
-	                    var readerDependency = m_SafetyManager.GetDependency(&type, 1, null, 0);
-	                    CheckJobDependencies(type, true, readerDependency);
-
-	                    var writerDependency = m_SafetyManager.GetDependency(null, 0, &type, 1);
-	                    CheckJobDependencies(type, false, writerDependency);
-                    }
-	            }
-	            catch (InvalidOperationException)
-	            {
-	                EmergencySyncAllJobs();
-	                throw;
-	            }
-	        }
+                    var writerDependency = m_SafetyManager.GetDependency(null, 0, &type, 1);
+                    CheckJobDependencies(type, false, writerDependency);
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                EmergencySyncAllJobs();
+                throw;
+            }
 #endif
-	    }
+        }
 
-	    internal sealed override void InternalUpdate()
-	    {
-	        var inputJob = BeforeOnUpdate();
+        internal sealed override void InternalUpdate()
+        {
+            var inputJob = BeforeOnUpdate();
 
-	        var outputJob = OnUpdate(inputJob);
+            var outputJob = OnUpdate(inputJob);
 
-	        AfterOnUpdate(outputJob);
-	    }
+            AfterOnUpdate(outputJob);
+        }
 
-	    override sealed protected void OnCreateManagerInternal(World world, int capacity)
-		{
-			base.OnCreateManagerInternal(world, capacity);
-		}
+        protected sealed override void OnCreateManagerInternal(World world, int capacity)
+        {
+            base.OnCreateManagerInternal(world, capacity);
+        }
 
-		override sealed protected void OnBeforeDestroyManagerInternal()
-		{
-			base.OnBeforeDestroyManagerInternal();
-		    m_PreviousFrameDependency.Complete();
-		}
-	    
-	    protected virtual JobHandle OnUpdate(JobHandle inputDeps)
-	    {
-		    return inputDeps;
-	    }
+        protected sealed override void OnBeforeDestroyManagerInternal()
+        {
+            base.OnBeforeDestroyManagerInternal();
+            m_PreviousFrameDependency.Complete();
+        }
+
+        protected virtual JobHandle OnUpdate(JobHandle inputDeps)
+        {
+            return inputDeps;
+        }
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-		void CheckJobDependencies(int type, bool isReading, JobHandle dependency)
-		{
-            AtomicSafetyHandle h = m_SafetyManager.GetSafetyHandle(type, true);
+        private void CheckJobDependencies(int type, bool isReading, JobHandle dependency)
+        {
+            var h = m_SafetyManager.GetSafetyHandle(type, true);
 
             unsafe
             {
                 if (!isReading)
                 {
-                    int readerCount = AtomicSafetyHandle.GetReaderArray(h, 0, IntPtr.Zero);
+                    var readerCount = AtomicSafetyHandle.GetReaderArray(h, 0, IntPtr.Zero);
                     JobHandle* readers = stackalloc JobHandle[readerCount];
                     AtomicSafetyHandle.GetReaderArray(h, readerCount, (IntPtr) readers);
 
-                    for (int i = 0; i < readerCount; ++i)
+                    for (var i = 0; i < readerCount; ++i)
                     {
                         if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(readers[i], dependency))
                         {
-                            throw new InvalidOperationException($"The system {this.GetType()} reads {TypeManager.GetType(type)} via {AtomicSafetyHandle.GetReaderName(h, i)} but that type was not returned as a job dependency. To ensure correct behavior of other systems, the job or a dependency of it must be returned from the OnUpdate method.");
+                            throw new InvalidOperationException($"The system {GetType()} reads {TypeManager.GetType(type)} via {AtomicSafetyHandle.GetReaderName(h, i)} but that type was not returned as a job dependency. To ensure correct behavior of other systems, the job or a dependency of it must be returned from the OnUpdate method.");
                         }
                     }
                 }
 
-                JobHandle writer = AtomicSafetyHandle.GetWriter(h);
+                var writer = AtomicSafetyHandle.GetWriter(h);
                 if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(writer, dependency))
                 {
-                    throw new InvalidOperationException($"The system {this.GetType()} writes {TypeManager.GetType(type)} via {AtomicSafetyHandle.GetWriterName(h)} but that was not returned as a job dependency. To ensure correct behavior of other systems, the job or a dependency of it must be returned from the OnUpdate method.");
+                    throw new InvalidOperationException($"The system {GetType()} writes {TypeManager.GetType(type)} via {AtomicSafetyHandle.GetWriterName(h)} but that was not returned as a job dependency. To ensure correct behavior of other systems, the job or a dependency of it must be returned from the OnUpdate method.");
                 }
             }
-		}
+        }
 
-		void EmergencySyncAllJobs()
-		{
-            for (int i = 0; i < m_JobDependencyForReadingManagers.Length; ++i)
+        private void EmergencySyncAllJobs()
+        {
+            foreach (var type in m_JobDependencyForReadingManagers)
             {
-                int type = m_JobDependencyForReadingManagers[i];
                 AtomicSafetyHandle.EnforceAllBufferJobsHaveCompleted(m_SafetyManager.GetSafetyHandle(type, true));
             }
 
-            for (int i = 0; i < m_JobDependencyForWritingManagers.Length; ++i)
+            foreach (var type in m_JobDependencyForWritingManagers)
             {
-                int type = m_JobDependencyForWritingManagers[i];
                 AtomicSafetyHandle.EnforceAllBufferJobsHaveCompleted(m_SafetyManager.GetSafetyHandle(type, true));
             }
-		}
+        }
 #endif
 
-		unsafe JobHandle GetDependency ()
-		{
-			fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
-			{
-				return m_SafetyManager.GetDependency(readersPtr, m_JobDependencyForReadingManagers.Length, writersPtr, m_JobDependencyForWritingManagers.Length);
-			}
-		}
+        private unsafe JobHandle GetDependency ()
+        {
+            fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
+            {
+                return m_SafetyManager.GetDependency(readersPtr, m_JobDependencyForReadingManagers.Length, writersPtr, m_JobDependencyForWritingManagers.Length);
+            }
+        }
 
-		unsafe void AddDependencyInternal(JobHandle dependency)
-		{
-			fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
-			{
-				m_SafetyManager.AddDependency(readersPtr, m_JobDependencyForReadingManagers.Length, writersPtr, m_JobDependencyForWritingManagers.Length, dependency);
-			}
-		}
-	}
-
+        private unsafe void AddDependencyInternal(JobHandle dependency)
+        {
+            fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
+            {
+                m_SafetyManager.AddDependency(readersPtr, m_JobDependencyForReadingManagers.Length, writersPtr, m_JobDependencyForWritingManagers.Length, dependency);
+            }
+        }
+    }
 }

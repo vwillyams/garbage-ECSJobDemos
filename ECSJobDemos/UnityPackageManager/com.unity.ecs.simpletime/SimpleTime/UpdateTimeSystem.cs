@@ -1,4 +1,5 @@
-﻿using Unity.Jobs;
+﻿using Unity.ECS;
+using Unity.Jobs;
 
 namespace UnityEngine.ECS.SimpleTime
 {

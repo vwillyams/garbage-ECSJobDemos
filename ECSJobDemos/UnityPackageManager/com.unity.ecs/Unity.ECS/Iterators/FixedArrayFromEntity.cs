@@ -2,17 +2,16 @@
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Collections;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
     [NativeContainer]
     public unsafe struct FixedArrayFromEntity<T> where T : struct
     {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        AtomicSafetyHandle      m_Safety;
+        private readonly AtomicSafetyHandle      m_Safety;
 #endif
-        [NativeDisableUnsafePtrRestriction]
-        EntityDataManager*      m_Entities;
-        int                     m_TypeIndex;
+        [NativeDisableUnsafePtrRestriction] private readonly EntityDataManager*      m_Entities;
+        private readonly int                     m_TypeIndex;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal FixedArrayFromEntity(int typeIndex, EntityDataManager* entityData, AtomicSafetyHandle safety)
@@ -20,7 +19,7 @@ namespace UnityEngine.ECS
             m_Safety = safety;
             m_TypeIndex = typeIndex;
             m_Entities = entityData;
-            if (TypeManager.GetComponentType(m_TypeIndex).category != TypeManager.TypeCategory.OtherValueType)
+            if (TypeManager.GetComponentType(m_TypeIndex).Category != TypeManager.TypeCategory.OtherValueType)
                 throw new ArgumentException($"GetComponentFixedArray<{typeof(T)}> may not be IComponentData or ISharedComponentData");
         }
 #else

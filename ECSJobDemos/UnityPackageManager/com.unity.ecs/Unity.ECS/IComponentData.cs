@@ -1,15 +1,7 @@
-﻿using UnityEngine;
-using Unity.Collections;
-using Unity.Jobs;
-using System;
-using System.Collections.Generic;
-using UnityEngine.Assertions;
-using System.Linq;
-
-namespace UnityEngine.ECS
+﻿namespace Unity.ECS
 {
     public interface IComponentData
-    { 
+    {
     }
 
     public interface ISharedComponentData

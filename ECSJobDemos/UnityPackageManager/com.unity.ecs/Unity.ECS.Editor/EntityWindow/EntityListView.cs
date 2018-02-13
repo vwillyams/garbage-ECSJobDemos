@@ -9,6 +9,7 @@ using System.Reflection;
 using Unity.Jobs;
 using System.Linq;
 using System.Text;
+using Unity.ECS;
 
 namespace UnityEditor.ECS
 {

@@ -1,8 +1,9 @@
 ﻿using System;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
-	public class SceneViewWorldPositionAttribute : Attribute {
+    public class SceneViewWorldPositionAttribute : Attribute
+    {
 
-	}
+    }
 }

@@ -2,6 +2,7 @@ using UnityEngine.ECS;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using Unity.ECS;
 using UnityEngine.TestTools;
 using UnityEngine.Experimental.LowLevel;
 

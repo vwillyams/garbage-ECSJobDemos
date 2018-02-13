@@ -2,35 +2,31 @@
 using System.Reflection;
 using System;
 using System.Collections.ObjectModel;
+using UnityEngine;
 using UnityEngine.Experimental.LowLevel;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
 	public class World : IDisposable
 	{
-		public ReadOnlyCollection<ScriptBehaviourManager> BehaviourManagers
-		{
-			get
-            {
-				return new ReadOnlyCollection<ScriptBehaviourManager>(m_BehaviourManagers);
-			}
-		}
-		List<ScriptBehaviourManager> 				m_BehaviourManagers = new List<ScriptBehaviourManager> ();
-		//@TODO: What about multiple managers of the same type...
-		Dictionary<Type, ScriptBehaviourManager> 	m_BehaviourManagerLookup = new Dictionary<Type, ScriptBehaviourManager> ();
-		int 										m_DefaultCapacity = 10;
+		public IEnumerable<ScriptBehaviourManager> BehaviourManagers => new ReadOnlyCollection<ScriptBehaviourManager>(m_BehaviourManagers);
 
-		bool 										m_AllowGetManager = true;
+	    private readonly List<ScriptBehaviourManager> 				m_BehaviourManagers = new List<ScriptBehaviourManager> ();
+		//@TODO: What about multiple managers of the same type...
+	    private readonly Dictionary<Type, ScriptBehaviourManager> 	m_BehaviourManagerLookup = new Dictionary<Type, ScriptBehaviourManager> ();
+
+	    private int 										m_DefaultCapacity = 10;
+	    private bool 										m_AllowGetManager = true;
 
 	    public string                               Name { get; }
 
 	    public static World 				        Active { get; set; }
 
 	    public static ReadOnlyCollection<World> AllWorlds => new ReadOnlyCollection<World>(allWorlds);
-	    static readonly List<World> allWorlds = new List<World>();
+	    private static readonly List<World> allWorlds = new List<World>();
 
-		
-		int GetCapacityForType(Type type)
+
+	    private int GetCapacityForType(Type type)
 		{
 			return m_DefaultCapacity;
 		}
@@ -46,7 +42,6 @@ namespace UnityEngine.ECS
             Name = name;
             allWorlds.Add(this);
         }
-
 
 		public void Dispose()
 		{
@@ -86,7 +81,7 @@ namespace UnityEngine.ECS
 			m_BehaviourManagerLookup.Clear();
 		}
 
-		ScriptBehaviourManager CreateManagerInternal (Type type, int capacity, object[] constructorArgumnents)
+	    private ScriptBehaviourManager CreateManagerInternal (Type type, int capacity, object[] constructorArgumnents)
 		{
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (!m_AllowGetManager)
@@ -98,7 +93,7 @@ namespace UnityEngine.ECS
 				if (constructors.Length == 1 && constructors[0].IsPrivate)
 					throw new MissingMethodException($"Constructing {type} failed because the constructor was private, it must be public.");
 			}
-#endif			
+#endif
 			//@TODO: disallow creating managers during constructor. Only possible after constructor has been called.
 			var manager = Activator.CreateInstance(type, constructorArgumnents) as ScriptBehaviourManager;
 
@@ -118,14 +113,14 @@ namespace UnityEngine.ECS
 
 			return manager;
 		}
-		
-		ScriptBehaviourManager GetExistingManagerInternal (Type type)
+
+	    private ScriptBehaviourManager GetExistingManagerInternal (Type type)
 		{
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (!m_AllowGetManager)
 				throw new ArgumentException("During destruction of a system you are not allowed to get or create more systems.");
 #endif
-			
+
 			ScriptBehaviourManager manager = null;
 			if (m_BehaviourManagerLookup.TryGetValue(type, out manager))
 				return manager;
@@ -141,21 +136,18 @@ namespace UnityEngine.ECS
 
 			return null;
 		}
-		
-		ScriptBehaviourManager GetOrCreateManagerInternal (Type type)
+
+	    private ScriptBehaviourManager GetOrCreateManagerInternal (Type type)
 		{
 			var manager = GetExistingManagerInternal(type);
 
-			if (manager != null)
-				return manager;
-			else
-				return CreateManagerInternal(type, GetCapacityForType(type), null);
+			return manager ?? CreateManagerInternal(type, GetCapacityForType(type), null);
 		}
-		    
-		void RemoveManagerInteral(ScriptBehaviourManager manager)
+
+	    private void RemoveManagerInteral(ScriptBehaviourManager manager)
 		{
 			if (!m_BehaviourManagers.Remove(manager))
-				throw new System.ArgumentException($"manager does not exist in the world");
+				throw new ArgumentException($"manager does not exist in the world");
 
 			var type = manager.GetType();
 			while (type != typeof(ScriptBehaviourManager))
@@ -174,7 +166,7 @@ namespace UnityEngine.ECS
 		{
 			return (T)CreateManagerInternal(typeof(T), GetCapacityForType(typeof(T)), constructorArgumnents);
 		}
-		
+
 		public T GetOrCreateManager<T> () where T : ScriptBehaviourManager
 		{
 			return (T)GetOrCreateManagerInternal (typeof(T));
@@ -203,7 +195,7 @@ namespace UnityEngine.ECS
 
 		public static void UpdatePlayerLoop(params World[] worlds)
 		{
-			var defaultLoop = UnityEngine.Experimental.LowLevel.PlayerLoop.GetDefaultPlayerLoop();
+			var defaultLoop = PlayerLoop.GetDefaultPlayerLoop();
 
 			if (worlds.Length > 0)
 			{
@@ -215,12 +207,12 @@ namespace UnityEngine.ECS
 				SetPlayerLoopAndNotify(defaultLoop);
 			}
 		}
-		
-		public static event System.Action<PlayerLoopSystem> OnSetPlayerLoop;
+
+		public static event Action<PlayerLoopSystem> OnSetPlayerLoop;
 
 		public static void SetPlayerLoopAndNotify(PlayerLoopSystem playerLoop)
 		{
-			UnityEngine.Experimental.LowLevel.PlayerLoop.SetPlayerLoop(playerLoop);
+			PlayerLoop.SetPlayerLoop(playerLoop);
 			OnSetPlayerLoop?.Invoke(playerLoop);
 		}
 	}

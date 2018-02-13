@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
     [AttributeUsage(AttributeTargets.Field)]
-    public class InjectAttribute : System.Attribute
+    public class InjectAttribute : Attribute
     {}
 }

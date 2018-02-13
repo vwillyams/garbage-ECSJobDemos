@@ -2,29 +2,28 @@
 using Unity.Collections.LowLevel.Unsafe;
 using System;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
-
 	[NativeContainer]
 	[NativeContainerSupportsMinMaxWriteRestriction]
 	public unsafe struct FixedArrayArray<T> where T : struct
 	{
-		ComponentChunkCache  	m_Cache;
-		ComponentChunkIterator  m_Iterator;
-        int                     m_CachedFixedArrayLength;
-        int                     m_Length;
+	    private ComponentChunkCache  	m_Cache;
+	    private ComponentChunkIterator  m_Iterator;
+	    private int                     m_CachedFixedArrayLength;
+	    private readonly int                     m_Length;
 
 
         #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        int                      	m_MinIndex;
-		int                      	m_MaxIndex;
-		AtomicSafetyHandle       	m_Safety;
+	    private readonly int                      	m_MinIndex;
+	    private readonly int                      	m_MaxIndex;
+	    private readonly AtomicSafetyHandle       	m_Safety;
         #endif
 
 		#if ENABLE_UNITY_COLLECTIONS_CHECKS
-        internal unsafe FixedArrayArray(ComponentChunkIterator iterator, int length, AtomicSafetyHandle safety)
+        internal FixedArrayArray(ComponentChunkIterator iterator, int length, AtomicSafetyHandle safety)
 		#else
-        internal unsafe FixedArrayArray(ComponentChunkIterator iterator, int length)
+        internal FixedArrayArray(ComponentChunkIterator iterator, int length)
 		#endif
 		{
             m_Length = length;
@@ -40,7 +39,7 @@ namespace UnityEngine.ECS
 
 		}
 
-		public unsafe NativeArray<T> this[int index]
+		public NativeArray<T> this[int index]
 		{
 			get
 			{
@@ -48,7 +47,7 @@ namespace UnityEngine.ECS
 				AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 				if (index < m_MinIndex || index > m_MaxIndex)
 					FailOutOfRangeError(index);
-				AtomicSafetyHandle safety = m_Safety;
+				var safety = m_Safety;
 #endif
 
 				if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
@@ -73,16 +72,17 @@ namespace UnityEngine.ECS
 		}
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        void FailOutOfRangeError(int index)
+	    private void FailOutOfRangeError(int index)
 		{
 			//@TODO: Make error message utility and share with NativeArray...
 			if (index < Length && (m_MinIndex != 0 || m_MaxIndex != Length - 1))
-				throw new IndexOutOfRangeException(string.Format("Index {0} is out of restricted IJobParallelFor range [{1}...{2}] in ReadWriteBuffer.\nReadWriteBuffers are restricted to only read & write the element at the job index. You can use double buffering strategies to avoid race conditions due to reading & writing in parallel to the same elements from a job.", index, m_MinIndex, m_MaxIndex));
+				throw new IndexOutOfRangeException(
+				        $"Index {index} is out of restricted IJobParallelFor range [{m_MinIndex}...{m_MaxIndex}] in ReadWriteBuffer.\nReadWriteBuffers are restricted to only read & write the element at the job index. You can use double buffering strategies to avoid race conditions due to reading & writing in parallel to the same elements from a job.");
 
-			throw new IndexOutOfRangeException(string.Format("Index {0} is out of range of '{1}' Length.", index, Length));
+			throw new IndexOutOfRangeException($"Index {index} is out of range of '{Length}' Length.");
 		}
 #endif
 
-        public int Length { get { return m_Length; } }
+        public int Length => m_Length;
 	}
 }

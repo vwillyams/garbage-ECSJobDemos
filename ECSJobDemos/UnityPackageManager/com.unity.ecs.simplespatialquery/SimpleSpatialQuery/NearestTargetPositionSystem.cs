@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.ECS;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine.ECS.Transform;

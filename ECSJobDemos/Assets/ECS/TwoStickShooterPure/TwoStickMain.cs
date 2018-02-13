@@ -1,4 +1,5 @@
-﻿using Unity.Mathematics;
+﻿using Unity.ECS;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.ECS;
 using UnityEngine.ECS.MeshInstancedShim;

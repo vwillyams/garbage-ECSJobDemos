@@ -1,22 +1,16 @@
-﻿using UnityEngine;
-using Unity.Collections;
-using Unity.Jobs;
-using System;
-using System.Collections.Generic;
-using UnityEngine.Assertions;
-using System.Linq;
-using System.Reflection;
+﻿using System;
+using UnityEngine;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
-	public unsafe struct GameObjectArray
+	public struct GameObjectArray
 	{
-        ComponentChunkIterator  m_Iterator;
-		ComponentChunkCache 	m_Cache;
-        int                     m_Length;
-        ArchetypeManager		m_ArchetypeManager;
+	    private ComponentChunkIterator  m_Iterator;
+	    private ComponentChunkCache 	m_Cache;
+	    private readonly int                     m_Length;
+	    private readonly ArchetypeManager		m_ArchetypeManager;
 
-        internal unsafe GameObjectArray(ComponentChunkIterator iterator, int length, ArchetypeManager typeMan)
+        internal GameObjectArray(ComponentChunkIterator iterator, int length, ArchetypeManager typeMan)
 		{
             m_Length = length;
             m_Cache = default(ComponentChunkCache);
@@ -24,7 +18,7 @@ namespace UnityEngine.ECS
 			m_ArchetypeManager = typeMan;
 		}
 
-		public unsafe GameObject this[int index]
+		public GameObject this[int index]
 		{
 			get
 			{
@@ -36,32 +30,32 @@ namespace UnityEngine.ECS
 	                m_Iterator.UpdateCache(index, out m_Cache);
 
 			    var transform = (Transform) m_Iterator.GetManagedObject(m_ArchetypeManager, m_Cache.CachedBeginIndex, index);
-			    
+
 				return transform.gameObject;
 			}
 		}
 
 		public GameObject[] ToArray()
 		{
-		    GameObject[] arr = new GameObject[m_Length];
-			int i = 0;
+		    var arr = new GameObject[m_Length];
+			var i = 0;
 			while (i < m_Length)
 			{
 				m_Iterator.UpdateCache(i, out m_Cache);
 				int start, length;
 				var objs = m_Iterator.GetManagedObjectRange(m_ArchetypeManager, m_Cache.CachedBeginIndex, i, out start, out length);
-				for (int obj = 0; obj < length; ++obj)
+				for (var obj = 0; obj < length; ++obj)
 					arr[i+obj] = ((Transform) objs[start + obj]).gameObject;
 				i += length;
 			}
 			return arr;
 		}
 
-		void FailOutOfRangeError(int index)
+	    private void FailOutOfRangeError(int index)
 		{
-			throw new IndexOutOfRangeException(string.Format("Index {0} is out of range of '{1}' Length.", index, Length));
+			throw new IndexOutOfRangeException($"Index {index} is out of range of '{Length}' Length.");
 		}
 
-		public int Length { get { return m_Length; } }
+		public int Length => m_Length;
 	}
 }

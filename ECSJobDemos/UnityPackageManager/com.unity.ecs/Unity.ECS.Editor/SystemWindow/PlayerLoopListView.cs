@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Unity.ECS;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEditor.ECS;

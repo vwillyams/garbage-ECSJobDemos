@@ -1,4 +1,5 @@
-﻿using UnityEngine.ECS;
+﻿using Unity.ECS;
+using UnityEngine.ECS;
 
 namespace UnityEditor.ECS
 {

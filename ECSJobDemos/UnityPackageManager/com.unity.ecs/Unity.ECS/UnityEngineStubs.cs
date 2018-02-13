@@ -372,11 +372,11 @@ namespace Unity.Assertions
 //                (IEqualityComparer<float>) new FloatComparer(tolerance));
 //        }
 //
-//        [Conditional("UNITY_ASSERTIONS")]
-//        public static void AreEqual<T>(T expected, T actual)
-//        {
-//            Assert.AreEqual<T>(expected, actual, (string) null);
-//        }
+        [Conditional("UNITY_ASSERTIONS")]
+        public static void AreEqual<T>(T expected, T actual)
+        {
+            UnityEngine.Assertions.Assert.AreEqual(expected, actual);
+        }
 //
 //        [Conditional("UNITY_ASSERTIONS")]
 //        public static void AreEqual<T>(T expected, T actual, string message)
@@ -408,11 +408,11 @@ namespace Unity.Assertions
 //            Assert.Fail(AssertionMessageUtil.GetEqualityMessage((object) actual, (object) expected, true), message);
 //        }
 //
-//        [Conditional("UNITY_ASSERTIONS")]
-//        public static void AreNotEqual<T>(T expected, T actual)
-//        {
-//            Assert.AreNotEqual<T>(expected, actual, (string) null);
-//        }
+        [Conditional("UNITY_ASSERTIONS")]
+        public static void AreNotEqual<T>(T expected, T actual)
+        {
+            UnityEngine.Assertions.Assert.AreNotEqual(expected, actual);
+        }
 //
 //        [Conditional("UNITY_ASSERTIONS")]
 //        public static void AreNotEqual<T>(T expected, T actual, string message)

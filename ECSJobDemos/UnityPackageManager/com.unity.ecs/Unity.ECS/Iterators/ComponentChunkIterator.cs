@@ -1,6 +1,7 @@
 ﻿using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using System;
+using Unity.ECS;
 using UnityEngine.Assertions;
 
 namespace UnityEngine.ECS

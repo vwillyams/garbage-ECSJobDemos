@@ -1,13 +1,12 @@
 ﻿using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Collections;
-using UnityEngine;
 
 namespace Unity.ECS
 {
-    internal unsafe class ComponentJobSafetyManager
+    unsafe class ComponentJobSafetyManager
     {
-        private struct ComponentSafetyHandle
+        struct ComponentSafetyHandle
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             public AtomicSafetyHandle SafetyHandle;
@@ -16,24 +15,24 @@ namespace Unity.ECS
             public int NumReadFences;
         }
 
-        private const int kMaxReadJobHandles = 17;
-        private const int kMaxTypes = TypeManager.MaximumTypesCount;
+        const int kMaxReadJobHandles = 17;
+        const int kMaxTypes = TypeManager.MaximumTypesCount;
 
-        private bool m_HasCleanHandles;
-        private bool m_IsInTransaction;
+        bool m_HasCleanHandles;
+        bool m_IsInTransaction;
 
-        private JobHandle* m_ReadJobFences;
-        private ComponentSafetyHandle* m_ComponentSafetyHandles;
+        JobHandle* m_ReadJobFences;
+        ComponentSafetyHandle* m_ComponentSafetyHandles;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        private readonly AtomicSafetyHandle m_TempSafety;
-        private AtomicSafetyHandle m_ExclusiveTransactionSafety;
+        readonly AtomicSafetyHandle m_TempSafety;
+        AtomicSafetyHandle m_ExclusiveTransactionSafety;
 #endif
 
-        private JobHandle m_ExclusiveTransactionDependency;
+        JobHandle m_ExclusiveTransactionDependency;
 
-        private readonly JobHandle* m_JobDependencyCombineBuffer;
-        private readonly int m_JobDependencyCombineBufferCount;
+        readonly JobHandle* m_JobDependencyCombineBuffer;
+        readonly int m_JobDependencyCombineBufferCount;
 
         public ComponentJobSafetyManager()
         {
@@ -230,7 +229,7 @@ namespace Unity.ECS
         }
 #endif
 
-        private void CombineReadDependencies(int type)
+        void CombineReadDependencies(int type)
         {
             var combined = Jobs.LowLevel.Unsafe.JobHandleUnsafeUtility.CombineDependencies(
                 m_ReadJobFences + type * kMaxReadJobHandles, m_ComponentSafetyHandles[type].NumReadFences);
@@ -311,7 +310,7 @@ namespace Unity.ECS
 #endif
         }
 
-        private JobHandle GetAllDependencies()
+        JobHandle GetAllDependencies()
         {
             var jobHandles = new NativeArray<JobHandle>(TypeManager.GetTypeCount() * (kMaxReadJobHandles + 1), Allocator.Temp);
 

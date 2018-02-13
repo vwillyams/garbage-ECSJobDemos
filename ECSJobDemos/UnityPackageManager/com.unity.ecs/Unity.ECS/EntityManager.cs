@@ -90,6 +90,8 @@ namespace UnityEngine.ECS
 
         protected override void OnDestroyManager()
         {
+            EndTransaction();
+            
             m_JobSafetyManager.Dispose(); m_JobSafetyManager = null;
 
             m_Entities->OnDestroy();

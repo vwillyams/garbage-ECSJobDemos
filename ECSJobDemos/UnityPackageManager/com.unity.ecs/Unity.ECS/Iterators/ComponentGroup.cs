@@ -374,6 +374,18 @@ namespace UnityEngine.ECS
             GetComponentDataArray<T>(ref iterator, indexInComponentGroup, length, out res);
             return res;
         }
+        
+        public ComponentDataArray<T> GetComponentDataArray<T>(Type componentType) where T : struct, IComponentData
+        {
+            int length;
+            ComponentChunkIterator iterator;
+            GetComponentChunkIterator(out length, out iterator);
+            int indexInComponentGroup = GetIndexInComponentGroup(TypeManager.GetTypeIndex(componentType));
+            
+            ComponentDataArray<T> res;
+            GetComponentDataArray<T>(ref iterator, indexInComponentGroup, length, out res);
+            return res;
+        }
 
         internal void GetSharedComponentDataArray<T>(ref ComponentChunkIterator iterator, int indexInComponentGroup, int length, out SharedComponentDataArray<T> output) where T : struct, ISharedComponentData
         {

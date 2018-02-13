@@ -17,17 +17,17 @@ namespace Unity.ECS
     [UpdateBefore(typeof(UnityEngine.Experimental.PlayerLoop.Initialization))]
     public class DeferredEntityChangeSystem : ComponentSystem
     {
-        private interface IApplyQueue
+        interface IApplyQueue
         {
             void Apply(EntityManager manager);
         }
 
-        private interface IDisposeQueue
+        interface IDisposeQueue
         {
             void Dispose();
         }
 
-        private class AddQueueOwner<T> : IApplyQueue, IDisposeQueue where T : struct, IComponentData
+        class AddQueueOwner<T> : IApplyQueue, IDisposeQueue where T : struct, IComponentData
         {
             public NativeQueue<AddComponentPayload<T> > queue;
 
@@ -54,7 +54,7 @@ namespace Unity.ECS
             }
         }
 
-        private class RemoveQueueOwner<T> : IApplyQueue, IDisposeQueue where T : struct, IComponentData
+        class RemoveQueueOwner<T> : IApplyQueue, IDisposeQueue where T : struct, IComponentData
         {
             public NativeQueue<Entity> queue;
 
@@ -76,8 +76,8 @@ namespace Unity.ECS
             }
         }
 
-        private object[] m_AddComponentQueue;
-        private object[] m_RemoveComponentQueue;
+        object[] m_AddComponentQueue;
+        object[] m_RemoveComponentQueue;
 
         public void AddComponent<T>(Entity entity, T componentData) where T : struct, IComponentData
         {

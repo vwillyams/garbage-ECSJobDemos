@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.ECS;
 using Object = UnityEngine.Object;
 
 namespace Unity.ECS

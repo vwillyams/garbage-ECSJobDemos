@@ -1,6 +1,5 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.ECS;
 
 namespace Unity.ECS
 {

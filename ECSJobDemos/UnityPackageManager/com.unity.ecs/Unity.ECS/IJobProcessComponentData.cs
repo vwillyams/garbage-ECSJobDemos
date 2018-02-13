@@ -3,7 +3,6 @@ using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Collections;
-using UnityEngine.ECS;
 
 namespace Unity.ECS
 {

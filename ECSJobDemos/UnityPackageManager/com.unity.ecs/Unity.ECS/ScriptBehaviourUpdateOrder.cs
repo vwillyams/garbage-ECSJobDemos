@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.ECS;
 using UnityEngine.Experimental.LowLevel;
 
 namespace Unity.ECS

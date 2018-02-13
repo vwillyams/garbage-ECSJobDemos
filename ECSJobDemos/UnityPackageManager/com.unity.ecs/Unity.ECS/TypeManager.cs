@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine.ECS;
 
 namespace Unity.ECS
 {

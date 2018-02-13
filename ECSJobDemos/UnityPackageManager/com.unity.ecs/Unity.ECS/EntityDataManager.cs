@@ -3,7 +3,6 @@
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Assertions;
-using UnityEngine.ECS;
 
 namespace Unity.ECS
 {

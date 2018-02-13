@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Unity.Collections;
-using UnityEngine.ECS;
 
 namespace Unity.ECS
 {

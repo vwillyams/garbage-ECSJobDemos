@@ -1,5 +1,3 @@
-using UnityEngine.ECS;
-
 namespace Unity.ECS
 {
     internal struct SortingUtilities

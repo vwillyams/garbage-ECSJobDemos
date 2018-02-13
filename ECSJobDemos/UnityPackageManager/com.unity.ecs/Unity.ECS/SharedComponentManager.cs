@@ -3,7 +3,7 @@ using Unity.Collections;
 
 namespace Unity.ECS
 {
-    internal class SharedComponentDataManager
+    class SharedComponentDataManager
     {
         NativeMultiHashMap<int, int> m_TypeLookup;
 
@@ -75,7 +75,7 @@ namespace Unity.ECS
             return index;
         }
 
-        private int FindSharedComponentIndex<T>(int typeIndex, T newData) where T : struct
+        int FindSharedComponentIndex<T>(int typeIndex, T newData) where T : struct
         {
             int itemIndex;
             NativeMultiHashMapIterator<int> iter;

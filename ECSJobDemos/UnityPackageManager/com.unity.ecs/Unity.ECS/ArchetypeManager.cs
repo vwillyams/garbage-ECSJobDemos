@@ -184,7 +184,7 @@ namespace Unity.ECS
             UnsafeLinkedListNode.InitializeList(m_EmptyChunkPool);
 
             // Buffer should be 16 byte aligned to ensure component data layout itself can gurantee being aligned
-            var offset = UnsafeUtility.GetFieldOffset(typeof(Chunk).GetField("buffer"));
+            var offset = UnsafeUtility.GetFieldOffset(typeof(Chunk).GetField("Buffer"));
             Assert.AreEqual(0, offset % 16);
         }
 

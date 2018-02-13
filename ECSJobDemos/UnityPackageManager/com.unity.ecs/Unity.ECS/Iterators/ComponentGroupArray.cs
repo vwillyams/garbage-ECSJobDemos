@@ -124,10 +124,11 @@ namespace Unity.ECS
         private readonly int                         m_ComponentDataCount;
         private readonly int                         m_ComponentCount;
 
-        public readonly int                  Length;
-
-        public readonly int                  MinIndex;
-        public readonly int                  MaxIndex;
+        // The following 3 fields must not be renamed, unless JobReflectionData.cpp is changed accordingly.
+        // TODO: make JobDebugger logic more solid, either by using codegen proxies or attributes.
+        public readonly int                  m_Length;
+        public readonly int                  m_MinIndex;
+        public readonly int                  m_MaxIndex;
 
         public int                  CacheBeginIndex;
         public int                  CacheEndIndex;
@@ -135,6 +136,8 @@ namespace Unity.ECS
         private ComponentChunkIterator      m_ChunkIterator;
         private fixed int                   m_ComponentTypes[kMaxStream];
 
+        // The following fields must not be renamed, unless JobReflectionData.cpp is changed accordingly.
+        // TODO: make JobDebugger logic more solid, either by using codegen proxies or attributes.
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         private readonly int                         m_SafetyReadOnlyCount;
         private readonly int                         m_SafetyReadWriteCount;
@@ -156,9 +159,9 @@ namespace Unity.ECS
             staticCache.ComponentGroup.GetComponentChunkIterator(out length, out m_ChunkIterator);
             m_ChunkIterator.IndexInComponentGroup = 0;
 
-            Length = length;
-            MinIndex = 0;
-            MaxIndex = length-1;
+            m_Length = length;
+            m_MinIndex = 0;
+            m_MaxIndex = length-1;
 
             CacheBeginIndex = 0;
             CacheEndIndex = 0;
@@ -306,7 +309,7 @@ namespace Unity.ECS
                     "reading & writing in parallel to the same elements from a job.",
                     index, m_MinIndex, m_MaxIndex));
 */
-            throw new IndexOutOfRangeException($"Index {index} is out of range of '{Length}' Length.");
+            throw new IndexOutOfRangeException($"Index {index} is out of range of '{m_Length}' Length.");
         }
 #endif
     }
@@ -325,7 +328,7 @@ namespace Unity.ECS
 
         }
 
-        public int Length => m_Data.Length;
+        public int Length => m_Data.m_Length;
 
         public unsafe T this[int index]
         {
@@ -333,7 +336,7 @@ namespace Unity.ECS
             {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 m_Data.CheckAccess();
-                if (index < m_Data.MinIndex || index > m_Data.MaxIndex)
+                if (index < m_Data.m_MinIndex || index > m_Data.m_MaxIndex)
                     m_Data.FailOutOfRangeError(index);
 #endif
 
@@ -372,7 +375,7 @@ namespace Unity.ECS
 
                 if (m_Index < m_Data.CacheBeginIndex || m_Index >= m_Data.CacheEndIndex)
                 {
-                    if (m_Index >= m_Data.Length)
+                    if (m_Index >= m_Data.m_Length)
                         return false;
 
                     m_Data.CheckAccess();
@@ -397,7 +400,7 @@ namespace Unity.ECS
                     m_Data.CheckAccess();
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-                    if (m_Index < m_Data.MinIndex || m_Index > m_Data.MaxIndex)
+                    if (m_Index < m_Data.m_MinIndex || m_Index > m_Data.m_MaxIndex)
                         m_Data.FailOutOfRangeError(m_Index);
 #endif
 

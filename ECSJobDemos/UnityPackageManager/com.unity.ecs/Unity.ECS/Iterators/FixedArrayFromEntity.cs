@@ -20,6 +20,8 @@ namespace UnityEngine.ECS
             m_Safety = safety;
             m_TypeIndex = typeIndex;
             m_Entities = entityData;
+            if (TypeManager.GetComponentType(m_TypeIndex).category != TypeManager.TypeCategory.OtherValueType)
+                throw new ArgumentException($"GetComponentFixedArray<{typeof(T)}> may not be IComponentData or ISharedComponentData");
         }
 #else
         internal FixedArrayFromEntity(int typeIndex, EntityDataManager* entityData)
@@ -49,8 +51,6 @@ namespace UnityEngine.ECS
                 AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 
                 m_Entities->AssertEntityHasComponent(entity, m_TypeIndex);
-                if (TypeManager.GetComponentType(m_TypeIndex).category != TypeManager.TypeCategory.OtherValueType)
-                    throw new ArgumentException($"GetComponentFixedArray<{typeof(T)}> may not be IComponentData or ISharedComponentData");
 #endif
 
                 byte* ptr;

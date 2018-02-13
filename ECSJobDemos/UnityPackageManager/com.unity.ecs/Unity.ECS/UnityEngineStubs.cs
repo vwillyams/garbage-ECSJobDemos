@@ -132,10 +132,10 @@ namespace Unity
 //            set;
 //        }
 //
-//        public static void LogException(Exception exception)
-//        {
-//            Debug.unityLogger.LogException(exception, (Object)null);
-//        }
+        public static void LogException(Exception exception)
+        {
+            UnityEngine.Debug.LogException(exception);
+        }
 //
 //        public static void LogException(Exception exception, Object context)
 //        {

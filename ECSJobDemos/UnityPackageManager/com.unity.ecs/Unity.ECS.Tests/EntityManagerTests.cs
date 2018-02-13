@@ -6,6 +6,32 @@ using NUnit.Framework;
 
 namespace UnityEngine.ECS.Tests
 {
+    interface IEcsFooInterface
+    {
+        int value { get; set; }
+        
+    }
+    public struct EcsFooTest : IComponentData, IEcsFooInterface
+    {
+        public int value { get; set; }
+
+        public EcsFooTest(int inValue) { value = inValue; }
+    }
+    
+    interface IEcsBarInterface
+    {
+        int value { get; set; }
+        
+    }
+    public struct EcsBarTest : IComponentData, IEcsBarInterface
+    {
+        public int value { get; set; }
+
+        public EcsBarTest(int inValue) { value = inValue; }
+    }
+
+    public class EcsFooTestComponent : ComponentDataWrapper<EcsFooTest> { }
+    
     public class EntityManagerTests
     {
         private const string worldName = "GetComponentTest";
@@ -66,6 +92,30 @@ namespace UnityEngine.ECS.Tests
             array.Dispose();
             
             world.Dispose();
-        }        
+        }
+
+        [Test]
+        public void FoundComponentInterface()
+        {
+            var world = new World (worldName);
+            world.SetDefaultCapacity(3);
+            var entityMan = world.CreateManager<EntityManager>();
+            World.Active = world;
+            
+            var archetype = entityMan.CreateArchetype(typeof(EcsTestData),typeof(EcsFooTest));
+            var count = 1024;
+            var array = new NativeArray<Entity>(count, Allocator.Temp);
+            entityMan.CreateEntity (archetype, array);
+
+            var fooTypes = entityMan.GetAssignableComponentTypes(typeof(IEcsFooInterface));
+            Assert.AreEqual(1,fooTypes.Count);
+            Assert.AreEqual(typeof(EcsFooTest),fooTypes[0]);
+            
+            var barTypes = entityMan.GetAssignableComponentTypes(typeof(IEcsBarInterface));
+            Assert.AreEqual(0,barTypes.Count);
+            
+            array.Dispose();
+            world.Dispose();
+        }
     }
 }

@@ -2,6 +2,7 @@
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using System;
+using System.Collections.Generic;
 using Unity.Jobs;
 using UnityEngine.Assertions;
 using UnityEngine.Profiling;
@@ -89,6 +90,8 @@ namespace UnityEngine.ECS
 
         protected override void OnDestroyManager()
         {
+            EndTransaction();
+            
             m_JobSafetyManager.Dispose(); m_JobSafetyManager = null;
 
             m_Entities->OnDestroy();
@@ -513,6 +516,22 @@ namespace UnityEngine.ECS
 
             Assert.AreEqual(entityCountEntityData, entityCountArchetypeManager);
 #endif
+        }
+
+        public List<Type> GetAssignableComponentTypes(Type interfaceType)
+        {
+            // #todo Cache this. It only can change when TypeManager.GetTypeCount() changes
+            int componentTypeCount = TypeManager.GetTypeCount();
+            var assignableTypes = new List<Type>();
+            for (int i = 0; i < componentTypeCount; i++)
+            {
+              Type type = TypeManager.GetType(i);
+              if (interfaceType.IsAssignableFrom(type))
+              {
+                  assignableTypes.Add(type);
+              }
+            }
+            return assignableTypes;
         }
     }
 }

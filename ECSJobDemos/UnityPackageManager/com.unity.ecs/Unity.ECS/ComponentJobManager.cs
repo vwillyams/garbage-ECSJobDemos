@@ -262,10 +262,9 @@ namespace UnityEngine.ECS
             }
         }
 
-        public AtomicSafetyHandle ExclusiveTransactionSafety
-        {
-            get { return m_ExclusiveTransactionSafety; }
-        }
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+        public AtomicSafetyHandle ExclusiveTransactionSafety => m_ExclusiveTransactionSafety;
+#endif
 
         public void BeginTransaction()
         {
@@ -278,7 +277,9 @@ namespace UnityEngine.ECS
 #endif
 
             m_IsInTransaction = true;
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_ExclusiveTransactionSafety = AtomicSafetyHandle.Create();
+#endif
             m_ExclusiveTransactionDependency = GetAllDependencies();
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -294,9 +295,9 @@ namespace UnityEngine.ECS
                 return;
             
             m_ExclusiveTransactionDependency.Complete();
-
-            var res = AtomicSafetyHandle.EnforceAllBufferJobsHaveCompletedAndRelease(m_ExclusiveTransactionSafety);
+            
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
+            var res = AtomicSafetyHandle.EnforceAllBufferJobsHaveCompletedAndRelease(m_ExclusiveTransactionSafety);
             if (res != EnforceJobResult.AllJobsAlreadySynced)
                 //@TODO: Better message
                 Debug.LogError("EntityTransaction job has not been registered");                

@@ -1,11 +1,9 @@
 ﻿using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using System;
-using Unity.ECS;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
-
 	[NativeContainer]
 	[NativeContainerSupportsMinMaxWriteRestriction]
 	public unsafe struct FixedArrayArray<T> where T : struct
@@ -25,7 +23,7 @@ namespace UnityEngine.ECS
 		#if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal FixedArrayArray(ComponentChunkIterator iterator, int length, AtomicSafetyHandle safety)
 		#else
-        internal unsafe FixedArrayArray(ComponentChunkIterator iterator, int length)
+        internal FixedArrayArray(ComponentChunkIterator iterator, int length)
 		#endif
 		{
             m_Length = length;

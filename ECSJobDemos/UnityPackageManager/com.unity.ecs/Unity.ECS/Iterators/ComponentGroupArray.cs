@@ -5,22 +5,24 @@ using System.Reflection;
 using Unity.Burst;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Collections;
-using Unity.ECS;
+using UnityEngine;
 using UnityEngine.Assertions;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
     public class ComponentGroupArrayStaticCache
     {
-        public   Type                  CachedType;
+        public readonly Type                  CachedType;
+
+        internal readonly ComponentType[]       ComponentTypes;
+        internal readonly int[]                 ComponentFieldOffsets;
+        internal readonly int                   ComponentDataCount;
+        internal readonly int                   ComponentCount;
+        internal readonly ComponentGroup        ComponentGroup;
+        internal readonly ComponentJobSafetyManager SafetyManager;
+
         private int                            ReaderCount;
         private int                            WriterCount;
-        internal ComponentType[]       ComponentTypes;
-        internal int[]                 ComponentFieldOffsets;
-        internal int                   ComponentDataCount;
-        internal int                   ComponentCount;
-        internal ComponentGroup        ComponentGroup;
-        internal ComponentJobSafetyManager SafetyManager;
 
         public ComponentGroupArrayStaticCache(Type type, EntityManager entityManager)
         {
@@ -49,7 +51,7 @@ namespace UnityEngine.ECS
                     var valueType = fieldType.Assembly.GetType(pointerTypeFullName.Remove(pointerTypeFullName.Length - 1));
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                     if (!typeof(IComponentData).IsAssignableFrom(valueType) && valueType != typeof(Entity))
-                        throw new System.ArgumentException($"{type}.{field.Name} is a pointer type but not a IComponentData. Only IComponentData or Entity may be a pointer type for enumeration.");
+                        throw new ArgumentException($"{type}.{field.Name} is a pointer type but not a IComponentData. Only IComponentData or Entity may be a pointer type for enumeration.");
 #endif
                     componentDataFieldOffsetsBuilder.Add(offset);
                     componentDataTypesBuilder.Add(new ComponentType(valueType, accessMode));
@@ -66,18 +68,18 @@ namespace UnityEngine.ECS
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 else if (typeof(IComponentData).IsAssignableFrom(fieldType))
                 {
-                    throw new System.ArgumentException($"{type}.{field.Name} must be an unsafe pointer to the {fieldType}. Like this: {fieldType}* {field.Name};");
+                    throw new ArgumentException($"{type}.{field.Name} must be an unsafe pointer to the {fieldType}. Like this: {fieldType}* {field.Name};");
                 }
                 else
                 {
-                    throw new System.ArgumentException($"{type}.{field.Name} can not be used in a component enumerator");
+                    throw new ArgumentException($"{type}.{field.Name} can not be used in a component enumerator");
                 }
 #endif
             }
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             if (componentTypesBuilder.Count + componentDataTypesBuilder.Count > ComponentGroupArrayData.kMaxStream)
             {
-                throw new System.ArgumentException($"{type} has too many component references. A ComponentGroup Array can have up to {ComponentGroupArrayData.kMaxStream}.");
+                throw new ArgumentException($"{type} has too many component references. A ComponentGroup Array can have up to {ComponentGroupArrayData.kMaxStream}.");
             }
 #endif
 
@@ -103,7 +105,6 @@ namespace UnityEngine.ECS
         }
     }
 
-    //@TODO: This is wrong place... will create strange error messages...
     [NativeContainer]
     [NativeContainerSupportsMinMaxWriteRestriction]
     internal unsafe struct ComponentGroupArrayData
@@ -123,10 +124,10 @@ namespace UnityEngine.ECS
         private readonly int                         m_ComponentDataCount;
         private readonly int                         m_ComponentCount;
 
-        public int                  m_Length;
+        public readonly int                  Length;
 
-        public int                  m_MinIndex;
-        public int                  m_MaxIndex;
+        public readonly int                  MinIndex;
+        public readonly int                  MaxIndex;
 
         public int                  CacheBeginIndex;
         public int                  CacheEndIndex;
@@ -134,7 +135,7 @@ namespace UnityEngine.ECS
         private ComponentChunkIterator      m_ChunkIterator;
         private fixed int                   m_ComponentTypes[kMaxStream];
 
-        #if ENABLE_UNITY_COLLECTIONS_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
         private readonly int                         m_SafetyReadOnlyCount;
         private readonly int                         m_SafetyReadWriteCount;
 #pragma warning disable 414
@@ -145,7 +146,7 @@ namespace UnityEngine.ECS
         private AtomicSafetyHandle          m_Safety4;
         private AtomicSafetyHandle          m_Safety5;
 #pragma warning restore
-        #endif
+#endif
 
         [NativeSetClassTypeToNullOnSchedule] private readonly ArchetypeManager            m_ArchetypeManager;
 
@@ -155,9 +156,9 @@ namespace UnityEngine.ECS
             staticCache.ComponentGroup.GetComponentChunkIterator(out length, out m_ChunkIterator);
             m_ChunkIterator.IndexInComponentGroup = 0;
 
-            m_Length = length;
-            m_MinIndex = 0;
-            m_MaxIndex = length-1;
+            Length = length;
+            MinIndex = 0;
+            MaxIndex = length-1;
 
             CacheBeginIndex = 0;
             CacheEndIndex = 0;
@@ -180,7 +181,7 @@ namespace UnityEngine.ECS
                 }
             }
 
-            #if ENABLE_UNITY_COLLECTIONS_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_Safety0 = new AtomicSafetyHandle();
             m_Safety1 = new AtomicSafetyHandle();
             m_Safety2 = new AtomicSafetyHandle();
@@ -197,24 +198,24 @@ namespace UnityEngine.ECS
                 for (var i = 0; i != staticCache.ComponentTypes.Length; i++)
                 {
                     var type = staticCache.ComponentTypes[i];
-                    if (type.AccessModeType == ComponentType.AccessMode.ReadOnly)
-                    {
-                        safety[m_SafetyReadOnlyCount] = safetyManager.GetSafetyHandle(type.TypeIndex, true);
-                        m_SafetyReadOnlyCount++;
-                    }
+                    if (type.AccessModeType != ComponentType.AccessMode.ReadOnly)
+                        continue;
+
+                    safety[m_SafetyReadOnlyCount] = safetyManager.GetSafetyHandle(type.TypeIndex, true);
+                    m_SafetyReadOnlyCount++;
                 }
 
                 for (var i = 0; i != staticCache.ComponentTypes.Length; i++)
                 {
                     var type = staticCache.ComponentTypes[i];
-                    if (type.AccessModeType == ComponentType.AccessMode.ReadWrite)
-                    {
-                        safety[m_SafetyReadOnlyCount + m_SafetyReadWriteCount] = safetyManager.GetSafetyHandle(type.TypeIndex, false);
-                        m_SafetyReadWriteCount++;
-                    }
+                    if (type.AccessModeType != ComponentType.AccessMode.ReadWrite)
+                        continue;
+
+                    safety[m_SafetyReadOnlyCount + m_SafetyReadWriteCount] = safetyManager.GetSafetyHandle(type.TypeIndex, false);
+                    m_SafetyReadWriteCount++;
                 }
             }
-            #endif
+#endif
         }
 
         public void UpdateCache(int index)
@@ -239,7 +240,7 @@ namespace UnityEngine.ECS
                         streams[i].CachedPtr = (byte*)cache.CachedPtr;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                         if (indexInArcheType > ushort.MaxValue)
-                            throw new System.ArgumentException($"There is a maximum of {ushort.MaxValue} components on one entity.");
+                            throw new ArgumentException($"There is a maximum of {ushort.MaxValue} components on one entity.");
 #endif
                         streams[i].TypeIndexInArchetype = (ushort)indexInArcheType;
                     }
@@ -249,7 +250,7 @@ namespace UnityEngine.ECS
 
         public void CheckAccess()
         {
-            #if ENABLE_UNITY_COLLECTIONS_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             fixed (AtomicSafetyHandle* safety = &m_Safety0)
             {
                 for (var i = 0;i < m_SafetyReadOnlyCount;i++)
@@ -258,7 +259,7 @@ namespace UnityEngine.ECS
                 for (var i = m_SafetyReadOnlyCount;i < m_SafetyReadOnlyCount + m_SafetyReadWriteCount;i++)
                     AtomicSafetyHandle.CheckWriteAndThrow(safety[i]);
             }
-            #endif
+#endif
         }
 
         public void PatchPtrs(int index, byte* valuePtr)
@@ -305,7 +306,7 @@ namespace UnityEngine.ECS
                     "reading & writing in parallel to the same elements from a job.",
                     index, m_MinIndex, m_MaxIndex));
 */
-            throw new IndexOutOfRangeException($"Index {index} is out of range of '{m_Length}' Length.");
+            throw new IndexOutOfRangeException($"Index {index} is out of range of '{Length}' Length.");
         }
 #endif
     }
@@ -324,7 +325,7 @@ namespace UnityEngine.ECS
 
         }
 
-        public int Length => m_Data.m_Length;
+        public int Length => m_Data.Length;
 
         public unsafe T this[int index]
         {
@@ -332,7 +333,7 @@ namespace UnityEngine.ECS
             {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 m_Data.CheckAccess();
-                if (index < m_Data.m_MinIndex || index > m_Data.m_MaxIndex)
+                if (index < m_Data.MinIndex || index > m_Data.MaxIndex)
                     m_Data.FailOutOfRangeError(index);
 #endif
 
@@ -371,7 +372,7 @@ namespace UnityEngine.ECS
 
                 if (m_Index < m_Data.CacheBeginIndex || m_Index >= m_Data.CacheEndIndex)
                 {
-                    if (m_Index >= m_Data.m_Length)
+                    if (m_Index >= m_Data.Length)
                         return false;
 
                     m_Data.CheckAccess();
@@ -396,7 +397,7 @@ namespace UnityEngine.ECS
                     m_Data.CheckAccess();
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-                    if (m_Index < m_Data.m_MinIndex || m_Index > m_Data.m_MaxIndex)
+                    if (m_Index < m_Data.MinIndex || m_Index > m_Data.MaxIndex)
                         m_Data.FailOutOfRangeError(m_Index);
 #endif
 

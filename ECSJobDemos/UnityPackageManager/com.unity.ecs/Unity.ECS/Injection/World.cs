@@ -2,6 +2,7 @@
 using System.Reflection;
 using System;
 using System.Collections.ObjectModel;
+using Unity.ECS;
 using UnityEngine.Experimental.LowLevel;
 
 namespace UnityEngine.ECS

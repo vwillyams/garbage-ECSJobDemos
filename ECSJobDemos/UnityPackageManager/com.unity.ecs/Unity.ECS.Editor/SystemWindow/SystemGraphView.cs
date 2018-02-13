@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.Msagl.Core.Geometry.Curves;
 using Microsoft.Msagl.Layout.Layered;
+using Unity.ECS;
 using UnityEngine;
 using UnityEngine.ECS;
 
@@ -19,7 +20,7 @@ namespace UnityEditor.ECS
 	    private readonly Texture2D lineTexture;
 
 	    const float kAlpha = 0.25f;
-	    
+
 	    public SystemGraphView(Vector2 windowOffset)
 	    {
 	        kWindowOffset = windowOffset;
@@ -83,13 +84,13 @@ namespace UnityEditor.ECS
 					var systemView = state.systemViews[systemViewIndicesByType[systemType]];
 					foreach (var attribute in systemType.GetCustomAttributesData())
 					{
-						if (attribute.AttributeType == typeof(UpdateAfter))
+						if (attribute.AttributeType == typeof(UpdateAfterAttribute))
 						{
 							var type = (Type)attribute.ConstructorArguments[0].Value;
 							if (systemViewIndicesByType.ContainsKey(type))
 								systemView.updateAfter.Add(systemViewIndicesByType[type]);
 						}
-						if (attribute.AttributeType == typeof(UpdateBefore))
+						if (attribute.AttributeType == typeof(UpdateBeforeAttribute))
 						{
 							var type = (Type)attribute.ConstructorArguments[0].Value;
 							if (systemViewIndicesByType.ContainsKey(type))
@@ -127,7 +128,7 @@ namespace UnityEditor.ECS
 		        var vector = new Vector2(Mathf.Round((float) node.BoundingBox.Left), Mathf.Round((float) node.BoundingBox.Bottom));
 		        view.position.position = vector - minPosition + kWindowOffset;
 		    }
-            
+
 		    state.edges.Clear();
 		    foreach (var edge in graphAdapter.resultGraph.Edges)
 		    {
@@ -165,13 +166,13 @@ namespace UnityEditor.ECS
 		        var secondLast = edge.points[edge.points.Count - 2];
 		        var thirdLast = edge.points.Count > 2 ? edge.points[edge.points.Count - 3] : secondLast;
 		        var last = edge.points[edge.points.Count - 1];
-		        
+
 		        DrawBezierSegment(thirdLast, secondLast, last, last);
-		        
+
 		        var arrowDirection = last - secondLast;
 		        if (arrowDirection == Vector2.zero)
 		            return;
-		        
+
 		        var endPos = ExteriorPointFromOtherPoint(state.systemViews[edge.target].position, secondLast);
 		        endPos -= (endPos - secondLast).normalized * 0.6f * kArrowSize;
 		        var rotation = Quaternion.LookRotation(arrowDirection, Vector3.forward);

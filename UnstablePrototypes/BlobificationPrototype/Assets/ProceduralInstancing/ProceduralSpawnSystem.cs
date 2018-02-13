@@ -4,8 +4,8 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.ECS;
-using UnityEngine.ECS.Rendering;
+using Unity.ECS;
+using Unity.ECS.Rendering;
 using UnityEngine.Profiling;
 
 public struct ProceduralChunkScene : ISharedComponentData
@@ -50,10 +50,13 @@ public class ProceduralSpawnSystem : JobComponentSystem
 
     World m_ConstructionWorld;
     EntityManager m_ConstructionManager;
+    ComponentGroup m_AllChunksGroup;
 
 
     protected override void OnCreateManager(int capacity)
     {
+        m_AllChunksGroup = EntityManager.CreateComponentGroup(typeof(ProceduralChunkScene));
+
         m_CreatedChunks = new NativeList<int2>(capacity, Allocator.Persistent);
         m_SpawnLocationCaches = new NativeList<SpawnData>[MaxCreateChunksPerFrame];
 
@@ -63,16 +66,17 @@ public class ProceduralSpawnSystem : JobComponentSystem
         prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/VegetationAssets/ECSVegetation0.prefab");
 
 
-
         //@TODO: how does leak detection work for world creation?
         m_ConstructionWorld = new World("Procedural construction world");
         m_ConstructionManager = m_ConstructionWorld.GetOrCreateManager<EntityManager>();
         //@TODO: Would be nice if this wasn't necessary and transactions could increase capacity...
-        m_ConstructionManager.EntityCapacity = 1000 * 1000;
+        m_ConstructionManager.EntityCapacity = 1000 * 1000;            
     }
 
     protected override void OnDestroyManager()
     {
+        m_AllChunksGroup.Dispose();
+        
         m_ConstructionWorld.Dispose();
 
         m_CreatedChunks.Dispose();
@@ -181,6 +185,8 @@ public class ProceduralSpawnSystem : JobComponentSystem
 
         public void Execute()
         {
+            SpawnLocations.Clear();
+            
             //@TODO: Why is this cast necessary? Seems wrong...
             float2 min = ChunkPosition * (int)GridSize;
             float2 max = min + new float2(GridSize);
@@ -245,7 +251,8 @@ public class ProceduralSpawnSystem : JobComponentSystem
 
         public void Execute()
         {
-            var entities = new NativeArray<Entity>(SpawnLocations.Length, Allocator.Temp);
+            var entities = new NativeArray<Entity>(SpawnLocations.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            
             EntityTransaction.AddComponent(Prefab, ComponentType.Create<ProceduralChunkScene>());
             EntityTransaction.SetSharedComponentData(Prefab, new ProceduralChunkScene() { Position = ChunkPosition });
 
@@ -262,7 +269,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
                 EntityTransaction.DestroyEntity(Prefab);
             else
                 EntityTransaction.RemoveComponent(Prefab, ComponentType.Create<ProceduralChunkScene>());
-
+            
             entities.Dispose();
         }
     }
@@ -273,8 +280,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
         chunkScene.Position = position;
 
         Profiler.BeginSample("DestroyChunk.CreateComponentGroup");
-        var allChunksGroup = EntityManager.CreateComponentGroup(typeof(ProceduralChunkScene));
-        var group = allChunksGroup.GetVariation(chunkScene);
+        var group = m_AllChunksGroup.GetVariation(chunkScene);
         Profiler.EndSample();
 
         //@TODO: This is highly inconvenient...
@@ -292,7 +298,6 @@ public class ProceduralSpawnSystem : JobComponentSystem
         entityArray.Dispose();
 
         group.Dispose();
-        allChunksGroup.Dispose();
 
         //@TODO: Need value based search function...
         m_CreatedChunks.RemoveAtSwapBack(m_CreatedChunks.IndexOf(position));
@@ -372,23 +377,31 @@ public class ProceduralSpawnSystem : JobComponentSystem
         doubleBufferCollision.SrcCollisionInstances = m_CollisionMeshes.Instances;
         dependency = doubleBufferCollision.Schedule(m_CollisionMeshes.Instances.Length, 16, dependency);
 
+        Profiler.BeginSample("Instantiate__");
         var prefabEntity = m_ConstructionManager.Instantiate(prefab);
+        Profiler.EndSample();
         
-        var spawnDependencies = new NativeArray<JobHandle>(toBeCreatedChunks.Length, Allocator.Temp);
+        var spawnDependencies = new NativeArray<JobHandle>(toBeCreatedChunks.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
+        Profiler.BeginSample("BeginTransaction__");
         var transaction = m_ConstructionManager.BeginTransaction();
+        Profiler.EndSample();
+        
+        Profiler.BeginSample("1__");
         for (int i = 0; i != toBeCreatedChunks.Length; i++)
         {
             var createPos = toBeCreatedChunks[i];
 
-            var spawnLocationJob = new CalculateChunkSpawnLocationsJob();
+            CalculateChunkSpawnLocationsJob spawnLocationJob;
             spawnLocationJob.ChunkPosition = createPos;
             spawnLocationJob.CollisionInstances = doubleBufferCollision.DstCollisionInstances;
             spawnLocationJob.SpawnLocations = m_SpawnLocationCaches[i];
-            spawnLocationJob.SpawnLocations.Clear();
 
             spawnDependencies[i] = spawnLocationJob.Schedule(dependency);
         }
+        Profiler.EndSample();
+
+        Profiler.BeginSample("2__");
 
         for (int i = 0; i != toBeCreatedChunks.Length; i++)
         {
@@ -402,17 +415,17 @@ public class ProceduralSpawnSystem : JobComponentSystem
             chunkJob.DestroyPrefab = i == toBeCreatedChunks.Length - 1;
 
             m_CreatedChunks.Add(createPos);
-
             var chunkDependency = JobHandle.CombineDependencies(spawnDependencies[i], m_ConstructionManager.EntityTransactionDependency);
             m_ConstructionManager.EntityTransactionDependency = chunkJob.Schedule(chunkDependency);
         }
+        Profiler.EndSample();
 
         spawnDependencies.Dispose();
 
         var deallocateCollisionJob = new DeallocateCollisionInstancesJob();
         deallocateCollisionJob.CollisionInstances = doubleBufferCollision.DstCollisionInstances;
         m_ConstructionManager.EntityTransactionDependency = deallocateCollisionJob.Schedule(deallocateCollisionJob.CollisionInstances.Length, 16, m_ConstructionManager.EntityTransactionDependency);
-
+        
         return dependency;
     }
 }

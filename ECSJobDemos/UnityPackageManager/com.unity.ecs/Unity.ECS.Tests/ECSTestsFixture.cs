@@ -1,5 +1,6 @@
 using UnityEngine.ECS;
 using NUnit.Framework;
+using Unity.ECS;
 
 namespace UnityEngine.ECS.Tests
 {

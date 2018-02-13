@@ -75,7 +75,7 @@ namespace Unity.ECS
             var groupManager = (EntityGroupManager)m_EntityGroupManager.Target;
 
             EntityArchetype type;
-            type.archetype = archetypeManager.GetOrCreateArchetype(m_CachedComponentTypeInArchetypeArray, PopulatedCachedTypeInArchetypeArray(types), groupManager);
+            type.Archetype = archetypeManager.GetOrCreateArchetype(m_CachedComponentTypeInArchetypeArray, PopulatedCachedTypeInArchetypeArray(types), groupManager);
 
             return type;
         }
@@ -103,7 +103,7 @@ namespace Unity.ECS
         {
             CheckAccess();
             var archetypeManager = (ArchetypeManager)m_ArchetypeManager.Target;
-            m_Entities->CreateEntities(archetypeManager, archetype.archetype, entities, count);
+            m_Entities->CreateEntities(archetypeManager, archetype.Archetype, entities, count);
         }
 
         public Entity Instantiate(Entity srcEntity)

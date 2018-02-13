@@ -88,7 +88,7 @@ namespace UnityEngine.ECS.Tests
             entityMan.CreateEntity (archetype, array);
             for (int i = 0; i < count; i++)
             {
-                Assert.AreEqual(i, array[i].index);
+                Assert.AreEqual(i, array[i].Index);
             }
             array.Dispose();
             

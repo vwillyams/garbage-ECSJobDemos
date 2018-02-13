@@ -24,7 +24,7 @@ namespace Unity.ECS
         static PlayerLoopManager()
         {
             var go = new GameObject();
-            go.AddComponent<PlayerLoopDisableManager>().isActive = true;
+            go.AddComponent<PlayerLoopDisableManager>().IsActive = true;
             go.hideFlags = HideFlags.HideInHierarchy;
             if (Application.isPlaying)
                 Object.DontDestroyOnLoad(go);

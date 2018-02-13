@@ -1,26 +1,25 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Unity.ECS;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
 	[ExecuteInEditMode]
-	class PlayerLoopDisableManager : MonoBehaviour
+	internal class PlayerLoopDisableManager : MonoBehaviour
 	{
-		public void OnEnable()
+	    public bool IsActive;
+
+	    public void OnEnable()
 		{
-			if (isActive)
-			{
-				isActive = false;
-				DestroyImmediate(this.gameObject);
-			}
+		    if (!IsActive)
+		        return;
+
+		    IsActive = false;
+		    DestroyImmediate(gameObject);
 		}
-		public void OnDisable()
+
+	    public void OnDisable()
 		{
-			if (isActive)
+			if (IsActive)
 				PlayerLoopManager.InvokeBeforeDomainUnload();
 		}
-		public bool isActive = false;
 	}
 }

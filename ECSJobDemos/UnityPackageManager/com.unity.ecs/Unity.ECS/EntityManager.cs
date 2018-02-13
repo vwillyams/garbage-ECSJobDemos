@@ -362,7 +362,7 @@ namespace Unity.ECS
 
         internal void SetComponentObject(Entity entity, ComponentType componentType, object componentObject)
         {
-            m_Entities->AssertEntityHasComponent(entity, componentType.typeIndex);
+            m_Entities->AssertEntityHasComponent(entity, componentType.TypeIndex);
 
             Chunk* chunk;
             int chunkIndex;
@@ -373,7 +373,7 @@ namespace Unity.ECS
         public T GetComponentObject<T>(Entity entity) where T : Component
         {
             var componentType = ComponentType.Create<T>();
-            m_Entities->AssertEntityHasComponent(entity, componentType.typeIndex);
+            m_Entities->AssertEntityHasComponent(entity, componentType.TypeIndex);
 
             Chunk* chunk;
             int chunkIndex;

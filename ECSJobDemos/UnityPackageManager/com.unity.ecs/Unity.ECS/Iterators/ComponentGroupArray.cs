@@ -176,7 +176,7 @@ namespace UnityEngine.ECS
 
                     for (int i = 0; i < staticCache.ComponentDataCount + staticCache.ComponentCount; i++)
                     {
-                        componentTypes[i] = staticCache.ComponentTypes[i].typeIndex;
+                        componentTypes[i] = staticCache.ComponentTypes[i].TypeIndex;
                         streams[i].FieldOffset = (ushort)staticCache.ComponentFieldOffsets[i];
                     }
                 }
@@ -199,9 +199,9 @@ namespace UnityEngine.ECS
                 for (int i = 0; i != staticCache.ComponentTypes.Length; i++)
                 {
                     var type = staticCache.ComponentTypes[i];
-                    if (type.accessMode == ComponentType.AccessMode.ReadOnly)
+                    if (type.AccessModeType == ComponentType.AccessMode.ReadOnly)
                     {
-                        safety[m_SafetyReadOnlyCount] = safetyManager.GetSafetyHandle(type.typeIndex, true);
+                        safety[m_SafetyReadOnlyCount] = safetyManager.GetSafetyHandle(type.TypeIndex, true);
                         m_SafetyReadOnlyCount++;
                     }
                 }
@@ -209,9 +209,9 @@ namespace UnityEngine.ECS
                 for (int i = 0; i != staticCache.ComponentTypes.Length; i++)
                 {
                     var type = staticCache.ComponentTypes[i];
-                    if (type.accessMode == ComponentType.AccessMode.ReadWrite)
+                    if (type.AccessModeType == ComponentType.AccessMode.ReadWrite)
                     {
-                        safety[m_SafetyReadOnlyCount + m_SafetyReadWriteCount] = safetyManager.GetSafetyHandle(type.typeIndex, false);
+                        safety[m_SafetyReadOnlyCount + m_SafetyReadWriteCount] = safetyManager.GetSafetyHandle(type.TypeIndex, false);
                         m_SafetyReadWriteCount++;
                     }
                 }

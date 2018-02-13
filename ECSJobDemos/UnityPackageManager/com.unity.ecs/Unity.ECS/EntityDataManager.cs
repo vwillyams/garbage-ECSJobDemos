@@ -125,7 +125,7 @@ namespace Unity.ECS
             if (!Exists(entity))
                 throw new System.ArgumentException("The Entity does not exist");
 
-            if (HasComponent(entity, componentType.typeIndex))
+            if (HasComponent(entity, componentType.TypeIndex))
                 throw new System.ArgumentException(
                     $"The component typeof({componentType.GetManagedType()}) exists on the entity but the exact type {componentType} does not");
 
@@ -331,9 +331,9 @@ namespace Unity.ECS
             var archetype = m_Entities[entity.Index].Archetype;
 
             if (!type.IsFixedArray)
-                return ChunkDataUtility.GetIndexInTypeArray(archetype, type.typeIndex) != -1;
+                return ChunkDataUtility.GetIndexInTypeArray(archetype, type.TypeIndex) != -1;
 
-            var idx = ChunkDataUtility.GetIndexInTypeArray(archetype, type.typeIndex);
+            var idx = ChunkDataUtility.GetIndexInTypeArray(archetype, type.TypeIndex);
             if (idx == -1)
                 return false;
 
@@ -444,7 +444,7 @@ namespace Unity.ECS
             {
                 var oldSharedComponentDataIndices = GetComponentChunk(entity)->sharedComponentValueArray;
                 var newComponentIsShared = (TypeManager.TypeCategory.ISharedComponentData ==
-                                            TypeManager.GetComponentType(type.typeIndex).Category);
+                                            TypeManager.GetComponentType(type.TypeIndex).Category);
                 if (newComponentIsShared)
                 {
                     int* stackAlloced = stackalloc int[newType->numSharedComponents];
@@ -521,7 +521,7 @@ namespace Unity.ECS
             {
                 var oldSharedComponentDataIndices = GetComponentChunk(entity)->sharedComponentValueArray;
                 var removedComponentIsShared = TypeManager.TypeCategory.ISharedComponentData ==
-                                                TypeManager.GetComponentType(type.typeIndex).Category;
+                                                TypeManager.GetComponentType(type.TypeIndex).Category;
                 removedTypes = 0;
                 if (removedComponentIsShared)
                 {

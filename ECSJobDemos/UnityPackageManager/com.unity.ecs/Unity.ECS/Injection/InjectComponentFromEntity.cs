@@ -52,13 +52,13 @@ namespace UnityEngine.ECS
 		{
 		    for (var i = 0; i != m_InjectComponentDataFromEntity.Length; i++)
 		    {
-		        var array = entityManager.GetComponentDataFromEntity<ProxyComponentData>(m_InjectComponentDataFromEntity[i].componentType.typeIndex, m_InjectComponentDataFromEntity[i].isReadOnly);
+		        var array = entityManager.GetComponentDataFromEntity<ProxyComponentData>(m_InjectComponentDataFromEntity[i].componentType.TypeIndex, m_InjectComponentDataFromEntity[i].isReadOnly);
 		        UnsafeUtility.CopyStructureToPtr(ref array, pinnedSystemPtr + m_InjectComponentDataFromEntity[i].fieldOffset);
 		    }
 
 		    for (var i = 0; i != m_InjectFixedArrayFromEntity.Length; i++)
 		    {
-		        var array = entityManager.GetFixedArrayFromEntity<int>(m_InjectFixedArrayFromEntity[i].componentType.typeIndex, m_InjectFixedArrayFromEntity[i].isReadOnly);
+		        var array = entityManager.GetFixedArrayFromEntity<int>(m_InjectFixedArrayFromEntity[i].componentType.TypeIndex, m_InjectFixedArrayFromEntity[i].isReadOnly);
 		        UnsafeUtility.CopyStructureToPtr(ref array, pinnedSystemPtr + m_InjectFixedArrayFromEntity[i].fieldOffset);
 		    }
 		}

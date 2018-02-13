@@ -1,11 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using System;
-using Unity.ECS;
+﻿using System;
 
-
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
     public struct SubtractiveComponent<T> where T : struct, IComponentData
     {}
@@ -18,11 +13,16 @@ namespace UnityEngine.ECS
             ReadOnly,
             Subtractive
         }
+
+        public int TypeIndex;
+        public AccessMode AccessModeType;
+        public int FixedArrayLength;
+
         public static ComponentType Create<T>()
         {
             ComponentType type;
-            type.typeIndex = TypeManager.GetTypeIndex<T>();
-            type.accessMode = AccessMode.ReadWrite;
+            type.TypeIndex = TypeManager.GetTypeIndex<T>();
+            type.AccessModeType = AccessMode.ReadWrite;
             type.FixedArrayLength = -1;
             return type;
         }
@@ -30,16 +30,16 @@ namespace UnityEngine.ECS
         public static ComponentType ReadOnly(Type type)
         {
             ComponentType t;
-            t.typeIndex = TypeManager.GetTypeIndex(type);
-            t.accessMode = AccessMode.ReadOnly;
+            t.TypeIndex = TypeManager.GetTypeIndex(type);
+            t.AccessModeType = AccessMode.ReadOnly;
             t.FixedArrayLength = -1;
             return t;
         }
         public static ComponentType ReadOnly<T>()
         {
             ComponentType t;
-            t.typeIndex = TypeManager.GetTypeIndex<T>();
-            t.accessMode = AccessMode.ReadOnly;
+            t.TypeIndex = TypeManager.GetTypeIndex<T>();
+            t.AccessModeType = AccessMode.ReadOnly;
             t.FixedArrayLength = -1;
             return t;
         }
@@ -47,37 +47,37 @@ namespace UnityEngine.ECS
         public static ComponentType Subtractive(Type type)
         {
             ComponentType t;
-            t.typeIndex = TypeManager.GetTypeIndex(type);
-            t.accessMode = AccessMode.Subtractive;
+            t.TypeIndex = TypeManager.GetTypeIndex(type);
+            t.AccessModeType = AccessMode.Subtractive;
             t.FixedArrayLength = -1;
             return t;
         }
         public static ComponentType Subtractive<T>()
         {
             ComponentType t;
-            t.typeIndex = TypeManager.GetTypeIndex<T>();
-            t.accessMode = AccessMode.Subtractive;
+            t.TypeIndex = TypeManager.GetTypeIndex<T>();
+            t.AccessModeType = AccessMode.Subtractive;
             t.FixedArrayLength = -1;
             return t;
         }
 
-        public ComponentType(Type type, AccessMode accessMode = AccessMode.ReadWrite)
+        public ComponentType(Type type, AccessMode accessModeType = AccessMode.ReadWrite)
         {
-            typeIndex = TypeManager.GetTypeIndex(type);
-            this.accessMode = accessMode;
+            TypeIndex = TypeManager.GetTypeIndex(type);
+            this.AccessModeType = accessModeType;
             FixedArrayLength = -1;
         }
 
         public static ComponentType FixedArray(Type type, int numElements)
         {
-            #if ENABLE_UNITY_COLLECTIONS_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             if (numElements < 0)
-                throw new System.ArgumentException("FixedArray length must be 0 or larger");
-            #endif
+                throw new ArgumentException("FixedArray length must be 0 or larger");
+#endif
 
             ComponentType t;
-            t.typeIndex = TypeManager.GetTypeIndex(type);
-            t.accessMode = AccessMode.ReadWrite;
+            t.TypeIndex = TypeManager.GetTypeIndex(type);
+            t.AccessModeType = AccessMode.ReadWrite;
             t.FixedArrayLength = numElements;
             return t;
         }
@@ -86,7 +86,7 @@ namespace UnityEngine.ECS
         {
             get
             {
-                if (accessMode == AccessMode.Subtractive)
+                if (AccessModeType == AccessMode.Subtractive)
                     return false;
                 var type = GetManagedType();
                 //@TODO: This is wrong... Not right for fixed array, think about Entity array?
@@ -96,41 +96,42 @@ namespace UnityEngine.ECS
 
         public Type GetManagedType()
         {
-            return TypeManager.GetType(typeIndex);
+            return TypeManager.GetType(TypeIndex);
         }
 
         public static implicit operator ComponentType(Type type)
         {
-            return new ComponentType(type, ComponentType.AccessMode.ReadWrite);
+            return new ComponentType(type, AccessMode.ReadWrite);
         }
 
-        static public bool operator <(ComponentType lhs, ComponentType rhs)
+        public static bool operator <(ComponentType lhs, ComponentType rhs)
         {
-            if (lhs.typeIndex == rhs.typeIndex)
-                return lhs.FixedArrayLength != rhs.FixedArrayLength ? lhs.FixedArrayLength < rhs.FixedArrayLength : lhs.accessMode < rhs.accessMode;
-            else
-                return lhs.typeIndex < rhs.typeIndex;
+            if (lhs.TypeIndex == rhs.TypeIndex)
+                return lhs.FixedArrayLength != rhs.FixedArrayLength ? lhs.FixedArrayLength < rhs.FixedArrayLength : lhs.AccessModeType < rhs.AccessModeType;
+
+            return lhs.TypeIndex < rhs.TypeIndex;
 
         }
-        static public bool operator >(ComponentType lhs, ComponentType rhs)
+        public static bool operator >(ComponentType lhs, ComponentType rhs)
         {
             return rhs < lhs;
         }
 
-        static public bool operator ==(ComponentType lhs, ComponentType rhs)
+        public static bool operator ==(ComponentType lhs, ComponentType rhs)
         {
-            return lhs.typeIndex == rhs.typeIndex && lhs.FixedArrayLength == rhs.FixedArrayLength && lhs.accessMode == rhs.accessMode;
-        }
-        static public bool operator !=(ComponentType lhs, ComponentType rhs)
-        {
-            return lhs.typeIndex != rhs.typeIndex || lhs.FixedArrayLength != rhs.FixedArrayLength && lhs.accessMode == rhs.accessMode;
+            return lhs.TypeIndex == rhs.TypeIndex && lhs.FixedArrayLength == rhs.FixedArrayLength && lhs.AccessModeType == rhs.AccessModeType;
         }
 
-        unsafe static internal bool CompareArray(ComponentType* type1, int typeCount1, ComponentType* type2, int typeCount2)
+        public static bool operator !=(ComponentType lhs, ComponentType rhs)
+        {
+            return lhs.TypeIndex != rhs.TypeIndex || lhs.FixedArrayLength != rhs.FixedArrayLength && lhs.AccessModeType == rhs.AccessModeType;
+        }
+
+        internal static unsafe bool CompareArray(ComponentType* type1, int typeCount1, ComponentType* type2, int typeCount2)
         {
             if (typeCount1 != typeCount2)
                 return false;
-            for (int i = 0; i < typeCount1; ++i)
+            for (var i = 0; i < typeCount1; ++i)
             {
                 if (type1[i] != type2[i])
                     return false;
@@ -138,19 +139,12 @@ namespace UnityEngine.ECS
             return true;
         }
 
-        public bool IsFixedArray { get { return FixedArrayLength != -1; } }
-
-        public int typeIndex;
-        public AccessMode accessMode;
-        public int FixedArrayLength;
+        public bool IsFixedArray => FixedArrayLength != -1;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         public override string ToString()
         {
-            if (IsFixedArray)
-                return $"FixedArray(typeof({GetManagedType()}, {FixedArrayLength}))";
-            else
-                return GetManagedType().ToString();
+            return IsFixedArray ? $"FixedArray(typeof({GetManagedType()}, {FixedArrayLength}))" : GetManagedType().ToString();
         }
 #endif
 
@@ -161,7 +155,7 @@ namespace UnityEngine.ECS
 
         public override int GetHashCode()
         {
-            return (typeIndex * 5813) ^ FixedArrayLength;
+            return (TypeIndex * 5813) ^ FixedArrayLength;
         }
     }
 }

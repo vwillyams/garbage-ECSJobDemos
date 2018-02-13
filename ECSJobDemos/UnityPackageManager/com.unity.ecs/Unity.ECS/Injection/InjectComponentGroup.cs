@@ -38,7 +38,7 @@ namespace UnityEngine.ECS
             m_EntityGroup = entityManager.CreateComponentGroup(requiredComponentTypes);
 
 		    for (int i = 0; i != componentInjections.Length; i++)
-		        componentInjections[i].indexInComponentGroup = m_EntityGroup.GetIndexInComponentGroup(requiredComponentTypes[i].typeIndex);
+		        componentInjections[i].indexInComponentGroup = m_EntityGroup.GetIndexInComponentGroup(requiredComponentTypes[i].TypeIndex);
 
 		    m_ComponentDataInjections = componentDataInjections;
 		    m_ComponentInjections = componentInjections;
@@ -84,7 +84,7 @@ namespace UnityEngine.ECS
         void PatchGetIndexInComponentGroup(InjectionData[] componentInjections)
         {
             for (int i = 0; i != componentInjections.Length; i++)
-                componentInjections[i].indexInComponentGroup = m_EntityGroup.GetIndexInComponentGroup(componentInjections[i].componentType.typeIndex);
+                componentInjections[i].indexInComponentGroup = m_EntityGroup.GetIndexInComponentGroup(componentInjections[i].componentType.TypeIndex);
         }
         
         public unsafe void UpdateInjection(byte* systemPtr)

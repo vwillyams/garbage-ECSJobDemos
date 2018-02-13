@@ -56,9 +56,9 @@ namespace UnityEngine.ECS
 
             for (int i = 0; i != requiredCount;i++)
             {
-                if (requiredTypes[i].accessMode == ComponentType.AccessMode.Subtractive)
+                if (requiredTypes[i].AccessModeType == ComponentType.AccessMode.Subtractive)
                     grp->subtractiveComponentsCount++;
-                else if (requiredTypes[i].accessMode == ComponentType.AccessMode.ReadOnly)
+                else if (requiredTypes[i].AccessModeType == ComponentType.AccessMode.ReadOnly)
                     grp->readerTypesCount++;
                 else
                     grp->writerTypesCount++;
@@ -70,12 +70,12 @@ namespace UnityEngine.ECS
             int curWriter = 0;
             for (int i = 0; i != requiredCount;i++)
             {
-                if (requiredTypes[i].accessMode == ComponentType.AccessMode.Subtractive)
+                if (requiredTypes[i].AccessModeType == ComponentType.AccessMode.Subtractive)
                 {}
-                else if (requiredTypes[i].accessMode == ComponentType.AccessMode.ReadOnly)
-                    grp->readerTypes[curReader++] = requiredTypes[i].typeIndex;
+                else if (requiredTypes[i].AccessModeType == ComponentType.AccessMode.ReadOnly)
+                    grp->readerTypes[curReader++] = requiredTypes[i].TypeIndex;
                 else
-                    grp->writerTypes[curWriter++] = requiredTypes[i].typeIndex;
+                    grp->writerTypes[curWriter++] = requiredTypes[i].TypeIndex;
             }
 
             grp->requiredComponents = (ComponentType*)m_GroupDataChunkAllocator.Construct(sizeof(ComponentType) * requiredCount, 4, requiredTypes);
@@ -108,7 +108,7 @@ namespace UnityEngine.ECS
             int prevTypeI = 0;
             for (int i = 0; i < group->requiredComponentsCount; ++i, ++typeI)
             {
-                while (archetype->types[typeI].typeIndex < group->requiredComponents[i].typeIndex && typeI < archetype->typesCount)
+                while (archetype->types[typeI].typeIndex < group->requiredComponents[i].TypeIndex && typeI < archetype->typesCount)
                     ++typeI;
 
                 bool hasComponent = true;
@@ -116,12 +116,12 @@ namespace UnityEngine.ECS
                     hasComponent = false;
 
                 // Type mismatch
-                if (hasComponent && archetype->types[typeI].typeIndex != group->requiredComponents[i].typeIndex)
+                if (hasComponent && archetype->types[typeI].typeIndex != group->requiredComponents[i].TypeIndex)
                     hasComponent = false;
 
-                if (hasComponent && group->requiredComponents[i].accessMode == ComponentType.AccessMode.Subtractive)
+                if (hasComponent && group->requiredComponents[i].AccessModeType == ComponentType.AccessMode.Subtractive)
                     return;
-                if (!hasComponent && group->requiredComponents[i].accessMode != ComponentType.AccessMode.Subtractive)
+                if (!hasComponent && group->requiredComponents[i].AccessModeType != ComponentType.AccessMode.Subtractive)
                     return;
                 if (hasComponent)
                     prevTypeI = typeI;
@@ -141,9 +141,9 @@ namespace UnityEngine.ECS
             for (int component = 0; component < group->requiredComponentsCount; ++component)
             {
                 int typeComponentIndex = -1;
-                if (group->requiredComponents[component].accessMode != ComponentType.AccessMode.Subtractive)
+                if (group->requiredComponents[component].AccessModeType != ComponentType.AccessMode.Subtractive)
                 {
-                    typeComponentIndex = ChunkDataUtility.GetIndexInTypeArray(archetype, group->requiredComponents[component].typeIndex);
+                    typeComponentIndex = ChunkDataUtility.GetIndexInTypeArray(archetype, group->requiredComponents[component].TypeIndex);
                     Assertions.Assert.AreNotEqual(-1, typeComponentIndex);
                 }
 
@@ -246,8 +246,8 @@ namespace UnityEngine.ECS
         AtomicSafetyHandle GetSafetyHandle(int indexInComponentGroup)
         {
             ComponentType* type = m_GroupData->requiredComponents + indexInComponentGroup;
-            bool isReadOnly = type->accessMode == ComponentType.AccessMode.ReadOnly;
-            return m_SafetyManager.GetSafetyHandle(type->typeIndex, isReadOnly);
+            bool isReadOnly = type->AccessModeType == ComponentType.AccessMode.ReadOnly;
+            return m_SafetyManager.GetSafetyHandle(type->TypeIndex, isReadOnly);
         }
 #endif
 
@@ -256,22 +256,22 @@ namespace UnityEngine.ECS
             if (!type.RequiresJobDependency)
                 return;
 
-            if (type.accessMode == ComponentType.AccessMode.ReadOnly)
+            if (type.AccessModeType == ComponentType.AccessMode.ReadOnly)
             {
-                if (reading.Contains(type.typeIndex))
+                if (reading.Contains(type.TypeIndex))
                     return;
-                if (writing.Contains(type.typeIndex))
+                if (writing.Contains(type.TypeIndex))
                     return;
 
-                reading.Add(type.typeIndex);
+                reading.Add(type.TypeIndex);
             }
             else
             {
-                if (reading.Contains(type.typeIndex))
-                    reading.Remove(type.typeIndex);
-                if (writing.Contains(type.typeIndex))
+                if (reading.Contains(type.TypeIndex))
+                    reading.Remove(type.TypeIndex);
+                if (writing.Contains(type.TypeIndex))
                     return;
-                writing.Add(type.typeIndex);
+                writing.Add(type.TypeIndex);
             }
         }
 
@@ -345,7 +345,7 @@ namespace UnityEngine.ECS
         internal int GetIndexInComponentGroup(int componentType)
         {
             int componentIndex = 0;
-            while (componentIndex < m_GroupData->requiredComponentsCount && m_GroupData->requiredComponents[componentIndex].typeIndex != componentType)
+            while (componentIndex < m_GroupData->requiredComponentsCount && m_GroupData->requiredComponents[componentIndex].TypeIndex != componentType)
                 ++componentIndex;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             if (componentIndex >= m_GroupData->requiredComponentsCount)
@@ -392,7 +392,7 @@ namespace UnityEngine.ECS
         {
             iterator.IndexInComponentGroup = indexInComponentGroup;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            int typeIndex = m_GroupData->requiredComponents[indexInComponentGroup].typeIndex;
+            int typeIndex = m_GroupData->requiredComponents[indexInComponentGroup].TypeIndex;
             output = new SharedComponentDataArray<T>(m_TypeManager.GetSharedComponentDataManager(), indexInComponentGroup, iterator, length, m_SafetyManager.GetSafetyHandle(typeIndex, true));
 #else
 			output = new SharedComponentDataArray<T>(m_TypeManager.GetSharedComponentDataManager(), indexInComponentGroup, iterator, length);
@@ -525,8 +525,8 @@ namespace UnityEngine.ECS
 				var types = new List<Type> ();
 				for (int i = 0; i < m_GroupData->requiredComponentsCount; ++i)
                 {
-                    if (m_GroupData->requiredComponents[i].accessMode != ComponentType.AccessMode.Subtractive)
-					    types.Add(TypeManager.GetType(m_GroupData->requiredComponents[i].typeIndex));
+                    if (m_GroupData->requiredComponents[i].AccessModeType != ComponentType.AccessMode.Subtractive)
+					    types.Add(TypeManager.GetType(m_GroupData->requiredComponents[i].TypeIndex));
                 }
 
 				return types.ToArray ();

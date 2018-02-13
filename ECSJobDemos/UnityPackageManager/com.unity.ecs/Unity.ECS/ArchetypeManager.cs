@@ -23,7 +23,7 @@ namespace UnityEngine.ECS
 
         public ComponentTypeInArchetype(ComponentType type)
         {
-            typeIndex = type.typeIndex;
+            typeIndex = type.TypeIndex;
             FixedArrayLength = type.FixedArrayLength;
         }
 
@@ -61,8 +61,8 @@ namespace UnityEngine.ECS
         {
             ComponentType type;
             type.FixedArrayLength = FixedArrayLength;
-            type.typeIndex = typeIndex;
-            type.accessMode = ComponentType.AccessMode.ReadWrite;
+            type.TypeIndex = typeIndex;
+            type.AccessModeType = ComponentType.AccessMode.ReadWrite;
             return type.ToString();
         }
 #endif
@@ -589,7 +589,7 @@ namespace UnityEngine.ECS
 
         public object GetManagedObject(Chunk* chunk, ComponentType type, int index)
         {
-            int typeOfs = ChunkDataUtility.GetIndexInTypeArray(chunk->archetype, type.typeIndex);
+            int typeOfs = ChunkDataUtility.GetIndexInTypeArray(chunk->archetype, type.TypeIndex);
             if (typeOfs < 0 || chunk->archetype->managedArrayOffset[typeOfs] < 0)
                 throw new InvalidOperationException("Trying to get managed object for non existing component");
             return GetManagedObject(chunk, typeOfs, index);
@@ -624,7 +624,7 @@ namespace UnityEngine.ECS
         }
         public void SetManagedObject(Chunk* chunk, ComponentType type, int index, object val)
         {
-            int typeOfs = ChunkDataUtility.GetIndexInTypeArray(chunk->archetype, type.typeIndex);
+            int typeOfs = ChunkDataUtility.GetIndexInTypeArray(chunk->archetype, type.TypeIndex);
             if (typeOfs < 0 || chunk->archetype->managedArrayOffset[typeOfs] < 0)
                 throw new InvalidOperationException("Trying to set managed object for non existing component");
             SetManagedObject(chunk, typeOfs, index, val);

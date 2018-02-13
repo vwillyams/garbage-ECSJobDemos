@@ -1,9 +1,9 @@
-﻿using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine.Assertions;
+﻿using Unity.Assertions;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace Unity.ECS
 {
-    internal static unsafe class ChunkDataUtility
+    static unsafe class ChunkDataUtility
     {
         public static int GetIndexInTypeArray(Archetype* archetype, int typeIndex)
         {

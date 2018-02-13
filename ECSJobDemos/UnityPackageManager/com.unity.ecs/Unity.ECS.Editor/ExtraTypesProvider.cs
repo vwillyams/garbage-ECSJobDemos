@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.ECS;
 using UnityEngine.ECS;
 using UnityEditor.Experimental.Build.Player;
 

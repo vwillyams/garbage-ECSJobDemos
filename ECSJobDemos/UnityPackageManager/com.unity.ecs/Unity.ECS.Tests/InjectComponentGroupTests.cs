@@ -4,6 +4,7 @@ using Unity.Collections;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Threading;
+using Unity.ECS;
 using Unity.Jobs;
 using UnityEngine.Jobs;
 

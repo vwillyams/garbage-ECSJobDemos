@@ -1,16 +1,15 @@
-﻿using System;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Collections.Generic;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Collections;
-using Unity.ECS;
+using UnityEngine.ECS;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
-    struct InjectFromEntityData
+    internal struct InjectFromEntityData
 	{
-	    InjectionData[] m_InjectComponentDataFromEntity;
-	    InjectionData[] m_InjectFixedArrayFromEntity;
+	    private readonly InjectionData[] m_InjectComponentDataFromEntity;
+	    private readonly InjectionData[] m_InjectFixedArrayFromEntity;
 
 	    public InjectFromEntityData(InjectionData[] componentDataFromEntity, InjectionData[] fixedArrayFromEntity)
 	    {
@@ -18,17 +17,16 @@ namespace UnityEngine.ECS
 	        m_InjectFixedArrayFromEntity = fixedArrayFromEntity;
 	    }
 
-	    static public bool SupportsInjections(FieldInfo field)
+	    public static bool SupportsInjections(FieldInfo field)
 	    {
 	        if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition() == typeof(ComponentDataFromEntity<>))
 	            return true;
-	        else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition() == typeof(FixedArrayFromEntity<>))
+	        if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition() == typeof(FixedArrayFromEntity<>))
 	            return true;
-	        else
-	            return false;
+	        return false;
 	    }
 
-	    static public void CreateInjection(FieldInfo field, EntityManager entityManager, List<InjectionData> componentDataFromEntity, List<InjectionData> fixedArrayFromEntity)
+	    public static void CreateInjection(FieldInfo field, EntityManager entityManager, List<InjectionData> componentDataFromEntity, List<InjectionData> fixedArrayFromEntity)
 		{
 			var isReadOnly = field.GetCustomAttributes(typeof(ReadOnlyAttribute), true).Length != 0;
 

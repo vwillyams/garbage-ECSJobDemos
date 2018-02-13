@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Reflection;
 using System.Collections.Generic;
 using Unity.Collections.LowLevel.Unsafe;
@@ -32,6 +31,7 @@ namespace Unity.ECS
 
         private InjectComponentGroupData(EntityManager entityManager, FieldInfo groupField,
             InjectionData[] componentDataInjections, InjectionData[] componentInjections, InjectionData[] fixedArrayInjections, InjectionData[] sharedComponentInjections,
+            FieldInfo entityArrayInjection, FieldInfo transformAccessArrayInjection, FieldInfo gameObjectArrayInjection, FieldInfo lengthInjection, ComponentType[] componentRequirements)
         {
             var requiredComponentTypes = componentRequirements;
 

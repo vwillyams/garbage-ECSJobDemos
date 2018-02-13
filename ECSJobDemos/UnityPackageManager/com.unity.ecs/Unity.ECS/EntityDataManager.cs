@@ -2,18 +2,18 @@
 
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine.Assertions;
+using Unity.Assertions;
 
 namespace Unity.ECS
 {
-    internal unsafe struct EntityDataManager
+    unsafe struct EntityDataManager
     {
 #if USE_BURST_DESTROY
         private delegate Chunk* DeallocateDataEntitiesInChunkDelegate(EntityDataManager* entityDataManager, Entity* entities, int count, out int indexInChunk, out int batchCount);
         static DeallocateDataEntitiesInChunkDelegate ms_DeallocateDataEntitiesInChunkDelegate;
 #endif
 
-        private struct EntityData
+        struct EntityData
         {
             public int         Version;
             public Archetype*  Archetype;
@@ -21,11 +21,11 @@ namespace Unity.ECS
             public int         IndexInChunk;
         }
 
-        private EntityData*   m_Entities;
-        private int           m_EntitiesCapacity;
-        private int           m_EntitiesFreeIndex;
+        EntityData*   m_Entities;
+        int           m_EntitiesCapacity;
+        int           m_EntitiesFreeIndex;
 
-        private int*          m_ComponentTypeOrderVersion;
+        int*          m_ComponentTypeOrderVersion;
 
         public void OnCreate(int capacity)
         {
@@ -58,7 +58,7 @@ namespace Unity.ECS
             m_ComponentTypeOrderVersion = null;
         }
 
-        private void InitializeAdditionalCapacity(int start)
+        void InitializeAdditionalCapacity(int start)
         {
             for (var i = start; i != m_EntitiesCapacity; i++)
             {
@@ -71,7 +71,7 @@ namespace Unity.ECS
             m_Entities[m_EntitiesCapacity - 1].IndexInChunk = -1;
         }
 
-        private void IncreaseCapacity()
+        void IncreaseCapacity()
         {
             Capacity = 2 * Capacity;
         }
@@ -182,7 +182,7 @@ namespace Unity.ECS
             }
         }
 
-        private static Chunk* DeallocateDataEntitiesInChunk(EntityDataManager* entityDataManager, Entity* entities,
+        static Chunk* DeallocateDataEntitiesInChunk(EntityDataManager* entityDataManager, Entity* entities,
             int count, out int indexInChunk, out int batchCount)
         {
             /// This is optimized for the case where the array of entities are allocated contigously in the chunk
@@ -660,7 +660,7 @@ namespace Unity.ECS
             MoveEntityToChunk(archetypeManager, entity, newChunk, newChunkIndex);
         }
 
-        private void IncrementComponentOrderVersion(Archetype* archetype, Chunk* chunk, SharedComponentDataManager sharedComponentDataManager)
+        void IncrementComponentOrderVersion(Archetype* archetype, Chunk* chunk, SharedComponentDataManager sharedComponentDataManager)
         {
             // Increment shared component version
             var sharedComponentDataIndices = chunk->SharedComponentValueArray;
@@ -672,7 +672,7 @@ namespace Unity.ECS
             IncrementComponentTypeOrderVersion(archetype);
         }
 
-        private void IncrementComponentTypeOrderVersion(Archetype* archetype)
+        void IncrementComponentTypeOrderVersion(Archetype* archetype)
         {
             // Increment type component version
             for (var t = 0; t < archetype->TypesCount; ++t)

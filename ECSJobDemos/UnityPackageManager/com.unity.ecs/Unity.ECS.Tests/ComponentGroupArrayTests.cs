@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using Unity.Jobs;
 using Unity.Collections;
+using Unity.ECS;
 
 namespace UnityEngine.ECS.Tests
 {

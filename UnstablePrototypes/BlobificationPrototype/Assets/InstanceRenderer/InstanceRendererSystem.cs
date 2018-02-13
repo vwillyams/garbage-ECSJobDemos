@@ -1,9 +1,10 @@
-﻿using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
+﻿using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using System.Collections.Generic;
+using UnityEngine;
 
-namespace UnityEngine.ECS.Rendering
+
+namespace Unity.ECS.Rendering
 {
 	[UpdateAfter(typeof(UnityEngine.Experimental.PlayerLoop.PreLateUpdate.ParticleSystemBeginUpdateAll))]
 	public class InstanceRendererSystem : ComponentSystem
@@ -39,7 +40,6 @@ namespace UnityEngine.ECS.Rendering
             for (int i = 0;i != uniqueRendererTypes.Count;i++)
             {
                 var renderer = uniqueRendererTypes[i];
-
                 var group = maingroup.GetVariation(renderer);
 
                 var transforms = group.GetComponentDataArray<InstanceRendererTransform>();

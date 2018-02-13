@@ -1,10 +1,10 @@
 ﻿using System;
 using UnityEngine;
 using Unity.Collections;
-using UnityEngine.ECS;
+using Unity.ECS;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.ECS.Rendering
+namespace Unity.ECS.Rendering
 {
     [System.Serializable]
 	public struct InstanceRenderer : ISharedComponentData

@@ -477,6 +477,35 @@ namespace UnityEngine.ECS
             return ptr;
         }
         
+        public object GetComponentBoxed(Entity entity, ComponentType componentType)
+        {
+            var ptr = GetComponentDataRaw(entity, componentType.typeIndex);
+
+            var type = TypeManager.GetType(componentType.typeIndex);
+            var boxed = Activator.CreateInstance(type);
+
+            ulong gcHandle;
+            byte* boxedPtr = (byte*)UnsafeUtility.PinGCObjectAndGetAddress(boxed, out gcHandle);
+            //@TODO: harcoded object class sizeof hack
+            UnsafeUtility.MemCpy(boxedPtr + 16, ptr, UnsafeUtility.SizeOf(type));
+            
+            UnsafeUtility.ReleaseGCObject(gcHandle);
+
+            return boxed;
+        }
+        
+        public void SetComponentBoxed(Entity entity, ComponentType componentType, object boxedObject)
+        {
+            var type = TypeManager.GetType(componentType.typeIndex);
+
+            ulong gcHandle;
+            byte* boxedPtr = (byte*)UnsafeUtility.PinGCObjectAndGetAddress(boxedObject, out gcHandle);
+            //@TODO: harcoded object class sizeof hack
+            SetComponentDataRaw(entity, componentType.typeIndex, boxedPtr + 16, UnsafeUtility.SizeOf(type));
+            
+            UnsafeUtility.ReleaseGCObject(gcHandle);
+        }
+        
         public int GetComponentOrderVersion<T>()
         {
             return m_Entities->GetComponentTypeOrderVersion(TypeManager.GetTypeIndex<T>());

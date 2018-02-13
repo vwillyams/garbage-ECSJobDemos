@@ -8,11 +8,11 @@ namespace Unity.ECS
     {
         public static int GetIndexInTypeArray(Archetype* archetype, int typeIndex)
         {
-            var types = archetype->types;
-            var typeCount = archetype->typesCount;
+            var types = archetype->Types;
+            var typeCount = archetype->TypesCount;
             for (var i = 0; i != typeCount; i++)
             {
-                if (typeIndex == types[i].typeIndex)
+                if (typeIndex == types[i].TypeIndex)
                     return i;
             }
 
@@ -21,15 +21,15 @@ namespace Unity.ECS
 
         public static void GetIndexInTypeArray(Archetype* archetype, int typeIndex, ref int typeLookupCache)
         {
-            var types = archetype->types;
-            var typeCount = archetype->typesCount;
+            var types = archetype->Types;
+            var typeCount = archetype->TypesCount;
 
-            if (typeLookupCache < typeCount && types[typeLookupCache].typeIndex == typeIndex)
+            if (typeLookupCache < typeCount && types[typeLookupCache].TypeIndex == typeIndex)
                 return;
 
             for (var i = 0; i != typeCount; i++)
             {
-                if (typeIndex != types[i].typeIndex)
+                if (typeIndex != types[i].TypeIndex)
                     continue;
 
                 typeLookupCache = i;
@@ -43,56 +43,56 @@ namespace Unity.ECS
 
         public static void GetComponentDataWithTypeAndFixedArrayLength(Chunk* chunk, int index, int typeIndex, out byte* outPtr, out int outArrayLength)
         {
-            var archetype = chunk->archetype;
+            var archetype = chunk->Archetype;
             var indexInTypeArray = GetIndexInTypeArray(archetype, typeIndex);
 
-            var offset = archetype->offsets[indexInTypeArray];
-            var sizeOf = archetype->sizeOfs[indexInTypeArray];
+            var offset = archetype->Offsets[indexInTypeArray];
+            var sizeOf = archetype->SizeOfs[indexInTypeArray];
 
-            outPtr = chunk->buffer + (offset + sizeOf * index);
-            outArrayLength = archetype->types[indexInTypeArray].FixedArrayLength;
+            outPtr = chunk->Buffer + (offset + sizeOf * index);
+            outArrayLength = archetype->Types[indexInTypeArray].FixedArrayLength;
         }
 
         public static byte* GetComponentDataWithType(Chunk* chunk, int index, int typeIndex, ref int typeLookupCache)
         {
-            var archetype = chunk->archetype;
+            var archetype = chunk->Archetype;
             GetIndexInTypeArray(archetype, typeIndex, ref typeLookupCache);
             var indexInTypeArray = typeLookupCache;
 
-            var offset = archetype->offsets[indexInTypeArray];
-            var sizeOf = archetype->sizeOfs[indexInTypeArray];
+            var offset = archetype->Offsets[indexInTypeArray];
+            var sizeOf = archetype->SizeOfs[indexInTypeArray];
 
-            return chunk->buffer + (offset + sizeOf * index);
+            return chunk->Buffer + (offset + sizeOf * index);
         }
 
         public static byte* GetComponentDataWithType(Chunk* chunk, int index, int typeIndex)
         {
-            var indexInTypeArray = GetIndexInTypeArray(chunk->archetype, typeIndex);
+            var indexInTypeArray = GetIndexInTypeArray(chunk->Archetype, typeIndex);
 
-            var offset = chunk->archetype->offsets[indexInTypeArray];
-            var sizeOf = chunk->archetype->sizeOfs[indexInTypeArray];
+            var offset = chunk->Archetype->Offsets[indexInTypeArray];
+            var sizeOf = chunk->Archetype->SizeOfs[indexInTypeArray];
 
-            return chunk->buffer + (offset + sizeOf * index);
+            return chunk->Buffer + (offset + sizeOf * index);
         }
 
         public static byte* GetComponentData(Chunk* chunk, int index, int indexInTypeArray)
         {
-            var offset = chunk->archetype->offsets[indexInTypeArray];
-            var sizeOf = chunk->archetype->sizeOfs[indexInTypeArray];
+            var offset = chunk->Archetype->Offsets[indexInTypeArray];
+            var sizeOf = chunk->Archetype->SizeOfs[indexInTypeArray];
 
-            return chunk->buffer + (offset + sizeOf * index);
+            return chunk->Buffer + (offset + sizeOf * index);
         }
 
         public static void Copy(Chunk* srcChunk, int srcIndex, Chunk* dstChunk, int dstIndex, int count)
         {
-            Assert.IsTrue(srcChunk->archetype == dstChunk->archetype);
+            Assert.IsTrue(srcChunk->Archetype == dstChunk->Archetype);
 
-            var arch = srcChunk->archetype;
-            var srcBuffer = srcChunk->buffer;
-            var dstBuffer = dstChunk->buffer;
-            var offsets = arch->offsets;
-            var sizeOfs = arch->sizeOfs;
-            var typesCount = arch->typesCount;
+            var arch = srcChunk->Archetype;
+            var srcBuffer = srcChunk->Buffer;
+            var dstBuffer = dstChunk->Buffer;
+            var offsets = arch->Offsets;
+            var sizeOfs = arch->SizeOfs;
+            var typesCount = arch->TypesCount;
 
             for (var t = 0; t < typesCount; t++)
             {
@@ -107,12 +107,12 @@ namespace Unity.ECS
 
         public static void ClearComponents(Chunk* dstChunk, int dstIndex, int count)
         {
-            var arch = dstChunk->archetype;
+            var arch = dstChunk->Archetype;
 
-            var offsets = arch->offsets;
-            var sizeOfs = arch->sizeOfs;
-            var dstBuffer = dstChunk->buffer;
-            var typesCount = arch->typesCount;
+            var offsets = arch->Offsets;
+            var sizeOfs = arch->SizeOfs;
+            var dstBuffer = dstChunk->Buffer;
+            var typesCount = arch->TypesCount;
 
             for (var t = 1; t != typesCount; t++)
             {
@@ -126,14 +126,14 @@ namespace Unity.ECS
 
         public static void ReplicateComponents(Chunk* srcChunk, int srcIndex, Chunk* dstChunk, int dstBaseIndex, int count)
         {
-            Assert.IsTrue(srcChunk->archetype == dstChunk->archetype);
+            Assert.IsTrue(srcChunk->Archetype == dstChunk->Archetype);
 
-            var arch = srcChunk->archetype;
-            var srcBuffer = srcChunk->buffer;
-            var dstBuffer = dstChunk->buffer;
-            var offsets = arch->offsets;
-            var sizeOfs = arch->sizeOfs;
-            var typesCount = arch->typesCount;
+            var arch = srcChunk->Archetype;
+            var srcBuffer = srcChunk->Buffer;
+            var dstBuffer = dstChunk->Buffer;
+            var offsets = arch->Offsets;
+            var sizeOfs = arch->SizeOfs;
+            var typesCount = arch->TypesCount;
             // type[0] is always Entity, and will be patched up later, so just skip
             for (var t = 1; t != typesCount; t++)
             {
@@ -148,22 +148,22 @@ namespace Unity.ECS
 
         public static void Convert(Chunk* srcChunk, int srcIndex, Chunk* dstChunk, int dstIndex)
         {
-            var srcArch = srcChunk->archetype;
-            var dstArch = dstChunk->archetype;
+            var srcArch = srcChunk->Archetype;
+            var dstArch = dstChunk->Archetype;
 
             var srcI = 0;
             var dstI = 0;
-            while (srcI < srcArch->typesCount && dstI < dstArch->typesCount)
+            while (srcI < srcArch->TypesCount && dstI < dstArch->TypesCount)
             {
-                if (srcArch->types[srcI] < dstArch->types[dstI])
+                if (srcArch->Types[srcI] < dstArch->Types[dstI])
                     ++srcI;
-                else if (srcArch->types[srcI] > dstArch->types[dstI])
+                else if (srcArch->Types[srcI] > dstArch->Types[dstI])
                     ++dstI;
                 else
                 {
-                    var src = srcChunk->buffer + srcArch->offsets[srcI] + srcIndex * srcArch->sizeOfs[srcI];
-                    var dst = dstChunk->buffer + dstArch->offsets[dstI] + dstIndex * dstArch->sizeOfs[dstI];
-                    UnsafeUtility.MemCpy(dst, src, srcArch->sizeOfs[srcI]);
+                    var src = srcChunk->Buffer + srcArch->Offsets[srcI] + srcIndex * srcArch->SizeOfs[srcI];
+                    var dst = dstChunk->Buffer + dstArch->Offsets[dstI] + dstIndex * dstArch->SizeOfs[dstI];
+                    UnsafeUtility.MemCpy(dst, src, srcArch->SizeOfs[srcI]);
                     ++srcI;
                     ++dstI;
                 }
@@ -172,20 +172,20 @@ namespace Unity.ECS
 
         public static void CopyManagedObjects(ArchetypeManager typeMan, Chunk* srcChunk, int srcStartIndex, Chunk* dstChunk, int dstStartIndex, int count)
         {
-            var srcArch = srcChunk->archetype;
-            var dstArch = dstChunk->archetype;
+            var srcArch = srcChunk->Archetype;
+            var dstArch = dstChunk->Archetype;
 
             var srcI = 0;
             var dstI = 0;
-            while (srcI < srcArch->typesCount && dstI < dstArch->typesCount)
+            while (srcI < srcArch->TypesCount && dstI < dstArch->TypesCount)
             {
-                if (srcArch->types[srcI] < dstArch->types[dstI])
+                if (srcArch->Types[srcI] < dstArch->Types[dstI])
                     ++srcI;
-                else if (srcArch->types[srcI] > dstArch->types[dstI])
+                else if (srcArch->Types[srcI] > dstArch->Types[dstI])
                     ++dstI;
                 else
                 {
-                    if (srcArch->managedArrayOffset[srcI] >= 0)
+                    if (srcArch->ManagedArrayOffset[srcI] >= 0)
                     {
                         for (var i = 0; i < count; ++i)
                         {
@@ -200,11 +200,11 @@ namespace Unity.ECS
         }
         public static void ClearManagedObjects(ArchetypeManager typeMan, Chunk* chunk, int index, int count)
         {
-            var arch = chunk->archetype;
+            var arch = chunk->Archetype;
 
-            for (var type = 0; type < arch->typesCount; ++type)
+            for (var type = 0; type < arch->TypesCount; ++type)
             {
-                if (arch->managedArrayOffset[type] < 0)
+                if (arch->ManagedArrayOffset[type] < 0)
                     continue;
 
                 for (var i = 0; i < count; ++i)

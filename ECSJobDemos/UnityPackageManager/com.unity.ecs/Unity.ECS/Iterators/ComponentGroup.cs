@@ -82,7 +82,7 @@ namespace UnityEngine.ECS
 
             grp->firstMatchingArchetype = null;
             grp->lastMatchingArchetype = null;
-            for (Archetype* type = typeMan.m_LastArchetype; type != null; type = type->prevArchetype)
+            for (Archetype* type = typeMan.m_LastArchetype; type != null; type = type->PrevArchetype)
                 AddArchetypeIfMatching(type, grp);
             m_GroupLookup.Add(hash, (IntPtr)grp);
             return new ComponentGroup(grp, m_JobSafetyManager, typeMan);
@@ -102,21 +102,21 @@ namespace UnityEngine.ECS
 
         void AddArchetypeIfMatching(Archetype* archetype, EntityGroupData* group)
         {
-            if (group->requiredComponentsCount - group->subtractiveComponentsCount > archetype->typesCount)
+            if (group->requiredComponentsCount - group->subtractiveComponentsCount > archetype->TypesCount)
                 return;
             int typeI = 0;
             int prevTypeI = 0;
             for (int i = 0; i < group->requiredComponentsCount; ++i, ++typeI)
             {
-                while (archetype->types[typeI].typeIndex < group->requiredComponents[i].TypeIndex && typeI < archetype->typesCount)
+                while (archetype->Types[typeI].TypeIndex < group->requiredComponents[i].TypeIndex && typeI < archetype->TypesCount)
                     ++typeI;
 
                 bool hasComponent = true;
-                if (typeI >= archetype->typesCount)
+                if (typeI >= archetype->TypesCount)
                     hasComponent = false;
 
                 // Type mismatch
-                if (hasComponent && archetype->types[typeI].typeIndex != group->requiredComponents[i].TypeIndex)
+                if (hasComponent && archetype->Types[typeI].TypeIndex != group->requiredComponents[i].TypeIndex)
                     hasComponent = false;
 
                 if (hasComponent && group->requiredComponents[i].AccessModeType == ComponentType.AccessMode.Subtractive)
@@ -298,30 +298,30 @@ namespace UnityEngine.ECS
             {
                 for (var match = m_GroupData->firstMatchingArchetype; match != null; match = match->next)
                 {
-                    if (match->archetype->entityCount > 0)
+                    if (match->archetype->EntityCount > 0)
                     {
-                        length += match->archetype->entityCount;
+                        length += match->archetype->EntityCount;
                         if (first == null)
                             first = match;
                     }
                 }
                 if (first != null)
-                    firstNonEmptyChunk = (Chunk*)first->archetype->chunkList.Begin;
+                    firstNonEmptyChunk = (Chunk*)first->archetype->ChunkList.Begin;
             }
             else
             {
                 for (var match = m_GroupData->firstMatchingArchetype; match != null; match = match->next)
                 {
-                    if (match->archetype->entityCount > 0)
+                    if (match->archetype->EntityCount > 0)
                     {
                         var archeType = match->archetype;
-                        for (Chunk* c = (Chunk*)archeType->chunkList.Begin; c != archeType->chunkList.End; c = (Chunk*)c->chunkListNode.Next)
+                        for (Chunk* c = (Chunk*)archeType->ChunkList.Begin; c != archeType->ChunkList.End; c = (Chunk*)c->ChunkListNode.Next)
                         {
                             if (ComponentChunkIterator.ChunkMatchesFilter(match, c, m_filteredSharedComponents))
                             {
-                                if (c->count > 0)
+                                if (c->Count > 0)
                                 {
-                                    length += c->count;
+                                    length += c->Count;
                                     if (first == null)
                                     {
                                         first = match;

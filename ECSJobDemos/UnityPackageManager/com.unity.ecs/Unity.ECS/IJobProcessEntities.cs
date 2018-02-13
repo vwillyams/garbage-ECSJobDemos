@@ -37,26 +37,26 @@ namespace Unity.ECS
             JobsUtility.ScheduleParallelFor(ref scheduleParams, entityCount , entityCount);
         }
 
-        private struct JobStruct<T, U0>
+        struct JobStruct<T, U0>
             where T : struct, IJobProcessEntities<U0>
             where U0 : struct
         {
-            private static IntPtr jobReflectionData;
+            static IntPtr s_JobReflectionData;
 
             public ComponentGroupArrayData       Array;
             public T                             Data;
 
             public static IntPtr Initialize()
             {
-                if (jobReflectionData == IntPtr.Zero)
-                    jobReflectionData = JobsUtility.CreateJobReflectionData(typeof(JobStruct<T, U0>), typeof(T), JobType.ParallelFor, (ExecuteJobFunction)Execute);
+                if (s_JobReflectionData == IntPtr.Zero)
+                    s_JobReflectionData = JobsUtility.CreateJobReflectionData(typeof(JobStruct<T, U0>), typeof(T), JobType.ParallelFor, (ExecuteJobFunction)Execute);
 
-                return jobReflectionData;
+                return s_JobReflectionData;
             }
 
-            private delegate void ExecuteJobFunction(ref JobStruct<T, U0> data, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
+            delegate void ExecuteJobFunction(ref JobStruct<T, U0> data, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
-            private static unsafe void Execute(ref JobStruct<T, U0> jobData, IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
+            static unsafe void Execute(ref JobStruct<T, U0> jobData, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
                 int begin;
                 int end;

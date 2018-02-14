@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using Unity.Mathematics;
-using UnityEngine.ECS;
 using UnityEditor;
 using System;
 using System.Reflection;

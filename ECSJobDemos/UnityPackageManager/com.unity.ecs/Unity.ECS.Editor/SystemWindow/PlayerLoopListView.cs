@@ -8,7 +8,6 @@ using UnityEditor;
 using UnityEditor.ECS;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using UnityEngine.ECS;
 using UnityEngine.Experimental.LowLevel;
 
 namespace UnityEditor.ECS

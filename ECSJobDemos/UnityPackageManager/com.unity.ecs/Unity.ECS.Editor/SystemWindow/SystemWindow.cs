@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using Unity.ECS;
 using UnityEngine;
 using UnityEditor.IMGUI.Controls;
-using UnityEngine.ECS;
 using UnityEngine.Experimental.LowLevel;
 
 namespace UnityEditor.ECS

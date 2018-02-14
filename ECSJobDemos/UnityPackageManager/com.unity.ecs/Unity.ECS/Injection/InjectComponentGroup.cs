@@ -1,34 +1,37 @@
 ﻿using System;
 using System.Reflection;
 using System.Collections.Generic;
-using Unity.Collections.LowLevel.Unsafe;
+
 using Unity.Collections;
-using UnityEngine;
-using UnityEngine.Jobs;
+using Unity.Collections.LowLevel.Unsafe;
+
+using Component = UnityEngine.Component;
+using Transform = UnityEngine.Transform;
+using TransformAccessArray = UnityEngine.Jobs.TransformAccessArray;
 
 namespace Unity.ECS
 {
-    internal struct ProxyComponentData : IComponentData { }
+    struct ProxyComponentData : IComponentData { }
 
-    internal struct ProxySharedComponentData : ISharedComponentData { }
+    struct ProxySharedComponentData : ISharedComponentData { }
 
-    internal class InjectComponentGroupData
+    class InjectComponentGroupData
     {
-        private ComponentGroup 		m_EntityGroup;
-        private ComponentType[]     m_ComponentRequirements;
-        private readonly int 		m_GroupFieldOffset;
+        ComponentGroup 		m_EntityGroup;
+        ComponentType[]     m_ComponentRequirements;
+        readonly int 		m_GroupFieldOffset;
 
-        private readonly int 				m_EntityArrayOffset;
-        private readonly int 				m_TransformAccessArrayOffset;
-        private readonly int 				m_LengthOffset;
-        private readonly int                 m_GameObjectArrayOffset;
+        readonly int 				m_EntityArrayOffset;
+        readonly int 				m_TransformAccessArrayOffset;
+        readonly int 				m_LengthOffset;
+        readonly int                 m_GameObjectArrayOffset;
 
-        private readonly InjectionData[]     m_ComponentDataInjections;
-        private readonly InjectionData[]     m_ComponentInjections;
-        private readonly InjectionData[]     m_FixedArrayInjections;
-        private readonly InjectionData[]     m_SharedComponentInjections;
+        readonly InjectionData[]     m_ComponentDataInjections;
+        readonly InjectionData[]     m_ComponentInjections;
+        readonly InjectionData[]     m_FixedArrayInjections;
+        readonly InjectionData[]     m_SharedComponentInjections;
 
-        private InjectComponentGroupData(EntityManager entityManager, FieldInfo groupField,
+        InjectComponentGroupData(EntityManager entityManager, FieldInfo groupField,
             InjectionData[] componentDataInjections, InjectionData[] componentInjections, InjectionData[] fixedArrayInjections, InjectionData[] sharedComponentInjections,
             FieldInfo entityArrayInjection, FieldInfo transformAccessArrayInjection, FieldInfo gameObjectArrayInjection, FieldInfo lengthInjection, ComponentType[] componentRequirements)
         {
@@ -80,7 +83,7 @@ namespace Unity.ECS
 
         public ComponentGroup EntityGroup => m_EntityGroup;
 
-        private void PatchGetIndexInComponentGroup(InjectionData[] componentInjections)
+        void PatchGetIndexInComponentGroup(InjectionData[] componentInjections)
         {
             for (var i = 0; i != componentInjections.Length; i++)
                 componentInjections[i].IndexInComponentGroup = m_EntityGroup.GetIndexInComponentGroup(componentInjections[i].ComponentType.TypeIndex);
@@ -167,7 +170,7 @@ namespace Unity.ECS
             return new InjectComponentGroupData(entityManager, groupField, componentDataInjections.ToArray(), componentInjections.ToArray(), fixedArrayInjections.ToArray(), sharedComponentInjections.ToArray(), entityArrayField, transformAccessArrayField, gameObjectArrayField, lengthField, componentRequirements.ToArray());
         }
 
-        private static string CollectInjectedGroup(Type injectedGroupType, out FieldInfo entityArrayField, out FieldInfo transformAccessArrayField, out FieldInfo gameObjectArrayField, out FieldInfo lengthField, ICollection<ComponentType> componentRequirements,
+        static string CollectInjectedGroup(Type injectedGroupType, out FieldInfo entityArrayField, out FieldInfo transformAccessArrayField, out FieldInfo gameObjectArrayField, out FieldInfo lengthField, ICollection<ComponentType> componentRequirements,
             ICollection<InjectionData> componentDataInjections, ICollection<InjectionData> componentInjections, ICollection<InjectionData> fixedArrayInjections, ICollection<InjectionData> sharedComponentInjections)
         {
             //@TODO: Improve error messages...

@@ -1,12 +1,13 @@
-﻿using UnityEngine;
+﻿using RuntimeInitializeLoadType = UnityEngine.RuntimeInitializeLoadType;
+using RuntimeInitializeOnLoadMethod = UnityEngine.RuntimeInitializeOnLoadMethodAttribute;
 
 namespace Unity.ECS
 {
 #if !UNITY_DISABLE_AUTOMATIC_SYSTEM_BOOTSTRAP
-    internal static class AutomaticWorldBootstrap
+    static class AutomaticWorldBootstrap
     {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        private static void Initialize()
+        static void Initialize()
         {
             DefaultWorldInitialization.Initialize();
         }

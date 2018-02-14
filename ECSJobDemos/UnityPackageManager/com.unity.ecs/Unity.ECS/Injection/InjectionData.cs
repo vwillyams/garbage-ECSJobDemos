@@ -1,10 +1,11 @@
-﻿using System.Reflection;
-using System;
+﻿using System;
+using System.Reflection;
+
 using Unity.Collections.LowLevel.Unsafe;
 
 namespace Unity.ECS
 {
-    internal struct InjectionData
+    struct InjectionData
     {
         public ComponentType       ComponentType;
         public int                 IndexInComponentGroup;

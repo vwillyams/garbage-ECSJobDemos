@@ -5,6 +5,7 @@
 	"testables": [
     "com.unity.collections",
     "com.unity.ecs",
+    "com.unity.ecs.hybrid",
     "com.unity.ecs.boids",
     "com.unity.ecs.meshiinstancedshim",
     "com.unity.ecs.simplebounds",

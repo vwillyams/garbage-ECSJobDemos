@@ -1,0 +1,11 @@
+{
+    "name": "Unity.ECS.Hybrid",
+    "references": [
+        "UnityEngine.ECS",
+        "Unity.Collections",
+        "Unity.Jobs"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": []
+}

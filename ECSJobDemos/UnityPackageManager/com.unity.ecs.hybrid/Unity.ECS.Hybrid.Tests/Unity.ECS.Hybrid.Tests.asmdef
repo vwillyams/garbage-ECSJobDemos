@@ -1,0 +1,15 @@
+{
+    "name": "Unity.ECS.Hybrid.Tests",
+    "references": [
+        "UnityEngine.ECS",
+        "Unity.Collections",
+        "Unity.Jobs"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

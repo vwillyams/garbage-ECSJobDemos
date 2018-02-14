@@ -2,7 +2,6 @@
 using System.Reflection;
 using System;
 using System.Collections.ObjectModel;
-using UnityEngine;
 using UnityEngine.Experimental.LowLevel;
 
 namespace Unity.ECS
@@ -11,22 +10,21 @@ namespace Unity.ECS
 	{
 		public IEnumerable<ScriptBehaviourManager> BehaviourManagers => new ReadOnlyCollection<ScriptBehaviourManager>(m_BehaviourManagers);
 
-	    private readonly List<ScriptBehaviourManager> 				m_BehaviourManagers = new List<ScriptBehaviourManager> ();
+	    readonly List<ScriptBehaviourManager> 				m_BehaviourManagers = new List<ScriptBehaviourManager> ();
 		//@TODO: What about multiple managers of the same type...
-	    private readonly Dictionary<Type, ScriptBehaviourManager> 	m_BehaviourManagerLookup = new Dictionary<Type, ScriptBehaviourManager> ();
+	    readonly Dictionary<Type, ScriptBehaviourManager> 	m_BehaviourManagerLookup = new Dictionary<Type, ScriptBehaviourManager> ();
 
-	    private int 										m_DefaultCapacity = 10;
-	    private bool 										m_AllowGetManager = true;
+	    int 										m_DefaultCapacity = 10;
+	    bool 										m_AllowGetManager = true;
 
 	    public string                               Name { get; }
 
 	    public static World 				        Active { get; set; }
 
 	    public static ReadOnlyCollection<World> AllWorlds => new ReadOnlyCollection<World>(allWorlds);
-	    private static readonly List<World> allWorlds = new List<World>();
+	    static readonly List<World> allWorlds = new List<World>();
 
-
-	    private int GetCapacityForType(Type type)
+	    int GetCapacityForType(Type type)
 		{
 			return m_DefaultCapacity;
 		}
@@ -81,7 +79,7 @@ namespace Unity.ECS
 			m_BehaviourManagerLookup.Clear();
 		}
 
-	    private ScriptBehaviourManager CreateManagerInternal (Type type, int capacity, object[] constructorArgumnents)
+	    ScriptBehaviourManager CreateManagerInternal (Type type, int capacity, object[] constructorArgumnents)
 		{
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (!m_AllowGetManager)
@@ -114,7 +112,7 @@ namespace Unity.ECS
 			return manager;
 		}
 
-	    private ScriptBehaviourManager GetExistingManagerInternal (Type type)
+	    ScriptBehaviourManager GetExistingManagerInternal (Type type)
 		{
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (!m_AllowGetManager)
@@ -137,14 +135,14 @@ namespace Unity.ECS
 			return null;
 		}
 
-	    private ScriptBehaviourManager GetOrCreateManagerInternal (Type type)
+	    ScriptBehaviourManager GetOrCreateManagerInternal (Type type)
 		{
 			var manager = GetExistingManagerInternal(type);
 
 			return manager ?? CreateManagerInternal(type, GetCapacityForType(type), null);
 		}
 
-	    private void RemoveManagerInteral(ScriptBehaviourManager manager)
+	    void RemoveManagerInteral(ScriptBehaviourManager manager)
 		{
 			if (!m_BehaviourManagers.Remove(manager))
 				throw new ArgumentException($"manager does not exist in the world");

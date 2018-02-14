@@ -6,9 +6,8 @@ namespace Unity.ECS
 {
     internal class SharedComponentDataManager
     {
-        NativeMultiHashMap<int, int> m_TypeLookup;
+        NativeMultiHashMap<int, int> m_HashLookup = new NativeMultiHashMap<int, int>(128, Allocator.Persistent);
 
-        int             m_RefCount;
         List<object>    m_SharedComponentData = new List<object>();
         NativeList<int> m_SharedComponentRefCount = new NativeList<int>(0, Allocator.Persistent);
         NativeList<int> m_SharedComponentVersion = new NativeList<int>(0, Allocator.Persistent);
@@ -16,7 +15,6 @@ namespace Unity.ECS
 
         public SharedComponentDataManager()
         {
-            m_TypeLookup = new NativeMultiHashMap<int, int>(128, Allocator.Persistent);
             m_SharedComponentData.Add(null);
             m_SharedComponentRefCount.Add(1);
             m_SharedComponentVersion.Add(1);
@@ -30,7 +28,7 @@ namespace Unity.ECS
             m_SharedComponentVersion.Dispose();
             m_SharedComponentData.Clear();
             m_SharedComponentData = null;
-            m_TypeLookup.Dispose();
+            m_HashLookup.Dispose();
         }
 
         public void GetAllUniqueSharedComponents<T>(List<T> sharedComponentValues) where T : struct, ISharedComponentData
@@ -48,10 +46,10 @@ namespace Unity.ECS
         {
             if (newData.Equals(default(T)))
                 return 0;
-
+            
             var typeIndex = TypeManager.GetTypeIndex<T>();
-
-            return InsertSharedComponentAssumeNonDefault(typeIndex, newData);
+            
+            return InsertSharedComponentAssumeNonDefault(typeIndex, newData.GetHashCode(), newData);
         }
         
         private int FindSharedComponentIndex<T>(int typeIndex, T newData) where T : struct
@@ -59,22 +57,22 @@ namespace Unity.ECS
             if (newData.Equals(default(T)))
                 return 0;
             else
-                return FindNonDefaultSharedComponentIndex(typeIndex, newData);
+                return FindNonDefaultSharedComponentIndex(typeIndex, newData.GetHashCode(), newData);
         }
 
         
-        private int FindNonDefaultSharedComponentIndex(int typeIndex, object newData)
+        private int FindNonDefaultSharedComponentIndex(int typeIndex, int hashCode, object newData)
         {
-          int itemIndex;
+            int itemIndex;
             NativeMultiHashMapIterator<int> iter;
 
-            if (!m_TypeLookup.TryGetFirstValue(typeIndex, out itemIndex, out iter))
+            if (!m_HashLookup.TryGetFirstValue(hashCode, out itemIndex, out iter))
                 return -1;
 
             do
             {
                 var data = m_SharedComponentData[itemIndex];
-                if (data != null)
+                if (data != null && m_SharedComponentType[itemIndex] == typeIndex)
                 {
                     if (newData.Equals(data))
                     {
@@ -82,20 +80,20 @@ namespace Unity.ECS
                     }
                 }
             }
-            while (m_TypeLookup.TryGetNextValue(out itemIndex, ref iter));
+            while (m_HashLookup.TryGetNextValue(out itemIndex, ref iter));
 
             return -1;
         }
         
         
-        int InsertSharedComponentAssumeNonDefault(int typeIndex, object newData)
+        int InsertSharedComponentAssumeNonDefault(int typeIndex, int hashCode, object newData)
         {
-            int index = FindNonDefaultSharedComponentIndex(typeIndex, newData);
+            int index = FindNonDefaultSharedComponentIndex(typeIndex, hashCode, newData);
 
             if (-1 == index)
             {
                 index = m_SharedComponentData.Count;
-                m_TypeLookup.Add(typeIndex, index);
+                m_HashLookup.Add(hashCode, index);
                 m_SharedComponentData.Add(newData);
                 m_SharedComponentRefCount.Add(1);
                 m_SharedComponentVersion.Add(1);
@@ -146,13 +144,14 @@ namespace Unity.ECS
                 return;
 
             var typeIndex = m_SharedComponentType[index];
-
+            var hashCode = m_SharedComponentData[index].GetHashCode();
+            
             m_SharedComponentData[index] = null;
             m_SharedComponentType[index] = -1;
 
             int itemIndex;
             NativeMultiHashMapIterator<int> iter;
-            if (!m_TypeLookup.TryGetFirstValue(typeIndex, out itemIndex, out iter))
+            if (!m_HashLookup.TryGetFirstValue(hashCode, out itemIndex, out iter))
                 return;
 
             do
@@ -160,10 +159,10 @@ namespace Unity.ECS
                 if (itemIndex != index)
                     continue;
 
-                m_TypeLookup.Remove(iter);
+                m_HashLookup.Remove(iter);
                 break;
             }
-            while (m_TypeLookup.TryGetNextValue(out itemIndex, ref iter));
+            while (m_HashLookup.TryGetNextValue(out itemIndex, ref iter));
         }
 
         
@@ -175,7 +174,8 @@ namespace Unity.ECS
                 if (srcIndex == 0)
                     continue;
 
-                int dstIndex = InsertSharedComponentAssumeNonDefault(srcSharedComponents.m_SharedComponentType[srcIndex], srcSharedComponents.m_SharedComponentData[srcIndex]);
+                var srcData = srcSharedComponents.m_SharedComponentData[srcIndex];
+                int dstIndex = InsertSharedComponentAssumeNonDefault(srcSharedComponents.m_SharedComponentType[srcIndex], srcData.GetHashCode(), srcData);
                 srcSharedComponents.RemoveReference(srcIndex);
 
                 sharedComponentIndices[i] = dstIndex;

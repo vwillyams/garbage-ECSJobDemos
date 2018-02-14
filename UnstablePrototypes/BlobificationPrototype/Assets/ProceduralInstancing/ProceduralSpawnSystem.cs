@@ -1,12 +1,12 @@
-﻿using System;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using Unity.ECS;
-using Unity.ECS.Rendering;
 using UnityEngine.Profiling;
+using UnityEngine.ECS.MeshInstancedShim;
+using UnityEngine.ECS.Transform;
 
 public struct ProceduralChunkScene : ISharedComponentData
 {
@@ -260,7 +260,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
             
             for (int i = 0; i != entities.Length; i++)
             {
-                InstanceRendererTransform transform;
+                TransformMatrix transform;
                 transform.matrix = Matrix4x4.Translate(SpawnLocations[i].Position);
                 EntityTransaction.SetComponentData(entities[i], transform);
             }

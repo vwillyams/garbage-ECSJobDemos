@@ -1,10 +1,10 @@
-﻿using System.Reflection;
-using System;
+﻿using System;
+using System.Reflection;
 using System.Collections.Generic;
 
 namespace Unity.ECS
 {
-    internal static class ComponentSystemInjection
+    static class ComponentSystemInjection
     {
         public static string GetFieldString(FieldInfo info)
         {
@@ -47,7 +47,7 @@ namespace Unity.ECS
             outInjectFromEntityData = new InjectFromEntityData(injectFromEntity.ToArray(), injectFromFixedArray.ToArray());
         }
 
-        private static void ValidateNoStaticInjectDependencies(Type type)
+        static void ValidateNoStaticInjectDependencies(Type type)
         {
 #if UNITY_EDITOR
             var fields = type.GetFields(BindingFlags.Static | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic);
@@ -61,7 +61,7 @@ namespace Unity.ECS
 #endif
         }
 
-        private static void InjectConstructorDependencies(ScriptBehaviourManager manager, World world, FieldInfo field)
+        static void InjectConstructorDependencies(ScriptBehaviourManager manager, World world, FieldInfo field)
         {
             if (field.FieldType.IsSubclassOf(typeof(ScriptBehaviourManager)))
             {

@@ -1,4 +1,4 @@
-using UnityEngine.ECS;
+using Unity.ECS;
 using Unity.Mathematics;
 
 public struct PositionComponentData : IComponentData

@@ -1,9 +1,11 @@
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.ECS;
 
 using Unity.Multiplayer;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+
+using PlayerState = PlayerStateComponentData.PlayerState;
 
 namespace Asteriods.Client
 {
@@ -15,6 +17,16 @@ namespace Asteriods.Client
             public ComponentDataArray<PlayerTagComponentData> self;
             public ComponentDataArray<PlayerInputComponentData> input;
         }
+
+        struct Player
+        {
+            public int Length;
+            public ComponentDataArray<PlayerStateComponentData> state;
+            public ComponentDataArray<PlayerTagComponentData> self;
+        }
+
+        [Inject]
+        Player player;
 
         [Inject]
         SerializableData data;
@@ -38,6 +50,18 @@ namespace Asteriods.Client
 
         unsafe override protected void OnUpdate()
         {
+            if (player.Length == 0 || player.state[0].State < (int)PlayerState.Loading)
+                return;
+
+            if (player.state[0].State == (int)PlayerState.Loading)
+            {
+                var bw = new ByteWriter(m_Buffer.GetUnsafePtr(), m_Buffer.Length);
+                bw.Write((byte)AsteroidsProtocol.ReadyReq);
+
+                m_NetworkClient.WriteMessage(m_Buffer.Slice(0, bw.GetBytesWritten()));
+                return;
+            }
+
             if (data.Length == 0)
                 return;
 
@@ -45,11 +69,13 @@ namespace Asteriods.Client
             {
                 for (int i = 0; i < data.Length; ++i)
                 {
+                    /*
                     if (data.input[i].left == 0 &&
                         data.input[i].right == 0 &&
                         data.input[i].shoot == 0 &&
                         data.input[i].thrust == 0)
                         continue;
+                    */
                     command.InputCommands.Add(data.input[i]);
                 }
                 if (command.InputCommands.Length == 0)

@@ -28,7 +28,7 @@ namespace TwoStickPureExample
                 return;
 
             float cooldown = m_State.Cooldown[0].Value;
- 
+
             cooldown = Mathf.Max(0.0f, m_State.Cooldown[0].Value - Time.deltaTime);
             bool spawn = cooldown <= 0.0f;
 

@@ -1,15 +1,20 @@
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.ECS;
 
 using Unity.Multiplayer;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+
+using PlayerState = PlayerStateComponentData.PlayerState;
 
 namespace Asteriods.Server
 {
     public class NetworkMessageSystem : ComponentSystem
     {
         public NativeQueue<DespawnCommand> DespawnQueue;
+
+        [Inject]
+        NetworkStateSystem m_NetworkStateSystem;
 
         [Inject]
         SpawnSystem m_SpawnSystem;
@@ -49,6 +54,7 @@ namespace Asteriods.Server
                 m_Buffer.Dispose();
         }
 
+
         unsafe override protected void OnUpdate()
         {
             using (var snapshot = new Snapshot(0, Allocator.Temp))
@@ -73,9 +79,28 @@ namespace Asteriods.Server
                 bw.Write((byte)AsteroidsProtocol.Snapshot);
                 snapshot.Serialize(ref bw);
 
-                //Debug.Log(bw.GetBytesWritten());
                 var slice = m_Buffer.Slice(0, bw.GetBytesWritten());
                 m_NetworkServer.WriteMessage(slice);
+            }
+
+            int id;
+            Entity e;
+            while (m_NetworkStateSystem.PlayerTryGetReady(out id, out e))
+            {
+                var bw = new ByteWriter(m_Buffer.GetUnsafePtr(), m_Buffer.Length);
+                bw.Write((byte)AsteroidsProtocol.ReadyRsp);
+                var rsp = new ReadyRsp();
+
+                var nid = EntityManager.GetComponentData<NetworkIdCompmonentData>(e);
+                rsp.NetworkId = nid.id;
+                Debug.Log("responding to netid " + nid.id + " con id " + id);
+
+                rsp.Serialize(ref bw);
+
+                m_NetworkServer.WriteMessage(m_Buffer.Slice(0, bw.GetBytesWritten()), id);
+
+                m_SpawnSystem.SpawnPlayer(e);
+                EntityManager.SetComponentData<PlayerStateComponentData>(e, new PlayerStateComponentData(PlayerState.Playing));
             }
         }
     }

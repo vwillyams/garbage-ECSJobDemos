@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.ECS;
 
 public class WorldBootstrap
 {

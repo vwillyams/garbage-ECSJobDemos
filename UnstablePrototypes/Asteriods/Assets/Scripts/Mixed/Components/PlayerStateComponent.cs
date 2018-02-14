@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.ECS;
 
 public struct EntityTypeComponentData : IComponentData
 {
@@ -11,6 +11,10 @@ public struct PlayerStateComponentData : IComponentData
     public enum PlayerState
     {
         None,
+        Connecting,
+        Loading,
+        Ready,
+        Playing,
         Alive,
         Dead
     }

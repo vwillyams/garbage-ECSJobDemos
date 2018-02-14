@@ -53,7 +53,7 @@ namespace Unity.ECS
         ArchetypeManager                  m_ArchetypeManager;
         EntityGroupManager                m_GroupManager;
 
-        static SharedComponentDataManager m_SharedComponentManager;
+        private SharedComponentDataManager        m_SharedComponentManager;
 
         EntityTransaction                 m_EntityTransaction;
 
@@ -71,9 +71,7 @@ namespace Unity.ECS
             m_Entities = (EntityDataManager*)UnsafeUtility.Malloc(sizeof(EntityDataManager), 64, Allocator.Persistent);
             m_Entities->OnCreate(capacity);
 
-            if (m_SharedComponentManager == null)
-                m_SharedComponentManager = new SharedComponentDataManager();
-            m_SharedComponentManager.Retain();
+            m_SharedComponentManager = new SharedComponentDataManager();
 
             m_ArchetypeManager = new ArchetypeManager(m_SharedComponentManager);
             ComponentJobSafetyManager = new ComponentJobSafetyManager();
@@ -98,8 +96,7 @@ namespace Unity.ECS
             m_GroupManager.Dispose(); m_GroupManager = null;
             m_EntityTransaction.OnDestroyManager();
 
-            if (m_SharedComponentManager.Release())
-                m_SharedComponentManager = null;
+            m_SharedComponentManager.Dispose();
 
             UnsafeUtility.Free(m_CachedComponentTypeArray, Allocator.Persistent);
             m_CachedComponentTypeArray = null;
@@ -445,7 +442,7 @@ namespace Unity.ECS
             return m_Entities->GetComponentTypeOrderVersion(TypeManager.GetTypeIndex<T>());
         }
 
-        public static int GetSharedComponentOrderVersion<T>(T sharedComponent) where T : struct, ISharedComponentData
+        public int GetSharedComponentOrderVersion<T>(T sharedComponent) where T : struct, ISharedComponentData
         {
             return m_SharedComponentManager.GetSharedComponentVersion(sharedComponent);
         }
@@ -497,8 +494,8 @@ namespace Unity.ECS
             BeforeStructuralChange();
             srcEntities.BeforeStructuralChange();
 
-            ArchetypeManager.MoveChunks(srcEntities.m_ArchetypeManager, srcEntities.m_Entities, m_ArchetypeManager, m_GroupManager, m_SharedComponentManager, m_Entities);
-
+            ArchetypeManager.MoveChunks(srcEntities.m_ArchetypeManager, srcEntities.m_Entities, srcEntities.m_SharedComponentManager, m_ArchetypeManager, m_GroupManager, m_SharedComponentManager, m_Entities, m_SharedComponentManager);
+            
             //@TODO: Need to incrmeent the component versions based the moved chunks...
         }
 

@@ -526,12 +526,25 @@ namespace Unity.ECS
                 {
                     int* tempAlloc = stackalloc int[newType->NumSharedComponents];
                     sharedComponentDataIndices = tempAlloc;
+
+                    int srcIndex = 0;
+                    int dstIndex = 0;
                     for (var t = 0; t < archetype->TypesCount; ++t)
                     {
-                        if (archetype->Types[t].TypeIndex == componentType.TypeIndex)
-                            ++removedTypes;
-                        else
-                            sharedComponentDataIndices[t - removedTypes] = oldSharedComponentDataIndices[t];
+                        if (archetype->SharedComponentOffset[t] != -1)
+                        {
+                            if (archetype->Types[t].TypeIndex == componentType.TypeIndex)
+                            {
+                                srcIndex++;
+                            }
+                            else
+                            {
+                                sharedComponentDataIndices[dstIndex] = oldSharedComponentDataIndices[srcIndex];
+                                srcIndex++;
+                                dstIndex++;
+                            }
+                                
+                        }
                     }
                 }
                 else

@@ -6,7 +6,6 @@
     "com.unity.collections",
     "com.unity.ecs",
     "com.unity.ecs.boids",
-    "com.unity.ecs.boids2d",
     "com.unity.ecs.meshiinstancedshim",
     "com.unity.ecs.simplebounds",
     "com.unity.ecs.simplemovement",

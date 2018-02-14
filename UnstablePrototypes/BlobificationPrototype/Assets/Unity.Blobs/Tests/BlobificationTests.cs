@@ -3,8 +3,8 @@ using NUnit.Framework;
 using System;
 using Unity.Collections;
 using Unity.Jobs;
-using UnityEngine.ECS;
-using UnityEngine.ECS.Tests;
+using Unity.ECS;
+using Unity.ECS.Tests;
 
 public class BlobTests : ECSTestsFixture
 {

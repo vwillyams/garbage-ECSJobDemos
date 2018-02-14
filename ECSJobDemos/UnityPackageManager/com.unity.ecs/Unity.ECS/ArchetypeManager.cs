@@ -175,7 +175,6 @@ namespace Unity.ECS
         public ArchetypeManager(SharedComponentDataManager sharedComponentManager)
         {
             m_SharedComponentManager = sharedComponentManager;
-            m_SharedComponentManager.Retain();
             m_TypeLookup = new NativeMultiHashMap<uint, IntPtr>(256, Allocator.Persistent);
 
             m_EmptyChunkPool = (UnsafeLinkedListNode*)m_ArchetypeChunkAllocator.Allocate(sizeof(UnsafeLinkedListNode), UnsafeUtility.AlignOf<UnsafeLinkedListNode>());
@@ -210,7 +209,6 @@ namespace Unity.ECS
 
             m_TypeLookup.Dispose();
             m_ArchetypeChunkAllocator.Dispose();
-            m_SharedComponentManager.Release();
         }
 
         public void AddManagedObjectModificationListener(Archetype* archetype, int typeIdx, IManagedObjectModificationListener listener)
@@ -631,7 +629,7 @@ namespace Unity.ECS
             SetManagedObject(chunk, typeOfs, index, val);
         }
 
-        public static void MoveChunks(ArchetypeManager srcArchetypeManager, EntityDataManager* srcEntityDataManager, ArchetypeManager dstArchetypeManager, EntityGroupManager dstGroupManager, SharedComponentDataManager dstSharedComponentDataManager, EntityDataManager* dstEntityDataManager)
+        public static void MoveChunks(ArchetypeManager srcArchetypeManager, EntityDataManager* srcEntityDataManager, SharedComponentDataManager srcSharedComponents, ArchetypeManager dstArchetypeManager, EntityGroupManager dstGroupManager, SharedComponentDataManager dstSharedComponentDataManager, EntityDataManager* dstEntityDataManager, SharedComponentDataManager dstSharedComponents)
         {
             var entitiesArray = new NativeArray<Entity>(Chunk.kMaximumEntitiesPerChunk, Allocator.Temp);
             var entitiesPtr = (Entity*) entitiesArray.GetUnsafePtr();
@@ -647,12 +645,15 @@ namespace Unity.ECS
 
                     for (var c = srcArchetype->ChunkList.Begin;c != srcArchetype->ChunkList.End;c = c->Next)
                     {
-                        var chunk = (Chunk*) c;
-
+                        Chunk* chunk = (Chunk*) c;
+                        
                         EntityDataManager.FreeDataEntitiesInChunk(srcEntityDataManager, chunk, chunk->Count);
                         dstEntityDataManager->AllocateEntities(dstArchetype, chunk, 0, chunk->Count, entitiesPtr);
 
                         chunk->Archetype = dstArchetype;
+                        
+                        if (dstArchetype->NumSharedComponents > 0)
+                            dstSharedComponents.MoveSharedComponents(srcSharedComponents, chunk->SharedComponentValueArray, dstArchetype->NumSharedComponents);
                     }
 
                     //@TODO: Patch Entity references in IComponentData...

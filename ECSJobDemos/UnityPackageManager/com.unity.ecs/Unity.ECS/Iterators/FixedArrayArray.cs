@@ -1,6 +1,7 @@
-﻿using Unity.Collections;
+﻿using System;
+
+using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using System;
 
 namespace Unity.ECS
 {
@@ -8,23 +9,23 @@ namespace Unity.ECS
 	[NativeContainerSupportsMinMaxWriteRestriction]
 	public unsafe struct FixedArrayArray<T> where T : struct
 	{
-	    private ComponentChunkCache  	m_Cache;
-	    private ComponentChunkIterator  m_Iterator;
-	    private int                     m_CachedFixedArrayLength;
-	    private readonly int                     m_Length;
+	    ComponentChunkCache  	m_Cache;
+	    ComponentChunkIterator  m_Iterator;
+	    int                     m_CachedFixedArrayLength;
+	    readonly int                     m_Length;
 
 
-        #if ENABLE_UNITY_COLLECTIONS_CHECKS
-	    private readonly int                      	m_MinIndex;
-	    private readonly int                      	m_MaxIndex;
-	    private readonly AtomicSafetyHandle       	m_Safety;
-        #endif
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+	    readonly int                      	m_MinIndex;
+	    readonly int                      	m_MaxIndex;
+	    readonly AtomicSafetyHandle       	m_Safety;
+#endif
 
-		#if ENABLE_UNITY_COLLECTIONS_CHECKS
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal FixedArrayArray(ComponentChunkIterator iterator, int length, AtomicSafetyHandle safety)
-		#else
+#else
         internal FixedArrayArray(ComponentChunkIterator iterator, int length)
-		#endif
+#endif
 		{
             m_Length = length;
             m_Iterator = iterator;
@@ -72,7 +73,7 @@ namespace Unity.ECS
 		}
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-	    private void FailOutOfRangeError(int index)
+	    void FailOutOfRangeError(int index)
 		{
 			//@TODO: Make error message utility and share with NativeArray...
 			if (index < Length && (m_MinIndex != 0 || m_MaxIndex != Length - 1))

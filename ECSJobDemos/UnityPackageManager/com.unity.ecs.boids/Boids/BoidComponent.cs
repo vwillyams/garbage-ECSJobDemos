@@ -1,8 +1,19 @@
-﻿using Unity.ECS;
+﻿using System;
+using Unity.ECS;
 
 namespace UnityEngine.ECS.Boids
 {
-    public struct Boid : IComponentData { }
+    [Serializable]
+    public struct Boid : ISharedComponentData
+    {
+        public float cellRadius;
+        public float separationWeight;
+        public float alignmentWeight;
+        public float targetWeight;
+        public float obstacleWeight;
+        public float obstacleAversionDistance;
+        public float rotationalSpeed; 
+    }
 
-    public class BoidComponent : ComponentDataWrapper<Boid> { }
+    public class BoidComponent : SharedComponentDataWrapper<Boid> { }
 }

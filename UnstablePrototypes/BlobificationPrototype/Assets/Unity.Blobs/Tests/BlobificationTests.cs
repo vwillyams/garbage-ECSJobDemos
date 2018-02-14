@@ -3,8 +3,8 @@ using NUnit.Framework;
 using System;
 using Unity.Collections;
 using Unity.Jobs;
-using UnityEngine.ECS;
-using UnityEngine.ECS.Tests;
+using Unity.ECS;
+using Unity.ECS.Tests;
 
 public class BlobTests : ECSTestsFixture
 {
@@ -186,7 +186,7 @@ public class BlobTests : ECSTestsFixture
         for (int i = 0; i != 32; i++)
         {
             var entity = m_Manager.CreateEntity();
-            m_Manager.AddComponent(entity, new ComponentWithBlobData() {blobAsset = blob});
+            m_Manager.AddComponentData(entity, new ComponentWithBlobData() {blobAsset = blob});
         }
         return blob;
     }

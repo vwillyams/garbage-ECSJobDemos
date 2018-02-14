@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657892, g: 0.4964127, b: 0.5748172, a: 1}
+  m_IndirectSpecularColor: {r: 0.4465934, g: 0.49642956, b: 0.57482487, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -210,6 +210,7 @@ GameObject:
   - component: {fileID: 353120080}
   - component: {fileID: 353120084}
   - component: {fileID: 353120085}
+  - component: {fileID: 353120086}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -249,7 +250,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 60
+  field of view: 76.12168
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -273,8 +274,8 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 353120079}
-  m_LocalRotation: {x: -0.0752696, y: -0.9016183, z: 0.38845614, w: -0.17470205}
-  m_LocalPosition: {x: -2.9, y: -61.3, z: 7.2}
+  m_LocalRotation: {x: 0.70710695, y: 0.000000029802322, z: -0.00000008195639, w: 0.7071067}
+  m_LocalPosition: {x: 0.95103896, y: -17.68449, z: 3.347549}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -303,6 +304,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5bf10cdea1344482e91a4f2b58506b77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!95 &353120086
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 353120079}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 670687399a8b7470bada680d9bf478f9, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!1 &590449115
 GameObject:
   m_ObjectHideFlags: 0

@@ -2,7 +2,7 @@ using Unity;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.ECS;
 using Unity.Mathematics;
 
 
@@ -26,14 +26,14 @@ namespace Asteriods.Client
             public ComponentDataArray<RotationComponentData> rotation;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         Bullet bullets;
 
         struct LineList
         {
             public ComponentDataArray<LineRendererComponentData> line;
         }
-        [InjectComponentGroup]
+        [Inject]
         LineList m_LineListComponent;
         override protected void OnUpdate()
         {

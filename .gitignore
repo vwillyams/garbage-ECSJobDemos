@@ -23,6 +23,18 @@ UnstablePrototypes/Asteriods/StandardBuild
 UnstablePrototypes/Asteriods/obj
 UnstablePrototypes/Asteriods/.editorconfig
 
+UnstablePrototypes/GalacticConquest/.vscode
+UnstablePrototypes/GalacticConquest/.vs
+UnstablePrototypes/GalacticConquest/Assets/Plugins*
+UnstablePrototypes/GalacticConquest/Library
+UnstablePrototypes/GalacticConquest/Temp
+UnstablePrototypes/GalacticConquest/obj
+UnstablePrototypes/GalacticConquest/.editorconfig
+
+StressTest/Assets/Plugins*
+StressTest/Library
+StressTest/Temp
+StressTest/obj
 
 *.idea
 *.csproj
@@ -31,3 +43,6 @@ UnstablePrototypes/Asteriods/.editorconfig
 *.userprefs
 *.app
 *.VC.*
+.DS_Store
+
+.vs/

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.PostProcessing
@@ -98,8 +99,8 @@ namespace UnityEngine.PostProcessing
             //  - Depth of Field
             //  - Motion blur
             //  - Grain
-            m_RenderingInSceneView = UnityEditor.SceneView.currentDrawingSceneView != null
-                && UnityEditor.SceneView.currentDrawingSceneView.camera == m_Camera;
+            m_RenderingInSceneView = SceneView.currentDrawingSceneView != null
+                && SceneView.currentDrawingSceneView.camera == m_Camera;
 #endif
 
             // Prepare context

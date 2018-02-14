@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.ECS;
 
 using Unity.Multiplayer;
 using Unity.Collections;
@@ -25,10 +25,10 @@ namespace Asteriods.Client
             public ComponentDataArray<PlayerTagComponentData> self;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         Player player;
 
-        [InjectComponentGroup]
+        [Inject]
         SerializableData data;
 
         NetworkClient m_NetworkClient;

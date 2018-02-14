@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.ECS;
 
 using Unity.Collections;
 using Unity.Multiplayer;
@@ -138,7 +138,7 @@ namespace Asteriods.Server
             }
 
             //m_NetworkMessageSystem.DespawnQueue.;
-            var nid = EntityManager.GetComponent<NetworkIdCompmonentData>(e);
+            var nid = EntityManager.GetComponentData<NetworkIdCompmonentData>(e);
             m_NetworkMessageSystem.DespawnQueue.Enqueue(new DespawnCommand(nid.id));
 
             m_Connections.Remove(nc.Id);
@@ -151,9 +151,9 @@ namespace Asteriods.Server
 
             var id = GetNextNetworkId();
 
-            EntityManager.SetComponent<EntityTypeComponentData>(e, new EntityTypeComponentData() { Type = (int)SpawnType.Ship });
-            EntityManager.SetComponent<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(id));
-            EntityManager.SetComponent<PlayerStateComponentData>(e, new PlayerStateComponentData(PlayerState.Loading));
+            EntityManager.SetComponentData<EntityTypeComponentData>(e, new EntityTypeComponentData() { Type = (int)SpawnType.Ship });
+            EntityManager.SetComponentData<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(id));
+            EntityManager.SetComponentData<PlayerStateComponentData>(e, new PlayerStateComponentData(PlayerState.Loading));
 
             m_Connections.TryAdd(nc.Id, e);
         }
@@ -164,11 +164,11 @@ namespace Asteriods.Server
             if (!m_Connections.TryGetValue(nc.Id, out e))
                 return;
 
-            var s = EntityManager.GetComponent<PlayerStateComponentData>(e);
+            var s = EntityManager.GetComponentData<PlayerStateComponentData>(e);
             if (s.State >= (int)PlayerState.Ready)
                 return;
 
-            EntityManager.SetComponent<PlayerStateComponentData>(e, new PlayerStateComponentData(PlayerState.Ready));
+            EntityManager.SetComponentData<PlayerStateComponentData>(e, new PlayerStateComponentData(PlayerState.Ready));
             m_ReadyConnections.Enqueue(nc.Id);
         }
 
@@ -178,7 +178,7 @@ namespace Asteriods.Server
             if (!m_Connections.TryGetValue(nid, out e))
                 return;
 
-            EntityManager.SetComponent<PlayerInputComponentData>(e, input);
+            EntityManager.SetComponentData<PlayerInputComponentData>(e, input);
         }
 
         public bool PlayerTryGetReady(out int id, out Entity e)

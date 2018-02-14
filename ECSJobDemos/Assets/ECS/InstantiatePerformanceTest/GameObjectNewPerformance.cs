@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.ECS;
+﻿using UnityEngine;
 using UnityEngine.Profiling;
 
 public class GameObjectNewPerformance : MonoBehaviour

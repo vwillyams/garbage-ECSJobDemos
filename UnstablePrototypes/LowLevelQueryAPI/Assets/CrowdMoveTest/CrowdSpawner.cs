@@ -22,7 +22,7 @@ public class CrowdSpawner : MonoBehaviour
             go.name = "CrowdAgent_" + (totalAgentCount + i);
             var entity = go.GetComponent<GameObjectEntity>().Entity;
             var agent = new CrowdAgent { type = 0, worldPosition = pos };
-            entityManager.SetComponent(entity, agent);
+            entityManager.SetComponentData(entity, agent);
             var agentNavigator = new CrowdAgentNavigator
             {
                 active = true,
@@ -31,7 +31,7 @@ public class CrowdSpawner : MonoBehaviour
                 destinationInView = false,
                 destinationReached = true
             };
-            entityManager.SetComponent(entity, agentNavigator);
+            entityManager.SetComponentData(entity, agentNavigator);
             entityManager.AddComponent(entity, ComponentType.FixedArray(typeof(PolygonID), k_MaxPathSize));
         }
         totalAgentCount += newAgents;

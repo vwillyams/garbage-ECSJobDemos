@@ -2,7 +2,7 @@ using Unity;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.ECS;
 using Unity.Mathematics;
 
 namespace Asteriods.Client
@@ -17,13 +17,10 @@ namespace Asteriods.Client
             public ComponentDataArray<ShipTagComponentData> self;
             [ReadOnly]
             public ComponentDataArray<ShipStateComponentData> state;
-
-            //[ReadOnly]
-            //public ComponentDataArray<PlayerInputComponentData> input;
             public ComponentDataArray<ParticleEmitterComponentData> emitter;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         Spaceships spaceships;
 
         override protected void OnUpdate()
@@ -48,22 +45,20 @@ namespace Asteriods.Client
             public int Length;
             [ReadOnly]
             public ComponentDataArray<ShipTagComponentData> self;
-            //[ReadOnly]
-            //public ComponentDataArray<PlayerInputComponentData> input;
             [ReadOnly]
             public ComponentDataArray<PositionComponentData> position;
             [ReadOnly]
             public ComponentDataArray<RotationComponentData> rotation;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         Spaceships spaceships;
 
         struct LineList
         {
             public ComponentDataArray<LineRendererComponentData> line;
         }
-        [InjectComponentGroup]
+        [Inject]
         LineList m_LineListComponent;
         override protected void OnUpdate()
         {

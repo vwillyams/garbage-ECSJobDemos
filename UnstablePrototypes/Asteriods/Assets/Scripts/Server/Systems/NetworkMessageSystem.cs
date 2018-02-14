@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.ECS;
 
 using Unity.Multiplayer;
 using Unity.Collections;
@@ -31,7 +31,7 @@ namespace Asteriods.Server
             public ComponentDataArray<EntityTypeComponentData> types;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         NetworkedItems networkedItems;
 
         override protected void OnCreateManager(int capacity)
@@ -79,7 +79,6 @@ namespace Asteriods.Server
                 bw.Write((byte)AsteroidsProtocol.Snapshot);
                 snapshot.Serialize(ref bw);
 
-                //Debug.Log(bw.GetBytesWritten());
                 var slice = m_Buffer.Slice(0, bw.GetBytesWritten());
                 m_NetworkServer.WriteMessage(slice);
             }
@@ -92,7 +91,7 @@ namespace Asteriods.Server
                 bw.Write((byte)AsteroidsProtocol.ReadyRsp);
                 var rsp = new ReadyRsp();
 
-                var nid = EntityManager.GetComponent<NetworkIdCompmonentData>(e);
+                var nid = EntityManager.GetComponentData<NetworkIdCompmonentData>(e);
                 rsp.NetworkId = nid.id;
                 Debug.Log("responding to netid " + nid.id + " con id " + id);
 
@@ -101,7 +100,7 @@ namespace Asteriods.Server
                 m_NetworkServer.WriteMessage(m_Buffer.Slice(0, bw.GetBytesWritten()), id);
 
                 m_SpawnSystem.SpawnPlayer(e);
-                EntityManager.SetComponent<PlayerStateComponentData>(e, new PlayerStateComponentData(PlayerState.Playing));
+                EntityManager.SetComponentData<PlayerStateComponentData>(e, new PlayerStateComponentData(PlayerState.Playing));
             }
         }
     }

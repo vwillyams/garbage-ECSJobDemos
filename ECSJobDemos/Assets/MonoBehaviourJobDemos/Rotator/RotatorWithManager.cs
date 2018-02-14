@@ -1,8 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using Unity.Collections;
+﻿using Unity.Collections;
+using Unity.ECS;
 using Unity.Jobs;
+using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.ECS;
 using UnityEngine.Jobs;

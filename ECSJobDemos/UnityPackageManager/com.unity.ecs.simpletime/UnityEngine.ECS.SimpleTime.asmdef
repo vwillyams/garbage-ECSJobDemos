@@ -1,0 +1,13 @@
+{
+    "name": "UnityEngine.ECS.SimpleTime",
+    "references": [
+        "UnityEngine.ECS",
+        "Unity.Collections",
+        "Unity.Burst",
+        "Unity.Jobs",
+        "Unity.Mathematics"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": []
+}

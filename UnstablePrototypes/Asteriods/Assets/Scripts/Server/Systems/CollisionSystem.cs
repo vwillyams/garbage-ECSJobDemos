@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.ECS;
 
 using Unity.Collections;
 using Unity.Mathematics;
@@ -19,7 +19,7 @@ namespace Asteriods.Server
             public EntityArray entities;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         PlayerColliders playerColliders;
 
         struct BulletColliders
@@ -32,7 +32,7 @@ namespace Asteriods.Server
             public EntityArray entities;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         BulletColliders bulletColliders;
 
         struct AsteroidColliders
@@ -45,7 +45,7 @@ namespace Asteriods.Server
             public EntityArray entities;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         AsteroidColliders asteroidColliders;
 
         // NOTE (michalb): queue is needed because we cant add a component during iteration of the CompoenentGroup
@@ -121,6 +121,7 @@ namespace Asteriods.Server
             job.asteroidColliders = asteroidData;
             job.damageQueue = concurrentDamageQueue;
             var jobHandle = job.Schedule(bulletColliders.Length, 8);
+            jobHandle.Complete();
 
             // check all asteroids against players (TODO: add asteroids VS. asteroids when required).
             for (int i = 0; i < asteroidColliders.Length; ++i)
@@ -141,7 +142,6 @@ namespace Asteriods.Server
                 }
             }
 
-            jobHandle.Complete();
             asteroidData.Dispose();
 
             if (damageQueue.Count > 0)
@@ -151,7 +151,7 @@ namespace Asteriods.Server
                 {
                     var e = damageQueue.Dequeue();
                     if (!EntityManager.HasComponent<DamageCompmonentData>(e))
-                        EntityManager.AddComponent<DamageCompmonentData>(e, new DamageCompmonentData(100));
+                        EntityManager.AddComponentData(e, new DamageCompmonentData(100));
                 }
                 Debug.Assert(damageQueue.Count == 0);
             }

@@ -1,11 +1,12 @@
-﻿using UnityEngine;
-using Unity.Collections;
+﻿using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
+using Unity.ECS;
 using Unity.Jobs;
+using Unity.Jobs.LowLevel.Unsafe;
+using Unity.Mathematics;
+using UnityEngine;
 using UnityEngine.ECS;
 using UnityEngine.Profiling;
-using Unity.Collections.LowLevel.Unsafe;
-using Unity.Mathematics;
-using Unity.Jobs.LowLevel.Unsafe;
 
 // 64 + 16 + 12 + 128 + 4 + 4 = 228 bytes
 
@@ -190,15 +191,11 @@ public class ECSIteratePerformance : MonoBehaviour
 
 	CustomSampler setupSampler;
     CustomSampler memcpySampler;
-    CustomSampler instantiateMemcpySampler ;
-    CustomSampler instantiateMemcpyReplicateSampler ;
 	CustomSampler iterateArraySampler;
 
     void Awake()
 	{
 		setupSampler = CustomSampler.Create("Setup");
-	    instantiateMemcpySampler = CustomSampler.Create("InstantiateTest - Memcpy");
-	    instantiateMemcpyReplicateSampler = CustomSampler.Create("InstantiateTest - MemcpyReplicate");
         memcpySampler = CustomSampler.Create("Iterate - Memcpy");
 		iterateArraySampler = CustomSampler.Create("Iterate - float[]");
     }

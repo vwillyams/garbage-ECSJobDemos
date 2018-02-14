@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.ECS;
 
 using Unity.Collections;
 using Unity.Mathematics;
@@ -22,7 +22,7 @@ namespace Asteriods.Server
             ComponentDataArray<PlayerTagComponentData> tags;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         Spaceships spaceships;
 
         override protected void OnCreateManager(int capacity)

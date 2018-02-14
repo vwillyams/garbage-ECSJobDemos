@@ -1,7 +1,7 @@
 variables:
-  UNITY_EXECUTABLE_PATH_MAC: "/Applications/Unity-af7ec7d6be7f/Unity.app/Contents/MacOS/Unity"
+  UNITY_EXECUTABLE_PATH_MAC: "/Applications/Unity-89b72894c1ef/Unity.app/Contents/MacOS/Unity"
   UNITY_EXECUTABLE_PATH_LINUX: "/home/builduser/buildslave/unity/build/build/LinuxEditor/Unity"
-  UNITY_EXECUTABLE_PATH_WINDOWS: "C:/Program Files/Unity-af7ec7d6be7f/Editor/Unity.exe"
+  UNITY_EXECUTABLE_PATH_WINDOWS: "C:/Program Files/Unity-89b72894c1ef/Editor/Unity.exe"
 
 stages:
   - build
@@ -82,7 +82,6 @@ standalone:windows:
 
 test:windows:
   stage: test
-  allow_failure: true
   tags:
     - windows
   script:

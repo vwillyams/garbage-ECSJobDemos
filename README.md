@@ -1,14 +1,16 @@
 # Intro
 
+(Early) [documentation](Documentation/index.md)
+
 Talk about C# job system & Entity Component System at Unite Austin
 https://youtu.be/tGmnZdY5Y-E
 
 # unity build (compatible with "stable" branch)
-Required build: http://beta.unity3d.com/download/af7ec7d6be7f/download.html
-unity source code branch: scripting/jobsystem/combined
+https://beta.unity3d.com/download/89b72894c1ef/download.html
+unity source code revision: 89b72894c1ef branch: 2018.1/scripting/jobsystem/playground
 
 # active development against master
-unity source code branch: scripting/jobsystem/combined
+unity source code branch: 2018.1/scripting/jobsystem/playground
 NOTE: (Navmesh & Raycast job API's is included in this branch)
 
 # ECSJobDemos
@@ -21,3 +23,7 @@ Project folder for basic ECS dev & tests
 
 # AI Navigation & Batched raycasts
 Sandbox project for pathfinding: [LowLevelQueryAPI](UnstablePrototypes/LowLevelQueryAPI).
+<!--stackedit_data:
+eyJoaXN0b3J5IjpbMjQ5NjkxMjUzLDE4MjYzOTE4MzcsMjQ5Nj
+kxMjUzLDE4MjYzOTE4MzddfQ==
+-->

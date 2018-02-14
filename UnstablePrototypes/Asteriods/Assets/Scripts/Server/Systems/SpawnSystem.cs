@@ -1,4 +1,4 @@
-using UnityEngine.ECS;
+using Unity.ECS;
 using UnityEngine;
 
 using Unity.Collections;
@@ -29,10 +29,10 @@ namespace Asteriods.Server
             public ComponentDataArray<AsteroidTagComponentData> asteroids;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         Players players;
 
-        [InjectComponentGroup]
+        [Inject]
         Asteroid asteroids;
 
         public NativeQueue<SpawnCommand> OutgoingSpawnQueue;
@@ -88,12 +88,12 @@ namespace Asteriods.Server
 
                 var e = EntityManager.CreateEntity(ServerSettings.Instance().asteroidArchetype);
 
-                EntityManager.SetComponent<PositionComponentData>(e, pos);
-                EntityManager.SetComponent<RotationComponentData>(e, rot);
-                EntityManager.SetComponent<EntityTypeComponentData>(e, new EntityTypeComponentData(){ Type = (int)SpawnType.Asteroid});
-                EntityManager.SetComponent<VelocityComponentData>(e, new VelocityComponentData(dx, dy));
-                EntityManager.SetComponent<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(id));
-                EntityManager.SetComponent<CollisionSphereComponentData>(
+                EntityManager.SetComponentData(e, pos);
+                EntityManager.SetComponentData(e, rot);
+                EntityManager.SetComponentData(e, new EntityTypeComponentData(){ Type = (int)SpawnType.Asteroid});
+                EntityManager.SetComponentData(e, new VelocityComponentData(dx, dy));
+                EntityManager.SetComponentData(e, new NetworkIdCompmonentData(id));
+                EntityManager.SetComponentData(
                     e, new CollisionSphereComponentData(ServerSettings.Instance().asteroidRadius));
 
                 OutgoingSpawnQueue.Enqueue(
@@ -109,9 +109,9 @@ namespace Asteriods.Server
 
                 var e = EntityManager.CreateEntity(ServerSettings.Instance().bulletArchetype);
 
-                EntityManager.SetComponent<EntityTypeComponentData>(e, new EntityTypeComponentData(){ Type = (int)SpawnType.Bullet});
-                EntityManager.SetComponent<PositionComponentData>(e, p);
-                EntityManager.SetComponent<RotationComponentData>(e, r);
+                EntityManager.SetComponentData(e, new EntityTypeComponentData(){ Type = (int)SpawnType.Bullet});
+                EntityManager.SetComponentData(e, p);
+                EntityManager.SetComponentData(e, r);
 
                 float angle = r.angle;
                 float dx = 0;
@@ -120,10 +120,10 @@ namespace Asteriods.Server
                 dx -= math.sin(math.radians(angle)) * ServerSettings.Instance().bulletVelocity;
                 dy += math.cos(math.radians(angle)) * ServerSettings.Instance().bulletVelocity;
 
-                EntityManager.SetComponent(e, new BulletAgeComponentData(1.5f));
-                EntityManager.SetComponent<VelocityComponentData>(e, new VelocityComponentData(dx, dy));
-                EntityManager.SetComponent<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(bsi.nid));
-                EntityManager.SetComponent<CollisionSphereComponentData>(
+                EntityManager.SetComponentData(e, new BulletAgeComponentData(1.5f));
+                EntityManager.SetComponentData<VelocityComponentData>(e, new VelocityComponentData(dx, dy));
+                EntityManager.SetComponentData<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(bsi.nid));
+                EntityManager.SetComponentData<CollisionSphereComponentData>(
                     e, new CollisionSphereComponentData(ServerSettings.Instance().bulletRadius));
 
                 OutgoingSpawnQueue.Enqueue(
@@ -138,14 +138,14 @@ namespace Asteriods.Server
             var pos = new PositionComponentData(GameSettings.mapWidth / 2, GameSettings.mapHeight / 2);
             var rot = new RotationComponentData(90f);
 
-            EntityManager.SetComponent<PositionComponentData>(e, pos);
-            EntityManager.SetComponent<RotationComponentData>(e, rot);
-            EntityManager.SetComponent<VelocityComponentData>(e, new VelocityComponentData(0, 0));
+            EntityManager.SetComponentData<PositionComponentData>(e, pos);
+            EntityManager.SetComponentData<RotationComponentData>(e, rot);
+            EntityManager.SetComponentData<VelocityComponentData>(e, new VelocityComponentData(0, 0));
 
-            var netId = EntityManager.GetComponent<NetworkIdCompmonentData>(e);
+            var netId = EntityManager.GetComponentData<NetworkIdCompmonentData>(e);
             Debug.Log("spawn plaeyr for netid " + netId.id);
 
-            EntityManager.AddComponent<CollisionSphereComponentData>(
+            EntityManager.AddComponentData<CollisionSphereComponentData>(
                 e, new CollisionSphereComponentData(ServerSettings.Instance().playerRadius));
 
             OutgoingSpawnQueue.Enqueue(

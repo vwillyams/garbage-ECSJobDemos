@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.ECS;
 
 using Unity.Multiplayer;
 using Unity.GameCode;
@@ -21,7 +21,7 @@ namespace Asteriods.Client
             public ComponentDataArray<PlayerTagComponentData> self;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         Player player;
 
         [Inject]
@@ -50,7 +50,7 @@ namespace Asteriods.Client
             var player = EntityManager.CreateEntity(ClientSettings.Instance().playerClientArchetype);
             var ship = EntityManager.CreateEntity(ClientSettings.Instance().playerBaseShipArchetype);
 
-            EntityManager.SetComponent<ShipInfoComponentData>(player, new ShipInfoComponentData(ship));
+            EntityManager.SetComponentData<ShipInfoComponentData>(player, new ShipInfoComponentData(ship));
 
             m_StateMachine.SwitchTo(PlayerState.None);
         }

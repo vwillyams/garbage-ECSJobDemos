@@ -1,15 +1,19 @@
-﻿using UnityEngine;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.ECS;
+using Unity.Jobs.LowLevel.Unsafe;
+using UnityEngine;
 using UnityEngine.ECS;
 using UnityEngine.Profiling;
-using Unity.Jobs.LowLevel.Unsafe;
 
 public class ECSInstantiatePerformance : MonoBehaviour
 {
 	CustomSampler setupSampler;
     CustomSampler instantiateSamplerBatch;
     CustomSampler destroySamplerBatch;
+
+    CustomSampler createEntitySamplerBatch;
+    CustomSampler destroyEntitySamplerBatch;
 
     CustomSampler instantiateSamplerSingle;
     CustomSampler destroySamplerSingle;
@@ -24,6 +28,9 @@ public class ECSInstantiatePerformance : MonoBehaviour
 
 	    instantiateSamplerBatch = CustomSampler.Create("InstantiateTest (Batch)");
 	    destroySamplerBatch = CustomSampler.Create("DestroyTest (Batch)");
+
+	    createEntitySamplerBatch = CustomSampler.Create("CreateEntityTest (Batch)");
+	    destroyEntitySamplerBatch = CustomSampler.Create("DestroyEntityTest(Batch)");
 
 	    instantiateSamplerSingle = CustomSampler.Create("InstantiateTest (Single)");
 	    destroySamplerSingle = CustomSampler.Create("DestroyTest (Single)");
@@ -89,7 +96,8 @@ public class ECSInstantiatePerformance : MonoBehaviour
 
 		var entityManager = World.Active.GetOrCreateManager<EntityManager>();
 
-	    var archetype = entityManager.CreateEntity(typeof(Component128Bytes), typeof(Component12Bytes), typeof(Component64Bytes), typeof(Component16Bytes), typeof(Component4Bytes), typeof(Component4BytesDst));
+	    var archetype = entityManager.CreateArchetype(typeof(Component128Bytes), typeof(Component12Bytes), typeof(Component64Bytes), typeof(Component16Bytes), typeof(Component4Bytes), typeof(Component4BytesDst));
+	    var srcEntity = entityManager.CreateEntity(archetype );
 		var group = entityManager.CreateComponentGroup(typeof(Component4Bytes), typeof(Component4BytesDst));
 
 	    var instances = new NativeArray<Entity>(PerformanceTestConfiguration.InstanceCount - 1, Allocator.Temp);
@@ -100,7 +108,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 	    for (int i = 0; i < PerformanceTestConfiguration.Iterations; i++)
 	    {
 	        instantiateSamplerBatch.Begin ();
-	        entityManager.Instantiate (archetype, instances);
+	        entityManager.Instantiate (srcEntity, instances);
 	        instantiateSamplerBatch.End();
 
 	        destroySamplerBatch.Begin ();
@@ -113,7 +121,7 @@ public class ECSInstantiatePerformance : MonoBehaviour
 	    {
 	        instantiateSamplerSingle.Begin ();
 	        for (int k=0;k != instances.Length;k++)
-	            instances[k] = entityManager.Instantiate (archetype);
+	            instances[k] = entityManager.Instantiate (srcEntity);
 	        instantiateSamplerSingle.End();
 
 	        destroySamplerSingle.Begin ();
@@ -122,9 +130,25 @@ public class ECSInstantiatePerformance : MonoBehaviour
 	        destroySamplerSingle.End ();
 	    }
 
-		setupSampler.Begin();
-		entityManager.DestroyEntity (archetype);
+	    setupSampler.Begin();
+	    entityManager.DestroyEntity (srcEntity);
+	    setupSampler.End();
 
+	    for (int i = 0; i < PerformanceTestConfiguration.Iterations; i++)
+	    {
+	        createEntitySamplerBatch.Begin ();
+	        entityManager.CreateEntity(archetype, instances);
+	        createEntitySamplerBatch.End();
+
+	        destroyEntitySamplerBatch.Begin ();
+	        entityManager.DestroyEntity (instances);
+	        destroyEntitySamplerBatch.End ();
+	    }
+
+	    setupSampler.Begin();
+
+	    
+	    
 		instances.Dispose ();
 		group.Dispose();
 

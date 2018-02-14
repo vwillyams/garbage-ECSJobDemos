@@ -1,4 +1,4 @@
-using UnityEngine.ECS;
+using Unity.ECS;
 
 public struct PlayerTagComponentData : IComponentData
 {

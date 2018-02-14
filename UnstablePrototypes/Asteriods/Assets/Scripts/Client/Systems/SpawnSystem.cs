@@ -1,5 +1,5 @@
 //#define STRESS_TEST_PARTICLES
-using UnityEngine.ECS;
+using Unity.ECS;
 using UnityEngine;
 
 using Unity.Collections;
@@ -16,7 +16,7 @@ namespace Asteriods.Client
             ComponentDataArray<PlayerTagComponentData> tags;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         Player player;
 
         public NativeQueue<SpawnCommand> SpawnQueue;
@@ -79,17 +79,17 @@ namespace Asteriods.Client
                     case SpawnType.Asteroid:
                     {
                         Entity e = EntityManager.CreateEntity(ClientSettings.Instance().asteroidClientArchetype);
-                        EntityManager.SetComponent<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(cmd.id));
-                        EntityManager.SetComponent(e, new PositionComponentData(cmd.position.x, cmd.position.y));
-                        EntityManager.SetComponent(e, new RotationComponentData(cmd.rotation.angle));
+                        EntityManager.SetComponentData(e, new NetworkIdCompmonentData(cmd.id));
+                        EntityManager.SetComponentData(e, new PositionComponentData(cmd.position.x, cmd.position.y));
+                        EntityManager.SetComponentData(e, new RotationComponentData(cmd.rotation.angle));
                         NetworkIdLookup.TryAdd(cmd.id, e);
                     } break;
                     case SpawnType.Bullet:
                     {
                         Entity e = EntityManager.CreateEntity(ClientSettings.Instance().bulletClientArchetype);
-                        EntityManager.SetComponent<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(cmd.id));
-                        EntityManager.SetComponent(e, new PositionComponentData(cmd.position.x, cmd.position.y));
-                        EntityManager.SetComponent(e, new RotationComponentData(cmd.rotation.angle));
+                        EntityManager.SetComponentData(e, new NetworkIdCompmonentData(cmd.id));
+                        EntityManager.SetComponentData(e, new PositionComponentData(cmd.position.x, cmd.position.y));
+                        EntityManager.SetComponentData(e, new RotationComponentData(cmd.rotation.angle));
                         NetworkIdLookup.TryAdd(cmd.id, e);
 
                     } break;
@@ -98,19 +98,19 @@ namespace Asteriods.Client
                         Entity e;
                         if (cmd.id == nid && NetworkIdLookup.TryGetValue(cmd.id, out e))
                         {
-                            EntityManager.SetComponent<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(cmd.id));
-                            EntityManager.AddComponent(e, new PositionComponentData(cmd.position.x, cmd.position.y));
-                            EntityManager.AddComponent(e, new RotationComponentData(cmd.rotation.angle));
-                            EntityManager.AddComponent(e, ClientSettings.Instance().playerPrefab.GetComponent<ParticleEmitterComponent>().Value);
+                            EntityManager.SetComponentData<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(cmd.id));
+                            EntityManager.AddComponentData(e, new PositionComponentData(cmd.position.x, cmd.position.y));
+                            EntityManager.AddComponentData(e, new RotationComponentData(cmd.rotation.angle));
+                            EntityManager.AddComponentData(e, ClientSettings.Instance().playerPrefab.GetComponent<ParticleEmitterComponent>().Value);
                         }
                         else
                         {
                             e = EntityManager.CreateEntity(ClientSettings.Instance().shipArchetype);
 
-                            EntityManager.SetComponent<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(cmd.id));
-                            EntityManager.SetComponent(e, new PositionComponentData(cmd.position.x, cmd.position.y));
-                            EntityManager.SetComponent(e, new RotationComponentData(cmd.rotation.angle));
-                            EntityManager.SetComponent(e, ClientSettings.Instance().playerPrefab.GetComponent<ParticleEmitterComponent>().Value);
+                            EntityManager.SetComponentData<NetworkIdCompmonentData>(e, new NetworkIdCompmonentData(cmd.id));
+                            EntityManager.SetComponentData(e, new PositionComponentData(cmd.position.x, cmd.position.y));
+                            EntityManager.SetComponentData(e, new RotationComponentData(cmd.rotation.angle));
+                            EntityManager.SetComponentData(e, ClientSettings.Instance().playerPrefab.GetComponent<ParticleEmitterComponent>().Value);
                             NetworkIdLookup.TryAdd(cmd.id, e);
                         }
                     } break;
@@ -120,10 +120,7 @@ namespace Asteriods.Client
 
         public void SetPlayerShip(Entity e, int nid)
         {
-            //Entity e = EntityManager.CreateEntity(ClientSettings.Instance().playerBaseShipArchetype);
             NetworkIdLookup.TryAdd(nid, e);
-
-            //return e;
         }
     }
 }

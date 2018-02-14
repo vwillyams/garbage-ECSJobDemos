@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.ECS;
 
 using Unity.Multiplayer;
 
@@ -39,9 +39,6 @@ public class ClientSettings
         playerBaseShipArchetype = manager.CreateArchetype(
             typeof(ShipTagComponentData),
             typeof(ShipStateComponentData),
-            //typeof(PositionComponentData),
-            //typeof(RotationComponentData),
-            //typeof(ParticleEmitterComponentData),
             typeof(NetworkIdCompmonentData));
 
         shipArchetype = manager.CreateArchetype(

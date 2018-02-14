@@ -1,8 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Jobs;
+using UnityEngine;
+using UnityEngine.Profiling;
 
 public class NativeMultiHashMapPerf : MonoBehaviour
 {
@@ -31,16 +30,16 @@ public class NativeMultiHashMapPerf : MonoBehaviour
 	void Update ()
 	{
 		m_hashMap.Clear();
-		UnityEngine.Profiling.Profiler.BeginSample("MultiHashMapST");
+		Profiler.BeginSample("MultiHashMapST");
 		for (int i = 0; i < m_hashMap.Capacity / 2; ++i)
 			m_hashMap.Add(i, i*2);
-		UnityEngine.Profiling.Profiler.EndSample();
+		Profiler.EndSample();
 		m_hashMap.Clear();
-		UnityEngine.Profiling.Profiler.BeginSample("MultiHashMapST.Concurrent");
+		Profiler.BeginSample("MultiHashMapST.Concurrent");
 		NativeMultiHashMap<int, int>.Concurrent chm = m_hashMap;
 		for (int i = 0; i < chm.Capacity / 2; ++i)
 			chm.Add(i, i*i);
-		UnityEngine.Profiling.Profiler.EndSample();
+		Profiler.EndSample();
 		m_hashMap.Clear();
 		var qjob = new NativeMultiHashMapAdd();
 		qjob.m_hashMap = m_hashMap;

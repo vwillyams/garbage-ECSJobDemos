@@ -104,11 +104,20 @@ public class BuildWindow : EditorWindow
 
     void BuildForTarget(string name)
     {
+        // TODO: Build target selection UI
+        BuildTarget target = BuildTarget.StandaloneWindows;
+        Debug.Log("Current Platform: " + Application.platform);
+
+        if(Application.platform == RuntimePlatform.OSXEditor)
+            target = BuildTarget.StandaloneOSX;
+
+        Debug.Log("Target: " + target);
+
         try
         {
             File.Copy(name + "_defines", "Assets/mcs.rsp");
             BuildOptions options = BuildOptions.Development | BuildOptions.AllowDebugging;
-            BuildTools.BuildGame(StandardBuildPath + "/" + name, "_" + name + ".exe", BuildTarget.StandaloneWindows64, options, name + "_build");
+            BuildTools.BuildGame(StandardBuildPath + "/" + name, "_" + name + ".exe", target, options, name + "_build");
             File.Delete("Assets/mcs.rsp");
         }
         catch(Exception e)

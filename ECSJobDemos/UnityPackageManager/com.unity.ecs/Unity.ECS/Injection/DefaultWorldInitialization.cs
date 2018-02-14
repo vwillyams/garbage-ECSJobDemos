@@ -1,16 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
+using System.Collections.Generic;
 
 namespace Unity.ECS
 {
-    internal static class DefaultWorldInitialization
+    static class DefaultWorldInitialization
     {
-        private const string defaultWorldName = "Default World";
-        private static World m_CreatedWorld;
+        const string defaultWorldName = "Default World";
+        static World m_CreatedWorld;
 
-        private static void DomainUnloadShutdown()
+        static void DomainUnloadShutdown()
         {
             if (World.Active == m_CreatedWorld)
             {
@@ -25,7 +24,7 @@ namespace Unity.ECS
             }
         }
 
-        private static void GetBehaviourManagerAndLogException(World world, Type type)
+        static void GetBehaviourManagerAndLogException(World world, Type type)
         {
             try
             {

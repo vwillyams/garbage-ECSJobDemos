@@ -2,17 +2,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+
 using Unity.Burst;
-using Unity.Collections.LowLevel.Unsafe;
+using Unity.Assertions;
 using Unity.Collections;
-using UnityEngine;
-using UnityEngine.Assertions;
+using Unity.Collections.LowLevel.Unsafe;
+
+using Component = UnityEngine.Component;
 
 namespace Unity.ECS
 {
     public class ComponentGroupArrayStaticCache
     {
-        public readonly Type                  CachedType;
+        public readonly Type                    CachedType;
 
         internal readonly ComponentType[]       ComponentTypes;
         internal readonly int[]                 ComponentFieldOffsets;
@@ -21,8 +23,8 @@ namespace Unity.ECS
         internal readonly ComponentGroup        ComponentGroup;
         internal readonly ComponentJobSafetyManager SafetyManager;
 
-        private int                            ReaderCount;
-        private int                            WriterCount;
+        int                                     m_ReaderCount;
+        int                                     m_WriterCount;
 
         public ComponentGroupArrayStaticCache(Type type, EntityManager entityManager)
         {
@@ -107,11 +109,11 @@ namespace Unity.ECS
 
     [NativeContainer]
     [NativeContainerSupportsMinMaxWriteRestriction]
-    internal unsafe struct ComponentGroupArrayData
+    unsafe struct ComponentGroupArrayData
     {
         public const int kMaxStream = 6;
 
-        private struct ComponentGroupStream
+        struct ComponentGroupStream
         {
             public byte*     CachedPtr;
             public int       SizeOf;
@@ -119,39 +121,40 @@ namespace Unity.ECS
             public ushort    TypeIndexInArchetype;
         }
 
-        private fixed byte                  m_Caches[16 * kMaxStream];
+        fixed byte                  m_Caches[16 * kMaxStream];
 
-        private readonly int                         m_ComponentDataCount;
-        private readonly int                         m_ComponentCount;
+        readonly int                m_ComponentDataCount;
+        readonly int                m_ComponentCount;
 
         // The following 3 fields must not be renamed, unless JobReflectionData.cpp is changed accordingly.
         // TODO: make JobDebugger logic more solid, either by using codegen proxies or attributes.
-        public readonly int                  m_Length;
-        public readonly int                  m_MinIndex;
-        public readonly int                  m_MaxIndex;
+        public readonly int         m_Length;
+        public readonly int         m_MinIndex;
+        public readonly int         m_MaxIndex;
 
         public int                  CacheBeginIndex;
         public int                  CacheEndIndex;
 
-        private ComponentChunkIterator      m_ChunkIterator;
-        private fixed int                   m_ComponentTypes[kMaxStream];
+        ComponentChunkIterator      m_ChunkIterator;
+        fixed int                   m_ComponentTypes[kMaxStream];
 
         // The following fields must not be renamed, unless JobReflectionData.cpp is changed accordingly.
         // TODO: make JobDebugger logic more solid, either by using codegen proxies or attributes.
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        private readonly int                         m_SafetyReadOnlyCount;
-        private readonly int                         m_SafetyReadWriteCount;
+        readonly int                m_SafetyReadOnlyCount;
+        readonly int                m_SafetyReadWriteCount;
 #pragma warning disable 414
-        private AtomicSafetyHandle          m_Safety0;
-        private AtomicSafetyHandle          m_Safety1;
-        private AtomicSafetyHandle          m_Safety2;
-        private AtomicSafetyHandle          m_Safety3;
-        private AtomicSafetyHandle          m_Safety4;
-        private AtomicSafetyHandle          m_Safety5;
+        AtomicSafetyHandle          m_Safety0;
+        AtomicSafetyHandle          m_Safety1;
+        AtomicSafetyHandle          m_Safety2;
+        AtomicSafetyHandle          m_Safety3;
+        AtomicSafetyHandle          m_Safety4;
+        AtomicSafetyHandle          m_Safety5;
 #pragma warning restore
 #endif
 
-        [NativeSetClassTypeToNullOnSchedule] private readonly ArchetypeManager            m_ArchetypeManager;
+        [NativeSetClassTypeToNullOnSchedule]
+        readonly ArchetypeManager   m_ArchetypeManager;
 
         public ComponentGroupArrayData(ComponentGroupArrayStaticCache staticCache)
         {
@@ -358,8 +361,8 @@ namespace Unity.ECS
 
         public unsafe struct ComponentGroupEnumerator<U> : IEnumerator<U> where U : struct
         {
-            private ComponentGroupArrayData     m_Data;
-            private int                         m_Index;
+            ComponentGroupArrayData     m_Data;
+            int                         m_Index;
 
             internal ComponentGroupEnumerator(ComponentGroupArrayData arrayData)
             {
@@ -373,19 +376,16 @@ namespace Unity.ECS
             {
                 m_Index++;
 
-                if (m_Index < m_Data.CacheBeginIndex || m_Index >= m_Data.CacheEndIndex)
-                {
-                    if (m_Index >= m_Data.m_Length)
-                        return false;
+                if (m_Index >= m_Data.CacheBeginIndex && m_Index < m_Data.CacheEndIndex)
+                    return true;
 
-                    m_Data.CheckAccess();
-                    m_Data.UpdateCache(m_Index);
-                    return true;
-                }
-                else
-                {
-                    return true;
-                }
+                if (m_Index >= m_Data.m_Length)
+                    return false;
+
+                m_Data.CheckAccess();
+                m_Data.UpdateCache(m_Index);
+
+                return true;
             }
 
             public void Reset()

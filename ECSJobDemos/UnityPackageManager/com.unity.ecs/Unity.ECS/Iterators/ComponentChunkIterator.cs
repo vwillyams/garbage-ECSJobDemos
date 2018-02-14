@@ -1,10 +1,9 @@
-﻿using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine.Assertions;
-using UnityEngine.ECS;
+﻿using Unity.Assertions;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace Unity.ECS
 {
-    internal unsafe struct ComponentChunkCache
+    unsafe struct ComponentChunkCache
     {
         [NativeDisableUnsafePtrRestriction]
         public void*                           CachedPtr;
@@ -13,19 +12,22 @@ namespace Unity.ECS
         public int                             CachedSizeOf;
     }
 
-    internal unsafe struct ComponentChunkIterator
+    unsafe struct ComponentChunkIterator
     {
-        [NativeDisableUnsafePtrRestriction] private readonly MatchingArchetypes*                     m_FirstMatchingArchetype;
-        [NativeDisableUnsafePtrRestriction] private MatchingArchetypes*                     m_CurrentMatchingArchetype;
+        [NativeDisableUnsafePtrRestriction]
+        readonly MatchingArchetypes*            m_FirstMatchingArchetype;
+        [NativeDisableUnsafePtrRestriction]
+        MatchingArchetypes*                     m_CurrentMatchingArchetype;
         public int                              IndexInComponentGroup;
-        private int                                     m_CurrentArchetypeIndex;
-        [NativeDisableUnsafePtrRestriction] private Chunk*                                  m_CurrentChunk;
-        private int                                     m_CurrentChunkIndex;
+        int                                     m_CurrentArchetypeIndex;
+        [NativeDisableUnsafePtrRestriction]
+        Chunk*                                  m_CurrentChunk;
+        int                                     m_CurrentChunkIndex;
 
 
         [NativeDisableUnsafePtrRestriction]
         // The first element is the amount of filtered components
-        private readonly int*                                    m_filteredSharedComponents;
+        readonly int*                                    m_FilteredSharedComponents;
 
 
         internal static bool ChunkMatchesFilter(MatchingArchetypes* match, Chunk* chunk, int* filteredSharedComponents)
@@ -54,7 +56,7 @@ namespace Unity.ECS
             return m_CurrentChunk->SharedComponentValueArray[sharedComponentOffset];
         }
 
-        private void MoveToNextMatchingChunk()
+        void MoveToNextMatchingChunk()
         {
             var m = m_CurrentMatchingArchetype;
             var c = m_CurrentChunk;
@@ -78,7 +80,7 @@ namespace Unity.ECS
                     c = (Chunk*)m->Archetype->ChunkList.Begin;
                     e = (Chunk*)m->Archetype->ChunkList.End;
                 }
-            } while (!(ChunkMatchesFilter(m, c, m_filteredSharedComponents) && (c->Capacity > 0)));
+            } while (!(ChunkMatchesFilter(m, c, m_FilteredSharedComponents) && (c->Capacity > 0)));
             m_CurrentMatchingArchetype = m;
             m_CurrentChunk = c;
         }
@@ -91,7 +93,7 @@ namespace Unity.ECS
             m_CurrentArchetypeIndex = 0;
             m_CurrentChunk = firstChunk;
             m_CurrentChunkIndex = 0;
-            m_filteredSharedComponents = filteredSharedComponents;
+            m_FilteredSharedComponents = filteredSharedComponents;
         }
 
         public object GetManagedObject(ArchetypeManager typeMan, int typeIndexInArchetype, int cachedBeginIndex, int index)
@@ -116,7 +118,7 @@ namespace Unity.ECS
         {
             Assert.IsTrue(-1 != IndexInComponentGroup);
 
-            if (m_filteredSharedComponents == null)
+            if (m_FilteredSharedComponents == null)
             {
                 if (index < m_CurrentArchetypeIndex)
                 {
@@ -159,7 +161,7 @@ namespace Unity.ECS
 
                     m_CurrentChunk = (Chunk*) m_CurrentMatchingArchetype->Archetype->ChunkList.Begin;
                     m_CurrentChunkIndex = 0;
-                    if (!(ChunkMatchesFilter(m_CurrentMatchingArchetype, m_CurrentChunk, m_filteredSharedComponents) &&
+                    if (!(ChunkMatchesFilter(m_CurrentMatchingArchetype, m_CurrentChunk, m_FilteredSharedComponents) &&
                           (m_CurrentChunk->Count > 0)))
                     {
                         MoveToNextMatchingChunk();

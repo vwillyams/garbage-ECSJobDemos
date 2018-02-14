@@ -1,17 +1,17 @@
 ﻿using Unity.Collections.LowLevel.Unsafe;
-using Unity.ECS;
 
-namespace UnityEngine.ECS
+namespace Unity.ECS
 {
     [NativeContainer]
     public unsafe struct ComponentDataFromEntity<T> where T : struct, IComponentData
     {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        private readonly AtomicSafetyHandle      m_Safety;
+        readonly AtomicSafetyHandle      m_Safety;
 #endif
-        [NativeDisableUnsafePtrRestriction] private readonly EntityDataManager*      m_Entities;
-        private readonly int                     m_TypeIndex;
-        private int                     m_TypeLookupCache;
+        [NativeDisableUnsafePtrRestriction]
+        readonly EntityDataManager*      m_Entities;
+        readonly int                     m_TypeIndex;
+        int                     m_TypeLookupCache;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal ComponentDataFromEntity(int typeIndex, EntityDataManager* entityData, AtomicSafetyHandle safety)

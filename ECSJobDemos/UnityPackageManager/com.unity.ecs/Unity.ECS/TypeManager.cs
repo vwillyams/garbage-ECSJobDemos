@@ -1,20 +1,19 @@
 ﻿using System;
 using System.Threading;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine.ECS;
 
 namespace Unity.ECS
 {
-    internal static unsafe class TypeManager
+    static unsafe class TypeManager
     {
-        private struct StaticTypeLookup<T>
+        struct StaticTypeLookup<T>
         {
             public static int typeIndex;
         }
 
         internal enum TypeCategory
         {
-            IComponentData,
+            ComponentData,
             ISharedComponentData,
             OtherValueType,
             EntityData,
@@ -35,24 +34,24 @@ namespace Unity.ECS
             public readonly TypeCategory  Category;
         }
 
-        private static ComponentType[]    m_Types;
-        private static volatile int       m_Count;
-        private static SpinLock           m_CreateTypeLock;
+        static ComponentType[]    s_Types;
+        static volatile int       s_Count;
+        static SpinLock           s_CreateTypeLock;
 
         public const int MaximumTypesCount = 1024 * 10;
 
         public static void Initialize()
         {
-            if (m_Types != null)
+            if (s_Types != null)
                 return;
 
-            m_CreateTypeLock = new SpinLock();
-            m_Types = new ComponentType[MaximumTypesCount];
-            m_Count = 0;
+            s_CreateTypeLock = new SpinLock();
+            s_Types = new ComponentType[MaximumTypesCount];
+            s_Count = 0;
 
-            m_Types[m_Count++] = new ComponentType(null, 0, TypeCategory.IComponentData);
+            s_Types[s_Count++] = new ComponentType(null, 0, TypeCategory.ComponentData);
             // This must always be first so that Entity is always index 0 in the archetype
-            m_Types[m_Count++] = new ComponentType(typeof(Entity), sizeof(Entity), TypeCategory.EntityData);
+            s_Types[s_Count++] = new ComponentType(typeof(Entity), sizeof(Entity), TypeCategory.EntityData);
         }
 
 
@@ -69,49 +68,49 @@ namespace Unity.ECS
 
         public static int GetTypeIndex(Type type)
         {
-            var index = FindTypeIndex(type, m_Count);
+            var index = FindTypeIndex(type, s_Count);
             return index != -1 ? index : CreateTypeIndexThreadSafe(type);
         }
 
-        private static int FindTypeIndex(Type type, int count)
+        static int FindTypeIndex(Type type, int count)
         {
             for (var i = 0; i != count; i++)
             {
-                var c = m_Types[i];
+                var c = s_Types[i];
                 if (c.Type == type)
                     return i;
             }
             return -1;
         }
 
-        private static int CreateTypeIndexThreadSafe(Type type)
+        static int CreateTypeIndexThreadSafe(Type type)
         {
             var lockTaken = false;
             try
             {
-                m_CreateTypeLock.Enter(ref lockTaken);
+                s_CreateTypeLock.Enter(ref lockTaken);
 
                 // After taking the lock, make sure the type hasn't been created
                 // after doing the non-atomic FindTypeIndex
-                var index = FindTypeIndex(type, m_Count);
+                var index = FindTypeIndex(type, s_Count);
                 if (index != -1)
                     return index;
 
                 var compoentType = BuildComponentType(type);
 
-                index = m_Count++;
-                m_Types[index] = compoentType;
+                index = s_Count++;
+                s_Types[index] = compoentType;
 
                 return index;
             }
             finally
             {
                 if (lockTaken)
-                    m_CreateTypeLock.Exit(true);
+                    s_CreateTypeLock.Exit(true);
             }
         }
 
-        private static ComponentType BuildComponentType(Type type)
+        static ComponentType BuildComponentType(Type type)
         {
             var componentSize = 0;
             TypeCategory category;
@@ -125,7 +124,7 @@ namespace Unity.ECS
                     throw new ArgumentException($"{type} is an IComponentData, and thus must be blittable (No managed object is allowed on the struct).");
 #endif
 
-                category = TypeCategory.IComponentData;
+                category = TypeCategory.ComponentData;
                 componentSize = UnsafeUtility.SizeOf(type);
             }
             else if (typeof(ISharedComponentData).IsAssignableFrom(type))
@@ -175,29 +174,29 @@ namespace Unity.ECS
 
         public static bool IsValidComponentTypeForArchetype(int typeIndex, bool isArray)
         {
-            if (m_Types[typeIndex].Category == TypeCategory.OtherValueType)
+            if (s_Types[typeIndex].Category == TypeCategory.OtherValueType)
                 return isArray;
             return !isArray;
         }
 
         public static ComponentType GetComponentType(int typeIndex)
         {
-            return m_Types[typeIndex];
+            return s_Types[typeIndex];
         }
 
         public static ComponentType GetComponentType<T>()
         {
-            return m_Types[GetTypeIndex<T>()];
+            return s_Types[GetTypeIndex<T>()];
         }
 
         public static Type GetType(int typeIndex)
         {
-            return m_Types[typeIndex].Type;
+            return s_Types[typeIndex].Type;
         }
 
         public static int GetTypeCount()
         {
-            return m_Count;
+            return s_Count;
         }
     }
 }

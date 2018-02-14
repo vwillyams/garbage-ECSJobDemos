@@ -5,7 +5,6 @@ using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using Unity.ECS;
 using UnityEngine;
-using UnityEngine.ECS;
 using Unity.Jobs;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;

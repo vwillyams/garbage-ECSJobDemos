@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
-using UnityEngine.ECS;
 using UnityEngine.Experimental.LowLevel;
 
 namespace Unity.ECS
@@ -47,9 +45,9 @@ namespace Unity.ECS
     public static class ScriptBehaviourUpdateOrder
     {
         // FIXME: HACK! - mono 4.6 has problems invoking virtual methods as delegates from native, so wrap the invocation in a non-virtual class
-        private class DummyDelagateWrapper
+        class DummyDelagateWrapper
         {
-            private readonly ScriptBehaviourManager m_Manager;
+            readonly ScriptBehaviourManager m_Manager;
 
             public DummyDelagateWrapper(ScriptBehaviourManager man)
             {
@@ -62,19 +60,19 @@ namespace Unity.ECS
             }
         }
 
-        private class ScriptBehaviourGroup
+        class ScriptBehaviourGroup
         {
             public readonly List<Type> Managers = new List<Type>();
             public readonly HashSet<Type> UpdateBefore = new HashSet<Type>();
             public readonly HashSet<Type> UpdateAfter = new HashSet<Type>();
 
-            private Type groupType;
-            private List<ScriptBehaviourGroup> parents = new List<ScriptBehaviourGroup>();
-            private readonly List<ScriptBehaviourGroup> groups = new List<ScriptBehaviourGroup>();
+            Type m_GroupType;
+            List<ScriptBehaviourGroup> m_Parents = new List<ScriptBehaviourGroup>();
+            readonly List<ScriptBehaviourGroup> m_Groups = new List<ScriptBehaviourGroup>();
 
             public ScriptBehaviourGroup(Type grpType, IDictionary<Type, ScriptBehaviourGroup> allGroups, HashSet<Type> circularCheck = null)
             {
-                groupType = grpType;
+                m_GroupType = grpType;
 
                 var attribs = grpType.GetCustomAttributes(typeof(UpdateAfterAttribute), true);
                 foreach (var attr in attribs)
@@ -89,14 +87,14 @@ namespace Unity.ECS
                     UpdateBefore.Add(attribDep.SystemType);
                 }
 
-                allGroups.Add(groupType, this);
+                allGroups.Add(m_GroupType, this);
 
-                attribs = groupType.GetCustomAttributes(typeof(UpdateInGroupAttribute), true);
+                attribs = m_GroupType.GetCustomAttributes(typeof(UpdateInGroupAttribute), true);
                 foreach (var attr in attribs)
                 {
                     if (circularCheck == null)
                     {
-                        circularCheck = new HashSet<Type> {groupType};
+                        circularCheck = new HashSet<Type> {m_GroupType};
                     }
                     var parentGrp = attr as UpdateInGroupAttribute;
                     if (!circularCheck.Add(parentGrp.GroupType))
@@ -115,8 +113,8 @@ namespace Unity.ECS
                     if (!allGroups.TryGetValue(parentGrp.GroupType, out parentGroupData))
                         parentGroupData = new ScriptBehaviourGroup(parentGrp.GroupType, allGroups, circularCheck);
                     circularCheck.Remove(parentGrp.GroupType);
-                    parentGroupData.groups.Add(this);
-                    parents.Add(parentGroupData);
+                    parentGroupData.m_Groups.Add(this);
+                    m_Parents.Add(parentGroupData);
 
                     foreach (var dep in parentGroupData.UpdateBefore)
                         UpdateBefore.Add(dep);
@@ -137,7 +135,7 @@ namespace Unity.ECS
                     target.UpdateAfter.Add(manager);
                     managerDep.UpdateBefore.Add(dep);
                 }
-                foreach (var group in groups)
+                foreach (var group in m_Groups)
                     group.AddUpdateBeforeToAllChildBehaviours(target, dependencies);
             }
 
@@ -153,12 +151,12 @@ namespace Unity.ECS
                     target.UpdateBefore.Add(manager);
                     managerDep.UpdateAfter.Add(dep);
                 }
-                foreach (var group in groups)
+                foreach (var group in m_Groups)
                     group.AddUpdateAfterToAllChildBehaviours(target, dependencies);
             }
         }
 
-        private class DependantBehavior
+        class DependantBehavior
         {
             public readonly ScriptBehaviourManager Manager;
             public readonly HashSet<Type> UpdateBefore = new HashSet<Type>();
@@ -188,7 +186,7 @@ namespace Unity.ECS
         }
 
         // Try to find a system of the specified type in the default playerloop and update the min / max insertion position
-        private static void UpdateInsertionPos(DependantBehavior target, Type dep, PlayerLoopSystem defaultPlayerLoop, bool after)
+        static void UpdateInsertionPos(DependantBehavior target, Type dep, PlayerLoopSystem defaultPlayerLoop, bool after)
         {
             var pos = 0;
             foreach (var sys in defaultPlayerLoop.subSystemList)
@@ -243,7 +241,7 @@ namespace Unity.ECS
             // System was not found
         }
 
-        private static void AddDependencies(DependantBehavior targetSystem, IReadOnlyDictionary<Type, DependantBehavior> dependencies, IReadOnlyDictionary<Type, ScriptBehaviourGroup> allGroups, PlayerLoopSystem defaultPlayerLoop)
+        static void AddDependencies(DependantBehavior targetSystem, IReadOnlyDictionary<Type, DependantBehavior> dependencies, IReadOnlyDictionary<Type, ScriptBehaviourGroup> allGroups, PlayerLoopSystem defaultPlayerLoop)
         {
             var target = targetSystem.Manager.GetType();
             var attribs = target.GetCustomAttributes(typeof(UpdateAfterAttribute), true);
@@ -332,7 +330,7 @@ namespace Unity.ECS
             }
         }
 
-        private static Dictionary<Type, DependantBehavior> BuildSystemGraph(IEnumerable<ScriptBehaviourManager> activeManagers, PlayerLoopSystem defaultPlayerLoop)
+        static Dictionary<Type, DependantBehavior> BuildSystemGraph(IEnumerable<ScriptBehaviourManager> activeManagers, PlayerLoopSystem defaultPlayerLoop)
         {
             // Collect all groups and create empty dependency data
             var allGroups = new Dictionary<Type, ScriptBehaviourGroup>();
@@ -367,7 +365,7 @@ namespace Unity.ECS
             return dependencies;
         }
 
-        private static void ValidateAndFixSystemGraph(Dictionary<Type, DependantBehavior> dependencyGraph)
+        static void ValidateAndFixSystemGraph(Dictionary<Type, DependantBehavior> dependencyGraph)
         {
             // Check for simple over constraints on engine systems
             foreach (var typeAndSystem in dependencyGraph)
@@ -432,7 +430,7 @@ namespace Unity.ECS
             }
         }
 
-        private static void ValidateAndFixSingleChainMinPos(DependantBehavior system, IReadOnlyDictionary<Type, DependantBehavior> dependencyGraph, int minInsertPos)
+        static void ValidateAndFixSingleChainMinPos(DependantBehavior system, IReadOnlyDictionary<Type, DependantBehavior> dependencyGraph, int minInsertPos)
         {
             foreach (var nextInChain in system.UpdateBefore)
             {
@@ -450,7 +448,7 @@ namespace Unity.ECS
             }
         }
 
-        private static void ValidateAndFixSingleChainMaxPos(DependantBehavior system, Dictionary<Type, DependantBehavior> dependencyGraph, int maxInsertPos)
+        static void ValidateAndFixSingleChainMaxPos(DependantBehavior system, Dictionary<Type, DependantBehavior> dependencyGraph, int maxInsertPos)
         {
             foreach (var prevInChain in system.UpdateAfter)
             {
@@ -468,7 +466,7 @@ namespace Unity.ECS
             }
         }
 
-        private class InsertionBucket : IComparable
+        class InsertionBucket : IComparable
         {
             public int InsertPos;
             public int InsertSubPos;
@@ -490,7 +488,7 @@ namespace Unity.ECS
             }
         }
 
-        private static void MarkSchedulingAndWaitingJobs(Dictionary<Type, DependantBehavior> dependencyGraph)
+        static void MarkSchedulingAndWaitingJobs(Dictionary<Type, DependantBehavior> dependencyGraph)
         {
             // @TODO: sync rules for read-only
             var schedulers = new HashSet<DependantBehavior>();
@@ -568,7 +566,7 @@ namespace Unity.ECS
             return CreatePlayerLoop(list, defaultPlayerLoop);
         }
 
-        private static List<InsertionBucket> CreateSystemDependencyList(IEnumerable<ScriptBehaviourManager> activeManagers, PlayerLoopSystem defaultPlayerLoop)
+        static List<InsertionBucket> CreateSystemDependencyList(IEnumerable<ScriptBehaviourManager> activeManagers, PlayerLoopSystem defaultPlayerLoop)
         {
             var dependencyGraph = BuildSystemGraph(activeManagers, defaultPlayerLoop);
 
@@ -736,7 +734,7 @@ namespace Unity.ECS
             return new List<InsertionBucket>(insertionBucketDict.Values);
         }
 
-        private static PlayerLoopSystem CreatePlayerLoop(List<InsertionBucket> insertionBuckets, PlayerLoopSystem defaultPlayerLoop)
+        static PlayerLoopSystem CreatePlayerLoop(List<InsertionBucket> insertionBuckets, PlayerLoopSystem defaultPlayerLoop)
         {
             insertionBuckets.Sort();
 

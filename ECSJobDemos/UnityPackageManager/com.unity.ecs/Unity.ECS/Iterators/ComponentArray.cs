@@ -1,15 +1,15 @@
 ﻿using System;
-using UnityEngine;
-using UnityEngine.ECS;
+
+using Component = UnityEngine.Component;
 
 namespace Unity.ECS
 {
 	public struct ComponentArray<T> where T: Component
 	{
-	    private ComponentChunkIterator  m_Iterator;
-	    private ComponentChunkCache 	m_Cache;
-	    private readonly int                     m_Length;
-	    private readonly ArchetypeManager		m_ArchetypeManager;
+	    ComponentChunkIterator  m_Iterator;
+	    ComponentChunkCache 	m_Cache;
+	    readonly int                     m_Length;
+	    readonly ArchetypeManager		m_ArchetypeManager;
 
         internal ComponentArray(ComponentChunkIterator iterator, int length, ArchetypeManager typeMan)
 		{
@@ -50,7 +50,7 @@ namespace Unity.ECS
 			return arr;
 		}
 
-	    private void FailOutOfRangeError(int index)
+	    void FailOutOfRangeError(int index)
 		{
 			throw new IndexOutOfRangeException($"Index {index} is out of range of '{Length}' Length.");
 		}

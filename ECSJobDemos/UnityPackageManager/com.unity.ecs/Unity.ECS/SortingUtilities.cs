@@ -1,8 +1,6 @@
-using UnityEngine.ECS;
-
 namespace Unity.ECS
 {
-    internal struct SortingUtilities
+    struct SortingUtilities
 	{
         public static unsafe void InsertSorted(ComponentType* data, int length, ComponentType newValue)
         {

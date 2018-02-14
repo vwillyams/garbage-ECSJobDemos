@@ -3,7 +3,6 @@ using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Collections;
-using UnityEngine.ECS;
 
 namespace Unity.ECS
 {
@@ -51,11 +50,11 @@ namespace Unity.ECS
             JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray.Length, componentDataArray.Length);
         }
 
-        private struct JobStruct<T, U0>
+        struct JobStruct<T, U0>
             where T : struct, IJobProcessComponentData<U0>
             where U0 : struct, IComponentData
         {
-            private static IntPtr jobReflectionData;
+            static IntPtr s_JobReflectionData;
 
             [NativeMatchesParallelForLength]
             public ComponentDataArray<U0>  ComponentDataArray;
@@ -63,15 +62,15 @@ namespace Unity.ECS
 
             public static IntPtr Initialize()
             {
-                if (jobReflectionData == IntPtr.Zero)
-                    jobReflectionData = JobsUtility.CreateJobReflectionData(typeof(JobStruct<T, U0>), typeof(T), JobType.ParallelFor, (ExecuteJobFunction)Execute);
+                if (s_JobReflectionData == IntPtr.Zero)
+                    s_JobReflectionData = JobsUtility.CreateJobReflectionData(typeof(JobStruct<T, U0>), typeof(T), JobType.ParallelFor, (ExecuteJobFunction)Execute);
 
-                return jobReflectionData;
+                return s_JobReflectionData;
             }
 
-            private delegate void ExecuteJobFunction(ref JobStruct<T, U0> data, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
+            delegate void ExecuteJobFunction(ref JobStruct<T, U0> data, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
-            private static unsafe void Execute(ref JobStruct<T, U0> jobData, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
+            static unsafe void Execute(ref JobStruct<T, U0> jobData, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
                 int begin;
                 int end;
@@ -124,12 +123,12 @@ namespace Unity.ECS
             JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray0.Length, componentDataArray0.Length);
         }
 
-        private struct JobStruct<T, U0, U1>
+        struct JobStruct<T, U0, U1>
             where T : struct, IJobProcessComponentData<U0, U1>
             where U0 : struct, IComponentData
             where U1 : struct, IComponentData
         {
-            private static IntPtr jobReflectionData;
+            static IntPtr s_JobReflectionData;
 
             [NativeMatchesParallelForLength]
             public ComponentDataArray<U0>  ComponentDataArray0;
@@ -139,15 +138,15 @@ namespace Unity.ECS
 
             public static IntPtr Initialize()
             {
-                if (jobReflectionData == IntPtr.Zero)
-                    jobReflectionData = JobsUtility.CreateJobReflectionData(typeof(JobStruct<T, U0, U1>), typeof(T), JobType.ParallelFor, (ExecuteJobFunction)Execute);
+                if (s_JobReflectionData == IntPtr.Zero)
+                    s_JobReflectionData = JobsUtility.CreateJobReflectionData(typeof(JobStruct<T, U0, U1>), typeof(T), JobType.ParallelFor, (ExecuteJobFunction)Execute);
 
-                return jobReflectionData;
+                return s_JobReflectionData;
             }
 
-            private delegate void ExecuteJobFunction(ref JobStruct<T, U0, U1> data, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
+            delegate void ExecuteJobFunction(ref JobStruct<T, U0, U1> data, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
-            private static unsafe void Execute(ref JobStruct<T, U0, U1> jobData, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
+            static unsafe void Execute(ref JobStruct<T, U0, U1> jobData, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
                 int begin;
                 int end;
@@ -186,13 +185,13 @@ namespace Unity.ECS
         where TJob : struct, IAutoComponentSystemJob, IJobProcessComponentData<TComponentData0>
         where TComponentData0 : struct, IComponentData
     {
-        private struct DataGroup
+        struct DataGroup
         {
             internal ComponentDataArray<TComponentData0> Component0;
         }
 
         [Inject]
-        private DataGroup m_Group;
+        DataGroup m_Group;
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
@@ -210,14 +209,14 @@ namespace Unity.ECS
         where TComponentData0 : struct, IComponentData
         where TComponentData1 : struct, IComponentData
     {
-        private struct DataGroup
+        struct DataGroup
         {
             internal ComponentDataArray<TComponentData0> Component0;
             internal ComponentDataArray<TComponentData1> Component1;
         }
 
         [Inject]
-        private DataGroup m_Group;
+        DataGroup m_Group;
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {

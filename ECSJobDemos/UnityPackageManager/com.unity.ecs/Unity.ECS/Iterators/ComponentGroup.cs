@@ -1,21 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+
+using Unity.Jobs;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.Jobs;
-using UnityEngine;
-using UnityEngine.ECS;
-using UnityEngine.Jobs;
+
+
+using Transform = UnityEngine.Transform;
+using Component = UnityEngine.Component;
+using TransformAccessArray = UnityEngine.Jobs.TransformAccessArray;
 
 namespace Unity.ECS
 {
-    internal unsafe class EntityGroupManager : IDisposable
+    unsafe class EntityGroupManager : IDisposable
     {
-        private NativeMultiHashMap<uint, IntPtr>    m_GroupLookup;
-        private ChunkAllocator                      m_GroupDataChunkAllocator;
-        private EntityGroupData*                    m_LastGroupData;
-        private readonly ComponentJobSafetyManager           m_JobSafetyManager;
+        NativeMultiHashMap<uint, IntPtr>    m_GroupLookup;
+        ChunkAllocator                      m_GroupDataChunkAllocator;
+        EntityGroupData*                    m_LastGroupData;
+        readonly ComponentJobSafetyManager  m_JobSafetyManager;
 
         public EntityGroupManager(ComponentJobSafetyManager safetyManager)
         {
@@ -55,12 +58,18 @@ namespace Unity.ECS
 
             for (var i = 0; i != requiredCount;i++)
             {
-                if (requiredTypes[i].AccessModeType == ComponentType.AccessMode.Subtractive)
-                    grp->SubtractiveComponentsCount++;
-                else if (requiredTypes[i].AccessModeType == ComponentType.AccessMode.ReadOnly)
-                    grp->ReaderTypesCount++;
-                else
-                    grp->WriterTypesCount++;
+                switch (requiredTypes[i].AccessModeType)
+                {
+                    case ComponentType.AccessMode.Subtractive:
+                        grp->SubtractiveComponentsCount++;
+                        break;
+                    case ComponentType.AccessMode.ReadOnly:
+                        grp->ReaderTypesCount++;
+                        break;
+                    default:
+                        grp->WriterTypesCount++;
+                        break;
+                }
             }
             grp->ReaderTypes = (int*)m_GroupDataChunkAllocator.Allocate(sizeof(int) * grp->ReaderTypesCount, 4);
             grp->WriterTypes = (int*)m_GroupDataChunkAllocator.Allocate(sizeof(int) * grp->WriterTypesCount, 4);
@@ -69,12 +78,17 @@ namespace Unity.ECS
             var curWriter = 0;
             for (var i = 0; i != requiredCount;i++)
             {
-                if (requiredTypes[i].AccessModeType == ComponentType.AccessMode.Subtractive)
-                {}
-                else if (requiredTypes[i].AccessModeType == ComponentType.AccessMode.ReadOnly)
-                    grp->ReaderTypes[curReader++] = requiredTypes[i].TypeIndex;
-                else
-                    grp->WriterTypes[curWriter++] = requiredTypes[i].TypeIndex;
+                switch (requiredTypes[i].AccessModeType)
+                {
+                    case ComponentType.AccessMode.Subtractive:
+                        break;
+                    case ComponentType.AccessMode.ReadOnly:
+                        grp->ReaderTypes[curReader++] = requiredTypes[i].TypeIndex;
+                        break;
+                    default:
+                        grp->WriterTypes[curWriter++] = requiredTypes[i].TypeIndex;
+                        break;
+                }
             }
 
             grp->RequiredComponents = (ComponentType*)m_GroupDataChunkAllocator.Construct(sizeof(ComponentType) * requiredCount, 4, requiredTypes);
@@ -86,6 +100,7 @@ namespace Unity.ECS
             m_GroupLookup.Add(hash, (IntPtr)grp);
             return new ComponentGroup(grp, m_JobSafetyManager, typeMan);
         }
+
         public void Dispose()
         {
             //@TODO: Need to wait for all job handles to be completed..
@@ -93,13 +108,14 @@ namespace Unity.ECS
             m_GroupLookup.Dispose();
             m_GroupDataChunkAllocator.Dispose();
         }
+
         internal void OnArchetypeAdded(Archetype* type)
         {
             for (var grp = m_LastGroupData; grp != null; grp = grp->PrevGroup)
                 AddArchetypeIfMatching(type, grp);
         }
 
-        private void AddArchetypeIfMatching(Archetype* archetype, EntityGroupData* group)
+        void AddArchetypeIfMatching(Archetype* archetype, EntityGroupData* group)
         {
             if (group->RequiredComponentsCount - group->SubtractiveComponentsCount > archetype->TypesCount)
                 return;
@@ -150,7 +166,7 @@ namespace Unity.ECS
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal unsafe struct MatchingArchetypes
+    unsafe struct MatchingArchetypes
     {
         public Archetype*                       Archetype;
         public MatchingArchetypes*              Next;
@@ -162,7 +178,7 @@ namespace Unity.ECS
         }
     }
 
-    internal unsafe struct EntityGroupData
+    unsafe struct EntityGroupData
     {
         public int*                 ReaderTypes;
         public int                  ReaderTypesCount;
@@ -180,14 +196,14 @@ namespace Unity.ECS
 
     public unsafe class ComponentGroup : IDisposable, IManagedObjectModificationListener
     {
-        private readonly EntityGroupData*                      m_GroupData;
-        private readonly ComponentJobSafetyManager             m_SafetyManager;
-        private readonly ArchetypeManager                      m_TypeManager;
-        private MatchingArchetypes*                   m_LastRegisteredListenerArchetype;
+        readonly EntityGroupData*             m_GroupData;
+        readonly ComponentJobSafetyManager    m_SafetyManager;
+        readonly ArchetypeManager             m_TypeManager;
+        MatchingArchetypes*                   m_LastRegisteredListenerArchetype;
 
-        private TransformAccessArray                  m_Transforms;
-        private bool                                  m_TransformsDirty;
-        private int*                                  m_filteredSharedComponents;
+        TransformAccessArray                  m_Transforms;
+        bool                                  m_TransformsDirty;
+        int*                                  m_FilteredSharedComponents;
 
         internal ComponentGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager, ArchetypeManager typeManager)
         {
@@ -196,7 +212,7 @@ namespace Unity.ECS
             m_TypeManager = typeManager;
             m_TransformsDirty = true;
             m_LastRegisteredListenerArchetype = null;
-            m_filteredSharedComponents = null;
+            m_FilteredSharedComponents = null;
         }
 
         public void Dispose()
@@ -214,11 +230,11 @@ namespace Unity.ECS
                 }
             }
 
-            if (m_filteredSharedComponents == null)
+            if (m_FilteredSharedComponents == null)
                 return;
 
-            var filteredCount = m_filteredSharedComponents[0];
-            var filtered = m_filteredSharedComponents + 1;
+            var filteredCount = m_FilteredSharedComponents[0];
+            var filtered = m_FilteredSharedComponents + 1;
 
             for(var i=0; i<filteredCount; ++i)
             {
@@ -226,7 +242,7 @@ namespace Unity.ECS
                 m_TypeManager.GetSharedComponentDataManager().RemoveReference(sharedComponentIndex);
             }
 
-            UnsafeUtility.Free(m_filteredSharedComponents, Allocator.Temp);
+            UnsafeUtility.Free(m_FilteredSharedComponents, Allocator.Temp);
         }
         public void OnManagedObjectModified()
         {
@@ -234,7 +250,7 @@ namespace Unity.ECS
         }
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        private AtomicSafetyHandle GetSafetyHandle(int indexInComponentGroup)
+        AtomicSafetyHandle GetSafetyHandle(int indexInComponentGroup)
         {
             var type = m_GroupData->RequiredComponents + indexInComponentGroup;
             var isReadOnly = type->AccessModeType == ComponentType.AccessMode.ReadOnly;
@@ -266,7 +282,6 @@ namespace Unity.ECS
             }
         }
 
-
         internal static void ExtractJobDependencyTypes(ComponentGroup[] groups, List<int> reading, List<int> writing)
         {
             foreach (var group in groups)
@@ -285,7 +300,7 @@ namespace Unity.ECS
             var length = 0;
             MatchingArchetypes* first = null;
             Chunk* firstNonEmptyChunk = null;
-            if (m_filteredSharedComponents == null)
+            if (m_FilteredSharedComponents == null)
             {
                 for (var match = m_GroupData->FirstMatchingArchetype; match != null; match = match->Next)
                 {
@@ -309,7 +324,7 @@ namespace Unity.ECS
                     var archeType = match->Archetype;
                     for (var c = (Chunk*)archeType->ChunkList.Begin; c != archeType->ChunkList.End; c = (Chunk*)c->ChunkListNode.Next)
                     {
-                        if (!ComponentChunkIterator.ChunkMatchesFilter(match, c, m_filteredSharedComponents))
+                        if (!ComponentChunkIterator.ChunkMatchesFilter(match, c, m_FilteredSharedComponents))
                             continue;
 
                         if (c->Count <= 0)
@@ -329,7 +344,7 @@ namespace Unity.ECS
 
             outIterator = first == null
                 ? new ComponentChunkIterator(null, 0, null, null)
-                : new ComponentChunkIterator(first, length, firstNonEmptyChunk, m_filteredSharedComponents);
+                : new ComponentChunkIterator(first, length, firstNonEmptyChunk, m_FilteredSharedComponents);
         }
 
         internal int GetIndexInComponentGroup(int componentType)
@@ -524,7 +539,6 @@ namespace Unity.ECS
             }
         }
 
-
         public ComponentGroup GetVariation<SharedComponent1>(SharedComponent1 sharedComponent1)
             where SharedComponent1 : struct, ISharedComponentData
         {
@@ -534,7 +548,7 @@ namespace Unity.ECS
             const int filteredCount = 1;
 
             var filtered = (int*)UnsafeUtility.Malloc((filteredCount * 2 + 1) * sizeof(int), sizeof(int), Allocator.Temp); // TODO: does temp allocator make sense here?
-            variationComponentGroup.m_filteredSharedComponents = filtered;
+            variationComponentGroup.m_FilteredSharedComponents = filtered;
 
 
             filtered[0] = filteredCount;
@@ -555,7 +569,7 @@ namespace Unity.ECS
             const int filteredCount = 2;
 
             var filtered = (int*)UnsafeUtility.Malloc((filteredCount * 2 + 1) * sizeof(int), sizeof(int), Allocator.Temp);
-            variationComponentGroup.m_filteredSharedComponents = filtered;
+            variationComponentGroup.m_FilteredSharedComponents = filtered;
 
 
             filtered[0] = filteredCount;

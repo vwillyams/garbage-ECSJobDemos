@@ -4,13 +4,13 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace Unity.ECS
 {
-    internal unsafe struct ChunkAllocator : IDisposable
+    unsafe struct ChunkAllocator : IDisposable
 	{
-	    private byte* m_FirstChunk;
-	    private byte* m_LastChunk;
-	    private int m_LastChunkUsedSize;
-	    private const int ms_ChunkSize = 64 * 1024;
-	    private const int ms_ChunkAlignment = 64;
+	    byte* m_FirstChunk;
+	    byte* m_LastChunk;
+	    int m_LastChunkUsedSize;
+	    const int ms_ChunkSize = 64 * 1024;
+	    const int ms_ChunkAlignment = 64;
 
         public void Dispose()
 		{

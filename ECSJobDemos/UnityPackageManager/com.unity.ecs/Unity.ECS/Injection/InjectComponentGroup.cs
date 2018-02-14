@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Collections;
 using UnityEngine;
-using UnityEngine.ECS;
 using UnityEngine.Jobs;
 
 namespace Unity.ECS

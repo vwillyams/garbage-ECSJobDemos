@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Unity.ECS;
-using UnityEngine.ECS;
 using UnityEditor.Experimental.Build.Player;
 
 namespace UnityEditor.ECS
@@ -10,6 +9,8 @@ namespace UnityEditor.ECS
     [InitializeOnLoad]
     public sealed class ExtraTypesProvider
     {
+        const string k_AssemblyName = "UnityEngine.ECS";
+
         static ExtraTypesProvider()
         {
             PlayerBuildInterface.ExtraTypesProvider += () =>
@@ -18,8 +19,8 @@ namespace UnityEditor.ECS
 
                 foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
                 {
-                    if (!assembly.GetReferencedAssemblies().Any(a => a.Name.Contains(nameof(UnityEngine.ECS))) &&
-                        assembly.GetName().Name != nameof(UnityEngine.ECS))
+                    if (!assembly.GetReferencedAssemblies().Any(a => a.Name.Contains(k_AssemblyName)) &&
+                        assembly.GetName().Name != k_AssemblyName)
                         continue;
 
                     foreach (var type in assembly.GetTypes())

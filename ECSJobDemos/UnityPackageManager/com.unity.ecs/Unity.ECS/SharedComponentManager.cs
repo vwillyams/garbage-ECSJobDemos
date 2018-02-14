@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 using Unity.Collections;
-using UnityEngine.ECS;
 
 namespace Unity.ECS
 {
-    internal class SharedComponentDataManager
+    class SharedComponentDataManager
     {
         NativeMultiHashMap<int, int> m_HashLookup = new NativeMultiHashMap<int, int>(128, Allocator.Persistent);
 
@@ -59,8 +58,7 @@ namespace Unity.ECS
             else
                 return FindNonDefaultSharedComponentIndex(typeIndex, newData.GetHashCode(), newData);
         }
-
-        
+      
         private int FindNonDefaultSharedComponentIndex(int typeIndex, int hashCode, object newData)
         {
             int itemIndex;

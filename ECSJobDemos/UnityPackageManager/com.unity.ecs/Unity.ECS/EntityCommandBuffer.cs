@@ -2,7 +2,6 @@
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine.ECS;
 
 namespace Unity.ECS
 {
@@ -22,7 +21,7 @@ namespace Unity.ECS
         /// Organized in memory like a single block with Chunk header followed by Size bytes of data.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        private struct Chunk
+        struct Chunk
         {
             internal int Used;
             internal int Size;
@@ -40,10 +39,10 @@ namespace Unity.ECS
         }
 
         [NativeDisableUnsafePtrRestriction]
-        private Chunk* m_Tail;
+        Chunk* m_Tail;
         [NativeDisableUnsafePtrRestriction]
-        private Chunk* m_Head;
-        private int m_MinimumChunkSize;
+        Chunk* m_Head;
+        int m_MinimumChunkSize;
 
         /// <summary>
         /// Allows controlling the size of chunks allocated from the temp job allocator to back the command buffer.
@@ -56,28 +55,28 @@ namespace Unity.ECS
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct BasicCommand
+        struct BasicCommand
         {
             public int CommandType;
             public int TotalSize;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct CreateCommand
+        struct CreateCommand
         {
             public BasicCommand Header;
             public EntityArchetype Archetype;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct EntityCommand
+        struct EntityCommand
         {
             public BasicCommand Header;
             public Entity Entity;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct EntityComponentCommand
+        struct EntityComponentCommand
         {
             public EntityCommand Header;
             public int ComponentTypeIndex;
@@ -85,7 +84,7 @@ namespace Unity.ECS
             // Data follows if command has an associated component payload
         }
 
-        private byte* Reserve(int size)
+        byte* Reserve(int size)
         {
             if (m_Tail == null || m_Tail->Capacity < size)
             {
@@ -113,7 +112,7 @@ namespace Unity.ECS
             return ptr;
         }
 
-        private void AddCreateCommand(Command op, EntityArchetype archetype)
+        void AddCreateCommand(Command op, EntityArchetype archetype)
         {
             var data = (CreateCommand*) Reserve(sizeof(CreateCommand));
 
@@ -122,7 +121,7 @@ namespace Unity.ECS
             data->Archetype = archetype;
         }
 
-        private void AddEntityCommand(Command op, Entity e)
+        void AddEntityCommand(Command op, Entity e)
         {
             var data = (EntityCommand*) Reserve(sizeof(EntityCommand));
 
@@ -131,7 +130,7 @@ namespace Unity.ECS
             data->Entity = e;
         }
 
-        private void AddEntityComponentCommand<T>(Command op, Entity e, T component) where T : struct
+        void AddEntityComponentCommand<T>(Command op, Entity e, T component) where T : struct
         {
             var typeSize = UnsafeUtility.SizeOf<T>();
             var typeIndex = TypeManager.GetTypeIndex<T>();
@@ -148,12 +147,12 @@ namespace Unity.ECS
             UnsafeUtility.CopyStructureToPtr (ref component, (byte*) (data + 1));
         }
 
-        private static int Align(int size, int alignmentPowerOfTwo)
+        static int Align(int size, int alignmentPowerOfTwo)
         {
             return (size + alignmentPowerOfTwo - 1) & ~(alignmentPowerOfTwo - 1);
         }
 
-        private void AddEntityComponentTypeCommand<T>(Command op, Entity e) where T : struct
+        void AddEntityComponentTypeCommand<T>(Command op, Entity e) where T : struct
         {
             var typeIndex = TypeManager.GetTypeIndex<T>();
             var sizeNeeded = Align(sizeof(EntityComponentCommand), 8);
@@ -217,7 +216,7 @@ namespace Unity.ECS
             AddEntityComponentCommand(Command.AddComponentImplicit, Entity.Null, component);
         }
 
-        private enum Command
+        enum Command
         {
             // Commands that operate on a known entity
             DestroyEntityExplicit,
@@ -313,7 +312,7 @@ namespace Unity.ECS
             }
         }
 
-        private object PullEntity(byte* v)
+        object PullEntity(byte* v)
         {
             throw new NotImplementedException();
         }

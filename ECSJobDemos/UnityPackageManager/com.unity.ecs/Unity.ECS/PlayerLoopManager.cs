@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.ECS;
+
 using Object = UnityEngine.Object;
+using HideFlags = UnityEngine.HideFlags;
+using GameObject = UnityEngine.GameObject;
+using Application = UnityEngine.Application;
 
 namespace Unity.ECS
 {
     public static class PlayerLoopManager
     {
-        private struct UnloadMethod : IComparable<UnloadMethod>
+        struct UnloadMethod : IComparable<UnloadMethod>
         {
             public CallbackFunction Function;
             public int Ordering;
@@ -19,7 +21,7 @@ namespace Unity.ECS
             }
         };
 
-        private static readonly List<UnloadMethod> s_DomainUnloadMethods = new List<UnloadMethod>();
+        static readonly List<UnloadMethod> s_DomainUnloadMethods = new List<UnloadMethod>();
 
         static PlayerLoopManager()
         {
@@ -52,7 +54,7 @@ namespace Unity.ECS
             }
         }
 
-        private static void InvokeMethods(List<UnloadMethod> callbacks)
+        static void InvokeMethods(List<UnloadMethod> callbacks)
         {
             callbacks.Sort();
 

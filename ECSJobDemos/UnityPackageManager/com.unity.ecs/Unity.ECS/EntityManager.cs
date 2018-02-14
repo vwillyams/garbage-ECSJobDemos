@@ -1,12 +1,13 @@
-﻿using UnityEngine.Jobs;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using System;
 using System.Collections.Generic;
 using Unity.Jobs;
-using UnityEngine;
-using UnityEngine.Assertions;
-using UnityEngine.ECS;
+using Unity.Assertions;
+
+using GameObject = UnityEngine.GameObject;
+using Component = UnityEngine.Component;
+using TransformAccessArray = UnityEngine.Jobs.TransformAccessArray;
 
 namespace Unity.ECS
 {
@@ -47,17 +48,17 @@ namespace Unity.ECS
 
     public sealed unsafe class EntityManager : ScriptBehaviourManager
     {
-        private EntityDataManager*                m_Entities;
+        EntityDataManager*                m_Entities;
 
-        private ArchetypeManager                  m_ArchetypeManager;
-        private EntityGroupManager                m_GroupManager;
+        ArchetypeManager                  m_ArchetypeManager;
+        EntityGroupManager                m_GroupManager;
 
         private SharedComponentDataManager        m_SharedComponentManager;
 
-        private EntityTransaction                 m_EntityTransaction;
+        EntityTransaction                 m_EntityTransaction;
 
-        private ComponentType*                    m_CachedComponentTypeArray;
-        private ComponentTypeInArchetype*         m_CachedComponentTypeInArchetypeArray;
+        ComponentType*                    m_CachedComponentTypeArray;
+        ComponentTypeInArchetype*         m_CachedComponentTypeInArchetypeArray;
 
         protected override void OnCreateManagerInternal(World world, int capacity) { }
         protected override void OnBeforeDestroyManagerInternal() { }
@@ -120,7 +121,7 @@ namespace Unity.ECS
             }
         }
 
-        private int PopulatedCachedTypeArray(ComponentType[] requiredComponents)
+        int PopulatedCachedTypeArray(ComponentType[] requiredComponents)
         {
             m_CachedComponentTypeArray[0] = ComponentType.Create<Entity>();
             for (var i = 0; i < requiredComponents.Length; ++i)
@@ -128,7 +129,7 @@ namespace Unity.ECS
             return requiredComponents.Length + 1;
         }
 
-        private int PopulatedCachedTypeInArchetypeArray(ComponentType[] requiredComponents)
+        int PopulatedCachedTypeInArchetypeArray(ComponentType[] requiredComponents)
         {
             m_CachedComponentTypeInArchetypeArray[0] = new ComponentTypeInArchetype(ComponentType.Create<Entity>());
             for (var i = 0; i < requiredComponents.Length; ++i)
@@ -180,7 +181,7 @@ namespace Unity.ECS
             return CreateEntity(CreateArchetype(types));
         }
 
-        private void CreateEntityInternal(EntityArchetype archetype, Entity* entities, int count)
+        void CreateEntityInternal(EntityArchetype archetype, Entity* entities, int count)
         {
             BeforeStructuralChange();
             m_Entities->CreateEntities(m_ArchetypeManager, archetype.Archetype, entities, count);
@@ -201,7 +202,7 @@ namespace Unity.ECS
             DestroyEntityInternal(&entity, 1);
         }
 
-        private void DestroyEntityInternal(Entity* entities, int count)
+        void DestroyEntityInternal(Entity* entities, int count)
         {
             BeforeStructuralChange();
             m_Entities->AssertEntitiesExist(entities, count);
@@ -261,7 +262,7 @@ namespace Unity.ECS
             InstantiateInternal(srcEntity, (Entity*)outputEntities.GetUnsafePtr(), outputEntities.Length);
         }
 
-        private void InstantiateInternal(Entity srcEntity, Entity* outputEntities, int count)
+        void InstantiateInternal(Entity srcEntity, Entity* outputEntities, int count)
         {
             BeforeStructuralChange();
             if (!m_Entities->Exists(srcEntity))
@@ -468,7 +469,7 @@ namespace Unity.ECS
             ComponentJobSafetyManager.EndTransaction();
         }
 
-        private void BeforeStructuralChange()
+        void BeforeStructuralChange()
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             if (ComponentJobSafetyManager.IsInTransaction)

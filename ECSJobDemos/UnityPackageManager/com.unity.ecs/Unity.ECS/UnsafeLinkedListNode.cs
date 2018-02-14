@@ -1,11 +1,11 @@
-﻿using UnityEngine.Assertions;
+﻿using Unity.Assertions;
 
 namespace Unity.ECS
 {
     // IMPORTANT NOTE:
     // UnsafeLinkedListNode may NOT be put into any memory owned by a class.
     // The memory containing it must ALWAYS be allocated with malloc instead, also it can never be on the stack.
-    internal unsafe struct UnsafeLinkedListNode
+    unsafe struct UnsafeLinkedListNode
     {
         public UnsafeLinkedListNode*     Prev;
         public UnsafeLinkedListNode*     Next;

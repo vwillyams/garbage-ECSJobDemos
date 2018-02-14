@@ -4,7 +4,6 @@ using Microsoft.Msagl.Core.Geometry.Curves;
 using Microsoft.Msagl.Layout.Layered;
 using Unity.ECS;
 using UnityEngine;
-using UnityEngine.ECS;
 
 namespace UnityEditor.ECS
 {

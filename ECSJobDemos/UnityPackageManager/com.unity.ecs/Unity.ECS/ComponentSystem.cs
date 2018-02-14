@@ -1,26 +1,26 @@
 ﻿using System;
-using Unity.Jobs;
 using System.Collections.Generic;
+
+using Unity.Jobs;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs.LowLevel.Unsafe;
-using UnityEngine.ECS;
 
 namespace Unity.ECS
 {
     public abstract class ComponentSystemBase : ScriptBehaviourManager
     {
-        private InjectComponentGroupData[] 			m_InjectedComponentGroups;
-        private InjectFromEntityData                m_InjectFromEntityData;
+        InjectComponentGroupData[] 			m_InjectedComponentGroups;
+        InjectFromEntityData                m_InjectFromEntityData;
 
-        private ComponentGroupArrayStaticCache[] 	m_CachedComponentGroupArrays;
-        private ComponentGroup[] 				    m_ComponentGroups;
+        ComponentGroupArrayStaticCache[] 	m_CachedComponentGroupArrays;
+        ComponentGroup[] 				    m_ComponentGroups;
 
 
         internal int[]		    			m_JobDependencyForReadingManagers;
         internal int[]		    			m_JobDependencyForWritingManagers;
         internal ComponentJobSafetyManager  m_SafetyManager;
-        private EntityManager                       m_EntityManager;
-        private World                               m_World;
+        EntityManager                       m_EntityManager;
+        World                               m_World;
 
         public ComponentGroup[] 			ComponentGroups => m_ComponentGroups;
 
@@ -43,7 +43,7 @@ namespace Unity.ECS
             UpdateInjectedComponentGroups();
         }
 
-        private void RecalculateTypesFromComponentGroups()
+        void RecalculateTypesFromComponentGroups()
         {
             var readingTypes = new List<int>();
             var writingTypes = new List<int>();
@@ -97,7 +97,7 @@ namespace Unity.ECS
         protected World World => m_World;
 
         // TODO: this should be made part of UnityEngine?
-        private static void ArrayUtilityAdd<T>(ref T[] array, T item)
+        static void ArrayUtilityAdd<T>(ref T[] array, T item)
         {
             Array.Resize(ref array, array.Length + 1);
             array[array.Length - 1] = item;
@@ -155,13 +155,13 @@ namespace Unity.ECS
 
     public abstract class ComponentSystem : ComponentSystemBase
     {
-        private void BeforeOnUpdate()
+        void BeforeOnUpdate()
         {
             CompleteDependencyInternal();
             UpdateInjectedComponentGroups ();
         }
 
-        private void AfterOnUpdate()
+        void AfterOnUpdate()
         {
             JobHandle.ScheduleBatchedJobs();
         }
@@ -191,9 +191,9 @@ namespace Unity.ECS
 
     public abstract class JobComponentSystem : ComponentSystemBase
     {
-        private JobHandle m_PreviousFrameDependency;
+        JobHandle m_PreviousFrameDependency;
 
-        private JobHandle BeforeOnUpdate()
+        JobHandle BeforeOnUpdate()
         {
             UpdateInjectedComponentGroups();
 
@@ -204,7 +204,7 @@ namespace Unity.ECS
             return GetDependency();
         }
 
-        private unsafe void AfterOnUpdate(JobHandle outputJob)
+        unsafe void AfterOnUpdate(JobHandle outputJob)
         {
             JobHandle.ScheduleBatchedJobs();
 
@@ -279,7 +279,7 @@ namespace Unity.ECS
         }
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        private void CheckJobDependencies(int type, bool isReading, JobHandle dependency)
+        void CheckJobDependencies(int type, bool isReading, JobHandle dependency)
         {
             var h = m_SafetyManager.GetSafetyHandle(type, true);
 
@@ -308,7 +308,7 @@ namespace Unity.ECS
             }
         }
 
-        private void EmergencySyncAllJobs()
+        void EmergencySyncAllJobs()
         {
             foreach (var type in m_JobDependencyForReadingManagers)
             {
@@ -322,7 +322,7 @@ namespace Unity.ECS
         }
 #endif
 
-        private unsafe JobHandle GetDependency ()
+        unsafe JobHandle GetDependency ()
         {
             fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
             {
@@ -330,7 +330,7 @@ namespace Unity.ECS
             }
         }
 
-        private unsafe void AddDependencyInternal(JobHandle dependency)
+        unsafe void AddDependencyInternal(JobHandle dependency)
         {
             fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
             {

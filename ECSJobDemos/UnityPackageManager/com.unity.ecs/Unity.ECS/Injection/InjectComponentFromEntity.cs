@@ -1,14 +1,15 @@
 ﻿using System.Reflection;
 using System.Collections.Generic;
-using Unity.Collections.LowLevel.Unsafe;
+
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace Unity.ECS
 {
-    internal struct InjectFromEntityData
+    struct InjectFromEntityData
 	{
-	    private readonly InjectionData[] m_InjectComponentDataFromEntity;
-	    private readonly InjectionData[] m_InjectFixedArrayFromEntity;
+	    readonly InjectionData[] m_InjectComponentDataFromEntity;
+	    readonly InjectionData[] m_InjectFixedArrayFromEntity;
 
 	    public InjectFromEntityData(InjectionData[] componentDataFromEntity, InjectionData[] fixedArrayFromEntity)
 	    {

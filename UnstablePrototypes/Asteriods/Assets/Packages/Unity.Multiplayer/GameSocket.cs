@@ -29,10 +29,14 @@ namespace Unity.Multiplayer
 
     public enum GameSocketError
     {
-        InternalSocketError     = -1000,
-        BadConnectionId         = -1001,
-        ConnectionWrongState    = -1002,
-        Success                 = 0
+        InternalSocketError         = -1000,
+        BadConnectionId             = -1001,
+        ConnectionWrongState        = -1002,
+        WrongConfig                 = -1003,
+        WrongSocketState            = -1004,
+        Timeout                     = -1005,
+        Disconnected                = -1006,
+        Success                     = 0
     }
 
     public class GameSocketException : Exception
@@ -131,17 +135,24 @@ namespace Unity.Multiplayer
             NativeBindings.gamesocket_disconnect(m_Socket, connection);
         }
 
-        public int SendData(NativeSlice<byte> buffer, NativeSlice<int> connections)
+        public int SendData(NativeSlice<byte> buffer, int connection)
         {
-            var result = NativeBindings.gamesocket_send(m_Socket, NativeSliceUnsafeUtility.GetUnsafePtr(buffer), (ushort)buffer.Length, NativeSliceUnsafeUtility.GetUnsafePtr(connections), connections.Length);
+            var result = NativeBindings.gamesocket_send_to(m_Socket, NativeSliceUnsafeUtility.GetUnsafePtr(buffer), (ushort)buffer.Length, connection);
             if (result < 0)
             {
+                // we will handle the error during read instead?
                 var code = (((GameSocketError)result == GameSocketError.InternalSocketError) ? NativeBindings.gamesocket_get_last_socket_error(m_Socket) : result);
-                var e = new GameSocketException("Error during send " + code);
-                e.InternalError = code;
-                throw e;
+                Debug.LogWarning("Error during send " + code);
             }
             return result;
+        }
+
+        public void SendData(NativeSlice<byte> buffer, NativeSlice<int> connections)
+        {
+            for (int i = 0, s = connections.Length; i < s; ++i )
+            {
+                SendData(buffer, connections[i]);
+            }
         }
 
         GameSocketEventType ReceiveEvent(NativeSlice<byte> buffer, out int readBytes, out int connection, out ulong packetSequence, out GameSocketError error)

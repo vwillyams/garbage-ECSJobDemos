@@ -10,5 +10,5 @@ namespace UnityEngine.ECS.Transform2D
         public float2 heading;
     }
 
-    public class Heading2DComponent : ComponentDataWrapper<Heading2D> { } 
+    public class Heading2DComponent : ComponentDataWrapper<Heading2D> { }
 }

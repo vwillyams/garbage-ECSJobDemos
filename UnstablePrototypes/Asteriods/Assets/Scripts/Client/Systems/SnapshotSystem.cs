@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.ECS;
 
 using Unity.Collections;
 
@@ -35,6 +35,11 @@ namespace Asteriods.Client
                 Entity e;
                 if (m_SpawnSystem.NetworkIdLookup.TryGetValue(update.id, out e) && EntityManager.Exists(e))
                 {
+                    if (!EntityManager.HasComponent<PositionComponentData>(e))
+                    {
+                        Debug.Log("Missing component Position ComponentData on " + update.id);
+                        continue;
+                    }
                     EntityManager.SetComponentData(e, new PositionComponentData(update.position.x, update.position.y));
                     EntityManager.SetComponentData(e, new RotationComponentData(update.rotation.angle));
                 }

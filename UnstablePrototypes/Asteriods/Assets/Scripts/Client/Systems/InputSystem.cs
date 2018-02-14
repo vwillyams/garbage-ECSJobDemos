@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.ECS;
 
 namespace Asteriods.Client
 {
@@ -9,6 +9,7 @@ namespace Asteriods.Client
         {
             public int Length;
             public ComponentDataArray<PlayerInputComponentData> inputs;
+            public ComponentDataArray<ShipInfoComponentData> ship;
             ComponentDataArray<PlayerTagComponentData> tags;
         }
 
@@ -45,6 +46,8 @@ namespace Asteriods.Client
             //Debug.LogFormat("left {0}, right {1}, up {2}, space {3}", left, right, thrust, shoot);
 
             player.inputs[0] = new PlayerInputComponentData(left, right, thrust, shoot);
+            if (player.ship[0].entity != Entity.Null)
+                EntityManager.SetComponentData<ShipStateComponentData>(player.ship[0].entity, new ShipStateComponentData(thrust));
         }
     }
 

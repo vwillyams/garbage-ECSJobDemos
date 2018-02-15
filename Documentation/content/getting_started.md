@@ -1,14 +1,14 @@
 # Getting Started 
 
 **What are we trying to solve?**
-When making games with GameObject/MonoBehaviour, it is easy to write code that ends up being difficult to read, maintain and optimize. This is the result of a combination of factors: [object-oriented model](https://en.wikipedia.org/wiki/Object-oriented_programming), non-optimal machine code compiled from Mono, [garbage collection](https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)) and single threaded code.
+When making games with **GameObject**/**MonoBehaviour**, it is easy to write code that ends up being difficult to read, maintain and optimize. This is the result of a combination of factors: [object-oriented model](https://en.wikipedia.org/wiki/Object-oriented_programming), non-optimal machine code compiled from Mono, [garbage collection](https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)) and [single threaded](https://en.wikipedia.org/wiki/Thread_(computing)#Single_threading) code.
 
-**ECS to the rescue**
-ECS is a way of writing code that focuses on the actual problems you are solving: the data and behavior that make up your game.
+**Entity-Component-System to the rescue**
+[ECS](https://en.wikipedia.org/wiki/Entity%E2%80%93component%E2%80%93system) is a way of writing code that focuses on the actual problems you are solving: the data and behavior that make up your game.
 
-In addition to being a better way of approaching game programming for design reasons, using ECS puts you in an ideal position to leverage Unity's job system and burst compiler, letting you take full advantage of today's multi-core processors.
+In addition to being a better way of approaching game programming for design reasons, using ECS puts you in an ideal position to leverage Unity's **Job System** and **Burst Compiler**, letting you take full advantage of today's multi-core processors.
 
-We have exposed the Native Unity Job system so that users can gain the benefits of multithreaded batch processing from within their ECS C# scripts. The Native Job system has built in safety features for detecting [race conditions](https://en.wikipedia.org/wiki/Race_condition).
+We have exposed Unity's **Native Job System** so that users can gain the benefits of [multithreaded](https://en.wikipedia.org/wiki/Thread_(computing)) batch processing from within their ECS C# scripts. The **Native Job System** has built in safety features for detecting [race conditions](https://en.wikipedia.org/wiki/Race_condition).
 
 However we need to introduce a new way of thinking and coding to take full advantage of the Job System.
 
@@ -33,13 +33,13 @@ class Rotator : MonoBehaviour
 }
 ```
 
-However MonoBehaviour inherts from a number of other classes; each containing their own set of data - none of which are in use by the script above. Therefore we have just wasted a bunch of memory for no good reason. So we need to think about what data we really need to optimse the code. 
+However **MonoBehaviour** inherits from a number of other classes; each containing their own set of data - none of which are in use by the script above. Therefore we have just wasted a bunch of memory for no good reason. So we need to think about what data we really need to optimize the code. 
 
 ## Component System - A step into a new era
 
-In the new model the Component only contains the data.
+In the new model the **Component** only contains the data.
 
-The ComponentSystem has the behaviour. One ComponentSystem is responsible for updating all GameObjects with the matching set of components.
+The **ComponentSystem** contains the behavior. One **ComponentSystem** is responsible for updating all **GameObjects** with a matching set of components (that is defined within a struct).
 
 ```C#
 class Rotator : MonoBehaviour
@@ -52,6 +52,8 @@ class RotatorSystem : ComponentSystem
 {
     struct Group
     {
+        // Define what components are required for this 
+        // ComponenetSystem to handle them.
         Transform Transform;
         Rotator   Rotator;
     }
@@ -78,53 +80,53 @@ class RotatorSystem : ComponentSystem
 
 # Hybrid ECS: Using ComponentSystem to work with existing GameObject & Components
 
-There is a lot of existing code based on MonoBehaviour, GameObject and friends. We want to make it easy to work with existing GameObjects and existing components. But make it easy to transition one piece at a time to the ComponentSystem style approach.
+There is a lot of existing code based on **MonoBehaviour**, **GameObject** and friends. We want to make it easy to work with existing GameObjects and existing components. But make it easy to transition one piece at a time to the **ComponentSystem** style approach.
 
 In the example above you can see that we simply iterate over all components that contain both Rotator and Transform components.
 
 **How does ECS know about Rotator and Transform?**
-In order to iterate over components like in the Rotator example, those entities have to be known to the EntityManager.
+In order to iterate over components like in the **Rotator** example, those entities have to be known to the **EntityManager**.
 
-ECS ships with the GameObjectEntity component. On OnEnable, the GameObjectEntity component creates an entity with all components on the game object. As a result the full game object and all its components are now iteratable by ComponentSystems.
+ECS ships with the **GameObjectEntity** component. On **OnEnable**, the **GameObjectEntity** component creates an entity with all components on the game object. As a result the full game object and all its components are now iterable by **ComponentSystems**.
 
-*Thus for the time being you must add a GameObjectEntity component on each game object that you want to be visible / iteratable from the ComponentSystem.*
+> Thus for the time being you must add a **GameObjectEntity** component on each game object that you want to be visible / iterable from the **ComponentSystem**.
 
 **What does this mean for my game?**
-It means that you can one by one, convert behaviour from MonoBehaviour.Update methods into ComponentSystems. You can in fact keep all your data in a MonoBehaviour, and this is in fact a very simple way of starting the transition to ECS style code.
+It means that you can one by one, convert behavior from **MonoBehaviour.Update** methods into ComponentSystems. You can in fact keep all your data in a **MonoBehaviour**, and this is in fact a very simple way of starting the transition to ECS style code.
 
-So your scene data remains in game objects & components. You continue to use GameObject.Instantiate to create instances etc.
+So your scene data remains in game objects & components. You continue to use **[GameObject.Instantiate](https://docs.unity3d.com/ScriptReference/Object.Instantiate.html)** to create instances etc.
 
-You simply move the contents of your MonoBehaviour.Update into a ComponentSystem.OnUpdate method. The data is kept in the same MonoBehaviour or other components.
+You simply move the contents of your **MonoBehaviour.Update** into a **ComponentSystem.OnUpdate** method. The data is kept in the same **MonoBehaviour** or other components.
 
 **What you get:**
-+ Seperation of data & behaviour resulting in cleaner code
-+ Systems operate on many objects in batch, avoiding per object virtual calls. It is easy to apply optimizations in batch. (See deltaTime optimization above)
++ Separation of data & behavior resulting in cleaner code
++ Systems operate on many objects in batch, avoiding per object virtual calls. It is easy to apply optimizations in batch. (See **deltaTime** optimization above.)
 + You can continue to use existing inspectors, editor tools etc
 
 **What you don't get:**
 - Instantiation time will not improve
 - Load time will not improve
 - Data is accessed randomly, no linear memory access gurantees
-- No multicore
-- No SIMD
+- No multi-core
+- No [SIMD](https://en.wikipedia.org/wiki/SIMD)
 
 
-So using ComponentSystem, GameObject and MonoBehaviour is a great first step to writing ECS code. And it gives you some quick performance benefits. But it also doesn't give you the full performance benefits.
+So using **ComponentSystem**, **GameObject** and **MonoBehaviour** is a great first step to writing ECS code. It gives you some quick performance improvements, but it doesn't tap the full range of performance benefits available.
 
-# Pure ECS: Full-on performance: IComponentData & Jobs
+# Pure ECS: Full-on performance - IComponentData & Jobs
 
-One motivation to use ECS is because you want your game to have optimal performance. (By optimal performance we mean that if you were to hand write all of your code using SIMD intrinsics, custom data layouts for each loop, then you would end up with the similar performance as what you get when writing simple ECS code.)
+One motivation to use ECS is because you want your game to have optimal performance. By optimal performance we mean that if you were to hand write all of your code using SIMD intrinsics (custom data layouts for each loop) then you would end up with similar performance to what you get when writing simple ECS code.)
 
-The C# Job System TODO LINK does not support managed class types only structs and Native Containers. Thus only IComponentData can be safely accessed in a C# Job.
+The **C# Job System** TODO LINK does not support managed class types; only structs and **Native Containers**. So only **IComponentData** can be safely accessed in a C# Job.
 
-The EntityManager makes hard guarantees about linear memory layout of the component data. This is a very important part of the great performance you can achieve with C# jobs using IComponentData.
+The **EntityManager** makes hard guarantees about [linear memory layout](https://en.wikipedia.org/wiki/Flat_memory_model) of the component data. This is an important part of the great performance you can achieve with C# jobs using **IComponentData**.
 
 
-ECS provides a wide variety of ways of iterating over the relevant entities and components. [Here is all of them](https://github.com/Unity-Technologies/ECSJobDemos/blob/master/ECSJobDemos/Assets/ECS/BoidsECS/BoidToInstanceRendererTransform.cs)
+ECS provides a wide variety of ways of iterating over the relevant entities and components. ([Here is a list of them all](https://github.com/Unity-Technologies/ECSJobDemos/blob/master/ECSJobDemos/Assets/ECS/BoidsECS/BoidToInstanceRendererTransform.cs).)
 
-From that we have selected a simple foreach style simple iteration example and a optimal jobified code example.
+From that we have selected a simple foreach style iteration example and a optimal jobified code example.
 
-In the boid simulation we represent the boids simulation state as (BoidData). The renderer however needs a matrix to render the instances, the sample code shows how you can express this data transformation using ECS.
+In this fish boid simulation we represent the boids' simulation state as BoidData. The renderer however needs a matrix to render the instances, the sample code shows how you can express this data transformation using ECS.
 
 ```cs
 // BoidData is the actual per fish simulation state.
@@ -134,7 +136,7 @@ public struct BoidData : IComponentData
     public float3  forward;
 }
 
-// This component data is provided by the instance renderer. The instance renderer expects the matrix to be up to date when it begins rendering.
+// This component data is provided by the instance renderer. The instance renderer expects the matrix to be up-to-date when it begins rendering.
 public struct TransformMatrix : IComponentData
 {
     public float4x4 matrix;
@@ -157,8 +159,8 @@ class BoidToInstanceRendererTransform_GetEntities : ComponentSystem
 
     unsafe protected override void OnUpdate()
     {
-        // GetEntities<Group> lets us iterates over all entities
-        // that have both a BoidData and TransformMatrix components attached.
+        // GetEntities<Group> lets us iterate over all entities
+        // that have both BoidData and TransformMatrix components attached.
         foreach (var e in GetEntities<Group>())
         {
             var boid = e.Boid;
@@ -169,7 +171,7 @@ class BoidToInstanceRendererTransform_GetEntities : ComponentSystem
 ```
 
 ```cs
-// Using IJobProcessComponentData to iterate of all entities matching the required component types.
+// Using IJobProcessComponentData to iterate over all entities matching the required component types.
 // Processing of entities happens in parallel. The Main thread only schedules jobs.
 [DisableAutoCreation]
 class BoidToInstanceRendererTransform_IJobProcessComponentData : JobComponentSystem

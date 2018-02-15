@@ -62,8 +62,6 @@ namespace UnityEngine.ECS.SimpleSpatialQuery
         {
             List<Type> nearestTargetPositionTypes = EntityManager.GetAssignableComponentTypes(typeof(INearestTarget));
             
-            var jobs = new NativeArray<JobHandle>(nearestTargetPositionTypes.Count,Allocator.Temp);
-
             for (int typeIndex = 0; typeIndex < nearestTargetPositionTypes.Count; typeIndex++)
             {
                 var nearestPositionType = nearestTargetPositionTypes[typeIndex];
@@ -81,15 +79,15 @@ namespace UnityEngine.ECS.SimpleSpatialQuery
                     positions = targetPositions,
                     results = targetPositionsCopy
                 };
+                // Nothing is injected so inputDeps is not used
                 var collectTargetPositionsJobHandle =
-                    collectTargetPositionsJob.Schedule(targetPositions.Length, 64, inputDeps);
-                
+                    collectTargetPositionsJob.Schedule(targetPositions.Length, 64, targetGroup.GetDependency());
+
                 targetGroup.AddDependency(collectTargetPositionsJobHandle);
-                var targetGroupJobHandle = targetGroup.GetDependency();
                 targetGroup.Dispose();
-                
+
                 // Assign Nearest Target
-                
+
                 var nearestTargetPositionGroup = EntityManager.CreateComponentGroup(nearestPositionType, ComponentType.ReadOnly(typeof(Position)));
                 var nearestTargetPositions = nearestTargetPositionGroup.GetComponentDataArray<Position>();
                 var nearestTargets = nearestTargetPositionGroup.GetComponentDataArray<NearestTargetPositionData>(nearestPositionType);
@@ -100,21 +98,17 @@ namespace UnityEngine.ECS.SimpleSpatialQuery
                     positionNearestTargets = nearestTargets,
                     positions = nearestTargetPositions
                 };
+                // This job reads targetPositionsCopy which collectTargetPositionsJobHandle writes, it is not tracked by the group since it not a component so a manual dependency is required
                 var nearestTargetPositionJobHandle = nearestTargetPositionJob.Schedule(nearestTargets.Length, 64,
-                    targetGroupJobHandle);
-                
-                nearestTargetPositionGroup.AddDependency(nearestTargetPositionJobHandle);
-            
-                JobHandle nearestTargetPositionGroupJobHandle = nearestTargetPositionGroup.GetDependency();
-                nearestTargetPositionGroup.Dispose();
+                    JobHandle.CombineDependencies(nearestTargetPositionGroup.GetDependency(), collectTargetPositionsJobHandle));
 
-                jobs[typeIndex] = nearestTargetPositionGroupJobHandle;
+                nearestTargetPositionGroup.AddDependency(nearestTargetPositionJobHandle);
+
+                nearestTargetPositionGroup.Dispose();
             }
 
-            var resultJobHandle = JobHandle.CombineDependencies(jobs);
-            jobs.Dispose();
-
-            return resultJobHandle;
+            // Nothing is injected so the return value is not used
+            return inputDeps;
         }
     }
 }

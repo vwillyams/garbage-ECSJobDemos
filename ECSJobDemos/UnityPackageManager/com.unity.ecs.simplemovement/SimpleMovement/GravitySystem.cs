@@ -25,14 +25,15 @@ namespace UnityEngine.ECS.SimpleMovement
 
             var gravityPositionJob = new GravityPosition();
             gravityPositionJob.positions = positions;
-            var gravityPosJobHandle = gravityPositionJob.Schedule(positions.Length, 64, inputDeps);
-            
+            // Nothing is injected so inputDeps is not used
+            var gravityPosJobHandle = gravityPositionJob.Schedule(positions.Length, 64, gravityGroup.GetDependency());
+
             gravityGroup.AddDependency(gravityPosJobHandle);
-            
-            var gravityGroupJobHandle = gravityGroup.GetDependency();
+
             gravityGroup.Dispose();
 
-            return gravityGroupJobHandle;
+            // Nothing is injected so the return value is not used
+            return inputDeps;
         }
     }
 }

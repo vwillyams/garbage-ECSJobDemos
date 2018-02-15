@@ -26,22 +26,40 @@ namespace Unity.ECS
             m_JobSafetyManager = safetyManager;
         }
 
-        public ComponentGroup CreateEntityGroup(ArchetypeManager typeMan, ComponentType* requiredTypes, int requiredCount, TransformAccessArray trans)
+        private EntityGroupData* GetCachedGroupData(uint hash, ComponentType* requiredTypes,
+            int requiredCount)
         {
-            var hash = HashUtility.Fletcher32((ushort*)requiredTypes, requiredCount * sizeof(ComponentType) / sizeof(short));
             NativeMultiHashMapIterator<uint> it;
             IntPtr grpPtr;
-            EntityGroupData* grp;
-            if (m_GroupLookup.TryGetFirstValue(hash, out grpPtr, out it))
+            if (!m_GroupLookup.TryGetFirstValue(hash, out grpPtr, out it))
+                return null;
+            do
             {
-                do
-                {
-                    grp = (EntityGroupData*)grpPtr;
-                    if (ComponentType.CompareArray(grp->RequiredComponents, grp->RequiredComponentsCount, requiredTypes, requiredCount))
-                        return new ComponentGroup(grp, m_JobSafetyManager, typeMan);
-                }
-                while (m_GroupLookup.TryGetNextValue(out grpPtr, ref it));
-            }
+                var grp = (EntityGroupData*) grpPtr;
+                if (ComponentType.CompareArray(grp->RequiredComponents, grp->RequiredComponentsCount, requiredTypes,
+                    requiredCount))
+                    return grp;
+            } while (m_GroupLookup.TryGetNextValue(out grpPtr, ref it));
+
+            return null;
+        }
+        public ComponentGroup CreateEntityGroupIfCached(ArchetypeManager typeMan, ComponentType* requiredTypes,
+            int requiredCount)
+        {
+            var hash = HashUtility.Fletcher32((ushort*) requiredTypes,
+                requiredCount * sizeof(ComponentType) / sizeof(short));
+            EntityGroupData* grp = GetCachedGroupData(hash, requiredTypes, requiredCount);
+            if (grp != null)
+                return new ComponentGroup(grp, m_JobSafetyManager, typeMan);
+            return null;
+        }
+
+        public ComponentGroup CreateEntityGroup(ArchetypeManager typeMan, ComponentType* requiredTypes, int requiredCount)
+        {
+            var hash = HashUtility.Fletcher32((ushort*)requiredTypes, requiredCount * sizeof(ComponentType) / sizeof(short));
+            EntityGroupData* grp = GetCachedGroupData(hash, requiredTypes, requiredCount);
+            if (grp != null)
+                return new ComponentGroup(grp, m_JobSafetyManager, typeMan);
 
             m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
 
@@ -58,6 +76,8 @@ namespace Unity.ECS
 
             for (var i = 0; i != requiredCount;i++)
             {
+                if (!requiredTypes[i].RequiresJobDependency && requiredTypes[i].AccessModeType != ComponentType.AccessMode.Subtractive)
+                    continue;
                 switch (requiredTypes[i].AccessModeType)
                 {
                     case ComponentType.AccessMode.Subtractive:
@@ -78,6 +98,8 @@ namespace Unity.ECS
             var curWriter = 0;
             for (var i = 0; i != requiredCount;i++)
             {
+                if (!requiredTypes[i].RequiresJobDependency && requiredTypes[i].AccessModeType != ComponentType.AccessMode.Subtractive)
+                    continue;
                 switch (requiredTypes[i].AccessModeType)
                 {
                     case ComponentType.AccessMode.Subtractive:

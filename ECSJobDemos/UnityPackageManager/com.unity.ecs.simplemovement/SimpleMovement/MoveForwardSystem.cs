@@ -45,15 +45,16 @@ namespace UnityEngine.ECS.SimpleMovement
                 moveSpeeds = moveSpeeds,
                 dt = Time.deltaTime
             };
-            
-            var moveForwardPositionJobHandle = moveForwardPositionJob.Schedule(positions.Length, 64, inputDeps);
-            
+
+            // Nothing is injected so inputDeps is not used
+            var moveForwardPositionJobHandle = moveForwardPositionJob.Schedule(positions.Length, 64, moveForwardGroup.GetDependency());
+
             moveForwardGroup.AddDependency(moveForwardPositionJobHandle);
-            
-            var moveForwardGroupJobHandle = moveForwardGroup.GetDependency();
+
             moveForwardGroup.Dispose();
 
-            return moveForwardGroupJobHandle;
-        } 
+            // Nothing is injected so the return value is not used
+            return inputDeps;
+        }
     }
 }

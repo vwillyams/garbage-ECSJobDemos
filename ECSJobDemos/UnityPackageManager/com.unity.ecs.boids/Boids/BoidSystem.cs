@@ -180,8 +180,6 @@ namespace UnityEngine.ECS.Boids
             var uniqueTypes = new List<Boid>(10);
             EntityManager.GetAllUniqueSharedComponentDatas(uniqueTypes);
 
-            var lastDeps = inputDeps;
-
             for (int typeIndex = 0; typeIndex < uniqueTypes.Count; typeIndex++)
             {
                 var settings = uniqueTypes[typeIndex];
@@ -190,6 +188,8 @@ namespace UnityEngine.ECS.Boids
                 var nearestObstaclePositions = group.GetComponentDataArray<BoidNearestObstaclePosition>();
                 var nearestTargetPositions = group.GetComponentDataArray<BoidNearestTargetPosition>();
                 var headings = group.GetComponentDataArray<Heading>();
+                // Nothing injected is accessed, so inputDeps is not needed
+                var lastDeps = group.GetDependency();
 
                 if (typeIndex > m_Cells.Count - 1)
                 {
@@ -257,17 +257,14 @@ namespace UnityEngine.ECS.Boids
                 };
 
                 var steerJobHandle = steerJob.Schedule(positions.Length, 64, separationAndAlignmentSteerJobHandle);
+                // The scheduled job needs to be a dependency for the group
                 group.AddDependency(steerJobHandle);
-                var groupJobHandle = group.GetDependency();
                 group.Dispose();
-
-                lastDeps = groupJobHandle;
             }
-            maingroup.AddDependency(lastDeps);
-            
-            var maingroupJobHandle = maingroup.GetDependency();
+
             maingroup.Dispose();
-            return maingroupJobHandle;
+			// The return value only applies to jobs working with injected components
+            return inputDeps;
         }
 
         protected override void OnCreateManager(int capacity)

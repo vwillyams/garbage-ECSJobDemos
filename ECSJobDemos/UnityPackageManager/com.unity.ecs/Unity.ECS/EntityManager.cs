@@ -139,11 +139,15 @@ namespace Unity.ECS
 
         public ComponentGroup CreateComponentGroup(params ComponentType[] requiredComponents)
         {
+            var typeArrayCount = PopulatedCachedTypeArray(requiredComponents);
+            var grp = m_GroupManager.CreateEntityGroupIfCached(m_ArchetypeManager, m_CachedComponentTypeArray, typeArrayCount);
+            if (grp != null)
+                return grp;
             //@TODO: Better would be to seperate creation of archetypes and getting existing archetypes
             // and only flush when creating new ones...
             BeforeStructuralChange();
 
-            return m_GroupManager.CreateEntityGroup(m_ArchetypeManager, m_CachedComponentTypeArray, PopulatedCachedTypeArray(requiredComponents), new TransformAccessArray());
+            return m_GroupManager.CreateEntityGroup(m_ArchetypeManager, m_CachedComponentTypeArray, typeArrayCount);
         }
 
         public EntityArchetype CreateArchetype(params ComponentType[] types)

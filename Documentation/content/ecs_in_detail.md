@@ -174,8 +174,23 @@ The ComponentGroup has API's to extract individual arrays. All these arrays are 
 We do not recommend to use ComponentGroup directly. The injection pattern is a simpler way of doing the same thing.
 
 
-## ComponentFromEntity
+## ComponentDataFromEntity
+The Entity struct identifies an entity. If you need to access component data on another entity, the only stable way of referencing that component data on another entity is via the Entity ID. EntityManager provides a simple Get & Set component data API for it.
+```cs
+Entity myEntity = ...;
+var position = EntityManager.SetComponentData<LocalPosition>(entity);
+```
 
+However EntityManager can't be used on a C# job, ComponentDataFromEntity gives you a simple API that can also be safely used in a job.
+
+```cs
+// ComponentDataFromEntity can be automatically injected
+[Inject]
+ComponentDataFromEntity<LocalPosition> m_LocalPositions;
+
+Entity myEntity = ...;
+var position = m_LocalPositions[myEntity];
+```
 
 ## EntityTransaction
 

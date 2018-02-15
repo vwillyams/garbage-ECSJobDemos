@@ -175,7 +175,7 @@ We do not recommend to use ComponentGroup directly. The injection pattern is a s
 
 
 ## ComponentDataFromEntity
-The Entity struct identifies an entity. If you need to access component data on another entity, the only stable way of referencing that component data on another entity is via the Entity ID. EntityManager provides a simple Get & Set component data API for it.
+The Entity struct identifies an entity. If you need to access component data on another entity, the only stable way of referencing that component data is via the Entity ID. EntityManager provides a simple Get & Set component data API for it.
 ```cs
 Entity myEntity = ...;
 var position = EntityManager.SetComponentData<LocalPosition>(entity);

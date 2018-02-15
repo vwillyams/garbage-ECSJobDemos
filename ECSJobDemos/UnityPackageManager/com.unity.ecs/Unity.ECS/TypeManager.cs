@@ -5,7 +5,7 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.ECS
 {
-    unsafe static class TypeManager
+    public unsafe static class TypeManager
     {
         struct StaticTypeLookup<T>
         {

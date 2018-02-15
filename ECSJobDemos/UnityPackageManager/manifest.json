@@ -1,8 +1,9 @@
 {
-	"dependencies": {
-		"com.unity.burst": "0.1.19"
-	},
-	"testables": [
+    "dependencies": {
+        "com.unity.burst": "0.1.19",
+        "com.unity.properties": "0.1.1"
+    },
+    "testables": [
     "com.unity.collections",
     "com.unity.ecs",
     "com.unity.ecs.boids",
@@ -23,6 +24,6 @@
     "com.unity.ecs.simplespatialquery",
     "com.unity.jobs",
     "com.unity.mathematics"
-	],
-	"registry": "https://staging-packages.unity.com"
+    ],
+    "registry": "https://staging-packages.unity.com"
 }

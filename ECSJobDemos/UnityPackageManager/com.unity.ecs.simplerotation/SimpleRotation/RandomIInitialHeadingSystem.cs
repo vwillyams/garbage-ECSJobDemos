@@ -1,10 +1,11 @@
 ﻿using Unity.Collections;
 using Unity.ECS;
 using Unity.Mathematics;
+using Unity.Jobs;
 
 namespace UnityEngine.ECS.SimpleRotation
 {
-    public class RandomInitialHeadingSystem : ComponentSystem
+    public class RandomInitialHeadingSystem : JobComponentSystem
     {
         struct RandomInitialHeadingGroup
         {
@@ -15,9 +16,16 @@ namespace UnityEngine.ECS.SimpleRotation
         }
 
         [Inject] private RandomInitialHeadingGroup m_RandomInitialHeadingGroup;
-    
-        protected override void OnUpdate()
+        [Inject] private EntityManager m_EntityManager;
+
+        protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
+            var randomGroup = m_EntityManager.CreateComponentGroup(typeof(RandomInitialHeading));
+            randomGroup.GetDependency().Complete();
+            if (randomGroup.GetComponentDataArray<RandomInitialHeading>().Length == 0)
+                return inputDeps;
+
+            inputDeps.Complete();
             var entities = new NativeArray<Entity>(m_RandomInitialHeadingGroup.Length, Allocator.Temp);
             for (int i = 0; i < m_RandomInitialHeadingGroup.Length; i++)
             {
@@ -32,6 +40,7 @@ namespace UnityEngine.ECS.SimpleRotation
                 EntityManager.RemoveComponent<RandomInitialHeading>(entities[i]);
             }
             entities.Dispose();
-        } 
+            return new JobHandle();
+        }
     }
 }

@@ -13,7 +13,7 @@ namespace UnityEngine.ECS.TransformShim
         [Inject] private ComponentDataFromEntity<LocalRotation> m_LocalRotations;
         [Inject] private ComponentDataFromEntity<Position> m_Positions;
         [Inject] private ComponentDataFromEntity<Rotation> m_Rotations;
- 
+
         struct TransformStash
         {
             public float3 localPosition;
@@ -41,8 +41,8 @@ namespace UnityEngine.ECS.TransformShim
                 };
             }
         }
-            
-        // [ComputeJobOptimization] #BURST-CRASH
+
+        [ComputeJobOptimization]
         struct CopyTransforms : IJob
         {
             public ComponentDataFromEntity<LocalPosition> localPositions;

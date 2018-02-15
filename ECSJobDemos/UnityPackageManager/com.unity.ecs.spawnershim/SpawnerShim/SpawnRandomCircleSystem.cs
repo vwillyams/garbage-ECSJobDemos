@@ -21,6 +21,11 @@ namespace ECS.Spawners
 
         protected override void OnUpdate()
         {
+            var earlyoutgroup = EntityManager.CreateComponentGroup(typeof(SpawnRandomCircle));
+            earlyoutgroup.CompleteDependency();
+            if (earlyoutgroup.GetEntityArray().Length == 0)
+                return;
+
             var uniqueTypes = new List<SpawnRandomCircle>(10);
             var maingroup = EntityManager.CreateComponentGroup(typeof(SpawnRandomCircle),typeof(Position));
             maingroup.CompleteDependency();
@@ -36,7 +41,7 @@ namespace ECS.Spawners
                 spawnInstanceCount += entities.Length;
                 group.Dispose();
             }
-            
+
             if (spawnInstanceCount == 0)
             {
                 maingroup.Dispose();
@@ -68,7 +73,7 @@ namespace ECS.Spawners
                     group.Dispose();
                 }
             }
-            
+
             maingroup.Dispose();
 
             for (int spawnIndex = 0; spawnIndex < spawnInstances.Length; spawnIndex++)
@@ -82,7 +87,7 @@ namespace ECS.Spawners
                 float radius = spawner.radius;
                 float3 center = spawnInstances[spawnIndex].position;
                 var sourceEntity = spawnInstances[spawnIndex].sourceEntity;
-                
+
                 EntityManager.Instantiate(prefab, entities);
 
                 if (spawner.spawnLocal)
@@ -112,11 +117,11 @@ namespace ECS.Spawners
                 }
 
                 EntityManager.RemoveComponent<SpawnRandomCircle>(sourceEntity);
-                
+
                 entities.Dispose();
                 positions.Dispose();
             }
             spawnInstances.Dispose();
-        } 
+        }
     }
 }

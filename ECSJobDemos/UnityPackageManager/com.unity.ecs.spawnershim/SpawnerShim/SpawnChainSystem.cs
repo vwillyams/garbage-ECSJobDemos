@@ -20,6 +20,11 @@ namespace ECS.Spawners
 
         protected override void OnUpdate()
         {
+            var earlyoutgroup = EntityManager.CreateComponentGroup(typeof(SpawnChain));
+            earlyoutgroup.CompleteDependency();
+            if (earlyoutgroup.GetEntityArray().Length == 0)
+                return;
+
             var uniqueTypes = new List<SpawnChain>(10);
             var maingroup = EntityManager.CreateComponentGroup(typeof(SpawnChain),typeof(Position));
             maingroup.CompleteDependency();
@@ -35,7 +40,7 @@ namespace ECS.Spawners
                 spawnInstanceCount += entities.Length;
                 group.Dispose();
             }
-            
+
             if (spawnInstanceCount == 0)
             {
                 maingroup.Dispose();
@@ -67,7 +72,7 @@ namespace ECS.Spawners
                     group.Dispose();
                 }
             }
-            
+
             maingroup.Dispose();
 
             for (int spawnIndex = 0; spawnIndex < spawnInstances.Length; spawnIndex++)
@@ -83,26 +88,26 @@ namespace ECS.Spawners
                 var sourceEntity = spawnInstances[spawnIndex].sourceEntity;
 
                 EntityManager.Instantiate(prefab, entities);
-                
+
                 {
                     PositionConstraint contraint = new PositionConstraint();
 
                     contraint.parentEntity = sourceEntity;
                     contraint.maxDistance = maxDistance;
-                    
+
                     EntityManager.AddComponentData(entities[0],contraint);
                 }
-                
+
                 for (int i = 1; i < count; i++ )
                 {
                     PositionConstraint contraint = new PositionConstraint();
-                    
+
                     contraint.parentEntity = entities[i - 1];
                     contraint.maxDistance = maxDistance;
-                    
+
                     EntityManager.AddComponentData(entities[i],contraint);
                 }
-                
+
                 float3 dv = new float3( 0.0f, minDistance, 0.0f );
                 for (int i = 0; i < count; i++)
                 {
@@ -114,10 +119,10 @@ namespace ECS.Spawners
                 }
 
                 EntityManager.RemoveComponent<SpawnChain>(sourceEntity);
-                
+
                 entities.Dispose();
             }
             spawnInstances.Dispose();
-        } 
+        }
     }
 }

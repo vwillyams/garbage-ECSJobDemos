@@ -21,6 +21,11 @@ namespace ECS.Spawners
 
         protected override void OnUpdate()
         {
+            var earlyoutgroup = EntityManager.CreateComponentGroup(typeof(SpawnRandomInSphere));
+            earlyoutgroup.CompleteDependency();
+            if (earlyoutgroup.GetEntityArray().Length == 0)
+                return;
+
             var uniqueTypes = new List<SpawnRandomInSphere>(10);
             var maingroup = EntityManager.CreateComponentGroup(typeof(SpawnRandomInSphere),typeof(Position));
             maingroup.CompleteDependency();
@@ -36,7 +41,7 @@ namespace ECS.Spawners
                 spawnInstanceCount += entities.Length;
                 group.Dispose();
             }
-            
+
             if (spawnInstanceCount == 0)
             {
                 maingroup.Dispose();
@@ -68,7 +73,7 @@ namespace ECS.Spawners
                     group.Dispose();
                 }
             }
-            
+
             maingroup.Dispose();
 
             for (int spawnIndex = 0; spawnIndex < spawnInstances.Length; spawnIndex++)
@@ -82,11 +87,11 @@ namespace ECS.Spawners
                 var spawnPositions = new NativeArray<float3>(count, Allocator.Temp);
                 float3 center = spawnInstances[spawnIndex].position;
                 var sourceEntity = spawnInstances[spawnIndex].sourceEntity;
-                
+
                 GeneratePoints.RandomPointsInSphere(center,radius,ref spawnPositions);
-                
+
                 EntityManager.Instantiate(prefab, entities);
-                
+
                 for (int i = 0; i < count; i++)
                 {
                     var position = new Position
@@ -97,11 +102,11 @@ namespace ECS.Spawners
                 }
 
                 EntityManager.RemoveComponent<SpawnRandomInSphere>(sourceEntity);
-                
+
                 spawnPositions.Dispose();
                 entities.Dispose();
             }
             spawnInstances.Dispose();
-        } 
+        }
     }
 }

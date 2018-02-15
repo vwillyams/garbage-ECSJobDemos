@@ -3,21 +3,16 @@ using System;
 
 namespace Unity.ECS
 {
-
-    [NativeContainer]
-    [NativeContainerSupportsMinMaxWriteRestriction]
     public struct SharedComponentDataArray<T> where T : struct, ISharedComponentData
     {
-        private ComponentChunkIterator m_Iterator;
-        private ComponentChunkCache    m_Cache;
-        private readonly SharedComponentDataManager m_sharedComponentDataManager;
-        private readonly int m_sharedComponentIndex;
+        ComponentChunkIterator               m_Iterator;
+        ComponentChunkCache                  m_Cache;
+        readonly SharedComponentDataManager  m_sharedComponentDataManager;
+        readonly int                         m_sharedComponentIndex;
 
-        private readonly int m_Length;
+        readonly int                         m_Length;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        private readonly int m_MinIndex;
-        private readonly int m_MaxIndex;
-        private readonly AtomicSafetyHandle m_Safety;
+        readonly AtomicSafetyHandle          m_Safety;
 #endif
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -33,8 +28,6 @@ namespace Unity.ECS
 
             m_Length = length;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            m_MinIndex = 0;
-            m_MaxIndex = length - 1;
             m_Safety = safety;
 #endif
         }
@@ -45,7 +38,7 @@ namespace Unity.ECS
             {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
-                if (index < m_MinIndex || index > m_MaxIndex)
+                if ((uint)index >= (uint)m_Length)
                     FailOutOfRangeError(index);
 #endif
 
@@ -58,16 +51,8 @@ namespace Unity.ECS
 		}
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        private void FailOutOfRangeError(int index)
+        void FailOutOfRangeError(int index)
 		{
-			//@TODO: Make error message utility and share with NativeArray...
-			if (index < Length && (m_MinIndex != 0 || m_MaxIndex != Length - 1))
-				throw new IndexOutOfRangeException(
-				        $"Index {index} is out of restricted IJobParallelFor range [{m_MinIndex}...{m_MaxIndex}] in ReadWriteBuffer.\n" +
-				        "ReadWriteBuffers are restricted to only read & write the element at the job index. " +
-				        "You can use double buffering strategies to avoid race conditions due to " +
-				        "reading & writing in parallel to the same elements from a job.");
-
 			throw new IndexOutOfRangeException($"Index {index} is out of range of '{Length}' Length.");
 		}
 #endif

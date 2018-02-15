@@ -404,12 +404,13 @@ namespace Unity.ECS
             return res;
         }
 
-        public ComponentDataArray<T> GetComponentDataArray<T>(Type componentType) where T : struct, IComponentData
+        //@TODO: THIS API IS NOT SAFE, unpublicify
+        public ComponentDataArray<T> GetComponentDataArray<T>(ComponentType componentType) where T : struct, IComponentData
         {
             int length;
             ComponentChunkIterator iterator;
             GetComponentChunkIterator(out length, out iterator);
-            var indexInComponentGroup = GetIndexInComponentGroup(TypeManager.GetTypeIndex(componentType));
+            var indexInComponentGroup = GetIndexInComponentGroup(componentType.TypeIndex);
 
             ComponentDataArray<T> res;
             GetComponentDataArray<T>(ref iterator, indexInComponentGroup, length, out res);
@@ -546,6 +547,27 @@ namespace Unity.ECS
             return m_Transforms;
         }
 
+        public bool CompareComponents(ComponentType* componentTypes, int count)
+        {
+            if (count != m_GroupData->RequiredComponentsCount)
+                return false;
+            
+            for (var k = 0; k < count; ++k)
+            {
+                int i;
+                for (i = 0; i < count; ++i)
+                {
+                    if (m_GroupData->RequiredComponents[i] == componentTypes[k])
+                        break;
+                }
+
+                if (i == count)
+                    return false;
+            }
+
+            return true;
+        }
+
         public Type[] Types
         {
             get
@@ -592,7 +614,6 @@ namespace Unity.ECS
 
             var filtered = (int*)UnsafeUtility.Malloc((filteredCount * 2 + 1) * sizeof(int), sizeof(int), Allocator.Temp);
             variationComponentGroup.m_FilteredSharedComponents = filtered;
-
 
             filtered[0] = filteredCount;
             filtered[1] = componetIndex1;

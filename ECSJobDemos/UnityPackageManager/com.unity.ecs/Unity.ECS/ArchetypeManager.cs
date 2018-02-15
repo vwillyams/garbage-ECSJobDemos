@@ -152,8 +152,8 @@ namespace Unity.ECS
 
         internal Archetype*                 m_LastArchetype;
 
-        readonly SharedComponentDataManager          m_SharedComponentManager;
-        readonly UnsafeLinkedListNode*               m_EmptyChunkPool;
+        readonly SharedComponentDataManager m_SharedComponentManager;
+        readonly UnsafeLinkedListNode*      m_EmptyChunkPool;
 
         struct ManagedArrayStorage
         {

@@ -55,9 +55,7 @@ namespace UnityEngine.ECS.Tests
 
         public Entity CreateEntityWithDefaultData(int index)
         {
-            var archetype = m_Manager.CreateArchetype(typeof(EcsTestData), typeof(EcsTestData2));
-
-            var entity = m_Manager.CreateEntity(archetype);
+            var entity = m_Manager.CreateEntity(typeof(EcsTestData), typeof(EcsTestData2));
 
             // HasComponent & Exists setup correctly
             Assert.IsTrue(m_Manager.HasComponent<EcsTestData>(entity));

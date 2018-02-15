@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-
 using Unity.Jobs;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs.LowLevel.Unsafe;
@@ -30,16 +29,12 @@ namespace Unity.ECS
             m_EntityManager = world.GetOrCreateManager<EntityManager>();
             m_SafetyManager = m_EntityManager.ComponentJobSafetyManager;
 
-            ComponentSystemInjection.Inject(this, world, m_EntityManager, out m_InjectedComponentGroups, out m_InjectFromEntityData);
-
-            m_ComponentGroups = new ComponentGroup[m_InjectedComponentGroups.Length];
-            for (var i = 0; i < m_InjectedComponentGroups.Length; ++i)
-                m_ComponentGroups [i] = m_InjectedComponentGroups[i].EntityGroup;
-
+            m_ComponentGroups = new ComponentGroup[0];
             m_CachedComponentGroupArrays = new ComponentGroupArrayStaticCache[0];
 
-            RecalculateTypesFromComponentGroups();
+            ComponentSystemInjection.Inject(this, world, m_EntityManager, out m_InjectedComponentGroups, out m_InjectFromEntityData);
 
+            RecalculateTypesFromComponentGroups();
             UpdateInjectedComponentGroups();
         }
 
@@ -57,15 +52,7 @@ namespace Unity.ECS
 
         protected sealed override void OnAfterDestroyManagerInternal()
         {
-            if (null != m_InjectedComponentGroups)
-            {
-                for (var i = 0; i != m_InjectedComponentGroups.Length; i++)
-                {
-                    if (m_InjectedComponentGroups[i] != null)
-                        m_InjectedComponentGroups[i].Dispose();
-                }
-                m_InjectedComponentGroups = null;
-            }
+            m_InjectedComponentGroups = null;
 
             if (null != m_CachedComponentGroupArrays)
             {
@@ -101,6 +88,30 @@ namespace Unity.ECS
         {
             Array.Resize(ref array, array.Length + 1);
             array[array.Length - 1] = item;
+        }
+
+        unsafe internal ComponentGroup GetComponentGroup(ComponentType* componentTypes, int count)
+        {
+            for (var i = 0; i != m_ComponentGroups.Length; i++)
+            {
+                if (m_ComponentGroups[i].CompareComponents(componentTypes, count))
+                    return m_ComponentGroups[i];
+            }
+
+            var group = EntityManager.CreateComponentGroup(componentTypes, count);
+            ArrayUtilityAdd(ref m_ComponentGroups, group);
+
+            RecalculateTypesFromComponentGroups();
+
+            return group;
+        }
+
+        unsafe public ComponentGroup GetComponentGroup(params ComponentType[] componentTypes)
+        {
+            fixed (ComponentType* typesPtr = componentTypes)
+            {
+                return GetComponentGroup(typesPtr, componentTypes.Length);
+            }
         }
 
         public ComponentGroupArray<T> GetEntities<T>() where T : struct

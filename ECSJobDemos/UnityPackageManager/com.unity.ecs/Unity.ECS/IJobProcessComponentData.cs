@@ -1,8 +1,13 @@
 ﻿using System;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using Unity.Assertions;
 using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Collections;
+using UnityEngine;
 
 namespace Unity.ECS
 {
@@ -11,13 +16,17 @@ namespace Unity.ECS
         void Prepare();
     }
 
+    public interface IBaseJobProcessComponentData_2
+    {
+    }
+
     public interface IJobProcessComponentData<T0>
         where T0 : struct, IComponentData
     {
         void Execute(ref T0 data);
     }
 
-    public interface IJobProcessComponentData<T0, T1>
+    public interface IJobProcessComponentData<T0, T1> : IBaseJobProcessComponentData_2
         where T0 : struct, IComponentData
         where T1 : struct, IComponentData
     {
@@ -49,7 +58,7 @@ namespace Unity.ECS
             var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct<T, U0>.Initialize(), new JobHandle(), ScheduleMode.Run);
             JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray.Length, componentDataArray.Length);
         }
-
+        
         struct JobStruct<T, U0>
             where T : struct, IJobProcessComponentData<U0>
             where U0 : struct, IComponentData
@@ -67,7 +76,7 @@ namespace Unity.ECS
 
                 return s_JobReflectionData;
             }
-
+            
             delegate void ExecuteJobFunction(ref JobStruct<T, U0> data, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
             static unsafe void Execute(ref JobStruct<T, U0> jobData, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
@@ -94,18 +103,18 @@ namespace Unity.ECS
                 }
             }
         }
-
+        
         public static unsafe JobHandle Schedule<T, U0, U1>(this T jobData, ComponentDataArray<U0> componentDataArray0, ComponentDataArray<U1> componentDataArray1, int innerloopBatchCount, JobHandle dependsOn = new JobHandle())
             where T : struct, IJobProcessComponentData<U0, U1>
             where U0 : struct, IComponentData
             where U1 : struct, IComponentData
         {
-            JobStruct<T, U0, U1> fullData;
+            JobStruct_Process2<T, U0, U1> fullData;
             fullData.Data = jobData;
             fullData.ComponentDataArray0 = componentDataArray0;
             fullData.ComponentDataArray1 = componentDataArray1;
 
-            var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct<T, U0, U1>.Initialize(), dependsOn, ScheduleMode.Batched);
+            var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct_Process2<T, U0, U1>.Initialize(), dependsOn, ScheduleMode.Batched);
             return JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray0.Length, innerloopBatchCount);
         }
 
@@ -114,16 +123,84 @@ namespace Unity.ECS
             where U0 : struct, IComponentData
             where U1 : struct, IComponentData
         {
-            JobStruct<T, U0, U1> fullData;
+            JobStruct_Process2<T, U0, U1> fullData;
             fullData.Data = jobData;
             fullData.ComponentDataArray0 = componentDataArray0;
             fullData.ComponentDataArray1 = componentDataArray1;
 
-            var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct<T, U0, U1>.Initialize(), new JobHandle(), ScheduleMode.Run);
+            var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct_Process2<T, U0, U1>.Initialize(), new JobHandle(), ScheduleMode.Run);
             JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray0.Length, componentDataArray0.Length);
         }
+        
+        
+        public static unsafe JobHandle Schedule<T>(this T jobData, ComponentSystemBase componentSystem, int innerloopBatchCount, JobHandle dependsOn = new JobHandle())
+            where T : struct, IBaseJobProcessComponentData_2
+        {
+            ComponentType* types = stackalloc ComponentType[2];
+            var jobReflection = JobStruct_ProcessInfer<T>.Initialize(out types[0], out types[1]);
 
-        struct JobStruct<T, U0, U1>
+            var group = componentSystem.GetComponentGroup(types, 2);
+            
+            JobStruct_ProcessInfer<T> fullData;
+            fullData.Data = jobData;
+            fullData.ComponentDataArray0 = group.GetComponentDataArray<ProxyComponentData>(types[0]);
+            fullData.ComponentDataArray1 = group.GetComponentDataArray<ProxyComponentData>(types[1]);
+
+            var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), jobReflection, dependsOn, ScheduleMode.Batched);
+            return JobsUtility.ScheduleParallelFor(ref scheduleParams, fullData.ComponentDataArray0.Length, innerloopBatchCount);
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct JobStruct_ProcessInfer<T>
+            where T : struct, IBaseJobProcessComponentData_2
+        {
+            static IntPtr s_JobReflectionData;
+            static ComponentType s_Type0;
+            static ComponentType s_Type1;
+            
+            
+            [NativeMatchesParallelForLength]
+            public ComponentDataArray<ProxyComponentData>  ComponentDataArray0;
+            [NativeMatchesParallelForLength]
+            public ComponentDataArray<ProxyComponentData>  ComponentDataArray1;
+            public T                                       Data;
+                        
+            public static IntPtr Initialize(out ComponentType type0, out ComponentType type1)
+            {
+                if (s_JobReflectionData == IntPtr.Zero)
+                {
+                    foreach (var iType in typeof(T).GetInterfaces())
+                    {
+                        if (iType.Name.StartsWith("IJobProcessComponentData"))
+                        {
+                            var genericArgs = iType.GetGenericArguments();                            
+                            var jobStructType = typeof(JobStruct_Process2<,,>).MakeGenericType(typeof(T), genericArgs[0], genericArgs[1]);
+                            
+                            var reflectionDataRes = jobStructType.GetMethod("Initialize").Invoke(null, null);
+
+                            s_JobReflectionData = (IntPtr)reflectionDataRes;
+                            Assert.IsTrue(s_JobReflectionData != IntPtr.Zero);
+
+                            var executeMethodParameters = typeof(T).GetMethod("Execute").GetParameters();
+                            bool readonly0 = executeMethodParameters[0].GetCustomAttributes(typeof(ReadOnlyAttribute)).Count() == 0;
+                            bool readonly1 = executeMethodParameters[1].GetCustomAttributes(typeof(ReadOnlyAttribute)).Count() == 0;
+                            type0 = s_Type0 = new ComponentType(genericArgs[0], readonly0 ? ComponentType.AccessMode.ReadOnly : ComponentType.AccessMode.ReadWrite);
+                            type1 = s_Type1 = new ComponentType(genericArgs[1], readonly1 ? ComponentType.AccessMode.ReadOnly : ComponentType.AccessMode.ReadWrite);
+
+                            return s_JobReflectionData;
+                        }
+                    }
+                }
+
+                type0 = s_Type0;
+                type1 = s_Type1;
+                return s_JobReflectionData;
+            }
+        }
+
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct JobStruct_Process2<T, U0, U1>
             where T : struct, IJobProcessComponentData<U0, U1>
             where U0 : struct, IComponentData
             where U1 : struct, IComponentData
@@ -139,14 +216,14 @@ namespace Unity.ECS
             public static IntPtr Initialize()
             {
                 if (s_JobReflectionData == IntPtr.Zero)
-                    s_JobReflectionData = JobsUtility.CreateJobReflectionData(typeof(JobStruct<T, U0, U1>), typeof(T), JobType.ParallelFor, (ExecuteJobFunction)Execute);
+                    s_JobReflectionData = JobsUtility.CreateJobReflectionData(typeof(JobStruct_Process2<T, U0, U1>), typeof(T), JobType.ParallelFor, (ExecuteJobFunction)Execute);
 
                 return s_JobReflectionData;
             }
 
-            delegate void ExecuteJobFunction(ref JobStruct<T, U0, U1> data, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
+            delegate void ExecuteJobFunction(ref JobStruct_Process2<T, U0, U1> data, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
-            static unsafe void Execute(ref JobStruct<T, U0, U1> jobData, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
+            static unsafe void Execute(ref JobStruct_Process2<T, U0, U1> jobData, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
                 int begin;
                 int end;

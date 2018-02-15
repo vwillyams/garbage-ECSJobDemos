@@ -38,7 +38,7 @@ namespace Unity.ECS
                     if (InjectFromEntityData.SupportsInjections(field))
                         InjectFromEntityData.CreateInjection(field, entityManager, injectFromEntity, injectFromFixedArray);
                     else
-                        injectGroups.Add(InjectComponentGroupData.CreateInjection(field.FieldType, field, entityManager));
+                        injectGroups.Add(InjectComponentGroupData.CreateInjection(field.FieldType, field, componentSystem));
                 }
             }
 

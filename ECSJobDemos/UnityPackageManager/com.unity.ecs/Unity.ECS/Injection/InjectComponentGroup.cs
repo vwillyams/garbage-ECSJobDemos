@@ -31,13 +31,13 @@ namespace Unity.ECS
         readonly InjectionData[]     m_FixedArrayInjections;
         readonly InjectionData[]     m_SharedComponentInjections;
 
-        InjectComponentGroupData(EntityManager entityManager, FieldInfo groupField,
+        InjectComponentGroupData(ComponentSystemBase system, FieldInfo groupField,
             InjectionData[] componentDataInjections, InjectionData[] componentInjections, InjectionData[] fixedArrayInjections, InjectionData[] sharedComponentInjections,
             FieldInfo entityArrayInjection, FieldInfo transformAccessArrayInjection, FieldInfo gameObjectArrayInjection, FieldInfo lengthInjection, ComponentType[] componentRequirements)
         {
             var requiredComponentTypes = componentRequirements;
 
-            m_EntityGroup = entityManager.CreateComponentGroup(requiredComponentTypes);
+            m_EntityGroup = system.GetComponentGroup(requiredComponentTypes);
 
             for (var i = 0; i != componentInjections.Length; i++)
                 componentInjections[i].IndexInComponentGroup = m_EntityGroup.GetIndexInComponentGroup(requiredComponentTypes[i].TypeIndex);
@@ -73,12 +73,6 @@ namespace Unity.ECS
                 m_TransformAccessArrayOffset = -1;
 
             m_GroupFieldOffset = UnsafeUtility.GetFieldOffset(groupField);
-        }
-
-        public void Dispose()
-        {
-            m_EntityGroup.Dispose ();
-            m_EntityGroup = null;
         }
 
         public ComponentGroup EntityGroup => m_EntityGroup;
@@ -150,7 +144,7 @@ namespace Unity.ECS
             }
         }
 
-        public static InjectComponentGroupData CreateInjection(Type injectedGroupType, FieldInfo groupField, EntityManager entityManager)
+        public static InjectComponentGroupData CreateInjection(Type injectedGroupType, FieldInfo groupField, ComponentSystemBase system)
         {
             FieldInfo entityArrayField;
             FieldInfo gameObjectArrayField;
@@ -167,7 +161,7 @@ namespace Unity.ECS
             if (error != null)
                 throw new System.ArgumentException(error);
 
-            return new InjectComponentGroupData(entityManager, groupField, componentDataInjections.ToArray(), componentInjections.ToArray(), fixedArrayInjections.ToArray(), sharedComponentInjections.ToArray(), entityArrayField, transformAccessArrayField, gameObjectArrayField, lengthField, componentRequirements.ToArray());
+            return new InjectComponentGroupData(system, groupField, componentDataInjections.ToArray(), componentInjections.ToArray(), fixedArrayInjections.ToArray(), sharedComponentInjections.ToArray(), entityArrayField, transformAccessArrayField, gameObjectArrayField, lengthField, componentRequirements.ToArray());
         }
 
         static string CollectInjectedGroup(Type injectedGroupType, out FieldInfo entityArrayField, out FieldInfo transformAccessArrayField, out FieldInfo gameObjectArrayField, out FieldInfo lengthField, ICollection<ComponentType> componentRequirements,

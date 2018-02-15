@@ -121,12 +121,12 @@ namespace Unity.ECS
             }
         }
 
-        int PopulatedCachedTypeArray(ComponentType[] requiredComponents)
+        int PopulatedCachedTypeArray(ComponentType* requiredComponents, int count)
         {
             m_CachedComponentTypeArray[0] = ComponentType.Create<Entity>();
-            for (var i = 0; i < requiredComponents.Length; ++i)
+            for (var i = 0; i < count; ++i)
                 SortingUtilities.InsertSorted(m_CachedComponentTypeArray, i + 1, requiredComponents[i]);
-            return requiredComponents.Length + 1;
+            return count + 1;
         }
 
         int PopulatedCachedTypeInArchetypeArray(ComponentType[] requiredComponents)
@@ -137,17 +137,24 @@ namespace Unity.ECS
             return requiredComponents.Length + 1;
         }
 
-        public ComponentGroup CreateComponentGroup(params ComponentType[] requiredComponents)
+        public ComponentGroup CreateComponentGroup(ComponentType* requiredComponents, int count)
         {
-            var typeArrayCount = PopulatedCachedTypeArray(requiredComponents);
+            var typeArrayCount = PopulatedCachedTypeArray(requiredComponents, count);
             var grp = m_GroupManager.CreateEntityGroupIfCached(m_ArchetypeManager, m_CachedComponentTypeArray, typeArrayCount);
             if (grp != null)
                 return grp;
-            //@TODO: Better would be to seperate creation of archetypes and getting existing archetypes
-            // and only flush when creating new ones...
+
             BeforeStructuralChange();
 
             return m_GroupManager.CreateEntityGroup(m_ArchetypeManager, m_CachedComponentTypeArray, typeArrayCount);
+        }
+        
+        public ComponentGroup CreateComponentGroup(params ComponentType[] requiredComponents)
+        {
+            fixed (ComponentType* requiredComponentsPtr = requiredComponents)
+            {
+                return CreateComponentGroup(requiredComponentsPtr, requiredComponents.Length);
+            }
         }
 
         public EntityArchetype CreateArchetype(params ComponentType[] types)

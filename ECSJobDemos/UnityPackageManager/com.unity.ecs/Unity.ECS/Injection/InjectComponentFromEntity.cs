@@ -8,8 +8,8 @@ namespace Unity.ECS
 {
     struct InjectFromEntityData
 	{
-	    readonly InjectionData[] m_InjectComponentDataFromEntity;
-	    readonly InjectionData[] m_InjectFixedArrayFromEntity;
+	    InjectionData[] m_InjectComponentDataFromEntity;
+	    InjectionData[] m_InjectFixedArrayFromEntity;
 
 	    public InjectFromEntityData(InjectionData[] componentDataFromEntity, InjectionData[] fixedArrayFromEntity)
 	    {
@@ -63,10 +63,17 @@ namespace Unity.ECS
 
 	    public void ExtractJobDependencyTypes(List<int> reading, List<int> writing)
 	    {
-	        foreach (var injection in m_InjectComponentDataFromEntity)
-	            ComponentGroup.AddReaderWriter(injection.ComponentType, reading, writing);
-	        foreach (var injection in m_InjectFixedArrayFromEntity)
-	            ComponentGroup.AddReaderWriter(injection.ComponentType, reading, writing);
+	        if (m_InjectComponentDataFromEntity != null)
+	        {
+	            foreach (var injection in m_InjectComponentDataFromEntity)
+	                ComponentGroup.AddReaderWriter(injection.ComponentType, reading, writing);
+	        }
+
+	        if (m_InjectFixedArrayFromEntity != null)
+	        {
+	            foreach (var injection in m_InjectFixedArrayFromEntity)
+	                ComponentGroup.AddReaderWriter(injection.ComponentType, reading, writing);
+	        }
 	    }
 	}
 }

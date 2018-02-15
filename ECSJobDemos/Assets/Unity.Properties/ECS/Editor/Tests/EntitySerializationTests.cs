@@ -7,6 +7,7 @@ using Unity.Mathematics;
 using Unity.Properties.Serialization;
 using UnityEngine;
 using UnityEngine.ECS;
+using UnityEngine.Profiling;
 using Debug = UnityEngine.Debug;
 
 namespace Unity.Properties.ECS.Test
@@ -29,6 +30,7 @@ namespace Unity.Properties.ECS.Test
         private World 			m_World;
         private EntityManager   m_Manager;
         private JsonVisitor     m_Visitor;
+        private EntityContainer m_Container;
 
         [SetUp]
         public void Setup()
@@ -38,6 +40,7 @@ namespace Unity.Properties.ECS.Test
 
             m_Manager = m_World.GetOrCreateManager<EntityManager> ();
             m_Visitor = new JsonVisitor();
+            m_Container = new EntityContainer();
         }
 
         [TearDown]
@@ -51,6 +54,8 @@ namespace Unity.Properties.ECS.Test
                 World.Active = m_PreviousWorld;
                 m_PreviousWorld = null;
                 m_Manager = null;
+                m_Container.Dispose();
+                m_Container = null;
             }
         }
         
@@ -62,13 +67,10 @@ namespace Unity.Properties.ECS.Test
             var testComponent = m_Manager.GetComponentData<TestComponent>(entity);
             testComponent.x = 123f;
             m_Manager.SetComponentData(entity, testComponent);
-            
-            var container = new EntityContainer();
-            
-            container.Setup(m_Manager, entity);
 
-            var json = JsonPropertyContainerWriter.Write(container, m_Visitor);
-            
+            m_Container.Setup(m_Manager, entity);
+            var json = JsonPropertyContainerWriter.Write(m_Container, m_Visitor);
+
             Debug.Log(json);
         }
         
@@ -85,13 +87,9 @@ namespace Unity.Properties.ECS.Test
             var nestedComponent = m_Manager.GetComponentData<NestedComponent>(entity);
             nestedComponent.test.x = 123f;
             m_Manager.SetComponentData(entity, nestedComponent);
-            
-            var container = new EntityContainer();
-            
-            container.Setup(m_Manager, entity);
 
-            var json = JsonPropertyContainerWriter.Write(container, m_Visitor);
-            
+            m_Container.Setup(m_Manager, entity);
+            var json = JsonPropertyContainerWriter.Write(m_Container, m_Visitor);
             Debug.Log(json);
         }
 
@@ -116,11 +114,9 @@ namespace Unity.Properties.ECS.Test
             math.v4 = new float4(1f, 2f, 3f, 4f);
             m_Manager.SetComponentData(entity, math);
             
-            var container = new EntityContainer();
-            
-            container.Setup(m_Manager, entity);
+            m_Container.Setup(m_Manager, entity);
 
-            var json = JsonPropertyContainerWriter.Write(container, m_Visitor);
+            var json = JsonPropertyContainerWriter.Write(m_Container, m_Visitor);
             
             Debug.Log(json);
         }
@@ -151,15 +147,12 @@ namespace Unity.Properties.ECS.Test
             
             m_Manager.SetComponentData(entity, comp);
             
-            var container = new EntityContainer();
-            
-            container.Setup(m_Manager, entity);
+            m_Container.Setup(m_Manager, entity);
 
-            var json = JsonPropertyContainerWriter.Write(container, m_Visitor);
+            var json = JsonPropertyContainerWriter.Write(m_Container, m_Visitor);
             
             Debug.Log(json);
         }
-        
         
         [Test]
         [Ignore("Slow")]
@@ -185,7 +178,6 @@ namespace Unity.Properties.ECS.Test
             {
                 var sw = new Stopwatch();
                 sw.Start();
-                var container = new EntityContainer();
                 string json = string.Empty;
                 
                 var setupTimer = new Stopwatch();
@@ -193,25 +185,26 @@ namespace Unity.Properties.ECS.Test
                 foreach (var entity in entities)
                 {
                     setupTimer.Start();
-                    container.Setup(m_Manager, entity);
+                    m_Container.Setup(m_Manager, entity);
                     setupTimer.Stop();
                     
-                    json = JsonPropertyContainerWriter.Write(container, m_Visitor);
+                    json = JsonPropertyContainerWriter.Write(m_Container, m_Visitor);
                 }
                 
                 sw.Stop();
-                Debug.Log($"Serialized {kCount} entities in {sw.Elapsed}. Size per entity = {json.Length} bytes, total size = {json.Length * kCount} bytes");
-                Debug.Log($"Setting up proxy containers took {setupTimer.Elapsed}, or {100.0 * ((double)setupTimer.ElapsedMilliseconds / sw.ElapsedMilliseconds)}%");
+                var elapsed = sw.Elapsed;
+                Debug.Log($"Serialized {kCount} entities in {elapsed}. Size per entity = {json.Length} bytes, total size = {json.Length * kCount} bytes");
+                Debug.Log($"Setting up proxy containers took {setupTimer.Elapsed}, or {100.0 * (setupTimer.ElapsedMilliseconds / elapsed.TotalMilliseconds)}%");
                 Debug.Log(json);
-
-                sw.Reset();
-                sw.Start();
-
-                var nThreads = Math.Max(1, Environment.ProcessorCount - 1);
-                TypeTreeParallelVisit(entities, nThreads);
-                sw.Stop();
-                
-                Debug.Log($"Threaded serialization using {nThreads} threads in {sw.Elapsed}");
+//
+//                sw.Reset();
+//                sw.Start();
+//
+//                var nThreads = Math.Max(1, Environment.ProcessorCount - 1);
+//                TypeTreeParallelVisit(entities, nThreads);
+//                sw.Stop();
+//                
+//                Debug.Log($"Threaded serialization using {nThreads} threads in {sw.Elapsed}");
             }
         }
         
@@ -241,18 +234,20 @@ namespace Unity.Properties.ECS.Test
 
                 var thread = new Thread(obj =>
                 {
-                    var container = new EntityContainer();
-                    var visitor = new JsonVisitor()
+                    using (var container = new EntityContainer())
                     {
-                        StringBuffer = new StringBuffer(4096)
-                    };
-                    var c = (WorkerThreadContext) obj;
-                    for (int p = c.StartIndex, end = c.EndIndex; p < end; p++)
-                    {
-                        var entity = c.Entities[p];
-                        container.Setup(m_Manager, entity);
-                        container.PropertyBag.Visit(container, visitor);
-                        visitor.StringBuffer.Clear();
+                        var visitor = new JsonVisitor()
+                        {
+                            StringBuffer = new StringBuffer(4096)
+                        };
+                        var c = (WorkerThreadContext) obj;
+                        for (int p = c.StartIndex, end = c.EndIndex; p < end; p++)
+                        {
+                            var entity = c.Entities[p];
+                            container.Setup(m_Manager, entity);
+                            container.PropertyBag.Visit(container, visitor);
+                            visitor.StringBuffer.Clear();
+                        }
                     }
                 }) {IsBackground = true};
                 thread.Start(context);

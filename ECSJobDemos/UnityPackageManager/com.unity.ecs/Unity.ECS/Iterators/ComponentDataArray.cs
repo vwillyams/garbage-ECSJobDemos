@@ -36,23 +36,31 @@ namespace Unity.ECS
 #endif
         }
 
-        public NativeArray<T> GetChunkArray(int startIndex, int maxCount)
+        internal void* GetUnsafeChunkPtr(int startIndex, int maxCount, out int actualCount)
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 
-	        if (startIndex < m_MinIndex)
-		        FailOutOfRangeError(startIndex);
-	        else if (startIndex + maxCount > m_MaxIndex + 1)
-		        FailOutOfRangeError(startIndex + maxCount);
+            if (startIndex < m_MinIndex)
+                FailOutOfRangeError(startIndex);
+            else if (startIndex + maxCount > m_MaxIndex + 1)
+                FailOutOfRangeError(startIndex + maxCount);
 #endif
 
             m_Iterator.UpdateCache(startIndex, out m_Cache);
 
             void* ptr = (byte*)m_Cache.CachedPtr + startIndex * m_Cache.CachedSizeOf;
-            var count = Math.Min(maxCount, m_Cache.CachedEndIndex - startIndex);
+            actualCount = Math.Min(maxCount, m_Cache.CachedEndIndex - startIndex);
 
-	        var arr = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(ptr, count, Allocator.Invalid);
+            return ptr;
+        }
+
+        public NativeArray<T> GetChunkArray(int startIndex, int maxCount)
+        {
+            int count;
+            void* ptr = GetUnsafeChunkPtr(startIndex, maxCount, out count);
+
+            var arr = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(ptr, count, Allocator.Invalid);
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref arr, m_Safety);

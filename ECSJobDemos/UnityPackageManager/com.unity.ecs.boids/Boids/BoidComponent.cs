@@ -1,5 +1,6 @@
 ﻿using System;
 using Unity.ECS;
+using UnityEngine.ECS.Utilities;
 
 namespace UnityEngine.ECS.Boids
 {
@@ -16,4 +17,6 @@ namespace UnityEngine.ECS.Boids
     }
 
     public class BoidComponent : SharedComponentDataWrapper<Boid> { }
+    
+
 }

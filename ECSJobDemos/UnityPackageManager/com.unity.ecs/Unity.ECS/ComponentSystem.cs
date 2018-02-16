@@ -53,16 +53,7 @@ namespace Unity.ECS
         protected sealed override void OnAfterDestroyManagerInternal()
         {
             m_InjectedComponentGroups = null;
-
-            if (null != m_CachedComponentGroupArrays)
-            {
-                for (var i = 0; i != m_CachedComponentGroupArrays.Length; i++)
-                {
-                    if (m_CachedComponentGroupArrays[i] != null)
-                        m_CachedComponentGroupArrays[i].Dispose();
-                }
-                m_CachedComponentGroupArrays = null;
-            }
+            m_CachedComponentGroupArrays = null;
 
             for (var i = 0; i != m_ComponentGroups.Length; i++)
             {
@@ -122,13 +113,7 @@ namespace Unity.ECS
                     return new ComponentGroupArray<T>(m_CachedComponentGroupArrays[i]);
             }
 
-            var cache = new ComponentGroupArrayStaticCache(typeof(T), EntityManager);
-
-            ArrayUtilityAdd(ref m_CachedComponentGroupArrays, cache );
-            ArrayUtilityAdd(ref m_ComponentGroups, cache.ComponentGroup);
-
-            RecalculateTypesFromComponentGroups();
-
+            var cache = new ComponentGroupArrayStaticCache(typeof(T), EntityManager, this);
             return new ComponentGroupArray<T>(cache);
         }
 

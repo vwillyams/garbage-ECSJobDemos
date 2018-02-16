@@ -26,7 +26,7 @@ namespace Unity.ECS
         int                                     m_ReaderCount;
         int                                     m_WriterCount;
 
-        public ComponentGroupArrayStaticCache(Type type, EntityManager entityManager)
+        public ComponentGroupArrayStaticCache(Type type, EntityManager entityManager, ComponentSystemBase system = null)
         {
             var fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
@@ -95,10 +95,18 @@ namespace Unity.ECS
             componentDataFieldOffsetsBuilder.AddRange(componentFieldOffsetsBuilder);
             ComponentFieldOffsets = componentDataFieldOffsetsBuilder.ToArray();
 
-            ComponentGroup = entityManager.CreateComponentGroup(ComponentTypes);
-            CachedType = type;
+            if (system != null)
+            {
+                ComponentGroup = system.GetComponentGroup(ComponentTypes);
+                SafetyManager = entityManager.ComponentJobSafetyManager;
+            }
+            else
+            {
+                ComponentGroup = entityManager.CreateComponentGroup(ComponentTypes);
+                SafetyManager = entityManager.ComponentJobSafetyManager;
+            }
 
-            SafetyManager = entityManager.ComponentJobSafetyManager;
+            CachedType = type;
         }
 
         public void Dispose()

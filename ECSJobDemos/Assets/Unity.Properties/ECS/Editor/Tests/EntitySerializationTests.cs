@@ -226,6 +226,7 @@ namespace Unity.Properties.ECS.Test
                 var json = JsonSerializer.Serialize(new EntityContainer(m_Manager, entities[0]));
 
                 var totalTimer = new Stopwatch();
+                totalTimer.Start();
 
                 foreach (var entity in entities)
                 {

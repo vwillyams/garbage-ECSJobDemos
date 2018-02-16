@@ -457,6 +457,26 @@ namespace UnityEngine.ECS
             return components;
         }
         
+        public int GetComponentCount(Entity entity)
+        {
+            m_Entities->AssertEntitiesExist(&entity, 1);
+            Archetype* archetype = m_Entities->GetArchetype(entity);
+            return archetype->typesCount - 1;
+        }
+
+        public int GetComponentTypeIndex(Entity entity, int index)
+        {
+            m_Entities->AssertEntitiesExist(&entity, 1);
+            Archetype* archetype = m_Entities->GetArchetype(entity);
+
+            if ((uint) index >= archetype->typesCount)
+            {
+                return -1;
+            }
+
+            return archetype->types[index + 1].typeIndex;
+        }
+
         public void SetComponentDataRaw(Entity entity, int typeIndex, void* data, int size)
         {
             m_Entities->AssertEntityHasComponent(entity, typeIndex);

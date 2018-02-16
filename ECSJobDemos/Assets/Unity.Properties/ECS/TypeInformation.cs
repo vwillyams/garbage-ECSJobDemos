@@ -8,7 +8,7 @@ namespace Unity.Properties.ECS
 {
     public static class TypeInformation
     {
-        private static Dictionary<Type, PropertyBag> s_PropertyBagCache = new Dictionary<Type, PropertyBag>();
+        private static readonly Dictionary<Type, PropertyBag> s_PropertyBagCache = new Dictionary<Type, PropertyBag>();
 
         public static PropertyBag GetOrCreate(Type componentType)
         {
@@ -25,7 +25,7 @@ namespace Unity.Properties.ECS
                 if (field.IsPublic && field.FieldType.IsValueType)
                 {
                     IProperty property;
-                    
+
                     if (typeof(IComponentData).IsAssignableFrom(field.FieldType))
                     {
                         property = new NestedProxyProperty(field);
@@ -46,42 +46,43 @@ namespace Unity.Properties.ECS
                             {
                                 throw new NotSupportedException($"Primitive field type {field.FieldType} is not supported");
                             }
+
                             // composite
                             property = new NestedProxyProperty(field);
                         }
                     }
-                    
+
                     properties.Add(property);
                 }
             }
+
             result = new PropertyBag(properties);
             s_PropertyBagCache[componentType] = result;
             return result;
         }
-        
+
         private class TypeIdProperty : StructProperty<StructProxy, string>
         {
             public TypeIdProperty(GetValueMethod getValue) : base("$TypeId", getValue, null)
             {
             }
         }
-        
-        private static IProperty ComponentIdProperty = new TypeIdProperty(
+
+        private static readonly IProperty ComponentIdProperty = new TypeIdProperty(
             (ref StructProxy c) => c.type.FullName);
-        
-        
+
         private unsafe class NestedProxyProperty : StructMutableContainerProperty<StructProxy, StructProxy>
         {
             public int FieldOffset { get; }
             public Type ComponentType { get; }
             public PropertyBag PropertyBag { get; }
-            
-            public NestedProxyProperty(FieldInfo field) 
+
+            public NestedProxyProperty(FieldInfo field)
                 : base(field.Name, null, null, null)
             {
                 FieldOffset = UnsafeUtility.GetFieldOffset(field);
                 ComponentType = field.FieldType;
-                PropertyBag = TypeInformation.GetOrCreate(ComponentType);
+                PropertyBag = GetOrCreate(ComponentType);
                 RefAccess = GetChildRef;
             }
 
@@ -101,7 +102,7 @@ namespace Unity.Properties.ECS
                 };
             }
         }
-        
+
         private unsafe class PrimitiveProperty<TValue> : StructProperty<StructProxy, TValue>
             where TValue : struct
         {
@@ -111,7 +112,7 @@ namespace Unity.Properties.ECS
             {
                 FieldOffset = UnsafeUtility.GetFieldOffset(field);
             }
-            
+
             public override TValue GetValue(ref StructProxy container)
             {
                 TValue v;

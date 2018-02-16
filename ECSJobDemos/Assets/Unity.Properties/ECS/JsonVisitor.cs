@@ -40,66 +40,131 @@ namespace Unity.Properties.ECS
             }
         }
     }
-    
+
+    public static class StringBufferExtensions
+    {
+        public static void AppendPropertyName(this StringBuffer sb, string propertyName)
+        {
+            sb.EnsureCapacity(propertyName.Length + 4);
+
+            var buffer = sb.Buffer;
+            var position = sb.Length;
+
+            buffer[position++] = '\"';
+
+            var len = propertyName.Length;
+            for (var i = 0; i < len; i++)
+            {
+                buffer[position + i] = propertyName[i];
+            }
+            position += len;
+
+            buffer[position++] = '\"';
+            buffer[position++] = ':';
+            buffer[position++] = ' ';
+
+            sb.Length = position;
+        }
+
+        public static void AppendFloat2(this StringBuffer sb, float2 value)
+        {
+            sb.Append(value.x);
+            sb.Append(',');
+            sb.Append(value.y);
+        }
+
+        public static void AppendFloat3(this StringBuffer sb, float3 value)
+        {
+            sb.Append(value.x);
+            sb.Append(',');
+            sb.Append(value.y);
+            sb.Append(',');
+            sb.Append(value.z);
+        }
+
+        public static void AppendFloat4(this StringBuffer sb, float4 value)
+        {
+            sb.Append(value.x);
+            sb.Append(',');
+            sb.Append(value.y);
+            sb.Append(',');
+            sb.Append(value.z);
+            sb.Append(',');
+            sb.Append(value.w);
+        }
+    }
+
     public class JsonVisitor : JsonPropertyVisitor, IOptimizedVisitor
     {
         public void Visit<TContainer>(ref TContainer container, VisitContext<float2> context) where TContainer : IPropertyContainer
         {
             StringBuffer.Append(' ', Style.Space * Indent);
-            StringBuffer.Append("\"");
-            StringBuffer.Append(context.Property.Name);
-            StringBuffer.Append("\": ");
-            StringBuffer.Append($"[{context.Value.x},{context.Value.y}]");
+            StringBuffer.AppendPropertyName(context.Property.Name);
+            StringBuffer.Append('[');
+            StringBuffer.AppendFloat2(context.Value);
+            StringBuffer.Append(']');
             StringBuffer.Append(",\n");
         }
 
         public void Visit<TContainer>(ref TContainer container, VisitContext<float3> context) where TContainer : IPropertyContainer
         {
             StringBuffer.Append(' ', Style.Space * Indent);
-            StringBuffer.Append("\"");
-            StringBuffer.Append(context.Property.Name);
-            StringBuffer.Append("\": ");
-            StringBuffer.Append($"[{context.Value.x},{context.Value.y},{context.Value.z}]");
+            StringBuffer.AppendPropertyName(context.Property.Name);
+            StringBuffer.Append('[');
+            StringBuffer.AppendFloat3(context.Value);
+            StringBuffer.Append(']');
             StringBuffer.Append(",\n");
         }
 
         public void Visit<TContainer>(ref TContainer container, VisitContext<float4> context) where TContainer : IPropertyContainer
         {
             StringBuffer.Append(' ', Style.Space * Indent);
-            StringBuffer.Append("\"");
-            StringBuffer.Append(context.Property.Name);
-            StringBuffer.Append("\": ");
-            StringBuffer.Append($"[{context.Value.x},{context.Value.y},{context.Value.z},{context.Value.w}]");
+            StringBuffer.AppendPropertyName(context.Property.Name);
+            StringBuffer.Append('[');
+            StringBuffer.AppendFloat4(context.Value);
+            StringBuffer.Append(']');
             StringBuffer.Append(",\n");
         }
 
         public void Visit<TContainer>(ref TContainer container, VisitContext<float2x2> context) where TContainer : IPropertyContainer
         {
             StringBuffer.Append(' ', Style.Space * Indent);
-            StringBuffer.Append("\"");
-            StringBuffer.Append(context.Property.Name);
-            StringBuffer.Append("\": ");
-            StringBuffer.Append($"[{context.Value.m0.x},{context.Value.m0.y},{context.Value.m1.x},{context.Value.m1.y}]");
+            StringBuffer.AppendPropertyName(context.Property.Name);
+            StringBuffer.Append('[');
+            StringBuffer.AppendFloat2(context.Value.m0);
+            StringBuffer.Append(',');
+            StringBuffer.AppendFloat2(context.Value.m1);
+            StringBuffer.Append(']');
             StringBuffer.Append(",\n");
         }
 
         public void Visit<TContainer>(ref TContainer container, VisitContext<float3x3> context) where TContainer : IPropertyContainer
         {
             StringBuffer.Append(' ', Style.Space * Indent);
-            StringBuffer.Append("\"");
-            StringBuffer.Append(context.Property.Name);
-            StringBuffer.Append("\": ");
-            StringBuffer.Append($"[{context.Value.m0.x},{context.Value.m0.y},{context.Value.m0.z},{context.Value.m1.x},{context.Value.m1.y},{context.Value.m1.z},{context.Value.m2.x},{context.Value.m2.y},{context.Value.m2.z}]");
+            StringBuffer.AppendPropertyName(context.Property.Name);
+            StringBuffer.Append('[');
+            StringBuffer.AppendFloat3(context.Value.m0);
+            StringBuffer.Append(',');
+            StringBuffer.AppendFloat3(context.Value.m1);
+            StringBuffer.Append(',');
+            StringBuffer.AppendFloat3(context.Value.m2);
+            StringBuffer.Append(']');
             StringBuffer.Append(",\n");
         }
 
         public void Visit<TContainer>(ref TContainer container, VisitContext<float4x4> context) where TContainer : IPropertyContainer
         {
             StringBuffer.Append(' ', Style.Space * Indent);
-            StringBuffer.Append("\"");
-            StringBuffer.Append(context.Property.Name);
-            StringBuffer.Append("\": ");
-            StringBuffer.Append($"[{context.Value.m0.x},{context.Value.m0.y},{context.Value.m0.z},{context.Value.m0.w},{context.Value.m1.x},{context.Value.m1.y},{context.Value.m1.z},{context.Value.m1.w},{context.Value.m2.x},{context.Value.m2.y},{context.Value.m2.z},{context.Value.m2.w},{context.Value.m3.x},{context.Value.m3.y},{context.Value.m3.z},{context.Value.m3.w}]");
+            StringBuffer.AppendPropertyName(context.Property.Name);
+            StringBuffer.Append('[');
+            StringBuffer.AppendFloat4(context.Value.m0);
+            StringBuffer.Append(',');
+            StringBuffer.AppendFloat4(context.Value.m1);
+            StringBuffer.Append(',');
+            StringBuffer.AppendFloat4(context.Value.m2);
+            StringBuffer.Append(',');
+            StringBuffer.AppendFloat4(context.Value.m3);
+            StringBuffer.Append(']');
             StringBuffer.Append(",\n");
         }
     }

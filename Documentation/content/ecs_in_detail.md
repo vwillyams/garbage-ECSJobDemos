@@ -151,10 +151,15 @@ All jobs and thus systems declare what component types they read or write to. As
 Thus if a system writes to Component A, and another System later on reads from Component A, then the ComponentSystem looks through the list of types it is reading from and thus passes you a dependency against the job from the first System.
 
 ### Sync Points
-Creating entities, instantiating, destroying entities, adding and remove component all have a hard sync point. Meaning all jobs scheduled through JobComponentSystem will be completed. SA: EntityCommandBuffer
+Creating entities, instantiating, destroying entities, adding and remove component all have a hard sync point. Meaning all jobs scheduled through JobComponentSystem will be completed. 
+
+See [EntityCommandBuffer](#EntityCommandBuffer) for more on avoiding sync points when creating entities during gameplay.
 
 ### Multiple worlds
-Every World has its own EntityManager and thus a seperate set of Job handle dependency management. A hard sync point in one world will not affect the other world. As a result for streaming and proc-gen use cases it is useful to create entities in one World and then move them to another world in one transaction at the beginning of the frame. SA: ExclusiveEntityTransaction
+Every World has its own EntityManager and thus a seperate set of Job handle dependency management. A hard sync point in one world will not affect the other world. As a result for streaming and proc-gen use cases it is useful to create entities in one World and then move them to another world in one transaction at the beginning of the frame. 
+
+See [ExclusiveEntityTransaction](#ExclusiveEntityTransaction) for more on avoiding sync points for Proc-gen & Streaming use cases.
+
 
 ## Shared component data
 IComponentData is appropriate for data that varies from entity to entity, such as storing a world position. ISharedComponentData is useful when many entities have something in common, for example in the boid demo we instantiate many entities from the same prefab and thus the InstanceRenderer between many boid entities is exactly the same. 
@@ -232,7 +237,11 @@ var position = m_LocalPositions[myEntity];
 
 ## ExclusiveEntityTransaction
 
+
 EntityTransaction is an API to create & destroy entities from a job. The purpose is to enable procedural generation use cases where construction of massive scale instantiation must happen on jobs. This API is very much work in progress
+
+## EntityCommandBuffer
+
 
 ## GameObjectEntity
 ECS ships with GameObjectEntity component. It is a MonoBehaviour. In OnEnable, the GameObjectEntity component creates an entity with all components on the game object. As a result the full game object and all its components are now iteratable by ComponentSystems.

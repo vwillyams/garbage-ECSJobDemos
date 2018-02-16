@@ -8,12 +8,8 @@ namespace UnityEngine.ECS.Boids
     public struct BoidNearestObstaclePosition : IComponentData, INearestTarget
     {
         public float3 value { get; set; }
-
-        public Type TargetType()
-        {
-            return typeof(BoidObstacle);
-        }
     }
 
     public class BoidNearestObstaclePositionComponent : ComponentDataWrapper<BoidNearestObstaclePosition> { }
+    public class BoidNearestObstaclePositionSystem : NearestTargetPositionSystem<BoidNearestObstaclePosition, BoidTarget> { }
 }

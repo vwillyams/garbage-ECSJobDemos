@@ -48,7 +48,16 @@ struct Component128Bytes : IComponentData
 
 public class ECSIteratePerformance : MonoBehaviour
 {
-	unsafe struct EntityIter
+    [DisableAutoCreation]
+    class DummyComponentSystem : JobComponentSystem
+    {
+        protected override JobHandle OnUpdate(JobHandle inputDeps)
+        {
+            return inputDeps;
+        }
+    }
+
+    unsafe struct EntityIter
 	{
 		public Component4Bytes* 	src;
 		public Component4BytesDst* 	dst;
@@ -278,9 +287,10 @@ public class ECSIteratePerformance : MonoBehaviour
 		}
 
 		var entityManager = World.Active.GetOrCreateManager<EntityManager>();
+	    var dummySystem = World.Active.GetOrCreateManager<DummyComponentSystem>();
 
 		var archetype = entityManager.CreateEntity(typeof(Component128Bytes), typeof(Component12Bytes), typeof(Component64Bytes), typeof(Component16Bytes), typeof(Component4Bytes), typeof(Component4BytesDst));
-		var group = entityManager.CreateComponentGroup(typeof(Component4Bytes), typeof(Component4BytesDst));
+		var group = dummySystem.GetComponentGroup(typeof(Component4Bytes), typeof(Component4BytesDst));
 
 	    var instances = new NativeArray<Entity>(PerformanceTestConfiguration.InstanceCount - 1, Allocator.Temp);
 
@@ -298,7 +308,7 @@ public class ECSIteratePerformance : MonoBehaviour
 
 		var componentProcessDataJob = new Iterate_ProcessComponentData();
 		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
-			componentProcessDataJob.Run(src, dst);
+			componentProcessDataJob.Run(dummySystem);
 
 		var entityArrayCache = new ComponentGroupArrayStaticCache(typeof(EntityIter), entityManager);
 		var entityArray = new ComponentGroupArray<EntityIter>(entityArrayCache);

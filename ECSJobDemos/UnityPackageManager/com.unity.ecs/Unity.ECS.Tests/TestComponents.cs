@@ -34,4 +34,14 @@ namespace UnityEngine.ECS.Tests
         public EcsTestData3(int inValue) { value2 = value1 = value0 = inValue; }
     }
 
+    public struct EcsTestData4 : IComponentData
+    {
+        public int value0;
+        public int value1;
+        public int value2;
+        public int value3;
+
+        public EcsTestData4(int inValue) { value3 = value2 = value1 = value0 = inValue; }
+    }
+    
 }

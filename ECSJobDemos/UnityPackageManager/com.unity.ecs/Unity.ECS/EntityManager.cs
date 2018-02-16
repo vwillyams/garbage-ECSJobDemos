@@ -53,7 +53,7 @@ namespace Unity.ECS
         ArchetypeManager                  m_ArchetypeManager;
         EntityGroupManager                m_GroupManager;
 
-        private SharedComponentDataManager        m_SharedComponentManager;
+        SharedComponentDataManager        m_SharedComponentManager;
 
         EntityTransaction                 m_EntityTransaction;
 

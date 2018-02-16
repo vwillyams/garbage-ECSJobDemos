@@ -117,6 +117,44 @@ By default we create a single world when entering playmode and populate it with 
 
 *We are currently working on multiplayer demos, that will show how to work in a setup with seperate simulation & presentation worlds. This is WIP, so right now have no clear guidelines and likely are also missing features in ECS to enable it.* 
 
+## Automatic Job dependency Management (JobComponentSystem)
+
+Managing dependencies is hard. This is why in JobComponentSystem we are doing it automatically for you. The rules are simple. Jobs from different systems can read from IComponentData of the same type in parallel. If one of the jobs is writing to the data then they can't run in parallel and will be scheduled with a dependency between the jobs.
+
+```cs
+public class RotationSpeedSystem : JobComponentSystem
+{
+    [ComputeJobOptimization]
+    struct RotationSpeedRotation : IJobProcessComponentData<Rotation, RotationSpeed>
+    {
+        public float dt;
+
+        public void Execute(ref Rotation rotation, [ReadOnly]ref RotationSpeed speed)
+        {
+            rotation.value = math.mul(math.normalize(rotation.value), math.axisAngle(math.up(), speed.speed * dt));
+        }
+    }
+
+    // Any previously scheduled jobs reading/writing from Rotation or writing to RotationSpeed 
+    // will automatically be included in the inputDeps dependency.
+    protected override JobHandle OnUpdate(JobHandle inputDeps)
+    {
+        var job = new RotationSpeedRotation() { dt = Time.deltaTime };
+        return job.Schedule(this, 64, inputDeps);
+    } 
+}
+```
+
+### How does this work?
+All jobs and thus systems declare what component types they read or write to. As a result when a JobComponentSystem returns a JobHandle it is automatically registered with the EntityManager and all the types including the information about if it is reading / writing.
+
+Thus if a system writes to Component A, and another System later on reads from Component A, then the ComponentSystem looks through the list of types it is reading from and thus passes you a dependency against the job from the first System.
+
+### Sync Points
+Creating entities, instantiating, destroying entities, adding and remove component all have a hard sync point. Meaning all jobs scheduled through JobComponentSystem will be completed. SA: EntityCommandBuffer
+
+### Multiple worlds
+Every World has its own EntityManager and thus a seperate set of Job handle dependency management. A hard sync point in one world will not affect the other world. As a result for streaming and proc-gen use cases it is useful to create entities in one World and then move them to another world in one transaction at the beginning of the frame. SA: ExclusiveEntityTransaction
 
 ## Shared component data
 IComponentData is appropriate for data that varies from entity to entity, such as storing a world position. ISharedComponentData is useful when many entities have something in common, for example in the boid demo we instantiate many entities from the same prefab and thus the InstanceRenderer between many boid entities is exactly the same. 
@@ -192,7 +230,7 @@ Entity myEntity = ...;
 var position = m_LocalPositions[myEntity];
 ```
 
-## EntityTransaction
+## ExclusiveEntityTransaction
 
 EntityTransaction is an API to create & destroy entities from a job. The purpose is to enable procedural generation use cases where construction of massive scale instantiation must happen on jobs. This API is very much work in progress
 

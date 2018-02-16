@@ -170,7 +170,7 @@ namespace UnityEngine.ECS.Boids
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            var maingroup = EntityManager.CreateComponentGroup(
+            var maingroup = GetComponentGroup(
                 ComponentType.ReadOnly(typeof(Boid)),
                 ComponentType.ReadOnly(typeof(Position)),
                 ComponentType.ReadOnly(typeof(BoidNearestObstaclePosition)),
@@ -188,8 +188,6 @@ namespace UnityEngine.ECS.Boids
                 var nearestObstaclePositions = group.GetComponentDataArray<BoidNearestObstaclePosition>();
                 var nearestTargetPositions = group.GetComponentDataArray<BoidNearestTargetPosition>();
                 var headings = group.GetComponentDataArray<Heading>();
-                // Nothing injected is accessed, so inputDeps is not needed
-                var lastDeps = group.GetDependency();
 
                 if (typeIndex > m_Cells.Count - 1)
                 {
@@ -208,7 +206,7 @@ namespace UnityEngine.ECS.Boids
                     cellRadius = settings.cellRadius
                 };
 
-                var hashBoidLocationsJobHandle = hashBoidLocationsJob.Schedule(positions.Length, 64, lastDeps);
+                var hashBoidLocationsJobHandle = hashBoidLocationsJob.Schedule(positions.Length, 64, inputDeps);
 
                 var copyPositionsResults = new NativeArray<float3>(positions.Length, Allocator.TempJob);
                 var copyPositionsJob = new CopyPosition
@@ -216,7 +214,7 @@ namespace UnityEngine.ECS.Boids
                     positions = positions,
                     results = copyPositionsResults
                 };
-                var copyPositionsJobHandle = copyPositionsJob.Schedule(positions.Length, 64, lastDeps);
+                var copyPositionsJobHandle = copyPositionsJob.Schedule(positions.Length, 64, inputDeps);
 
                 var copyHeadingsResults = new NativeArray<float3>(positions.Length, Allocator.TempJob);
                 var copyHeadingsJob = new CopyHeading
@@ -224,7 +222,7 @@ namespace UnityEngine.ECS.Boids
                     headings = headings,
                     results = copyHeadingsResults
                 };
-                var copyHeadingsJobHandle = copyHeadingsJob.Schedule(positions.Length, 64, lastDeps);
+                var copyHeadingsJobHandle = copyHeadingsJob.Schedule(positions.Length, 64, inputDeps);
 
                 var separationResults = new NativeArray<float3>(positions.Length, Allocator.TempJob);
                 var alignmentResults = new NativeArray<float3>(positions.Length, Allocator.TempJob);
@@ -256,13 +254,10 @@ namespace UnityEngine.ECS.Boids
                     dt = Time.deltaTime
                 };
 
-                var steerJobHandle = steerJob.Schedule(positions.Length, 64, separationAndAlignmentSteerJobHandle);
-                // The scheduled job needs to be a dependency for the group
-                group.AddDependency(steerJobHandle);
+                inputDeps = steerJob.Schedule(positions.Length, 64, separationAndAlignmentSteerJobHandle);
                 group.Dispose();
             }
 
-            maingroup.Dispose();
 			// The return value only applies to jobs working with injected components
             return inputDeps;
         }

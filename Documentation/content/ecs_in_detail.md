@@ -150,8 +150,15 @@ All jobs and thus systems declare what component types they read or write to. As
 
 Thus if a system writes to Component A, and another System later on reads from Component A, then the ComponentSystem looks through the list of types it is reading from and thus passes you a dependency against the job from the first System.
 
+#### Dependency management is conservative
+Dependency managment is conservative. ComponentSystem simply tracks all ComponentGroups ever used and stores which types are being written / read based on that. (So if you inject ComponentDataArrays or use IJobProcessComponentData once but skip using it sometimes, then we will create dependencies against all ComponentGroups that have ever been used by that ComponentSystem.)
+
+Also when scheduling multiple jobs in a single system, dependencies must be passed to all jobs even though different jobs may need less dependencies. If that proves to be a performance issue the best solution is to split a system into two.
+
+The dependency management approach is conservative. It allows for deterministic and correct behaviour while providing a very simple API.
+
 ### Sync Points
-Creating entities, instantiating, destroying entities, adding and remove component all have a hard sync point. Meaning all jobs scheduled through JobComponentSystem will be completed. 
+All structural changes have hard sync points. CreateEntity, Instantiate, Destroy, AddComponent, RemoveComponent, SetSharedComponentData all have a hard sync point. Meaning all jobs scheduled through JobComponentSystem will be completed before Creating the entity for example. This happens automatically. So for example calling EntityManager.CreateEntity in the middle of the frame might result in a large stall waiting for all previously scheduled jobs in the World to complete.
 
 See [EntityCommandBuffer](#EntityCommandBuffer) for more on avoiding sync points when creating entities during gameplay.
 

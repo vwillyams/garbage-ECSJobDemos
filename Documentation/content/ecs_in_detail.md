@@ -148,9 +148,11 @@ public class RotationSpeedSystem : JobComponentSystem
 ### How does this work?
 All jobs and thus systems declare what component types they read or write to. As a result when a JobComponentSystem returns a JobHandle it is automatically registered with the EntityManager and all the types including the information about if it is reading / writing.
 
-Thus if a system writes to Component A, and another System later on reads from Component A, then the ComponentSystem looks through the list of types it is reading from and thus passes you a dependency against the job from the first System.
+Thus if a system writes to Component A, and another System later on reads from Component A, then the JobComponentSystem looks through the list of types it is reading from and thus passes you a dependency against the job from the first System.
 
-#### Dependency management is conservative
+So JobComponentSystem simply chains jobs as dependencies where needed and thus causes no stalls on the main thread. But what happens if non-job ComponentSystem accesses the same data? Because all access is declared, the ComponentSystem automatically Completes all jobs running against component types the system uses before invoking OnUpdate.
+
+#### Dependency management is conservative & deterministic
 Dependency managment is conservative. ComponentSystem simply tracks all ComponentGroups ever used and stores which types are being written / read based on that. (So if you inject ComponentDataArrays or use IJobProcessComponentData once but skip using it sometimes, then we will create dependencies against all ComponentGroups that have ever been used by that ComponentSystem.)
 
 Also when scheduling multiple jobs in a single system, dependencies must be passed to all jobs even though different jobs may need less dependencies. If that proves to be a performance issue the best solution is to split a system into two.

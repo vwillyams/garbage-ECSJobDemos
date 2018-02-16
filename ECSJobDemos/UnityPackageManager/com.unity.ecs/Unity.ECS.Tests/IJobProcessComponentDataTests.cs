@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System;
+using NUnit.Framework;
 using Unity.Collections;
 using Unity.ECS;
 using Unity.Jobs;
@@ -24,7 +25,6 @@ namespace UnityEngine.ECS.Tests
             }
         }
         
-        
         [Test]
         public void JobProcessSimple()
         {
@@ -38,7 +38,23 @@ namespace UnityEngine.ECS.Tests
 
             Assert.AreEqual(42, m_Manager.GetComponentData<EcsTestData2>(entity).value0);
         }
+        
+        
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+        [Test]
+        public void JobWithMissingDependency()
+        {
+            Assert.IsTrue(Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobDebuggerEnabled, "JobDebugger must be enabled for these tests");
 
+            var entity = m_Manager.CreateEntity(typeof(EcsTestData), typeof(EcsTestData2));
+
+            var system = World.GetOrCreateManager<ProxySystem>();
+            var job = new ProcessSimple().Schedule(system, 64);
+            Assert.Throws<InvalidOperationException>(() => { new ProcessSimple().Schedule(system, 64); });
+            
+            job.Complete();
+        }
+#endif
         
         [RequireSubtractiveComponent(typeof(EcsTestData3))]
         [RequireComponentTag(typeof(EcsTestData4))]
@@ -74,5 +90,6 @@ namespace UnityEngine.ECS.Tests
             var entityProcess = m_Manager.CreateEntity(typeof(EcsTestData), typeof(EcsTestData2), typeof(EcsTestData4));
             Test(true, entityProcess);
         }
+
     }
 }

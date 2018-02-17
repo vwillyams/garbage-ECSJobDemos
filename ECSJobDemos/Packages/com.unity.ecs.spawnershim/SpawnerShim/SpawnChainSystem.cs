@@ -18,16 +18,19 @@ namespace ECS.Spawners
             public float3 position;
         }
 
+        ComponentGroup m_MainGroup;
+        
+        protected override void OnCreateManager(int capacity)
+        {
+            m_MainGroup  = GetComponentGroup(typeof(SpawnChain),typeof(Position));
+        }
+
         protected override void OnUpdate()
         {
-            var earlyoutgroup = EntityManager.CreateComponentGroup(typeof(SpawnChain));
-            earlyoutgroup.CompleteDependency();
-            if (earlyoutgroup.GetEntityArray().Length == 0)
+            if (m_MainGroup.IsEmpty)
                 return;
 
             var uniqueTypes = new List<SpawnChain>(10);
-            var maingroup = EntityManager.CreateComponentGroup(typeof(SpawnChain),typeof(Position));
-            maingroup.CompleteDependency();
 
             EntityManager.GetAllUniqueSharedComponentDatas(uniqueTypes);
 
@@ -35,17 +38,14 @@ namespace ECS.Spawners
             for (int sharedIndex = 0; sharedIndex != uniqueTypes.Count; sharedIndex++)
             {
                 var spawner = uniqueTypes[sharedIndex];
-                var group = maingroup.GetVariation(spawner);
+                var group = m_MainGroup.GetVariation(spawner);
                 var entities = group.GetEntityArray();
                 spawnInstanceCount += entities.Length;
                 group.Dispose();
             }
 
             if (spawnInstanceCount == 0)
-            {
-                maingroup.Dispose();
                 return;
-            }
 
             var spawnInstances = new NativeArray<SpawnChainInstance>(spawnInstanceCount, Allocator.Temp);
             {
@@ -53,7 +53,7 @@ namespace ECS.Spawners
                 for (int sharedIndex = 0; sharedIndex != uniqueTypes.Count; sharedIndex++)
                 {
                     var spawner = uniqueTypes[sharedIndex];
-                    var group = maingroup.GetVariation(spawner);
+                    var group = m_MainGroup.GetVariation(spawner);
                     var entities = group.GetEntityArray();
                     var positions = group.GetComponentDataArray<Position>();
 
@@ -72,8 +72,6 @@ namespace ECS.Spawners
                     group.Dispose();
                 }
             }
-
-            maingroup.Dispose();
 
             for (int spawnIndex = 0; spawnIndex < spawnInstances.Length; spawnIndex++)
             {

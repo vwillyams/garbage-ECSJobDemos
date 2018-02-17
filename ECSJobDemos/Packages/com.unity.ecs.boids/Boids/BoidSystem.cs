@@ -18,6 +18,9 @@ namespace UnityEngine.ECS.Boids
         NativeArray<int3> 					 m_CellOffsetsTable;
         NativeArray<float>                   m_Bias;
 
+        ComponentGroup                       m_MainGroup;
+        List<Boid> m_UniqueTypes = new List<Boid>(10);
+
         [ComputeJobOptimization]
         struct HashBoidLocations : IJobParallelFor
         {
@@ -170,20 +173,12 @@ namespace UnityEngine.ECS.Boids
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            var maingroup = GetComponentGroup(
-                ComponentType.ReadOnly(typeof(Boid)),
-                ComponentType.ReadOnly(typeof(Position)),
-                ComponentType.ReadOnly(typeof(BoidNearestObstaclePosition)),
-                ComponentType.ReadOnly(typeof(BoidNearestTargetPosition)),
-                typeof(Heading));
+            EntityManager.GetAllUniqueSharedComponentDatas(m_UniqueTypes);
 
-            var uniqueTypes = new List<Boid>(10);
-            EntityManager.GetAllUniqueSharedComponentDatas(uniqueTypes);
-
-            for (int typeIndex = 0; typeIndex < uniqueTypes.Count; typeIndex++)
+            for (int typeIndex = 0; typeIndex < m_UniqueTypes.Count; typeIndex++)
             {
-                var settings = uniqueTypes[typeIndex];
-                var group = maingroup.GetVariation(settings);
+                var settings = m_UniqueTypes[typeIndex];
+                var group = m_MainGroup.GetVariation(settings);
                 var positions = group.GetComponentDataArray<Position>();
                 var nearestObstaclePositions = group.GetComponentDataArray<BoidNearestObstaclePosition>();
                 var nearestTargetPositions = group.GetComponentDataArray<BoidNearestTargetPosition>();
@@ -257,6 +252,7 @@ namespace UnityEngine.ECS.Boids
                 inputDeps = steerJob.Schedule(positions.Length, 64, separationAndAlignmentSteerJobHandle);
                 group.Dispose();
             }
+            m_UniqueTypes.Clear();
 
 			// The return value only applies to jobs working with injected components
             return inputDeps;
@@ -264,7 +260,6 @@ namespace UnityEngine.ECS.Boids
 
         protected override void OnCreateManager(int capacity)
         {
-            base.OnCreateManager(capacity);
             m_Cells = new List<NativeMultiHashMap<int, int>>();
             m_CellOffsetsTable = new NativeArray<int3>(GridHash.cellOffsets, Allocator.Persistent);
             m_Bias = new NativeArray<float>(1024,Allocator.Persistent);
@@ -272,6 +267,13 @@ namespace UnityEngine.ECS.Boids
             {
                 m_Bias[i] = Random.Range(0.5f, 0.6f);
             }
+            
+            m_MainGroup = GetComponentGroup(
+                ComponentType.ReadOnly(typeof(Boid)),
+                ComponentType.ReadOnly(typeof(Position)),
+                ComponentType.ReadOnly(typeof(BoidNearestObstaclePosition)),
+                ComponentType.ReadOnly(typeof(BoidNearestTargetPosition)),
+                typeof(Heading));
         }
 
         protected override void OnDestroyManager()

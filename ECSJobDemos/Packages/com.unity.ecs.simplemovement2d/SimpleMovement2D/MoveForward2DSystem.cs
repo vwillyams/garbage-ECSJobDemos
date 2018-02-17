@@ -22,35 +22,28 @@ namespace UnityEngine.ECS.SimpleMovement2D
             }
         }
 
-        protected override JobHandle OnUpdate(JobHandle inputDeps)
+        ComponentGroup m_ComponentGroup;
+
+        protected override void OnCreateManager(int capacity)
         {
-            var moveForwardGroup = EntityManager.CreateComponentGroup(
+            m_ComponentGroup = GetComponentGroup(
                 ComponentType.ReadOnly(typeof(MoveForward)),
                 ComponentType.ReadOnly(typeof(Heading2D)),
                 ComponentType.ReadOnly(typeof(MoveSpeed)),
                 typeof(Position2D));
-            
-            var positions  = moveForwardGroup.GetComponentDataArray<Position2D>();
-            var headings   = moveForwardGroup.GetComponentDataArray<Heading2D>();
-            var moveSpeeds = moveForwardGroup.GetComponentDataArray<MoveSpeed>();
+        }
 
+        protected override JobHandle OnUpdate(JobHandle inputDeps)
+        {
             var moveForwardPositionJob = new MoveForwardPosition
             {
-                positions = positions,
-                headings = headings,
-                moveSpeeds = moveSpeeds,
+                positions = m_ComponentGroup.GetComponentDataArray<Position2D>(),
+                headings = m_ComponentGroup.GetComponentDataArray<Heading2D>(),
+                moveSpeeds = m_ComponentGroup.GetComponentDataArray<MoveSpeed>(),
                 dt = Time.deltaTime
             };
 
-            // Nothing is injected so inputDeps is not used
-            var moveForwardPositionJobHandle = moveForwardPositionJob.Schedule(positions.Length, 64, moveForwardGroup.GetDependency());
-
-            moveForwardGroup.AddDependency(moveForwardPositionJobHandle);
-
-            moveForwardGroup.Dispose();
-
-            // Nothing is injected so the return value is not used
-            return inputDeps;
+            return moveForwardPositionJob.Schedule(m_ComponentGroup.CalculateLength(), 64, inputDeps);
         }
     }
 }

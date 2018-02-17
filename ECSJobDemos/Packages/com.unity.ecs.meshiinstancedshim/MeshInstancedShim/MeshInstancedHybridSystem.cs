@@ -15,7 +15,8 @@ namespace UnityEngine.ECS.MeshInstancedShim
 	public class MeshInstancedHybridSystem : ComponentSystem
 	{
         // Instance renderer takes only batches of 1023
-        Matrix4x4[] m_MatricesArray = new Matrix4x4[1023];
+        Matrix4x4[]             m_MatricesArray = new Matrix4x4[1023];
+	    List<MeshInstancedShim> m_CacheduniqueRendererTypes = new List<MeshInstancedShim>(10);
 
 	    // This is the ugly bit, necessary until Graphics.DrawMeshInstanced supports NativeArrays pulling the data in from a job.
         public unsafe static void CopyMatrices(ComponentDataArray<TransformMatrix> transforms, int beginIndex, int length, Matrix4x4[] outMatrices)
@@ -38,22 +39,18 @@ namespace UnityEngine.ECS.MeshInstancedShim
         protected override void OnUpdate()
 		{
             // We want to find all MeshInstancedShim & TransformMatrix combinations and render them
-		    var maingroup = EntityManager.CreateComponentGroup(typeof(MeshInstancedShim), typeof(TransformMatrix));
-		    // We didn't declare the ComponentGroup via injection so we need to manually
-		    // Complete any jobs that are writing to TransformMatrices
-		    maingroup.CompleteDependency();
+		    var maingroup = GetComponentGroup(typeof(MeshInstancedShim), typeof(TransformMatrix));
 
 		    // We want to iterate over all unique MeshInstancedShim shared component data,
 		    // that are attached to any entities in the world
-		    var uniqueRendererTypes = new List<MeshInstancedShim>(10);
-            EntityManager.GetAllUniqueSharedComponentDatas(uniqueRendererTypes);
+            EntityManager.GetAllUniqueSharedComponentDatas(m_CacheduniqueRendererTypes);
 
-            for (int i = 0;i != uniqueRendererTypes.Count;i++)
+            for (int i = 0;i != m_CacheduniqueRendererTypes.Count;i++)
             {
                 // For each unique MeshInstancedShim data, we want to get all entities with a TransformMatrix
                 // SharedComponentData gurantees that all those entities are packed togehter in a chunk with linear memory layout.
                 // As a result the copy of the matrices out is internally done via memcpy.
-                var renderer = uniqueRendererTypes[i];
+                var renderer = m_CacheduniqueRendererTypes[i];
                 var group = maingroup.GetVariation(renderer);
                 var transforms = group.GetComponentDataArray<TransformMatrix>();
 
@@ -78,8 +75,8 @@ namespace UnityEngine.ECS.MeshInstancedShim
 
                 group.Dispose();
             }
-
-		    maingroup.Dispose();
+		    
+		    m_CacheduniqueRendererTypes.Clear();
 		}
 	}
 }

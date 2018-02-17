@@ -14,6 +14,8 @@ using UnityEngine.ECS.Transform;
 
 namespace UnityEngine.ECS.SimpleSpatialQuery
 {
+
+    
     public interface INearestTarget
     {
         float3 value { get; set; }
@@ -69,6 +71,8 @@ namespace UnityEngine.ECS.SimpleSpatialQuery
         where TNearestTarget : struct, IComponentData, INearestTarget
         where TTarget : struct, IComponentData
     {
+        ComponentGroup m_TargetGroup;
+        ComponentGroup m_NearestTargetPositionGroup;
         
 #if (BURST_FIX_1)
         [ComputeJobOptimization]
@@ -125,13 +129,20 @@ namespace UnityEngine.ECS.SimpleSpatialQuery
             }
         }
 #endif
-    
+
+        protected override void OnCreateManager(int capacity)
+        {
+            m_TargetGroup = GetComponentGroup(ComponentType.ReadOnly(typeof(TTarget)), ComponentType.ReadOnly(typeof(Position)));
+            m_NearestTargetPositionGroup = GetComponentGroup(typeof(TNearestTarget), ComponentType.ReadOnly(typeof(Position)));;
+        }
+
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
+            if (m_NearestTargetPositionGroup.IsEmpty)
+                return inputDeps;
+            
             // Collect Targets
-                
-            var targetGroup = EntityManager.CreateComponentGroup(ComponentType.ReadOnly(typeof(TTarget)), ComponentType.ReadOnly(typeof(Position)));
-            var targetPositions = targetGroup.GetComponentDataArray<Position>();
+            var targetPositions = m_TargetGroup.GetComponentDataArray<Position>();
             var targetPositionsCopy = new NativeArray<float3>(targetPositions.Length, Allocator.TempJob);
 
             var collectTargetPositionsJob = new CollectTargetPositions
@@ -139,17 +150,11 @@ namespace UnityEngine.ECS.SimpleSpatialQuery
                 positions = targetPositions,
                 results = targetPositionsCopy
             };
-            // Nothing is injected so inputDeps is not used
-            var collectTargetPositionsJobHandle =
-                collectTargetPositionsJob.Schedule(targetPositions.Length, 64, targetGroup.GetDependency());
 
-            targetGroup.AddDependency(collectTargetPositionsJobHandle);
-            targetGroup.Dispose();
+            var collectTargetPositionsJobHandle = collectTargetPositionsJob.Schedule(targetPositions.Length, 64, inputDeps);
 
             // Assign Nearest Target
-
-            var nearestTargetPositionGroup = EntityManager.CreateComponentGroup(typeof(TNearestTarget), ComponentType.ReadOnly(typeof(Position)));
-            var nearestTargetPositions = nearestTargetPositionGroup.GetComponentDataArray<Position>();
+            var nearestTargetPositions = m_NearestTargetPositionGroup.GetComponentDataArray<Position>();
             
 #if BURST_FIX_2
             var nearestTargets = nearestTargetPositionGroup.GetComponentDataArray<TNearestTarget>();
@@ -157,7 +162,7 @@ namespace UnityEngine.ECS.SimpleSpatialQuery
             // Value is hard-cast to this data only because #BURST-ICE-GENERICS
             // [ComputeJobOptimization] #BURST-ICE-GENERICS https://gitlab.internal.unity3d.com/burst/burst/issues/9
             // var nearestTargets = nearestTargetPositionGroup.GetComponentDataArray<TNearestTarget>();
-            var nearestTargets = nearestTargetPositionGroup.GetComponentDataArray<NearestTargetProxy>(typeof(TNearestTarget));
+            var nearestTargets = m_NearestTargetPositionGroup.GetComponentDataArray<NearestTargetProxy>(typeof(TNearestTarget));
 #endif
 
             var nearestTargetPositionJob = new NearestTargetPosition
@@ -166,16 +171,8 @@ namespace UnityEngine.ECS.SimpleSpatialQuery
                 positionNearestTargets = nearestTargets,
                 positions = nearestTargetPositions
             };
-            // This job reads targetPositionsCopy which collectTargetPositionsJobHandle writes, it is not tracked by the group since it not a component so a manual dependency is required
-            var nearestTargetPositionJobHandle = nearestTargetPositionJob.Schedule(nearestTargets.Length, 64,
-                JobHandle.CombineDependencies(nearestTargetPositionGroup.GetDependency(), collectTargetPositionsJobHandle));
 
-            nearestTargetPositionGroup.AddDependency(nearestTargetPositionJobHandle);
-
-            nearestTargetPositionGroup.Dispose();
-            
-            // Nothing is injected so the return value is not used
-            return inputDeps;
+            return nearestTargetPositionJob.Schedule(nearestTargets.Length, 64, collectTargetPositionsJobHandle);
         }
     }
 }

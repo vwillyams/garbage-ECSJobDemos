@@ -513,6 +513,18 @@ namespace Unity.ECS
             return new GameObjectArray(iterator, length, m_TypeManager);
         }
 
+        public bool IsEmpty
+        {
+            get 
+            {
+                //@TODO: Optimize...
+                int length;
+                ComponentChunkIterator iterator;
+                GetComponentChunkIterator(out length, out iterator);
+                return length == 0;
+            }
+        }
+        
         public int CalculateLength()
         {
             int length;

@@ -81,11 +81,20 @@ namespace UnityEngine.ECS.TransformShim
 
         [Inject] private DeferredEntityChangeSystem m_DeferredEntityChangeSystem;
 
+        ComponentGroup m_InitialTransformGroup;
+        
+        protected override void OnCreateManager(int capacity)
+        {
+            m_InitialTransformGroup = GetComponentGroup(ComponentType.ReadOnly(typeof(CopyInitialTransformFromGameObject)),typeof(UnityEngine.Transform));
+        }
+
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            var initialTransformGroup = EntityManager.CreateComponentGroup(ComponentType.ReadOnly(typeof(CopyInitialTransformFromGameObject)),typeof(UnityEngine.Transform));
-            var transforms = initialTransformGroup.GetTransformAccessArray();
-            var entities = initialTransformGroup.GetEntityArray();
+            if (m_InitialTransformGroup.IsEmpty)
+                return inputDeps;
+            
+            var transforms = m_InitialTransformGroup.GetTransformAccessArray();
+            var entities = m_InitialTransformGroup.GetEntityArray();
 
             var transformStashes = new NativeArray<TransformStash>(transforms.Length, Allocator.TempJob);
             var stashTransformsJob = new StashTransforms
@@ -93,15 +102,8 @@ namespace UnityEngine.ECS.TransformShim
                 transformStashes = transformStashes,
                 entities = entities
             };
-            // This job will not access anything injected so the input dependencies are not used
-            var stashTransformsJobHandle = stashTransformsJob.Schedule(transforms, initialTransformGroup.GetDependency());
 
-            // stashTransformsJobHandle is the only job accessing initialTransformGroup
-            initialTransformGroup.AddDependency(stashTransformsJobHandle);
-
-            initialTransformGroup.Dispose();
-
-            UpdateInjectedComponentGroups();
+            var stashTransformsJobHandle = stashTransformsJob.Schedule(transforms, inputDeps);
 
             var copyTransformsJob = new CopyTransforms
             {
@@ -112,10 +114,8 @@ namespace UnityEngine.ECS.TransformShim
                 transformStashes = transformStashes,
                 removeComponentQueue = m_DeferredEntityChangeSystem.GetRemoveComponentQueue<CopyInitialTransformFromGameObject>()
             };
-            // This job will access transformStashes written by stashTransformsJobHandle and injected components, the dependencies must be combined
-            var copyTransformJobHandle = copyTransformsJob.Schedule(JobHandle.CombineDependencies(inputDeps, stashTransformsJobHandle));
 
-            return copyTransformJobHandle;
+            return copyTransformsJob.Schedule(stashTransformsJobHandle);
         }
     }
 }

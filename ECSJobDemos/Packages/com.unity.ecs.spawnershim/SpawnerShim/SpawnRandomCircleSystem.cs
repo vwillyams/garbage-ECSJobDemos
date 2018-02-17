@@ -19,16 +19,19 @@ namespace ECS.Spawners
             public float radius;
         }
 
+        ComponentGroup m_MainGroup;
+
+        protected override void OnCreateManager(int capacity)
+        {
+            m_MainGroup = GetComponentGroup(typeof(SpawnRandomCircle),typeof(Position));
+        }
+
         protected override void OnUpdate()
         {
-            var earlyoutgroup = EntityManager.CreateComponentGroup(typeof(SpawnRandomCircle));
-            earlyoutgroup.CompleteDependency();
-            if (earlyoutgroup.GetEntityArray().Length == 0)
+            if (m_MainGroup.IsEmpty)
                 return;
 
             var uniqueTypes = new List<SpawnRandomCircle>(10);
-            var maingroup = EntityManager.CreateComponentGroup(typeof(SpawnRandomCircle),typeof(Position));
-            maingroup.CompleteDependency();
 
             EntityManager.GetAllUniqueSharedComponentDatas(uniqueTypes);
 
@@ -36,7 +39,7 @@ namespace ECS.Spawners
             for (int sharedIndex = 0; sharedIndex != uniqueTypes.Count; sharedIndex++)
             {
                 var spawner = uniqueTypes[sharedIndex];
-                var group = maingroup.GetVariation(spawner);
+                var group = m_MainGroup.GetVariation(spawner);
                 var entities = group.GetEntityArray();
                 spawnInstanceCount += entities.Length;
                 group.Dispose();
@@ -44,7 +47,6 @@ namespace ECS.Spawners
 
             if (spawnInstanceCount == 0)
             {
-                maingroup.Dispose();
                 return;
             }
 
@@ -54,7 +56,7 @@ namespace ECS.Spawners
                 for (int sharedIndex = 0; sharedIndex != uniqueTypes.Count; sharedIndex++)
                 {
                     var spawner = uniqueTypes[sharedIndex];
-                    var group = maingroup.GetVariation(spawner);
+                    var group = m_MainGroup.GetVariation(spawner);
                     var entities = group.GetEntityArray();
                     var positions = group.GetComponentDataArray<Position>();
 
@@ -73,8 +75,6 @@ namespace ECS.Spawners
                     group.Dispose();
                 }
             }
-
-            maingroup.Dispose();
 
             for (int spawnIndex = 0; spawnIndex < spawnInstances.Length; spawnIndex++)
             {

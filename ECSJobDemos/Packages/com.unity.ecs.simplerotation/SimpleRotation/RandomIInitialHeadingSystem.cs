@@ -20,9 +20,7 @@ namespace UnityEngine.ECS.SimpleRotation
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            var randomGroup = m_EntityManager.CreateComponentGroup(typeof(RandomInitialHeading));
-            randomGroup.GetDependency().Complete();
-            if (randomGroup.GetComponentDataArray<RandomInitialHeading>().Length == 0)
+            if (m_RandomInitialHeadingGroup.Length == 0)
                 return inputDeps;
 
             inputDeps.Complete();

@@ -24,37 +24,30 @@ namespace UnityEngine.ECS.SimpleMovement
                 };
             }
         }
+        
+        ComponentGroup m_MoveForwardGroup;
 
-        protected override JobHandle OnUpdate(JobHandle inputDeps)
+        protected override void OnCreateManager(int capacity)
         {
-            var moveForwardGroup = EntityManager.CreateComponentGroup(
+            m_MoveForwardGroup = GetComponentGroup(
                 ComponentType.ReadOnly(typeof(MoveForward)),
                 ComponentType.ReadOnly(typeof(Rotation)),
                 ComponentType.Subtractive(typeof(LocalRotation)),
                 ComponentType.ReadOnly(typeof(MoveSpeed)),
                 typeof(Position));
-            
-            var positions = moveForwardGroup.GetComponentDataArray<Position>();
-            var rotations = moveForwardGroup.GetComponentDataArray<Rotation>();
-            var moveSpeeds = moveForwardGroup.GetComponentDataArray<MoveSpeed>();
+        }
 
+        protected override JobHandle OnUpdate(JobHandle inputDeps)
+        {
             var moveForwardPositionJob = new MoveForwardPosition
             {
-                positions = positions,
-                rotations = rotations,
-                moveSpeeds = moveSpeeds,
+                positions = m_MoveForwardGroup.GetComponentDataArray<Position>(),
+                rotations = m_MoveForwardGroup.GetComponentDataArray<Rotation>(),
+                moveSpeeds = m_MoveForwardGroup.GetComponentDataArray<MoveSpeed>(),
                 dt = Time.deltaTime
             };
 
-            // Nothing is injected so inputDeps is not used
-            var moveForwardPositionJobHandle = moveForwardPositionJob.Schedule(positions.Length, 64, moveForwardGroup.GetDependency());
-
-            moveForwardGroup.AddDependency(moveForwardPositionJobHandle);
-
-            moveForwardGroup.Dispose();
-
-            // Nothing is injected so the return value is not used
-            return inputDeps;
+            return moveForwardPositionJob.Schedule(m_MoveForwardGroup.CalculateLength(), 64, inputDeps);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Unity.Jobs;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs.LowLevel.Unsafe;
@@ -59,8 +60,21 @@ namespace Unity.ECS
 
             ComponentSystemInjection.Inject(this, world, m_EntityManager, out m_InjectedComponentGroups, out m_InjectFromEntityData);
 
+            InjectNestedIJobProcessComponentDataJobs();
+            
             RecalculateTypesFromComponentGroups();
             UpdateInjectedComponentGroups();
+        }
+
+        void InjectNestedIJobProcessComponentDataJobs()
+        {
+            // Create ComponentGroup for all nested IJobProcessComponentData jobs
+            foreach (var nestedType in GetType().GetNestedTypes(BindingFlags.FlattenHierarchy | BindingFlags.NonPublic))
+            {
+                var componentTypes = IJobProcessComponentDataUtility.GetComponentTypes(nestedType);
+                if (componentTypes != null)
+                    GetComponentGroup(componentTypes);
+            }
         }
 
         void RecalculateTypesFromComponentGroups()

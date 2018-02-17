@@ -93,59 +93,85 @@ namespace Unity.ECS
         public ComponentSystemBase ComponentSystem;
     }
         
-    static class JobProcessComponentDataUtility
+    static class IJobProcessComponentDataUtility
     {
+        public static ComponentType[] GetComponentTypes(Type jobType)
+        {
+            var interfaceType = GetIJobProcessComponentDataInterface(jobType);
+            if (interfaceType != null)
+                return GetComponentTypes(jobType, interfaceType);
+            else
+                return null;
+        }
+
+        static ComponentType[] GetComponentTypes(Type jobType, Type interfaceType)
+        {
+            var genericArgs = interfaceType.GetGenericArguments();
+        
+            var executeMethodParameters = jobType.GetMethod("Execute").GetParameters();
+
+            var componentTypes = new List<ComponentType>();
+            
+            for (int i = 0; i < genericArgs.Length; i++)
+            {
+                //bool isReadonly = executeMethodParameters[i].GetCustomAttributes(typeof(ReadOnlyAttribute)).Count() != 0 || executeMethodParameters[i].GetCustomAttributes(typeof(IsReadOnlyAttribute)).Count() != 0;
+                //@TODO: Readonly not yet working...
+                bool isReadonly = false;
+                componentTypes.Add(new ComponentType(genericArgs[i], isReadonly ? ComponentType.AccessMode.ReadOnly : ComponentType.AccessMode.ReadWrite));
+            }
+
+            var subtractive = jobType.GetCustomAttribute<RequireSubtractiveComponentAttribute>();
+            if (subtractive != null)
+            {
+                foreach (var type in subtractive.SubtractiveComponents)
+                    componentTypes.Add(ComponentType.Subtractive(type));
+            }
+
+            var requiredTags = jobType.GetCustomAttribute<RequireComponentTagAttribute>();
+            if (requiredTags != null)
+            {
+                //@TODO: Add Special component type which doesn't capture job dependencies... 
+                foreach (var type in requiredTags.TagComponents)
+                    componentTypes.Add(ComponentType.ReadOnly(type));
+            }
+
+            return componentTypes.ToArray();
+        }
+
+        static IntPtr GetJobReflection(Type jobType, Type wrapperJobType, Type interfaceType)
+        {
+            var genericArgs = interfaceType.GetGenericArguments();
+            
+            var jobTypeAndGenericArgs = new List<Type>();
+            jobTypeAndGenericArgs.Add(jobType);
+            jobTypeAndGenericArgs.AddRange(genericArgs);
+            var resolvedWrapperJobType = wrapperJobType.MakeGenericType(jobTypeAndGenericArgs.ToArray());
+                    
+            var reflectionDataRes = resolvedWrapperJobType.GetMethod("Initialize").Invoke(null, null);
+            return (IntPtr)reflectionDataRes;  
+        }
+
+        static Type GetIJobProcessComponentDataInterface(Type jobType)
+        {
+            foreach (var iType in jobType.GetInterfaces())
+            {
+                if (iType.Assembly == typeof(IBaseJobProcessComponentData).Assembly && iType.Name.StartsWith("IJobProcessComponentData"))
+                    return iType;
+            }
+
+            return null;
+        }
+        
         internal static void Initialize(ComponentSystemBase system, Type jobType, Type wrapperJobType, ref JobProcessComponentDataCache cache)
         {
             if (cache.JobReflectionData == IntPtr.Zero)
             {
-                foreach (var iType in jobType.GetInterfaces())
-                {
-                    if (iType.Name.StartsWith("IJobProcessComponentData"))
-                    {
-                        var genericArgs = iType.GetGenericArguments() ;
-                    
-                        var jobTypeAndGenericArgs = new List<Type>();
-                        jobTypeAndGenericArgs.Add(jobType);
-                        jobTypeAndGenericArgs.AddRange(genericArgs);
-                        var resolvedWrapperJobType = wrapperJobType.MakeGenericType(jobTypeAndGenericArgs.ToArray());
-                            
-                        var reflectionDataRes = resolvedWrapperJobType.GetMethod("Initialize").Invoke(null, null);
-                        cache.JobReflectionData = (IntPtr)reflectionDataRes;  
-                        //    s_JobReflectionData = JobsUtility.CreateJobReflectionData(typeof(JobStruct_Process2<T, U0, U1>), typeof(T), JobType.ParallelFor, (ExecuteJobFunction)Execute);
-
-                        var executeMethodParameters = jobType.GetMethod("Execute").GetParameters();
-
-                        var componentTypes = new List<ComponentType>();
-                        
-                        for (int i = 0; i < genericArgs.Length; i++)
-                        {
-                            //bool isReadonly = executeMethodParameters[i].GetCustomAttributes(typeof(ReadOnlyAttribute)).Count() != 0 || executeMethodParameters[i].GetCustomAttributes(typeof(IsReadOnlyAttribute)).Count() != 0;
-                            //@TODO: Readonly not yet working...
-                            bool isReadonly = false;
-                            componentTypes.Add(new ComponentType(genericArgs[i], isReadonly ? ComponentType.AccessMode.ReadOnly : ComponentType.AccessMode.ReadWrite));
-                        }
-
-                        var subtractive = jobType.GetCustomAttribute<RequireSubtractiveComponentAttribute>();
-                        if (subtractive != null)
-                        {
-                            foreach (var type in subtractive.SubtractiveComponents)
-                                componentTypes.Add(ComponentType.Subtractive(type));
-                        }
-
-                        var requiredTags = jobType.GetCustomAttribute<RequireComponentTagAttribute>();
-                        if (requiredTags != null)
-                        {
-                            //@TODO: Add Special component type which doesn't capture job dependencies... 
-                            foreach (var type in requiredTags.TagComponents)
-                                componentTypes.Add(ComponentType.ReadOnly(type));
-                        }
-
-                        cache.Types = componentTypes.ToArray();
-
-                        break;
-                    }
-                }
+                var iType = GetIJobProcessComponentDataInterface(jobType);
+                cache.JobReflectionData = GetJobReflection(jobType, wrapperJobType, iType);  
+                cache.Types = GetComponentTypes(jobType, iType);
+                
+                Assert.AreNotEqual(null, wrapperJobType );
+                Assert.AreNotEqual(null, iType);
             }
             
             if (cache.ComponentSystem != system)
@@ -189,7 +215,7 @@ namespace Unity.ECS
             JobHandle dependsOn, ScheduleMode mode)
             where T : struct
         {
-            JobProcessComponentDataUtility.Initialize(system, typeof(T), typeof(JobStruct_Process1<,>), ref JobStruct_ProcessInfer_1<T>.Cache);
+            IJobProcessComponentDataUtility.Initialize(system, typeof(T), typeof(JobStruct_Process1<,>), ref JobStruct_ProcessInfer_1<T>.Cache);
 
             var group = JobStruct_ProcessInfer_1<T>.Cache.ComponentGroup;
             var types = JobStruct_ProcessInfer_1<T>.Cache.Types;
@@ -258,7 +284,7 @@ namespace Unity.ECS
         internal unsafe static JobHandle ScheduleInternal_2<T>(ref T jobData, ComponentSystemBase system, int innerloopBatchCount, JobHandle dependsOn, ScheduleMode mode)
             where T : struct
         {
-            JobProcessComponentDataUtility.Initialize(system, typeof(T), typeof(JobStruct_Process2<,,>), ref JobStruct_ProcessInfer_2<T>.Cache);
+            IJobProcessComponentDataUtility.Initialize(system, typeof(T), typeof(JobStruct_Process2<,,>), ref JobStruct_ProcessInfer_2<T>.Cache);
 
             var group = JobStruct_ProcessInfer_2<T>.Cache.ComponentGroup;
             var types = JobStruct_ProcessInfer_2<T>.Cache.Types;
@@ -339,7 +365,7 @@ namespace Unity.ECS
         internal unsafe static JobHandle ScheduleInternal_3<T>(ref T jobData, ComponentSystemBase system, int innerloopBatchCount, JobHandle dependsOn, ScheduleMode mode)
             where T : struct
         {
-            JobProcessComponentDataUtility.Initialize(system, typeof(T), typeof(JobStruct_Process3<,,,>), ref JobStruct_ProcessInfer_3<T>.Cache);
+            IJobProcessComponentDataUtility.Initialize(system, typeof(T), typeof(JobStruct_Process3<,,,>), ref JobStruct_ProcessInfer_3<T>.Cache);
 
             var group = JobStruct_ProcessInfer_3<T>.Cache.ComponentGroup;
             var types = JobStruct_ProcessInfer_3<T>.Cache.Types;

@@ -91,5 +91,11 @@ namespace UnityEngine.ECS.Tests
             Test(true, entityProcess);
         }
 
+
+        [Test]
+        [Ignore("TODO")]
+        public void TestCoverageFor_ComponentSystemBase_InjectNestedIJobProcessComponentDataJobs()
+        {
+        }
     }
 }

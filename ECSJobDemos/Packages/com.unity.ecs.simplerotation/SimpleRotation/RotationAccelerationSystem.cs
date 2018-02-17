@@ -7,40 +7,21 @@ namespace UnityEngine.ECS.SimpleRotation
 {
     public class RotationAccelerationSystem : JobComponentSystem
     {
-        struct RotationAccelerationGroup
-        {
-            [ReadOnly] public ComponentDataArray<RotationAcceleration> rotationAccelerations;
-            public ComponentDataArray<RotationSpeed> rotationSpeeds;
-            public int Length;
-        }
-
-        [Inject] private RotationAccelerationGroup m_RotationAccelerationGroup;
-    
         [ComputeJobOptimization]
-        struct RotationSpeedAcceleration : IJobParallelFor
+        struct RotationSpeedAcceleration : IJobProcessComponentData<RotationSpeed, RotationAcceleration>
         {
-            [ReadOnly] public ComponentDataArray<RotationAcceleration> rotationAccelerations;
-            public ComponentDataArray<RotationSpeed> rotationSpeeds;
             public float dt;
         
-            public void Execute(int i)
+            public void Execute(ref RotationSpeed speed, [ReadOnly]ref RotationAcceleration acceleration)
             {
-                rotationSpeeds[i] = new RotationSpeed
-                {
-                    speed = math.max(0.0f,rotationSpeeds[i].speed+(rotationAccelerations[i].speed*dt))
-                };
+                speed.speed = math.max(0.0f, speed.speed + (acceleration.speed * dt));
             }
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            var rotationSpeedAccelerationJob = new RotationSpeedAcceleration
-            {
-                rotationAccelerations = m_RotationAccelerationGroup.rotationAccelerations,
-                rotationSpeeds = m_RotationAccelerationGroup.rotationSpeeds,
-                dt = Time.deltaTime
-            };
-            return rotationSpeedAccelerationJob.Schedule(m_RotationAccelerationGroup.Length, 64, inputDeps);
+            var rotationSpeedAccelerationJob = new RotationSpeedAcceleration { dt = Time.deltaTime };
+            return rotationSpeedAccelerationJob.Schedule(this, 64, inputDeps);
         } 
     }
 }

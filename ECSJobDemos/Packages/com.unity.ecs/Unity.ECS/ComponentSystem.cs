@@ -28,16 +28,10 @@ namespace Unity.ECS
 
         public ComponentGroup[] 			ComponentGroups => m_ComponentGroups;
 
-        protected internal bool ShouldRunSystem()
+        protected bool ShouldRunSystem()
         {
             if (m_HasDisableSystemIfEmpty)
             {
-                if (m_ComponentGroups.Length == 0)
-                {
-                    Debug.LogError($"[DisableSystemIfEmpty] on {GetType()} but no ComponentGroups have been injected or otherwise declared in OnCreateManager. Thus the system will never begin to run, please ensure that all groups are created in OnCreateManager.");
-                    return false;
-                }
-
                 int length = m_ComponentGroups.Length;
                 for (int i = 0;i != length;i++)
                 {

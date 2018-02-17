@@ -55,7 +55,7 @@ namespace Unity.ECS
 
         SharedComponentDataManager        m_SharedComponentManager;
 
-        EntityTransaction                 m_EntityTransaction;
+        ExclusiveEntityTransaction        m_ExclusiveEntityTransaction;
 
         ComponentType*                    m_CachedComponentTypeArray;
         ComponentTypeInArchetype*         m_CachedComponentTypeInArchetypeArray;
@@ -77,7 +77,7 @@ namespace Unity.ECS
             ComponentJobSafetyManager = new ComponentJobSafetyManager();
             m_GroupManager = new EntityGroupManager(ComponentJobSafetyManager);
 
-            m_EntityTransaction = new EntityTransaction(m_ArchetypeManager, m_GroupManager, m_SharedComponentManager, m_Entities);
+            m_ExclusiveEntityTransaction = new ExclusiveEntityTransaction(m_ArchetypeManager, m_GroupManager, m_SharedComponentManager, m_Entities);
 
             m_CachedComponentTypeArray = (ComponentType*)UnsafeUtility.Malloc(sizeof(ComponentType) * 32 * 1024, 16, Allocator.Persistent);
             m_CachedComponentTypeInArchetypeArray = (ComponentTypeInArchetype*)UnsafeUtility.Malloc(sizeof(ComponentTypeInArchetype) * 32 * 1024, 16, Allocator.Persistent);
@@ -85,7 +85,7 @@ namespace Unity.ECS
 
         protected override void OnDestroyManager()
         {
-            EndTransaction();
+            EndExclusiveEntityTransaction();
 
             ComponentJobSafetyManager.Dispose(); ComponentJobSafetyManager = null;
 
@@ -94,7 +94,7 @@ namespace Unity.ECS
             m_Entities = null;
             m_ArchetypeManager.Dispose(); m_ArchetypeManager = null;
             m_GroupManager.Dispose(); m_GroupManager = null;
-            m_EntityTransaction.OnDestroyManager();
+            m_ExclusiveEntityTransaction.OnDestroyManager();
 
             m_SharedComponentManager.Dispose();
 
@@ -460,31 +460,31 @@ namespace Unity.ECS
 
         internal ComponentJobSafetyManager ComponentJobSafetyManager { get; private set; }
 
-        public EntityTransaction BeginTransaction()
+        public ExclusiveEntityTransaction BeginExclusiveEntityTransaction()
         {
-            ComponentJobSafetyManager.BeginTransaction();
+            ComponentJobSafetyManager.BeginExclusiveTransaction();
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            m_EntityTransaction.SetAtomicSafetyHandle(ComponentJobSafetyManager.ExclusiveTransactionSafety);
+            m_ExclusiveEntityTransaction.SetAtomicSafetyHandle(ComponentJobSafetyManager.ExclusiveTransactionSafety);
 #endif
-            return m_EntityTransaction;
+            return m_ExclusiveEntityTransaction;
         }
 
-        public JobHandle EntityTransactionDependency
+        public JobHandle ExclusiveEntityTransactionDependency
         {
             get { return ComponentJobSafetyManager.ExclusiveTransactionDependency; }
             set { ComponentJobSafetyManager.ExclusiveTransactionDependency = value; }
         }
 
-        public void EndTransaction()
+        public void EndExclusiveEntityTransaction()
         {
-            ComponentJobSafetyManager.EndTransaction();
+            ComponentJobSafetyManager.EndExclusiveTransaction();
         }
 
         void BeforeStructuralChange()
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             if (ComponentJobSafetyManager.IsInTransaction)
-                throw new InvalidOperationException("Access to EntityManager is not allowed after EntityManager.BeginTransaction(); has been called.");
+                throw new InvalidOperationException("Access to EntityManager is not allowed after EntityManager.BeginExclusiveEntityTransaction(); has been called.");
 #endif
             ComponentJobSafetyManager.CompleteAllJobsAndInvalidateArrays();
         }

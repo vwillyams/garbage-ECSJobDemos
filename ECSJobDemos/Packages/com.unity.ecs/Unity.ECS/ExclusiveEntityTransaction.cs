@@ -6,7 +6,7 @@ using Unity.Collections.LowLevel.Unsafe;
 namespace Unity.ECS
 {
     [NativeContainer]
-    public unsafe struct EntityTransaction
+    public unsafe struct ExclusiveEntityTransaction
     {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         AtomicSafetyHandle                 m_Safety;
@@ -26,7 +26,7 @@ namespace Unity.ECS
         [NativeDisableUnsafePtrRestriction]
         ComponentTypeInArchetype*          m_CachedComponentTypeInArchetypeArray;
 
-        internal EntityTransaction(ArchetypeManager archetypes, EntityGroupManager entityGroupManager, SharedComponentDataManager sharedComponentDataManager, EntityDataManager* data)
+        internal ExclusiveEntityTransaction(ArchetypeManager archetypes, EntityGroupManager entityGroupManager, SharedComponentDataManager sharedComponentDataManager, EntityDataManager* data)
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_Safety = new AtomicSafetyHandle();

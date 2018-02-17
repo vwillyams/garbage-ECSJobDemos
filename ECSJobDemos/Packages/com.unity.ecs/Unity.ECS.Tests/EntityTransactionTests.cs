@@ -30,7 +30,7 @@ namespace UnityEngine.ECS.Tests
 
         struct CreateEntityAddToListJob : IJob
         {
-            public EntityTransaction entities;
+            public ExclusiveEntityTransaction entities;
             public NativeList<Entity> createdEntities;
 
             public void Execute()
@@ -45,7 +45,7 @@ namespace UnityEngine.ECS.Tests
 
         struct CreateEntityJob : IJob
         {
-            public EntityTransaction entities;
+            public ExclusiveEntityTransaction entities;
 
             public void Execute()
             {
@@ -59,13 +59,13 @@ namespace UnityEngine.ECS.Tests
         public void CreateEntitiesChainedJob()
         {
             var job = new CreateEntityAddToListJob();
-            job.entities = m_Manager.BeginTransaction();
+            job.entities = m_Manager.BeginExclusiveEntityTransaction();
             job.createdEntities = new NativeList<Entity>(0, Allocator.TempJob);
 
-            m_Manager.EntityTransactionDependency = job.Schedule(m_Manager.EntityTransactionDependency);
-            m_Manager.EntityTransactionDependency = job.Schedule(m_Manager.EntityTransactionDependency);
+            m_Manager.ExclusiveEntityTransactionDependency = job.Schedule(m_Manager.ExclusiveEntityTransactionDependency);
+            m_Manager.ExclusiveEntityTransactionDependency = job.Schedule(m_Manager.ExclusiveEntityTransactionDependency);
 
-            m_Manager.EndTransaction();
+            m_Manager.EndExclusiveEntityTransaction();
 
             Assert.AreEqual(2, m_Group.CalculateLength());
             Assert.AreEqual(42, m_Group.GetComponentDataArray<EcsTestData>()[0].value);
@@ -82,20 +82,20 @@ namespace UnityEngine.ECS.Tests
         public void CommitAfterNotRegisteredTransactionJobLogsError()
         {
             var job = new CreateEntityJob();
-            job.entities = m_Manager.BeginTransaction();
+            job.entities = m_Manager.BeginExclusiveEntityTransaction();
 
-            /*var jobHandle =*/ job.Schedule(m_Manager.EntityTransactionDependency);
+            /*var jobHandle =*/ job.Schedule(m_Manager.ExclusiveEntityTransactionDependency);
 
             // Commit transaction expects an error not exception otherwise errors might occurr after a system has completed...
-            TestTools.LogAssert.Expect(LogType.Error, new Regex("EntityTransaction job has not been registered"));
-            m_Manager.EndTransaction();
+            TestTools.LogAssert.Expect(LogType.Error, new Regex("ExclusiveEntityTransaction job has not been registered"));
+            m_Manager.EndExclusiveEntityTransaction();
         }
 
         [Test]
         public void EntityManagerAccessDuringTransactionThrows()
         {
             var job = new CreateEntityAddToListJob();
-            job.entities = m_Manager.BeginTransaction();
+            job.entities = m_Manager.BeginExclusiveEntityTransaction();
 
             Assert.Throws<InvalidOperationException>(() => { m_Manager.CreateEntity(typeof(EcsTestData)); });
             
@@ -106,8 +106,8 @@ namespace UnityEngine.ECS.Tests
         [Test]
         public void AccessTransactionAfterEndTransactionThrows()
         {
-            var transaction = m_Manager.BeginTransaction();
-            m_Manager.EndTransaction();
+            var transaction = m_Manager.BeginExclusiveEntityTransaction();
+            m_Manager.EndExclusiveEntityTransaction();
 
             Assert.Throws<InvalidOperationException>(() => { transaction.CreateEntity(typeof(EcsTestData)); });
         }
@@ -118,7 +118,7 @@ namespace UnityEngine.ECS.Tests
             var entity = m_Manager.CreateEntity(typeof(EcsTestData));
             m_Manager.SetComponentData(entity, new EcsTestData(42));
             
-            var transaction = m_Manager.BeginTransaction();
+            var transaction = m_Manager.BeginExclusiveEntityTransaction();
             Assert.AreEqual(42, transaction.GetComponentData<EcsTestData>(entity).value);
         }
 
@@ -126,7 +126,7 @@ namespace UnityEngine.ECS.Tests
         public void MissingJobCreationDependency()
         {
             var job = new CreateEntityJob();
-            job.entities = m_Manager.BeginTransaction();
+            job.entities = m_Manager.BeginExclusiveEntityTransaction();
 
             var jobHandle = job.Schedule();
             Assert.Throws<InvalidOperationException>(() => { job.Schedule(); });
@@ -138,7 +138,7 @@ namespace UnityEngine.ECS.Tests
         public void CreationJobAndMainThreadNotAllowedInParallel()
         {
             var job = new CreateEntityJob();
-            job.entities = m_Manager.BeginTransaction();
+            job.entities = m_Manager.BeginExclusiveEntityTransaction();
 
             var jobHandle = job.Schedule();
 
@@ -152,7 +152,7 @@ namespace UnityEngine.ECS.Tests
         {
             var arch = m_Manager.CreateArchetype(typeof(EcsTestData));
 
-            var transaction = m_Manager.BeginTransaction();
+            var transaction = m_Manager.BeginExclusiveEntityTransaction();
             var entities = new NativeArray<Entity>(1000, Allocator.Persistent);
             transaction.CreateEntity(arch, entities);
             entities.Dispose();

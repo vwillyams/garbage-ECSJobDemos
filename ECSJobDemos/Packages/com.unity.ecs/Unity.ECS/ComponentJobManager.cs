@@ -250,7 +250,7 @@ namespace Unity.ECS
             {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 if (!m_IsInTransaction)
-                    throw new System.InvalidOperationException("EntityManager.TransactionDependency can only after EntityManager.BeginTransaction has been called.");
+                    throw new System.InvalidOperationException("EntityManager.TransactionDependency can only after EntityManager.BeginExclusiveEntityTransaction has been called.");
 
                 if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(m_ExclusiveTransactionDependency, value))
                     throw new System.InvalidOperationException("EntityManager.TransactionDependency must depend on the Entity Transaction job.");
@@ -263,7 +263,7 @@ namespace Unity.ECS
         public AtomicSafetyHandle ExclusiveTransactionSafety => m_ExclusiveTransactionSafety;
 #endif
 
-        public void BeginTransaction()
+        public void BeginExclusiveTransaction()
         {
             if (m_IsInTransaction)
                 return;
@@ -286,7 +286,7 @@ namespace Unity.ECS
 
         }
 
-        public void EndTransaction()
+        public void EndExclusiveTransaction()
         {
             if (!m_IsInTransaction)
                 return;
@@ -297,7 +297,7 @@ namespace Unity.ECS
             var res = AtomicSafetyHandle.EnforceAllBufferJobsHaveCompletedAndRelease(m_ExclusiveTransactionSafety);
             if (res != EnforceJobResult.AllJobsAlreadySynced)
                 //@TODO: Better message
-                Debug.LogError("EntityTransaction job has not been registered");
+                Debug.LogError("ExclusiveEntityTransaction job has not been registered");
 #endif
             m_IsInTransaction = false;
 

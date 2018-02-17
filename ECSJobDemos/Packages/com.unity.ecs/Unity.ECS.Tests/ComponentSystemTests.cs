@@ -128,7 +128,6 @@ namespace UnityEngine.ECS.Tests
             var system = World.CreateManager<TestSystem>();
             var group = system.GetComponentGroup(typeof(EcsTestData));
             Assert.Throws<ArgumentException>(() => group.Dispose());
-            group.Dispose();
         }
     }
 }

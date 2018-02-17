@@ -10,7 +10,7 @@ using UnityEngine.ECS.Transform2D;
 namespace TwoStickPureExample
 {
     // Spawns new enemies.
-    public class EnemySpawnSystem : ComponentSystem
+    class EnemySpawnSystem : ComponentSystem
     {
 
         public struct State
@@ -20,7 +20,7 @@ namespace TwoStickPureExample
             public ComponentDataArray<EnemySpawnSystemState> S;
         }
 
-        [Inject] private State m_State;
+        [Inject] State m_State;
 
         protected override void OnUpdate()
         {
@@ -71,12 +71,12 @@ namespace TwoStickPureExample
             EntityManager.AddSharedComponentData(e, TwoStickBootstrap.EnemyLook);
         }
 
-        private float ComputeCooldown()
+        float ComputeCooldown()
         {
             return 0.15f;
         }
 
-        private float2 ComputeSpawnLocation()
+        float2 ComputeSpawnLocation()
         {
             var settings = TwoStickBootstrap.Settings;
 
@@ -89,7 +89,7 @@ namespace TwoStickPureExample
         }
     }
 
-    public class EnemyMoveSystem : JobComponentSystem
+    class EnemyMoveSystem : JobComponentSystem
     {
         public struct Data
         {
@@ -99,7 +99,7 @@ namespace TwoStickPureExample
             public ComponentDataArray<Position2D> Position;
         }
 
-        [Inject] private Data m_Data;
+        [Inject] Data m_Data;
 
         public struct boundaryKillJob : IJobParallelFor
         {
@@ -136,7 +136,7 @@ namespace TwoStickPureExample
         }
     }
 
-    public class EnemyShootSystem : ComponentSystem
+    class EnemyShootSystem : ComponentSystem
     {
         public struct Data
         {

@@ -11,7 +11,7 @@ namespace Unity.ECS
     {
         internal void CreateInstance(World world, int capacity)
         {
-            OnCreateManagerInternal(world, capacity);
+            OnBeforeCreateManagerInternal(world, capacity);
             OnCreateManager(capacity);
         }
 
@@ -22,7 +22,8 @@ namespace Unity.ECS
             OnAfterDestroyManagerInternal();
         }
 
-        protected abstract void OnCreateManagerInternal(World world, int capacity);
+        protected abstract void OnBeforeCreateManagerInternal(World world, int capacity);
+
         protected abstract void OnBeforeDestroyManagerInternal();
         protected abstract void OnAfterDestroyManagerInternal();
 

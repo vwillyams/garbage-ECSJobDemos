@@ -60,7 +60,7 @@ namespace Unity.ECS
         ComponentType*                    m_CachedComponentTypeArray;
         ComponentTypeInArchetype*         m_CachedComponentTypeInArchetypeArray;
 
-        protected override void OnCreateManagerInternal(World world, int capacity) { }
+        protected override void OnBeforeCreateManagerInternal(World world, int capacity) { }
         protected override void OnBeforeDestroyManagerInternal() { }
         protected override void OnAfterDestroyManagerInternal() { }
 

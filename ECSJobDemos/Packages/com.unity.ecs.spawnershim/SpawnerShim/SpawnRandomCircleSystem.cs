@@ -9,6 +9,7 @@ using UnityEngine.ECS.Utilities;
 
 namespace ECS.Spawners
 {
+    [DisableSystemWhenEmpty]
     public class SpawnRandomCircleSystem : ComponentSystem
     {
         struct SpawnRandomCircleInstance
@@ -28,9 +29,6 @@ namespace ECS.Spawners
 
         protected override void OnUpdate()
         {
-            if (m_MainGroup.IsEmpty)
-                return;
-
             var uniqueTypes = new List<SpawnRandomCircle>(10);
 
             EntityManager.GetAllUniqueSharedComponentDatas(uniqueTypes);

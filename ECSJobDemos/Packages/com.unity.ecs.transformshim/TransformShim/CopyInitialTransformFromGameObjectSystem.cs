@@ -7,6 +7,7 @@ using UnityEngine.Jobs;
 
 namespace UnityEngine.ECS.TransformShim
 {
+    [DisableSystemWhenEmpty]
     public class CopyInitialTransformFromGameObjectSystem : JobComponentSystem
     {
         [Inject] private ComponentDataFromEntity<LocalPosition> m_LocalPositions;
@@ -90,9 +91,6 @@ namespace UnityEngine.ECS.TransformShim
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            if (m_InitialTransformGroup.IsEmpty)
-                return inputDeps;
-            
             var transforms = m_InitialTransformGroup.GetTransformAccessArray();
             var entities = m_InitialTransformGroup.GetEntityArray();
 

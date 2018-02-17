@@ -6,6 +6,9 @@ using Unity.Jobs.LowLevel.Unsafe;
 
 namespace Unity.ECS
 {
+    [AttributeUsage(AttributeTargets.Class)]
+    public class DisableSystemWhenEmptyAttribute : System.Attribute { }
+
     public abstract class ComponentSystemBase : ScriptBehaviourManager
     {
         InjectComponentGroupData[] 			m_InjectedComponentGroups;
@@ -20,14 +23,42 @@ namespace Unity.ECS
         internal ComponentJobSafetyManager  m_SafetyManager;
         EntityManager                       m_EntityManager;
         World                               m_World;
+        
+        bool                                m_HasDisableSystemIfEmpty;
 
         public ComponentGroup[] 			ComponentGroups => m_ComponentGroups;
 
-        protected override void OnCreateManagerInternal(World world, int capacity)
+        protected internal bool ShouldRunSystem()
+        {
+            if (m_HasDisableSystemIfEmpty)
+            {
+                if (m_ComponentGroups.Length == 0)
+                {
+                    Debug.LogError($"[DisableSystemIfEmpty] on {GetType()} but no ComponentGroups have been injected or otherwise declared in OnCreateManager. Thus the system will never begin to run, please ensure that all groups are created in OnCreateManager.");
+                    return false;
+                }
+
+                int length = m_ComponentGroups.Length;
+                for (int i = 0;i != length;i++)
+                {
+                    if (m_ComponentGroups[i].IsEmpty)
+                        return false;
+                }
+
+                return true;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        protected override void OnBeforeCreateManagerInternal(World world, int capacity)
         {
             m_World = world;
             m_EntityManager = world.GetOrCreateManager<EntityManager>();
             m_SafetyManager = m_EntityManager.ComponentJobSafetyManager;
+            m_HasDisableSystemIfEmpty = GetType().GetCustomAttributes(typeof(DisableSystemIfEmpty), true).Length != 0;
 
             m_ComponentGroups = new ComponentGroup[0];
             m_CachedComponentGroupArrays = new ComponentGroupArrayStaticCache[0];
@@ -174,14 +205,17 @@ namespace Unity.ECS
 
         internal sealed override void InternalUpdate()
         {
-            BeforeOnUpdate();
-            OnUpdate();
-            AfterOnUpdate();
+            if (ShouldRunSystem())
+            {
+                BeforeOnUpdate();
+                OnUpdate();
+                AfterOnUpdate();
+            }
         }
 
-        protected sealed override void OnCreateManagerInternal(World world, int capacity)
+        protected sealed override void OnBeforeCreateManagerInternal(World world, int capacity)
         {
-            base.OnCreateManagerInternal(world, capacity);
+            base.OnBeforeCreateManagerInternal(world, capacity);
         }
 
         protected sealed override void OnBeforeDestroyManagerInternal()
@@ -261,16 +295,17 @@ namespace Unity.ECS
 
         internal sealed override void InternalUpdate()
         {
-            var inputJob = BeforeOnUpdate();
-
-            var outputJob = OnUpdate(inputJob);
-
-            AfterOnUpdate(outputJob);
+            if (ShouldRunSystem())
+            {
+                var inputJob = BeforeOnUpdate();
+                var outputJob = OnUpdate(inputJob);
+                AfterOnUpdate(outputJob);
+            }
         }
 
-        protected sealed override void OnCreateManagerInternal(World world, int capacity)
+        protected sealed override void OnBeforeCreateManagerInternal(World world, int capacity)
         {
-            base.OnCreateManagerInternal(world, capacity);
+            base.OnBeforeCreateManagerInternal(world, capacity);
         }
 
         protected sealed override void OnBeforeDestroyManagerInternal()

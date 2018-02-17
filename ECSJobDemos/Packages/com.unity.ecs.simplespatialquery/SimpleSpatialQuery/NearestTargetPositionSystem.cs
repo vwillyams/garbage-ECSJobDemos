@@ -67,6 +67,7 @@ namespace UnityEngine.ECS.SimpleSpatialQuery
     }
 #endif
     
+    [DisableSystemWhenEmpty]
     public class NearestTargetPositionSystem<TNearestTarget,TTarget> : JobComponentSystem
         where TNearestTarget : struct, IComponentData, INearestTarget
         where TTarget : struct, IComponentData
@@ -138,9 +139,6 @@ namespace UnityEngine.ECS.SimpleSpatialQuery
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            if (m_NearestTargetPositionGroup.IsEmpty)
-                return inputDeps;
-            
             // Collect Targets
             var targetPositions = m_TargetGroup.GetComponentDataArray<Position>();
             var targetPositionsCopy = new NativeArray<float3>(targetPositions.Length, Allocator.TempJob);

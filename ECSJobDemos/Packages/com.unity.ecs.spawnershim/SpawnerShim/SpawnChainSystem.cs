@@ -9,6 +9,7 @@ using UnityEngine.ECS.Transform;
 
 namespace ECS.Spawners
 {
+    [DisableSystemWhenEmpty]
     public class SpawnChainSystem : ComponentSystem
     {
         struct SpawnChainInstance
@@ -27,9 +28,6 @@ namespace ECS.Spawners
 
         protected override void OnUpdate()
         {
-            if (m_MainGroup.IsEmpty)
-                return;
-
             var uniqueTypes = new List<SpawnChain>(10);
 
             EntityManager.GetAllUniqueSharedComponentDatas(uniqueTypes);

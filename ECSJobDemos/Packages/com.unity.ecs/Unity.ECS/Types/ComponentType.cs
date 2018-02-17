@@ -14,9 +14,9 @@ namespace Unity.ECS
             Subtractive
         }
 
-        public int TypeIndex;
-        public AccessMode AccessModeType;
-        public int FixedArrayLength;
+        public int            TypeIndex;
+        public AccessMode     AccessModeType;
+        public int            FixedArrayLength;
 
         public static ComponentType Create<T>()
         {

@@ -9,6 +9,7 @@ using UnityEngine.ECS.Utilities;
 
 namespace ECS.Spawners
 {
+    [DisableSystemWhenEmpty]
     public class SpawnRandomInSphereSystem : ComponentSystem
     {
         struct SpawnRandomInSphereInstance
@@ -28,9 +29,6 @@ namespace ECS.Spawners
 
         protected override void OnUpdate()
         {
-            if (m_MainGroup.IsEmpty)
-                return;
-
             var uniqueTypes = new List<SpawnRandomInSphere>(10);
 
             EntityManager.GetAllUniqueSharedComponentDatas(uniqueTypes);
@@ -46,10 +44,7 @@ namespace ECS.Spawners
             }
 
             if (spawnInstanceCount == 0)
-            {
-                m_MainGroup.Dispose();
                 return;
-            }
 
             var spawnInstances = new NativeArray<SpawnRandomInSphereInstance>(spawnInstanceCount, Allocator.Temp);
             {

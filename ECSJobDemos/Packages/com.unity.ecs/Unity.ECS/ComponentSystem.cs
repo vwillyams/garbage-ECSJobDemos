@@ -114,6 +114,7 @@ namespace Unity.ECS
             }
 
             var cache = new ComponentGroupArrayStaticCache(typeof(T), EntityManager, this);
+            ArrayUtilityAdd(ref m_CachedComponentGroupArrays, cache);
             return new ComponentGroupArray<T>(cache);
         }
 

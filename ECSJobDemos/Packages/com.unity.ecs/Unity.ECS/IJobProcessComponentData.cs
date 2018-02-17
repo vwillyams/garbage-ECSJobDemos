@@ -41,11 +41,19 @@ namespace Unity.ECS
         void Prepare();
     }
 
-    public interface IBaseJobProcessComponentData_2
+    public interface IBaseJobProcessComponentData
     {
     }
 
-    public interface IJobProcessComponentData<T0>
+    public interface IBaseJobProcessComponentData_2 : IBaseJobProcessComponentData
+    {
+    }
+
+    public interface IBaseJobProcessComponentData_1 : IBaseJobProcessComponentData
+    {
+    }
+
+    public interface IJobProcessComponentData<T0> : IBaseJobProcessComponentData_1
         where T0 : struct, IComponentData
     {
         void Execute(ref T0 data);
@@ -58,18 +66,18 @@ namespace Unity.ECS
         void Execute(ref T0 data0, ref T1 data1);
     }
 
-    public static class JobProcessComponentDataExtensions
+    struct JobProcessComponentDataCache
     {
-        internal struct Cache
-        {
-            public IntPtr              JobReflectionData;
-            public ComponentType[]     Types;
+        public IntPtr              JobReflectionData;
+        public ComponentType[]     Types;
             
-            public ComponentGroup      ComponentGroup;
-            public ComponentSystemBase ComponentSystem;
-        }
+        public ComponentGroup      ComponentGroup;
+        public ComponentSystemBase ComponentSystem;
+    }
         
-        internal static void Initialize(ComponentSystemBase system, Type jobType, Type wrapperJobType, ref Cache cache)
+    static class JobProcessComponentDataUtility
+    {
+        internal static void Initialize(ComponentSystemBase system, Type jobType, Type wrapperJobType, ref JobProcessComponentDataCache cache)
         {
             if (cache.JobReflectionData == IntPtr.Zero)
             {
@@ -128,52 +136,79 @@ namespace Unity.ECS
                 cache.ComponentSystem = system;
             }
         }
-        
-        public static unsafe JobHandle Schedule<T, U0>(this T jobData, ComponentDataArray<U0> componentDataArray, int innerloopBatchCount, JobHandle dependsOn = new JobHandle())
-            where T : struct, IJobProcessComponentData<U0>
-            where U0 : struct, IComponentData
-        {
-            JobStruct<T, U0> fullData;
-            fullData.Data = jobData;
-            fullData.ComponentDataArray = componentDataArray;
+    }
 
-            var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct<T, U0>.Initialize(), dependsOn, ScheduleMode.Batched);
-            return JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray.Length, innerloopBatchCount);
+    public static class JobProcessComponentDataExtensions
+    {
+        //NOTE: It would be much better if C# could resolve the branch with generic resolving,
+        //      but apparently the interface constraint is not enough..
+        
+        public static JobHandle Schedule<T>(this T jobData, ComponentSystemBase system, int innerloopBatchCount, JobHandle dependsOn = default(JobHandle))
+            where T : struct, IBaseJobProcessComponentData
+        {
+            if (typeof(IBaseJobProcessComponentData_1).IsAssignableFrom(typeof(T)))
+                return ScheduleInternal_1(ref jobData, system, innerloopBatchCount, dependsOn, ScheduleMode.Batched);
+            else
+                return ScheduleInternal_2(ref jobData, system, innerloopBatchCount, dependsOn, ScheduleMode.Batched);
         }
 
-        public static unsafe void Run<T, U0>(this T jobData, ComponentDataArray<U0> componentDataArray)
-            where T : struct, IJobProcessComponentData<U0>
-            where U0 : struct, IComponentData
+        public static void Run<T>(this T jobData, ComponentSystemBase system)
+            where T : struct, IBaseJobProcessComponentData
         {
-            JobStruct<T, U0> fullData;
-            fullData.Data = jobData;
-            fullData.ComponentDataArray = componentDataArray;
-
-            var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct<T, U0>.Initialize(), new JobHandle(), ScheduleMode.Run);
-            JobsUtility.ScheduleParallelFor(ref scheduleParams, componentDataArray.Length, componentDataArray.Length);
+            if (typeof(IBaseJobProcessComponentData_1).IsAssignableFrom(typeof(T)))
+                ScheduleInternal_1(ref jobData, system, -1, default(JobHandle), ScheduleMode.Run);
+            else
+                ScheduleInternal_2(ref jobData, system, -1, default(JobHandle), ScheduleMode.Run);
         }
-        
-        struct JobStruct<T, U0>
+
+        internal unsafe static JobHandle ScheduleInternal_1<T>(ref T jobData, ComponentSystemBase system, int innerloopBatchCount,
+            JobHandle dependsOn, ScheduleMode mode)
+            where T : struct
+        {
+            JobProcessComponentDataUtility.Initialize(system, typeof(T), typeof(JobStruct_Process1<,>), ref JobStruct_ProcessInfer_1<T>.Cache);
+
+            var group = JobStruct_ProcessInfer_1<T>.Cache.ComponentGroup;
+            var types = JobStruct_ProcessInfer_1<T>.Cache.Types;
+
+            JobStruct_ProcessInfer_1<T> fullData;
+            fullData.Data = jobData;
+            fullData.ComponentDataArray0 = group.GetComponentDataArray<ProxyComponentData>(types[0]);
+
+            var length = fullData.ComponentDataArray0.Length;
+            var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData),
+                JobStruct_ProcessInfer_1<T>.Cache.JobReflectionData, dependsOn, mode);
+            return JobsUtility.ScheduleParallelFor(ref scheduleParams, length,
+                innerloopBatchCount <= 0 ? length : innerloopBatchCount);
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct JobStruct_ProcessInfer_1<T> where T : struct
+        {
+            public static JobProcessComponentDataCache Cache;
+
+            [NativeMatchesParallelForLength] public ComponentDataArray<ProxyComponentData> ComponentDataArray0;
+            public T Data;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct JobStruct_Process1<T, U0>
             where T : struct, IJobProcessComponentData<U0>
             where U0 : struct, IComponentData
         {
-            static IntPtr s_JobReflectionData;
-
-            [NativeMatchesParallelForLength]
-            public ComponentDataArray<U0>  ComponentDataArray;
-            public T                       Data;
+            [NativeMatchesParallelForLength] public ComponentDataArray<U0> ComponentDataArray;
+            public T Data;
 
             public static IntPtr Initialize()
             {
-                if (s_JobReflectionData == IntPtr.Zero)
-                    s_JobReflectionData = JobsUtility.CreateJobReflectionData(typeof(JobStruct<T, U0>), typeof(T), JobType.ParallelFor, (ExecuteJobFunction)Execute);
-
-                return s_JobReflectionData;
+                return JobsUtility.CreateJobReflectionData(typeof(JobStruct_Process1<T, U0>), typeof(T),
+                    JobType.ParallelFor, (ExecuteJobFunction) Execute);
             }
-            
-            delegate void ExecuteJobFunction(ref JobStruct<T, U0> data, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
-            static unsafe void Execute(ref JobStruct<T, U0> jobData, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
+            delegate void ExecuteJobFunction(ref JobStruct_Process1<T, U0> data, IntPtr additionalPtr,
+                IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
+
+            static unsafe void Execute(ref JobStruct_Process1<T, U0> jobData, IntPtr additionalPtr,
+                IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
                 int begin;
                 int end;
@@ -198,22 +233,11 @@ namespace Unity.ECS
             }
         }
 
-        public static JobHandle Schedule<T>(this T jobData, ComponentSystemBase system, int innerloopBatchCount, JobHandle dependsOn = new JobHandle())
-            where T : struct, IBaseJobProcessComponentData_2
-        {
-            return ScheduleInternal(ref jobData, system, innerloopBatchCount, dependsOn, ScheduleMode.Batched);
-        }
-
-        public static void Run<T>(this T jobData, ComponentSystemBase system, JobHandle dependsOn = new JobHandle())
-            where T : struct, IBaseJobProcessComponentData_2
-        {
-            ScheduleInternal(ref jobData, system, -1, dependsOn, ScheduleMode.Run);
-        }
         
-        unsafe static JobHandle ScheduleInternal<T>(ref T jobData, ComponentSystemBase system, int innerloopBatchCount, JobHandle dependsOn, ScheduleMode mode)
-            where T : struct, IBaseJobProcessComponentData_2
+        internal unsafe static JobHandle ScheduleInternal_2<T>(ref T jobData, ComponentSystemBase system, int innerloopBatchCount, JobHandle dependsOn, ScheduleMode mode)
+            where T : struct
         {
-            Initialize(system, typeof(T), typeof(JobStruct_Process2<,,>), ref JobStruct_ProcessInfer_2<T>.Cache);
+            JobProcessComponentDataUtility.Initialize(system, typeof(T), typeof(JobStruct_Process2<,,>), ref JobStruct_ProcessInfer_2<T>.Cache);
 
             var group = JobStruct_ProcessInfer_2<T>.Cache.ComponentGroup;
             var types = JobStruct_ProcessInfer_2<T>.Cache.Types;
@@ -229,10 +253,9 @@ namespace Unity.ECS
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct JobStruct_ProcessInfer_2<T>
-            where T : struct, IBaseJobProcessComponentData_2
+        struct JobStruct_ProcessInfer_2<T> where T : struct
         {
-            public static Cache Cache;
+            public static JobProcessComponentDataCache Cache;
             
             [NativeMatchesParallelForLength]
             public ComponentDataArray<ProxyComponentData>  ComponentDataArray0;
@@ -292,19 +315,11 @@ namespace Unity.ECS
             }
         }
     }
-
+    
     public class GenericProcessComponentSystem<TJob, TComponentData0> : JobComponentSystem
         where TJob : struct, IAutoComponentSystemJob, IJobProcessComponentData<TComponentData0>
         where TComponentData0 : struct, IComponentData
     {
-        struct DataGroup
-        {
-            internal ComponentDataArray<TComponentData0> Component0;
-        }
-
-        [Inject]
-        DataGroup m_Group;
-
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
             const int batchSize = 32;
@@ -312,7 +327,7 @@ namespace Unity.ECS
             var jobData = default(TJob);
             jobData.Prepare();
 
-            return jobData.Schedule(m_Group.Component0, batchSize, inputDeps);
+            return JobProcessComponentDataExtensions.ScheduleInternal_1(ref jobData, this, batchSize, inputDeps, ScheduleMode.Batched);
         }
     }
 
@@ -328,7 +343,7 @@ namespace Unity.ECS
             var jobData = default(TJob);
             jobData.Prepare();
 
-            return jobData.Schedule(this, batchSize, inputDeps);
+            return JobProcessComponentDataExtensions.ScheduleInternal_2(ref jobData, this, batchSize, inputDeps, ScheduleMode.Batched);
         }
     }
 }

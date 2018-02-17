@@ -1,3 +1,9 @@
+# 0.0.3
+
+## Changes
+UnityPackageManager -> Packages folder. (Unity 2018.1 beta 7 introduces this change and we reflected it in the sample project)
+
+
 # 0.0.2
 
 ## New Features

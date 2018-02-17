@@ -121,5 +121,14 @@ namespace UnityEngine.ECS.Tests
             system.Update();
             World.DestroyManager(system);
         }
+        
+        [Test]
+        public void DisposeSystemComponentGroupThrows()
+        {
+            var system = World.CreateManager<TestSystem>();
+            var group = system.GetComponentGroup(typeof(EcsTestData));
+            Assert.Throws<ArgumentException>(() => group.Dispose());
+            group.Dispose();
+        }
     }
 }

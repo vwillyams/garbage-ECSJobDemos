@@ -227,6 +227,11 @@ namespace Unity.ECS
         bool                                  m_TransformsDirty;
         int*                                  m_FilteredSharedComponents;
 
+        
+        #if ENABLE_UNITY_COLLECTIONS_CHECKS
+        internal string                       DisallowDisposing = null;
+        #endif
+        
         internal ComponentGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager, ArchetypeManager typeManager)
         {
             m_GroupData = groupData;
@@ -239,6 +244,11 @@ namespace Unity.ECS
 
         public void Dispose()
         {
+        #if ENABLE_UNITY_COLLECTIONS_CHECKS
+            if (DisallowDisposing  != null)
+                throw new System.ArgumentException(DisallowDisposing);
+        #endif
+            
             if (m_Transforms.IsCreated)
                 m_Transforms.Dispose();
 

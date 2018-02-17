@@ -55,11 +55,15 @@ namespace Unity.ECS
             m_InjectedComponentGroups = null;
             m_CachedComponentGroupArrays = null;
 
-            for (var i = 0; i != m_ComponentGroups.Length; i++)
+            foreach (var group in m_ComponentGroups)
             {
-                if (m_ComponentGroups[i] != null)
-                    m_ComponentGroups[i].Dispose();
+                #if ENABLE_UNITY_COLLECTIONS_CHECKS
+                group.DisallowDisposing = null;
+                #endif
+                group.Dispose();
             }
+
+            m_ComponentGroups = null;
 
             m_JobDependencyForReadingManagers = null;
             m_JobDependencyForWritingManagers = null;
@@ -90,9 +94,14 @@ namespace Unity.ECS
             }
 
             var group = EntityManager.CreateComponentGroup(componentTypes, count);
+            #if ENABLE_UNITY_COLLECTIONS_CHECKS
+            group.DisallowDisposing = "ComponentGroup.Dispose() may not be called on a ComponentGroup created with ComponentSystem.GetComponentGroup. The ComponentGroup will automatically be disposed by the ComponentSystem.";
+            #endif
             ArrayUtilityAdd(ref m_ComponentGroups, group);
 
             RecalculateTypesFromComponentGroups();
+            
+            //@TODO: Shouldn't this sync fence on the newly depent types?
 
             return group;
         }

@@ -58,7 +58,7 @@ namespace Unity.ECS
             m_World = world;
             m_EntityManager = world.GetOrCreateManager<EntityManager>();
             m_SafetyManager = m_EntityManager.ComponentJobSafetyManager;
-            m_HasDisableSystemIfEmpty = GetType().GetCustomAttributes(typeof(DisableSystemIfEmpty), true).Length != 0;
+            m_HasDisableSystemIfEmpty = GetType().GetCustomAttributes(typeof(DisableSystemWhenEmptyAttribute), true).Length != 0;
 
             m_ComponentGroups = new ComponentGroup[0];
             m_CachedComponentGroupArrays = new ComponentGroupArrayStaticCache[0];

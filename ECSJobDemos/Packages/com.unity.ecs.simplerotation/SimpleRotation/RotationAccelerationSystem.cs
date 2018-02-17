@@ -5,6 +5,7 @@ using Unity.Mathematics;
 
 namespace UnityEngine.ECS.SimpleRotation
 {
+    [DisableSystemWhenEmpty]
     public class RotationAccelerationSystem : JobComponentSystem
     {
         [ComputeJobOptimization]

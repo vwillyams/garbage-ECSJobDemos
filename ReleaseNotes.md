@@ -1,8 +1,13 @@
 # 0.0.3
 
 ## Changes
-UnityPackageManager -> Packages folder. (Unity 2018.1 beta 7 introduces this change and we reflected it in the sample project)
+* UnityPackageManager -> Packages folder. (Unity 2018.1 beta 7 introduces this change and we reflected it in the sample project)
 
+* EntityManager.CreateComponentGroup should be replaced with ComponentSystem.GetComponentGroup.
+It automatically associates & caches the ComponentGroup with the system (It is automatically disposed by ComponentSystem) and thus input dependencies will be setup correctly.
+
+Additionally ComponentSystem.GetComponentGroup should not be called in OnUpdate() (Create and cache in OnCreateManager instead). ComponentSystem.GetComponentGroup allocates GC memory because the input is a param ComponentType[]...
+* ComponentGroup.IsEmpty should be used whenever we just want to early out with nothing to do in a system
 
 # 0.0.2
 

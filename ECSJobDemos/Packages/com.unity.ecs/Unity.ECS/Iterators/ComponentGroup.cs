@@ -326,6 +326,43 @@ namespace Unity.ECS
             }
         }
 
+        public bool IsEmpty
+        {
+            get
+            {
+                if (m_FilteredSharedComponents == null)
+                {
+                    for (var match = m_GroupData->FirstMatchingArchetype; match != null; match = match->Next)
+                    {
+                        if (match->Archetype->EntityCount > 0)
+                            return false;
+                    }
+
+                    return true;
+                }
+                else
+                {
+                    for (var match = m_GroupData->FirstMatchingArchetype; match != null; match = match->Next)
+                    {
+                        if (match->Archetype->EntityCount <= 0)
+                            continue;
+
+                        var archeType = match->Archetype;
+                        for (var c = (Chunk*) archeType->ChunkList.Begin; c != archeType->ChunkList.End; c = (Chunk*) c->ChunkListNode.Next)
+                        {
+                            if (!ComponentChunkIterator.ChunkMatchesFilter(match, c, m_FilteredSharedComponents))
+                                continue;
+
+                            if (c->Count > 0)
+                                return false;
+                        }
+                    }
+
+                    return true;
+                }
+            }
+        }
+
         internal void GetComponentChunkIterator(out int outLength, out ComponentChunkIterator outIterator)
         {
             // Update the archetype segments
@@ -521,18 +558,6 @@ namespace Unity.ECS
             GetComponentChunkIterator(out length, out iterator);
             iterator.IndexInComponentGroup = GetIndexInComponentGroup(TypeManager.GetTypeIndex<Transform>());
             return new GameObjectArray(iterator, length, m_TypeManager);
-        }
-
-        public bool IsEmpty
-        {
-            get 
-            {
-                //@TODO: Optimize...
-                int length;
-                ComponentChunkIterator iterator;
-                GetComponentChunkIterator(out length, out iterator);
-                return length == 0;
-            }
         }
         
         public int CalculateLength()

@@ -63,7 +63,7 @@ public class ECSIteratePerformance : MonoBehaviour
 		public Component4BytesDst* 	dst;
 	}
 
-	[ComputeJobOptimization]
+    [ComputeJobOptimization(CompileSynchronously = true)]
 	struct Iterate_ComponentDataFromEntity : IJob
 	{
 		public NativeArray<Entity> 							entities;
@@ -84,7 +84,7 @@ public class ECSIteratePerformance : MonoBehaviour
 		}
 	}
 
-	[ComputeJobOptimization]
+    [ComputeJobOptimization(CompileSynchronously = true)]
 	struct Iterate_ComponentDataArray : IJob
 	{
 		public ComponentDataArray<Component4Bytes> 		src;
@@ -101,7 +101,7 @@ public class ECSIteratePerformance : MonoBehaviour
 		}
 	}
 
-	[ComputeJobOptimization]
+    [ComputeJobOptimization(CompileSynchronously = true)]
 	struct Iterate_ProcessEntities : IJobProcessEntities<EntityIter>
 	{
 		unsafe public void Execute(EntityIter entity)
@@ -123,7 +123,7 @@ public class ECSIteratePerformance : MonoBehaviour
 		}
 	}
 
-	[ComputeJobOptimization]
+    [ComputeJobOptimization(CompileSynchronously = true)]
 	struct Iterate_ProcessComponentData : IJobProcessComponentData<Component4Bytes, Component4BytesDst>
 	{
 		public void Execute(ref Component4Bytes src, ref Component4BytesDst dst)
@@ -132,7 +132,7 @@ public class ECSIteratePerformance : MonoBehaviour
 		}
 	}
 
-	[ComputeJobOptimization]
+    [ComputeJobOptimization(CompileSynchronously = true)]
 	unsafe struct Iterate_FloatPointer : IJob
 	{
 		[NativeDisableUnsafePtrRestriction]
@@ -151,7 +151,7 @@ public class ECSIteratePerformance : MonoBehaviour
 		}
 	}
 
-	[ComputeJobOptimization]
+    [ComputeJobOptimization(CompileSynchronously = true)]
 	struct Iterate_NativeArrayParallelFor : IJobParallelFor
 	{
 		[NativeMatchesParallelForLength]
@@ -166,7 +166,7 @@ public class ECSIteratePerformance : MonoBehaviour
 		}
 	}
 
-	[ComputeJobOptimization]
+    [ComputeJobOptimization(CompileSynchronously = true)]
 	struct Iterate_NativeArray : IJob
 	{
 		public NativeArray<float> 	src;
@@ -182,7 +182,7 @@ public class ECSIteratePerformance : MonoBehaviour
 		}
 	}
 
-	[ComputeJobOptimization]
+    [ComputeJobOptimization(CompileSynchronously = true)]
 	struct Iterate_NativeSlice : IJob
 	{
 		public NativeSlice<float> 	src;

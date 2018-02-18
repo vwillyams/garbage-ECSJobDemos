@@ -1,0 +1,10 @@
+{
+	"dependencies": {
+		 "com.unity.ecs": "file:../../../ECSJobDemos/Packages/com.unity.ecs",
+		 "com.unity.jobs": "file:../../../ECSJobDemos/Packages/com.unity.jobs",
+		 "com.unity.mathematics": "file:../../../ECSJobDemos/Packages/com.unity.mathematics",
+		 "com.unity.collections": "file:../../../ECSJobDemos/Packages/com.unity.collections",
+		 "com.unity.burst": "0.1.22"
+	},
+	"registry": "https://staging-packages.unity.com"
+}

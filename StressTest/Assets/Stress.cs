@@ -1,4 +1,4 @@
-using UnityEngine.ECS;
+using Unity.ECS;
 namespace GenTest {
   public struct C00000 : IComponentData { int Value; }
   public struct C00001 : IComponentData { int Value; }

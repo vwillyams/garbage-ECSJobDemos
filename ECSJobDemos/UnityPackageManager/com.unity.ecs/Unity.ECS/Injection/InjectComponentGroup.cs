@@ -22,6 +22,7 @@ namespace Unity.ECS
         readonly int 		m_GroupFieldOffset;
 
         readonly int 				m_EntityArrayOffset;
+        readonly int                m_IndexFromEntityOffset;
         readonly int 				m_TransformAccessArrayOffset;
         readonly int 				m_LengthOffset;
         readonly int                 m_GameObjectArrayOffset;
@@ -33,7 +34,8 @@ namespace Unity.ECS
 
         InjectComponentGroupData(ComponentSystemBase system, FieldInfo groupField,
             InjectionData[] componentDataInjections, InjectionData[] componentInjections, InjectionData[] fixedArrayInjections, InjectionData[] sharedComponentInjections,
-            FieldInfo entityArrayInjection, FieldInfo transformAccessArrayInjection, FieldInfo gameObjectArrayInjection, FieldInfo lengthInjection, ComponentType[] componentRequirements)
+            FieldInfo entityArrayInjection, FieldInfo indexFromEntityInjection, FieldInfo transformAccessArrayInjection, FieldInfo gameObjectArrayInjection, 
+            FieldInfo lengthInjection, ComponentType[] componentRequirements)
         {
             var requiredComponentTypes = componentRequirements;
 
@@ -56,6 +58,11 @@ namespace Unity.ECS
                 m_EntityArrayOffset = UnsafeUtility.GetFieldOffset(entityArrayInjection);
             else
                 m_EntityArrayOffset = -1;
+            
+            if (indexFromEntityInjection != null)
+                m_IndexFromEntityOffset = UnsafeUtility.GetFieldOffset(indexFromEntityInjection);
+            else
+                m_IndexFromEntityOffset = -1;
 
             if (lengthInjection != null)
                 m_LengthOffset = UnsafeUtility.GetFieldOffset(lengthInjection);
@@ -131,6 +138,13 @@ namespace Unity.ECS
                 m_EntityGroup.GetEntityArray(ref iterator, length, out entityArray);
                 UnsafeUtility.CopyStructureToPtr(ref entityArray, groupStructPtr + m_EntityArrayOffset);
             }
+            
+            if (m_IndexFromEntityOffset != -1)
+            {
+                IndexFromEntity indexFromEntity;
+                m_EntityGroup.GetIndexFromEntity(out indexFromEntity);
+                UnsafeUtility.CopyStructureToPtr(ref indexFromEntity, groupStructPtr + m_IndexFromEntityOffset);
+            }
 
             if (m_GameObjectArrayOffset != -1)
             {
@@ -147,6 +161,7 @@ namespace Unity.ECS
         public static InjectComponentGroupData CreateInjection(Type injectedGroupType, FieldInfo groupField, ComponentSystemBase system)
         {
             FieldInfo entityArrayField;
+            FieldInfo indexFromEntityField;
             FieldInfo gameObjectArrayField;
             FieldInfo transformAccessArrayField;
             FieldInfo lengthField;
@@ -157,20 +172,21 @@ namespace Unity.ECS
             var sharedComponentInjections = new List<InjectionData>();
 
             var componentRequirements = new List<ComponentType>();
-            var error = CollectInjectedGroup(injectedGroupType, out entityArrayField, out transformAccessArrayField, out gameObjectArrayField, out lengthField, componentRequirements, componentDataInjections, componentInjections, fixedArrayInjections, sharedComponentInjections);
+            var error = CollectInjectedGroup(injectedGroupType, out entityArrayField, out indexFromEntityField, out transformAccessArrayField, out gameObjectArrayField, out lengthField, componentRequirements, componentDataInjections, componentInjections, fixedArrayInjections, sharedComponentInjections );
             if (error != null)
                 throw new System.ArgumentException(error);
 
-            return new InjectComponentGroupData(system, groupField, componentDataInjections.ToArray(), componentInjections.ToArray(), fixedArrayInjections.ToArray(), sharedComponentInjections.ToArray(), entityArrayField, transformAccessArrayField, gameObjectArrayField, lengthField, componentRequirements.ToArray());
+            return new InjectComponentGroupData(system, groupField, componentDataInjections.ToArray(), componentInjections.ToArray(), fixedArrayInjections.ToArray(), sharedComponentInjections.ToArray(), entityArrayField, indexFromEntityField,  transformAccessArrayField, gameObjectArrayField, lengthField, componentRequirements.ToArray());
         }
 
-        static string CollectInjectedGroup(Type injectedGroupType, out FieldInfo entityArrayField, out FieldInfo transformAccessArrayField, out FieldInfo gameObjectArrayField, out FieldInfo lengthField, ICollection<ComponentType> componentRequirements,
+        static string CollectInjectedGroup(Type injectedGroupType, out FieldInfo entityArrayField, out FieldInfo indexFromEntityField, out FieldInfo transformAccessArrayField, out FieldInfo gameObjectArrayField, out FieldInfo lengthField, ICollection<ComponentType> componentRequirements,
             ICollection<InjectionData> componentDataInjections, ICollection<InjectionData> componentInjections, ICollection<InjectionData> fixedArrayInjections, ICollection<InjectionData> sharedComponentInjections)
         {
             //@TODO: Improve error messages...
             var fields = injectedGroupType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             transformAccessArrayField = null;
             entityArrayField = null;
+            indexFromEntityField = null;
             gameObjectArrayField = null;
             lengthField = null;
             var explicitTransformRequirement = false;
@@ -239,6 +255,14 @@ namespace Unity.ECS
                         return "A [Inject] struct, may only contain a single EntityArray";
 
                     entityArrayField = field;
+                }
+                else if (field.FieldType == typeof(IndexFromEntity))
+                {
+                    // Error on multiple IndexFromEntity
+                    if (indexFromEntityField != null)
+                        return "A [Inject] struct, may only contain a single IndexFromEntity";
+
+                    indexFromEntityField = field;
                 }
                 else if (field.FieldType == typeof(GameObjectArray))
                 {

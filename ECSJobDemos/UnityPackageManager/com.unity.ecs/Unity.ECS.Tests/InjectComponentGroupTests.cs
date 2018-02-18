@@ -393,5 +393,48 @@ namespace UnityEngine.ECS.Tests
 	        Object.DestroyImmediate (go);
 	        TearDown();
 	    }
+	    
+	    [DisableAutoCreation]
+	    public class IndexFromEntityMultipleArchetypesSytem : JobComponentSystem
+	    {
+	        public struct Group
+	        {
+	            public ComponentDataArray<EcsTestData> Data;
+	            public IndexFromEntity indexFromEntity;
+	            public EntityArray entities;
+	            public int Length;
+	        }
+
+	        [Inject]
+	        public Group group;
+
+	        protected override void OnCreateManager(int capacity)
+	        {
+	            for (int i = 0; i < group.Length; i++)
+	            {
+	                var entity = group.entities[i];
+	                var entityIndex = group.indexFromEntity[entity];
+	                Assert.AreEqual(i,entityIndex.Value);
+	            }
+	        }
+	    }
+
+	    [Test]
+	    public void IndexFromEntityMultipleArchetypes()
+	    {
+	        for (int i = 0; i < 512; i++)
+	        {
+	          var entity = m_Manager.CreateEntity (typeof(EcsTestData));
+	          m_Manager.SetComponentData(entity, new EcsTestData(i));
+	        }
+	        for (int i = 0; i < 512; i++)
+	        {
+	          var entity = m_Manager.CreateEntity (typeof(EcsTestData),typeof(EcsTestData2));
+	          m_Manager.SetComponentData(entity, new EcsTestData(i));
+	          m_Manager.SetComponentData(entity, new EcsTestData2(i));
+	        }
+	        var system = World.GetOrCreateManager<IndexFromEntityMultipleArchetypesSytem>();
+	        system.Update();
+	    }
 	}
 }

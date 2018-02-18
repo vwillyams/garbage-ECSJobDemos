@@ -1,8 +1,7 @@
 {
-    "name": "UnityEngine.ECS.Transform2D",
+    "name": "Unity.Transform",
     "references": [
-        "UnityEngine.ECS",
-        "UnityEngine.ECS.Transform",
+        "Unity.Core",
         "Unity.Collections",
         "Unity.Burst",
         "Unity.Jobs",

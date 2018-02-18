@@ -1,5 +1,5 @@
 {
-    "name": "UnityEngine.ECS",
+    "name": "Unity.Core",
     "references": [
         "Unity.Collections",
         "Unity.Burst"

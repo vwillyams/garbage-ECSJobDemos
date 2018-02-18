@@ -1,7 +1,7 @@
 {
-    "name": "UnityEditor.ECS",
+    "name": "Unity.Core.Editor",
     "references": [
-        "UnityEngine.ECS",
+        "Unity.Core",
         "Unity.Mathematics"
     ],
     "includePlatforms": [

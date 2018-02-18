@@ -1,7 +1,7 @@
 {
-    "name": "Unity.ECS.Tests",
+    "name": "Unity.Core.Tests",
     "references": [
-        "UnityEngine.ECS",
+        "Unity.Core",
         "Unity.Collections",
         "Unity.Jobs"
     ],

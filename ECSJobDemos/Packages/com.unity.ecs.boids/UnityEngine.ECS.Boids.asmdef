@@ -1,11 +1,11 @@
 {
     "name": "UnityEngine.ECS.Boids",
     "references": [
-        "UnityEngine.ECS",
+        "Unity.Core",
         "UnityEngine.ECS.SimpleBounds",
         "UnityEngine.ECS.SimpleRotation",
         "UnityEngine.ECS.SimpleSpatialQuery",
-        "UnityEngine.ECS.Transform",
+        "Unity.Transform",
         "UnityEngine.ECS.Utilities",
         "Unity.Collections",
         "Unity.Burst",

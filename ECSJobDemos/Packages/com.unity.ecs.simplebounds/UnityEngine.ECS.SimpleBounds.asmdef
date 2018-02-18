@@ -1,7 +1,7 @@
 {
     "name": "UnityEngine.ECS.SimpleBounds",
     "references": [
-        "UnityEngine.ECS",
+        "Unity.Core",
         "Unity.Collections",
         "Unity.Burst",
         "Unity.Jobs",

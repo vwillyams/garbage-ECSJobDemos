@@ -1,8 +1,8 @@
 {
     "name": "UnityEngine.ECS.SimpleSpatialQuery",
     "references": [
-        "UnityEngine.ECS",
-        "UnityEngine.ECS.Transform",
+        "Unity.Core",
+        "Unity.Transform",
         "Unity.Collections",
         "Unity.Burst",
         "Unity.Jobs",

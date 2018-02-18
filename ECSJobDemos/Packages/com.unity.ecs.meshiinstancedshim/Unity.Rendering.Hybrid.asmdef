@@ -1,8 +1,8 @@
 {
-    "name": "UnityEngine.ECS.MeshInstancedShim",
+    "name": "Unity.Rendering.Hybrid",
     "references": [
-        "UnityEngine.ECS",
-        "UnityEngine.ECS.Transform",
+        "Unity.Core",
+        "Unity.Transform",
         "Unity.Collections",
         "Unity.Burst",
         "Unity.Jobs",

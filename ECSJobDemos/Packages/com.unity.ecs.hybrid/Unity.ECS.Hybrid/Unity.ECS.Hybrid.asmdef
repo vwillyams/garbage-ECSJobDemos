@@ -1,7 +1,7 @@
 {
     "name": "Unity.ECS.Hybrid",
     "references": [
-        "UnityEngine.ECS",
+        "Unity.Core",
         "Unity.Collections",
         "Unity.Jobs"
     ],

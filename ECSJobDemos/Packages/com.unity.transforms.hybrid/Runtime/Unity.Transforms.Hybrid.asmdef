@@ -1,5 +1,5 @@
 {
-    "name": "UnityEngine.ECS.TransformShim",
+    "name": "Unity.Transforms.Hybrid",
     "references": [
         "Unity.Core",
         "Unity.Transform",

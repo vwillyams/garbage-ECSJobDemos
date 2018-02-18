@@ -2,9 +2,9 @@
   "name": "com.unity.ecs.meshinstancedshim",
   "version": "0.0.1",
   "unity": "2018.1",
-  "description": "Unity MeshInstancedShim Components",
+  "description": "Unity Rendering Components for Entity Component System",
   "keywords": [
-    "unity"
-  ],
-  "category": "AssetStore/Unity"
+    "unity",
+    "ecs"
+  ]
 }

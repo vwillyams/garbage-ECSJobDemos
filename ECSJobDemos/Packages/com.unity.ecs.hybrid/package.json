@@ -2,7 +2,7 @@
   "name": "com.unity.ecs.hybrid",
   "version": "0.0.1",
   "unity": "2018.1",
-  "description": "Unity ECS Hybrid",
+  "description": "Unity Entity Component System <-> GameObject integration",
   "keywords": [
     "unity",
     "ecs"

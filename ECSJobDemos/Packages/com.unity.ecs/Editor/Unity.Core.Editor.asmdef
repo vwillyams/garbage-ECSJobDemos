@@ -1,0 +1,11 @@
+{
+    "name": "Unity.Core.Editor",
+    "references": [
+        "Unity.Core",
+        "Unity.Mathematics"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

@@ -2,10 +2,9 @@
   "name": "com.unity.ecs",
   "version": "0.0.1",
   "unity": "2018.1",
-  "description": "Unity ECS",
+  "description": "Unity Entity Component System",
   "keywords": [
-    "ads",
+    "ecs",
     "unity"
-  ],
-  "category": "AssetStore/Unity"
+  ]
 }

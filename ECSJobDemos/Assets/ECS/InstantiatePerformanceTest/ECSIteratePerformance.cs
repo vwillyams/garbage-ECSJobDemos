@@ -303,7 +303,7 @@ public class ECSIteratePerformance : MonoBehaviour
 		var componentDataArrayJob = new Iterate_ComponentDataArray() { src = src, dst = dst };
 		componentDataArrayJob.Run();
 
-		var componentDataFromEntityJob = new Iterate_ComponentDataFromEntity() { src = entityManager.GetComponentDataFromEntity<Component4Bytes>(), dst = entityManager.GetComponentDataFromEntity<Component4BytesDst>(), entities = instances };
+		var componentDataFromEntityJob = new Iterate_ComponentDataFromEntity() { src = dummySystem.GetComponentDataFromEntity<Component4Bytes>(), dst = dummySystem.GetComponentDataFromEntity<Component4BytesDst>(), entities = instances };
 		componentDataFromEntityJob.Run();
 
 		var componentProcessDataJob = new Iterate_ProcessComponentData();

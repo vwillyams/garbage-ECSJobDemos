@@ -2,7 +2,7 @@
   "name": "com.unity.ecs.transform2d",
   "version": "0.0.1",
   "unity": "2018.1",
-  "description": "Unity ECS Transform2D Components",
+  "description": "Unity Transform2D components - For ECS",
   "keywords": [
     "unity"
   ],

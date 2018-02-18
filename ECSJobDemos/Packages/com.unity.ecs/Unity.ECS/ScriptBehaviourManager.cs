@@ -12,7 +12,16 @@ namespace Unity.ECS
         internal void CreateInstance(World world, int capacity)
         {
             OnBeforeCreateManagerInternal(world, capacity);
-            OnCreateManager(capacity);
+            try
+            {
+                OnCreateManager(capacity);
+            }
+            catch
+            {
+                OnBeforeDestroyManagerInternal();
+                OnAfterDestroyManagerInternal();
+                throw;
+            }
         }
 
         internal void DestroyInstance()

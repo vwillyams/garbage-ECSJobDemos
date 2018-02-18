@@ -92,11 +92,22 @@ namespace Unity.ECS
 					throw new MissingMethodException($"Constructing {type} failed because the constructor was private, it must be public.");
 			}
 #endif
-			//@TODO: disallow creating managers during constructor. Only possible after constructor has been called.
-			var manager = Activator.CreateInstance(type, constructorArgumnents) as ScriptBehaviourManager;
+
+		    m_AllowGetManager = true;
+		    ScriptBehaviourManager manager;
+		    try
+		    {
+		        manager = Activator.CreateInstance(type, constructorArgumnents) as ScriptBehaviourManager;
+
+		    }
+		    catch
+		    {
+		        m_AllowGetManager = false;
+		        throw;
+		    }
 
 			m_BehaviourManagers.Add (manager);
-			m_BehaviourManagerLookup.Add(type, manager);
+		    AddTypeLookup(type, manager);
 
 		    try
 		    {
@@ -119,18 +130,9 @@ namespace Unity.ECS
 				throw new ArgumentException("During destruction of a system you are not allowed to get or create more systems.");
 #endif
 
-			ScriptBehaviourManager manager = null;
+			ScriptBehaviourManager manager ;
 			if (m_BehaviourManagerLookup.TryGetValue(type, out manager))
 				return manager;
-			foreach(var behaviourManager in m_BehaviourManagers)
-			{
-				if (behaviourManager.GetType() == type || behaviourManager.GetType().IsSubclassOf(type))
-				{
-					// We will never create a new or more specialized version of this since this is the only place creating managers
-					m_BehaviourManagerLookup.Add(type, behaviourManager);
-					return behaviourManager;
-				}
-			}
 
 			return null;
 		}
@@ -142,15 +144,37 @@ namespace Unity.ECS
 			return manager ?? CreateManagerInternal(type, GetCapacityForType(type), null);
 		}
 
+	    void AddTypeLookup(Type type, ScriptBehaviourManager manager)
+	    {
+	        while (type != typeof(ScriptBehaviourManager))
+	        {
+	            if (!m_BehaviourManagerLookup.ContainsKey(type))
+	                m_BehaviourManagerLookup.Add(type, manager);
+
+	            type = type.BaseType;
+	        }
+	    }
+
 	    void RemoveManagerInteral(ScriptBehaviourManager manager)
 		{
 			if (!m_BehaviourManagers.Remove(manager))
 				throw new ArgumentException($"manager does not exist in the world");
 
+		    
 			var type = manager.GetType();
 			while (type != typeof(ScriptBehaviourManager))
 			{
-				m_BehaviourManagerLookup.Remove(type);
+			    if (m_BehaviourManagerLookup[type] == manager)
+			    {
+			        m_BehaviourManagerLookup.Remove(type);
+
+			        foreach (var otherManager in m_BehaviourManagers)
+			        {
+			            if (otherManager.GetType().IsSubclassOf(type))
+			                AddTypeLookup(otherManager.GetType(), otherManager);
+			        }
+			    }
+
 				type = type.BaseType;
 			}
 		}

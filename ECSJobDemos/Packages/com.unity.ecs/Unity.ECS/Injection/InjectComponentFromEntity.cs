@@ -61,18 +61,18 @@ namespace Unity.ECS
 		    }
 		}
 
-	    public void ExtractJobDependencyTypes(List<int> reading, List<int> writing)
+	    public void ExtractJobDependencyTypes(ComponentSystemBase system)
 	    {
 	        if (m_InjectComponentDataFromEntity != null)
 	        {
 	            foreach (var injection in m_InjectComponentDataFromEntity)
-	                ComponentGroup.AddReaderWriter(injection.ComponentType, reading, writing);
+	                system.AddReaderWriter(injection.ComponentType);
 	        }
 
 	        if (m_InjectFixedArrayFromEntity != null)
 	        {
 	            foreach (var injection in m_InjectFixedArrayFromEntity)
-	                ComponentGroup.AddReaderWriter(injection.ComponentType, reading, writing);
+	                system.AddReaderWriter(injection.ComponentType);
 	        }
 	    }
 	}

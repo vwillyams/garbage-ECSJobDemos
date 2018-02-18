@@ -156,13 +156,14 @@ namespace UnityEngine.ECS.Tests
 			var entityInt = m_Manager.CreateEntity(ComponentType.FixedArray(typeof(int), 3));
 			m_Manager.GetFixedArray<int>(entityInt).CopyFrom(new int[] { 1, 2, 3});
 						
-			var intLookup = m_Manager.GetFixedArrayFromEntity<int>();
+			var intLookup = EmptySystem.GetFixedArrayFromEntity<int>();
 			Assert.IsTrue(intLookup.Exists(entityInt));
 			Assert.IsFalse(intLookup.Exists(new Entity()));
 			
 			Assert.AreEqual(2, intLookup[entityInt][1]);
 		}
 	    
+
 	    [Test]
 	    [Ignore("Should work, need to write test")]
 	    public void FixedArrayReadingFromTwoJobsInParallel()

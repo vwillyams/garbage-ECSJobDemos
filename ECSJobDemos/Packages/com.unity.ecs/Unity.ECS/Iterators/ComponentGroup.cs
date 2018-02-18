@@ -290,42 +290,6 @@ namespace Unity.ECS
         }
 #endif
 
-        internal static void AddReaderWriter(ComponentType type, List<int> reading, List<int> writing)
-        {
-            if (!type.RequiresJobDependency)
-                return;
-
-            if (type.AccessModeType == ComponentType.AccessMode.ReadOnly)
-            {
-                if (reading.Contains(type.TypeIndex))
-                    return;
-                if (writing.Contains(type.TypeIndex))
-                    return;
-
-                reading.Add(type.TypeIndex);
-            }
-            else
-            {
-                if (reading.Contains(type.TypeIndex))
-                    reading.Remove(type.TypeIndex);
-                if (writing.Contains(type.TypeIndex))
-                    return;
-                writing.Add(type.TypeIndex);
-            }
-        }
-
-        internal static void ExtractJobDependencyTypes(ComponentGroup[] groups, List<int> reading, List<int> writing)
-        {
-            foreach (var group in groups)
-            {
-                for (var i = 0;i != group.m_GroupData->RequiredComponentsCount;i++)
-                {
-                    var type = group.m_GroupData->RequiredComponents[i];
-                    AddReaderWriter(type, reading, writing);
-                }
-            }
-        }
-
         public bool IsEmpty
         {
             get

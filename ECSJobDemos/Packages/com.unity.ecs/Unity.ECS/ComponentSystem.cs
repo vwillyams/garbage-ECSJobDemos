@@ -1,26 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Unity.Collections;
 using Unity.Jobs;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs.LowLevel.Unsafe;
 
 namespace Unity.ECS
 {
-    [AttributeUsage(AttributeTargets.Class)]
-    public class DisableSystemWhenEmptyAttribute : System.Attribute { }
-
-    public abstract class ComponentSystemBase : ScriptBehaviourManager
+    public unsafe abstract class ComponentSystemBase : ScriptBehaviourManager
     {
         InjectComponentGroupData[] 			m_InjectedComponentGroups;
         InjectFromEntityData                m_InjectFromEntityData;
 
         ComponentGroupArrayStaticCache[] 	m_CachedComponentGroupArrays;
         ComponentGroup[] 				    m_ComponentGroups;
+        
+        NativeList<int>                     m_JobDependencyForReadingManagers;
+        NativeList<int>                     m_JobDependencyForWritingManagers;
+        
+        internal int*                       m_JobDependencyForReadingManagersPtr;
+        internal int                        m_JobDependencyForReadingManagersLength;
 
-
-        internal int[]		    			m_JobDependencyForReadingManagers;
-        internal int[]		    			m_JobDependencyForWritingManagers;
+        internal int*                       m_JobDependencyForWritingManagersPtr;
+        internal int                        m_JobDependencyForWritingManagersLength;
+        
         internal ComponentJobSafetyManager  m_SafetyManager;
         EntityManager                       m_EntityManager;
         World                               m_World;
@@ -57,12 +61,14 @@ namespace Unity.ECS
 
             m_ComponentGroups = new ComponentGroup[0];
             m_CachedComponentGroupArrays = new ComponentGroupArrayStaticCache[0];
-
+            m_JobDependencyForReadingManagers = new NativeList<int>(10, Allocator.Persistent);
+            m_JobDependencyForWritingManagers = new NativeList<int>(10, Allocator.Persistent);
+            
             ComponentSystemInjection.Inject(this, world, m_EntityManager, out m_InjectedComponentGroups, out m_InjectFromEntityData);
+            m_InjectFromEntityData.ExtractJobDependencyTypes(this);
 
             InjectNestedIJobProcessComponentDataJobs();
             
-            RecalculateTypesFromComponentGroups();
             UpdateInjectedComponentGroups();
         }
 
@@ -76,23 +82,9 @@ namespace Unity.ECS
                     GetComponentGroup(componentTypes);
             }
         }
-
-        void RecalculateTypesFromComponentGroups()
-        {
-            var readingTypes = new List<int>();
-            var writingTypes = new List<int>();
-
-            ComponentGroup.ExtractJobDependencyTypes(ComponentGroups, readingTypes, writingTypes);
-            m_InjectFromEntityData.ExtractJobDependencyTypes(readingTypes, writingTypes);
-
-            m_JobDependencyForReadingManagers = readingTypes.ToArray();
-            m_JobDependencyForWritingManagers = writingTypes.ToArray();
-        }
-
+        
         protected sealed override void OnAfterDestroyManagerInternal()
         {
-            m_InjectedComponentGroups = null;
-            m_CachedComponentGroupArrays = null;
 
             foreach (var group in m_ComponentGroups)
             {
@@ -101,11 +93,14 @@ namespace Unity.ECS
                 #endif
                 group.Dispose();
             }
-
             m_ComponentGroups = null;
+            m_InjectedComponentGroups = null;
+            m_CachedComponentGroupArrays = null;
 
-            m_JobDependencyForReadingManagers = null;
-            m_JobDependencyForWritingManagers = null;
+            if (m_JobDependencyForReadingManagers.IsCreated)
+                m_JobDependencyForReadingManagers.Dispose();
+            if (m_JobDependencyForWritingManagers.IsCreated)
+                m_JobDependencyForWritingManagers.Dispose();
         }
 
         protected override void OnBeforeDestroyManagerInternal()
@@ -124,7 +119,20 @@ namespace Unity.ECS
             array[array.Length - 1] = item;
         }
 
-        unsafe internal ComponentGroup GetComponentGroup(ComponentType* componentTypes, int count)
+        internal void AddReaderWriter(ComponentType componentType)
+        {
+            if (CalculateReaderWriterDependency.Add(componentType, m_JobDependencyForReadingManagers, m_JobDependencyForWritingManagers))
+            {
+                m_JobDependencyForReadingManagersPtr = (int*)m_JobDependencyForReadingManagers.GetUnsafePtr();
+                m_JobDependencyForWritingManagersPtr = (int*)m_JobDependencyForWritingManagers.GetUnsafePtr();
+
+                m_JobDependencyForReadingManagersLength = m_JobDependencyForReadingManagers.Length;
+                m_JobDependencyForWritingManagersLength = m_JobDependencyForWritingManagers.Length;
+                CompleteDependencyInternal();
+            }
+        }
+        
+        internal ComponentGroup GetComponentGroup(ComponentType* componentTypes, int count)
         {
             for (var i = 0; i != m_ComponentGroups.Length; i++)
             {
@@ -138,21 +146,22 @@ namespace Unity.ECS
             #endif
             ArrayUtilityAdd(ref m_ComponentGroups, group);
 
-            RecalculateTypesFromComponentGroups();
+            for (int i = 0;i != count;i++)
+                AddReaderWriter(componentTypes[i]);        
             
             //@TODO: Shouldn't this sync fence on the newly depent types?
 
             return group;
         }
 
-        unsafe public ComponentGroup GetComponentGroup(params ComponentType[] componentTypes)
+        public ComponentGroup GetComponentGroup(params ComponentType[] componentTypes)
         {
             fixed (ComponentType* typesPtr = componentTypes)
             {
                 return GetComponentGroup(typesPtr, componentTypes.Length);
             }
         }
-
+        
         public ComponentGroupArray<T> GetEntities<T>() where T : struct
         {
             for (var i = 0; i != m_CachedComponentGroupArrays.Length; i++)
@@ -166,7 +175,7 @@ namespace Unity.ECS
             return new ComponentGroupArray<T>(cache);
         }
 
-        public unsafe void UpdateInjectedComponentGroups()
+        public void UpdateInjectedComponentGroups()
         {
             if (null == m_InjectedComponentGroups)
                 return;
@@ -189,12 +198,9 @@ namespace Unity.ECS
             UnsafeUtility.ReleaseGCObject(gchandle);
         }
 
-        internal unsafe void CompleteDependencyInternal()
+        internal void CompleteDependencyInternal()
         {
-            fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
-            {
-                m_SafetyManager.CompleteDependencies(readersPtr, m_JobDependencyForReadingManagers.Length, writersPtr, m_JobDependencyForWritingManagers.Length);
-            }
+            m_SafetyManager.CompleteDependencies(m_JobDependencyForReadingManagersPtr, m_JobDependencyForReadingManagersLength, m_JobDependencyForWritingManagersPtr, m_JobDependencyForWritingManagersLength);
         }
     }
 
@@ -271,11 +277,15 @@ namespace Unity.ECS
             // but checking it here means we can flag the system that has the mistake, rather than some
             // other (innocent) system that is doing things correctly.
 
+            //@TODO: It is not ideal that we call m_SafetyManager.GetDependency,
+            //       it can result in JobHandle.CombineDependencies calls.
+            //       Which seems like debug code might have side-effects
+            
             try
             {
-                for (var index = 0; index < m_JobDependencyForReadingManagers.Length; index++)
+                for (var index = 0; index < m_JobDependencyForReadingManagersLength; index++)
                 {
-                    var type = m_JobDependencyForReadingManagers[index];
+                    var type = m_JobDependencyForReadingManagersPtr[index];
                     var readerDependency = m_SafetyManager.GetDependency(&type, 1, null, 0);
                     CheckJobDependencies(type, true, readerDependency);
 
@@ -283,9 +293,9 @@ namespace Unity.ECS
                     CheckJobDependencies(type, false, writerDependency);
                 }
 
-                for (var index = 0; index < m_JobDependencyForWritingManagers.Length; index++)
+                for (var index = 0; index < m_JobDependencyForWritingManagersLength; index++)
                 {
-                    var type = m_JobDependencyForWritingManagers[index];
+                    var type = m_JobDependencyForWritingManagersPtr[index];
                     var readerDependency = m_SafetyManager.GetDependency(&type, 1, null, 0);
                     CheckJobDependencies(type, true, readerDependency);
 
@@ -320,6 +330,18 @@ namespace Unity.ECS
         {
             base.OnBeforeDestroyManagerInternal();
             m_PreviousFrameDependency.Complete();
+        }
+        
+        public ComponentDataFromEntity<T> GetComponentDataFromEntity<T>(bool isReadOnly = false) where T : struct, IComponentData
+        {
+            AddReaderWriter(isReadOnly ? ComponentType.ReadOnly<T>() : ComponentType.Create<T>());        
+            return EntityManager.GetComponentDataFromEntity<T>(TypeManager.GetTypeIndex<T>(), isReadOnly);
+        }
+        
+        public FixedArrayFromEntity<T> GetFixedArrayFromEntity<T>(bool isReadOnly = false) where T : struct
+        {
+            AddReaderWriter(isReadOnly ? ComponentType.ReadOnly<T>() : ComponentType.Create<T>());        
+            return EntityManager.GetFixedArrayFromEntity<T>(TypeManager.GetTypeIndex<T>(), isReadOnly);
         }
 
         protected virtual JobHandle OnUpdate(JobHandle inputDeps)
@@ -357,15 +379,17 @@ namespace Unity.ECS
             }
         }
 
-        void EmergencySyncAllJobs()
+        unsafe void EmergencySyncAllJobs()
         {
-            foreach (var type in m_JobDependencyForReadingManagers)
+            for (int i = 0;i != m_JobDependencyForReadingManagersLength;i++)
             {
+                int type = m_JobDependencyForReadingManagersPtr[i];
                 AtomicSafetyHandle.EnforceAllBufferJobsHaveCompleted(m_SafetyManager.GetSafetyHandle(type, true));
             }
 
-            foreach (var type in m_JobDependencyForWritingManagers)
+            for (int i = 0;i != m_JobDependencyForWritingManagersLength;i++)
             {
+                int type = m_JobDependencyForWritingManagersPtr[i];
                 AtomicSafetyHandle.EnforceAllBufferJobsHaveCompleted(m_SafetyManager.GetSafetyHandle(type, true));
             }
         }
@@ -373,18 +397,12 @@ namespace Unity.ECS
 
         unsafe JobHandle GetDependency ()
         {
-            fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
-            {
-                return m_SafetyManager.GetDependency(readersPtr, m_JobDependencyForReadingManagers.Length, writersPtr, m_JobDependencyForWritingManagers.Length);
-            }
+            return m_SafetyManager.GetDependency(m_JobDependencyForReadingManagersPtr, m_JobDependencyForReadingManagersLength, m_JobDependencyForWritingManagersPtr, m_JobDependencyForWritingManagersLength);
         }
 
         unsafe void AddDependencyInternal(JobHandle dependency)
         {
-            fixed (int* readersPtr = m_JobDependencyForReadingManagers, writersPtr = m_JobDependencyForWritingManagers)
-            {
-                m_SafetyManager.AddDependency(readersPtr, m_JobDependencyForReadingManagers.Length, writersPtr, m_JobDependencyForWritingManagers.Length, dependency);
-            }
+            m_SafetyManager.AddDependency(m_JobDependencyForReadingManagersPtr, m_JobDependencyForReadingManagersLength, m_JobDependencyForWritingManagersPtr, m_JobDependencyForWritingManagersLength, dependency);
         }
     }
 }

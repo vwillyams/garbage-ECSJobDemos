@@ -181,5 +181,39 @@ namespace UnityEngine.ECS.Tests
             rs1.Update();
             rs3.Update();
         }
+        
+        
+        [DisableAutoCreation]
+        class UseEcsTestDataFromEntity: JobComponentSystem
+        {
+            public struct MutateEcsTestDataJob : IJob
+            {
+                public ComponentDataFromEntity<EcsTestData> data;
+
+                public void Execute()
+                {
+                    
+                }
+            }
+
+            protected override JobHandle OnUpdate(JobHandle dep)
+            {
+                var job = new MutateEcsTestDataJob { data = GetComponentDataFromEntity<EcsTestData>() };
+                return job.Schedule(dep);
+            }
+        }
+        
+        // The writer dependency on EcsTestData is not predeclared during 
+        // OnCreateManager, but we still expect the code to work correctly.
+        // This should result in a sync point when adding the dependency for the first time.
+        [Test]
+        public void AddingDependencyTypeDuringOnUpdateSyncsDependency()
+        {
+            var systemA = World.CreateManager<UseEcsTestDataFromEntity>();
+            var systemB = World.CreateManager<UseEcsTestDataFromEntity>();
+            
+            systemA.Update();
+            systemB.Update();
+        }
     }
 }

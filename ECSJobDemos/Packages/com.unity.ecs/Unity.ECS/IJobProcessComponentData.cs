@@ -108,14 +108,14 @@ namespace Unity.ECS
         {
             var genericArgs = interfaceType.GetGenericArguments();
         
-            var executeMethodParameters = jobType.GetMethod("Execute").GetParameters();
+            //@TODO: Readonly support
+            //var executeMethodParameters = jobType.GetMethod("Execute").GetParameters();
 
             var componentTypes = new List<ComponentType>();
             
             for (int i = 0; i < genericArgs.Length; i++)
             {
                 //bool isReadonly = executeMethodParameters[i].GetCustomAttributes(typeof(ReadOnlyAttribute)).Count() != 0 || executeMethodParameters[i].GetCustomAttributes(typeof(IsReadOnlyAttribute)).Count() != 0;
-                //@TODO: Readonly not yet working...
                 bool isReadonly = false;
                 componentTypes.Add(new ComponentType(genericArgs[i], isReadonly ? ComponentType.AccessMode.ReadOnly : ComponentType.AccessMode.ReadWrite));
             }

@@ -1,37 +1,44 @@
 using UnityEngine.ECS;
 using NUnit.Framework;
 using Unity.ECS;
+using Unity.Jobs;
 
 namespace UnityEngine.ECS.Tests
 {
-	public class ECSTestsFixture
-	{
-		protected World 			m_PreviousWorld;
-		protected World 			World;
-		protected EntityManager     m_Manager;
+    [DisableAutoCreation]
+    public class EmptySystem : JobComponentSystem
+    {
+        protected override JobHandle OnUpdate(JobHandle dep) { return dep; }
+    }
+
+    public class ECSTestsFixture
+    {
+        protected World m_PreviousWorld;
+        protected World World;
+        protected EntityManager m_Manager;
 
         [SetUp]
-		public virtual void Setup()
-		{
-			m_PreviousWorld = World.Active;
-			World = World.Active = new World ("Test World");
+        public virtual void Setup()
+        {
+            m_PreviousWorld = World.Active;
+            World = World.Active = new World("Test World");
 
-			m_Manager = World.GetOrCreateManager<EntityManager> ();
-		}
+            m_Manager = World.GetOrCreateManager<EntityManager>();
+        }
 
-		[TearDown]
-		public void TearDown()
-		{
+        [TearDown]
+        public void TearDown()
+        {
             if (m_Manager != null)
             {
-	            World.Dispose();
-	            World = null;
-	            
+                World.Dispose();
+                World = null;
+
                 World.Active = m_PreviousWorld;
                 m_PreviousWorld = null;
                 m_Manager = null;
             }
-		}
+        }
 
         public void AssertDoesNotExist(Entity entity)
         {
@@ -76,5 +83,13 @@ namespace UnityEngine.ECS.Tests
 
             return entity;
         }
-	}
+
+        public EmptySystem EmptySystem
+        {
+            get 
+            {
+                return World.Active.GetOrCreateManager<EmptySystem>();
+            }
+        }
+    }
 }

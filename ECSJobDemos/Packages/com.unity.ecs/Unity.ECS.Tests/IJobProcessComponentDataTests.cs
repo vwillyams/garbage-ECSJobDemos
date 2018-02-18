@@ -46,7 +46,7 @@ namespace UnityEngine.ECS.Tests
         {
             Assert.IsTrue(Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobDebuggerEnabled, "JobDebugger must be enabled for these tests");
 
-            var entity = m_Manager.CreateEntity(typeof(EcsTestData), typeof(EcsTestData2));
+            m_Manager.CreateEntity(typeof(EcsTestData), typeof(EcsTestData2));
 
             var system = World.GetOrCreateManager<ProxySystem>();
             var job = new ProcessSimple().Schedule(system, 64);

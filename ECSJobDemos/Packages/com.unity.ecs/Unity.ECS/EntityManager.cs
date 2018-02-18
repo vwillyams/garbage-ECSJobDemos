@@ -316,11 +316,6 @@ namespace Unity.ECS
 #endif
         }
 
-        public ComponentDataFromEntity<T> GetComponentDataFromEntity<T>(bool isReadOnly = false) where T : struct, IComponentData
-        {
-            return GetComponentDataFromEntity<T>(TypeManager.GetTypeIndex<T>(), isReadOnly);
-        }
-
         public FixedArrayFromEntity<T> GetFixedArrayFromEntity<T>(int typeIndex, bool isReadOnly = false) where T : struct
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -328,11 +323,6 @@ namespace Unity.ECS
 #else
             return new FixedArrayFromEntity<T>(typeIndex, m_Entities);
 #endif
-        }
-
-        public FixedArrayFromEntity<T> GetFixedArrayFromEntity<T>(bool isReadOnly = false) where T : struct
-        {
-            return GetFixedArrayFromEntity<T>(TypeManager.GetTypeIndex<T>(), isReadOnly);
         }
 
         public T GetComponentData<T>(Entity entity) where T : struct, IComponentData

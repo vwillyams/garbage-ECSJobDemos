@@ -18,7 +18,6 @@ namespace Unity.ECS
     class InjectComponentGroupData
     {
         ComponentGroup 		m_EntityGroup;
-        ComponentType[]     m_ComponentRequirements;
         readonly int 		m_GroupFieldOffset;
 
         readonly int 				m_EntityArrayOffset;

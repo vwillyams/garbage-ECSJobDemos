@@ -74,7 +74,6 @@ namespace UnityEngine.ECS.Tests
             }
         }
         
-        
         [Test]
         public void Create()
         {
@@ -91,7 +90,14 @@ namespace UnityEngine.ECS.Tests
             Assert.AreEqual(null, World.GetExistingManager<TestSystem>());
             Assert.IsFalse(system.Created);
         }
-        
+
+        [Test]
+        public void GetOrCreateManagerReturnsSameSystem()
+        {
+            var system = World.GetOrCreateManager<TestSystem>();
+            Assert.AreEqual(system, World.GetOrCreateManager<TestSystem>());
+        }
+
         [Test]
         public void InheritedSystem()
         {
@@ -128,6 +134,37 @@ namespace UnityEngine.ECS.Tests
             var system = World.CreateManager<TestSystem>();
             var group = system.GetComponentGroup(typeof(EcsTestData));
             Assert.Throws<ArgumentException>(() => group.Dispose());
+        }
+        
+        [Test]
+        public void CreateTwoSystemsOfSameType()
+        {
+            var systemA = World.CreateManager<TestSystem>();
+            var systemB = World.CreateManager<TestSystem>();
+            // CreateManager makes a new manager
+            Assert.AreNotEqual(systemA, systemB);
+            // Return first system
+            Assert.AreEqual(systemA, World.GetOrCreateManager<TestSystem>());
+        }
+        
+        [Test]
+        public void CreateTwoSystemsAfterDestroyReturnSecond()
+        {
+            var systemA = World.CreateManager<TestSystem>();
+            var systemB = World.CreateManager<TestSystem>();
+            World.DestroyManager(systemA);
+            
+            Assert.AreEqual(systemB, World.GetExistingManager<TestSystem>());;
+        }
+        
+        [Test]
+        public void CreateTwoSystemsAfterDestroyReturnFirst()
+        {
+            var systemA = World.CreateManager<TestSystem>();
+            var systemB = World.CreateManager<TestSystem>();
+            World.DestroyManager(systemB);
+            
+            Assert.AreEqual(systemA, World.GetExistingManager<TestSystem>());;
         }
     }
 }

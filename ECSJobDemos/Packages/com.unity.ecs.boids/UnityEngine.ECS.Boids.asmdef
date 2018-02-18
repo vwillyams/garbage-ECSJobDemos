@@ -5,7 +5,7 @@
         "UnityEngine.ECS.SimpleBounds",
         "UnityEngine.ECS.SimpleRotation",
         "UnityEngine.ECS.SimpleSpatialQuery",
-        "Unity.Transform",
+        "Unity.Transforms",
         "UnityEngine.ECS.Utilities",
         "Unity.Collections",
         "Unity.Burst",

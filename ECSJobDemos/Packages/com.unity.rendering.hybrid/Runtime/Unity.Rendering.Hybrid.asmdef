@@ -2,7 +2,7 @@
     "name": "Unity.Rendering.Hybrid",
     "references": [
         "Unity.Core",
-        "Unity.Transform",
+        "Unity.Transforms",
         "Unity.Collections",
         "Unity.Burst",
         "Unity.Jobs",

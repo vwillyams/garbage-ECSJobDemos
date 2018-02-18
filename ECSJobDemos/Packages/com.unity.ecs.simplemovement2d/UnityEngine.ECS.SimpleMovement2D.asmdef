@@ -2,7 +2,7 @@
     "name": "UnityEngine.ECS.SimpleMovement2D",
     "references": [
         "Unity.Core",
-        "Unity.Transform2D",
+        "Unity.Transforms2D",
         "UnityEngine.ECS.SimpleMovement",
         "Unity.Collections",
         "Unity.Burst",

@@ -2,7 +2,7 @@
     "name": "UnityEngine.ECS.SimpleRotation",
     "references": [
         "Unity.Core",
-        "Unity.Transform",
+        "Unity.Transforms",
         "UnityEngine.ECS.SimpleBounds",
         "Unity.Collections",
         "Unity.Burst",

@@ -1,8 +1,7 @@
 {
-    "name": "Unity.Transform2D",
+    "name": "Unity.Transforms",
     "references": [
         "Unity.Core",
-        "Unity.Transform",
         "Unity.Collections",
         "Unity.Burst",
         "Unity.Jobs",

@@ -2,7 +2,7 @@
     "name": "UnityEngine.ECS.SimpleMovement",
     "references": [
         "Unity.Core",
-        "Unity.Transform",
+        "Unity.Transforms",
         "Unity.Collections",
         "Unity.Burst",
         "Unity.Jobs",

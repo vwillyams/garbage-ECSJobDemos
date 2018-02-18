@@ -1,7 +1,7 @@
 {
     "name": "Unity.Multiplayer",
     "references": [
-        "UnityEngine.ECS",
+        "Unity.Core",
         "Unity.Collections",
         "Unity.Mathematics"
     ],

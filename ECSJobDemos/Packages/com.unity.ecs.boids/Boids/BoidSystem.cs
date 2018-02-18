@@ -5,7 +5,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Mathematics.Experimental;
 using UnityEngine.ECS.SimpleRotation;
-using UnityEngine.ECS.Transform;
+using Unity.Transforms;
 using UnityEngine.ECS.Utilities;
 
 namespace UnityEngine.ECS.Boids

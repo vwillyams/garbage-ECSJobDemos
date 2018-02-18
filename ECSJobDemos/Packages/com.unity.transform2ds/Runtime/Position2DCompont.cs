@@ -2,7 +2,7 @@
 using Unity.ECS;
 using Unity.Mathematics;
 
-namespace UnityEngine.ECS.Transform2D
+namespace Unity.Transforms2D
 {
     [Serializable]
     public struct Position2D : IComponentData

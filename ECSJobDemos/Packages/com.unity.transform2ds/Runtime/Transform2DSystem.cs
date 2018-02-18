@@ -2,9 +2,9 @@
 using Unity.ECS;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEngine.ECS.Transform;
+using Unity.Transforms;
 
-namespace UnityEngine.ECS.Transform2D
+namespace Unity.Transforms2D
 {
     public class Transform2DSystem : JobComponentSystem
     {
@@ -16,7 +16,7 @@ namespace UnityEngine.ECS.Transform2D
             public int Length;
         }
         
-        [Inject] private TransGroup m_TransGroup;
+        [Inject] TransGroup m_TransGroup;
         
         struct RotTransGroup
         {
@@ -26,7 +26,7 @@ namespace UnityEngine.ECS.Transform2D
             public int Length;
         }
         
-        [Inject] private RotTransGroup m_RotTransGroup;
+        [Inject] RotTransGroup m_RotTransGroup;
     
         [ComputeJobOptimization]
         struct TransToMatrix : IJobParallelFor

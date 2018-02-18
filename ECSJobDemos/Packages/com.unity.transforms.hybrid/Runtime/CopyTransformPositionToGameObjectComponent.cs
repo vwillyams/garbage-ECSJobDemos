@@ -1,6 +1,6 @@
 ﻿using Unity.ECS;
 
-namespace UnityEngine.ECS.TransformShim
+namespace Unity.Transforms.Hybrid
 {
     public struct CopyTransformPositionToGameObject : IComponentData { }
 

@@ -1,10 +1,9 @@
 ﻿using Unity.ECS;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEngine.ECS.Transform;
 using UnityEngine.Jobs;
 
-namespace UnityEngine.ECS.TransformShim
+namespace Unity.Transforms.Hybrid
 {
     public class CopyTransformRotationFromGameObjectSystem : JobComponentSystem
     {
@@ -16,7 +15,7 @@ namespace UnityEngine.ECS.TransformShim
             public int Length;
         }
 
-        [Inject] private RotationGroup m_RotationGroup;
+        [Inject] RotationGroup m_RotationGroup;
 
         [ComputeJobOptimization]
         struct RotationToMatrix : IJobParallelForTransform

@@ -2,13 +2,16 @@
 using Unity.ECS;
 using Unity.Mathematics;
 
-namespace UnityEngine.ECS.Transform
+namespace Unity.Transforms
 {
     [Serializable]
     public struct Position : IComponentData
     {
         public float3 position;
     }
+}
 
+namespace Unity.Transforms
+{
     public class PositionComponent : ComponentDataWrapper<Position> { } 
 }

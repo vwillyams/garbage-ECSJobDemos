@@ -2,17 +2,17 @@
 using Unity.ECS;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEngine.ECS.Transform;
+using Unity.Transforms;
 
-namespace UnityEngine.ECS.Transform2D
+namespace Unity.Transforms
 {
     public class TransformSystem : JobComponentSystem
     {
-        [Inject] [ReadOnly] private ComponentDataFromEntity<LocalPosition> m_LocalPositions;
-        [Inject] [ReadOnly] private ComponentDataFromEntity<LocalRotation> m_LocalRotations;
-        [Inject] private ComponentDataFromEntity<Position> m_Positions;
-        [Inject] private ComponentDataFromEntity<Rotation> m_Rotations;
-        [Inject] private ComponentDataFromEntity<TransformMatrix> m_TransformMatrices;
+        [Inject] [ReadOnly] ComponentDataFromEntity<LocalPosition> m_LocalPositions;
+        [Inject] [ReadOnly] ComponentDataFromEntity<LocalRotation> m_LocalRotations;
+        [Inject] ComponentDataFromEntity<Position> m_Positions;
+        [Inject] ComponentDataFromEntity<Rotation> m_Rotations;
+        [Inject] ComponentDataFromEntity<TransformMatrix> m_TransformMatrices;
 
         struct RootTransGroup
         {
@@ -23,7 +23,7 @@ namespace UnityEngine.ECS.Transform2D
             public int Length;
         }
 
-        [Inject] private RootTransGroup m_RootTransGroup;
+        [Inject] RootTransGroup m_RootTransGroup;
         
         struct RootRotGroup
         {
@@ -34,7 +34,7 @@ namespace UnityEngine.ECS.Transform2D
             public int Length;
         }
 
-        [Inject] private RootRotGroup m_RootRotGroup;
+        [Inject] RootRotGroup m_RootRotGroup;
         
         struct RootRotTransGroup
         {
@@ -45,7 +45,7 @@ namespace UnityEngine.ECS.Transform2D
             public int Length;
         }
 
-        [Inject] private RootRotTransGroup m_RootRotTransGroup;
+        [Inject] RootRotTransGroup m_RootRotTransGroup;
 
         struct ParentGroup
         {
@@ -54,7 +54,7 @@ namespace UnityEngine.ECS.Transform2D
             public int Length;
         }
 
-        [Inject] private ParentGroup m_ParentGroup;
+        [Inject] ParentGroup m_ParentGroup;
 
         [ComputeJobOptimization]
         struct BuildHierarchy : IJobParallelFor
@@ -158,7 +158,7 @@ namespace UnityEngine.ECS.Transform2D
             }
         }
 
-        private NativeMultiHashMap<Entity, Entity> m_Hierarchy;
+        NativeMultiHashMap<Entity, Entity> m_Hierarchy;
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {

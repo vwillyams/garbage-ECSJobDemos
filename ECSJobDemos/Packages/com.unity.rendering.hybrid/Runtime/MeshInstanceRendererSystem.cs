@@ -4,7 +4,7 @@ using Unity.ECS;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.ECS.Transform;
+using Unity.Transforms;
 using UnityEngine.Experimental.PlayerLoop;
 
 namespace Unity.Rendering.Hybrid

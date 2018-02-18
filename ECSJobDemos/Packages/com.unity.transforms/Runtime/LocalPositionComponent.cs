@@ -2,7 +2,7 @@
 using Unity.ECS;
 using Unity.Mathematics;
 
-namespace UnityEngine.ECS.Transform
+namespace Unity.Transforms
 {
     [Serializable]
     public struct LocalPosition : IComponentData

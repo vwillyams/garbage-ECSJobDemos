@@ -1,12 +1,13 @@
 ﻿using Unity.ECS;
 using Unity.Mathematics;
 
-namespace UnityEngine.ECS.Transform
+namespace Unity.Transforms
 {
+    [System.Serializable]
     public struct Rotation : IComponentData
     {
         public quaternion value;
     }
-    
-    public class RotationComponent : ComponentDataWrapper<Rotation> { } 
+
+    public class RotationComponent : ComponentDataWrapper<Rotation> { }
 }

@@ -1,7 +1,7 @@
 ﻿using Unity.ECS;
 using Unity.Mathematics;
 
-namespace UnityEngine.ECS.Transform
+namespace Unity.Transforms
 {
     public struct TransformMatrix : IComponentData
     {

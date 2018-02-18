@@ -1,10 +1,10 @@
 ﻿using Unity.Collections;
 using Unity.ECS;
 using Unity.Jobs;
-using UnityEngine.ECS.Transform;
+using Unity.Transforms;
 using UnityEngine.Jobs;
 
-namespace UnityEngine.ECS.TransformShim
+namespace Unity.Transforms.Hybrid
 {
     public class CopyTransformPositionToGameObjectSystem : JobComponentSystem
     {
@@ -16,7 +16,7 @@ namespace UnityEngine.ECS.TransformShim
             public int Length;
         }
 
-        [Inject] private PositionGroup m_PositionGroup;
+        [Inject] PositionGroup m_PositionGroup;
 
         [ComputeJobOptimization]
         struct PositionToMatrix : IJobParallelForTransform

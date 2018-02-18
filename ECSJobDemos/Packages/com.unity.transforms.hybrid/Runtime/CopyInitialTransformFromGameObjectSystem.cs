@@ -2,18 +2,18 @@
 using Unity.ECS;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEngine.ECS.Transform;
+using Unity.Transforms;
 using UnityEngine.Jobs;
 
-namespace UnityEngine.ECS.TransformShim
+namespace Unity.Transforms.Hybrid
 {
     [DisableSystemWhenEmpty]
     public class CopyInitialTransformFromGameObjectSystem : JobComponentSystem
     {
-        [Inject] private ComponentDataFromEntity<LocalPosition> m_LocalPositions;
-        [Inject] private ComponentDataFromEntity<LocalRotation> m_LocalRotations;
-        [Inject] private ComponentDataFromEntity<Position> m_Positions;
-        [Inject] private ComponentDataFromEntity<Rotation> m_Rotations;
+        [Inject] ComponentDataFromEntity<LocalPosition> m_LocalPositions;
+        [Inject] ComponentDataFromEntity<LocalRotation> m_LocalRotations;
+        [Inject] ComponentDataFromEntity<Position> m_Positions;
+        [Inject] ComponentDataFromEntity<Rotation> m_Rotations;
 
         struct TransformStash
         {
@@ -80,7 +80,7 @@ namespace UnityEngine.ECS.TransformShim
             }
         }
 
-        [Inject] private DeferredEntityChangeSystem m_DeferredEntityChangeSystem;
+        [Inject] DeferredEntityChangeSystem m_DeferredEntityChangeSystem;
 
         ComponentGroup m_InitialTransformGroup;
         

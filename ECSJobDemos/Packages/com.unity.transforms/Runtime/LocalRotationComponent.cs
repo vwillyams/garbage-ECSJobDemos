@@ -1,12 +1,14 @@
-﻿using Unity.ECS;
+﻿using System;
+using Unity.ECS;
 using Unity.Mathematics;
 
-namespace UnityEngine.ECS.Transform
+namespace Unity.Transforms
 {
+    [Serializable]
     public struct LocalRotation : IComponentData
     {
         public quaternion value;
     }
 
-    public class LocalRotationComponent : ComponentDataWrapper<LocalRotation> { } 
+    public class LocalRotationComponent : ComponentDataWrapper<LocalRotation> { }
 }

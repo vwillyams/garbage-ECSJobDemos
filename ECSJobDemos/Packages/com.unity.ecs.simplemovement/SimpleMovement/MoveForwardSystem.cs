@@ -2,7 +2,7 @@
 using Unity.ECS;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEngine.ECS.Transform;
+using Unity.Transforms;
 
 namespace UnityEngine.ECS.SimpleMovement
 {

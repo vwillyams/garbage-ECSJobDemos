@@ -1,6 +1,6 @@
 ﻿using Unity.ECS;
 
-namespace UnityEngine.ECS.Transform
+namespace Unity.Transforms
 {
     public struct TransformParent : IComponentData
     {

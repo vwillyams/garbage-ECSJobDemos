@@ -4,8 +4,8 @@ using UnityEngine;
 using UnityEngine.ECS;
 using Unity.Rendering.Hybrid;
 using UnityEngine.ECS.SimpleMovement;
-using UnityEngine.ECS.Transform;
-using UnityEngine.ECS.Transform2D;
+using Unity.Transforms;
+using Unity.Transforms2D;
 
 namespace TwoStickPureExample
 {

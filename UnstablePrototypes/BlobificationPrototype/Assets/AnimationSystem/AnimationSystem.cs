@@ -14,10 +14,10 @@ namespace AnimationSampleCode
 	struct trsX
 	{
 		public float3 				t;
-		public float4     			r;
+		public quaternion     	    r;
 		public float3				s;
 
-		public trsX (float3 t, float4 r, float3 s)
+		public trsX (float3 t, quaternion r, float3 s)
 		{
 			this.t = t;
 			this.r = r;

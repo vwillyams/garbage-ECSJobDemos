@@ -1,5 +1,5 @@
 {
-  "name": "com.unity.ecs.meshinstancedshim",
+  "name": "com.unity.rendering.hybrid",
   "version": "0.0.1",
   "unity": "2018.1",
   "description": "Unity Rendering Components for Entity Component System",

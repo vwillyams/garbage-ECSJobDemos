@@ -1,11 +1,12 @@
 ﻿using System;
 using Unity.ECS;
+using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.ECS.MeshInstancedShim
+namespace Unity.Rendering.Hybrid
 {
     [Serializable]
-	public struct MeshInstancedShim : ISharedComponentData
+	public struct MeshInstanceRenderer : ISharedComponentData
 	{
         public Mesh                 mesh;
         public Material             material;
@@ -14,5 +15,5 @@ namespace UnityEngine.ECS.MeshInstancedShim
         public bool                 receiveShadows;
 	}
 
-	public class MeshInstancedShimComponent : SharedComponentDataWrapper<MeshInstancedShim> { }
+	public class MeshInstanceRendererComponent : SharedComponentDataWrapper<MeshInstanceRenderer> { }
 }

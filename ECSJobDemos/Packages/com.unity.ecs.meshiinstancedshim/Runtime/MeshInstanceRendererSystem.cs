@@ -2,21 +2,22 @@
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.ECS;
 using Unity.Mathematics;
+using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.ECS.Transform;
 using UnityEngine.Experimental.PlayerLoop;
 
-namespace UnityEngine.ECS.MeshInstancedShim
+namespace Unity.Rendering.Hybrid
 {
     /// <summary>
-    /// Renders all Entities containing both MeshInstancedShim & TransformMatrix components.
+    /// Renders all Entities containing both MeshInstanceRenderer & TransformMatrix components.
     /// </summary>
 	[UpdateAfter(typeof(PreLateUpdate.ParticleSystemBeginUpdateAll))]
-	public class MeshInstancedHybridSystem : ComponentSystem
+	public class MeshInstanceRendererSystem : ComponentSystem
 	{
         // Instance renderer takes only batches of 1023
         Matrix4x4[]             m_MatricesArray = new Matrix4x4[1023];
-	    List<MeshInstancedShim> m_CacheduniqueRendererTypes = new List<MeshInstancedShim>(10);
+	    List<MeshInstanceRenderer> m_CacheduniqueRendererTypes = new List<MeshInstanceRenderer>(10);
 
 	    // This is the ugly bit, necessary until Graphics.DrawMeshInstanced supports NativeArrays pulling the data in from a job.
         public unsafe static void CopyMatrices(ComponentDataArray<TransformMatrix> transforms, int beginIndex, int length, Matrix4x4[] outMatrices)
@@ -38,16 +39,16 @@ namespace UnityEngine.ECS.MeshInstancedShim
 
         protected override void OnUpdate()
 		{
-            // We want to find all MeshInstancedShim & TransformMatrix combinations and render them
-		    var maingroup = GetComponentGroup(typeof(MeshInstancedShim), typeof(TransformMatrix));
+            // We want to find all MeshInstanceRenderer & TransformMatrix combinations and render them
+		    var maingroup = GetComponentGroup(typeof(MeshInstanceRenderer), typeof(TransformMatrix));
 
-		    // We want to iterate over all unique MeshInstancedShim shared component data,
+		    // We want to iterate over all unique MeshInstanceRenderer shared component data,
 		    // that are attached to any entities in the world
             EntityManager.GetAllUniqueSharedComponentDatas(m_CacheduniqueRendererTypes);
 
             for (int i = 0;i != m_CacheduniqueRendererTypes.Count;i++)
             {
-                // For each unique MeshInstancedShim data, we want to get all entities with a TransformMatrix
+                // For each unique MeshInstanceRenderer data, we want to get all entities with a TransformMatrix
                 // SharedComponentData gurantees that all those entities are packed togehter in a chunk with linear memory layout.
                 // As a result the copy of the matrices out is internally done via memcpy.
                 var renderer = m_CacheduniqueRendererTypes[i];

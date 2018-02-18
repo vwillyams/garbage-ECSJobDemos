@@ -61,15 +61,15 @@ namespace Unity.Transforms.Hybrid
                     var entity = transformStashes[index].entity;
                     if (positions.Exists(entity))
                     {
-                        positions[entity] = new Position { position = transformStash.position };
+                        positions[entity] = new Position { Value = transformStash.position };
                     }
                     if (rotations.Exists(entity))
                     {
-                        rotations[entity] = new Rotation { value = transformStash.rotation };
+                        rotations[entity] = new Rotation { Value = transformStash.rotation };
                     }
                     if (localPositions.Exists(entity))
                     {
-                        localPositions[entity] = new LocalPosition { position = transformStash.localPosition };
+                        localPositions[entity] = new LocalPosition { Value = transformStash.localPosition };
                     }
                     if (localRotations.Exists(entity))
                     {

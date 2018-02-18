@@ -25,7 +25,7 @@ namespace Unity.Transforms.Hybrid
 
             public void Execute(int i, TransformAccess transform)
             {
-                transform.position = positions[i].position;
+                transform.position = positions[i].Value;
             }
         }
 

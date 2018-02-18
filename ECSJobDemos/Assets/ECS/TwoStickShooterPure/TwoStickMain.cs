@@ -41,8 +41,8 @@ namespace TwoStickPureExample
         {
             var entityManager = World.Active.GetOrCreateManager<EntityManager>();
             Entity player = entityManager.CreateEntity(PlayerArchetype);
-            entityManager.SetComponentData(player, new Position2D {position = new float2(0.0f, 0.0f)});
-            entityManager.SetComponentData(player, new Heading2D  {heading = new float2(0.0f, 1.0f)});
+            entityManager.SetComponentData(player, new Position2D {Value = new float2(0.0f, 0.0f)});
+            entityManager.SetComponentData(player, new Heading2D  {Heading = new float2(0.0f, 1.0f)});
             entityManager.SetComponentData(player, new Faction { Value = Faction.kPlayer });
             entityManager.SetComponentData(player, new Health { Value = Settings.playerInitialHealth });
             entityManager.AddSharedComponentData(player, PlayerLook);

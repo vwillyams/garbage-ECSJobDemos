@@ -7,7 +7,7 @@ namespace Unity.Transforms2D
     [Serializable]
     public struct Heading2D : IComponentData
     {
-        public float2 heading;
+        public float2 Heading;
     }
 
     public class Heading2DComponent : ComponentDataWrapper<Heading2D> { }

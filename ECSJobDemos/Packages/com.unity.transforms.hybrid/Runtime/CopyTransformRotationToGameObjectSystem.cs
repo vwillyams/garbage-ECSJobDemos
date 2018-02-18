@@ -27,10 +27,10 @@ namespace Unity.Transforms.Hybrid
             {
                 transform.rotation = new Quaternion
                 {
-                    x = rotations[i].value.value.x,
-                    y = rotations[i].value.value.y,
-                    z = rotations[i].value.value.z,
-                    w = rotations[i].value.value.w
+                    x = rotations[i].Value.value.x,
+                    y = rotations[i].Value.value.y,
+                    z = rotations[i].Value.value.z,
+                    w = rotations[i].Value.value.w
                 };
             }
         }

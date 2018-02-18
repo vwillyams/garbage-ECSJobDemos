@@ -65,7 +65,7 @@ namespace Unity.Transforms
 
             public void Execute(int index)
             {
-                hierarchy.Add(transformParents[index].parent,entities[index]);
+                hierarchy.Add(transformParents[index].Value,entities[index]);
             }
         }
         
@@ -100,21 +100,21 @@ namespace Unity.Transforms
                 
                 if (positions.Exists(entity))
                 {
-                    position = positions[entity].position;
+                    position = positions[entity].Value;
                 }
                 
                 if (rotations.Exists(entity))
                 {
-                    rotation = rotations[entity].value;
+                    rotation = rotations[entity].Value;
                 }
                 
                 if (localPositions.Exists(entity))
                 {
-                    var worldPosition = math.mul(parentMatrix,new float4(localPositions[entity].position,1.0f));
+                    var worldPosition = math.mul(parentMatrix,new float4(localPositions[entity].Value,1.0f));
                     position = new float3(worldPosition.x,worldPosition.y,worldPosition.z);
                     if (positions.Exists(entity))
                     {
-                        positions[entity] = new Position {position = position};
+                        positions[entity] = new Position {Value = position};
                     }
                 }
                 
@@ -128,14 +128,14 @@ namespace Unity.Transforms
                     rotation = math.mul(parentRotation, localRotation);
                     if (rotations.Exists(entity))
                     {
-                        rotations[entity] = new Rotation {value = rotation};
+                        rotations[entity] = new Rotation {Value = rotation};
                     }
                 }
 
                 float4x4 matrix = math.rottrans(rotation, position);
                 if (transformMatrices.Exists(entity))
                 {
-                    transformMatrices[entity] = new TransformMatrix {matrix = matrix};
+                    transformMatrices[entity] = new TransformMatrix {Value = matrix};
                 }
 
                 Entity child;

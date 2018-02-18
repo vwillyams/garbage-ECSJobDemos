@@ -62,7 +62,7 @@ namespace ECS.Spawners
 
                         spawnInstance.sourceEntity = entities[entityIndex];
                         spawnInstance.spawnerIndex = sharedIndex;
-                        spawnInstance.position = positions[entityIndex].position;
+                        spawnInstance.position = positions[entityIndex].Value;
 
                         spawnInstances[spawnIndex] = spawnInstance;
                         spawnIndex++;
@@ -92,7 +92,7 @@ namespace ECS.Spawners
                 {
                     var position = new Position
                     {
-                        position = spawnPositions[i]
+                        Value = spawnPositions[i]
                     };
                     EntityManager.SetComponentData(entities[i],position);
                 }

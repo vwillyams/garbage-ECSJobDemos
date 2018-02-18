@@ -42,13 +42,13 @@ namespace UnityEngine.ECS.SimpleRotation
             {
                 for (int i = 0; i < rotationSpeedResetSpheres.Length; i++)
                 {
-                    var center = rotationSpeedResetSpherePositions[i].position;
+                    var center = rotationSpeedResetSpherePositions[i].Value;
                     var radius = spheres[i].radius;
                     var speed = rotationSpeedResetSpheres[i].speed;
 
                     for (int positionIndex = 0; positionIndex < positions.Length; positionIndex++)
                     {
-                        if (math.distance(positions[positionIndex].position, center) < radius)
+                        if (math.distance(positions[positionIndex].Value, center) < radius)
                         {
                             rotationSpeeds[positionIndex] = new RotationSpeed
                             {

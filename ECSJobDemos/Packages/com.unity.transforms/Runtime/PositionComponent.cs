@@ -7,7 +7,7 @@ namespace Unity.Transforms
     [Serializable]
     public struct Position : IComponentData
     {
-        public float3 position;
+        public float3 Value;
     }
 }
 

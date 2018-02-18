@@ -4,7 +4,7 @@ namespace Unity.Transforms
 {
     public struct TransformParent : IComponentData
     {
-        public Entity parent;
+        public Entity Value;
     }
 
     public class TransformParentComponent : ComponentDataWrapper<TransformParent> { }

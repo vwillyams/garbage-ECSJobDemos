@@ -26,7 +26,7 @@ namespace Unity.Transforms.Hybrid
             {
                 rotations[i] = new Rotation
                 {
-                    value = new quaternion(
+                    Value = new quaternion(
                         transform.rotation.x, 
                         transform.rotation.y, 
                         transform.rotation.z, 

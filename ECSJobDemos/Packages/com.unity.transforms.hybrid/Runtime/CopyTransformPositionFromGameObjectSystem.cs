@@ -26,7 +26,7 @@ namespace Unity.Transforms.Hybrid
             {
                 positions[i] = new Position
                 {
-                    position = transform.position
+                    Value = transform.position
                 };
             }
         }

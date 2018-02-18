@@ -30,8 +30,8 @@ namespace TwoStickPureExample
             float dt = Time.deltaTime;
             for (int index = 0; index < m_Data.Length; ++index)
             {
-                var position = m_Data.Position[index].position;
-                var heading = m_Data.Heading[index].heading;
+                var position = m_Data.Position[index].Value;
+                var heading = m_Data.Heading[index].Heading;
 
                 var playerInput = m_Data.Input[index];
 
@@ -51,14 +51,14 @@ namespace TwoStickPureExample
                             TimeToLive = settings.bulletTimeToLive,
                             Energy = settings.playerShotEnergy,
                         },
-                        Position = new Position2D{ position = position },
-                        Heading = new Heading2D{ heading = heading },
+                        Position = new Position2D{ Value = position },
+                        Heading = new Heading2D{ Heading = heading },
                         Faction = new Faction { Value = Faction.kPlayer },
                     });
                 }
 
-                m_Data.Position[index] = new Position2D {position = position};
-                m_Data.Heading[index] = new Heading2D {heading = heading};
+                m_Data.Position[index] = new Position2D {Value = position};
+                m_Data.Heading[index] = new Heading2D {Heading = heading};
                 m_Data.Input[index] = playerInput;
             }
 

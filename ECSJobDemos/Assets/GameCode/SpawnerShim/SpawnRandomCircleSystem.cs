@@ -64,7 +64,7 @@ namespace ECS.Spawners
 
                         spawnInstance.sourceEntity = entities[entityIndex];
                         spawnInstance.spawnerIndex = sharedIndex;
-                        spawnInstance.position = positions[entityIndex].position;
+                        spawnInstance.position = positions[entityIndex].Value;
 
                         spawnInstances[spawnIndex] = spawnInstance;
                         spawnIndex++;
@@ -95,10 +95,10 @@ namespace ECS.Spawners
                     {
                         var position = new LocalPosition
                         {
-                            position = positions[i]
+                            Value = positions[i]
                         };
                         EntityManager.SetComponentData(entities[i],position);
-                        EntityManager.AddComponentData(entities[i], new TransformParent { parent = sourceEntity});
+                        EntityManager.AddComponentData(entities[i], new TransformParent { Value = sourceEntity});
                     }
                 }
                 else
@@ -108,7 +108,7 @@ namespace ECS.Spawners
                     {
                         var position = new Position
                         {
-                            position = positions[i]
+                            Value = positions[i]
                         };
                         EntityManager.SetComponentData(entities[i],position);
                     }

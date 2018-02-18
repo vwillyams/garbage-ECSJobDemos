@@ -20,7 +20,7 @@ namespace UnityEngine.ECS.SimpleMovement
             {
                 positions[i] = new Position
                 {
-                    position = positions[i].position + (dt * moveSpeeds[i].speed * math.forward(rotations[i].value))
+                    Value = positions[i].Value + (dt * moveSpeeds[i].speed * math.forward(rotations[i].Value))
                 };
             }
         }

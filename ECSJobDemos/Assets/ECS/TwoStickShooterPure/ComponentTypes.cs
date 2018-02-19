@@ -1,7 +1,6 @@
 ﻿using Unity.ECS;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.ECS;
 using Unity.Transforms2D;
 
 namespace TwoStickPureExample

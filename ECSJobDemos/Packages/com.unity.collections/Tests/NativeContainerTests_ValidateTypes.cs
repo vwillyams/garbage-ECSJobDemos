@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
 using Unity.Jobs;
-using UnityEditor;
 using NUnit.Framework;
-using System;
 using Unity.Collections;
 
 #pragma warning disable 0649

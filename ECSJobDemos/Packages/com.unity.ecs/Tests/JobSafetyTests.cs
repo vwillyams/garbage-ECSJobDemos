@@ -1,7 +1,5 @@
-﻿using UnityEngine.ECS;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using Unity.Jobs;
-using Unity.Collections;
 using Unity.ECS;
 using UnityEngine.TestTools;
 

@@ -2,7 +2,6 @@
 using Unity.ECS;
 using Unity.Jobs;
 using Unity.Mathematics;
-using Unity.Transforms;
 
 namespace Unity.Transforms
 {

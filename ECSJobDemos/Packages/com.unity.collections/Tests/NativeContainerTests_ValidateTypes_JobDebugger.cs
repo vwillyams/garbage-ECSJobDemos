@@ -1,8 +1,5 @@
-﻿using UnityEngine;
-using Unity.Jobs;
-using UnityEditor;
+﻿using Unity.Jobs;
 using NUnit.Framework;
-using System;
 using Unity.Collections;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS

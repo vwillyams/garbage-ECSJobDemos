@@ -1,6 +1,5 @@
 ﻿using Unity.Collections;
 using Unity.ECS;
-using UnityEngine.ECS;
 
 namespace TwoStickPureExample
 {

@@ -1,8 +1,6 @@
-﻿using System;
-using Unity.ECS;
+﻿using Unity.ECS;
 using Unity.Mathematics;
 using UnityEngine.ECS.SimpleSpatialQuery;
-using UnityEngine.ECS.Utilities;
 
 namespace UnityEngine.ECS.Boids
 {

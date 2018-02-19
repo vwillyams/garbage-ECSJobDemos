@@ -1,6 +1,5 @@
 ﻿using Unity.Collections;
 using Unity.Mathematics;
-using UnityEngine;
 
 namespace UnityEngine.ECS.Utilities
 {

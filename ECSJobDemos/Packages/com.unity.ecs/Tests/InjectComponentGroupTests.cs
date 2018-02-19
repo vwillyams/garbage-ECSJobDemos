@@ -1,9 +1,5 @@
-﻿using UnityEngine.ECS;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using Unity.Collections;
-using System.Collections.Generic;
-using System.Security.Cryptography;
-using System.Threading;
 using Unity.ECS;
 using Unity.Jobs;
 using UnityEngine.AI;

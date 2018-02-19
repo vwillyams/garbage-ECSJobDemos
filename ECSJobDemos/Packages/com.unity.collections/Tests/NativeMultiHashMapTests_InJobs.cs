@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using UnityEditor;
-using NUnit.Framework;
-using System;
+﻿using NUnit.Framework;
 using System.Collections.Generic;
 using Unity.Jobs;
 using Unity.Collections;

@@ -7,7 +7,6 @@ using Unity.Assertions;
 
 using GameObject = UnityEngine.GameObject;
 using Component = UnityEngine.Component;
-using TransformAccessArray = UnityEngine.Jobs.TransformAccessArray;
 
 namespace Unity.ECS
 {

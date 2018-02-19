@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using Unity.ECS;
-using UnityEditor;
-using UnityEngine;
 using UnityEngine.Experimental.LowLevel;
 
 namespace UnityEditor.ECS

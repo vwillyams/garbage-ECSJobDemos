@@ -3,7 +3,6 @@ using Unity.ECS;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.ECS;
 using UnityEngine.ECS.SimpleMovement;
 using Unity.Transforms2D;
 

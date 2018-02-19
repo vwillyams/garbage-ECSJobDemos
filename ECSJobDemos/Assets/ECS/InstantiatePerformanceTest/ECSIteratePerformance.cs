@@ -5,7 +5,6 @@ using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.ECS;
 using UnityEngine.Profiling;
 
 // 64 + 16 + 12 + 128 + 4 + 4 = 228 bytes

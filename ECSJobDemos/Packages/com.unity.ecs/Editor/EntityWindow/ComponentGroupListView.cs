@@ -1,9 +1,5 @@
-﻿using UnityEngine;
-using UnityEditor;
-using UnityEditor.IMGUI.Controls;
+﻿using UnityEditor.IMGUI.Controls;
 using System.Collections.Generic;
-using System;
-using Unity.Jobs;
 using System.Linq;
 using Unity.ECS;
 

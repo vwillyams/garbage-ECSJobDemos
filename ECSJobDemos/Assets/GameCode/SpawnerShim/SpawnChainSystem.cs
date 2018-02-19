@@ -2,7 +2,6 @@
 using Unity.Collections;
 using Unity.ECS;
 using Unity.Mathematics;
-using UnityEngine.ECS;
 using UnityEngine.ECS.SimpleMovement;
 using UnityEngine.ECS.SpawnerShim;
 using Unity.Transforms;

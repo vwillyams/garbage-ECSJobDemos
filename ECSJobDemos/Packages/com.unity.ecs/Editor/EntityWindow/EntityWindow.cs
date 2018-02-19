@@ -1,12 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Runtime.InteropServices;
 using Unity.ECS;
 using UnityEngine;
-using Unity.Jobs;
-using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 
 namespace UnityEditor.ECS

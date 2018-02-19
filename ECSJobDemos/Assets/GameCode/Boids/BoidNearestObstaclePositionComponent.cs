@@ -1,5 +1,4 @@
-﻿using System;
-using Unity.ECS;
+﻿using Unity.ECS;
 using Unity.Mathematics;
 using UnityEngine.ECS.SimpleSpatialQuery;
 

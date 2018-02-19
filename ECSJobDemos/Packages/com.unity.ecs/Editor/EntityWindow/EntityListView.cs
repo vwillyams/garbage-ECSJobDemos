@@ -1,13 +1,10 @@
 ﻿using UnityEngine;
 using Unity.Mathematics;
-using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using System.Collections.Generic;
 using System;
 using System.Reflection;
-using Unity.Jobs;
 using System.Linq;
-using System.Text;
 using Unity.ECS;
 
 namespace UnityEditor.ECS

@@ -1,12 +1,6 @@
 ﻿using System;
-using UnityEngine.ECS;
 using NUnit.Framework;
-using Unity.Collections;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.ECS;
-using Unity.Jobs;
 
 namespace UnityEngine.ECS.Tests
 {

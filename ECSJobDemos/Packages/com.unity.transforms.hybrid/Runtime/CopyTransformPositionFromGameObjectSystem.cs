@@ -1,6 +1,5 @@
 ﻿using Unity.ECS;
 using Unity.Jobs;
-using Unity.Transforms;
 using UnityEngine.Jobs;
 
 namespace Unity.Transforms.Hybrid

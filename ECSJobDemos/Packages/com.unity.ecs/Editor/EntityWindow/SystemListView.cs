@@ -1,6 +1,4 @@
 ﻿using System;
-using UnityEngine;
-using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using System.Collections.Generic;
 using System.Linq;

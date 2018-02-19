@@ -119,15 +119,12 @@ namespace Unity.Transforms
                 
                 if (localRotations.Exists(entity))
                 {
-                    var parentRotation = math.matrixToQuat(
-                        new float3(parentMatrix.m0.x, parentMatrix.m0.y, parentMatrix.m0.z),
-                        new float3(parentMatrix.m1.x, parentMatrix.m1.y, parentMatrix.m1.z),
-                        new float3(parentMatrix.m2.x, parentMatrix.m2.y, parentMatrix.m2.z) );
+                    var parentRotation = math.matrixToQuat(parentMatrix.m0.xyz, parentMatrix.m1.xyz, parentMatrix.m2.xyz);
                     var localRotation = localRotations[entity].value;
                     rotation = math.mul(parentRotation, localRotation);
                     if (rotations.Exists(entity))
                     {
-                        rotations[entity] = new Rotation {Value = rotation};
+                        rotations[entity] = new Rotation { Value = rotation };
                     }
                 }
 

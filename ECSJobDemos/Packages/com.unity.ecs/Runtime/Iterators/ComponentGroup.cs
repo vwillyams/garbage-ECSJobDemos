@@ -76,13 +76,12 @@ namespace Unity.ECS
 
             for (var i = 0; i != requiredCount;i++)
             {
-                if (!requiredTypes[i].RequiresJobDependency && requiredTypes[i].AccessModeType != ComponentType.AccessMode.Subtractive)
+                if (requiredTypes[i].AccessModeType == ComponentType.AccessMode.Subtractive)
+                    grp->SubtractiveComponentsCount++;
+                if (!requiredTypes[i].RequiresJobDependency)
                     continue;
                 switch (requiredTypes[i].AccessModeType)
                 {
-                    case ComponentType.AccessMode.Subtractive:
-                        grp->SubtractiveComponentsCount++;
-                        break;
                     case ComponentType.AccessMode.ReadOnly:
                         grp->ReaderTypesCount++;
                         break;
@@ -98,12 +97,10 @@ namespace Unity.ECS
             var curWriter = 0;
             for (var i = 0; i != requiredCount;i++)
             {
-                if (!requiredTypes[i].RequiresJobDependency && requiredTypes[i].AccessModeType != ComponentType.AccessMode.Subtractive)
+                if (!requiredTypes[i].RequiresJobDependency)
                     continue;
                 switch (requiredTypes[i].AccessModeType)
                 {
-                    case ComponentType.AccessMode.Subtractive:
-                        break;
                     case ComponentType.AccessMode.ReadOnly:
                         grp->ReaderTypes[curReader++] = requiredTypes[i].TypeIndex;
                         break;
@@ -139,6 +136,7 @@ namespace Unity.ECS
 
         void AddArchetypeIfMatching(Archetype* archetype, EntityGroupData* group)
         {
+            // If the group has more actually required types than the archetype it can never match, so early out as an optimization
             if (group->RequiredComponentsCount - group->SubtractiveComponentsCount > archetype->TypesCount)
                 return;
             var typeI = 0;
@@ -231,7 +229,7 @@ namespace Unity.ECS
         #if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal string                       DisallowDisposing = null;
         #endif
-        
+
         internal ComponentGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager, ArchetypeManager typeManager, EntityDataManager* entityDataManager )
         {
             m_GroupData = groupData;
@@ -249,7 +247,7 @@ namespace Unity.ECS
             if (DisallowDisposing  != null)
                 throw new System.ArgumentException(DisallowDisposing);
         #endif
-            
+
             if (m_Transforms.IsCreated)
                 m_Transforms.Dispose();
 
@@ -393,7 +391,7 @@ namespace Unity.ECS
 #endif
             return componentIndex;
         }
-        
+
         internal void GetIndexFromEntity(out IndexFromEntity output)
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -540,7 +538,7 @@ namespace Unity.ECS
             iterator.IndexInComponentGroup = GetIndexInComponentGroup(TypeManager.GetTypeIndex<Transform>());
             return new GameObjectArray(iterator, length, m_TypeManager);
         }
-        
+
         public int CalculateLength()
         {
             int length;

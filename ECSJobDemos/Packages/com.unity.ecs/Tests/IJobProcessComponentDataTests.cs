@@ -2,21 +2,11 @@
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.ECS;
-using Unity.Jobs;
 
 namespace UnityEngine.ECS.Tests
 {
     public class IJobProcessComponentDataTests :ECSTestsFixture
     {
-        [DisableAutoCreation]
-        public class ProxySystem : JobComponentSystem
-        {
-            protected override JobHandle OnUpdate(JobHandle inputDeps)
-            {
-                return inputDeps;
-            }
-        }
-        
         struct ProcessSimple : IJobProcessComponentData<EcsTestData, EcsTestData2>
         {
             public void Execute([ReadOnly]ref EcsTestData src, ref EcsTestData2 dst)
@@ -31,14 +21,46 @@ namespace UnityEngine.ECS.Tests
             var entity = m_Manager.CreateEntity(typeof(EcsTestData), typeof(EcsTestData2));
             m_Manager.SetComponentData(entity, new EcsTestData(42));
 
-            new ProcessSimple().Schedule(World.GetOrCreateManager<ProxySystem>(), 64).Complete();
+            new ProcessSimple().Run(EmptySystem);
             
-            //@TODO: Check that the created ComponentGroup is actually readonly
-            // system.ComponentGroups[0].GetComponentDataArray<EcsTestData>()
-
             Assert.AreEqual(42, m_Manager.GetComponentData<EcsTestData2>(entity).value0);
         }
         
+        [Test]
+        public void JobProcessComponentGroupCorrect()
+        {
+            m_Manager.CreateEntity(typeof(EcsTestData), typeof(EcsTestData2));
+
+            ComponentType[] expectedTypes = { ComponentType.ReadOnly<EcsTestData>(), ComponentType.Create<EcsTestData2>() };
+
+            new ProcessSimple().Run(EmptySystem);
+            new ProcessSimple().Run(EmptySystem);
+            var group = EmptySystem.GetComponentGroup(expectedTypes);
+                        
+            Assert.AreEqual(1, EmptySystem.ComponentGroups.Length);
+            Assert.IsTrue(EmptySystem.ComponentGroups[0].CompareComponents(expectedTypes));
+            Assert.AreEqual(group, EmptySystem.ComponentGroups[0]);
+        }
+        
+        [Test]
+        public void JobProcessStress()
+        {
+            var archetype= m_Manager.CreateArchetype(typeof(EcsTestData), typeof(EcsTestData2));
+
+            var entities = new NativeArray<Entity>(StressTestEntityCount, Allocator.Temp);
+            m_Manager.CreateEntity(archetype, entities);
+            
+            for (int i = 0;i<entities.Length;i++)
+                m_Manager.SetComponentData(entities[i], new EcsTestData(i));
+
+            new ProcessSimple().Schedule(EmptySystem, 13).Complete();
+
+            for (int i = 0; i < entities.Length; i++)
+                Assert.AreEqual(i, m_Manager.GetComponentData<EcsTestData2>(entities[i]).value0);
+
+            entities.Dispose();
+        }
+
         
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         [Test]
@@ -48,9 +70,8 @@ namespace UnityEngine.ECS.Tests
 
             m_Manager.CreateEntity(typeof(EcsTestData), typeof(EcsTestData2));
 
-            var system = World.GetOrCreateManager<ProxySystem>();
-            var job = new ProcessSimple().Schedule(system, 64);
-            Assert.Throws<InvalidOperationException>(() => { new ProcessSimple().Schedule(system, 64); });
+            var job = new ProcessSimple().Schedule(EmptySystem, 64);
+            Assert.Throws<InvalidOperationException>(() => { new ProcessSimple().Schedule(EmptySystem, 64); });
             
             job.Complete();
         }
@@ -70,7 +91,7 @@ namespace UnityEngine.ECS.Tests
         {
             m_Manager.SetComponentData(entity, new EcsTestData(42));
 
-            new ProcessTagged().Schedule(World.GetOrCreateManager<ProxySystem>(), 64).Complete();
+            new ProcessTagged().Schedule(EmptySystem, 64).Complete();
 
             if (didProcess)
                 Assert.AreEqual(42, m_Manager.GetComponentData<EcsTestData2>(entity).value0);

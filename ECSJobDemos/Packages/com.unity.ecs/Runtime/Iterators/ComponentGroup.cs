@@ -283,7 +283,7 @@ namespace Unity.ECS
         }
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        AtomicSafetyHandle GetSafetyHandle(int indexInComponentGroup)
+        internal AtomicSafetyHandle GetSafetyHandle(int indexInComponentGroup)
         {
             var type = m_GroupData->RequiredComponents + indexInComponentGroup;
             var isReadOnly = type->AccessModeType == ComponentType.AccessMode.ReadOnly;
@@ -575,21 +575,39 @@ namespace Unity.ECS
             return m_Transforms;
         }
 
-        public bool CompareComponents(ComponentType* componentTypes, int count)
+        public bool CompareComponents(ComponentType[] componentTypes)
         {
-            if (count != m_GroupData->RequiredComponentsCount)
+            fixed (ComponentType* ptr = componentTypes)
+            {
+                return CompareComponents(ptr, componentTypes.Length);     
+            }
+        }
+
+        internal bool CompareComponents(ComponentType* componentTypes, int count)
+        {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            for (var k = 0; k < count; ++k)
+            {
+                if (componentTypes[k].TypeIndex == TypeManager.GetTypeIndex<Entity>())
+                    throw new System.ArgumentException("ComponentGroup.CompareComponents may not include typeof(Entity), it is implicit");
+            }
+#endif
+
+            // ComponentGroups are constructed including the Entity ID
+            int requiredCount = m_GroupData->RequiredComponentsCount; 
+            if (count != requiredCount - 1)
                 return false;
-            
+
             for (var k = 0; k < count; ++k)
             {
                 int i;
-                for (i = 0; i < count; ++i)
+                for (i = 1; i < requiredCount ; ++i)
                 {
                     if (m_GroupData->RequiredComponents[i] == componentTypes[k])
                         break;
                 }
 
-                if (i == count)
+                if (i == requiredCount)
                     return false;
             }
 

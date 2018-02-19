@@ -9,6 +9,8 @@ namespace Unity.ECS
 
     public abstract class ScriptBehaviourManager
     {
+        public bool Enabled { get; set; } = true;
+        
         internal void CreateInstance(World world, int capacity)
         {
             OnBeforeCreateManagerInternal(world, capacity);
@@ -56,9 +58,14 @@ namespace Unity.ECS
         }
 
         internal abstract void InternalUpdate();
+
         /// <summary>
         /// Execute the manager immediately.
         /// </summary>
-        public void Update() { InternalUpdate(); }
+        public void Update()
+        {
+            if (Enabled)
+                InternalUpdate();
+        }
     }
 }

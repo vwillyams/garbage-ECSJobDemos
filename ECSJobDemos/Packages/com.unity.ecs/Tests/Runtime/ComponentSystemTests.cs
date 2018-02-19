@@ -1,5 +1,6 @@
 ﻿using System;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
 using Unity.Collections;
 using Unity.ECS;
 using Unity.Jobs;
@@ -165,50 +166,5 @@ namespace UnityEngine.ECS.Tests
             
             Assert.AreEqual(systemA, World.GetExistingManager<TestSystem>());;
         }
-        
-        [Test]
-        public void GetComponentGroup()
-        {
-            ComponentType[] ro_rw = { ComponentType.ReadOnly<EcsTestData>(), typeof(EcsTestData2) };
-            ComponentType[] rw_rw = { typeof(EcsTestData), typeof(EcsTestData2) };
-            ComponentType[] rw = { typeof(EcsTestData) };
-            
-            var ro_rw0_system = EmptySystem.GetComponentGroup(ro_rw);
-            var rw_rw_system = EmptySystem.GetComponentGroup(rw_rw);
-            var rw_system = EmptySystem.GetComponentGroup(rw);
-
-            Assert.AreEqual(ro_rw0_system, EmptySystem.GetComponentGroup(ro_rw));
-            Assert.AreEqual(rw_rw_system, EmptySystem.GetComponentGroup(rw_rw));
-            Assert.AreEqual(rw_system, EmptySystem.GetComponentGroup(rw));
-            
-            Assert.AreEqual(3, EmptySystem.ComponentGroups.Length);
-        }
-        
-        //@TODO: Behaviour is a slightly dodgy... Should probably just ignore and return same as single typeof(EcsTestData)
-        [Test]
-        public void GetComponentGroupWithEntityThrows()
-        {
-            ComponentType[] e = { typeof(Entity), typeof(EcsTestData) };
-            EmptySystem.GetComponentGroup(e);
-            Assert.Throws<ArgumentException>(() => EmptySystem.GetComponentGroup(e));
-        }
-        
-        //@TODO: Behaviour is a slightly dodgy... Optimally would always return the same ComponentGroup
-        [Test]
-        public void GetComponentGroupWithDuplicates()
-        {
-            // Currently duplicates will create two seperate groups doing the same thing...
-            ComponentType[] dup_1 = { typeof(EcsTestData2) };
-            ComponentType[] dup_2 = { typeof(EcsTestData2), typeof(EcsTestData2) };
-            
-            var dup1_system = EmptySystem.GetComponentGroup(dup_1);
-            var dup2_system = EmptySystem.GetComponentGroup(dup_2);
-
-            Assert.AreEqual(dup1_system, EmptySystem.GetComponentGroup(dup_1));
-            Assert.AreEqual(dup2_system, EmptySystem.GetComponentGroup(dup_2));
-            
-            Assert.AreEqual(2, EmptySystem.ComponentGroups.Length);
-        }
-        
     }
 }

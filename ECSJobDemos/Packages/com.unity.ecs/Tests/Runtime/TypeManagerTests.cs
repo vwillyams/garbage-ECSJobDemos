@@ -1,3 +1,4 @@
+using UnityEngine.ECS;
 using NUnit.Framework;
 using Unity.ECS;
 
@@ -34,11 +35,9 @@ namespace UnityEngine.ECS.Tests
             var testData = ComponentType.Create<EcsTestData>();
 
             Assert.AreEqual(entity, ComponentType.Create<Entity>());
-            Assert.AreEqual(entity, new ComponentType(typeof(Entity)));
             Assert.AreEqual(testData, ComponentType.Create<EcsTestData>());
             Assert.AreEqual(testData, new ComponentType(typeof(EcsTestData)));
             Assert.AreNotEqual(ComponentType.Create<Entity>(), ComponentType.Create<EcsTestData>());
-            Assert.AreNotEqual(entity, ComponentType.ReadOnly<EcsTestData>());
 
             Assert.AreEqual(typeof(Entity), entity.GetManagedType());
         }

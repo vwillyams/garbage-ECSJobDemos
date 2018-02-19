@@ -30,7 +30,7 @@ namespace UnityEngine.ECS.SimpleSpatialQuery
 
         public void Execute(int index)
         {
-            results[index] = positions[index].position;
+            results[index] = positions[index].Value;
         }
     }
     
@@ -50,7 +50,7 @@ namespace UnityEngine.ECS.SimpleSpatialQuery
 
         public void Execute(int index)
         {
-            var position = positions[index].position;
+            var position = positions[index].Value;
             var nearestPosition = targetPositions[0];
             var nearestDistance = math.lengthSquared(position-nearestPosition);
             for (int i = 1; i < targetPositions.Length; i++)

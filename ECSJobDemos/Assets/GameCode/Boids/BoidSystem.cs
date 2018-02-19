@@ -31,7 +31,7 @@ namespace UnityEngine.ECS.Boids
 
             public void Execute(int index)
             {
-                var hash = GridHash.Hash(positions[index].position, cellRadius);
+                var hash = GridHash.Hash(positions[index].Value, cellRadius);
                 cells.Add(hash, index);
             }
         }
@@ -44,7 +44,7 @@ namespace UnityEngine.ECS.Boids
 
             public void Execute(int index)
             {
-                results[index] = positions[index].position;
+                results[index] = positions[index].Value;
             }
         }
 

@@ -1,13 +1,10 @@
 {
     "name": "UnityEngine.ECS.SimpleBounds",
     "references": [
-        "Unity.Core",
-        "Unity.Collections",
-        "Unity.Burst",
-        "Unity.Jobs",
-        "Unity.Mathematics"
+        "Unity.Core"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],
-    "excludePlatforms": []
+    "excludePlatforms": [],
+    "allowUnsafeCode": false
 }

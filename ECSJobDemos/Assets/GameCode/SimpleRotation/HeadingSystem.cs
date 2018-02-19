@@ -36,7 +36,7 @@ namespace UnityEngine.ECS.SimpleRotation
             {
                 var heading = headings[i].value;
                 var rotation = math.lookRotationToQuaternion(heading, math.up());
-                rotations[i] = new Rotation { value = rotation };
+                rotations[i] = new Rotation { Value = rotation };
             }
         }
         

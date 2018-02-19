@@ -28,12 +28,12 @@ namespace UnityEngine.ECS.SimpleMovement
             {
                 float t = bounce[i].t + (i*0.005f);
                 float st = math.sin(t);
-                float3 prevLocalPosition = positions[i].position;
+                float3 prevLocalPosition = positions[i].Value;
                 LocalBounce prevLocalBounce = bounce[i];
                 
                 positions[i] = new LocalPosition
                 {
-                    position = prevLocalPosition + new float3( st*prevLocalBounce.height.x, st*prevLocalBounce.height.y, st*prevLocalBounce.height.z )
+                    Value = prevLocalPosition + new float3( st*prevLocalBounce.height.x, st*prevLocalBounce.height.y, st*prevLocalBounce.height.z )
                 };
 
                 bounce[i] = new LocalBounce

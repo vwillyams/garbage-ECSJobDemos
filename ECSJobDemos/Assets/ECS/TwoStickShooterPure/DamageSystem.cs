@@ -51,14 +51,14 @@ namespace TwoStickPureExample
                 float collisionRadius = GetCollisionRadius(settings, m_Receivers.Faction[pi].Value);
                 float collisionRadiusSquared = collisionRadius * collisionRadius;
 
-                float2 receiverPos = m_Receivers.Position[pi].position;
+                float2 receiverPos = m_Receivers.Position[pi].Value;
                 int receiverFaction = m_Receivers.Faction[pi].Value;
 
                 for (int si = 0; si < m_Shots.Length; ++si)
                 {
                     if (m_Shots.Faction[si].Value != receiverFaction)
                     {
-                        float2 shotPos = m_Shots.Position[si].position;
+                        float2 shotPos = m_Shots.Position[si].Value;
                         float2 delta = shotPos - receiverPos;
                         float distSquared = math.dot(delta, delta);
                         if (distSquared <= collisionRadiusSquared)

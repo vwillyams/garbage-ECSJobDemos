@@ -13,7 +13,7 @@ namespace UnityEngine.ECS.SimpleMovement
         {
             public void Execute(ref Position position)
             {
-                position.position = position.position - new float3(0.0f, 9.8f, 0.0f);
+                position.Value = position.Value - new float3(0.0f, 9.8f, 0.0f);
             }
         }
         

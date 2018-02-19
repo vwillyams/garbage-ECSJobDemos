@@ -36,10 +36,10 @@ namespace Unity.Transforms2D
         
             public void Execute(int i)
             {
-                var position = positions[i].position;
+                var position = positions[i].Value;
                 matrices[i] = new TransformMatrix
                 {
-                    matrix = math.translate(new float3(position.x,0.0f,position.y))
+                    Value = math.translate(new float3(position.x,0.0f,position.y))
                 };
             }
         }
@@ -53,11 +53,11 @@ namespace Unity.Transforms2D
         
             public void Execute(int i)
             {
-                float2 position = positions[i].position;
-                float2 heading = math.normalize(headings[i].heading);
+                float2 position = positions[i].Value;
+                float2 heading = math.normalize(headings[i].Heading);
                 matrices[i] = new TransformMatrix
                 {
-                    matrix = new float4x4
+                    Value = new float4x4
                     {
                         m0 = new float4( heading.y, 0.0f, -heading.x, 0.0f ),
                         m1 = new float4( 0.0f, 1.0f, 0.0f, 0.0f ),

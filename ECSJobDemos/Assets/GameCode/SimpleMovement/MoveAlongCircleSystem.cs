@@ -45,7 +45,7 @@ namespace UnityEngine.ECS.SimpleMovement
                 
                 positions[i] = new Position
                 {
-                    position = new float3(x,y,z)
+                    Value = new float3(x,y,z)
                 };
             }
         }

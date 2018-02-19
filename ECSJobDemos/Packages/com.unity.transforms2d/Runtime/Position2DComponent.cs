@@ -7,7 +7,7 @@ namespace Unity.Transforms2D
     [Serializable]
     public struct Position2D : IComponentData
     {
-        public float2 position;
+        public float2 Value;
     }
 
     public class Position2DComponent : ComponentDataWrapper<Position2D> { } 

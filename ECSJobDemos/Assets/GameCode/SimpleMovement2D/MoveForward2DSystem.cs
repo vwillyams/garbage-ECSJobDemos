@@ -15,7 +15,7 @@ namespace UnityEngine.ECS.SimpleMovement2D
         
             public void Execute(ref Position2D position, [ReadOnly]ref Heading2D heading, [ReadOnly]ref MoveSpeed moveSpeed)
             {
-                position.position += dt * moveSpeed.speed * heading.heading;
+                position.Value += dt * moveSpeed.speed * heading.Heading;
             }
         }
 

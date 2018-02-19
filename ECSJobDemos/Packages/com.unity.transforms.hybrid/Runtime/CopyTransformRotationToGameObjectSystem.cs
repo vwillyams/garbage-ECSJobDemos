@@ -25,13 +25,7 @@ namespace Unity.Transforms.Hybrid
 
             public void Execute(int i, TransformAccess transform)
             {
-                transform.rotation = new Quaternion
-                {
-                    x = rotations[i].value.value.x,
-                    y = rotations[i].value.value.y,
-                    z = rotations[i].value.value.z,
-                    w = rotations[i].value.value.w
-                };
+                transform.rotation = rotations[i].Value;
             }
         }
 

@@ -61,8 +61,8 @@ namespace TwoStickPureExample
 
             // Need to do this after we're done accessing our injected arrays.
             Entity e = EntityManager.CreateEntity(TwoStickBootstrap.BasicEnemyArchetype);
-            EntityManager.SetComponentData(e, new Position2D { position = spawnPosition });
-            EntityManager.SetComponentData(e, new Heading2D { heading = new float2(0.0f, -1.0f) });
+            EntityManager.SetComponentData(e, new Position2D { Value = spawnPosition });
+            EntityManager.SetComponentData(e, new Heading2D { Heading = new float2(0.0f, -1.0f) });
             EntityManager.SetComponentData(e, default(Enemy));
             EntityManager.SetComponentData(e, new Health { Value = TwoStickBootstrap.Settings.enemyInitialHealth });
             EntityManager.SetComponentData(e, new EnemyShootState { Cooldown = 0.5f });
@@ -111,7 +111,7 @@ namespace TwoStickPureExample
 
             public void Execute(int index)
             {
-                var position = Position[index].position;
+                var position = Position[index].Value;
 
                 if (position.y > MaxY || position.y < MinY)
                 {
@@ -161,7 +161,7 @@ namespace TwoStickPureExample
             if (m_Data.Length == 0 || m_Player.Length == 0)
                 return;
 
-            var playerPos = m_Player.Position[0].position;
+            var playerPos = m_Player.Position[0].Value;
 
             var cmds = new EntityCommandBuffer();
 
@@ -183,7 +183,7 @@ namespace TwoStickPureExample
                     spawn.Shot.TimeToLive = shotTtl;
                     spawn.Shot.Energy = shotEnergy;
                     spawn.Position = m_Data.Position[i];
-                    spawn.Heading = new Heading2D {heading = math.normalize(playerPos - m_Data.Position[i].position)};
+                    spawn.Heading = new Heading2D {Heading = math.normalize(playerPos - m_Data.Position[i].Value)};
                     spawn.Faction = new Faction { Value = Faction.kEnemy };
 
                     cmds.CreateEntity(TwoStickBootstrap.ShotSpawnArchetype);

@@ -20,8 +20,8 @@ GameObject:
   m_Component:
   - component: {fileID: 4769459293966440}
   - component: {fileID: 114399766248971598}
-  - component: {fileID: 114603016743106002}
-  - component: {fileID: 114122027029166382}
+  - component: {fileID: 114159999285164282}
+  - component: {fileID: 114126537310096722}
   m_Layer: 0
   m_Name: ECSVegetation0
   m_TagString: Untagged
@@ -42,7 +42,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &114122027029166382
+--- !u!114 &114126537310096722
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -50,7 +50,23 @@ MonoBehaviour:
   m_GameObject: {fileID: 1699951046938920}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: be94c10194e6741b3b81f31a6660aec2, type: 3}
+  m_Script: {fileID: 11500000, guid: 9b0fd4427893a4a16ba0c267dfd00217, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SerializedData:
+    mesh: {fileID: 4300002, guid: b971d954c7e056c4eb03dbba77ebe53a, type: 3}
+    material: {fileID: 2100000, guid: d264166f69304514890ee27af1fb3dac, type: 2}
+    castShadows: 1
+    receiveShadows: 0
+--- !u!114 &114159999285164282
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1699951046938920}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2caacf465eeae43f39a6a13e442d1dc0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &114399766248971598
@@ -64,19 +80,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5bf10cdea1344482e91a4f2b58506b77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &114603016743106002
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1699951046938920}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7d67af92059454563950807e8bf94ea6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SerializedData:
-    mesh: {fileID: 4300002, guid: b971d954c7e056c4eb03dbba77ebe53a, type: 3}
-    material: {fileID: 2100000, guid: d264166f69304514890ee27af1fb3dac, type: 2}
-    castShadows: 1
-    receiveShadows: 0

@@ -2,7 +2,6 @@
 using Unity.ECS;
 using Unity.Jobs;
 using Unity.Mathematics;
-using Unity.Transforms;
 using UnityEngine.Jobs;
 
 namespace Unity.Transforms.Hybrid
@@ -35,9 +34,9 @@ namespace Unity.Transforms.Hybrid
                 transformStashes[index] = new TransformStash
                 {
                     localPosition  = transform.localPosition,
-                    rotation       = new quaternion(transform.rotation.x, transform.rotation.y, transform.rotation.z, transform.rotation.w),
+                    rotation       = transform.rotation,
                     position       = transform.position,
-                    localRotation  = new quaternion(transform.localRotation.x, transform.localRotation.y, transform.localRotation.z, transform.localRotation.w),
+                    localRotation  = transform.localRotation,
                     entity         = entities[index]
                 };
             }
@@ -61,15 +60,15 @@ namespace Unity.Transforms.Hybrid
                     var entity = transformStashes[index].entity;
                     if (positions.Exists(entity))
                     {
-                        positions[entity] = new Position { position = transformStash.position };
+                        positions[entity] = new Position { Value = transformStash.position };
                     }
                     if (rotations.Exists(entity))
                     {
-                        rotations[entity] = new Rotation { value = transformStash.rotation };
+                        rotations[entity] = new Rotation { Value = transformStash.rotation };
                     }
                     if (localPositions.Exists(entity))
                     {
-                        localPositions[entity] = new LocalPosition { position = transformStash.localPosition };
+                        localPositions[entity] = new LocalPosition { Value = transformStash.localPosition };
                     }
                     if (localRotations.Exists(entity))
                     {

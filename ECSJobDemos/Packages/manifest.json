@@ -1,6 +1,6 @@
 {
 	"dependencies": {
-		"com.unity.burst": "0.1.23"
+		"com.unity.burst": "0.1.24"
 	},
 	"testables": [
         "com.unity.collections",

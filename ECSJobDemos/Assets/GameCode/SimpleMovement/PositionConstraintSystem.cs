@@ -31,15 +31,15 @@ namespace UnityEngine.ECS.SimpleMovement
                 {
                     var childEntity    = positionConstraintEntities[i];
                     var parentEntity   = positionConstraints[i].parentEntity;
-                    var childPosition  = positions[childEntity].position;
-                    var parentPosition = positions[parentEntity].position;
+                    var childPosition  = positions[childEntity].Value;
+                    var parentPosition = positions[parentEntity].Value;
                     var d              = childPosition - parentPosition;
                     var len            = math.length(d);
                     var nl             = math.min(len,positionConstraints[i].maxDistance);
                     
                     positions[childEntity] = new Position
                     {
-                        position = parentPosition + ((d * nl) / len)
+                        Value = parentPosition + ((d * nl) / len)
                     };
                 }
             }

@@ -329,7 +329,6 @@ public class ECSIteratePerformance : MonoBehaviour
 		entityManager.DestroyEntity (archetype);
 
 		instances.Dispose ();
-		group.Dispose();
 
 		if (oldRoot != null)
 		{

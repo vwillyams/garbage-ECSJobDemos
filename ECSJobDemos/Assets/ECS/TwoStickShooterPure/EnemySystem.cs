@@ -162,7 +162,7 @@ namespace TwoStickPureExample
 
             var playerPos = m_Player.Position[0].Value;
 
-            var cmds = new EntityCommandBuffer();
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
 
             float dt = Time.deltaTime;
             float shootRate = TwoStickBootstrap.Settings.enemyShootRate;

@@ -1,5 +1,8 @@
-﻿using NUnit.Framework;
+﻿using System;
+using NUnit.Framework;
+using Unity.Collections;
 using Unity.ECS;
+using Unity.Jobs;
 
 namespace UnityEngine.ECS.Tests
 {
@@ -8,15 +11,112 @@ namespace UnityEngine.ECS.Tests
         [Test]
         public void EmptyOK()
         {
-            var cmds = new EntityCommandBuffer();
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
             cmds.Playback(m_Manager);
+            cmds.Dispose();
+        }
+
+        [Test]
+        public void DoubleDisposeThrows()
+        {
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
+            cmds.CreateEntity();
+            cmds.AddComponent(new EcsTestData { value = 12 });
+            cmds.Playback(m_Manager);
+            cmds.Dispose();
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                 cmds.Dispose();
+            });
+        }
+
+        struct TestJob : IJob
+        {
+            public EntityCommandBuffer Buffer;
+
+            public void Execute()
+            {
+                Buffer.CreateEntity();
+                Buffer.AddComponent(new EcsTestData { value = 1 });
+            }
+        }
+
+        [Test]
+        public void SingleWriterEnforced()
+        {
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
+            var job = new TestJob {Buffer = cmds};
+
+            cmds.CreateEntity();
+            cmds.AddComponent(new EcsTestData { value = 42 });
+
+            var handle = job.Schedule();
+
+            Assert.Throws<InvalidOperationException>(() => { cmds.CreateEntity(); });
+            Assert.Throws<InvalidOperationException>(() => { job.Buffer.CreateEntity(); });
+
+            handle.Complete();
+
+            cmds.Playback(m_Manager);
+            cmds.Dispose();
+
+            var group = m_Manager.CreateComponentGroup(typeof(EcsTestData));
+            var arr = group.GetComponentDataArray<EcsTestData>();
+            Assert.AreEqual(2, arr.Length);
+            Assert.AreEqual(42, arr[0].value);
+            Assert.AreEqual(1, arr[1].value);
+            group.Dispose();
+        }
+
+        [Test]
+        public void DisposeWhileJobRunningThrows()
+        {
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
+            var job = new TestJob {Buffer = cmds};
+
+            var handle = job.Schedule();
+
+            Assert.Throws<InvalidOperationException>(() => { cmds.Dispose(); });
+
+            handle.Complete();
+
+            cmds.Dispose();
+        }
+
+        [Test]
+        public void ModifiesWhileJobRunningThrows()
+        {
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
+            var job = new TestJob {Buffer = cmds};
+
+            var handle = job.Schedule();
+
+            Assert.Throws<InvalidOperationException>(() => { cmds.CreateEntity(); });
+
+            handle.Complete();
+
+            cmds.Dispose();
+        }
+
+        [Test]
+        public void PlaybackWhileJobRunningThrows()
+        {
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
+            var job = new TestJob {Buffer = cmds};
+
+            var handle = job.Schedule();
+
+            Assert.Throws<InvalidOperationException>(() => { cmds.Playback(m_Manager); });
+
+            handle.Complete();
+
             cmds.Dispose();
         }
 
         [Test]
         public void ImplicitCreateEntity()
         {
-            var cmds = new EntityCommandBuffer();
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
             cmds.CreateEntity();
             cmds.AddComponent(new EcsTestData { value = 12 });
             cmds.Playback(m_Manager);
@@ -34,7 +134,7 @@ namespace UnityEngine.ECS.Tests
         {
             var a = m_Manager.CreateArchetype(typeof(EcsTestData));
 
-            var cmds = new EntityCommandBuffer();
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
             cmds.CreateEntity(a);
             cmds.SetComponent(new EcsTestData { value = 12 });
             cmds.Playback(m_Manager);
@@ -50,7 +150,7 @@ namespace UnityEngine.ECS.Tests
         [Test]
         public void ImplicitCreateEntityTwice()
         {
-            var cmds = new EntityCommandBuffer();
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
             cmds.CreateEntity();
             cmds.AddComponent(new EcsTestData { value = 12 });
             cmds.CreateEntity();
@@ -69,7 +169,7 @@ namespace UnityEngine.ECS.Tests
         [Test]
         public void ImplicitCreateTwoComponents()
         {
-            var cmds = new EntityCommandBuffer();
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
             cmds.CreateEntity();
             cmds.AddComponent(new EcsTestData { value = 12 });
             cmds.AddComponent(new EcsTestData2 { value0 = 1, value1 = 2 });
@@ -99,7 +199,7 @@ namespace UnityEngine.ECS.Tests
         {
             const int count = 65536;
 
-            var cmds = new EntityCommandBuffer();
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
             cmds.MinimumChunkSize = 512;
 
             for (int i = 0; i < count; ++i)

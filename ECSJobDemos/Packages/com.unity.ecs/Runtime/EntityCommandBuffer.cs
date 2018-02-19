@@ -1,13 +1,29 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
 namespace Unity.ECS
 {
+    internal unsafe struct EntityCommandBufferData
+    {
+        [NativeDisableUnsafePtrRestriction]
+        public EntityCommandBuffer.Chunk* m_Tail;
+
+        [NativeDisableUnsafePtrRestriction]
+        public EntityCommandBuffer.Chunk* m_Head;
+
+        public int m_MinimumChunkSize;
+
+        public Allocator m_Allocator;
+    }
+
     /// <summary>
     /// A thread-safe command buffer that can buffer commands that affect entities and components for later playback.
     /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    [NativeContainer]
     public unsafe struct EntityCommandBuffer
     {
         /// <summary>
@@ -15,13 +31,11 @@ namespace Unity.ECS
         /// </summary>
         ///
         /// We keep this relatively small as we don't want to overload the temp allocator in case people make a ton of command buffers.
-        public const int kDefaultMinimumChunkSize = 4 * 1024;
-
         /// <summary>
         /// Organized in memory like a single block with Chunk header followed by Size bytes of data.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        struct Chunk
+        internal struct Chunk
         {
             internal int Used;
             internal int Size;
@@ -38,11 +52,17 @@ namespace Unity.ECS
             }
         }
 
+        private const int kDefaultMinimumChunkSize = 4 * 1024;
+
         [NativeDisableUnsafePtrRestriction]
-        Chunk* m_Tail;
-        [NativeDisableUnsafePtrRestriction]
-        Chunk* m_Head;
-        int m_MinimumChunkSize;
+        private EntityCommandBufferData* m_Data;
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+        private AtomicSafetyHandle m_Safety;
+
+        [NativeSetClassTypeToNullOnSchedule]
+        private DisposeSentinel m_DisposeSentinel;
+#endif
 
         /// <summary>
         /// Allows controlling the size of chunks allocated from the temp job allocator to back the command buffer.
@@ -50,8 +70,8 @@ namespace Unity.ECS
         /// Larger sizes are more efficient, but create more waste in the allocator.
         public int MinimumChunkSize
         {
-            get { return m_MinimumChunkSize > 0 ? m_MinimumChunkSize : kDefaultMinimumChunkSize; }
-            set { m_MinimumChunkSize = Math.Max(0, value); }
+            get { return m_Data->m_MinimumChunkSize > 0 ? m_Data->m_MinimumChunkSize : kDefaultMinimumChunkSize; }
+            set { m_Data->m_MinimumChunkSize = Math.Max(0, value); }
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -86,33 +106,35 @@ namespace Unity.ECS
 
         byte* Reserve(int size)
         {
-            if (m_Tail == null || m_Tail->Capacity < size)
+            EntityCommandBufferData* data = m_Data;
+
+            if (data->m_Tail == null || data->m_Tail->Capacity < size)
             {
-                var c = (Chunk*)UnsafeUtility.Malloc(sizeof(Chunk) + size, 16, Allocator.TempJob);
+                var c = (Chunk*)UnsafeUtility.Malloc(sizeof(Chunk) + size, 16, data->m_Allocator);
                 c->Next = null;
-                c->Prev = m_Tail != null ? m_Tail : null;
+                c->Prev = data->m_Tail != null ? data->m_Tail : null;
                 c->Used = 0;
                 c->Size = size;
 
-                if (m_Tail != null)
+                if (data->m_Tail != null)
                 {
-                    m_Tail->Next = c;
+                    data->m_Tail->Next = c;
                 }
 
-                if (m_Head == null)
+                if (data->m_Head == null)
                 {
-                    m_Head = c;
+                    data->m_Head = c;
                 }
 
-                m_Tail = c;
+                data->m_Tail = c;
             }
 
-            var offset = m_Tail->Bump(size);
-            var ptr = ((byte*)m_Tail) + sizeof(Chunk) + offset;
+            var offset = data->m_Tail->Bump(size);
+            var ptr = ((byte*)data->m_Tail) + sizeof(Chunk) + offset;
             return ptr;
         }
 
-        void AddCreateCommand(Command op, EntityArchetype archetype)
+        private void AddCreateCommand(Command op, EntityArchetype archetype)
         {
             var data = (CreateCommand*) Reserve(sizeof(CreateCommand));
 
@@ -121,7 +143,7 @@ namespace Unity.ECS
             data->Archetype = archetype;
         }
 
-        void AddEntityCommand(Command op, Entity e)
+        private void AddEntityCommand(Command op, Entity e)
         {
             var data = (EntityCommand*) Reserve(sizeof(EntityCommand));
 
@@ -130,7 +152,7 @@ namespace Unity.ECS
             data->Entity = e;
         }
 
-        void AddEntityComponentCommand<T>(Command op, Entity e, T component) where T : struct
+        private void AddEntityComponentCommand<T>(Command op, Entity e, T component) where T : struct
         {
             var typeSize = UnsafeUtility.SizeOf<T>();
             var typeIndex = TypeManager.GetTypeIndex<T>();
@@ -147,12 +169,12 @@ namespace Unity.ECS
             UnsafeUtility.CopyStructureToPtr (ref component, (byte*) (data + 1));
         }
 
-        static int Align(int size, int alignmentPowerOfTwo)
+        private static int Align(int size, int alignmentPowerOfTwo)
         {
             return (size + alignmentPowerOfTwo - 1) & ~(alignmentPowerOfTwo - 1);
         }
 
-        void AddEntityComponentTypeCommand<T>(Command op, Entity e) where T : struct
+        private void AddEntityComponentTypeCommand<T>(Command op, Entity e) where T : struct
         {
             var typeIndex = TypeManager.GetTypeIndex<T>();
             var sizeNeeded = Align(sizeof(EntityComponentCommand), 8);
@@ -165,54 +187,94 @@ namespace Unity.ECS
             data->ComponentTypeIndex = typeIndex;
         }
 
+        [Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
+        private void EnforceSingleThreadOwnership()
+        {
+            #if ENABLE_UNITY_COLLECTIONS_CHECKS
+            AtomicSafetyHandle.CheckWriteAndThrow(this.m_Safety);
+            #endif
+        }
+
+        public EntityCommandBuffer(Allocator label)
+        {
+            m_Data = (EntityCommandBufferData*) UnsafeUtility.Malloc(sizeof(EntityCommandBufferData), UnsafeUtility.AlignOf<EntityCommandBufferData>(), label);
+            m_Data->m_Allocator = label;
+            m_Data->m_Tail = null;
+            m_Data->m_Head = null;
+            m_Data->m_MinimumChunkSize = kDefaultMinimumChunkSize;
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            DisposeSentinel.Create(out m_Safety, out m_DisposeSentinel, 1);
+#endif
+        }
+
         public void Dispose()
         {
-            while (m_Tail != null)
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            DisposeSentinel.Dispose(m_Safety, ref m_DisposeSentinel);
+#endif
+            if (m_Data != null)
             {
-                var prev = m_Tail->Prev;
-                UnsafeUtility.Free(m_Tail, Allocator.TempJob);
-                m_Tail = prev;
+                var label = m_Data->m_Allocator;
+
+                while (m_Data->m_Tail != null)
+                {
+                    var prev = m_Data->m_Tail->Prev;
+                    UnsafeUtility.Free(m_Data->m_Tail, m_Data->m_Allocator);
+                    m_Data->m_Tail = prev;
+                }
+
+                m_Data->m_Head = null;
+                UnsafeUtility.Free(m_Data, label);
+                m_Data = null;
             }
-            m_Head = null;
         }
 
         public void CreateEntity()
         {
+            EnforceSingleThreadOwnership();
             AddCreateCommand(Command.CreateEntityImplicit, new EntityArchetype());
         }
 
         public void CreateEntity(EntityArchetype archetype)
         {
+            EnforceSingleThreadOwnership();
             AddCreateCommand(Command.CreateEntityImplicit, archetype);
         }
 
         public void DestroyEntity(Entity e)
         {
+            EnforceSingleThreadOwnership();
             AddEntityCommand(Command.DestroyEntityExplicit, e);
         }
 
         public void AddComponent<T>(Entity e, T component) where T: struct, IComponentData
         {
+            EnforceSingleThreadOwnership();
             AddEntityComponentCommand(Command.AddComponentExplicit, e, component);
         }
 
         public void SetComponent<T>(T component) where T: struct, IComponentData
         {
+            EnforceSingleThreadOwnership();
             AddEntityComponentCommand(Command.SetComponentImplicit, Entity.Null, component);
         }
 
         public void SetComponent<T>(Entity e, T component) where T: struct, IComponentData
         {
+            EnforceSingleThreadOwnership();
             AddEntityComponentCommand(Command.SetComponentExplicit, e, component);
         }
 
         public void RemoveComponent<T>(Entity e) where T: struct, IComponentData
         {
+            EnforceSingleThreadOwnership();
             AddEntityComponentTypeCommand<T>(Command.RemoveComponentExplicit, e);
         }
 
         public void AddComponent<T>(T component) where T: struct, IComponentData
         {
+            EnforceSingleThreadOwnership();
             AddEntityComponentCommand(Command.AddComponentImplicit, Entity.Null, component);
         }
 
@@ -236,7 +298,12 @@ namespace Unity.ECS
         /// <param name="mgr">The entity manager that will receive the operations</param>
         public void Playback(EntityManager mgr)
         {
-            var head = m_Head;
+            if (mgr == null)
+                throw new NullReferenceException($"{nameof(mgr)} cannot be null");
+
+            EnforceSingleThreadOwnership();
+
+            var head = m_Data->m_Head;
             var lastEntity = new Entity();
 
             while (head != null)
@@ -310,11 +377,6 @@ namespace Unity.ECS
 
                 head = head->Next;
             }
-        }
-
-        object PullEntity(byte* v)
-        {
-            throw new NotImplementedException();
         }
     }
 }

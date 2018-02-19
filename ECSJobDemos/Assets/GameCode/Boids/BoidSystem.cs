@@ -10,7 +10,7 @@ using UnityEngine.ECS.Utilities;
 
 namespace UnityEngine.ECS.Boids
 {
-    [DisableSystemWhenEmpty]
+    // [DisableSystemWhenEmpty]
     public class BoidSystem : JobComponentSystem
     {
         // #todo Should be Allocator.TempJpb once NativeMultiHashMap can DeallocateOnJobCompletion

@@ -1,9 +1,11 @@
 # How ECS Works 
 
 **What is the problem?**
+
 When making games with GameObject/MonoBehaviour, it is easy to write code that ends up being difficult to read, maintain and optimize. This is the result of a combination of factors: [object-oriented model](https://en.wikipedia.org/wiki/Object-oriented_programming), slow compiled code from Mono, [garbage collection](https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)) and single threaded code.
 
 **ECS to the rescue**
+
 ECS is a way of writing code that focuses on the actual problems you are solving: the data and behavior that make up your game.
 
 In addition to being a better way of approaching game programming for design reasons, using ECS puts you in an ideal position to leverage Unity's job system, letting you take full advantage of today's multi-core processors.

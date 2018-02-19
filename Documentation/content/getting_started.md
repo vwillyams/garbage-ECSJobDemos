@@ -33,7 +33,7 @@ class Rotator : MonoBehaviour
 }
 ```
 
-However **MonoBehaviour** inherits from a number of other classes; each containing their own set of data - none of which are in use by the script above. Therefore we have just wasted a bunch of memory for no good reason. So we need to think about what data we really need to optimize the code. 
+However **MonoBehaviour** inherts from a number of other classes; each containing their own set of data - none of which are in use by the script above. Therefore we have just wasted a bunch of memory for no good reason. So we need to think about what data we really need to optimize the code. 
 
 ## Component System - A step into a new era
 

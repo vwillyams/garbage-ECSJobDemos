@@ -1,7 +1,7 @@
 # index
 
 ![Unity](https://unity3d.com/files/images/ogimg.jpg?1)
-# ECS Easily Explained
+# ECS User Manual
 
 * [How ECS Works](content/getting_started.md)
     * [Naming Conventions](content/ecs_concepts.md)

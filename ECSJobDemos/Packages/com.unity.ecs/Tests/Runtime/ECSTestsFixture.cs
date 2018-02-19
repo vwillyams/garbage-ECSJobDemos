@@ -1,4 +1,3 @@
-using UnityEngine.ECS;
 using NUnit.Framework;
 using Unity.ECS;
 using Unity.Jobs;
@@ -17,6 +16,8 @@ namespace UnityEngine.ECS.Tests
         protected World World;
         protected EntityManager m_Manager;
 
+        protected int StressTestEntityCount = 1000;
+        
         [SetUp]
         public virtual void Setup()
         {

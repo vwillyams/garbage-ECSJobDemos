@@ -418,7 +418,7 @@ namespace UnityEngine.ECS.Tests
 	            {
 	                var entity = entities[index];
 	                var entityIndex = indexFromEntity[entity];
-	                Assert.AreEqual(index,entityIndex.Value);
+	                Assert.AreEqual(index,entityIndex);
 	            }
 	        }
 	        

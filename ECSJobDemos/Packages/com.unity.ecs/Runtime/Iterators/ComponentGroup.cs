@@ -397,8 +397,7 @@ namespace Unity.ECS
         internal void GetIndexFromEntity(out IndexFromEntity output)
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            //@TODO: Comment on why this has to be false...
-            output = new IndexFromEntity(m_EntityDataManager,m_GroupData,m_FilteredSharedComponents,  m_SafetyManager.GetSafetyHandle(TypeManager.GetTypeIndex<EntityIndex>(), true));
+            output = new IndexFromEntity(m_EntityDataManager,m_GroupData,m_FilteredSharedComponents,  m_SafetyManager.GetSafetyHandle(TypeManager.GetTypeIndex<Entity>(), true));
 #else
             output = new IndexFromEntity(m_EntityDataManager,m_GroupData,m_FilteredSharedComponents);
 #endif

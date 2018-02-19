@@ -4,11 +4,6 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace Unity.ECS
 {
-    public struct EntityIndex
-    {
-        public int Value;
-    }
-    
     [NativeContainer]
     public unsafe struct IndexFromEntity
     {
@@ -34,7 +29,7 @@ namespace Unity.ECS
 #endif
         }
 
-        public EntityIndex this[Entity entity]
+        public int this[Entity entity]
         {
             get
             {
@@ -68,7 +63,7 @@ namespace Unity.ECS
 
                             if (c == entityChunk)
                             {
-                                return new EntityIndex {Value = entityStartIndex + entityChunkIndex};
+                                return entityStartIndex + entityChunkIndex;
                             }
 
                             entityStartIndex += c->Count;
@@ -86,7 +81,7 @@ namespace Unity.ECS
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 FailOutOfRangeError(entity);
 #endif
-                return new EntityIndex {Value = -1};
+                return -1;
             }
         }
 

@@ -97,7 +97,9 @@ namespace UnityEditor.ECS
 
         public void PrepareData()
         {
-            var emptyArgs = new object[] {};
+            var emptyArgs = new object[0]; 
+            var emptyTypes = new Type[0]; 
+            var emptyModifiers = new ParameterModifier[0]; 
 
             if (currentSystem != null)
             {
@@ -110,7 +112,7 @@ namespace UnityEditor.ECS
                     {
                         linesPerRow = Mathf.Max(linesPerRow, StructGUI.RowsForType(type));
                         rowHeight = StructGUI.pointsPerLine * linesPerRow + pointsBetweenRows;
-                        var method = typeof(ComponentGroup).GetMethod("GetComponentDataArray", attr);
+                        var method = typeof(ComponentGroup).GetMethod("GetComponentDataArray", attr, null, emptyTypes, emptyModifiers);
                         method = method.MakeGenericMethod(type);
                         var array = method.Invoke(currentSystem, emptyArgs);
                         nativeArrays.Add(type, array);

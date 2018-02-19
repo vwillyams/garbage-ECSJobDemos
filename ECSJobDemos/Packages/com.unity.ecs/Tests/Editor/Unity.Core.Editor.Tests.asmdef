@@ -1,0 +1,17 @@
+{
+    "name": "Unity.Core.Editor.Tests",
+    "references": [
+        "Unity.Core",
+        "Unity.Core.Editor",
+        "Unity.Collections",
+        "Unity.Core.Tests"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true
+}

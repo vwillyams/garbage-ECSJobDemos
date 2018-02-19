@@ -15,7 +15,7 @@ namespace Unity.ECS
     unsafe struct ComponentChunkIterator
     {
         [NativeDisableUnsafePtrRestriction]
-        public readonly MatchingArchetypes*            m_FirstMatchingArchetype;
+        readonly MatchingArchetypes*            m_FirstMatchingArchetype;
         [NativeDisableUnsafePtrRestriction]
         MatchingArchetypes*                     m_CurrentMatchingArchetype;
         public int                              IndexInComponentGroup;

@@ -43,23 +43,23 @@ namespace Unity.ECS
 
             return null;
         }
-        public ComponentGroup CreateEntityGroupIfCached(EntityManager entityManager, ArchetypeManager typeMan, ComponentType* requiredTypes,
+        public ComponentGroup CreateEntityGroupIfCached(ArchetypeManager typeMan, EntityDataManager* entityDataManager, ComponentType* requiredTypes,
             int requiredCount)
         {
             var hash = HashUtility.Fletcher32((ushort*) requiredTypes,
                 requiredCount * sizeof(ComponentType) / sizeof(short));
             EntityGroupData* grp = GetCachedGroupData(hash, requiredTypes, requiredCount);
             if (grp != null)
-                return new ComponentGroup(grp, m_JobSafetyManager, typeMan,entityManager);
+                return new ComponentGroup(grp, m_JobSafetyManager, typeMan, entityDataManager);
             return null;
         }
 
-        public ComponentGroup CreateEntityGroup(EntityManager entityManager,ArchetypeManager typeMan, ComponentType* requiredTypes, int requiredCount)
+        public ComponentGroup CreateEntityGroup(ArchetypeManager typeMan, EntityDataManager* entityDataManager, ComponentType* requiredTypes, int requiredCount)
         {
             var hash = HashUtility.Fletcher32((ushort*)requiredTypes, requiredCount * sizeof(ComponentType) / sizeof(short));
             EntityGroupData* grp = GetCachedGroupData(hash, requiredTypes, requiredCount);
             if (grp != null)
-                return new ComponentGroup(grp, m_JobSafetyManager, typeMan,entityManager);
+                return new ComponentGroup(grp, m_JobSafetyManager, typeMan, entityDataManager);
 
             m_JobSafetyManager.CompleteAllJobsAndInvalidateArrays();
 
@@ -120,7 +120,7 @@ namespace Unity.ECS
             for (var type = typeMan.m_LastArchetype; type != null; type = type->PrevArchetype)
                 AddArchetypeIfMatching(type, grp);
             m_GroupLookup.Add(hash, (IntPtr)grp);
-            return new ComponentGroup(grp, m_JobSafetyManager, typeMan,entityManager);
+            return new ComponentGroup(grp, m_JobSafetyManager, typeMan, entityDataManager);
         }
 
         public void Dispose()
@@ -221,7 +221,7 @@ namespace Unity.ECS
         readonly EntityGroupData*             m_GroupData;
         readonly ComponentJobSafetyManager    m_SafetyManager;
         readonly ArchetypeManager             m_TypeManager;
-        readonly EntityManager                m_EntityManager;
+        readonly EntityDataManager*           m_EntityDataManager;
         MatchingArchetypes*                   m_LastRegisteredListenerArchetype;
 
         TransformAccessArray                  m_Transforms;
@@ -232,7 +232,7 @@ namespace Unity.ECS
         internal string                       DisallowDisposing = null;
         #endif
         
-        internal ComponentGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager, ArchetypeManager typeManager, EntityManager entityManager)
+        internal ComponentGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager, ArchetypeManager typeManager, EntityDataManager* entityDataManager )
         {
             m_GroupData = groupData;
             m_SafetyManager = safetyManager;
@@ -240,7 +240,7 @@ namespace Unity.ECS
             m_TransformsDirty = true;
             m_LastRegisteredListenerArchetype = null;
             m_FilteredSharedComponents = null;
-            m_EntityManager = entityManager;
+            m_EntityDataManager = entityDataManager;
         }
 
         public void Dispose()
@@ -398,9 +398,9 @@ namespace Unity.ECS
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             //@TODO: Comment on why this has to be false...
-            output = new IndexFromEntity(m_EntityManager,m_GroupData,m_FilteredSharedComponents,  m_SafetyManager.GetSafetyHandle(TypeManager.GetTypeIndex<EntityIndex>(), true));
+            output = new IndexFromEntity(m_EntityDataManager,m_GroupData,m_FilteredSharedComponents,  m_SafetyManager.GetSafetyHandle(TypeManager.GetTypeIndex<EntityIndex>(), true));
 #else
-            output = new IndexFromEntity(m_EntityManager,m_GroupData,m_FilteredSharedComponents);
+            output = new IndexFromEntity(m_EntityDataManager,m_GroupData,m_FilteredSharedComponents);
 #endif
         }
 
@@ -615,7 +615,7 @@ namespace Unity.ECS
         public ComponentGroup GetVariation<SharedComponent1>(SharedComponent1 sharedComponent1)
             where SharedComponent1 : struct, ISharedComponentData
         {
-            var variationComponentGroup = new ComponentGroup(m_GroupData, m_SafetyManager, m_TypeManager,m_EntityManager);
+            var variationComponentGroup = new ComponentGroup(m_GroupData, m_SafetyManager, m_TypeManager, m_EntityDataManager);
 
             var componetIndex1 = GetIndexInComponentGroup(TypeManager.GetTypeIndex<SharedComponent1>());
             const int filteredCount = 1;
@@ -635,7 +635,7 @@ namespace Unity.ECS
             where SharedComponent1 : struct, ISharedComponentData
             where SharedComponent2 : struct, ISharedComponentData
         {
-            var variationComponentGroup = new ComponentGroup(m_GroupData, m_SafetyManager, m_TypeManager,m_EntityManager);
+            var variationComponentGroup = new ComponentGroup(m_GroupData, m_SafetyManager, m_TypeManager, m_EntityDataManager);
 
             var componetIndex1 = GetIndexInComponentGroup(TypeManager.GetTypeIndex<SharedComponent1>());
             var componetIndex2 = GetIndexInComponentGroup(TypeManager.GetTypeIndex<SharedComponent2>());

@@ -13,7 +13,7 @@ namespace Unity.ECS
     public unsafe struct IndexFromEntity
     {
         private readonly EntityGroupData* m_EntityGroupData;
-        private readonly EntityManager m_EntityManager;
+        private readonly EntityDataManager* m_EntityDataManager;
         private readonly int* m_FilteredSharedComponents;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -21,13 +21,13 @@ namespace Unity.ECS
 #endif
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        internal IndexFromEntity(EntityManager entityManager, EntityGroupData* entityGroupData, int* filteredSharedComponents, AtomicSafetyHandle safety)
+        internal IndexFromEntity(EntityDataManager* entityDataManager, EntityGroupData* entityGroupData, int* filteredSharedComponents, AtomicSafetyHandle safety)
 #else
         internal unsafe IndexFromEntity(EntityManager entityManager, EntityGroupData* entityGroupData, int* filteredSharedComponents)
 #endif
         {
             m_EntityGroupData = entityGroupData;
-            m_EntityManager = entityManager;
+            m_EntityDataManager = entityDataManager;
             m_FilteredSharedComponents = filteredSharedComponents;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_Safety = safety;
@@ -44,8 +44,8 @@ namespace Unity.ECS
                 Chunk* entityChunk;
                 int entityChunkIndex;
                 
-                m_EntityManager.m_Entities->GetComponentChunk(entity, out entityChunk, out entityChunkIndex);
-                var entityArchetype = m_EntityManager.m_Entities->GetArchetype(entity);
+                m_EntityDataManager->GetComponentChunk(entity, out entityChunk, out entityChunkIndex);
+                var entityArchetype = m_EntityDataManager->GetArchetype(entity);
 
                 int entityStartIndex = 0;
                 var matchingArchetype = m_EntityGroupData->FirstMatchingArchetype;

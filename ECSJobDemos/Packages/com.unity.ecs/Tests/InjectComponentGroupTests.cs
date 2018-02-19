@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Threading;
 using Unity.ECS;
 using Unity.Jobs;
+using UnityEngine.AI;
 using UnityEngine.Jobs;
 
 namespace UnityEngine.ECS.Tests
@@ -395,28 +396,42 @@ namespace UnityEngine.ECS.Tests
 	    }
 	    
 	    [DisableAutoCreation]
-	    public class IndexFromEntityMultipleArchetypesSytem : JobComponentSystem
+	    public class IndexFromEntityMultipleArchetypesSytem : ComponentSystem
 	    {
 	        public struct Group
 	        {
 	            public ComponentDataArray<EcsTestData> Data;
-	            public IndexFromEntity indexFromEntity;
-	            public EntityArray entities;
+	            [ReadOnly] public IndexFromEntity indexFromEntity;
+	            [ReadOnly] public EntityArray entities;
 	            public int Length;
 	        }
 
 	        [Inject]
 	        public Group group;
 
-	        protected override void OnCreateManager(int capacity)
+	        struct CompareEntityIndex : IJobParallelFor
 	        {
-	            for (int i = 0; i < group.Length; i++)
+	            [ReadOnly] public IndexFromEntity indexFromEntity;
+	            [ReadOnly] public EntityArray entities;
+
+	            public void Execute(int index)
 	            {
-	                var entity = group.entities[i];
-	                var entityIndex = group.indexFromEntity[entity];
-	                Assert.AreEqual(i,entityIndex.Value);
+	                var entity = entities[index];
+	                var entityIndex = indexFromEntity[entity];
+	                Assert.AreEqual(index,entityIndex.Value);
 	            }
 	        }
+	        
+			protected override void OnUpdate()
+			{
+			    var compareEntityIndexJob = new CompareEntityIndex
+			    {
+			        indexFromEntity = group.indexFromEntity,
+			        entities = group.entities
+			    };
+			    var compareEntityIndexJobHandle = compareEntityIndexJob.Schedule(group.Length, 64);
+			    compareEntityIndexJobHandle.Complete();
+			}
 	    }
 
 	    [Test]

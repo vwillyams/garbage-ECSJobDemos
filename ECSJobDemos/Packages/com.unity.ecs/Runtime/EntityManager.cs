@@ -48,7 +48,7 @@ namespace Unity.ECS
 
     public sealed unsafe class EntityManager : ScriptBehaviourManager
     {
-        internal EntityDataManager*                m_Entities;
+        EntityDataManager*                m_Entities;
 
         ArchetypeManager                  m_ArchetypeManager;
         EntityGroupManager                m_GroupManager;
@@ -140,13 +140,13 @@ namespace Unity.ECS
         public ComponentGroup CreateComponentGroup(ComponentType* requiredComponents, int count)
         {
             var typeArrayCount = PopulatedCachedTypeArray(requiredComponents, count);
-            var grp = m_GroupManager.CreateEntityGroupIfCached(this,m_ArchetypeManager, m_CachedComponentTypeArray, typeArrayCount);
+            var grp = m_GroupManager.CreateEntityGroupIfCached(m_ArchetypeManager, m_Entities, m_CachedComponentTypeArray, typeArrayCount);
             if (grp != null)
                 return grp;
 
             BeforeStructuralChange();
 
-            return m_GroupManager.CreateEntityGroup(this,m_ArchetypeManager, m_CachedComponentTypeArray, typeArrayCount);
+            return m_GroupManager.CreateEntityGroup(m_ArchetypeManager, m_Entities, m_CachedComponentTypeArray, typeArrayCount);
         }
         
         public ComponentGroup CreateComponentGroup(params ComponentType[] requiredComponents)

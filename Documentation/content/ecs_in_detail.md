@@ -162,12 +162,12 @@ The dependency management approach is conservative. It allows for deterministic 
 ### Sync Points
 All structural changes have hard sync points. CreateEntity, Instantiate, Destroy, AddComponent, RemoveComponent, SetSharedComponentData all have a hard sync point. Meaning all jobs scheduled through JobComponentSystem will be completed before Creating the entity for example. This happens automatically. So for example calling EntityManager.CreateEntity in the middle of the frame might result in a large stall waiting for all previously scheduled jobs in the World to complete.
 
-See [EntityCommandBuffer](#EntityCommandBuffer) for more on avoiding sync points when creating entities during gameplay.
+See [EntityCommandBuffer](#entitycommandbuffer) for more on avoiding sync points when creating entities during gameplay.
 
 ### Multiple worlds
 Every World has its own EntityManager and thus a seperate set of Job handle dependency management. A hard sync point in one world will not affect the other world. As a result for streaming and proc-gen use cases it is useful to create entities in one World and then move them to another world in one transaction at the beginning of the frame. 
 
-See [ExclusiveEntityTransaction](#ExclusiveEntityTransaction) for more on avoiding sync points for Proc-gen & Streaming use cases.
+See [ExclusiveEntityTransaction](#exclusiveentitytransaction) for more on avoiding sync points for Proc-gen & Streaming use cases.
 
 
 ## Shared component data

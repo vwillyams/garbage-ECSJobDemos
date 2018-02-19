@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
-using Object = UnityEngine.Object;
-using HideFlags = UnityEngine.HideFlags;
-using GameObject = UnityEngine.GameObject;
-using Application = UnityEngine.Application;
+using UnityEngine;
 
 namespace Unity.ECS
 {
@@ -29,7 +25,7 @@ namespace Unity.ECS
             go.AddComponent<PlayerLoopDisableManager>().IsActive = true;
             go.hideFlags = HideFlags.HideInHierarchy;
             if (Application.isPlaying)
-                Object.DontDestroyOnLoad(go);
+                UnityEngine.Object.DontDestroyOnLoad(go);
             else
                 go.hideFlags = HideFlags.HideAndDontSave;
         }

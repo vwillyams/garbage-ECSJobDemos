@@ -1,5 +1,4 @@
-﻿using MonoBehaviour = UnityEngine.MonoBehaviour;
-using ExecuteInEditMode = UnityEngine.ExecuteInEditMode;
+﻿using UnityEngine;
 
 namespace Unity.ECS
 {

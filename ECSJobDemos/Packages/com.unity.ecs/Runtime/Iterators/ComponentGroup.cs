@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.Remoting.Messaging;
 using Unity.Jobs;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -450,6 +449,7 @@ namespace Unity.ECS
         }
 
         //@TODO: THIS API IS NOT SAFE, unpublicify
+        // [macton 19 Feb 2018] This can be removed once generic support for burst is in.
         public ComponentDataArray<T> GetComponentDataArray<T>(ComponentType componentType) where T : struct, IComponentData
         {
             int length;

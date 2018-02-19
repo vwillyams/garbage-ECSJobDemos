@@ -1,17 +1,11 @@
 {
     "name": "Unity.Burst.Tests",
-    "references": [
-        "Unity.Collections",
-        "Unity.Jobs",
-        "Unity.Burst",
-        "Unity.Mathematics"
-    ],
+    "references": [],
     "optionalUnityReferences": [
         "TestAssemblies"
     ],
     "includePlatforms": [
         "Editor"
     ],
-    "excludePlatforms": [],
-    "allowUnsafeCode": true
+    "excludePlatforms": []
 }

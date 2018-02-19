@@ -1,7 +1,9 @@
 {
-    "name": "Unity.ECS.Hybrid.Tests",
+    "name": "Unity.Core.Hybrid.Tests",
     "references": [
         "Unity.Core",
+        "Unity.Core.Hybrid",
+        "Unity.Core.Tests",
         "Unity.Collections",
         "Unity.Jobs"
     ],
@@ -11,5 +13,6 @@
     "includePlatforms": [
         "Editor"
     ],
-    "excludePlatforms": []
+    "excludePlatforms": [],
+    "allowUnsafeCode": true
 }

@@ -25,14 +25,14 @@ namespace Unity.ECS
             m_EntityDataManager = entityDataManager;
             m_FilteredSharedComponents = null;
         }
-        
+
         internal ComponentGroupData(ComponentGroupData parentGroupData, int* filteredSharedComponents )
         {
             m_GroupData = parentGroupData.m_GroupData;
             m_EntityDataManager = parentGroupData.m_EntityDataManager;
             m_FilteredSharedComponents = filteredSharedComponents;
         }
-        
+
         internal ComponentGroupData GetVariation<SharedComponent1>(ArchetypeManager typeManager,SharedComponent1 sharedComponent1)
             where SharedComponent1 : struct, ISharedComponentData
         {
@@ -47,7 +47,7 @@ namespace Unity.ECS
 
             return new ComponentGroupData(this, filtered);
         }
-        
+
         internal ComponentGroupData GetVariation<SharedComponent1,SharedComponent2>(ArchetypeManager typeManager,SharedComponent1 sharedComponent1, SharedComponent2 sharedComponent2)
             where SharedComponent1 : struct, ISharedComponentData
             where SharedComponent2 : struct, ISharedComponentData
@@ -66,7 +66,7 @@ namespace Unity.ECS
 
             return new ComponentGroupData(this, filtered);
         }
-        
+
         internal void RemoveFiterReferences(ArchetypeManager typeManager)
         {
             if (m_FilteredSharedComponents == null)
@@ -83,7 +83,7 @@ namespace Unity.ECS
 
             UnsafeUtility.Free(m_FilteredSharedComponents, Allocator.Temp);
         }
-        
+
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal AtomicSafetyHandle GetSafetyHandle(ComponentJobSafetyManager safetyManager, int indexInComponentGroup)
         {
@@ -92,7 +92,7 @@ namespace Unity.ECS
             return safetyManager.GetSafetyHandle(type->TypeIndex, isReadOnly);
         }
 #endif
-        
+
         public bool IsEmpty
         {
             get
@@ -129,7 +129,7 @@ namespace Unity.ECS
                 }
             }
         }
-        
+
         internal void GetComponentChunkIterator(out int outLength, out ComponentChunkIterator outIterator)
         {
             // Update the archetype segments
@@ -182,7 +182,7 @@ namespace Unity.ECS
                 ? new ComponentChunkIterator(null, 0, null, null)
                 : new ComponentChunkIterator(first, length, firstNonEmptyChunk, m_FilteredSharedComponents);
         }
-        
+
         internal static bool ChunkMatchesFilter(MatchingArchetypes* match, Chunk* chunk, int* filteredSharedComponents)
         {
             var sharedComponentsInChunk = chunk->SharedComponentValueArray;
@@ -200,7 +200,7 @@ namespace Unity.ECS
 
             return true;
         }
-        
+
         internal int GetIndexInComponentGroup(int componentType)
         {
             var componentIndex = 0;
@@ -218,12 +218,12 @@ namespace Unity.ECS
         {
             return m_GroupData->RequiredComponents[indexInComponentGroup].TypeIndex;
         }
-        
+
         public bool CompareComponents(ComponentType[] componentTypes)
         {
             fixed (ComponentType* ptr = componentTypes)
             {
-                return CompareComponents(ptr, componentTypes.Length);     
+                return CompareComponents(ptr, componentTypes.Length);
             }
         }
 
@@ -238,7 +238,7 @@ namespace Unity.ECS
 #endif
 
             // ComponentGroups are constructed including the Entity ID
-            int requiredCount = m_GroupData->RequiredComponentsCount; 
+            int requiredCount = m_GroupData->RequiredComponentsCount;
             if (count != requiredCount - 1)
                 return false;
 
@@ -257,7 +257,7 @@ namespace Unity.ECS
 
             return true;
         }
-        
+
         public Type[] Types
         {
             get
@@ -272,7 +272,7 @@ namespace Unity.ECS
                 return types.ToArray();
             }
         }
-        
+
         internal void CompleteDependency(ComponentJobSafetyManager safetyManager)
         {
             safetyManager.CompleteDependencies(m_GroupData->ReaderTypes, m_GroupData->ReaderTypesCount, m_GroupData->WriterTypes, m_GroupData->WriterTypesCount);
@@ -287,12 +287,12 @@ namespace Unity.ECS
         {
             safetyManager.AddDependency(m_GroupData->ReaderTypes, m_GroupData->ReaderTypesCount, m_GroupData->WriterTypes, m_GroupData->WriterTypesCount, job);
         }
-        
+
         internal int EntityIndex(Entity entity)
         {
             Chunk* entityChunk;
             int entityChunkIndex;
-                
+
             m_EntityDataManager->GetComponentChunk(entity, out entityChunk, out entityChunkIndex);
             var entityArchetype = m_EntityDataManager->GetArchetype(entity);
 
@@ -311,7 +311,7 @@ namespace Unity.ECS
                     {
                         if (c->Count <= 0)
                             continue;
-                            
+
                         if ((m_FilteredSharedComponents != null) && (!ComponentGroupData.ChunkMatchesFilter(matchingArchetype, c, m_FilteredSharedComponents)))
                             continue;
 
@@ -321,12 +321,12 @@ namespace Unity.ECS
                         }
 
                         entityStartIndex += c->Count;
-                    } 
+                    }
                 }
 
                 if (matchingArchetype == m_GroupData->LastMatchingArchetype)
                     break;
-                    
+
                 matchingArchetype = matchingArchetype->Next;
                 if (matchingArchetype == null)
                     break;
@@ -339,15 +339,15 @@ namespace Unity.ECS
 #endif
         }
     }
-    
-    public unsafe class ComponentGroup : IDisposable, IManagedObjectModificationListener
+
+    public unsafe class ComponentGroup : IDisposable
     {
         readonly ComponentJobSafetyManager    m_SafetyManager;
         readonly ArchetypeManager             m_TypeManager;
         readonly ComponentGroupData           m_ComponentGroupData;
-        MatchingArchetypes*                   m_LastRegisteredListenerArchetype;
+        readonly EntityDataManager*           m_EntityDataManager;
         TransformAccessArray                  m_Transforms;
-        bool                                  m_TransformsDirty;
+        int                                   m_TransformsOrderVersion;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal string                       DisallowDisposing = null;
@@ -358,17 +358,17 @@ namespace Unity.ECS
             m_ComponentGroupData = new ComponentGroupData(groupData,entityDataManager);
             m_SafetyManager = safetyManager;
             m_TypeManager = typeManager;
-            m_TransformsDirty = true;
-            m_LastRegisteredListenerArchetype = null;
+            m_EntityDataManager = entityDataManager;
+            m_TransformsOrderVersion = 0;
         }
-        
+
         internal ComponentGroup(ComponentGroup parentComponentGroup, ComponentGroupData componentGroupData)
         {
             m_ComponentGroupData = componentGroupData;
             m_SafetyManager = parentComponentGroup.m_SafetyManager;
             m_TypeManager = parentComponentGroup.m_TypeManager;
-            m_TransformsDirty = true;
-            m_LastRegisteredListenerArchetype = null;
+            m_EntityDataManager = parentComponentGroup.m_EntityDataManager;
+            m_TransformsOrderVersion = 0;
         }
 
         public void Dispose()
@@ -381,21 +381,7 @@ namespace Unity.ECS
             if (m_Transforms.IsCreated)
                 m_Transforms.Dispose();
 
-            if (m_LastRegisteredListenerArchetype != null)
-            {
-                var transformType = TypeManager.GetTypeIndex<Transform>();
-                for (var type = m_ComponentGroupData.FirstMatchingArchetype; type != m_LastRegisteredListenerArchetype->Next; type = type->Next)
-                {
-                    var idx = ChunkDataUtility.GetIndexInTypeArray(type->Archetype, transformType);
-                    m_TypeManager.RemoveManagedObjectModificationListener(type->Archetype, idx, this);
-                }
-            }
-            
             m_ComponentGroupData.RemoveFiterReferences(m_TypeManager);
-        }
-        public void OnManagedObjectModified()
-        {
-            m_TransformsDirty = true;
         }
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -568,17 +554,10 @@ namespace Unity.ECS
 
         public TransformAccessArray GetTransformAccessArray()
         {
-            var transformIdx = TypeManager.GetTypeIndex<Transform>();
-            for (var type = m_LastRegisteredListenerArchetype != null ? m_LastRegisteredListenerArchetype->Next : m_ComponentGroupData.FirstMatchingArchetype; type != null; type = type->Next)
+            int orderVersion = m_EntityDataManager->GetComponentTypeOrderVersion(TypeManager.GetTypeIndex<Transform>());
+            if (!m_Transforms.IsCreated || orderVersion != m_TransformsOrderVersion)
             {
-                var idx = ChunkDataUtility.GetIndexInTypeArray(type->Archetype, transformIdx);
-                m_TypeManager.AddManagedObjectModificationListener(type->Archetype, idx, this);
-                m_TransformsDirty = true;
-            }
-            m_LastRegisteredListenerArchetype = m_ComponentGroupData.LastMatchingArchetype;
-
-            if (m_TransformsDirty)
-            {
+                m_TransformsOrderVersion = orderVersion;
                 UnityEngine.Profiling.Profiler.BeginSample("DirtyTransformAccessArrayUpdate");
                 var trans = GetComponentArray<Transform>();
                 if (!m_Transforms.IsCreated)
@@ -588,7 +567,6 @@ namespace Unity.ECS
                 UnityEngine.Profiling.Profiler.EndSample();
             }
 
-            m_TransformsDirty = false;
             return m_Transforms;
         }
 

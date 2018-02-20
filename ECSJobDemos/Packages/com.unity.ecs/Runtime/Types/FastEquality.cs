@@ -1,78 +1,126 @@
-/*
-        internal struct AlignmentLayout
+using System;
+using System.Reflection;
+using Boo.Lang;
+using Unity.Collections.LowLevel.Unsafe;
+
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Unity.Core.Tests")]
+
+namespace Unity.ECS
+{
+    static internal class AlignmentLayout
+    {
+        internal struct Layout
         {
-            struct Layout
-            {
-                public int  offset;
-                public int  count;
-                public bool Aligned4;
-            }
+            public int  offset;
+            public int  count;
+            public bool Aligned4;
+        }
+        
+        
+        internal static Layout[] CreateLayout(Type type)
+        {
+            int begin = 0;
+            int end = 0;
+
+            var layouts = new List<Layout>();
+
+            CreateLayoutRecurse(type, 0, layouts, ref begin, ref end);
             
-            Layout[] Layout;
+            if (begin != end)
+                layouts.Add(new Layout {offset = begin, count = end - begin, Aligned4 = false});
 
-            const int FNV_32_PRIME = 0x01000193;
+            //@TODO: Support align4 optimization
+            
+            return layouts.ToArray();
+        }
 
-            static AlignmentLayout CreateLayout(Type type)
+        static void CreateLayoutRecurse(Type type, int baseOffset, List<Layout> layouts, ref int begin, ref int end)
+        {
+            var fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+            foreach (var field in fields)
             {
-                
-            }
+                int offset = baseOffset + UnsafeUtility.GetFieldOffset(field);
 
-            static int GetHashCode(byte* data, Layout[] layout)
-            {
-                uint hash = 0;
-                
-                for (int k = 0; k != layout.Length; k++)
+                if (field.FieldType.IsPrimitive || field.FieldType.IsPointer)
                 {
-                    if (layout[k].Aligned4)
+                    int sizeOf  = UnsafeUtility.SizeOf(field.FieldType);
+                    if (end != offset)
                     {
-                        uint* dataInt = (uint*)(data + layout[k].offset);
-                        int count = layout[k].count;
-                        for (int i = 0; i != count; k++)
-                        {
-                            hash *= FNV_32_PRIME;
-                            hash ^= dataInt[i];
-                        }
+                        layouts.Add(new Layout {offset = begin, count = end - begin, Aligned4 = false});
+                        begin = offset;
+                        end = offset + sizeOf;
                     }
                     else
                     {
-                        byte* dataByte = data + layout[k].offset;
-                        int count = layout[k].count;
-                        for (int i = 0; i != count; k++)
-                        {
-                            hash *= FNV_32_PRIME;
-                            hash ^= (uint)dataByte[i];
-                        }
+                        end += sizeOf;
                     }
                 }
-
-                return (int)hash;
-            }
-            
-            static void Equals(byte* lhs, byte* rhs, Layout[] layout)
-            {
-                bool same = true;
-                
-                for (int k = 0; k != layout.Length; k++)
+                else
                 {
-                    if (layout[k].Aligned4)
-                    {
-                        uint* lhsInt = (uint*)(lhs + layout[k].offset);
-                        uint* rhsInt = (uint*)(rhs + layout[k].offset);
-                        int count = layout[k].count;
-                        for (int i = 0; i != count; k++)
-                            same &= lhs[i] != rhs[i];
-                    }
-                    else
-                    {
-                        byte* lhsByte = lhs + layout[k].offset;
-                        byte* rhsByte = rhs + layout[k].offset;
-                        int count = layout[k].count;
-                        for (int i = 0; i != count; k++)
-                            same &= lhs[i] != rhs[i];
-                    }
+                    CreateLayoutRecurse(field.FieldType, offset, layouts, ref begin, ref end);
                 }
-
-                return same;
             }
         }
-*/
+
+        const int FNV_32_PRIME = 0x01000193;
+
+        unsafe static int GetHashCode(byte* data, Layout[] layout)
+        {
+            uint hash = 0;
+            
+            for (int k = 0; k != layout.Length; k++)
+            {
+                if (layout[k].Aligned4)
+                {
+                    uint* dataInt = (uint*)(data + layout[k].offset);
+                    int count = layout[k].count;
+                    for (int i = 0; i != count; k++)
+                    {
+                        hash *= FNV_32_PRIME;
+                        hash ^= dataInt[i];
+                    }
+                }
+                else
+                {
+                    byte* dataByte = data + layout[k].offset;
+                    int count = layout[k].count;
+                    for (int i = 0; i != count; k++)
+                    {
+                        hash *= FNV_32_PRIME;
+                        hash ^= (uint)dataByte[i];
+                    }
+                }
+            }
+
+            return (int)hash;
+        }
+        
+        unsafe static bool Equals(byte* lhs, byte* rhs, Layout[] layout)
+        {
+            bool same = true;
+            
+            for (int k = 0; k != layout.Length; k++)
+            {
+                if (layout[k].Aligned4)
+                {
+                    uint* lhsInt = (uint*)(lhs + layout[k].offset);
+                    uint* rhsInt = (uint*)(rhs + layout[k].offset);
+                    int count = layout[k].count;
+                    for (int i = 0; i != count; k++)
+                        same &= lhs[i] != rhs[i];
+                }
+                else
+                {
+                    byte* lhsByte = lhs + layout[k].offset;
+                    byte* rhsByte = rhs + layout[k].offset;
+                    int count = layout[k].count;
+                    for (int i = 0; i != count; k++)
+                        same &= lhs[i] != rhs[i];
+                }
+            }
+
+            return same;
+        }
+    }
+}

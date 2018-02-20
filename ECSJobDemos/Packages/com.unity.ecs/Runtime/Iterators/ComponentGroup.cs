@@ -10,7 +10,7 @@ using TransformAccessArray = UnityEngine.Jobs.TransformAccessArray;
 
 namespace Unity.ECS
 {
-    public unsafe struct ComponentGroupData
+    unsafe struct ComponentGroupData
     {
         readonly EntityGroupData*             m_GroupData;
         readonly EntityDataManager*           m_EntityDataManager;

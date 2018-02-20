@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using UnityEngine.ECS;
+using Unity.ECS;
 using UnityEngine.Experimental.AI;
 
 public class CrowdSpawner : MonoBehaviour

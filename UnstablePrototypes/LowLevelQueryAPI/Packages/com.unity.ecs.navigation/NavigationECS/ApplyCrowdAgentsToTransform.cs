@@ -3,7 +3,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Jobs;
-using UnityEngine.ECS;
+using Unity.ECS;
 
 [UpdateAfter(typeof(CrowdSystem))]
 public class CrowdAgentsToTransformSystem : JobComponentSystem

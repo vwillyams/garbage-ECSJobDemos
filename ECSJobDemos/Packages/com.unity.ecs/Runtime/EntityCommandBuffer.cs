@@ -52,16 +52,16 @@ namespace Unity.ECS
             }
         }
 
-        private const int kDefaultMinimumChunkSize = 4 * 1024;
+        const int kDefaultMinimumChunkSize = 4 * 1024;
 
         [NativeDisableUnsafePtrRestriction]
-        private EntityCommandBufferData* m_Data;
+        EntityCommandBufferData* m_Data;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        private AtomicSafetyHandle m_Safety;
+        AtomicSafetyHandle m_Safety;
 
         [NativeSetClassTypeToNullOnSchedule]
-        private DisposeSentinel m_DisposeSentinel;
+        DisposeSentinel m_DisposeSentinel;
 #endif
 
         /// <summary>
@@ -204,7 +204,7 @@ namespace Unity.ECS
             m_Data->m_MinimumChunkSize = kDefaultMinimumChunkSize;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            DisposeSentinel.Create(out m_Safety, out m_DisposeSentinel, 1);
+            DisposeSentinel.Create(out m_Safety, out m_DisposeSentinel, 0);
 #endif
         }
 

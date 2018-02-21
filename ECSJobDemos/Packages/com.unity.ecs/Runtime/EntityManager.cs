@@ -2,8 +2,11 @@
 using Unity.Collections.LowLevel.Unsafe;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Unity.Jobs;
 using Unity.Assertions;
+
+[assembly:InternalsVisibleTo("Unity.Core.Hybrid")]
 
 namespace Unity.ECS
 {
@@ -59,6 +62,8 @@ namespace Unity.ECS
         internal EntityDataManager* Entities => m_Entities;
         internal ArchetypeManager ArchetypeManager => m_ArchetypeManager;
 
+        internal List<ComponentDataWrapperBase>    m_CachedComponentList;
+        
         protected override void OnBeforeCreateManagerInternal(World world, int capacity) { }
         protected override void OnBeforeDestroyManagerInternal() { }
         protected override void OnAfterDestroyManagerInternal() { }
@@ -67,6 +72,8 @@ namespace Unity.ECS
         {
             TypeManager.Initialize();
 
+            m_CachedComponentList = new List<ComponentDataWrapperBase>();
+            
             m_Entities = (EntityDataManager*)UnsafeUtility.Malloc(sizeof(EntityDataManager), 64, Allocator.Persistent);
             m_Entities->OnCreate(capacity);
 
@@ -128,12 +135,12 @@ namespace Unity.ECS
             return count + 1;
         }
 
-        int PopulatedCachedTypeInArchetypeArray(ComponentType[] requiredComponents)
+        int PopulatedCachedTypeInArchetypeArray(ComponentType* requiredComponents, int count)
         {
             m_CachedComponentTypeInArchetypeArray[0] = new ComponentTypeInArchetype(ComponentType.Create<Entity>());
-            for (var i = 0; i < requiredComponents.Length; ++i)
+            for (var i = 0; i < count; ++i)
                 SortingUtilities.InsertSorted(m_CachedComponentTypeInArchetypeArray, i + 1, requiredComponents[i]);
-            return requiredComponents.Length + 1;
+            return count + 1;
         }
 
         public ComponentGroup CreateComponentGroup(ComponentType* requiredComponents, int count)
@@ -156,9 +163,9 @@ namespace Unity.ECS
             }
         }
 
-        public EntityArchetype CreateArchetype(params ComponentType[] types)
+        internal EntityArchetype CreateArchetype(ComponentType* types, int count)
         {
-            var cachedComponentCount = PopulatedCachedTypeInArchetypeArray(types);
+            var cachedComponentCount = PopulatedCachedTypeInArchetypeArray(types, count);
 
             // Lookup existing archetype (cheap)
             EntityArchetype entityArchetype;
@@ -172,6 +179,14 @@ namespace Unity.ECS
 
             entityArchetype.Archetype = m_ArchetypeManager.GetOrCreateArchetype(m_CachedComponentTypeInArchetypeArray, cachedComponentCount, m_GroupManager);
             return entityArchetype;
+        }
+
+        public EntityArchetype CreateArchetype(params ComponentType[] types)
+        {
+            fixed (ComponentType* typesPtr = types)
+            {
+                return CreateArchetype(typesPtr, types.Length);
+            }
         }
 
         public void CreateEntity(EntityArchetype archetype, NativeArray<Entity> entities)

@@ -24,6 +24,20 @@ namespace UnityEditor.ECS
 
         private string[] worldNames => (from x in World.AllWorlds select x.Name).ToArray();
 
+        private void SelectWorldByName(string name)
+        {
+            foreach (var world in World.AllWorlds)
+            {
+                if (world.Name == name)
+                {
+                    selectedWorld = world;
+                    return;
+                }
+            }
+
+            selectedWorld = null;
+        }
+        
         private World selectedWorld
         {
             get { return m_SelectedWorld; }
@@ -32,12 +46,15 @@ namespace UnityEditor.ECS
                 if (m_SelectedWorld != value)
                 {
                     m_SelectedWorld = value;
+                    if (m_SelectedWorld != null)
+                        lastSelectedWorldName = m_SelectedWorld.Name;
                     systemListView.SetWorld(m_SelectedWorld);
                 }
             }
         }
 
         private World m_SelectedWorld;
+        [SerializeField] private string lastSelectedWorldName;
 
         private int selectedWorldIndex
         {
@@ -58,7 +75,7 @@ namespace UnityEditor.ECS
             systemListView = new GroupedSystemListView(systemListState, this);
         }
 
-        void WorldPopup()
+        void WorldPopup(bool worldsAppeared)
         {
             if (!worldsExist)
             {
@@ -69,6 +86,8 @@ namespace UnityEditor.ECS
             }
             else
             {
+                if (worldsAppeared && selectedWorld == null)
+                    SelectWorldByName(lastSelectedWorldName);
                 selectedWorldIndex = EditorGUILayout.Popup(selectedWorldIndex, worldNames);
             }
         }
@@ -95,7 +114,7 @@ namespace UnityEditor.ECS
             GUILayout.BeginHorizontal();
             GUILayout.Label("Systems", EditorStyles.boldLabel);
             GUILayout.FlexibleSpace();
-            WorldPopup();
+            WorldPopup(worldsAppeared);
             GUILayout.EndHorizontal();
             
             GUILayout.BeginVertical(GUI.skin.box);

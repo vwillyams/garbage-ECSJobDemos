@@ -95,6 +95,7 @@ namespace UnityEditor.ECS
         public GroupedSystemListView(TreeViewState state, MultiColumnHeader header, ISystemSelectionWindow window) : base(state, header)
         {
             this.window = window;
+            columnIndexForTreeFoldouts = 1;
             Reload();
         }
 
@@ -182,16 +183,18 @@ namespace UnityEditor.ECS
             if (args.item.depth == -1)
                 return;
             var item = args.item;
-            var manager = managersByID[item.id];
 
-            if (manager != null)
+            if (managersByID.ContainsKey(item.id))
             {
+                var manager = managersByID[item.id];
                 var toggleRect = args.GetCellRect(0);
                 toggleRect.xMin = toggleRect.xMin + 4f;
                 manager.Enabled = GUI.Toggle(toggleRect, manager.Enabled, GUIContent.none);
             }
 
+            var indent = GetContentIndent(item);
             var nameRect = args.GetCellRect(1);
+            nameRect.xMin = nameRect.xMin + indent;
             GUI.Label(nameRect, item.displayName);
         }
 

@@ -72,7 +72,8 @@ namespace UnityEditor.ECS
 
         void OnEnable()
         {
-            systemListView = new GroupedSystemListView(systemListState, this);
+            var systemListHeader = new MultiColumnHeader(GroupedSystemListView.GetHeaderState());
+            systemListView = new GroupedSystemListView(systemListState, systemListHeader, this);
         }
 
         void WorldPopup(bool worldsAppeared)
@@ -98,11 +99,13 @@ namespace UnityEditor.ECS
             }
         }
 
-        void SystemList()
+        void SystemList(bool worldsAppeared)
         {
             var rect = GUIHelpers.GetExpandingRect();
             if (worldsExist)
             {
+                if (worldsAppeared)
+                    systemListView.multiColumnHeader.ResizeToFit();
                 systemListView.OnGUI(rect);
             }
             else
@@ -124,8 +127,7 @@ namespace UnityEditor.ECS
             GUILayout.EndHorizontal();
             
             GUILayout.BeginVertical(GUI.skin.box);
-            SystemList();
-            
+            SystemList(worldsAppeared);
             GUILayout.EndVertical();
         }
     }

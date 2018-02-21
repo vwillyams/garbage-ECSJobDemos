@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Unity.ECS;
+using UnityEngine;
 
 namespace UnityEditor.ECS
 {
@@ -22,7 +23,43 @@ namespace UnityEditor.ECS
 
         private World world;
 
+        private const float kToggleWidth = 22f;
+
         readonly ISystemSelectionWindow window;
+
+        public static MultiColumnHeaderState GetHeaderState()
+        {
+            var columns = new[]
+            {
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = GUIContent.none,
+                    contextMenuText = "Enabled",
+                    headerTextAlignment = TextAlignment.Left,
+                    canSort = false,
+                    width = kToggleWidth,
+                    minWidth = kToggleWidth,
+                    maxWidth = kToggleWidth,
+                    autoResize = false,
+                    allowToggleVisibility = false
+                },
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("System Name"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Right,
+                    canSort = true,
+                    sortedAscending = true,
+                    width = 100,
+                    minWidth = 100,
+                    maxWidth = 2000,
+                    autoResize = true,
+                    allowToggleVisibility = false
+                }
+            };
+            
+            return new MultiColumnHeaderState(columns);
+        }
 
         public static TreeViewState GetStateForWorld(World world, ref List<TreeViewState> states,
             ref List<string> stateNames)
@@ -35,7 +72,7 @@ namespace UnityEditor.ECS
                 states = new List<TreeViewState>();
                 stateNames = new List<string>();
             }
-            var currentWorldName = world.GetType().Name.ToString();
+            var currentWorldName = world.GetType().Name;
 
             TreeViewState stateForCurrentWorld = null;
             for (var i = 0; i < states.Count; ++i)
@@ -55,7 +92,7 @@ namespace UnityEditor.ECS
             return stateForCurrentWorld;
         }
 
-        public GroupedSystemListView(TreeViewState state, ISystemSelectionWindow window) : base(state)
+        public GroupedSystemListView(TreeViewState state, MultiColumnHeader header, ISystemSelectionWindow window) : base(state, header)
         {
             this.window = window;
             Reload();
@@ -138,6 +175,24 @@ namespace UnityEditor.ECS
                 SetupDepthsFromParentsAndChildren(root);
             }
             return root;
+        }
+
+        protected override void RowGUI (RowGUIArgs args)
+        {
+            if (args.item.depth == -1)
+                return;
+            var item = args.item;
+            var manager = managersByID[item.id];
+
+            if (manager != null)
+            {
+                var toggleRect = args.GetCellRect(0);
+                toggleRect.xMin = toggleRect.xMin + 4f;
+                manager.Enabled = GUI.Toggle(toggleRect, manager.Enabled, GUIContent.none);
+            }
+
+            var nameRect = args.GetCellRect(1);
+            GUI.Label(nameRect, item.displayName);
         }
 
         protected override void SelectionChanged(IList<int> selectedIds)

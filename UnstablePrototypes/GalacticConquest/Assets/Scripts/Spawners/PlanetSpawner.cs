@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Data;
+using Unity.ECS;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.ECS;
 
 public class PlanetSpawner : MonoBehaviour
 {
@@ -76,8 +76,8 @@ public class PlanetSpawner : MonoBehaviour
             entities[planetEntity] = go;
             SetColor(planetEntity, planetData.TeamOwnership);
 
-            _entityManager.AddComponent(planetEntity, planetData);
-            _entityManager.AddComponent(meshEntity, rotationData);
+            _entityManager.AddComponentData(planetEntity, planetData);
+            _entityManager.AddComponentData(meshEntity, rotationData);
         }
     }
 

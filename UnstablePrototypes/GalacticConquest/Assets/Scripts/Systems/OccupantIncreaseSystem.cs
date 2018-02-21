@@ -1,6 +1,6 @@
 ﻿using Data;
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.ECS;
 
 namespace Systems
 {

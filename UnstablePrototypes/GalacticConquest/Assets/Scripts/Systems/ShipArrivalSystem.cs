@@ -1,14 +1,12 @@
-﻿using System.Collections.Generic;
-using Data;
+﻿using Data;
 using Unity.Collections;
+using Unity.ECS;
 using UnityEngine;
-using UnityEngine.ECS;
-using UnityEngine.ECS.Rendering;
-using UnityEngine.Jobs;
+using Unity.Rendering.Hybrid;
 
 namespace Systems
 {
-    [UpdateAfter(typeof(InstanceRendererSystem))]
+    [UpdateAfter(typeof(MeshInstanceRendererSystem))]
     public class ShipArrivalSystem : ComponentSystem
     {
         private EntityManager _entityManager;
@@ -55,7 +53,7 @@ namespace Systems
             {
 
                 var shipData = arrivingShipData[shipIndex];
-                var planetData = _entityManager.GetComponent<PlanetData>(shipData.TargetEntity);
+                var planetData = _entityManager.GetComponentData<PlanetData>(shipData.TargetEntity);
 
                 if (shipData.TeamOwnership != planetData.TeamOwnership)
                 {
@@ -70,7 +68,7 @@ namespace Systems
                 {
                     planetData.Occupants = planetData.Occupants + 1;
                 }
-                _entityManager.SetComponent(shipData.TargetEntity, planetData);
+                _entityManager.SetComponentData(shipData.TargetEntity, planetData);
             }
             _entityManager.DestroyEntity(arrivingShipEntities);
         }

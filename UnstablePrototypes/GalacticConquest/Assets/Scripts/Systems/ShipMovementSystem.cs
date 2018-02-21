@@ -1,16 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using Data;
 using Unity.Collections;
+using Unity.ECS;
 using Unity.Jobs;
-using Unity.Mathematics;
+using Unity.Transforms;
 using UnityEngine;
-using UnityEngine.ECS;
-using UnityEngine.ECS.Transform;
-using UnityEngine.Jobs;
-using Debug = UnityEngine.Debug;
-using Object = UnityEngine.Object;
 
 namespace Systems
 {
@@ -27,7 +21,7 @@ namespace Systems
         struct Ships
         {
             public int Length;
-            public ComponentDataArray<TransformPosition> Transforms;
+            public ComponentDataArray<Position> Transforms;
             public ComponentDataArray<ShipData> Data;
             public EntityArray Entities;
         }
@@ -44,7 +38,7 @@ namespace Systems
             [ReadOnly]
             public ComponentDataArray<ShipData> Ships;
             public EntityArray Entities;
-            public ComponentDataArray<TransformPosition> Transforms;
+            public ComponentDataArray<Position> Transforms;
 
             [ReadOnly] public ComponentDataArray<PlanetData> Planets;
             [ReadOnly] public ComponentDataFromEntity<PlanetData> TargetPlanet;
@@ -57,7 +51,7 @@ namespace Systems
                 var targetPosition = TargetPlanet[shipData.TargetEntity].Position;
                 var transform = Transforms[index];
 
-                var newPos = Vector3.MoveTowards(transform.position, targetPosition, DeltaTime);
+                var newPos = Vector3.MoveTowards(transform.Value, targetPosition, DeltaTime);
 
                 for (var planetIndex = 0; planetIndex < Planets.Length; planetIndex++)
                 {
@@ -73,7 +67,7 @@ namespace Systems
                         break;
                     }
                 }
-                transform.position = newPos;
+                transform.Value = newPos;
                 Transforms[index] = transform;
             }
         }
@@ -91,7 +85,7 @@ namespace Systems
             {
                 Ships = _ships.Data,
                 Planets = _planets.Data,
-                TargetPlanet = _entitymanager.GetComponentDataFromEntity<PlanetData>(),
+                TargetPlanet = _entitymanager.GetComponentData<PlanetData>(),
                 DeltaTime = Time.deltaTime,
                 Entities = _ships.Entities,
                 Transforms = _ships.Transforms,

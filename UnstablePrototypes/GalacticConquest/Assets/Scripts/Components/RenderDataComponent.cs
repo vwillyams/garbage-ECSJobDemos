@@ -1,5 +1,5 @@
 ﻿using Data;
-using UnityEngine.ECS;
+using Unity.ECS;
 
 namespace Components
 {

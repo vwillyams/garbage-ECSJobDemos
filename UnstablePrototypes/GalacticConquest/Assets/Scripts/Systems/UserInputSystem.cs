@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Data;
+using Unity.ECS;
 using UnityEngine;
-using UnityEngine.ECS;
 
 namespace Systems
 {
@@ -38,7 +38,7 @@ namespace Systems
                     else
                     {
                         var entity = planet.GetComponent<GameObjectEntity>().Entity;
-                        var data = _entityManager.GetComponent<PlanetData>(entity);
+                        var data = _entityManager.GetComponentData<PlanetData>(entity);
                         var previousTarget = FromTargets.Values.FirstOrDefault();
                         if ((previousTarget == null || previousTarget.Value.TeamOwnership == data.TeamOwnership) && data.TeamOwnership != 0)
                         {
@@ -86,7 +86,7 @@ namespace Systems
                             continue;
                         var entity = p.GetComponent<GameObjectEntity>().Entity;
                         var meshComponent = p.GetComponentsInChildren<GameObjectEntity>().First(c => c.gameObject != p.gameObject);
-                        var occupantData = _entityManager.GetComponent<PlanetData>(entity);
+                        var occupantData = _entityManager.GetComponentData<PlanetData>(entity);
                         var targetEntity = ToTarget.GetComponent<GameObjectEntity>().Entity;
                         var launchData = new PlanetShipLaunchData
                         {
@@ -98,13 +98,13 @@ namespace Systems
                         };
 
                         occupantData.Occupants = 0;
-                        _entityManager.SetComponent(entity, occupantData);
+                        _entityManager.SetComponentData(entity, occupantData);
                         if (_entityManager.HasComponent<PlanetShipLaunchData>(entity))
                         {
-                            _entityManager.SetComponent(entity, launchData);
+                            _entityManager.SetComponentData(entity, launchData);
                             continue;
                         }
-                        _entityManager.AddComponent(entity, launchData);
+                        _entityManager.AddComponentData(entity, launchData);
                     }
                 }
             }

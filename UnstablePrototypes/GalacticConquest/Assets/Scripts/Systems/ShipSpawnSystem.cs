@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using Data;
 using Other;
 using Unity.Collections;
+using Unity.ECS;
+using Unity.Transforms;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.ECS;
-using UnityEngine.ECS.Transform;
 using Random = UnityEngine.Random;
 
 namespace Systems
@@ -69,7 +68,7 @@ namespace Systems
 
                 if (deltaSpawn < shipsToSpawn)
                     shipsToSpawn = deltaSpawn;
-                var targetPlanet = _entityManager.GetComponent<PlanetData>(planetLaunchData.TargetEntity);
+                var targetPlanet = _entityManager.GetComponentData<PlanetData>(planetLaunchData.TargetEntity);
                 var planetDistance = Vector3.Distance(planetPos, targetPlanet.Position);
                 for (shipCount = 0; shipCount < shipsToSpawn; shipCount++)
                 {
@@ -108,19 +107,19 @@ namespace Systems
                     TargetEntity = _shipsToSpawn[i].TargetEntity,
                     TeamOwnership = _shipsToSpawn[i].TeamOwnership
                 };
-                _entityManager.AddComponent(entities[i], data);
-                var spawnPosition = new TransformPosition
+                _entityManager.AddComponentData(entities[i], data);
+                var spawnPosition = new Position
                 {
-                    position = _shipsToSpawn[i].SpawnPosition
+                    Value = _shipsToSpawn[i].SpawnPosition
                 };
 
                 var transformMatix = new TransformMatrix
                 {
-                    matrix = math.scale(new float3(0.02f, 0.02f, 0.02f))
+                    Value = math.scale(new float3(0.02f, 0.02f, 0.02f))
                 };
 
-                _entityManager.SetComponent(entities[i], transformMatix);
-                _entityManager.SetComponent(entities[i], spawnPosition);
+                _entityManager.SetComponentData(entities[i], transformMatix);
+                _entityManager.SetComponentData(entities[i], spawnPosition);
 
             }
             entities.Dispose();

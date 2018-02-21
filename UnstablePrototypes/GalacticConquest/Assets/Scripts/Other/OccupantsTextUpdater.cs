@@ -1,7 +1,6 @@
-﻿using Components;
-using Data;
+﻿using Data;
+using Unity.ECS;
 using UnityEngine;
-using UnityEngine.ECS;
 
 namespace Other
 {
@@ -22,7 +21,7 @@ namespace Other
 
         private void Update()
         {
-            var data = _entityManager.GetComponent<PlanetData>(_planetEntity);
+            var data = _entityManager.GetComponentData<PlanetData>(_planetEntity);
             if (data.Occupants == LastOccupantCount)
                 return;
             LastOccupantCount = data.Occupants;

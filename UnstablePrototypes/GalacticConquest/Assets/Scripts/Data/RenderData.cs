@@ -1,7 +1,6 @@
 ﻿using System;
-using Unity.Mathematics;
+using Unity.ECS;
 using UnityEngine;
-using UnityEngine.ECS;
 
 namespace Data
 {

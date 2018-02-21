@@ -5,6 +5,7 @@ using Unity.Mathematics;
 using UnityEngine.ECS.SpawnerShim;
 using Unity.Transforms;
 using UnityEngine.ECS.Utilities;
+using Unity.Core.Hybrid;
 
 namespace ECS.Spawners
 {

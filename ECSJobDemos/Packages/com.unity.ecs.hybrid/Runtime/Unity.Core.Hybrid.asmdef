@@ -1,5 +1,5 @@
 {
-    "name": "Unity.ECS.Hybrid",
+    "name": "Unity.Core.Hybrid",
     "references": [
         "Unity.Core",
         "Unity.Collections",
@@ -7,5 +7,6 @@
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],
-    "excludePlatforms": []
+    "excludePlatforms": [],
+	"allowUnsafeCode": true
 }

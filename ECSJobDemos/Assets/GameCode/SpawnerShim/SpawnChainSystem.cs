@@ -5,6 +5,7 @@ using Unity.Mathematics;
 using UnityEngine.ECS.SimpleMovement;
 using UnityEngine.ECS.SpawnerShim;
 using Unity.Transforms;
+using Unity.Core.Hybrid;
 
 namespace ECS.Spawners
 {
@@ -19,7 +20,7 @@ namespace ECS.Spawners
         }
 
         ComponentGroup m_MainGroup;
-        
+
         protected override void OnCreateManager(int capacity)
         {
             m_MainGroup  = GetComponentGroup(typeof(SpawnChain),typeof(Position));

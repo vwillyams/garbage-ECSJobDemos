@@ -32,7 +32,7 @@ namespace Unity.ECS
 
         public ComponentGroup[] 			ComponentGroups => m_ComponentGroups;
 
-        protected bool ShouldRunSystem()
+        public bool ShouldRunSystem()
         {
             if (m_HasDisableSystemIfEmpty)
             {

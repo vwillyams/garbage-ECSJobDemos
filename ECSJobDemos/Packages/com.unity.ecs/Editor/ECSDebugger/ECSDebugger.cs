@@ -16,13 +16,29 @@ namespace UnityEditor.ECS
             GetWindow<ECSDebugger>("ECS Debugger");
         }
 
+        private static GUIStyle Box
+        {
+            get
+            {
+                if (box == null)
+                {
+                    box = new GUIStyle(GUI.skin.box);
+                    box.margin = new RectOffset();
+                    box.padding = new RectOffset(1, 1, 1, 1);
+                }
+
+                return box;
+            }
+        }
+
+        private static GUIStyle box;
+
         public ScriptBehaviourManager SystemSelection
         {
             get { return systemSelection; }
             set
             {
                 systemSelection = value;
-                UnityEngine.Debug.Log($"Selecting system {value.GetType().Name}");
                 componentListView.SelectedSystem = systemSelection as ComponentSystemBase;
             }
         }
@@ -88,6 +104,7 @@ namespace UnityEditor.ECS
         private bool worldsExist;
 
         private readonly string[] noWorldsName = new[] {"No worlds"};
+        private bool worldsAppeared;
 
         void OnEnable()
         {
@@ -97,7 +114,7 @@ namespace UnityEditor.ECS
                 new ComponentGroupIntegratedListView(componentListState, this, SystemSelection as ComponentSystemBase);
         }
 
-        void WorldPopup(bool worldsAppeared)
+        void WorldPopup()
         {
             if (!worldsExist)
             {
@@ -120,7 +137,7 @@ namespace UnityEditor.ECS
             }
         }
 
-        void SystemList(bool worldsAppeared)
+        void SystemList()
         {
             var rect = GUIHelpers.GetExpandingRect();
             if (worldsExist)
@@ -137,8 +154,28 @@ namespace UnityEditor.ECS
 
         void SystemHeader()
         {
+
             GUILayout.BeginHorizontal();
-            GUILayout.Label(SystemSelection.GetType().FullName, EditorStyles.boldLabel);
+            GUILayout.Label("Systems", EditorStyles.boldLabel);
+            GUILayout.FlexibleSpace();
+            AlignHeader(WorldPopup);
+            GUILayout.EndHorizontal();
+        }
+
+        void EntityHeader()
+        {
+            GUILayout.BeginHorizontal();
+            var type = systemSelection.GetType();
+            AlignHeader(() => GUILayout.Label(type.Namespace, EditorStyles.label));
+            GUILayout.Label(type.Name, EditorStyles.boldLabel);
+            if (SystemSelection is ComponentSystemBase)
+            {
+                GUILayout.FlexibleSpace();
+
+                var system = (ComponentSystemBase) SystemSelection;
+                var running = system.Enabled && system.ShouldRunSystem();
+                AlignHeader(() => GUILayout.Label($"running: {running}"));
+            }
             GUILayout.EndHorizontal();
         }
 
@@ -147,23 +184,27 @@ namespace UnityEditor.ECS
             componentListView.OnGUI(GUIHelpers.GetExpandingRect());
         }
 
+        void AlignHeader(System.Action action)
+        {
+            GUILayout.BeginVertical();
+            GUILayout.Space(6f);
+            action();
+            GUILayout.EndVertical();
+        }
+
         void OnGUI()
         {
             var worldsExisted = worldsExist;
             worldsExist = World.AllWorlds.Count > 0;
-            var worldsAppeared = !worldsExisted && worldsExist;
+            worldsAppeared = !worldsExisted && worldsExist;
             
             GUILayout.BeginHorizontal();
             
             GUILayout.BeginVertical(GUILayout.Width(kSystemListWidth)); // begin System List
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Systems", EditorStyles.boldLabel);
-            GUILayout.FlexibleSpace();
-            WorldPopup(worldsAppeared);
-            GUILayout.EndHorizontal();
+            SystemHeader();
             
-            GUILayout.BeginVertical(GUI.skin.box);
-            SystemList(worldsAppeared);
+            GUILayout.BeginVertical();
+            SystemList();
             GUILayout.EndVertical();
             
             GUILayout.EndVertical(); // end System List
@@ -172,9 +213,9 @@ namespace UnityEditor.ECS
 
             if (SystemSelection != null)
             {
-                SystemHeader();
+                EntityHeader();
             
-                GUILayout.BeginVertical(GUI.skin.box);
+                GUILayout.BeginVertical(Box);
                 ComponentList();
                 GUILayout.EndVertical();
             }

@@ -7,7 +7,7 @@ using UnityEditor.IMGUI.Controls;
 
 namespace UnityEditor.ECS
 {
-    public class ECSDebugger : EditorWindow {
+    public class ECSDebugger : EditorWindow, ISystemSelectionWindow {
 
         [MenuItem("Window/ECS Debugger", false, 2017)]
         static void OpenWindow()
@@ -15,24 +15,91 @@ namespace UnityEditor.ECS
             GetWindow<ECSDebugger>("ECS Debugger");
         }
 
+        public ScriptBehaviourManager SystemSelection { get; set; }
+
         [SerializeField]
-        private TreeViewState systemListState;
+        private TreeViewState systemListState = new TreeViewState();
         
-        private SystemListView systemListView;
+        private GroupedSystemListView systemListView;
+
+        private string[] worldNames => (from x in World.AllWorlds select x.Name).ToArray();
+
+        private World selectedWorld
+        {
+            get { return m_SelectedWorld; }
+            set
+            {
+                if (m_SelectedWorld != value)
+                {
+                    m_SelectedWorld = value;
+                    systemListView.SetWorld(m_SelectedWorld);
+                }
+            }
+        }
+
+        private World m_SelectedWorld;
+
+        private int selectedWorldIndex
+        {
+            get { return World.AllWorlds.IndexOf(selectedWorld); }
+            set
+            {
+                if (value >= 0 && value < World.AllWorlds.Count)
+                    selectedWorld = World.AllWorlds[value];
+            }
+        }
+
+        private bool worldsExist;
+
+        private readonly string[] noWorldsName = new[] {"No worlds"};
 
         void OnEnable()
         {
-//            systemListView = new SystemListView(systemListState, );
+            systemListView = new GroupedSystemListView(systemListState, this);
+        }
+
+        void WorldPopup()
+        {
+            if (!worldsExist)
+            {
+                var guiEnabled = GUI.enabled;
+                GUI.enabled = false;
+                EditorGUILayout.Popup(0, noWorldsName);
+                GUI.enabled = guiEnabled;
+            }
+            else
+            {
+                selectedWorldIndex = EditorGUILayout.Popup(selectedWorldIndex, worldNames);
+            }
+        }
+
+        void SystemList()
+        {
+            var rect = GUIHelpers.GetExpandingRect();
+            if (worldsExist)
+            {
+                systemListView.OnGUI(rect);
+            }
+            else
+            {
+                GUIHelpers.ShowCenteredNotification(rect, "No systems (Try pushing Play)");
+            }
         }
 
         void OnGUI()
         {
+            var worldsExisted = worldsExist;
+            worldsExist = World.AllWorlds.Count > 0;
+            var worldsAppeared = !worldsExisted && worldsExist;
+            
+            GUILayout.BeginHorizontal();
             GUILayout.Label("Systems", EditorStyles.boldLabel);
+            GUILayout.FlexibleSpace();
+            WorldPopup();
+            GUILayout.EndHorizontal();
             
-            
-            
-            GUILayout.BeginVertical();
-            GUI.Label(GUIHelpers.GetExpandingRect(), "", GUI.skin.box);
+            GUILayout.BeginVertical(GUI.skin.box);
+            SystemList();
             
             GUILayout.EndVertical();
         }

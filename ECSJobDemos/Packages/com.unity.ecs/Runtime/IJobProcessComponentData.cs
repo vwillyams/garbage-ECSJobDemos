@@ -13,7 +13,7 @@ using Unity.Collections;
 namespace Unity.ECS
 {
     [AttributeUsage(AttributeTargets.Struct)]
-    public class RequireComponentTagAttribute : System.Attribute
+    public class RequireComponentTagAttribute : Attribute
     {
         public Type[] TagComponents;
 
@@ -24,7 +24,7 @@ namespace Unity.ECS
     }
 
     [AttributeUsage(AttributeTargets.Struct)]
-    public class RequireSubtractiveComponentAttribute : System.Attribute
+    public class RequireSubtractiveComponentAttribute : Attribute
     {
         public Type[] SubtractiveComponents;
 
@@ -44,7 +44,7 @@ namespace Unity.ECS
     public interface IBaseJobProcessComponentData
     {
     }
-    
+
     //@TODO: It would be nice to get rid of these interfaces completely.
     //Right now implementation needs it, but they pollute public API in annoying ways.
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -82,28 +82,28 @@ namespace Unity.ECS
     {
         void Execute(ref T0 data0, ref T1 data1, ref T2 data2);
     }
-    
+
     struct JobProcessComponentDataCache
     {
         public IntPtr              JobReflectionData;
         public ComponentType[]     Types;
 
         public int                 ProcessTypesCount;
-            
+
         public ComponentGroup      ComponentGroup;
         public ComponentSystemBase ComponentSystem;
     }
-        
+
     [NativeContainer]
     [NativeContainerSupportsMinMaxWriteRestriction]
-    
+
     [StructLayout(LayoutKind.Sequential)]
     struct ProcessIterationData
     {
         public ComponentChunkIterator    Iterator0;
         public ComponentChunkIterator    Iterator1;
         public ComponentChunkIterator    Iterator2;
-            
+
         public int                 IsReadOnly0;
         public int                 IsReadOnly1;
         public int                 IsReadOnly2;
@@ -114,7 +114,7 @@ namespace Unity.ECS
 
         public int m_MinIndex;
         public int m_MaxIndex;
-            
+
 #pragma warning disable 414
         public int                         m_SafetyReadOnlyCount;
         public int                         m_SafetyReadWriteCount;
@@ -124,7 +124,7 @@ namespace Unity.ECS
 #pragma warning restore
 #endif
     }
-    
+
     static class IJobProcessComponentDataUtility
     {
         public static ComponentType[] GetComponentTypes(Type jobType)
@@ -142,14 +142,14 @@ namespace Unity.ECS
         static ComponentType[] GetComponentTypes(Type jobType, Type interfaceType, out int processCount)
         {
             var genericArgs = interfaceType.GetGenericArguments();
-        
+
             var executeMethodParameters = jobType.GetMethod("Execute").GetParameters();
 
             var componentTypes = new List<ComponentType>();
 
-            for (int i = 0; i < genericArgs.Length; i++)
+            for (var i = 0; i < genericArgs.Length; i++)
             {
-                bool isReadonly = executeMethodParameters[i].GetCustomAttributes(typeof(ReadOnlyAttribute)).Count() != 0 || executeMethodParameters[i].GetCustomAttributes(typeof(IsReadOnlyAttribute)).Count() != 0;
+                var isReadonly = executeMethodParameters[i].GetCustomAttributes(typeof(ReadOnlyAttribute)).Count() != 0 || executeMethodParameters[i].GetCustomAttributes(typeof(IsReadOnlyAttribute)).Count() != 0;
                 componentTypes.Add(new ComponentType(genericArgs[i], isReadonly ? ComponentType.AccessMode.ReadOnly : ComponentType.AccessMode.ReadWrite));
             }
 
@@ -163,7 +163,7 @@ namespace Unity.ECS
             var requiredTags = jobType.GetCustomAttribute<RequireComponentTagAttribute>();
             if (requiredTags != null)
             {
-                //@TODO: Add Special component type which doesn't capture job dependencies... 
+                //@TODO: Add Special component type which doesn't capture job dependencies...
                 foreach (var type in requiredTags.TagComponents)
                     componentTypes.Add(ComponentType.ReadOnly(type));
             }
@@ -175,14 +175,14 @@ namespace Unity.ECS
         static IntPtr GetJobReflection(Type jobType, Type wrapperJobType, Type interfaceType)
         {
             var genericArgs = interfaceType.GetGenericArguments();
-            
+
             var jobTypeAndGenericArgs = new List<Type>();
             jobTypeAndGenericArgs.Add(jobType);
             jobTypeAndGenericArgs.AddRange(genericArgs);
             var resolvedWrapperJobType = wrapperJobType.MakeGenericType(jobTypeAndGenericArgs.ToArray());
-                    
+
             var reflectionDataRes = resolvedWrapperJobType.GetMethod("Initialize").Invoke(null, null);
-            return (IntPtr)reflectionDataRes;  
+            return (IntPtr)reflectionDataRes;
         }
 
         static Type GetIJobProcessComponentDataInterface(Type jobType)
@@ -195,19 +195,19 @@ namespace Unity.ECS
 
             return null;
         }
-        
+
         unsafe internal static void Initialize(ComponentSystemBase system, Type jobType, Type wrapperJobType, ref JobProcessComponentDataCache cache, out ProcessIterationData iterator)
         {
             if (cache.JobReflectionData == IntPtr.Zero)
             {
                 var iType = GetIJobProcessComponentDataInterface(jobType);
-                cache.JobReflectionData = GetJobReflection(jobType, wrapperJobType, iType);  
+                cache.JobReflectionData = GetJobReflection(jobType, wrapperJobType, iType);
                 cache.Types = GetComponentTypes(jobType, iType, out cache.ProcessTypesCount);
 
                 Assert.AreNotEqual(null, wrapperJobType );
                 Assert.AreNotEqual(null, iType);
             }
-            
+
             if (cache.ComponentSystem != system)
             {
                 cache.ComponentGroup = system.GetComponentGroup(cache.Types);
@@ -215,40 +215,40 @@ namespace Unity.ECS
             }
 
             var group = cache.ComponentGroup;
-            
+
             // Readonly
             iterator.IsReadOnly0 = iterator.IsReadOnly1 = iterator.IsReadOnly2 = 0;
             fixed (int* isReadOnly = &iterator.IsReadOnly0)
             {
-                for (int i = 0; i != cache.ProcessTypesCount; i++)
-                    isReadOnly[i] = cache.Types[i].AccessModeType == ComponentType.AccessMode.ReadOnly ? 1 : 0; 
+                for (var i = 0; i != cache.ProcessTypesCount; i++)
+                    isReadOnly[i] = cache.Types[i].AccessModeType == ComponentType.AccessMode.ReadOnly ? 1 : 0;
             }
-            
+
             // Iterator & length
             iterator.Iterator0 = default(ComponentChunkIterator);
             iterator.Iterator1 = default(ComponentChunkIterator);
             iterator.Iterator2 = default(ComponentChunkIterator);
-            int length = -1;
+            var length = -1;
             fixed (ComponentChunkIterator* iterators = &iterator.Iterator0)
             {
-                for (int i = 0; i != cache.ProcessTypesCount; i++)
+                for (var i = 0; i != cache.ProcessTypesCount; i++)
                 {
                     group.GetComponentChunkIterator(out length, out iterators[i]);
                     iterators[i].IndexInComponentGroup = group.GetIndexInComponentGroup(cache.Types[i].TypeIndex);
                 }
             }
-            
+
             iterator.m_Length = length;
             iterator.m_MaxIndex = length-1;
             iterator.m_MinIndex = 0;
 
             // Safety
             iterator.m_Safety0 = iterator.m_Safety1 = iterator.m_Safety2 = default(AtomicSafetyHandle);
-            
+
             iterator.m_SafetyReadOnlyCount = 0;
             fixed (AtomicSafetyHandle* safety = &iterator.m_Safety0)
             {
-                for (int i = 0; i != cache.ProcessTypesCount; i++)
+                for (var i = 0; i != cache.ProcessTypesCount; i++)
                 {
                     if (cache.Types[i].AccessModeType == ComponentType.AccessMode.ReadOnly)
                     {
@@ -261,7 +261,7 @@ namespace Unity.ECS
             iterator.m_SafetyReadWriteCount = 0;
             fixed (AtomicSafetyHandle* safety = &iterator.m_Safety0)
             {
-                for (int i = 0; i != cache.ProcessTypesCount; i++)
+                for (var i = 0; i != cache.ProcessTypesCount; i++)
                 {
                     if (cache.Types[i].AccessModeType == ComponentType.AccessMode.ReadWrite)
                     {
@@ -278,7 +278,7 @@ namespace Unity.ECS
     {
         //NOTE: It would be much better if C# could resolve the branch with generic resolving,
         //      but apparently the interface constraint is not enough..
-        
+
         public static JobHandle Schedule<T>(this T jobData, ComponentSystemBase system, int innerloopBatchCount, JobHandle dependsOn = default(JobHandle))
             where T : struct, IBaseJobProcessComponentData
         {
@@ -312,7 +312,7 @@ namespace Unity.ECS
 
             IJobProcessComponentDataUtility.Initialize(system, typeof(T), typeof(JobStruct_Process1<,>), ref JobStruct_ProcessInfer_1<T>.Cache, out fullData.Iterator);
 
-            int length = fullData.Iterator.m_Length;
+            var length = fullData.Iterator.m_Length;
             var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct_ProcessInfer_1<T>.Cache.JobReflectionData, dependsOn, mode);
             return JobsUtility.ScheduleParallelFor(ref scheduleParams, length, innerloopBatchCount <= 0 ? length : innerloopBatchCount);
         }
@@ -354,9 +354,9 @@ namespace Unity.ECS
                         jobData.Iterator.Iterator0.UpdateCache(begin, out cache0);
                         var ptr0 = cache0.CachedPtr;
 
-                        int curEnd = Math.Min(end, cache0.CachedEndIndex);
-                    
-                        for (int i = begin; i != curEnd; i++)
+                        var curEnd = Math.Min(end, cache0.CachedEndIndex);
+
+                        for (var i = begin; i != curEnd; i++)
                         {
                             //@TODO: use ref returns to pass by ref instead of double copy
                             var value0 = UnsafeUtility.ReadArrayElement<U0>(ptr0, i);
@@ -373,7 +373,7 @@ namespace Unity.ECS
             }
         }
 
-        
+
         internal unsafe static JobHandle ScheduleInternal_2<T>(ref T jobData, ComponentSystemBase system, int innerloopBatchCount, JobHandle dependsOn, ScheduleMode mode)
             where T : struct
         {
@@ -382,7 +382,7 @@ namespace Unity.ECS
 
             IJobProcessComponentDataUtility.Initialize(system, typeof(T), typeof(JobStruct_Process2<,,>), ref JobStruct_ProcessInfer_2<T>.Cache, out fullData.Iterator);
 
-            int length = fullData.Iterator.m_Length;
+            var length = fullData.Iterator.m_Length;
             var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct_ProcessInfer_2<T>.Cache.JobReflectionData, dependsOn, mode);
             return JobsUtility.ScheduleParallelFor(ref scheduleParams, length, innerloopBatchCount <= 0 ? length : innerloopBatchCount);
         }
@@ -397,7 +397,7 @@ namespace Unity.ECS
             public ProcessIterationData      Iterator;
             public T                         Data;
         }
-        
+
         [StructLayout(LayoutKind.Sequential)]
         struct JobStruct_Process2<T, U0, U1>
             where T : struct, IJobProcessComponentData<U0, U1>
@@ -417,7 +417,7 @@ namespace Unity.ECS
             static unsafe void Execute(ref JobStruct_Process2<T, U0, U1> jobData, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
                 ComponentChunkCache cache0, cache1;
-                
+
                 int begin;
                 int end;
                 while (JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
@@ -430,9 +430,9 @@ namespace Unity.ECS
                         jobData.Iterator.Iterator1.UpdateCache(begin, out cache1);
                         var ptr1 = cache1.CachedPtr;
 
-                        int curEnd = Math.Min(end, cache0.CachedEndIndex);
-                        
-                        for (int i = begin; i != curEnd; i++)
+                        var curEnd = Math.Min(end, cache0.CachedEndIndex);
+
+                        for (var i = begin; i != curEnd; i++)
                         {
                             //@TODO: use ref returns to pass by ref instead of double copy
                             var value0 = UnsafeUtility.ReadArrayElement<U0>(ptr0, i);
@@ -451,7 +451,7 @@ namespace Unity.ECS
                 }
             }
         }
-        
+
         internal unsafe static JobHandle ScheduleInternal_3<T>(ref T jobData, ComponentSystemBase system, int innerloopBatchCount, JobHandle dependsOn, ScheduleMode mode)
             where T : struct
         {
@@ -460,7 +460,7 @@ namespace Unity.ECS
 
             IJobProcessComponentDataUtility.Initialize(system, typeof(T), typeof(JobStruct_Process3<,,,>), ref JobStruct_ProcessInfer_3<T>.Cache, out fullData.Iterator);
 
-            int length = fullData.Iterator.m_Length;
+            var length = fullData.Iterator.m_Length;
             var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct_ProcessInfer_3<T>.Cache.JobReflectionData, dependsOn, mode);
             return JobsUtility.ScheduleParallelFor(ref scheduleParams, length, innerloopBatchCount <= 0 ? length : innerloopBatchCount);
         }
@@ -469,7 +469,7 @@ namespace Unity.ECS
         struct JobStruct_ProcessInfer_3<T> where T : struct
         {
             public static JobProcessComponentDataCache Cache;
-            
+
             public ProcessIterationData      Iterator;
             public T                                       Data;
         }
@@ -510,9 +510,9 @@ namespace Unity.ECS
                         jobData.Iterator.Iterator2.UpdateCache(begin, out cache2);
                         var ptr2 = cache2.CachedPtr;
 
-                        int curEnd = Math.Min(end, cache0.CachedEndIndex);
-                        
-                        for (int i = begin; i != curEnd; i++)
+                        var curEnd = Math.Min(end, cache0.CachedEndIndex);
+
+                        for (var i = begin; i != curEnd; i++)
                         {
                             //@TODO: use ref returns to pass by ref instead of double copy
                             var value0 = UnsafeUtility.ReadArrayElement<U0>(ptr0, i);
@@ -535,7 +535,7 @@ namespace Unity.ECS
             }
         }
     }
-    
+
     public class GenericProcessComponentSystem<TJob, TComponentData0> : JobComponentSystem
         where TJob : struct, IAutoComponentSystemJob, IJobProcessComponentData<TComponentData0>
         where TComponentData0 : struct, IComponentData

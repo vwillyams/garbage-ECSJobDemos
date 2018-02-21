@@ -7,7 +7,8 @@ using UnityEditor.IMGUI.Controls;
 
 namespace UnityEditor.ECS
 {
-    public class ECSDebugger : EditorWindow, ISystemSelectionWindow {
+    public class ECSDebugger : EditorWindow, ISystemSelectionWindow, IEntitySelectionWindow {
+        private const float kSystemListWidth = 350f;
 
         [MenuItem("Window/ECS Debugger", false, 2017)]
         static void OpenWindow()
@@ -15,12 +16,30 @@ namespace UnityEditor.ECS
             GetWindow<ECSDebugger>("ECS Debugger");
         }
 
-        public ScriptBehaviourManager SystemSelection { get; set; }
+        public ScriptBehaviourManager SystemSelection
+        {
+            get { return systemSelection; }
+            set
+            {
+                systemSelection = value;
+                UnityEngine.Debug.Log($"Selecting system {value.GetType().Name}");
+                componentListView.SelectedSystem = systemSelection as ComponentSystemBase;
+            }
+        }
+
+        private ScriptBehaviourManager systemSelection;
+
+        public Entity EntitySelection { get; set; }
 
         [SerializeField]
         private TreeViewState systemListState = new TreeViewState();
         
         private GroupedSystemListView systemListView;
+        
+        [SerializeField]
+        private TreeViewState componentListState = new TreeViewState();
+
+        private ComponentGroupIntegratedListView componentListView;
 
         private string[] worldNames => (from x in World.AllWorlds select x.Name).ToArray();
 
@@ -30,39 +49,39 @@ namespace UnityEditor.ECS
             {
                 if (world.Name == name)
                 {
-                    selectedWorld = world;
+                    WorldSelection = world;
                     return;
                 }
             }
 
-            selectedWorld = null;
+            WorldSelection = null;
         }
         
-        private World selectedWorld
+        public World WorldSelection
         {
-            get { return m_SelectedWorld; }
+            get { return worldSelection; }
             set
             {
-                if (m_SelectedWorld != value)
+                if (worldSelection != value)
                 {
-                    m_SelectedWorld = value;
-                    if (m_SelectedWorld != null)
-                        lastSelectedWorldName = m_SelectedWorld.Name;
-                    systemListView.SetWorld(m_SelectedWorld);
+                    worldSelection = value;
+                    if (worldSelection != null)
+                        lastSelectedWorldName = worldSelection.Name;
+                    systemListView.SetWorld(worldSelection);
                 }
             }
         }
 
-        private World m_SelectedWorld;
+        private World worldSelection;
         [SerializeField] private string lastSelectedWorldName;
 
         private int selectedWorldIndex
         {
-            get { return World.AllWorlds.IndexOf(selectedWorld); }
+            get { return World.AllWorlds.IndexOf(WorldSelection); }
             set
             {
                 if (value >= 0 && value < World.AllWorlds.Count)
-                    selectedWorld = World.AllWorlds[value];
+                    WorldSelection = World.AllWorlds[value];
             }
         }
 
@@ -74,6 +93,8 @@ namespace UnityEditor.ECS
         {
             var systemListHeader = new MultiColumnHeader(GroupedSystemListView.GetHeaderState());
             systemListView = new GroupedSystemListView(systemListState, systemListHeader, this);
+            componentListView =
+                new ComponentGroupIntegratedListView(componentListState, this, SystemSelection as ComponentSystemBase);
         }
 
         void WorldPopup(bool worldsAppeared)
@@ -87,12 +108,12 @@ namespace UnityEditor.ECS
             }
             else
             {
-                if (worldsAppeared && selectedWorld == null)
+                if (worldsAppeared && WorldSelection == null)
                 {
                     SelectWorldByName(lastSelectedWorldName);
-                    if (selectedWorld == null)
+                    if (WorldSelection == null)
                     {
-                        selectedWorld = World.AllWorlds[0];
+                        WorldSelection = World.AllWorlds[0];
                     }
                 }
                 selectedWorldIndex = EditorGUILayout.Popup(selectedWorldIndex, worldNames);
@@ -114,12 +135,27 @@ namespace UnityEditor.ECS
             }
         }
 
+        void SystemHeader()
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(SystemSelection.GetType().FullName, EditorStyles.boldLabel);
+            GUILayout.EndHorizontal();
+        }
+
+        void ComponentList()
+        {
+            componentListView.OnGUI(GUIHelpers.GetExpandingRect());
+        }
+
         void OnGUI()
         {
             var worldsExisted = worldsExist;
             worldsExist = World.AllWorlds.Count > 0;
             var worldsAppeared = !worldsExisted && worldsExist;
             
+            GUILayout.BeginHorizontal();
+            
+            GUILayout.BeginVertical(GUILayout.Width(kSystemListWidth)); // begin System List
             GUILayout.BeginHorizontal();
             GUILayout.Label("Systems", EditorStyles.boldLabel);
             GUILayout.FlexibleSpace();
@@ -129,6 +165,23 @@ namespace UnityEditor.ECS
             GUILayout.BeginVertical(GUI.skin.box);
             SystemList(worldsAppeared);
             GUILayout.EndVertical();
+            
+            GUILayout.EndVertical(); // end System List
+            
+            GUILayout.BeginVertical(GUILayout.Width(position.width - kSystemListWidth)); // begin Entity List
+
+            if (SystemSelection != null)
+            {
+                SystemHeader();
+            
+                GUILayout.BeginVertical(GUI.skin.box);
+                ComponentList();
+                GUILayout.EndVertical();
+            }
+            
+            GUILayout.EndVertical(); // end Component List
+            
+            GUILayout.EndHorizontal();
         }
     }
 }

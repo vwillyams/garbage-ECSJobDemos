@@ -27,7 +27,7 @@ namespace TwoStickPureExample
 
         protected override void OnUpdate()
         {
-            var commands = new EntityCommandBuffer();
+            var commands = new EntityCommandBuffer(Allocator.TempJob);
 
             bool playerDead = m_PlayerCheck.Length == 0;
 

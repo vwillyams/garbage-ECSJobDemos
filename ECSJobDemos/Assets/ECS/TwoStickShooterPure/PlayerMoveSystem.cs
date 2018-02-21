@@ -1,4 +1,5 @@
-﻿using Unity.ECS;
+﻿using Unity.Collections;
+using Unity.ECS;
 using Unity.Mathematics;
 using UnityEngine;
 using Unity.Transforms2D;
@@ -22,7 +23,7 @@ namespace TwoStickPureExample
             if (m_Data.Length == 0)
                 return;
 
-            var cmds = new EntityCommandBuffer();
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
 
             var settings = TwoStickBootstrap.Settings;
 

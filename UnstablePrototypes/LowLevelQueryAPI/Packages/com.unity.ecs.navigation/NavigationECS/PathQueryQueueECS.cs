@@ -1,7 +1,7 @@
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.ECS;
 using UnityEngine.Experimental.AI;
 
 public struct PathQueryQueueEcs

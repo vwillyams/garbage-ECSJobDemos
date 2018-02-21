@@ -56,7 +56,7 @@ namespace UnityEngine.ECS.Boids
 
             public void Execute(int index)
             {
-                results[index] = headings[index].value;
+                results[index] = headings[index].Value;
             }
         }
 
@@ -78,49 +78,35 @@ namespace UnityEngine.ECS.Boids
                 var forward = headings[index];
 
                 var separationSteering = new float3(0);
-                var alignmentSteering = new float3(0);
+                var averageHeading = new float3(0);
+                var hash = GridHash.Hash(position, settings.cellRadius);
 
-                int hash;
-                int3 gridPos = GridHash.Quantize(position, settings.cellRadius);
-                for (int oi = 0; oi < 7; oi++)
+                int i;
+                NativeMultiHashMapIterator<int> iterator;
+                bool found = cells.TryGetFirstValue(hash, out i, out iterator);
+                int neighbors = 0;
+                while (found)
                 {
-                    var gridOffset = cellOffsetsTable[oi];
-
-                    hash = GridHash.Hash(gridPos + gridOffset);
-                    int i;
-
-                    NativeMultiHashMapIterator<int> iterator;
-                    bool found = cells.TryGetFirstValue(hash, out i, out iterator);
-                    int neighbors = 0;
-                    while (found)
+                    if (i == index)
                     {
-                        if (i == index)
-                        {
-                            found = cells.TryGetNextValue(out i, ref iterator);
-                            continue;
-                        }
-                        neighbors++;
-
-                        var otherPosition = positions[i];
-                        var otherForward = headings[i];
-
-                        // add in steering contribution
-                        // (opposite of the offset direction, divided once by distance
-                        // to normalize, divided another time to get 1/d falloff)
-                        var offset = otherPosition - (position + forward * bias[index&1023] );
-
-                        var distanceSquared = math.lengthSquared(offset);
-                        separationSteering += (offset / -distanceSquared);
-
-                        // accumulate sum of neighbor's heading
-                        alignmentSteering += otherForward;
-
                         found = cells.TryGetNextValue(out i, ref iterator);
+                        continue;
                     }
+                    neighbors++;
+
+                    var otherPosition = positions[i];
+                    var otherForward = headings[i];
+
+                    var offset = position - otherPosition;
+
+                    separationSteering += offset / math.length(offset);
+                    averageHeading += otherForward;
+                        
+                    found = cells.TryGetNextValue(out i, ref iterator);
                 }
 
-                separationResults[index] = math_experimental.normalizeSafe(separationSteering);
-                alignmentResults[index] = math_experimental.normalizeSafe(alignmentSteering);
+                separationResults[index] = separationSteering;
+                alignmentResults[index] = (averageHeading / neighbors) - forward;
             }
         }
 
@@ -141,34 +127,24 @@ namespace UnityEngine.ECS.Boids
             public void Execute(int index)
             {
                 var position = positions[index];
-                var forward = headings[index].value;
-                var targetSteering = math_experimental.normalizeSafe(nearestTargetPositions[index].value - position);
-
-                var steer = (alignmentSteering[index] * settings.alignmentWeight) +
-                            (separationSteering[index] * settings.separationWeight) +
-                            (targetSteering * settings.targetWeight);
-                
+                var forward = headings[index].Value;
+                var nearestObstaclePosition = nearestObstaclePositions[index].Value;
+                var obstacleSteering = (position - nearestObstaclePosition);
+                if (math.length(obstacleSteering) < settings.obstacleAversionDistance)
                 {
-                    var obstaclePosition = nearestObstaclePositions[index].value;
-                    var obstacleRadius = 10.0f;
-                    var obstacleDelta1 = obstaclePosition - position;
-                    var dist = math.length(obstacleDelta1);
-                    var obs1Dir = obstacleDelta1 / dist;
-                    var a = dist - obstacleRadius;
-                    if (a < 0)
-                        a = 0;
-                    var f = a / settings.obstacleAversionDistance;
-                    
-                    steer = steer + (-obs1Dir - steer) * (1 - f) * settings.obstacleWeight;
-                    steer = math_experimental.normalizeSafe(steer);
+                    var s3 = (nearestObstaclePosition + math_experimental.normalizeSafe(obstacleSteering) * settings.obstacleAversionDistance)-position;
+                    var steer = math_experimental.normalizeSafe(forward + dt*(s3-forward));
+                    headings[index] = new Heading { Value = steer };
                 }
-
-                math_experimental.normalizeSafe(steer);
-
-                headings[index] = new Heading
+                else
                 {
-                    value = math_experimental.normalizeSafe(forward + steer * 2.0f * bias[index&1023] * dt * Mathf.Deg2Rad * settings.rotationalSpeed )
-                };
+                    var s0 = settings.alignmentWeight * math_experimental.normalizeSafe(alignmentSteering[index]);
+                    var s1 = settings.separationWeight * math_experimental.normalizeSafe(separationSteering[index]);
+                    var s2 = settings.targetWeight * math_experimental.normalizeSafe(nearestTargetPositions[index].Value - position);
+                    var s3 = math_experimental.normalizeSafe(s0 + s1 + s2);
+                    var steer = math_experimental.normalizeSafe(forward + dt*(s3-forward));
+                    headings[index] = new Heading { Value = steer };
+                }
             }
         }
 
@@ -255,7 +231,7 @@ namespace UnityEngine.ECS.Boids
             }
             m_UniqueTypes.Clear();
 
-			// The return value only applies to jobs working with injected components
+            // The return value only applies to jobs working with injected components
             return inputDeps;
         }
 
@@ -289,7 +265,3 @@ namespace UnityEngine.ECS.Boids
 
     }
 }
-
-// Accumulate obstacles
-// Accumulate targets
-// Accumulate Headings with HeadingTarget tag

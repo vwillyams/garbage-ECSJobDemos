@@ -6,7 +6,7 @@ namespace UnityEngine.ECS.Boids
 {
     public struct BoidNearestTargetPosition : IComponentData, INearestTarget
     {
-        public float3 value { get; set; }
+        public float3 Value { get; set; }
     }
 
     public class BoidNearestTargetPositionComponent : ComponentDataWrapper<BoidNearestTargetPosition> { }

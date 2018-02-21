@@ -9,7 +9,7 @@ namespace Unity.Transforms
     /// </summary>
     public struct TransformMatrix : IComponentData
     {
-        public float4x4 Value;
+        public float4x4 Value { get; set; }
     }
 
     public class TransformMatrixComponent : ComponentDataWrapper<TransformMatrix> { }

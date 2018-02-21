@@ -26,12 +26,12 @@ namespace UnityEngine.ECS.SimpleRotation
         
             public void Execute(int i)
             {
-                var speed = rotationSpeeds[i].speed;
+                var speed = rotationSpeeds[i].Value;
                 if (speed > 0.0f)
                 {
                     rotations[i] = new LocalRotation
                     {
-                        value = math.mul(math.normalize(rotations[i].value), math.axisAngle(math.up(),speed*dt))
+                        Value = math.mul(math.normalize(rotations[i].Value), math.axisAngle(math.up(),speed*dt))
                     };
                 }
             }

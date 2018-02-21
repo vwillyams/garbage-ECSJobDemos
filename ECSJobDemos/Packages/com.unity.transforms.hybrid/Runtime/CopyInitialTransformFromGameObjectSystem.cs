@@ -72,7 +72,7 @@ namespace Unity.Transforms.Hybrid
                     }
                     if (localRotations.Exists(entity))
                     {
-                        localRotations[entity] = new LocalRotation { value = transformStash.localRotation };
+                        localRotations[entity] = new LocalRotation { Value = transformStash.localRotation };
                     }
                     removeComponentQueue.Enqueue(entity);
                 }

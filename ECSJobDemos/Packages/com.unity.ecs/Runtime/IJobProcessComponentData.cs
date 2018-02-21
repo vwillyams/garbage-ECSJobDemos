@@ -349,23 +349,26 @@ namespace Unity.ECS
                 int end;
                 while (JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
                 {
-                    jobData.Iterator.Iterator0.UpdateCache(begin, out cache0);
-                    var ptr0 = cache0.CachedPtr;
-
-                    int curEnd = Math.Min(end, cache0.CachedEndIndex);
-                    
-                    for (int i = begin; i != curEnd; i++)
+                    while (begin != end)
                     {
-                        //@TODO: use ref returns to pass by ref instead of double copy
-                        var value0 = UnsafeUtility.ReadArrayElement<U0>(ptr0, i);
+                        jobData.Iterator.Iterator0.UpdateCache(begin, out cache0);
+                        var ptr0 = cache0.CachedPtr;
 
-                        jobData.Data.Execute(ref value0);
+                        int curEnd = Math.Min(end, cache0.CachedEndIndex);
+                    
+                        for (int i = begin; i != curEnd; i++)
+                        {
+                            //@TODO: use ref returns to pass by ref instead of double copy
+                            var value0 = UnsafeUtility.ReadArrayElement<U0>(ptr0, i);
 
-                        if (jobData.Iterator.IsReadOnly0 == 0)
-                            UnsafeUtility.WriteArrayElement(ptr0, i, value0);
+                            jobData.Data.Execute(ref value0);
+
+                            if (jobData.Iterator.IsReadOnly0 == 0)
+                                UnsafeUtility.WriteArrayElement(ptr0, i, value0);
+                        }
+
+                        begin = curEnd;
                     }
-
-                    begin = curEnd;
                 }
             }
         }
@@ -505,7 +508,7 @@ namespace Unity.ECS
                         var ptr1 = cache1.CachedPtr;
 
                         jobData.Iterator.Iterator2.UpdateCache(begin, out cache2);
-                        var ptr2 = cache1.CachedPtr;
+                        var ptr2 = cache2.CachedPtr;
 
                         int curEnd = Math.Min(end, cache0.CachedEndIndex);
                         
@@ -523,7 +526,7 @@ namespace Unity.ECS
                             if (jobData.Iterator.IsReadOnly1 == 0)
                                 UnsafeUtility.WriteArrayElement(ptr1, i, value1);
                             if (jobData.Iterator.IsReadOnly2 == 0)
-                                UnsafeUtility.WriteArrayElement(ptr2, i, value1);
+                                UnsafeUtility.WriteArrayElement(ptr2, i, value2);
                         }
 
                         begin = curEnd;

@@ -7,11 +7,6 @@ using Unity.Assertions;
 
 namespace Unity.ECS
 {
-    interface IManagedObjectModificationListener
-    {
-        void OnManagedObjectModified();
-    }
-
     struct ComponentTypeInArchetype
     {
         public readonly int TypeIndex;
@@ -140,7 +135,6 @@ namespace Unity.ECS
 
         public int*                         SharedComponentOffset;
         public int                          NumSharedComponents;
-        public int                          ManagedObjectListenerIndex;
 
         public Archetype*                   PrevArchetype;
     }
@@ -163,14 +157,6 @@ namespace Unity.ECS
         }
 
         readonly List<ManagedArrayStorage> m_ManagedArrays = new List<ManagedArrayStorage>();
-
-        struct ManagedArrayListeners
-        {
-            public Archetype* Archetype;
-            public List<IManagedObjectModificationListener>[] ManagedObjectListeners;
-        }
-
-        readonly List<ManagedArrayListeners> m_ManagedArrayListeners = new List<ManagedArrayListeners>();
 
         public ArchetypeManager(SharedComponentDataManager sharedComponentManager)
         {
@@ -209,32 +195,6 @@ namespace Unity.ECS
 
             m_TypeLookup.Dispose();
             m_ArchetypeChunkAllocator.Dispose();
-        }
-
-        public void AddManagedObjectModificationListener(Archetype* archetype, int typeIdx, IManagedObjectModificationListener listener)
-        {
-            ManagedArrayListeners listeners;
-            if (archetype->ManagedObjectListenerIndex < 0)
-            {
-                // Allocate new listener
-                archetype->ManagedObjectListenerIndex = m_ManagedArrayListeners.Count;
-                listeners = new ManagedArrayListeners
-                {
-                    Archetype = archetype,
-                    ManagedObjectListeners = new List<IManagedObjectModificationListener>[archetype->TypesCount]
-                };
-                m_ManagedArrayListeners.Add(listeners);
-            }
-            listeners = m_ManagedArrayListeners[archetype->ManagedObjectListenerIndex];
-            if (listeners.ManagedObjectListeners[typeIdx] == null)
-                listeners.ManagedObjectListeners[typeIdx] = new List<IManagedObjectModificationListener>();
-            listeners.ManagedObjectListeners[typeIdx].Add(listener);
-        }
-
-        public void RemoveManagedObjectModificationListener(Archetype* archetype, int typeIdx, IManagedObjectModificationListener listener)
-        {
-            var listeners = m_ManagedArrayListeners[archetype->ManagedObjectListenerIndex];
-            listeners.ManagedObjectListeners[typeIdx].Remove(listener);
         }
 
         [System.Diagnostics.Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
@@ -330,7 +290,6 @@ namespace Unity.ECS
 
                 usedBytes += sizeOf * type->ChunkCapacity;
             }
-            type->ManagedObjectListenerIndex = -1;
             type->NumManagedArrays = 0;
             type->ManagedArrayOffset = null;
 
@@ -609,16 +568,6 @@ namespace Unity.ECS
         {
             var managedStart = chunk->Archetype->ManagedArrayOffset[type] * chunk->Capacity;
             m_ManagedArrays[chunk->ManagedArrayIndex].ManagedArray[index + managedStart] = val;
-
-            if (chunk->Archetype->ManagedObjectListenerIndex < 0)
-                return;
-
-            var listeners = m_ManagedArrayListeners[chunk->Archetype->ManagedObjectListenerIndex];
-            if (listeners.ManagedObjectListeners[type] == null)
-                return;
-
-            foreach (var listener in listeners.ManagedObjectListeners[type])
-                listener.OnManagedObjectModified();
         }
 
         public void SetManagedObject(Chunk* chunk, ComponentType type, int index, object val)
@@ -646,12 +595,12 @@ namespace Unity.ECS
                     for (var c = srcArchetype->ChunkList.Begin;c != srcArchetype->ChunkList.End;c = c->Next)
                     {
                         Chunk* chunk = (Chunk*) c;
-                        
+
                         EntityDataManager.FreeDataEntitiesInChunk(srcEntityDataManager, chunk, chunk->Count);
                         dstEntityDataManager->AllocateEntities(dstArchetype, chunk, 0, chunk->Count, entitiesPtr);
 
                         chunk->Archetype = dstArchetype;
-                        
+
                         if (dstArchetype->NumSharedComponents > 0)
                             dstSharedComponents.MoveSharedComponents(srcSharedComponents, chunk->SharedComponentValueArray, dstArchetype->NumSharedComponents);
                     }

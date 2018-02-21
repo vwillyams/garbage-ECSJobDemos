@@ -4,7 +4,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Experimental.AI;
-using UnityEngine.ECS;
+using Unity.ECS;
 
 public partial class CrowdSystem : JobComponentSystem
 {

@@ -2,8 +2,6 @@
 using System.Reflection;
 using System.Collections.Generic;
 
-using UnityEngine;
-
 namespace Unity.ECS
 {
     sealed class CustomInjectionHookAttribute : Attribute

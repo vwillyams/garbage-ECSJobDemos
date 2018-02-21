@@ -434,20 +434,6 @@ namespace Unity.ECS
             return res;
         }
 
-        //@TODO: THIS API IS NOT SAFE, unpublicify
-        // [macton 19 Feb 2018] This can be removed once generic support for burst is in.
-        public ComponentDataArray<T> GetComponentDataArray<T>(ComponentType componentType) where T : struct, IComponentData
-        {
-            int length;
-            ComponentChunkIterator iterator;
-            GetComponentChunkIterator(out length, out iterator);
-            var indexInComponentGroup = GetIndexInComponentGroup(componentType.TypeIndex);
-
-            ComponentDataArray<T> res;
-            GetComponentDataArray<T>(ref iterator, indexInComponentGroup, length, out res);
-            return res;
-        }
-
         internal void GetSharedComponentDataArray<T>(ref ComponentChunkIterator iterator, int indexInComponentGroup, int length, out SharedComponentDataArray<T> output) where T : struct, ISharedComponentData
         {
             iterator.IndexInComponentGroup = indexInComponentGroup;

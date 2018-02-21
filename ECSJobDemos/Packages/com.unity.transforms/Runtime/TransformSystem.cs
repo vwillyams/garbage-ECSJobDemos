@@ -120,7 +120,7 @@ namespace Unity.Transforms
                 if (localRotations.Exists(entity))
                 {
                     var parentRotation = math.matrixToQuat(parentMatrix.m0.xyz, parentMatrix.m1.xyz, parentMatrix.m2.xyz);
-                    var localRotation = localRotations[entity].value;
+                    var localRotation = localRotations[entity].Value;
                     rotation = math.mul(parentRotation, localRotation);
                     if (rotations.Exists(entity))
                     {

@@ -6,9 +6,9 @@ namespace UnityEngine.ECS.Boids
 {
     public struct BoidNearestObstaclePosition : IComponentData, INearestTarget
     {
-        public float3 value { get; set; }
+        public float3 Value { get; set; }
     }
 
     public class BoidNearestObstaclePositionComponent : ComponentDataWrapper<BoidNearestObstaclePosition> { }
-    public class BoidNearestObstaclePositionSystem : NearestTargetPositionSystem<BoidNearestObstaclePosition, BoidTarget> { }
+    public class BoidNearestObstaclePositionSystem : NearestTargetPositionSystem<BoidNearestObstaclePosition, BoidObstacle> { }
 }

@@ -7,7 +7,7 @@ namespace UnityEngine.ECS.SimpleRotation
     [Serializable]
     public struct Heading : IComponentData
     {
-        public float3 value;
+        public float3 Value { get; set; }
     }
 
     public class HeadingComponent : ComponentDataWrapper<Heading> { } 

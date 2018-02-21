@@ -521,15 +521,6 @@ namespace Unity.ECS
             return res;
         }
 
-        public GameObjectArray GetGameObjectArray()
-        {
-            int length;
-            ComponentChunkIterator iterator;
-            GetComponentChunkIterator(out length, out iterator);
-            iterator.IndexInComponentGroup = GetIndexInComponentGroup(TypeManager.GetTypeIndex<Transform>());
-            return new GameObjectArray(iterator, length, m_TypeManager);
-        }
-
         public int CalculateLength()
         {
             int length;
@@ -563,6 +554,8 @@ namespace Unity.ECS
             m_ComponentGroupData.CompareComponents(componentTypes,count);
 
         public Type[] Types => m_ComponentGroupData.Types;
+
+        internal ArchetypeManager ArchetypeManager => m_TypeManager;
 
         public ComponentGroup GetVariation<SharedComponent1>(SharedComponent1 sharedComponent1)
             where SharedComponent1 : struct, ISharedComponentData

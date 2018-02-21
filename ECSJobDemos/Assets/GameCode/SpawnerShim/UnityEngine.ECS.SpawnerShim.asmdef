@@ -2,6 +2,7 @@
     "name": "UnityEngine.ECS.SpawnerShim",
     "references": [
         "Unity.Core",
+        "Unity.Core.Hybrid",
         "Unity.Transforms",
         "UnityEngine.ECS.Utilities",
         "UnityEngine.ECS.SimpleMovement",

@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using Unity.Jobs;
 using Unity.Assertions;
 
-using GameObject = UnityEngine.GameObject;
-using Component = UnityEngine.Component;
+//using GameObject = UnityEngine.GameObject;
+//using Component = UnityEngine.Component;
 
 namespace Unity.ECS
 {
@@ -58,6 +58,9 @@ namespace Unity.ECS
 
         ComponentType*                    m_CachedComponentTypeArray;
         ComponentTypeInArchetype*         m_CachedComponentTypeInArchetypeArray;
+
+        internal EntityDataManager* Entities => m_Entities;
+        internal ArchetypeManager ArchetypeManager => m_ArchetypeManager;
 
         protected override void OnBeforeCreateManagerInternal(World world, int capacity) { }
         protected override void OnBeforeDestroyManagerInternal() { }
@@ -147,7 +150,7 @@ namespace Unity.ECS
 
             return m_GroupManager.CreateEntityGroup(m_ArchetypeManager, m_Entities, m_CachedComponentTypeArray, typeArrayCount);
         }
-        
+
         public ComponentGroup CreateComponentGroup(params ComponentType[] requiredComponents)
         {
             fixed (ComponentType* requiredComponentsPtr = requiredComponents)
@@ -241,38 +244,12 @@ namespace Unity.ECS
             return entity;
         }
 
-        public Entity Instantiate(GameObject srcGameObject)
-        {
-            var components = srcGameObject.GetComponents<ComponentDataWrapperBase>();
-            var componentTypes = new ComponentType[components.Length];
-            for (var t = 0; t != components.Length; ++t)
-                componentTypes[t] = components[t].GetComponentType(this);
-
-            var srcEntity = CreateEntity(componentTypes);
-            for (var t = 0; t != components.Length; ++t)
-                components[t].UpdateComponentData(this, srcEntity);
-
-            return srcEntity;
-        }
-
-        public void Instantiate(GameObject srcGameObject, NativeArray<Entity> outputEntities)
-        {
-            if (outputEntities.Length == 0)
-                return;
-
-            var entity = Instantiate(srcGameObject);
-            outputEntities[0] = entity;
-
-            var entityPtr = (Entity*)outputEntities.GetUnsafePtr();
-            InstantiateInternal(entity, entityPtr + 1, outputEntities.Length - 1);
-        }
-
         public void Instantiate(Entity srcEntity, NativeArray<Entity> outputEntities)
         {
             InstantiateInternal(srcEntity, (Entity*)outputEntities.GetUnsafePtr(), outputEntities.Length);
         }
 
-        void InstantiateInternal(Entity srcEntity, Entity* outputEntities, int count)
+        internal void InstantiateInternal(Entity srcEntity, Entity* outputEntities, int count)
         {
             BeforeStructuralChange();
             if (!m_Entities->Exists(srcEntity))
@@ -366,17 +343,6 @@ namespace Unity.ECS
             int chunkIndex;
             m_Entities->GetComponentChunk(entity, out chunk, out chunkIndex);
             m_ArchetypeManager.SetManagedObject(chunk, componentType, chunkIndex, componentObject);
-        }
-
-        public T GetComponentObject<T>(Entity entity) where T : Component
-        {
-            var componentType = ComponentType.Create<T>();
-            m_Entities->AssertEntityHasComponent(entity, componentType.TypeIndex);
-
-            Chunk* chunk;
-            int chunkIndex;
-            m_Entities->GetComponentChunk(entity, out chunk, out chunkIndex);
-            return m_ArchetypeManager.GetManagedObject(chunk, componentType, chunkIndex) as T;
         }
 
         public void GetAllUniqueSharedComponentDatas<T>(List<T> sharedComponentValues)
@@ -495,7 +461,7 @@ namespace Unity.ECS
             srcEntities.BeforeStructuralChange();
 
             ArchetypeManager.MoveChunks(srcEntities.m_ArchetypeManager, srcEntities.m_Entities, srcEntities.m_SharedComponentManager, m_ArchetypeManager, m_GroupManager, m_SharedComponentManager, m_Entities, m_SharedComponentManager);
-            
+
             //@TODO: Need to incrmeent the component versions based the moved chunks...
         }
 

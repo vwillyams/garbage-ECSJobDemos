@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Unity.ECS;
+using Unity.ECS.Hybrid;
 using UnityEngine;
 
 namespace TwoStickHybridExample
@@ -20,7 +21,7 @@ namespace TwoStickHybridExample
             var toDestroy = new List<GameObject>();
             for (var i = 0; i < entities.Length; ++i)
             {
-                
+
                 if (entities.healths[i].Value <= 0)
                 {
                     toDestroy.Add(entities.gameObjects[i]);

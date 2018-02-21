@@ -10,7 +10,7 @@ namespace UnityEngine.ECS.SimpleSpatialQuery
     {
         float3 Value { get; set; }
     }
-    
+
     [DisableSystemWhenEmpty]
     public class NearestTargetPositionSystem<TNearestTarget,TTarget> : JobComponentSystem
         where TNearestTarget : struct, IComponentData, INearestTarget
@@ -18,7 +18,7 @@ namespace UnityEngine.ECS.SimpleSpatialQuery
     {
         ComponentGroup m_TargetGroup;
         ComponentGroup m_NearestTargetPositionGroup;
-        
+
         // [ComputeJobOptimization]
         struct CollectTargetPositions : IJobParallelFor
         {
@@ -30,13 +30,14 @@ namespace UnityEngine.ECS.SimpleSpatialQuery
                 results[index] = positions[index].Value;
             }
         }
-    
+
         // [ComputeJobOptimization]
         struct NearestTargetPosition : IJobParallelFor
         {
             [ReadOnly] [DeallocateOnJobCompletion] public NativeArray<float3> targetPositions;
             [ReadOnly] public ComponentDataArray<Position> positions;
             public ComponentDataArray<TNearestTarget> positionNearestTargets;
+            public TNearestTarget defaultNearestTarget;
 
             public void Execute(int index)
             {
@@ -52,7 +53,9 @@ namespace UnityEngine.ECS.SimpleSpatialQuery
                     nearestDistance = math.select(nearestDistance, distance, nearest);
                     nearestPosition = math.select(nearestPosition, targetPosition, nearest);
                 }
-                positionNearestTargets[index] = new TNearestTarget {Value = nearestPosition};
+
+                defaultNearestTarget.Value = nearestPosition;
+                positionNearestTargets[index] = defaultNearestTarget;
             }
         }
 
@@ -69,7 +72,7 @@ namespace UnityEngine.ECS.SimpleSpatialQuery
             var targetPositionsCopy = new NativeArray<float3>(targetPositions.Length, Allocator.TempJob);
 
             var collectTargetPositionsJob = new CollectTargetPositions
-            { 
+            {
                 positions = targetPositions,
                 results = targetPositionsCopy
             };
@@ -84,7 +87,8 @@ namespace UnityEngine.ECS.SimpleSpatialQuery
             {
                 targetPositions = targetPositionsCopy,
                 positionNearestTargets = nearestTargets,
-                positions = nearestTargetPositions
+                positions = nearestTargetPositions,
+                defaultNearestTarget = new TNearestTarget()
             };
 
             return nearestTargetPositionJob.Schedule(nearestTargets.Length, 64, collectTargetPositionsJobHandle);

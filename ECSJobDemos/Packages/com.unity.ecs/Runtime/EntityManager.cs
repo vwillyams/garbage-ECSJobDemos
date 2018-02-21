@@ -5,9 +5,6 @@ using System.Collections.Generic;
 using Unity.Jobs;
 using Unity.Assertions;
 
-//using GameObject = UnityEngine.GameObject;
-//using Component = UnityEngine.Component;
-
 namespace Unity.ECS
 {
     //@TODO: There is nothing prevent non-main thread (non-job thread) access of EntityMnaager.

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Collections.Generic;
-
+using System.Linq;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
@@ -24,16 +24,17 @@ namespace Unity.ECS
         readonly int                m_IndexFromEntityOffset;
         readonly int 				m_TransformAccessArrayOffset;
         readonly int 				m_LengthOffset;
-        readonly int                 m_GameObjectArrayOffset;
 
         readonly InjectionData[]     m_ComponentDataInjections;
         readonly InjectionData[]     m_ComponentInjections;
         readonly InjectionData[]     m_FixedArrayInjections;
         readonly InjectionData[]     m_SharedComponentInjections;
 
+        readonly InjectionContext       m_InjectionContext;
+
         InjectComponentGroupData(ComponentSystemBase system, FieldInfo groupField,
             InjectionData[] componentDataInjections, InjectionData[] componentInjections, InjectionData[] fixedArrayInjections, InjectionData[] sharedComponentInjections,
-            FieldInfo entityArrayInjection, FieldInfo indexFromEntityInjection, FieldInfo transformAccessArrayInjection, FieldInfo gameObjectArrayInjection, 
+            FieldInfo entityArrayInjection, FieldInfo indexFromEntityInjection, FieldInfo transformAccessArrayInjection, InjectionContext injectionContext,
             FieldInfo lengthInjection, ComponentType[] componentRequirements)
         {
             var requiredComponentTypes = componentRequirements;
@@ -47,6 +48,7 @@ namespace Unity.ECS
             m_ComponentInjections = componentInjections;
             m_FixedArrayInjections = fixedArrayInjections;
             m_SharedComponentInjections = sharedComponentInjections;
+            m_InjectionContext = injectionContext;
 
             PatchGetIndexInComponentGroup(m_ComponentDataInjections);
             PatchGetIndexInComponentGroup(m_ComponentInjections);
@@ -57,7 +59,7 @@ namespace Unity.ECS
                 m_EntityArrayOffset = UnsafeUtility.GetFieldOffset(entityArrayInjection);
             else
                 m_EntityArrayOffset = -1;
-            
+
             if (indexFromEntityInjection != null)
                 m_IndexFromEntityOffset = UnsafeUtility.GetFieldOffset(indexFromEntityInjection);
             else
@@ -67,11 +69,6 @@ namespace Unity.ECS
                 m_LengthOffset = UnsafeUtility.GetFieldOffset(lengthInjection);
             else
                 m_LengthOffset = -1;
-
-            if (gameObjectArrayInjection != null)
-                m_GameObjectArrayOffset = UnsafeUtility.GetFieldOffset(gameObjectArrayInjection);
-            else
-                m_GameObjectArrayOffset = -1;
 
             if (transformAccessArrayInjection != null)
                 m_TransformAccessArrayOffset = UnsafeUtility.GetFieldOffset(transformAccessArrayInjection);
@@ -137,7 +134,7 @@ namespace Unity.ECS
                 m_EntityGroup.GetEntityArray(ref iterator, length, out entityArray);
                 UnsafeUtility.CopyStructureToPtr(ref entityArray, groupStructPtr + m_EntityArrayOffset);
             }
-            
+
             if (m_IndexFromEntityOffset != -1)
             {
                 IndexFromEntity indexFromEntity;
@@ -145,10 +142,9 @@ namespace Unity.ECS
                 UnsafeUtility.CopyStructureToPtr(ref indexFromEntity, groupStructPtr + m_IndexFromEntityOffset);
             }
 
-            if (m_GameObjectArrayOffset != -1)
+            if (m_InjectionContext.HasEntries)
             {
-                var gameObjectArray = m_EntityGroup.GetGameObjectArray();
-                UnsafeUtility.CopyStructureToPtr(ref gameObjectArray, groupStructPtr + m_GameObjectArrayOffset);
+                m_InjectionContext.UpdateInjection(m_EntityGroup, groupStructPtr);
             }
 
             if (m_LengthOffset != -1)
@@ -161,24 +157,24 @@ namespace Unity.ECS
         {
             FieldInfo entityArrayField;
             FieldInfo indexFromEntityField;
-            FieldInfo gameObjectArrayField;
             FieldInfo transformAccessArrayField;
             FieldInfo lengthField;
 
+            var injectionContext = new InjectionContext();
             var componentDataInjections = new List<InjectionData>();
             var componentInjections = new List<InjectionData>();
             var fixedArrayInjections = new List<InjectionData>();
             var sharedComponentInjections = new List<InjectionData>();
 
-            var componentRequirements = new List<ComponentType>();
-            var error = CollectInjectedGroup(injectedGroupType, out entityArrayField, out indexFromEntityField, out transformAccessArrayField, out gameObjectArrayField, out lengthField, componentRequirements, componentDataInjections, componentInjections, fixedArrayInjections, sharedComponentInjections );
+            var componentRequirements = new HashSet<ComponentType>();
+            var error = CollectInjectedGroup(injectedGroupType, out entityArrayField, out indexFromEntityField, out transformAccessArrayField, injectionContext, out lengthField, componentRequirements, componentDataInjections, componentInjections, fixedArrayInjections, sharedComponentInjections );
             if (error != null)
-                throw new System.ArgumentException(error);
+                throw new ArgumentException(error);
 
-            return new InjectComponentGroupData(system, groupField, componentDataInjections.ToArray(), componentInjections.ToArray(), fixedArrayInjections.ToArray(), sharedComponentInjections.ToArray(), entityArrayField, indexFromEntityField,  transformAccessArrayField, gameObjectArrayField, lengthField, componentRequirements.ToArray());
+            return new InjectComponentGroupData(system, groupField, componentDataInjections.ToArray(), componentInjections.ToArray(), fixedArrayInjections.ToArray(), sharedComponentInjections.ToArray(), entityArrayField, indexFromEntityField,  transformAccessArrayField, injectionContext, lengthField, componentRequirements.ToArray());
         }
 
-        static string CollectInjectedGroup(Type injectedGroupType, out FieldInfo entityArrayField, out FieldInfo indexFromEntityField, out FieldInfo transformAccessArrayField, out FieldInfo gameObjectArrayField, out FieldInfo lengthField, ICollection<ComponentType> componentRequirements,
+        static string CollectInjectedGroup(Type injectedGroupType, out FieldInfo entityArrayField, out FieldInfo indexFromEntityField, out FieldInfo transformAccessArrayField, InjectionContext injectionContext, out FieldInfo lengthField, ISet<ComponentType> componentRequirements,
             ICollection<InjectionData> componentDataInjections, ICollection<InjectionData> componentInjections, ICollection<InjectionData> fixedArrayInjections, ICollection<InjectionData> sharedComponentInjections)
         {
             //@TODO: Improve error messages...
@@ -186,10 +182,7 @@ namespace Unity.ECS
             transformAccessArrayField = null;
             entityArrayField = null;
             indexFromEntityField = null;
-            gameObjectArrayField = null;
             lengthField = null;
-            var explicitTransformRequirement = false;
-            var implicitTransformRequirement = false;
 
             foreach(var field in fields)
             {
@@ -225,7 +218,7 @@ namespace Unity.ECS
                     componentRequirements.Add(injection.ComponentType);
 
                     if (type == typeof(Transform))
-                        explicitTransformRequirement = true;
+                        componentRequirements.Add(typeof(Transform));
                 }
                 else if (field.FieldType.IsGenericType && field.FieldType.GetGenericTypeDefinition() == typeof(SharedComponentDataArray<>))
                 {
@@ -245,7 +238,7 @@ namespace Unity.ECS
                         return "A [Inject] struct, may only contain a single TransformAccessArray";
 
                     transformAccessArrayField = field;
-                    implicitTransformRequirement = true;
+                    componentRequirements.Add(typeof(Transform));
                 }
                 else if (field.FieldType == typeof(EntityArray))
                 {
@@ -263,17 +256,6 @@ namespace Unity.ECS
 
                     indexFromEntityField = field;
                 }
-                else if (field.FieldType == typeof(GameObjectArray))
-                {
-                    if (isReadOnly)
-                        return "[ReadOnly] may not be used on GameObjectArray, it can only be used on ComponentDataArray<>";
-                    // Error on multiple GameObjectArray
-                    if (gameObjectArrayField != null)
-                        return "A [Inject] struct, may only contain a single GameObjectArray";
-
-                    gameObjectArrayField = field;
-                    implicitTransformRequirement = true;
-                }
                 else if (field.FieldType == typeof(int))
                 {
                     // Error on multiple EntityArray
@@ -283,14 +265,29 @@ namespace Unity.ECS
                 }
                 else
                 {
-                    return
-                        "[Inject] may only be used on ComponentDataArray<>, ComponentArray<>, TransformAccessArray, EntityArray, GameObjectArray and int Length.";
+                    var hook = InjectionHookSupport.HookFor(field.FieldType);
+                    if (hook == null)
+                    {
+                        return
+                            $"[Inject] may only be used on ComponentDataArray<>, ComponentArray<>, TransformAccessArray, EntityArray, {string.Join(",", InjectionHookSupport.Hooks.Select(h => h.FieldTypeOfInterest.Name))} and int Length.";
+                    }
+
+                    var error = hook.ValidateField(field, isReadOnly, injectionContext);
+                    if (error != null)
+                    {
+                        return error;
+                    }
+
+                    injectionContext.AddEntry(hook.CreateInjectionInfoFor(field, isReadOnly));
                 }
             }
 
-            if (!explicitTransformRequirement && implicitTransformRequirement)
+            if (injectionContext.HasComponentRequirements)
             {
-                componentRequirements.Add(typeof(Transform));
+                foreach (var requirement in injectionContext.ComponentRequirements)
+                {
+                    componentRequirements.Add(requirement);
+                }
             }
 
             return null;

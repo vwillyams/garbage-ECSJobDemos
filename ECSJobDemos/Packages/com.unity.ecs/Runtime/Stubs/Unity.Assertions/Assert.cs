@@ -9,24 +9,36 @@ namespace Unity.Assertions
         [Conditional("UNITY_ASSERTIONS")]
         public static void IsTrue(bool condition)
         {
+            if(condition)
+                return;
+
            UnityEngine.Assertions.Assert.IsTrue(condition);
         }
 
         [Conditional("UNITY_ASSERTIONS")]
         public static void IsTrue(bool condition, string message)
         {
+            if(condition)
+                return;
+
             UnityEngine.Assertions.Assert.IsTrue(condition, message);
         }
 
         [Conditional("UNITY_ASSERTIONS")]
         public static void IsFalse(bool condition)
         {
+            if(!condition)
+                return;
+
             UnityEngine.Assertions.Assert.IsFalse(condition);
         }
 
         [Conditional("UNITY_ASSERTIONS")]
         public static void IsFalse(bool condition, string message)
         {
+            if(!condition)
+                return;
+
             UnityEngine.Assertions.Assert.IsFalse(condition, message);
         }
 
@@ -57,6 +69,42 @@ namespace Unity.Assertions
         [Conditional("UNITY_ASSERTIONS")]
         public static void AreNotEqual<T>(T expected, T actual)
         {
+            UnityEngine.Assertions.Assert.AreNotEqual(expected, actual);
+        }
+
+        [Conditional("UNITY_ASSERTIONS")]
+        public static void AreEqual(int expected, int actual)
+        {
+            if(expected == actual)
+                return;
+
+            UnityEngine.Assertions.Assert.AreEqual(expected, actual);
+        }
+
+        [Conditional("UNITY_ASSERTIONS")]
+        public static void AreNotEqual(int expected, int actual)
+        {
+            if(expected != actual)
+                return;
+
+            UnityEngine.Assertions.Assert.AreNotEqual(expected, actual);
+        }
+
+        [Conditional("UNITY_ASSERTIONS")]
+        public static void AreEqual(bool expected, bool actual)
+        {
+            if(expected == actual)
+                return;
+
+            UnityEngine.Assertions.Assert.AreEqual(expected, actual);
+        }
+
+        [Conditional("UNITY_ASSERTIONS")]
+        public static void AreNotEqual(bool expected, bool actual)
+        {
+            if(expected != actual)
+                return;
+
             UnityEngine.Assertions.Assert.AreNotEqual(expected, actual);
         }
     }

@@ -42,6 +42,9 @@ namespace Unity.ECS.Hybrid
             World.Active = world;
             s_CreatedWorld = world;
 
+            // Register hybrid injection hooks
+            InjectionHookSupport.RegisterHook(new GameObjectArrayInjectionHook());
+
             PlayerLoopManager.RegisterDomainUnload (DomainUnloadShutdown, 10000);
 
             foreach (var ass in AppDomain.CurrentDomain.GetAssemblies())

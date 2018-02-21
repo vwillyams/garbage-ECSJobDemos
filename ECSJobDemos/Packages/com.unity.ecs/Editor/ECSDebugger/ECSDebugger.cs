@@ -87,7 +87,13 @@ namespace UnityEditor.ECS
             else
             {
                 if (worldsAppeared && selectedWorld == null)
+                {
                     SelectWorldByName(lastSelectedWorldName);
+                    if (selectedWorld == null)
+                    {
+                        selectedWorld = World.AllWorlds[0];
+                    }
+                }
                 selectedWorldIndex = EditorGUILayout.Popup(selectedWorldIndex, worldNames);
             }
         }

@@ -15,8 +15,8 @@ namespace UnityEngine.ECS.Boids
     public class BoidSystem : JobComponentSystem
     {
         // #todo Should be Allocator.TempJpb once NativeMultiHashMap can DeallocateOnJobCompletion
-        List<NativeMultiHashMap<int, int>> 	 m_Cells; 
-        ComponentGroup                       m_MainGroup;
+        List<NativeMultiHashMap<int, int>> m_Cells;
+        ComponentGroup m_MainGroup;
         List<Boid> m_UniqueTypes = new List<Boid>(10);
 
         [ComputeJobOptimization]
@@ -32,30 +32,6 @@ namespace UnityEngine.ECS.Boids
                 var hash = GridHash.Hash(positions[index].Value, cellRadius);
                 positionHashes[index] = hash;
                 cells.Add(hash, index);
-            }
-        }
-
-        [ComputeJobOptimization]
-        struct CopyPosition : IJobParallelFor
-        {
-            [ReadOnly] public ComponentDataArray<Position> positions;
-            public NativeArray<float3> results;
-
-            public void Execute(int index)
-            {
-                results[index] = positions[index].Value;
-            }
-        }
-
-        [ComputeJobOptimization]
-        struct CopyHeading : IJobParallelFor
-        {
-            [ReadOnly] public ComponentDataArray<Heading> headings;
-            public NativeArray<float3> results;
-
-            public void Execute(int index)
-            {
-                results[index] = headings[index].Value;
             }
         }
 
@@ -166,17 +142,17 @@ namespace UnityEngine.ECS.Boids
                 var hashBoidLocationsJobHandle = hashBoidLocationsJob.Schedule(positions.Length, 64, inputDeps);
 
                 var copyPositionsResults = new NativeArray<float3>(positions.Length, Allocator.TempJob);
-                var copyPositionsJob = new CopyPosition
+                var copyPositionsJob = new CopyComponentData<Position,float3>
                 {
-                    positions = positions,
+                    source = positions,
                     results = copyPositionsResults
                 };
                 var copyPositionsJobHandle = copyPositionsJob.Schedule(positions.Length, 64, inputDeps);
 
                 var copyHeadingsResults = new NativeArray<float3>(positions.Length, Allocator.TempJob);
-                var copyHeadingsJob = new CopyHeading
+                var copyHeadingsJob = new CopyComponentData<Heading,float3>()
                 {
-                    headings = headings,
+                    source = headings,
                     results = copyHeadingsResults
                 };
                 var copyHeadingsJobHandle = copyHeadingsJob.Schedule(positions.Length, 64, inputDeps);

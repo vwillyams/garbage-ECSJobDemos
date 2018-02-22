@@ -2,8 +2,6 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
-using UnityEngine.AI;
-using UnityEngine.Jobs;
 
 namespace UnityEngine.ECS.Tests
 {
@@ -279,42 +277,6 @@ namespace UnityEngine.ECS.Tests
 	        var entity = m_Manager.CreateEntity (typeof(EcsTestData));
 	        m_Manager.SetComponentData(entity, new EcsTestData(42));
 	        World.DestroyManager(system);
-	    }
-
-	    [DisableAutoCreation]
-	    public class TransformWithTransformAccessSystem : ComponentSystem
-	    {
-	        public struct Group
-	        {
-	            public int Length;
-	            public ComponentArray<Transform> transforms;
-
-	            public TransformAccessArray transformAccesses;
-	        }
-
-	        [Inject]
-	        public Group group;
-
-	        protected override void OnUpdate()
-	        {
-	        }
-	    }
-
-	    [Test]
-	    public void TransformArrayWorksWithTransformAccessArray()
-	    {
-	        var go = new GameObject("test");
-	        GameObjectEntity.AddToEntityManager(m_Manager, go);
-
-	        var manager = World.GetOrCreateManager<TransformWithTransformAccessSystem>();
-
-	        manager.UpdateInjectedComponentGroups();
-
-	        Assert.AreEqual(1, manager.group.Length);
-	        Assert.AreEqual(manager.group.transforms[0].gameObject, manager.group.transformAccesses[0].gameObject);
-
-	        Object.DestroyImmediate (go);
-	        TearDown();
 	    }
 
 	    [DisableAutoCreation]

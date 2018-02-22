@@ -7,7 +7,6 @@ using Unity.Collections.LowLevel.Unsafe;
 
 using Component = UnityEngine.Component;
 using Transform = UnityEngine.Transform;
-using TransformAccessArray = UnityEngine.Jobs.TransformAccessArray;
 
 namespace Unity.Entities
 {
@@ -22,7 +21,6 @@ namespace Unity.Entities
 
         readonly int 				m_EntityArrayOffset;
         readonly int                m_IndexFromEntityOffset;
-        readonly int 				m_TransformAccessArrayOffset;
         readonly int 				m_LengthOffset;
 
         readonly InjectionData[]     m_ComponentDataInjections;
@@ -34,7 +32,7 @@ namespace Unity.Entities
 
         InjectComponentGroupData(ComponentSystemBase system, FieldInfo groupField,
             InjectionData[] componentDataInjections, InjectionData[] componentInjections, InjectionData[] fixedArrayInjections, InjectionData[] sharedComponentInjections,
-            FieldInfo entityArrayInjection, FieldInfo indexFromEntityInjection, FieldInfo transformAccessArrayInjection, InjectionContext injectionContext,
+            FieldInfo entityArrayInjection, FieldInfo indexFromEntityInjection, InjectionContext injectionContext,
             FieldInfo lengthInjection, ComponentType[] componentRequirements)
         {
             var requiredComponentTypes = componentRequirements;
@@ -69,11 +67,6 @@ namespace Unity.Entities
                 m_LengthOffset = UnsafeUtility.GetFieldOffset(lengthInjection);
             else
                 m_LengthOffset = -1;
-
-            if (transformAccessArrayInjection != null)
-                m_TransformAccessArrayOffset = UnsafeUtility.GetFieldOffset(transformAccessArrayInjection);
-            else
-                m_TransformAccessArrayOffset = -1;
 
             m_GroupFieldOffset = UnsafeUtility.GetFieldOffset(groupField);
         }
@@ -122,12 +115,6 @@ namespace Unity.Entities
                 UnsafeUtility.CopyStructureToPtr(ref data, groupStructPtr + m_FixedArrayInjections[i].FieldOffset);
             }
 
-            if (m_TransformAccessArrayOffset != -1)
-            {
-                var transformsArray = m_EntityGroup.GetTransformAccessArray();
-                UnsafeUtility.CopyStructureToPtr(ref transformsArray, groupStructPtr + m_TransformAccessArrayOffset);
-            }
-
             if (m_EntityArrayOffset != -1)
             {
                 EntityArray entityArray;
@@ -157,7 +144,6 @@ namespace Unity.Entities
         {
             FieldInfo entityArrayField;
             FieldInfo indexFromEntityField;
-            FieldInfo transformAccessArrayField;
             FieldInfo lengthField;
 
             var injectionContext = new InjectionContext();
@@ -167,19 +153,18 @@ namespace Unity.Entities
             var sharedComponentInjections = new List<InjectionData>();
 
             var componentRequirements = new HashSet<ComponentType>();
-            var error = CollectInjectedGroup(injectedGroupType, out entityArrayField, out indexFromEntityField, out transformAccessArrayField, injectionContext, out lengthField, componentRequirements, componentDataInjections, componentInjections, fixedArrayInjections, sharedComponentInjections );
+            var error = CollectInjectedGroup(injectedGroupType, out entityArrayField, out indexFromEntityField, injectionContext, out lengthField, componentRequirements, componentDataInjections, componentInjections, fixedArrayInjections, sharedComponentInjections );
             if (error != null)
                 throw new ArgumentException(error);
 
-            return new InjectComponentGroupData(system, groupField, componentDataInjections.ToArray(), componentInjections.ToArray(), fixedArrayInjections.ToArray(), sharedComponentInjections.ToArray(), entityArrayField, indexFromEntityField,  transformAccessArrayField, injectionContext, lengthField, componentRequirements.ToArray());
+            return new InjectComponentGroupData(system, groupField, componentDataInjections.ToArray(), componentInjections.ToArray(), fixedArrayInjections.ToArray(), sharedComponentInjections.ToArray(), entityArrayField, indexFromEntityField, injectionContext, lengthField, componentRequirements.ToArray());
         }
 
-        static string CollectInjectedGroup(Type injectedGroupType, out FieldInfo entityArrayField, out FieldInfo indexFromEntityField, out FieldInfo transformAccessArrayField, InjectionContext injectionContext, out FieldInfo lengthField, ISet<ComponentType> componentRequirements,
+        static string CollectInjectedGroup(Type injectedGroupType, out FieldInfo entityArrayField, out FieldInfo indexFromEntityField, InjectionContext injectionContext, out FieldInfo lengthField, ISet<ComponentType> componentRequirements,
             ICollection<InjectionData> componentDataInjections, ICollection<InjectionData> componentInjections, ICollection<InjectionData> fixedArrayInjections, ICollection<InjectionData> sharedComponentInjections)
         {
             //@TODO: Improve error messages...
             var fields = injectedGroupType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            transformAccessArrayField = null;
             entityArrayField = null;
             indexFromEntityField = null;
             lengthField = null;
@@ -229,17 +214,6 @@ namespace Unity.Entities
                     sharedComponentInjections.Add (injection);
                     componentRequirements.Add(injection.ComponentType);
                 }
-                else if (field.FieldType == typeof(TransformAccessArray))
-                {
-                    if (isReadOnly)
-                        return "[ReadOnly] may not be used on a TransformAccessArray only on ComponentDataArray<>";
-                    // Error on multiple transformAccessArray
-                    if (transformAccessArrayField != null)
-                        return "A [Inject] struct, may only contain a single TransformAccessArray";
-
-                    transformAccessArrayField = field;
-                    componentRequirements.Add(typeof(Transform));
-                }
                 else if (field.FieldType == typeof(EntityArray))
                 {
                     // Error on multiple EntityArray
@@ -265,7 +239,7 @@ namespace Unity.Entities
                 }
                 else
                 {
-                    var hook = InjectionHookSupport.HookFor(field.FieldType);
+                    var hook = InjectionHookSupport.HookFor(field);
                     if (hook == null)
                     {
                         return

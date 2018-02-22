@@ -71,6 +71,11 @@ namespace Unity.Entities.Hybrid
     {
         public Type FieldTypeOfInterest => typeof(GameObjectArray);
 
+        public bool IsInterestedInField(FieldInfo fieldInfo)
+        {
+            return fieldInfo.FieldType == typeof(GameObjectArray);
+        }
+
         public string ValidateField(FieldInfo field, bool isReadOnly, InjectionContext injectionInfo)
         {
             if (field.FieldType != typeof(GameObjectArray))
@@ -107,7 +112,7 @@ namespace Unity.Entities.Hybrid
 
 namespace Unity.Entities.Hybrid
 {
-    public static class ComponentGroupExtensions
+    public static class ComponentGroupExtensionsForGameObjectArray
     {
         public static GameObjectArray GetGameObjectArray(this ComponentGroup group)
         {

@@ -1,12 +1,28 @@
 ﻿using NUnit.Framework;
-using Unity.Jobs;
-using Unity.Collections;
 using Unity.Entities;
+using Unity.ECS.Hybrid;
+using Unity.Entities.Hybrid;
+using UnityEngine.Jobs;
 
 namespace UnityEngine.ECS.Tests
 {
     public class ComponentGroupTransformAccessArrayTests : ECSTestsFixture
 	{
+	    
+	    TransformAccessArrayInjectionHook m_TransformAccessArrayInjectionHook = new TransformAccessArrayInjectionHook();
+
+	    [OneTimeSetUp]
+	    public void Init()
+	    {
+	        InjectionHookSupport.RegisterHook(m_TransformAccessArrayInjectionHook);
+	    }
+
+	    [OneTimeTearDown]
+	    public void Cleanup()
+	    {
+	        InjectionHookSupport.UnregisterHook(m_TransformAccessArrayInjectionHook);
+	    }
+	    
         public ComponentGroupTransformAccessArrayTests()
         {
             Assert.IsTrue(Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobDebuggerEnabled, "JobDebugger must be enabled for these tests");
@@ -145,6 +161,85 @@ namespace UnityEngine.ECS.Tests
 	        // Execute in edit mode is not enabled so this has to be called manually right now
 	        go2.GetComponent<GameObjectEntity>().OnDisable();
 	        Object.DestroyImmediate(go2);
+	    }
+
+	    [DisableAutoCreation]
+	    public class GameObjectArrayWithTransformAccessSystem : ComponentSystem
+	    {
+	        public struct Group
+	        {
+	            public int Length;
+	            public GameObjectArray gameObjects;
+
+	            public TransformAccessArray transforms;
+	        }
+
+	        [Inject]
+	        public Group group;
+
+	        protected override void OnUpdate()
+	        {
+	        }
+	    }
+	    
+	    [Test]
+	    public void GameObjectArrayWorksWithTransformAccessArray()
+	    {
+	        var hook = new GameObjectArrayInjectionHook();
+	        InjectionHookSupport.RegisterHook(hook);
+	        
+	        var go = new GameObject("test");
+	        GameObjectEntity.AddToEntityManager(m_Manager, go);
+
+	        var manager = World.GetOrCreateManager<GameObjectArrayWithTransformAccessSystem>();
+
+	        manager.UpdateInjectedComponentGroups();
+
+	        Assert.AreEqual(1, manager.group.Length);
+	        Assert.AreEqual(go, manager.group.gameObjects[0]);
+	        Assert.AreEqual(go, manager.group.transforms[0].gameObject);
+
+	        Object.DestroyImmediate (go);
+	        
+	        InjectionHookSupport.UnregisterHook(hook);
+	        
+	        TearDown();
+	    }
+
+	    [DisableAutoCreation]
+	    public class TransformWithTransformAccessSystem : ComponentSystem
+	    {
+	        public struct Group
+	        {
+	            public int Length;
+	            public ComponentArray<Transform> transforms;
+
+	            public TransformAccessArray transformAccesses;
+	        }
+
+	        [Inject]
+	        public Group group;
+
+	        protected override void OnUpdate()
+	        {
+	        }
+	    }
+
+	    [Test]
+	    public void TransformArrayWorksWithTransformAccessArray()
+	    {
+	        var go = new GameObject("test");
+	        GameObjectEntity.AddToEntityManager(m_Manager, go);
+
+	        var manager = World.GetOrCreateManager<TransformWithTransformAccessSystem>();
+
+	        manager.UpdateInjectedComponentGroups();
+
+	        Assert.AreEqual(1, manager.group.Length);
+	        Assert.AreEqual(manager.group.transforms[0].gameObject, manager.group.transformAccesses[0].gameObject);
+
+	        Object.DestroyImmediate (go);
+	        TearDown();
 	    }
     }
 }

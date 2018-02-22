@@ -22,6 +22,8 @@ namespace Unity.Entities
     /// <summary>
     /// A thread-safe command buffer that can buffer commands that affect entities and components for later playback.
     /// </summary>
+    ///
+    /// Command buffers are not created in user code directly, you get them from either a ComponentSystem or a Barrier.
     [StructLayout(LayoutKind.Sequential)]
     [NativeContainer]
     public unsafe struct EntityCommandBuffer
@@ -59,9 +61,6 @@ namespace Unity.Entities
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         AtomicSafetyHandle m_Safety;
-
-        [NativeSetClassTypeToNullOnSchedule]
-        DisposeSentinel m_DisposeSentinel;
 #endif
 
         /// <summary>
@@ -195,7 +194,11 @@ namespace Unity.Entities
             #endif
         }
 
-        public EntityCommandBuffer(Allocator label)
+        /// <summary>
+        /// Creates a new command buffer. Note that this is internal and not exposed to user code.
+        /// </summary>
+        /// <param name="label">Memory allocator to use for chunks and data</param>
+        internal EntityCommandBuffer(Allocator label)
         {
             m_Data = (EntityCommandBufferData*) UnsafeUtility.Malloc(sizeof(EntityCommandBufferData), UnsafeUtility.AlignOf<EntityCommandBufferData>(), label);
             m_Data->m_Allocator = label;
@@ -204,14 +207,14 @@ namespace Unity.Entities
             m_Data->m_MinimumChunkSize = kDefaultMinimumChunkSize;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            DisposeSentinel.Create(out m_Safety, out m_DisposeSentinel, 0);
+            m_Safety = AtomicSafetyHandle.Create();
 #endif
         }
 
         public void Dispose()
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            DisposeSentinel.Dispose(m_Safety, ref m_DisposeSentinel);
+            AtomicSafetyHandle.CheckDeallocateAndThrow(m_Safety);
 #endif
             if (m_Data != null)
             {

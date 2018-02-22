@@ -16,20 +16,6 @@ namespace UnityEngine.ECS.Tests
             cmds.Dispose();
         }
 
-        [Test]
-        public void DoubleDisposeThrows()
-        {
-            var cmds = new EntityCommandBuffer(Allocator.TempJob);
-            cmds.CreateEntity();
-            cmds.AddComponent(new EcsTestData { value = 12 });
-            cmds.Playback(m_Manager);
-            cmds.Dispose();
-            Assert.Throws<InvalidOperationException>(() =>
-            {
-                 cmds.Dispose();
-            });
-        }
-
         struct TestJob : IJob
         {
             public EntityCommandBuffer Buffer;

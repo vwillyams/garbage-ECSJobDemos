@@ -205,15 +205,24 @@ namespace Unity.Entities
 
     public abstract class ComponentSystem : ComponentSystemBase
     {
+        private EntityCommandBuffer m_DeferredEntities;
+
+        public EntityCommandBuffer PostUpdateCommands => m_DeferredEntities;
+
         void BeforeOnUpdate()
         {
             CompleteDependencyInternal();
             UpdateInjectedComponentGroups ();
+
+            m_DeferredEntities = new EntityCommandBuffer(Allocator.TempJob);
         }
 
         void AfterOnUpdate()
         {
             JobHandle.ScheduleBatchedJobs();
+
+            m_DeferredEntities.Playback(EntityManager);
+            m_DeferredEntities.Dispose();
         }
 
         internal sealed override void InternalUpdate()

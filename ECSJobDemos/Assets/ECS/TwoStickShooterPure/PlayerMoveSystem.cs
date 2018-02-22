@@ -23,8 +23,6 @@ namespace TwoStickPureExample
             if (m_Data.Length == 0)
                 return;
 
-            var cmds = new EntityCommandBuffer(Allocator.TempJob);
-
             var settings = TwoStickBootstrap.Settings;
 
             float dt = Time.deltaTime;
@@ -43,8 +41,8 @@ namespace TwoStickPureExample
 
                     playerInput.FireCooldown = settings.playerFireCoolDown;
 
-                    cmds.CreateEntity(TwoStickBootstrap.ShotSpawnArchetype);
-                    cmds.SetComponent(new ShotSpawnData
+                    PostUpdateCommands.CreateEntity(TwoStickBootstrap.ShotSpawnArchetype);
+                    PostUpdateCommands.SetComponent(new ShotSpawnData
                     {
                         Shot = new Shot
                         {
@@ -61,9 +59,6 @@ namespace TwoStickPureExample
                 m_Data.Heading[index] = new Heading2D {Value = heading};
                 m_Data.Input[index] = playerInput;
             }
-
-            cmds.Playback(EntityManager);
-            cmds.Dispose();
         }
     }
 }

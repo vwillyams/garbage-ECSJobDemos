@@ -162,8 +162,6 @@ namespace TwoStickPureExample
 
             var playerPos = m_Player.Position[0].Value;
 
-            var cmds = new EntityCommandBuffer(Allocator.TempJob);
-
             float dt = Time.deltaTime;
             float shootRate = TwoStickBootstrap.Settings.enemyShootRate;
             float shotTtl = TwoStickBootstrap.Settings.enemyShotTimeToLive;
@@ -185,15 +183,12 @@ namespace TwoStickPureExample
                     spawn.Heading = new Heading2D {Value = math.normalize(playerPos - m_Data.Position[i].Value)};
                     spawn.Faction = new Faction { Value = Faction.kEnemy };
 
-                    cmds.CreateEntity(TwoStickBootstrap.ShotSpawnArchetype);
-                    cmds.SetComponent(spawn);
+                    PostUpdateCommands.CreateEntity(TwoStickBootstrap.ShotSpawnArchetype);
+                    PostUpdateCommands.SetComponent(spawn);
                 }
 
                 m_Data.ShootState[i] = state;
             }
-
-            cmds.Playback(EntityManager);
-            cmds.Dispose();
         }
     }
 

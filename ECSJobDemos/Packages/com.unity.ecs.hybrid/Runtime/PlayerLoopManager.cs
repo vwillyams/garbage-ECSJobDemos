@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
-using Object = UnityEngine.Object;
-using HideFlags = UnityEngine.HideFlags;
-using GameObject = UnityEngine.GameObject;
-using Application = UnityEngine.Application;
-
-namespace Unity.ECS
+namespace Unity.ECS.Hybrid
 {
     public static class PlayerLoopManager
     {
@@ -19,9 +15,9 @@ namespace Unity.ECS
             {
                 return Ordering - other.Ordering;
             }
-        };
+        }
 
-        static readonly List<UnloadMethod> s_DomainUnloadMethods = new List<UnloadMethod>();
+        static readonly List<UnloadMethod> k_DomainUnloadMethods = new List<UnloadMethod>();
 
         static PlayerLoopManager()
         {
@@ -29,7 +25,7 @@ namespace Unity.ECS
             go.AddComponent<PlayerLoopDisableManager>().IsActive = true;
             go.hideFlags = HideFlags.HideInHierarchy;
             if (Application.isPlaying)
-                Object.DontDestroyOnLoad(go);
+                UnityEngine.Object.DontDestroyOnLoad(go);
             else
                 go.hideFlags = HideFlags.HideAndDontSave;
         }
@@ -43,14 +39,14 @@ namespace Unity.ECS
         /// <param name="ordering">The ordering. Lower ordering values get called earlier.</param>
         public static void RegisterDomainUnload(CallbackFunction callback, int ordering = 0)
         {
-            s_DomainUnloadMethods.Add(new UnloadMethod { Function = callback, Ordering = ordering });
+            k_DomainUnloadMethods.Add(new UnloadMethod { Function = callback, Ordering = ordering });
         }
 
         internal static void InvokeBeforeDomainUnload()
         {
-            if (s_DomainUnloadMethods != null)
+            if (k_DomainUnloadMethods != null)
             {
-                InvokeMethods(s_DomainUnloadMethods);
+                InvokeMethods(k_DomainUnloadMethods);
             }
         }
 

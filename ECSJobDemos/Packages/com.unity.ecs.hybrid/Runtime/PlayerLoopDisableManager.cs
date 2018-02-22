@@ -1,7 +1,6 @@
-﻿using MonoBehaviour = UnityEngine.MonoBehaviour;
-using ExecuteInEditMode = UnityEngine.ExecuteInEditMode;
+﻿using UnityEngine;
 
-namespace Unity.ECS
+namespace Unity.ECS.Hybrid
 {
 	[ExecuteInEditMode]
 	class PlayerLoopDisableManager : MonoBehaviour

@@ -28,7 +28,7 @@ namespace UnityEngine.ECS.Tests
         }
 
         [TearDown]
-        public void TearDown()
+        public virtual void TearDown()
         {
             if (m_Manager != null)
             {
@@ -87,7 +87,7 @@ namespace UnityEngine.ECS.Tests
 
         public EmptySystem EmptySystem
         {
-            get 
+            get
             {
                 return World.Active.GetOrCreateManager<EmptySystem>();
             }

@@ -1,7 +1,6 @@
-﻿using RuntimeInitializeLoadType = UnityEngine.RuntimeInitializeLoadType;
-using RuntimeInitializeOnLoadMethod = UnityEngine.RuntimeInitializeOnLoadMethodAttribute;
+﻿using UnityEngine;
 
-namespace Unity.ECS
+namespace Unity.ECS.Hybrid
 {
 #if !UNITY_DISABLE_AUTOMATIC_SYSTEM_BOOTSTRAP
     static class AutomaticWorldBootstrap

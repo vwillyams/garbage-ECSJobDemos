@@ -2,16 +2,16 @@
 using System.Linq;
 using System.Collections.Generic;
 
-namespace Unity.ECS
+namespace Unity.ECS.Hybrid
 {
     static class DefaultWorldInitialization
     {
-        const string defaultWorldName = "Default World";
-        static World m_CreatedWorld;
+        const string k_DefaultWorldName = "Default World";
+        static World s_CreatedWorld;
 
         static void DomainUnloadShutdown()
         {
-            if (World.Active == m_CreatedWorld)
+            if (World.Active == s_CreatedWorld)
             {
                 World.Active.Dispose ();
                 World.Active = null;
@@ -38,9 +38,12 @@ namespace Unity.ECS
 
         public static void Initialize()
         {
-            var world = new World(defaultWorldName);
+            var world = new World(k_DefaultWorldName);
             World.Active = world;
-            m_CreatedWorld = world;
+            s_CreatedWorld = world;
+
+            // Register hybrid injection hooks
+            InjectionHookSupport.RegisterHook(new GameObjectArrayInjectionHook());
 
             PlayerLoopManager.RegisterDomainUnload (DomainUnloadShutdown, 10000);
 

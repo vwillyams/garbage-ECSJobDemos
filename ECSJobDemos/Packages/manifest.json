@@ -5,6 +5,7 @@
 	"testables": [
         "com.unity.collections",
         "com.unity.ecs",
+        "com.unity.ecs.hybrid",
         "com.unity.transforms",
         "com.unity.transforms2d",
         "com.unity.transforms.hybrid",

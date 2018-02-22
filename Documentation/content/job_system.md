@@ -6,7 +6,7 @@ TODO: WHY MULTITHREAD?
 # How the JobSystem works
 The **JobSystem** in Unity is designed to allow users to write multi-threaded code which interacts well with the rest of the engine, while making it easier to write correct code.
 
-## What is Multi-Threading?
+## What is multi-threading?
 When most people think of multi-threading they think of creating threads which runs code and then synchronizes its results with the main thread somehow. This works well if you have a few tasks which run for a long time. 
 
 When you are [parallelizing](https://en.wikipedia.org/wiki/Parallel_computing) a game that is rarely the case. Usually you have a huge amount of very small things to do. If you create threads for all of them you will end up with a huge amount of threads with a short lifetime. 
@@ -27,7 +27,7 @@ To make this easier, jobs support [dependencies](http://tutorials.jenkov.com/ood
 
 An important aspect of the Unity JobSystem, and one of the reasons it is a custom API and not one of the existing thread models from C#, is that the JobSystem integrates with what the Unity engine uses internally. This means that user written code and the engine will share worker threads to avoid creating more threads than CPU cores - which would cause contention for CPU resources.
 
-## Race Conditions & Safety System
+## Race conditions & safety system
 When writing multi threaded code there is always a risk for [race conditions](https://en.wikipedia.org/wiki/Race_condition). A race condition means that the output of some operation depends on the timing of some other operation that it cannot control. Whenever someone is writing data, and someone else is reading that data at the same time, there is a race condition. What value the reader sees depends on if the writer executed before or after the reader, which the reader has no control over.
 
 A race condition is not always a bug, but it is always a source of indeterministic behaviour, and when it does lead to bugs such as crashes, deadlocks, or incorrect output it can be difficult to find the source of the problem since it depends on timing. This means the issue can only be recreated on rare occasions and debugging it can cause the problem to disappear; as breakpoints and logging change the timing too. 
@@ -146,7 +146,7 @@ public struct MyParallelJob : IJobParallelFor
 ```
 ```C#
 var jobData = new MyParallelJob();
-jobData.a = inputA; // TODO - where does inputA/B come from? It reads like it is a vairable/property from somewhere that is not listed (compared to the other examples). If you can just put 10 and 10 again that is clearer. 
+jobData.a = inputA; // TODO - where does inputA/B come from? It reads like it is a variable/property from somewhere that is not listed (compared to the other examples). If you can just put 10 and 10 again that is clearer. 
 jobData.b = inputB;
 jobData.result = result;
 // Schedule the job with one Execute per index in the results array and only 1 item per processing batch
@@ -155,7 +155,7 @@ JobHandle handle = jobData.Schedule(result.Length, 1);
 handle.Complete();
 ```
 
-## Common misstakes
+## Common mistakes
 This is a collection of common mistakes when using the JobSystem:
 * **Accessing static data from a job**: By doing this you are circumventing all safety systems. If you access the wrong thing you **will** crash Unity, often in unexpected ways. Accessing **MonoBehaviour** can for example cause crashes on domain reloads. (Future versions will prevent global variable access from jobs using static analysis.)
 * **Not flushing schedule batches**: When you want your jobs to start you need to flush the schedule batch with `JobHandle.ScheduleBatchedJobs()`. Not doing so will delay the scheduling until someone waits for the result.

@@ -178,7 +178,7 @@ class BoidToInstanceRendererTransform_GetEntities : ComponentSystem
 
 ```cs
 // Using IJobProcessComponentData to iterate over all entities matching the required component types.
-// Processing of entities happens in parallel. The Main thread only schedules jobs.
+// Processing of entities happens in parallel. The main thread only schedules jobs.
 [DisableAutoCreation]
 class BoidToInstanceRendererTransform_IJobProcessComponentData : JobComponentSystem
 {

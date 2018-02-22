@@ -4,6 +4,9 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace Unity.ECS
 {
+    /// <summary>
+    /// Index of specified Entity in ComponentGroup
+    /// </summary>
     [NativeContainer]
     public unsafe struct IndexFromEntity
     {

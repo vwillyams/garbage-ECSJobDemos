@@ -5,6 +5,10 @@ using UnityEngine.Rendering;
 
 namespace Unity.Rendering.Hybrid
 {
+    /// <summary>
+    /// Render Mesh wiih Material (must be instanced material) by object to world matrix
+    /// specified by TransformMatrix associated with entity.
+    /// </summary>
     [Serializable]
 	public struct MeshInstanceRenderer : ISharedComponentData
 	{

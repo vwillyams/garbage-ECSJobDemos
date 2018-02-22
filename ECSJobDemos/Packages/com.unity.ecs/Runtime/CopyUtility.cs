@@ -9,6 +9,12 @@ namespace Unity.ECS
        T Value { get; set; } 
     }
     
+    /// <summary>
+    /// Copy ComponentDataArray to NativeArray Job.
+    /// </summary>
+    /// <typeparam name="TSource">Component data type of ISingleValue<T></typeparam>
+    /// <typeparam name="TDestination">Blittable type matching T in source</typeparam>
+    
     // [ComputeJobOptimization]
     public struct CopyComponentData<TSource,TDestination> : IJobParallelFor
     where TSource : struct, IComponentData, ISingleValue<TDestination>

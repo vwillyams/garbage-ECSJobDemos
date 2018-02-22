@@ -85,7 +85,7 @@ namespace Systems
             {
                 Ships = _ships.Data,
                 Planets = _planets.Data,
-                TargetPlanet = _entitymanager.GetComponentData<PlanetData>(),
+                TargetPlanet = GetComponentDataFromEntity<PlanetData>(),
                 DeltaTime = Time.deltaTime,
                 Entities = _ships.Entities,
                 Transforms = _ships.Transforms,

@@ -62,6 +62,8 @@ namespace Unity.ECS
     public interface IInjectionHook
     {
         Type FieldTypeOfInterest { get; }
+        
+        bool IsInterestedInField(FieldInfo fieldInfo);
 
         string ValidateField(FieldInfo field, bool isReadOnly, InjectionContext injectionInfo);
 
@@ -79,16 +81,8 @@ namespace Unity.ECS
 
         public static void RegisterHook(IInjectionHook hook)
         {
-            var registeredHook = HookFor(hook.FieldTypeOfInterest);
-            if (registeredHook != null)
-            {
-                Debug.LogError($"Custom injection hook for type {hook.FieldTypeOfInterest.FullName} has already been registered ({registeredHook.GetType().FullName}). {hook.GetType().FullName} will be skipped.");
-            }
-            else
-            {
-                s_HasHooks = true;
-                k_Hooks.Add(hook);
-            }
+            s_HasHooks = true;
+            k_Hooks.Add(hook);
         }
 
         public static void UnregisterHook(IInjectionHook hook)
@@ -97,15 +91,15 @@ namespace Unity.ECS
             s_HasHooks = k_Hooks.Count != 0;
         }
 
-        internal static IInjectionHook HookFor(Type type)
+        internal static IInjectionHook HookFor(FieldInfo fieldInfo)
         {
             if (!s_HasHooks)
                 return null;
 
-            // I'm not expecting many hooks, I think it is fine to iterate over them
+            // TODO: in case of multiple hooks interested in a single field type, we should drop an error (in Editor)
             foreach (var hook in k_Hooks)
             {
-                if (hook.FieldTypeOfInterest == type)
+                if (hook.IsInterestedInField(fieldInfo))
                     return hook;
             }
 

@@ -4,9 +4,7 @@ using Unity.Jobs;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
-using Transform = UnityEngine.Transform;
 using Component = UnityEngine.Component;
-using TransformAccessArray = UnityEngine.Jobs.TransformAccessArray;
 
 namespace Unity.ECS
 {
@@ -346,12 +344,14 @@ namespace Unity.ECS
         readonly ArchetypeManager             m_TypeManager;
         readonly ComponentGroupData           m_ComponentGroupData;
         readonly EntityDataManager*           m_EntityDataManager;
-        TransformAccessArray                  m_Transforms;
-        int                                   m_TransformsOrderVersion;
+        
+        // TODO: this is temporary, used to cache some state to avoid recomputing the TransformAccessArray. We need to improve this.
+        internal IDisposable m_CachedState;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal string                       DisallowDisposing = null;
 #endif
+        internal EntityDataManager* EntityDataManager => m_EntityDataManager;
 
         internal ComponentGroup(EntityGroupData* groupData, ComponentJobSafetyManager safetyManager, ArchetypeManager typeManager, EntityDataManager* entityDataManager )
         {
@@ -359,7 +359,6 @@ namespace Unity.ECS
             m_SafetyManager = safetyManager;
             m_TypeManager = typeManager;
             m_EntityDataManager = entityDataManager;
-            m_TransformsOrderVersion = 0;
         }
 
         internal ComponentGroup(ComponentGroup parentComponentGroup, ComponentGroupData componentGroupData)
@@ -368,7 +367,6 @@ namespace Unity.ECS
             m_SafetyManager = parentComponentGroup.m_SafetyManager;
             m_TypeManager = parentComponentGroup.m_TypeManager;
             m_EntityDataManager = parentComponentGroup.m_EntityDataManager;
-            m_TransformsOrderVersion = 0;
         }
 
         public void Dispose()
@@ -378,8 +376,8 @@ namespace Unity.ECS
                 throw new System.ArgumentException(DisallowDisposing);
 #endif
 
-            if (m_Transforms.IsCreated)
-                m_Transforms.Dispose();
+            if(m_CachedState != null)
+                m_CachedState.Dispose();
 
             m_ComponentGroupData.RemoveFiterReferences(m_TypeManager);
         }
@@ -527,24 +525,6 @@ namespace Unity.ECS
             ComponentChunkIterator iterator;
             GetComponentChunkIterator(out length, out iterator);
             return length;
-        }
-
-        public TransformAccessArray GetTransformAccessArray()
-        {
-            int orderVersion = m_EntityDataManager->GetComponentTypeOrderVersion(TypeManager.GetTypeIndex<Transform>());
-            if (!m_Transforms.IsCreated || orderVersion != m_TransformsOrderVersion)
-            {
-                m_TransformsOrderVersion = orderVersion;
-                UnityEngine.Profiling.Profiler.BeginSample("DirtyTransformAccessArrayUpdate");
-                var trans = GetComponentArray<Transform>();
-                if (!m_Transforms.IsCreated)
-                    m_Transforms = new TransformAccessArray(trans.ToArray());
-                else
-                    m_Transforms.SetTransforms(trans.ToArray());
-                UnityEngine.Profiling.Profiler.EndSample();
-            }
-
-            return m_Transforms;
         }
 
         public bool CompareComponents(ComponentType[] componentTypes) =>

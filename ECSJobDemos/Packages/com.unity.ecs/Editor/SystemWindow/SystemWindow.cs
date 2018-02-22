@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using Unity.ECS;
+using Unity.Entities;
 using UnityEngine;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine.Experimental.LowLevel;

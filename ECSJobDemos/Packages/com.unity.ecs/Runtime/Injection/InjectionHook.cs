@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Collections.Generic;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     sealed class CustomInjectionHookAttribute : Attribute
     {

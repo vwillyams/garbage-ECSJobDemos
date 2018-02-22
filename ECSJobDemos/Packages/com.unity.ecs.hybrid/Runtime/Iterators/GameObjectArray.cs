@@ -7,7 +7,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.Scripting;
 
-namespace Unity.ECS.Hybrid
+namespace Unity.Entities.Hybrid
 {
 	public struct GameObjectArray
 	{
@@ -105,7 +105,7 @@ namespace Unity.ECS.Hybrid
     }
 }
 
-namespace Unity.ECS.Hybrid
+namespace Unity.Entities.Hybrid
 {
     public static class ComponentGroupExtensions
     {

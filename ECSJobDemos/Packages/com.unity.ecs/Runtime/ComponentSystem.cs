@@ -5,7 +5,7 @@ using Unity.Jobs;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs.LowLevel.Unsafe;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     public unsafe abstract class ComponentSystemBase : ScriptBehaviourManager
     {

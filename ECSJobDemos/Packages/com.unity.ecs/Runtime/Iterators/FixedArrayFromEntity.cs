@@ -2,7 +2,7 @@
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Collections;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     [NativeContainer]
     public unsafe struct FixedArrayFromEntity<T> where T : struct

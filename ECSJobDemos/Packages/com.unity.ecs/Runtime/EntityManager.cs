@@ -8,7 +8,7 @@ using Unity.Assertions;
 
 [assembly:InternalsVisibleTo("Unity.Core.Hybrid")]
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     //@TODO: There is nothing prevent non-main thread (non-job thread) access of EntityMnaager.
     //       Static Analysis or runtime checks?

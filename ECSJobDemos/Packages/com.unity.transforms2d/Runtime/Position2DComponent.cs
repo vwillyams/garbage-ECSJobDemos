@@ -1,5 +1,5 @@
 ﻿using System;
-using Unity.ECS;
+using Unity.Entities;
 using Unity.Mathematics;
 
 namespace Unity.Transforms2D

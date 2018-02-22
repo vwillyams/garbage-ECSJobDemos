@@ -1,8 +1,8 @@
 ﻿using Unity.Collections;
-using Unity.ECS;
+using Unity.Entities;
 using Unity.Jobs;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     public interface ISingleValue<T>
     {

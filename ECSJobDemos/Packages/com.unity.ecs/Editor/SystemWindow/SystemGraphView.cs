@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.Msagl.Core.Geometry.Curves;
 using Microsoft.Msagl.Layout.Layered;
-using Unity.ECS;
+using Unity.Entities;
 using UnityEngine;
 
 namespace UnityEditor.ECS
@@ -23,7 +23,7 @@ namespace UnityEditor.ECS
 	    public SystemGraphView(Vector2 windowOffset)
 	    {
 	        kWindowOffset = windowOffset;
-	        lineTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.ecs_bundle/Unity.ECS.Editor/Resources/AALineRetina.png");
+	        lineTexture = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.unity.ecs_bundle/Unity.Entities.Editor/Resources/AALineRetina.png");
 	    }
 
 	    public static SystemGraphState GetStateForWorld(World world, ref List<SystemGraphState> stateForWorlds,

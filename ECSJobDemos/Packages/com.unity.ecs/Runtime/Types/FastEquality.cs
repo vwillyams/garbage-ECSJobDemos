@@ -6,7 +6,7 @@ using Unity.Collections.LowLevel.Unsafe;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Unity.Core.Tests")]
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     static internal class FastEquality
     {

@@ -8,7 +8,7 @@ using Transform = UnityEngine.Transform;
 using Component = UnityEngine.Component;
 using TransformAccessArray = UnityEngine.Jobs.TransformAccessArray;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     unsafe struct ComponentGroupData
     {

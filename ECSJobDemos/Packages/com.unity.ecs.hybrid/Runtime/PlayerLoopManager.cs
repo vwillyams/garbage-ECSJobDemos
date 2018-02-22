@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Unity.ECS.Hybrid
+namespace Unity.Entities.Hybrid
 {
     public static class PlayerLoopManager
     {

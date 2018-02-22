@@ -9,7 +9,7 @@ using Component = UnityEngine.Component;
 using Transform = UnityEngine.Transform;
 using TransformAccessArray = UnityEngine.Jobs.TransformAccessArray;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     struct ProxyComponentData : IComponentData { }
 

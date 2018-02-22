@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 
-namespace Unity.ECS.Hybrid
+namespace Unity.Entities.Hybrid
 {
     static class DefaultWorldInitialization
     {

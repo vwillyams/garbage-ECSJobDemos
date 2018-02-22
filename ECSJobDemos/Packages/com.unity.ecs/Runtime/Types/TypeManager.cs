@@ -2,7 +2,7 @@
 using System.Threading;
 using Unity.Collections.LowLevel.Unsafe;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     static unsafe class TypeManager
     {

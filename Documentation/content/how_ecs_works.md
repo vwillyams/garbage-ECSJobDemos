@@ -8,7 +8,7 @@ When making games with GameObject/MonoBehaviour, it is easy to write code that e
 
 ECS is a way of writing code that focuses on the actual problems you are solving: the data and behavior that make up your game.
 
-In addition to being a better way of approaching game programming for design reasons, using ECS puts you in an ideal position to leverage Unity's job system, letting you take full advantage of today's multi-core processors.
+In addition to being a better way of approaching game programming for design reasons, using ECS puts you in an ideal position to leverage Unity's job system, letting you take full advantage of today's multicore processors.
 
 We have exposed the Native Unity Job system so that users can gain the benefits of multithreaded batch processing from within their ECS C# scripts. The Native Job system has built in safety features such as avoiding [race conditions](https://en.wikipedia.org/wiki/Race_condition), dependancy analaysis and [injection](http://www.jamesshore.com/Blog/Dependency-Injection-Demystified.html), and feedback should a problem arise.
 

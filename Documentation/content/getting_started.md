@@ -6,7 +6,7 @@ When making games with **GameObject**/**MonoBehaviour**, it is easy to write cod
 **Entity-Component-System to the rescue**
 [ECS](https://en.wikipedia.org/wiki/Entity%E2%80%93component%E2%80%93system) is a way of writing code that focuses on the actual problems you are solving: the data and behavior that make up your game.
 
-In addition to being a better way of approaching game programming for design reasons, using ECS puts you in an ideal position to leverage Unity's **Job System** and **Burst Compiler**, letting you take full advantage of today's multi-core processors.
+In addition to being a better way of approaching game programming for design reasons, using ECS puts you in an ideal position to leverage Unity's **Job System** and **Burst Compiler**, letting you take full advantage of today's multicore processors.
 
 We have exposed Unity's **Native Job System** so that users can gain the benefits of [multithreaded](https://en.wikipedia.org/wiki/Thread_(computing)) batch processing from within their ECS C# scripts. The **Native Job System** has built in safety features for detecting [race conditions](https://en.wikipedia.org/wiki/Race_condition).
 
@@ -107,7 +107,7 @@ You simply move the contents of your **MonoBehaviour.Update** into a **Component
 - Instantiation time will not improve
 - Load time will not improve
 - Data is accessed randomly, no linear memory access gurantees
-- No multi-core
+- No multicore
 - No [SIMD](https://en.wikipedia.org/wiki/SIMD)
 
 

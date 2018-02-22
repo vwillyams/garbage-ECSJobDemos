@@ -6,7 +6,7 @@ TODO: WHY MULTITHREAD?
 # How the JobSystem works
 The **JobSystem** in Unity is designed to allow users to write multi-threaded code which interacts well with the rest of the engine, while making it easier to write correct code.
 
-## What is multi-threading?
+## What is multithreading?
 When most people think of multi-threading they think of creating threads which runs code and then synchronizes its results with the main thread somehow. This works well if you have a few tasks which run for a long time. 
 
 When you are [parallelizing](https://en.wikipedia.org/wiki/Parallel_computing) a game that is rarely the case. Usually you have a huge amount of very small things to do. If you create threads for all of them you will end up with a huge amount of threads with a short lifetime. 
@@ -32,7 +32,7 @@ When writing multi threaded code there is always a risk for [race conditions](ht
 
 A race condition is not always a bug, but it is always a source of indeterministic behaviour, and when it does lead to bugs such as crashes, deadlocks, or incorrect output it can be difficult to find the source of the problem since it depends on timing. This means the issue can only be recreated on rare occasions and debugging it can cause the problem to disappear; as breakpoints and logging change the timing too. 
 
-To a large extent, this is what makes writing multi-threaded code difficult, but fear not - we've got your back.
+To a large extent, this is what makes writing multithreaded code difficult, but fear not - we've got your back.
 
 To make it easier to write multithreaded code the JobSystem in Unity aims to detect all potential race condition and protect you from the bugs they can cause.
 

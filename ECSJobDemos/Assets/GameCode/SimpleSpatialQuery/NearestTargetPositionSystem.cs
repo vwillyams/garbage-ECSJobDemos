@@ -6,30 +6,13 @@ using Unity.Transforms;
 
 namespace UnityEngine.ECS.SimpleSpatialQuery
 {
-    public interface INearestTarget
-    {
-        float3 Value { get; set; }
-    }
-
     [DisableSystemWhenEmpty]
     public class NearestTargetPositionSystem<TNearestTarget,TTarget> : JobComponentSystem
-        where TNearestTarget : struct, IComponentData, INearestTarget
+        where TNearestTarget : struct, IComponentData, ISingleValue<float3>
         where TTarget : struct, IComponentData
     {
         ComponentGroup m_TargetGroup;
         ComponentGroup m_NearestTargetPositionGroup;
-
-        // [ComputeJobOptimization]
-        struct CollectTargetPositions : IJobParallelFor
-        {
-            [ReadOnly] public ComponentDataArray<Position> positions;
-            public NativeArray<float3> results;
-
-            public void Execute(int index)
-            {
-                results[index] = positions[index].Value;
-            }
-        }
 
         // [ComputeJobOptimization]
         struct NearestTargetPosition : IJobParallelFor
@@ -70,19 +53,16 @@ namespace UnityEngine.ECS.SimpleSpatialQuery
             // Collect Targets
             var targetPositions = m_TargetGroup.GetComponentDataArray<Position>();
             var targetPositionsCopy = new NativeArray<float3>(targetPositions.Length, Allocator.TempJob);
-
-            var collectTargetPositionsJob = new CollectTargetPositions
+            var collectTargetPositionsJob = new CopyComponentData<Position,float3>()
             {
-                positions = targetPositions,
+                source = targetPositions,
                 results = targetPositionsCopy
             };
-
             var collectTargetPositionsJobHandle = collectTargetPositionsJob.Schedule(targetPositions.Length, 64, inputDeps);
 
             // Assign Nearest Target
             var nearestTargetPositions = m_NearestTargetPositionGroup.GetComponentDataArray<Position>();
             var nearestTargets = m_NearestTargetPositionGroup.GetComponentDataArray<TNearestTarget>();
-
             var nearestTargetPositionJob = new NearestTargetPosition
             {
                 targetPositions = targetPositionsCopy,

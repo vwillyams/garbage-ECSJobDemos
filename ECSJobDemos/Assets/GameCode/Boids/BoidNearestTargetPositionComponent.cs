@@ -4,7 +4,7 @@ using UnityEngine.ECS.SimpleSpatialQuery;
 
 namespace UnityEngine.ECS.Boids
 {
-    public struct BoidNearestTargetPosition : IComponentData, INearestTarget
+    public struct BoidNearestTargetPosition : IComponentData, ISingleValue<float3>
     {
         public float3 Value { get; set; }
     }

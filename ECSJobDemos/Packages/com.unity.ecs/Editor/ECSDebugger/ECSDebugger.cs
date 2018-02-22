@@ -113,6 +113,16 @@ namespace UnityEditor.ECS
             componentListView =
                 new ComponentGroupIntegratedListView(componentListState, this, SystemSelection as ComponentSystemBase);
         }
+        
+        private float lastUpdate;
+        
+        void Update() 
+        { 
+            if (EditorApplication.isPlaying && Time.time > lastUpdate + 0.5f) 
+            { 
+                Repaint(); 
+            } 
+        } 
 
         void WorldPopup()
         {
@@ -223,6 +233,10 @@ namespace UnityEditor.ECS
             GUILayout.EndVertical(); // end Component List
             
             GUILayout.EndHorizontal();
+
+            lastUpdate = EditorApplication.isPlaying ? 0f : Time.time;
         }
+        
+        
     }
 }

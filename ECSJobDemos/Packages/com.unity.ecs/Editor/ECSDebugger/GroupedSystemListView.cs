@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using Unity.ECS;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.ECS
 {
@@ -20,12 +21,30 @@ namespace UnityEditor.ECS
         Dictionary<Type, List<ScriptBehaviourManager>> managersByGroup = new Dictionary<Type, List<ScriptBehaviourManager>>();
         private List<ScriptBehaviourManager> floatingManagers = new List<ScriptBehaviourManager>();
         Dictionary<int, ScriptBehaviourManager> managersByID = new Dictionary<int, ScriptBehaviourManager>();
+        Dictionary<ScriptBehaviourManager, Recorder> recordersByManager = new Dictionary<ScriptBehaviourManager, Recorder>();
 
         private World world;
 
         private const float kToggleWidth = 22f;
+        private const float kTimingWidth = 70f;
 
         readonly ISystemSelectionWindow window;
+
+        private static GUIStyle RightAlignedLabel
+        {
+            get
+            {
+                if (rightAlignedText == null)
+                {
+                    rightAlignedText = new GUIStyle(GUI.skin.label);
+                    rightAlignedText.alignment = TextAnchor.MiddleRight;
+                }
+
+                return rightAlignedText;
+            }
+        }
+
+        private static GUIStyle rightAlignedText;
 
         public static MultiColumnHeaderState GetHeaderState()
         {
@@ -54,6 +73,17 @@ namespace UnityEditor.ECS
                     minWidth = 100,
                     maxWidth = 2000,
                     autoResize = true,
+                    allowToggleVisibility = false
+                },
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("main (ms)"),
+                    headerTextAlignment = TextAlignment.Right,
+                    canSort = false,
+                    width = kTimingWidth,
+                    minWidth = kTimingWidth,
+                    maxWidth = kTimingWidth,
+                    autoResize = false,
                     allowToggleVisibility = false
                 }
             };
@@ -114,6 +144,7 @@ namespace UnityEditor.ECS
             managersByGroup.Clear();
             managersByID.Clear();
             floatingManagers.Clear();
+            recordersByManager.Clear();
             
             foreach (var manager in world.BehaviourManagers)
             {
@@ -159,6 +190,9 @@ namespace UnityEditor.ECS
                 foreach (var manager in floatingManagers)
                 {
                     managersByID.Add(currentID, manager);
+                    var recorder = Recorder.Get($"{world.Name} {manager.GetType().FullName}");
+                    recordersByManager.Add(manager, recorder);
+                    recorder.enabled = true;
                     var managerItem = new TreeViewItem { id = currentID++, displayName = manager.GetType().Name.ToString() };
                     root.AddChild(managerItem);
                 }
@@ -169,6 +203,10 @@ namespace UnityEditor.ECS
                     foreach (var manager in managersByGroup[group])
                     {
                         managersByID.Add(currentID, manager);
+                        var recorder = Recorder.Get($"{world.Name} {manager.GetType().FullName}");
+                        recordersByManager.Add(manager, recorder);
+                        recorder.enabled = true;
+                        
                         var managerItem = new TreeViewItem { id = currentID++, displayName = manager.GetType().Name.ToString() };
                         groupItem.AddChild(managerItem);
                     }
@@ -190,6 +228,10 @@ namespace UnityEditor.ECS
                 var toggleRect = args.GetCellRect(0);
                 toggleRect.xMin = toggleRect.xMin + 4f;
                 manager.Enabled = GUI.Toggle(toggleRect, manager.Enabled, GUIContent.none);
+
+                var timingRect = args.GetCellRect(2);
+                var recorder = recordersByManager[manager];
+                GUI.Label(timingRect, (recorder.elapsedNanoseconds * 0.000001f).ToString("f2"), RightAlignedLabel);
             }
 
             var indent = GetContentIndent(item);

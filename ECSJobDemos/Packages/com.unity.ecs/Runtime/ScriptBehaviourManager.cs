@@ -1,4 +1,7 @@
 ﻿using System;
+#if UNITY_EDITOR
+using UnityEngine.Profiling;
+#endif
 
 namespace Unity.ECS
 {
@@ -11,12 +14,20 @@ namespace Unity.ECS
     {
         public bool Enabled { get; set; } = true;
         
+#if UNITY_EDITOR
+        private CustomSampler sampler;
+#endif
+        
         internal void CreateInstance(World world, int capacity)
         {
             OnBeforeCreateManagerInternal(world, capacity);
             try
             {
                 OnCreateManager(capacity);
+#if UNITY_EDITOR
+                var type = this.GetType();
+                sampler = CustomSampler.Create($"{world.Name} {GetType().FullName}");
+#endif
             }
             catch
             {
@@ -64,8 +75,14 @@ namespace Unity.ECS
         /// </summary>
         public void Update()
         {
+#if UNITY_EDITOR
+            sampler?.Begin();
+#endif
             if (Enabled)
                 InternalUpdate();
+#if UNITY_EDITOR
+            sampler?.End();
+#endif
         }
     }
 }

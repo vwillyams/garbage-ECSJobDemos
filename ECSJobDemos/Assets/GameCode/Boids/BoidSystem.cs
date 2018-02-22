@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Deployment.Internal;
 using Unity.Collections;
 using Unity.ECS;
 using Unity.Jobs;
@@ -15,10 +16,6 @@ namespace UnityEngine.ECS.Boids
     {
         // #todo Should be Allocator.TempJpb once NativeMultiHashMap can DeallocateOnJobCompletion
         List<NativeMultiHashMap<int, int>> 	 m_Cells; 
-        
-        NativeArray<int3> 					 m_CellOffsetsTable;
-        NativeArray<float>                   m_Bias;
-
         ComponentGroup                       m_MainGroup;
         List<Boid> m_UniqueTypes = new List<Boid>(10);
 
@@ -27,11 +24,13 @@ namespace UnityEngine.ECS.Boids
         {
             [ReadOnly] public ComponentDataArray<Position> positions;
             public NativeMultiHashMap<int, int>.Concurrent cells;
-            public float 				     			   cellRadius;
+            public NativeArray<int> positionHashes;
+            public float cellRadius;
 
             public void Execute(int index)
             {
                 var hash = GridHash.Hash(positions[index].Value, cellRadius);
+                positionHashes[index] = hash;
                 cells.Add(hash, index);
             }
         }
@@ -64,10 +63,9 @@ namespace UnityEngine.ECS.Boids
         struct SeparationAndAlignmentSteer : IJobParallelFor
         {
             [ReadOnly] public NativeMultiHashMap<int, int> cells;
-            [ReadOnly] public NativeArray<int3> cellOffsetsTable;
-            [ReadOnly] public NativeArray<float> bias;
             [ReadOnly] public Boid settings;
             [ReadOnly] public NativeArray<float3> positions;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> positionHashes;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> headings;
             public NativeArray<float3> alignmentResults;
             public NativeArray<float3> separationResults;
@@ -79,7 +77,7 @@ namespace UnityEngine.ECS.Boids
 
                 var separationSteering = new float3(0);
                 var averageHeading = new float3(0);
-                var hash = GridHash.Hash(position, settings.cellRadius);
+                var hash = positionHashes[index];
 
                 int i;
                 NativeMultiHashMapIterator<int> iterator;
@@ -87,20 +85,13 @@ namespace UnityEngine.ECS.Boids
                 int neighbors = 0;
                 while (found)
                 {
-                    if (i == index)
-                    {
-                        found = cells.TryGetNextValue(out i, ref iterator);
-                        continue;
-                    }
-                    neighbors++;
-
                     var otherPosition = positions[i];
-                    var otherForward = headings[i];
+                    var otherForward  = headings[i];
+                    var otherAvoid    = position - otherPosition;
 
-                    var offset = position - otherPosition;
-
-                    separationSteering += offset / math.length(offset);
+                    separationSteering += otherAvoid;
                     averageHeading += otherForward;
+                    neighbors++;
                         
                     found = cells.TryGetNextValue(out i, ref iterator);
                 }
@@ -118,8 +109,6 @@ namespace UnityEngine.ECS.Boids
             [ReadOnly] public ComponentDataArray<BoidNearestTargetPosition> nearestTargetPositions;
             [ReadOnly] public ComponentDataArray<BoidNearestObstaclePosition> nearestObstaclePositions;
             [ReadOnly] public Boid settings;
-            [ReadOnly] public NativeArray<float> bias;
-
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> alignmentSteering;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> separationSteering;
             public float dt;
@@ -130,21 +119,15 @@ namespace UnityEngine.ECS.Boids
                 var forward = headings[index].Value;
                 var nearestObstaclePosition = nearestObstaclePositions[index].Value;
                 var obstacleSteering = (position - nearestObstaclePosition);
-                if (math.length(obstacleSteering) < settings.obstacleAversionDistance)
-                {
-                    var s3 = (nearestObstaclePosition + math_experimental.normalizeSafe(obstacleSteering) * settings.obstacleAversionDistance)-position;
-                    var steer = math_experimental.normalizeSafe(forward + dt*(s3-forward));
-                    headings[index] = new Heading { Value = steer };
-                }
-                else
-                {
-                    var s0 = settings.alignmentWeight * math_experimental.normalizeSafe(alignmentSteering[index]);
-                    var s1 = settings.separationWeight * math_experimental.normalizeSafe(separationSteering[index]);
-                    var s2 = settings.targetWeight * math_experimental.normalizeSafe(nearestTargetPositions[index].Value - position);
-                    var s3 = math_experimental.normalizeSafe(s0 + s1 + s2);
-                    var steer = math_experimental.normalizeSafe(forward + dt*(s3-forward));
-                    headings[index] = new Heading { Value = steer };
-                }
+                var avoidObstacle = (math.length(obstacleSteering) < settings.obstacleAversionDistance);
+                var s0 = settings.alignmentWeight * math_experimental.normalizeSafe(alignmentSteering[index]);
+                var s1 = settings.separationWeight * math_experimental.normalizeSafe(separationSteering[index]);
+                var s2 = settings.targetWeight * math_experimental.normalizeSafe(nearestTargetPositions[index].Value - position);
+                var normalHeading = math_experimental.normalizeSafe(s0 + s1 + s2);
+                var avoidObstacleHeading = (nearestObstaclePosition + math_experimental.normalizeSafe(obstacleSteering) * settings.obstacleAversionDistance)-position;
+                var s5 = math.select(normalHeading,avoidObstacleHeading,avoidObstacle);
+                var steer = math_experimental.normalizeSafe(forward + dt*(s5-forward));
+                headings[index] = new Heading { Value = steer };
             }
         }
 
@@ -171,9 +154,11 @@ namespace UnityEngine.ECS.Boids
                 cells.Clear();
                 m_Cells[typeIndex] = cells;
 
+                var positionHashes = new NativeArray<int>(positions.Length, Allocator.TempJob);
                 var hashBoidLocationsJob = new HashBoidLocations
                 {
                     positions = positions,
+                    positionHashes = positionHashes,
                     cells = cells,
                     cellRadius = settings.cellRadius
                 };
@@ -204,8 +189,7 @@ namespace UnityEngine.ECS.Boids
                     headings = copyHeadingsResults,
                     cells = cells,
                     settings = settings,
-                    cellOffsetsTable = m_CellOffsetsTable,
-                    bias = m_Bias,
+                    positionHashes = positionHashes,
                     separationResults = separationResults,
                     alignmentResults = alignmentResults,
                 };
@@ -222,7 +206,6 @@ namespace UnityEngine.ECS.Boids
                     settings = settings,
                     alignmentSteering = alignmentResults,
                     separationSteering = separationResults,
-                    bias = m_Bias,
                     dt = Time.deltaTime
                 };
 
@@ -238,13 +221,6 @@ namespace UnityEngine.ECS.Boids
         protected override void OnCreateManager(int capacity)
         {
             m_Cells = new List<NativeMultiHashMap<int, int>>();
-            m_CellOffsetsTable = new NativeArray<int3>(GridHash.cellOffsets, Allocator.Persistent);
-            m_Bias = new NativeArray<float>(1024,Allocator.Persistent);
-            for (int i = 0; i < 1024; i++)
-            {
-                m_Bias[i] = Random.Range(0.5f, 0.6f);
-            }
-            
             m_MainGroup = GetComponentGroup(
                 ComponentType.ReadOnly(typeof(Boid)),
                 ComponentType.ReadOnly(typeof(Position)),
@@ -257,11 +233,8 @@ namespace UnityEngine.ECS.Boids
         {
             for (int i = 0; i < m_Cells.Count; i++)
             {
-                m_Cells[i].Dispose ();
+                m_Cells[i].Dispose();
             }
-            m_CellOffsetsTable.Dispose();
-            m_Bias.Dispose();
         }
-
     }
 }

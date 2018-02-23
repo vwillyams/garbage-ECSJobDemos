@@ -1,13 +1,13 @@
 # Custom job types
-On the very lowest level of the JobSystem jobs are scheduled by calling one of the Schedule functions in JobsUtility. The currently existing job types all use these functions, but it is also possible to create specialized job types using the same APIs.
+On the lowest level of the job system, jobs are scheduled by calling one of the **Schedule** functions in **JobsUtility**. The currently existing job types all use these functions, but it is also possible to create specialized job types using the same APIs.
 
-These API's use unsafe code and have to be crafted carefully since they can easily introduce unwanted race conditions. If you add your own job types, we strongly recommend to aim for full test coverage.
+These APIs use unsafe code and have to be crafted carefully, since they can easily introduce unwanted race conditions. If you add your own job types, we strongly recommend to aim for full test coverage.
 
-As an example we have a custom job type [IJobParallelForBatch](https://github.com/Unity-Technologies/ECSJobDemos/blob/master/ECSJobDemos/UnityPackageManager/com.unity.jobs/Unity.Jobs/IJobParallelForBatch.cs)
+As an example we have a custom job type **[IJobParallelForBatch](https://github.com/Unity-Technologies/ECSJobDemos/blob/master/ECSJobDemos/UnityPackageManager/com.unity.jobs/Unity.Jobs/IJobParallelForBatch.cs)**.
  
-It works like IJobParallelFor but instead of calling a single execute function per index it calls one execute function per batch being executed. This is useful if you need to do something for more than one item at the time but still want to do it parallel. A common use-case for this job type is if you need to create some temporary array and want to avoid doing it per item in the array. By using this you can instead create one temporary array per batch.
+It works like **IJobParallelFor**, but instead of calling a single execute function per index it calls one execute function per batch being executed. This is useful if you need to do something on more than one item at a time, but still want to do it in parallel. A common scenario for this job type is if you need to create a temporary array and you want to avoid creating each item in the array one at a time. By using IJobParallelFor you can instead create one temporary array per batch.
 
-The entrypoint where the job is actually scheduled in the IJobParallelForBatched example looks like this:
+In the IJobParallelForBatch example, the entry point where the job is actually scheduled looks like this:
 ```C#
 unsafe static public JobHandle ScheduleBatch<T>(this T jobData, int arrayLength, int minIndicesPerJobCount, JobHandle dependsOn = new JobHandle()) where T : struct, IJobParallelForBatch
 {
@@ -16,40 +16,42 @@ unsafe static public JobHandle ScheduleBatch<T>(this T jobData, int arrayLength,
 }
 ```
 The first line creates a struct containing the scheduling parameters. When creating it you need to set a pointer to the data which will be copied to the jobs. The reason this is a pointer is that the native code which uses it does not know about the type.
-You also need to pass it a pointer to the JobReflectionData created by calling
+You also need to pass it a pointer to the **JobReflectionData** created by calling:
 ```C#
 JobsUtility.CreateJobReflectionData(typeof(T), JobType.ParallelFor, (ExecuteJobFunction)Execute);
 ```
-JobReflection stores information about the struct with the data for the job, such as which native containers it contains and how they need to be patched when scheduling a job. It lives on the native side of the engine and the managed code only have access to it though pointers without any information about what the type is. When creating job reflection data you need to specify the type of the struct implementing the job, the JobType and the method which will be called to execute the job. The job reflection data does not depend on the data in the struct you schedule, only its type so it should only be created once for all jobs implementing the same interface. There are currently only two job types, Single and ParallelFor. Single means the job will only get a single call, ParallelFor means there will be multiple calls to process it where each call is restricted to a subset of the range of indices to process. Which job type you choose affects which schedule function you are allowed to call.
+JobReflection stores information about the struct with the data for the job, such as which NativeContainers it has and how they need to be patched when scheduling a job. It lives on the native side of the engine and the managed code only has access to it though pointers without any information about what the type is. When creating JobReflectionData you need to specify the type of the struct implementing the job, the **JobType** and the method which will be called to execute the job. The JobReflectionData does not depend on the data in the struct you schedule, only its type, so it should only be created once for all jobs implementing the same interface. There are currently only two job types, **Single** and **ParallelFor**. Single means the job will only get a single call, ParallelFor means there will be multiple calls to process it; where each call is restricted to a subset of the range of indices to process. Which job type you choose affects which schedule function you are allowed to call.
 
-The third parameter is the JobHandle which the scheduled job should depend on.
+The third parameter of **JobsUtility.JobScheduleParameters** is the **JobHandle** that the scheduled job should depend on.
 
-The final parameter is the schedule mode. There are two scheduling modes to choose from, Run and Batched. Batched means one or multiple jobs will be scheduled to do the processing while Run means the processing will be done on the main thread before Schedule returns.
+The final parameter is the schedule mode. There are two scheduling modes to choose from, **Run** and **Batched**. Batched means one or more jobs will be scheduled to do the processing, while Run means the processing will be done on the main thread before Schedule returns.
 
-Once the schedule parameters are created we actually schedule the job. There are three ways to schedule jobs depending on their type.
+Once the schedule parameters are created we actually schedule the job. There are three ways to schedule jobs depending on their type:
 ```C#
 JobHandle Schedule(ref JobScheduleParameters parameters);
 JobHandle ScheduleParallelFor(ref JobScheduleParameters parameters, int arrayLength, int innerloopBatchCount);
 JobHandle ScheduleParallelForTransform(ref JobScheduleParameters parameters, IntPtr transfromAccesssArray);
 ```
-Schedule can only be used if the ScheduleParameters are created with JobType.Single, the other two schedule functions require JobType.ParallelFor.
-The arrayLength and innerloopbatchCount parameter passed to ScheduleParallelFor are used to determine how many indices the jobs should process and how many indices it should handle in the inner loop, see the section on Execution and JobRanges for more information on the inner loop count.
-ScheduleParallelForTransform is very similar to ScheduleParallelFor, but it also has access to a TransformAccessArray which allows you to modify Transform components on GameObjects. The number of indices and batch size is infered from the TransformAccessArray.
+Schedule can only be used if the **ScheduleParameters** are created with **JobType.Single**, the other two schedule functions require **JobType.ParallelFor**.
+The **arrayLength** and **innerloopBatchCount** parameter passed to **ScheduleParallelFor** are used to determine how many indices the jobs should process and how many indices it should handle in the inner loop (see the section on [**Execution** and **JobRanges**](#execution-and-jobranges) for more information on the inner loop count).
+**ScheduleParallelForTransform** is similar to ScheduleParallelFor, but it also has access to a **TransformAccessArray** that allows you to modify **Transform** components on **GameObjects**. The number of indices and batch size is inferred from the TransformAccessArray.
+
+**corrie proofreading bookmark**
 
 ## Execution and JobRanges
-After scheduling the job Unity will call the entrypoint you specified directly from the native side in a similar way to how Update is called on MonoBehaviours, but from within a job. You always get one call per job and there is either one job or one job per worker thread in the case of ParallelFor.
+After scheduling the job, Unity will call the entry point you specified directly from the native side. It works in a similar way to how **Update** is called on MonoBehaviours, but from inside a job instead. You only get one call per job and there is either one job, or one job per worker thread; in the case of ParallelFor.
 
 The signature used for Execute is
 ```C#
-public delegate void ExecuteJobFunction(ref T data, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref   JobRanges ranges, int jobIndex);
+public delegate void ExecuteJobFunction(ref T data, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 ```
-For Single jobs only the data is needed and you can just do your processing right away, but for ParallelFor jobs it requires some more work before you can start processing indices.
+For Single jobs, only the data is needed and you can just do your processing right away, but for ParallelFor jobs it requires some more work before you can start processing indices. We need to split up the indices into a number of sequential sub-sets that each job will process in parallel. This way we do not process the same thing twice and we are sure that everything gets covered. The memory layout will determine the order of indices.  
 
-The JobRanges contains the batches and indices a ParallelFor job is supposed to process. The indices are split into batches based on the batch size, the batches are evenly distributed between the jobs doing the execution in such a way that each job can iterate over a continous section of memory. The ParallelFor job should call
+The JobRanges contain the batches and indices a ParallelFor job is supposed to process. The indices are split into batches based on the batch size, the batches are evenly distributed between the jobs doing the execution in such a way that each job can iterate over a continuous section of memory. The ParallelFor job should call:
 ```C#
 JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end)
 ```
-until it return false, and after calling it process all items with index between begin and end.
+This continues until it returns `false`, and after calling it process all items with index between begin and end.
 The reason you get batches of items rather than the full set of items the job should process is that Unity will apply work stealing if one job completes before the others. Work stealing in this context means that when one job is done it will look at the other jobs running and see if any of them still have a lot of work left. If it finds a job which is not complete it will steal some of the batches which it has not yet started to dynamicly redistribute the work.
 
 Before a ParallelFor job starts processing items it also needs to limit the write access to NativeContainers to the range of items which the job is processing. If it does not do this several jobs can potentially write to the same index which leads to race conditions. The native containers which need to be limited is passed to the job and there is a function to patch them so they cannot access items outisde the correct range. The code to do it looks like this:

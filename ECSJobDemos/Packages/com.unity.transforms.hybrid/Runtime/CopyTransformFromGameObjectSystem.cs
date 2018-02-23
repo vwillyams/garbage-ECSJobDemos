@@ -79,7 +79,7 @@ namespace Unity.Transforms.Hybrid
         }
 
         ComponentGroup m_TransformGroup;
-        
+
         protected override void OnCreateManager(int capacity)
         {
             m_TransformGroup = GetComponentGroup(ComponentType.ReadOnly(typeof(CopyTransformFromGameObject)),typeof(UnityEngine.Transform));
@@ -107,8 +107,7 @@ namespace Unity.Transforms.Hybrid
                 localRotations = m_LocalRotations,
                 transformStashes = transformStashes,
             };
-            
-            transforms.Dispose();
+
             return copyTransformsJob.Schedule(stashTransformsJobHandle);
         }
     }

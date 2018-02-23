@@ -83,7 +83,7 @@ namespace Unity.Transforms.Hybrid
         [Inject] DeferredEntityChangeSystem m_DeferredEntityChangeSystem;
 
         ComponentGroup m_InitialTransformGroup;
-        
+
         protected override void OnCreateManager(int capacity)
         {
             m_InitialTransformGroup = GetComponentGroup(ComponentType.ReadOnly(typeof(CopyInitialTransformFromGameObject)),typeof(UnityEngine.Transform));
@@ -113,7 +113,6 @@ namespace Unity.Transforms.Hybrid
                 removeComponentQueue = m_DeferredEntityChangeSystem.GetRemoveComponentQueue<CopyInitialTransformFromGameObject>()
             };
 
-            transforms.Dispose();
             return copyTransformsJob.Schedule(stashTransformsJobHandle);
         }
     }

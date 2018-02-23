@@ -22,7 +22,7 @@ namespace Unity.Transforms.Hybrid
             public void Execute(int index, TransformAccess transform)
             {
                 var entity = entities[index];
-                
+
                 if (positions.Exists(entity))
                 {
                     transform.position = positions[entity].Value;
@@ -35,7 +35,7 @@ namespace Unity.Transforms.Hybrid
         }
 
         ComponentGroup m_TransformGroup;
-        
+
         protected override void OnCreateManager(int capacity)
         {
             m_TransformGroup = GetComponentGroup(ComponentType.ReadOnly(typeof(CopyTransformToGameObject)),typeof(UnityEngine.Transform));
@@ -52,10 +52,9 @@ namespace Unity.Transforms.Hybrid
                 rotations = m_Rotations,
                 entities = entities
             };
-            
+
             var resultDeps = copyTransformsJob.Schedule(transforms,inputDeps);
-            transforms.Dispose();
-            
+
             return resultDeps;
         }
     }

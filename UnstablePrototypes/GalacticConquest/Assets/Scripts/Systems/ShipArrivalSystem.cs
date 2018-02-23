@@ -9,7 +9,7 @@ namespace Systems
     [UpdateAfter(typeof(MeshInstanceRendererSystem))]
     public class ShipArrivalSystem : ComponentSystem
     {
-        private EntityManager _entityManager;
+        EntityManager _entityManager;
 
         public ShipArrivalSystem()
         {
@@ -23,7 +23,8 @@ namespace Systems
             public EntityArray Entities;
             public ComponentDataArray<ShipArrivedTag> Tag;
         }
-        [Inject] private Ships _ships;
+        [Inject]
+        Ships _ships;
 
         protected override void OnUpdate()
         {
@@ -47,7 +48,7 @@ namespace Systems
             arrivingShipData.Dispose();
         }
 
-        private void HandleArrivedShips(NativeList<ShipData> arrivingShipData, NativeList<Entity> arrivingShipEntities)
+        void HandleArrivedShips(NativeList<ShipData> arrivingShipData, NativeList<Entity> arrivingShipEntities)
         {
             for (var shipIndex = 0; shipIndex < arrivingShipData.Length; shipIndex++)
             {

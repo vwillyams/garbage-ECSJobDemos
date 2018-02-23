@@ -9,9 +9,9 @@ namespace Systems
     [UpdateAfter(typeof(ShipSpawnSystem))]
     public class OccupantIncreaseSystem : JobComponentSystem
     {
-        private float spawnCounter = 0.0f;
-        private float spawnInterval = 0.1f;
-        private int occupantsToSpawn = 100;
+        float spawnCounter = 0.0f;
+        float spawnInterval = 0.1f;
+        int occupantsToSpawn = 100;
 
         struct Planets
         {
@@ -35,7 +35,8 @@ namespace Systems
             }
         }
 
-        [Inject] private Planets planets;
+        [Inject]
+        Planets planets;
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {

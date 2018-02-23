@@ -7,16 +7,19 @@ using UnityEngine;
 
 public class PlanetSpawner : MonoBehaviour
 {
-    [SerializeField] private GameObject _planetPrefab;
-    [SerializeField] private int _initialCount = 10;
+    [SerializeField]
+    GameObject _planetPrefab;
+    [SerializeField]
+    int _initialCount = 10;
     [SerializeField] readonly float radius = 100.0f;
-    private EntityManager _entityManager;
-    [SerializeField] private Material[] _teamMaterials;
+    EntityManager _entityManager;
+    [SerializeField]
+    Material[] _teamMaterials;
     static Dictionary<Entity, GameObject> entities = new Dictionary<Entity, GameObject>();
 
     public static Material[] TeamMaterials;
 
-    private void Instantiate(int count)
+    void Instantiate(int count)
     {
         var planetOwnership = new List<int>
         {
@@ -81,7 +84,7 @@ public class PlanetSpawner : MonoBehaviour
         }
     }
 
-    private void OnEnable()
+    void OnEnable()
     {
         TeamMaterials = _teamMaterials;
         _entityManager = World.Active.GetOrCreateManager<EntityManager>();

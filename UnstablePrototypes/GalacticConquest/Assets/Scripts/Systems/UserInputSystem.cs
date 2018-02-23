@@ -9,10 +9,10 @@ namespace Systems
 {
     public class UserInputSystem : ComponentSystem
     {
-        private Dictionary<GameObject, PlanetData?> FromTargets = new Dictionary<GameObject, PlanetData?>();
-        private GameObject ToTarget = null;
+        Dictionary<GameObject, PlanetData?> FromTargets = new Dictionary<GameObject, PlanetData?>();
+        GameObject ToTarget = null;
 
-        private EntityManager _entityManager;
+        EntityManager _entityManager;
 
         public UserInputSystem ()
         {
@@ -110,7 +110,7 @@ namespace Systems
             }
         }
 
-        private GameObject GetPlanetUnderMouse()
+        GameObject GetPlanetUnderMouse()
         {
             RaycastHit hit;
             var ray = Camera.main.ScreenPointToRay(Input.mousePosition);

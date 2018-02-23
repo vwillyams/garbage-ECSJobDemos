@@ -73,9 +73,11 @@ namespace Systems
         }
 
         [Inject]
-        private DeferredEntityChangeSystem AddShipArrivedTagDeferred;
-        [Inject] private Ships _ships;
-        [Inject] private Planets _planets;
+        DeferredEntityChangeSystem AddShipArrivedTagDeferred;
+        [Inject]
+        Ships _ships;
+        [Inject]
+        Planets _planets;
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {

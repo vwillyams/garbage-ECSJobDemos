@@ -42,9 +42,10 @@ namespace Systems
             _shipsToSpawn.Dispose();
         }
 
-        [Inject] private SpawningPlanets _planets;
-        private PrefabManager _prefabManager;
-        private EntityManager _entityManager;
+        [Inject]
+        SpawningPlanets _planets;
+        PrefabManager _prefabManager;
+        EntityManager _entityManager;
 
         NativeList<ShipSpawnData> _shipsToSpawn;
 

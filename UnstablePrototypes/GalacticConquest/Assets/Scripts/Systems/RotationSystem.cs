@@ -24,7 +24,8 @@ namespace Systems
             }
         }
 
-        [Inject] private Planets _planets;
+        [Inject]
+        Planets _planets;
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
             var job = new RotationJob

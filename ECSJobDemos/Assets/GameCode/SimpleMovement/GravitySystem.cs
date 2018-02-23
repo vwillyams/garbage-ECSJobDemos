@@ -1,4 +1,4 @@
-﻿using Unity.ECS;
+﻿using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;

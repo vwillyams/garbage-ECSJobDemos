@@ -1,5 +1,5 @@
 ﻿using Unity.Collections;
-using Unity.ECS;
+using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine.ECS.SimpleBounds;
@@ -52,7 +52,7 @@ namespace UnityEngine.ECS.SimpleRotation
                         {
                             rotationSpeeds[positionIndex] = new RotationSpeed
                             {
-                                speed = speed
+                                Value = speed
                             };
                         }
                     }

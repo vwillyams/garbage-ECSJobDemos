@@ -2,11 +2,6 @@ using System;
 
 using Unity.Multiplayer;
 using Unity.Collections;
-public interface INetworkedMessage
-{
-    void Serialize(ref ByteWriter writer);
-    void Deserialize(ref ByteReader reader);
-}
 
 public enum AsteroidsProtocol
 {
@@ -22,7 +17,6 @@ public enum SpawnType
     Asteroid,
     Bullet
 }
-
 
 public struct ReadyRsp : INetworkedMessage
 {

@@ -1,4 +1,4 @@
-﻿namespace Unity.ECS
+﻿namespace Unity.Entities
 {
     public interface IComponentData
     {

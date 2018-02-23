@@ -1,6 +1,6 @@
 ﻿using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.ECS;
+using Unity.Entities;
 using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Mathematics;

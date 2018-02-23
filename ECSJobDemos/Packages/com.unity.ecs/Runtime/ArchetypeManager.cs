@@ -5,7 +5,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Assertions;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     struct ComponentTypeInArchetype
     {
@@ -50,14 +50,19 @@ namespace Unity.ECS
             return true;
         }
 
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-        public override string ToString()
+        public ComponentType ToComponentType()
         {
             ComponentType type;
             type.FixedArrayLength = FixedArrayLength;
             type.TypeIndex = TypeIndex;
             type.AccessModeType = ComponentType.AccessMode.ReadWrite;
-            return type.ToString();
+            return type;
+        }
+        
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+        public override string ToString()
+        {
+            return ToComponentType().ToString();
         }
 #endif
         public override bool Equals(object obj)

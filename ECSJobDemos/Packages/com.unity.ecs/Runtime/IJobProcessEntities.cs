@@ -3,7 +3,7 @@ using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Collections.LowLevel.Unsafe;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     public interface IJobProcessEntities<U0> where U0 : struct
     {

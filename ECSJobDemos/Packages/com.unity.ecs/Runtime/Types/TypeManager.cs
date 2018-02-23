@@ -2,16 +2,16 @@
 using System.Threading;
 using Unity.Collections.LowLevel.Unsafe;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
-    static unsafe class TypeManager
+    public unsafe static class TypeManager
     {
         struct StaticTypeLookup<T>
         {
             public static int typeIndex;
         }
 
-        internal enum TypeCategory
+        public enum TypeCategory
         {
             ComponentData,
             ISharedComponentData,
@@ -20,7 +20,7 @@ namespace Unity.ECS
             Class
         }
 
-        internal struct ComponentType
+        public struct ComponentType
         {
             public ComponentType(Type type, int size, TypeCategory category, FastEquality.Layout[] layout)
             {

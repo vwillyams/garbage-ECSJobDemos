@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     public struct SubtractiveComponent<T> where T : struct, IComponentData
     {}
@@ -144,6 +144,8 @@ namespace Unity.ECS
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         public override string ToString()
         {
+            //@TODO: Empty ComponentType should visualize that it is null or something
+            
             return IsFixedArray ? $"FixedArray(typeof({GetManagedType()}, {FixedArrayLength}))" : GetManagedType().ToString();
         }
 #endif

@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     [NativeContainer]
     public unsafe struct ExclusiveEntityTransaction

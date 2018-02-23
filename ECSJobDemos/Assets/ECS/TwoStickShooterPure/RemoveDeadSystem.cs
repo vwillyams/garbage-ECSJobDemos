@@ -1,5 +1,5 @@
 ﻿using Unity.Collections;
-using Unity.ECS;
+using Unity.Entities;
 
 namespace TwoStickPureExample
 {
@@ -27,20 +27,15 @@ namespace TwoStickPureExample
 
         protected override void OnUpdate()
         {
-            var commands = new EntityCommandBuffer(Allocator.TempJob);
-
             bool playerDead = m_PlayerCheck.Length == 0;
 
             for (int i = 0; i < m_Data.Length; ++i)
             {
                 if (m_Data.Health[i].Value <= 0.0f || playerDead)
                 {
-                    commands.DestroyEntity(m_Data.Entity[i]);
+                    PostUpdateCommands.DestroyEntity(m_Data.Entity[i]);
                 }
             }
-
-            commands.Playback(EntityManager);
-            commands.Dispose();
         }
     }
 

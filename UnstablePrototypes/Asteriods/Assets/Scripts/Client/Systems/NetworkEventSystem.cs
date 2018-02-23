@@ -1,5 +1,5 @@
 using UnityEngine;
-using Unity.ECS;
+using Unity.Entities;
 
 using Unity.Multiplayer;
 using Unity.GameCode;
@@ -35,6 +35,7 @@ namespace Asteriods.Client
 
         NetworkClient m_NetworkClient;
         StateMachine<PlayerStateComponentData.PlayerState> m_StateMachine;
+        Fragmenter m_Fragmenter;
 
         override protected void OnCreateManager(int capacity)
         {
@@ -53,10 +54,12 @@ namespace Asteriods.Client
             EntityManager.SetComponentData<ShipInfoComponentData>(player, new ShipInfoComponentData(ship));
 
             m_StateMachine.SwitchTo(PlayerState.None);
+            m_Fragmenter = new Fragmenter();
         }
 
         override protected void OnDestroyManager()
         {
+            m_Fragmenter.Dispose();
         }
 
         void SwitchState(PlayerState state)
@@ -101,40 +104,59 @@ namespace Asteriods.Client
             PollNetwork();
         }
 
+        int count;
         unsafe void PollNetwork()
         {
             NativeSlice<byte> message;
             while (m_NetworkClient.PeekMessage(out message))
             {
                 ByteReader br = new ByteReader(message.GetUnsafePtr(), message.Length);
-                var type = br.ReadByte();
+                var fragment = new FragmentedPacket();
+                fragment.ID = br.ReadInt();
+                fragment.SequenceNum = br.ReadInt();
+                fragment.SequenceCnt = br.ReadInt();
+                var length = br.ReadInt();
 
-                if (type == (byte)AsteroidsProtocol.Snapshot)
+                fragment.packetData = message.Slice(br.GetBytesRead(), length);
+
+                NativeSlice<byte> packet;
+                if (m_Fragmenter.DefragmentPacket(fragment, out packet))
                 {
-                    var snapshot = new Snapshot(0, Allocator.Temp);
+                    ByteReader reader = new ByteReader(packet.GetUnsafePtr(), packet.Length);
+                    var type = reader.ReadByte();
+                    if (type == (byte)AsteroidsProtocol.Snapshot)
                     {
-                        snapshot.Deserialize(ref br);
-                        HandleSnapshot(ref snapshot);
+                        var snapshot = new Snapshot(0, Allocator.Temp);
+                        {
+                            snapshot.Deserialize(ref reader);
+                            HandleSnapshot(ref snapshot);
+                        }
+                        snapshot.Dispose();
                     }
-                    snapshot.Dispose();
+                    else if (type == (byte)AsteroidsProtocol.ReadyRsp &&
+                            m_StateMachine.CurrentState() == PlayerState.Loading)
+                    {
+                        var msg = new ReadyRsp();
+                        msg.Deserialize(ref reader);
+
+                        player.nid[0] = new NetworkIdCompmonentData(msg.NetworkId);
+                        m_SpawnSystem.SetPlayerShip(player.ship[0].entity, msg.NetworkId);
+
+                        //player.ship[0] = new ShipInfoComponentData(m_SpawnSystem.SpawnPlayerShip(msg.NetworkId));
+
+                        SwitchState(PlayerState.Playing);
+                    }
+                    if ((count++ % 60) == 0)
+                    {
+                        Debug.Log("packet received." + packet.Length);
+                    }
                 }
-                else if (type == (byte)AsteroidsProtocol.ReadyRsp &&
-                         m_StateMachine.CurrentState() == PlayerState.Loading)
+                else
                 {
-                    var msg = new ReadyRsp();
-                    msg.Deserialize(ref br);
-
-                    player.nid[0] = new NetworkIdCompmonentData(msg.NetworkId);
-                    m_SpawnSystem.SetPlayerShip(player.ship[0].entity, msg.NetworkId);
-
-                    //player.ship[0] = new ShipInfoComponentData(m_SpawnSystem.SpawnPlayerShip(msg.NetworkId));
-
-                    SwitchState(PlayerState.Playing);
+                    //Debug.Log("fragment received.");
                 }
 
-                int length = message.Length;
-                int read_bytes = br.GetBytesRead();
-                Debug.Assert(message.Length == read_bytes);
+
                 m_NetworkClient.PopMessage();
             }
 

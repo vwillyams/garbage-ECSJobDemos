@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System;
 using System.Reflection;
 using System.Linq;
-using Unity.ECS;
+using Unity.Entities;
 
 namespace UnityEditor.ECS
 {

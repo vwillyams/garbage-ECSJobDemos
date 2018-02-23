@@ -2,7 +2,7 @@
 using System.Security.Policy;
 using Unity.Collections.LowLevel.Unsafe;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     /// <summary>
     /// Index of specified Entity in ComponentGroup

@@ -1,6 +1,6 @@
 ﻿using Unity.Collections.LowLevel.Unsafe;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     [NativeContainer]
     public unsafe struct ComponentDataFromEntity<T> where T : struct, IComponentData

@@ -3,7 +3,7 @@
 using UnityEngine.Profiling;
 #endif
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
     public sealed class DisableAutoCreationAttribute : Attribute

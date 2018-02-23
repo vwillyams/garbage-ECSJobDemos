@@ -2,6 +2,8 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 
 using Unity.Mathematics;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace Unity.Multiplayer
 {
@@ -32,6 +34,10 @@ namespace Unity.Multiplayer
             m_Writer = writer;
         }
 
+        public unsafe void WriteBytes(byte* bytes, int length)
+        {
+            m_Writer.WriteBytes(bytes, length);
+        }
         public void Write(byte value)
         {
             m_Writer.WriteBits((uint)value, sizeof(byte) * 8);

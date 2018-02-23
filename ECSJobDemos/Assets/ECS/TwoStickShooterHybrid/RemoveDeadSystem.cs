@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using Unity.ECS;
-using Unity.ECS.Hybrid;
+using Unity.Entities;
+using Unity.Entities.Hybrid;
 using UnityEngine;
 
 namespace TwoStickHybridExample

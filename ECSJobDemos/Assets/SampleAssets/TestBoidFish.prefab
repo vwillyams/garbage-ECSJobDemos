@@ -105,9 +105,7 @@ MonoBehaviour:
     separationWeight: 2
     alignmentWeight: 1
     targetWeight: 2
-    obstacleWeight: 8
-    obstacleAversionDistance: 40
-    rotationalSpeed: 160
+    obstacleAversionDistance: 20
 --- !u!114 &114153346486449396
 MonoBehaviour:
   m_ObjectHideFlags: 1

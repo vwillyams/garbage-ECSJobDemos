@@ -5,7 +5,7 @@ using Unity.Jobs;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs.LowLevel.Unsafe;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     public unsafe abstract class ComponentSystemBase : ScriptBehaviourManager
     {
@@ -205,15 +205,24 @@ namespace Unity.ECS
 
     public abstract class ComponentSystem : ComponentSystemBase
     {
+        private EntityCommandBuffer m_DeferredEntities;
+
+        public EntityCommandBuffer PostUpdateCommands => m_DeferredEntities;
+
         void BeforeOnUpdate()
         {
             CompleteDependencyInternal();
             UpdateInjectedComponentGroups ();
+
+            m_DeferredEntities = new EntityCommandBuffer(Allocator.TempJob);
         }
 
         void AfterOnUpdate()
         {
             JobHandle.ScheduleBatchedJobs();
+
+            m_DeferredEntities.Playback(EntityManager);
+            m_DeferredEntities.Dispose();
         }
 
         internal sealed override void InternalUpdate()
@@ -245,6 +254,7 @@ namespace Unity.ECS
     public abstract class JobComponentSystem : ComponentSystemBase
     {
         JobHandle m_PreviousFrameDependency;
+        BarrierSystem[] m_BarrierList;
 
         JobHandle BeforeOnUpdate()
         {
@@ -263,6 +273,13 @@ namespace Unity.ECS
 
             AddDependencyInternal(outputJob);
             m_PreviousFrameDependency = outputJob;
+
+            // Notify all injected barrier systems that they will need to sync on any jobs we spawned.
+            // This is conservative currently - the barriers will sync on too much if we use more than one.
+            for (int i = 0; i < m_BarrierList.Length; ++i)
+            {
+                m_BarrierList[i].AddJobHandleForProducer(outputJob);
+            }
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 
@@ -323,6 +340,8 @@ namespace Unity.ECS
         protected sealed override void OnBeforeCreateManagerInternal(World world, int capacity)
         {
             base.OnBeforeCreateManagerInternal(world, capacity);
+
+            m_BarrierList = ComponentSystemInjection.GetAllInjectedManagers<BarrierSystem>(this, world);
         }
 
         protected sealed override void OnBeforeDestroyManagerInternal()
@@ -402,6 +421,54 @@ namespace Unity.ECS
         unsafe void AddDependencyInternal(JobHandle dependency)
         {
             m_SafetyManager.AddDependency(m_JobDependencyForReadingManagersPtr, m_JobDependencyForReadingManagersLength, m_JobDependencyForWritingManagersPtr, m_JobDependencyForWritingManagersLength, dependency);
+        }
+    }
+
+    public unsafe abstract class BarrierSystem : ComponentSystem
+    {
+        private NativeList<EntityCommandBuffer> m_PendingBuffers;
+        private JobHandle m_ProducerHandle;
+
+        public EntityCommandBuffer CreateCommandBuffer()
+        {
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
+
+            m_PendingBuffers.Add(cmds);
+
+            return cmds;
+        }
+
+        internal void AddJobHandleForProducer(JobHandle foo)
+        {
+            m_ProducerHandle = JobHandle.CombineDependencies(m_ProducerHandle, foo);
+        }
+
+        protected override void OnCreateManager(int capacity)
+        {
+            base.OnCreateManager(capacity);
+
+            m_PendingBuffers = new NativeList<EntityCommandBuffer>(Allocator.Persistent);
+        }
+
+        protected override void OnDestroyManager()
+        {
+            m_PendingBuffers.Dispose();
+
+            base.OnDestroyManager();
+        }
+
+        protected sealed override void OnUpdate()
+        {
+            m_ProducerHandle.Complete();
+            m_ProducerHandle = new JobHandle();
+
+            for (int i = 0; i < m_PendingBuffers.Length; ++i)
+            {
+                m_PendingBuffers[i].Playback(EntityManager);
+                m_PendingBuffers[i].Dispose();
+            }
+
+            m_PendingBuffers.Clear();
         }
     }
 }

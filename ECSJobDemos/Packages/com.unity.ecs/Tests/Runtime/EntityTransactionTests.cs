@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using NUnit.Framework;
 using Unity.Jobs;
 using Unity.Collections;
-using Unity.ECS;
+using Unity.Entities;
 
 namespace UnityEngine.ECS.Tests
 {

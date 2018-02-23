@@ -1,7 +1,7 @@
 ﻿using Unity.Assertions;
 using Unity.Collections.LowLevel.Unsafe;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     unsafe struct ComponentChunkCache
     {

@@ -2,7 +2,7 @@
 using Unity.Jobs;
 using Unity.Collections;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     unsafe class ComponentJobSafetyManager
     {

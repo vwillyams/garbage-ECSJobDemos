@@ -47,8 +47,15 @@ namespace Unity.Multiplayer
             m_ScratchBuffer = 0;
         }
 
-        public unsafe void ReadBytes(uint* data, int bytes)
+        public unsafe void ReadBytes(byte* data, int length)
         {
+            if (GetBytesRead() + length < (m_Length * 8))
+            {
+                throw new System.ArgumentOutOfRangeException();
+            }
+            ReadAlign();
+            UnsafeUtility.MemCpy(data, m_Data + m_ByteIndex, length);
+            m_ByteIndex += length;
         }
 
         public int GetAlignBits()

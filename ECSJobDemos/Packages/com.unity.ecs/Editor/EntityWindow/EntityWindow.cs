@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Unity.ECS;
+using Unity.Entities;
 using UnityEngine;
 using UnityEditor.IMGUI.Controls;
 

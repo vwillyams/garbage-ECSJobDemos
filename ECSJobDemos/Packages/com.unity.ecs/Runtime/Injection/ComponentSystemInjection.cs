@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Collections.Generic;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     static class ComponentSystemInjection
     {
@@ -77,6 +77,29 @@ namespace Unity.ECS
         {
             throw new ArgumentException(
                 $"[Inject] is not supported for type '{field.FieldType}'. At: {GetFieldString(field)}");
+        }
+
+        internal static T[] GetAllInjectedManagers<T>(ScriptBehaviourManager host, World world) where T: ScriptBehaviourManager
+        {
+            var result = new List<T>();
+            var fields = host.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+            foreach (var field in fields)
+            {
+                var attr = field.GetCustomAttributes(typeof(InjectAttribute), true);
+                if (attr.Length == 0)
+                    continue;
+
+                if (!field.FieldType.IsClass)
+                    continue;
+
+                if (!field.FieldType.IsSubclassOf(typeof(T)))
+                    continue;
+
+                result.Add((T) world.GetOrCreateManager(field.FieldType));
+            }
+
+            return result.ToArray();
         }
     }
 }

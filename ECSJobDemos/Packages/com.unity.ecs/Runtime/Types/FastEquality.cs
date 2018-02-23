@@ -6,11 +6,11 @@ using Unity.Collections.LowLevel.Unsafe;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Unity.Core.Tests")]
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
-    static internal class FastEquality
+    static public class FastEquality
     {
-        internal struct Layout
+        public struct Layout
         {
             public int  offset;
             public int  count;

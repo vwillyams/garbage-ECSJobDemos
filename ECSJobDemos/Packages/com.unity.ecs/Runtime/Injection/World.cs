@@ -4,7 +4,7 @@ using System;
 using System.Collections.ObjectModel;
 using UnityEngine.Experimental.LowLevel;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
 	public class World : IDisposable
 	{

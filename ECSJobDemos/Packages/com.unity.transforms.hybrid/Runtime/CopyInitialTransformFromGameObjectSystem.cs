@@ -1,5 +1,6 @@
 ﻿using Unity.Collections;
-using Unity.ECS;
+using Unity.Entities;
+using Unity.ECS.Hybrid;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine.Jobs;
@@ -82,7 +83,7 @@ namespace Unity.Transforms.Hybrid
         [Inject] DeferredEntityChangeSystem m_DeferredEntityChangeSystem;
 
         ComponentGroup m_InitialTransformGroup;
-        
+
         protected override void OnCreateManager(int capacity)
         {
             m_InitialTransformGroup = GetComponentGroup(ComponentType.ReadOnly(typeof(CopyInitialTransformFromGameObject)),typeof(UnityEngine.Transform));

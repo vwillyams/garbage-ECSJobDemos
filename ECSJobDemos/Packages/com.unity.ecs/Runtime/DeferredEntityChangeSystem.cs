@@ -1,6 +1,6 @@
 using Unity.Collections;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     public struct AddComponentPayload<T> where T : struct, IComponentData
     {

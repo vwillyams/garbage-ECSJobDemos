@@ -3,7 +3,7 @@ using System.Reflection;
 
 using Unity.Collections.LowLevel.Unsafe;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     struct InjectionData
     {

@@ -7,7 +7,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.Scripting;
 
-namespace Unity.ECS.Hybrid
+namespace Unity.Entities.Hybrid
 {
 	public struct GameObjectArray
 	{
@@ -71,6 +71,11 @@ namespace Unity.ECS.Hybrid
     {
         public Type FieldTypeOfInterest => typeof(GameObjectArray);
 
+        public bool IsInterestedInField(FieldInfo fieldInfo)
+        {
+            return fieldInfo.FieldType == typeof(GameObjectArray);
+        }
+
         public string ValidateField(FieldInfo field, bool isReadOnly, InjectionContext injectionInfo)
         {
             if (field.FieldType != typeof(GameObjectArray))
@@ -105,9 +110,9 @@ namespace Unity.ECS.Hybrid
     }
 }
 
-namespace Unity.ECS.Hybrid
+namespace Unity.Entities.Hybrid
 {
-    public static class ComponentGroupExtensions
+    public static class ComponentGroupExtensionsForGameObjectArray
     {
         public static GameObjectArray GetGameObjectArray(this ComponentGroup group)
         {

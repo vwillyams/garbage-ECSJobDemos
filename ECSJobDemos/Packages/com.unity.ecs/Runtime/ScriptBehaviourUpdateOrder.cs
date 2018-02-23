@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Experimental.LowLevel;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     // Updating before or after an engine system guarantees it is in the same update phase as the dependency
     // Update After a phase means in that pase but after all engine systems, Before a phase means in that phase but before all engine systems

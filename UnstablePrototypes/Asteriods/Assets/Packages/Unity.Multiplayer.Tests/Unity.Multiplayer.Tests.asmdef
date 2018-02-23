@@ -2,6 +2,7 @@
     "name": "Unity.Multiplayer.Tests",
     "references": [
         "Unity.Multiplayer",
+        "Unity.Collections",
         "Unity.Mathematics"
     ],
     "optionalUnityReferences": [

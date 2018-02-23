@@ -1,7 +1,7 @@
 ﻿using System;
 using NUnit.Framework;
-using Unity.ECS;
-using Unity.ECS.Hybrid;
+using Unity.Entities;
+using Unity.Entities.Hybrid;
 using UnityEngine.ECS.Tests;
 
 namespace UnityEngine.ECS.Hybrid.Tests

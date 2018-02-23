@@ -1,6 +1,6 @@
 ﻿using NUnit.Framework;
 using System;
-using Unity.ECS;
+using Unity.Entities;
 
 //@TODO: We should really design systems / jobs / exceptions / errors 
 //       so that an error in one system does not affect the next system.

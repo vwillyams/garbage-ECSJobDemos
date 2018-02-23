@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using Unity.Collections;
-using Unity.ECS;
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 

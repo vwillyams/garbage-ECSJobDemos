@@ -1,13 +1,14 @@
 ﻿using NUnit.Framework;
+using Unity.Entities;
 using Unity.ECS.Hybrid;
-using Unity.ECS;
+using Unity.Entities.Hybrid;
 using UnityEngine.Jobs;
 
 namespace UnityEngine.ECS.Tests
 {
     public class ComponentGroupTransformAccessArrayTests : ECSTestsFixture
 	{
-	    
+
 	    TransformAccessArrayInjectionHook m_TransformAccessArrayInjectionHook = new TransformAccessArrayInjectionHook();
 
 	    [OneTimeSetUp]
@@ -21,7 +22,7 @@ namespace UnityEngine.ECS.Tests
 	    {
 	        InjectionHookSupport.UnregisterHook(m_TransformAccessArrayInjectionHook);
 	    }
-	    
+
         public ComponentGroupTransformAccessArrayTests()
         {
             Assert.IsTrue(Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobDebuggerEnabled, "JobDebugger must be enabled for these tests");
@@ -180,13 +181,13 @@ namespace UnityEngine.ECS.Tests
 	        {
 	        }
 	    }
-	    
+
 	    [Test]
 	    public void GameObjectArrayWorksWithTransformAccessArray()
 	    {
 	        var hook = new GameObjectArrayInjectionHook();
 	        InjectionHookSupport.RegisterHook(hook);
-	        
+
 	        var go = new GameObject("test");
 	        GameObjectEntity.AddToEntityManager(m_Manager, go);
 
@@ -199,9 +200,9 @@ namespace UnityEngine.ECS.Tests
 	        Assert.AreEqual(go, manager.group.transforms[0].gameObject);
 
 	        Object.DestroyImmediate (go);
-	        
+
 	        InjectionHookSupport.UnregisterHook(hook);
-	        
+
 	        TearDown();
 	    }
 

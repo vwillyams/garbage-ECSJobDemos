@@ -1,7 +1,7 @@
 ﻿using Unity.Collections.LowLevel.Unsafe;
 using System;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     public struct SharedComponentDataArray<T> where T : struct, ISharedComponentData
     {

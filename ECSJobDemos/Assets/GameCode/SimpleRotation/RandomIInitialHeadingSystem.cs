@@ -1,5 +1,5 @@
 ﻿using Unity.Collections;
-using Unity.ECS;
+using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Jobs;
 

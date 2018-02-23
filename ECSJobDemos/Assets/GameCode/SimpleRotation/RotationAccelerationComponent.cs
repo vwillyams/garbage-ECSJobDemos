@@ -1,5 +1,5 @@
 ﻿using System;
-using Unity.ECS;
+using Unity.Entities;
 
 namespace UnityEngine.ECS.SimpleRotation
 {

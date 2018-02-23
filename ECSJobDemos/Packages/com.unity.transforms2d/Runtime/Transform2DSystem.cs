@@ -1,5 +1,5 @@
 ﻿using Unity.Collections;
-using Unity.ECS;
+using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -54,7 +54,7 @@ namespace Unity.Transforms2D
             public void Execute(int i)
             {
                 float2 position = positions[i].Value;
-                float2 heading = math.normalize(headings[i].Heading);
+                float2 heading = math.normalize(headings[i].Value);
                 matrices[i] = new TransformMatrix
                 {
                     Value = new float4x4

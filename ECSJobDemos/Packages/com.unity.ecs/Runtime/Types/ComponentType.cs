@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     public struct SubtractiveComponent<T> where T : struct, IComponentData
     {}

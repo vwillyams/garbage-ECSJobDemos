@@ -4,6 +4,7 @@ using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using Unity.ECS;
+using Unity.Core.Hybrid;
 using UnityEngine.Profiling;
 using Unity.Transforms;
 

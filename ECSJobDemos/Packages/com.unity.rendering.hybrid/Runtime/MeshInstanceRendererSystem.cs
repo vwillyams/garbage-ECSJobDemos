@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.ECS;
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Assertions;

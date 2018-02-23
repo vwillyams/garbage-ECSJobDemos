@@ -1,10 +1,10 @@
-﻿using Unity.ECS;
+﻿using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine.ECS.SimpleSpatialQuery;
 
 namespace UnityEngine.ECS.Boids
 {
-    public struct BoidNearestObstaclePosition : IComponentData, INearestTarget
+    public struct BoidNearestObstaclePosition : IComponentData, ISingleValue<float3>
     {
         public float3 Value { get; set; }
     }

@@ -1,12 +1,10 @@
 ﻿using NUnit.Framework;
 
-using Unity.ECS;
-using Unity.Collections;
-using Unity.Core.Hybrid;
+using Unity.Entities;
 using UnityEngine;
 using UnityEngine.ECS.Tests;
 
-namespace Unity.Core.Hybrid.Tests
+namespace Unity.Entities.Hybrid.Tests
 {
     public class EntityManagerTests : ECSTestsFixture
     {

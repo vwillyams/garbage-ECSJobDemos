@@ -2,7 +2,7 @@
 
 using Component = UnityEngine.Component;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
 	public struct ComponentArray<T> where T: Component
 	{

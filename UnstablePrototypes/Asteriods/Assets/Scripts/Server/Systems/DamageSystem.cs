@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 using UnityEngine;
-using Unity.ECS;
+using Unity.Entities;
 
 using Unity.Collections;
 

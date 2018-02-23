@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using Unity.ECS.Hybrid;
 
-namespace Unity.ECS.Hybrid
+namespace Unity.Entities.Hybrid
 {
     static class DefaultWorldInitialization
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     public class SceneViewWorldPositionAttribute : Attribute
     {

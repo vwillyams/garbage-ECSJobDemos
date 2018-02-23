@@ -2,7 +2,7 @@ using Unity;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
-using Unity.ECS;
+using Unity.Entities;
 using Unity.Mathematics;
 
 

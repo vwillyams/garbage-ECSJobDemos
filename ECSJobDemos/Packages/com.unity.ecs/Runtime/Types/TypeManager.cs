@@ -2,7 +2,7 @@
 using System.Threading;
 using Unity.Collections.LowLevel.Unsafe;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     static unsafe class TypeManager
     {
@@ -22,16 +22,18 @@ namespace Unity.ECS
 
         internal struct ComponentType
         {
-            public ComponentType(Type type, int size, TypeCategory category)
+            public ComponentType(Type type, int size, TypeCategory category, FastEquality.Layout[] layout)
             {
                 Type = type;
                 SizeInChunk = size;
                 Category = category;
+                FastEqualityLayout = layout;
             }
-
-            public readonly Type          Type;
-            public readonly int           SizeInChunk;
-            public readonly TypeCategory  Category;
+            
+            public readonly Type                  Type;
+            public readonly int                   SizeInChunk;
+            public readonly FastEquality.Layout[] FastEqualityLayout;
+            public readonly TypeCategory          Category;
         }
 
         static ComponentType[]    s_Types;
@@ -40,18 +42,28 @@ namespace Unity.ECS
 
         public const int MaximumTypesCount = 1024 * 10;
 
+        public static int ObjectOffset;
+
+        
+        struct ObjectOffsetType
+        {
+            void* v0;
+            void* v1;
+        }
+
         public static void Initialize()
         {
             if (s_Types != null)
                 return;
 
+            ObjectOffset = UnsafeUtility.SizeOf<ObjectOffsetType>();
             s_CreateTypeLock = new SpinLock();
             s_Types = new ComponentType[MaximumTypesCount];
             s_Count = 0;
 
-            s_Types[s_Count++] = new ComponentType(null, 0, TypeCategory.ComponentData);
+            s_Types[s_Count++] = new ComponentType(null, 0, TypeCategory.ComponentData, null);
             // This must always be first so that Entity is always index 0 in the archetype
-            s_Types[s_Count++] = new ComponentType(typeof(Entity), sizeof(Entity), TypeCategory.EntityData);
+            s_Types[s_Count++] = new ComponentType(typeof(Entity), sizeof(Entity), TypeCategory.EntityData, FastEquality.CreateLayout(typeof(Entity)));
         }
 
 
@@ -114,7 +126,7 @@ namespace Unity.ECS
         {
             var componentSize = 0;
             TypeCategory category;
-
+            FastEquality.Layout[] fastEqualityLayout = null;
             if (typeof(IComponentData).IsAssignableFrom(type))
             {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -126,6 +138,7 @@ namespace Unity.ECS
 
                 category = TypeCategory.ComponentData;
                 componentSize = UnsafeUtility.SizeOf(type);
+                fastEqualityLayout = FastEquality.CreateLayout(type);
             }
             else if (typeof(ISharedComponentData).IsAssignableFrom(type))
             {
@@ -135,6 +148,7 @@ namespace Unity.ECS
 #endif
 
                 category = TypeCategory.ISharedComponentData;
+                fastEqualityLayout = FastEquality.CreateLayout(type);
             }
             else if (type.IsValueType)
             {
@@ -169,7 +183,7 @@ namespace Unity.ECS
             if (typeof(IComponentData).IsAssignableFrom(type) && typeof(ISharedComponentData).IsAssignableFrom(type))
                 throw new ArgumentException($"Component {type} can not be both IComponentData & ISharedComponentData");
 #endif
-            return new ComponentType(type, componentSize, category);
+            return new ComponentType(type, componentSize, category, fastEqualityLayout);
         }
 
         public static bool IsValidComponentTypeForArchetype(int typeIndex, bool isArray)

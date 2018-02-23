@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 
 using Unity.Collections.LowLevel.Unsafe;
-
+using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Jobs;
 using UnityEngine.Scripting;
@@ -16,7 +16,7 @@ namespace Unity.ECS.Hybrid
     sealed class TransformAccessArrayInjectionHook : IInjectionHook
     {
         public Type FieldTypeOfInterest => typeof(TransformAccessArray);
-        
+
         public bool IsInterestedInField(FieldInfo fieldInfo)
         {
             return fieldInfo.FieldType == typeof(TransformAccessArray);
@@ -66,19 +66,19 @@ namespace Unity.ECS.Hybrid
                 Data.Dispose();
         }
     }
-    
+
     public static class ComponentGroupExtensionsForTransformAccessArray
     {
         public static unsafe TransformAccessArray GetTransformAccessArray(this ComponentGroup group)
         {
             var state = (TransformAccessArrayState?) group.m_CachedState ?? new TransformAccessArrayState();
             var orderVersion = group.EntityDataManager->GetComponentTypeOrderVersion(TypeManager.GetTypeIndex<Transform>());
-                
+
             if (state.Data.IsCreated && orderVersion == state.OrderVersion)
                 return state.Data;
-            
+
             state.OrderVersion = orderVersion;
-            
+
             UnityEngine.Profiling.Profiler.BeginSample("DirtyTransformAccessArrayUpdate");
             var trans = group.GetComponentArray<Transform>();
             if (!state.Data.IsCreated)
@@ -86,6 +86,8 @@ namespace Unity.ECS.Hybrid
             else
                 state.Data.SetTransforms(trans.ToArray());
             UnityEngine.Profiling.Profiler.EndSample();
+
+            group.m_CachedState = state;
 
             return state.Data;
         }

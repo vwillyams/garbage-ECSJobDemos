@@ -8,7 +8,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using Component = UnityEngine.Component;
 using Transform = UnityEngine.Transform;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     struct ProxyComponentData : IComponentData { }
 

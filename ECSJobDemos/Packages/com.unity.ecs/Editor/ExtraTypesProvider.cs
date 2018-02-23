@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.ECS;
+using Unity.Entities;
 using UnityEditor.Experimental.Build.Player;
 
 namespace UnityEditor.ECS

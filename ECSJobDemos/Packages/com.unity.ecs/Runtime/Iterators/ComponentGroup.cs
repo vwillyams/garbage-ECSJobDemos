@@ -6,7 +6,7 @@ using Unity.Collections.LowLevel.Unsafe;
 
 using Component = UnityEngine.Component;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     unsafe struct ComponentGroupData
     {

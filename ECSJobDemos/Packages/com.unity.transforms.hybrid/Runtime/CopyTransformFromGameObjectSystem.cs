@@ -8,7 +8,7 @@ using UnityEngine.Jobs;
 namespace Unity.Transforms.Hybrid
 {
     [DisableSystemWhenEmpty]
-    public class CopyInitialTransformFromGameObjectSystem : JobComponentSystem
+    public class CopyTransformFromGameObjectSystem : JobComponentSystem
     {
         [Inject] ComponentDataFromEntity<LocalPosition> m_LocalPositions;
         [Inject] ComponentDataFromEntity<LocalRotation> m_LocalRotations;
@@ -51,7 +51,6 @@ namespace Unity.Transforms.Hybrid
             public ComponentDataFromEntity<Position> positions;
             public ComponentDataFromEntity<Rotation> rotations;
             [DeallocateOnJobCompletion] public NativeArray<TransformStash> transformStashes;
-            public NativeQueue<Entity>.Concurrent removeComponentQueue;
 
             public void Execute()
             {
@@ -75,24 +74,21 @@ namespace Unity.Transforms.Hybrid
                     {
                         localRotations[entity] = new LocalRotation { Value = transformStash.localRotation };
                     }
-                    removeComponentQueue.Enqueue(entity);
                 }
             }
         }
 
-        [Inject] DeferredEntityChangeSystem m_DeferredEntityChangeSystem;
-
-        ComponentGroup m_InitialTransformGroup;
+        ComponentGroup m_TransformGroup;
         
         protected override void OnCreateManager(int capacity)
         {
-            m_InitialTransformGroup = GetComponentGroup(ComponentType.ReadOnly(typeof(CopyInitialTransformFromGameObject)),typeof(UnityEngine.Transform));
+            m_TransformGroup = GetComponentGroup(ComponentType.ReadOnly(typeof(CopyTransformFromGameObject)),typeof(UnityEngine.Transform));
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            var transforms = m_InitialTransformGroup.GetTransformAccessArray();
-            var entities = m_InitialTransformGroup.GetEntityArray();
+            var transforms = m_TransformGroup.GetTransformAccessArray();
+            var entities = m_TransformGroup.GetEntityArray();
 
             var transformStashes = new NativeArray<TransformStash>(transforms.Length, Allocator.TempJob);
             var stashTransformsJob = new StashTransforms
@@ -110,9 +106,8 @@ namespace Unity.Transforms.Hybrid
                 localPositions = m_LocalPositions,
                 localRotations = m_LocalRotations,
                 transformStashes = transformStashes,
-                removeComponentQueue = m_DeferredEntityChangeSystem.GetRemoveComponentQueue<CopyInitialTransformFromGameObject>()
             };
-
+            
             transforms.Dispose();
             return copyTransformsJob.Schedule(stashTransformsJobHandle);
         }

@@ -1,6 +1,6 @@
 ﻿using Unity.Entities;
 
-namespace Unity.Transforms.Hybrid
+namespace Unity.Transforms
 {
     /// <summary>
     /// Copy Transform from GameObject associated with Entity to TransformMatrix.

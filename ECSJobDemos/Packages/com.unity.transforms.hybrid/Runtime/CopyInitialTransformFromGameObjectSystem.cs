@@ -4,7 +4,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine.Jobs;
 
-namespace Unity.Transforms.Hybrid
+namespace Unity.Transforms
 {
     [DisableSystemWhenEmpty]
     public class CopyInitialTransformFromGameObjectSystem : JobComponentSystem

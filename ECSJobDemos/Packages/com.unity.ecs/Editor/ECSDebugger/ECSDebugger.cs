@@ -1,7 +1,9 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Unity.ECS;
+using System.Runtime.InteropServices;
+using Unity.Entities;
+using Unity.Properties.Entities;
 using UnityEngine;
 using UnityEditor.IMGUI.Controls;
 
@@ -45,7 +47,18 @@ namespace UnityEditor.ECS
 
         private ScriptBehaviourManager systemSelection;
 
-        public Entity EntitySelection { get; set; }
+        public Entity EntitySelection {
+            set
+            {
+                if (value != Entity.Null)
+                {
+                    selectionProxy.container = new EntityContainer(WorldSelection.GetExistingManager<EntityManager>(), value);
+                    Selection.activeObject = selectionProxy;
+                }
+            }
+        }
+
+        private EntitySelectionProxy selectionProxy;
 
         [SerializeField]
         private TreeViewState systemListState = new TreeViewState();
@@ -112,6 +125,14 @@ namespace UnityEditor.ECS
             systemListView = new GroupedSystemListView(systemListState, systemListHeader, this);
             componentListView =
                 new ComponentGroupIntegratedListView(componentListState, this, SystemSelection as ComponentSystemBase);
+            selectionProxy = ScriptableObject.CreateInstance<EntitySelectionProxy>();
+            selectionProxy.hideFlags = HideFlags.HideAndDontSave;
+        }
+
+        private void OnDisable()
+        {
+            if (selectionProxy)
+                DestroyImmediate(selectionProxy);
         }
         
         private float lastUpdate;

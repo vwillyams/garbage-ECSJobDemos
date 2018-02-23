@@ -3,7 +3,7 @@ using UnityEditor.IMGUI.Controls;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Unity.ECS;
+using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Profiling;
 

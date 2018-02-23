@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
-using Unity.ECS;
+using Unity.Entities;
 using UnityEngine;
 
 namespace UnityEditor.ECS
@@ -16,6 +16,7 @@ namespace UnityEditor.ECS
     public class ComponentGroupIntegratedListView : TreeView {
 
         Dictionary<int, ComponentGroup> componentGroupsById;
+        private Dictionary<int, Entity> entitiesById;
 
         public ComponentSystemBase SelectedSystem
         {
@@ -70,6 +71,7 @@ namespace UnityEditor.ECS
         protected override TreeViewItem BuildRoot()
         {
             componentGroupsById = new Dictionary<int, ComponentGroup>();
+            entitiesById = new Dictionary<int, Entity>();
             var currentID = 0;
             var root  = new TreeViewItem { id = currentID++, depth = -1, displayName = "Root" };
             if (SelectedSystem == null)
@@ -90,7 +92,6 @@ namespace UnityEditor.ECS
             }
             else
             {
-                var groupIndex = 0;
                 foreach (var group in SelectedSystem.ComponentGroups)
                 {
                     componentGroupsById.Add(currentID, group);
@@ -102,10 +103,10 @@ namespace UnityEditor.ECS
                     var entityArray = group.GetEntityArray();
                     for (var i = 0; i < entityArray.Length; ++i)
                     {
+                        entitiesById.Add(currentID, entityArray[i]);
                         var entityItem = new TreeViewItem { id = currentID++, displayName = $"Entity {entityArray[i].Index.ToString()}" };
                         groupItem.AddChild(entityItem);
                     }
-                    ++groupIndex;
                 }
                 SetupDepthsFromParentsAndChildren(root);
             }
@@ -127,17 +128,17 @@ namespace UnityEditor.ECS
             DefaultGUI.LabelRightAligned(args.rowRect, countString, args.selected, args.focused);
         }
 
-//        override protected void SelectionChanged(IList<int> selectedIds)
-//        {
-//            if (selectedIds.Count > 0 && componentGroupsById.ContainsKey(selectedIds[0]))
-//            {
-//                window.EntitySelection = componentGroupsById[selectedIds[0]];
-//            }
-//            else
-//            {
-//                window.EntitySelection = null;
-//            }
-//        }
+        override protected void SelectionChanged(IList<int> selectedIds)
+        {
+            if (selectedIds.Count > 0 && entitiesById.ContainsKey(selectedIds[0]))
+            {
+                window.EntitySelection = entitiesById[selectedIds[0]];
+            }
+            else
+            {
+                window.EntitySelection = Entity.Null;
+            }
+        }
 
         override protected bool CanMultiSelect(TreeViewItem item)
         {

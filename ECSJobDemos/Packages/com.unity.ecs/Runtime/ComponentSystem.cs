@@ -205,7 +205,7 @@ namespace Unity.Entities
 
     public abstract class ComponentSystem : ComponentSystemBase
     {
-        private EntityCommandBuffer m_DeferredEntities;
+        EntityCommandBuffer m_DeferredEntities;
 
         public EntityCommandBuffer PostUpdateCommands => m_DeferredEntities;
 

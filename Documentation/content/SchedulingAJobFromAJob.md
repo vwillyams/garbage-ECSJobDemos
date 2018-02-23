@@ -1,24 +1,25 @@
-** Why can't I schedule a job from within a job?
+# Scheduling a Job from a Job. Why not?
 
 We have a couple of important principles that drive our design.
 
-1. Determinism by default - Determinism enables Networked games, Replay and Debugging tools.
-2. Safe - Race conditions are immediately reported, this makes writing jobified significantly more approachable and simple.
+* Determinism by default - Determinism enables Networked games, Replay and Debugging tools.
+* Safe - Race conditions are immediately reported, this makes writing jobified code significantly more approachable and simple.
 
 These two principles applied result in some choices / restrictions that we enforce.
 
-Jobs can only be scheduled & Completed on the main thread. But why?
-- If you were to schedule a job from another job and call JobHandle.Complete, that will lead to impossible to solve job scheduler dead locks.
+**Jobs can only be scheduled & Completed on the main thread. But why?**
+* If you were to schedule a job from another job and call JobHandle.Complete, that will lead to impossible to solve job scheduler dead locks.
 (We have tried this over the last couple years with Unity C++ code, and every single case has resulted in tears and us reverting such patterns in our code. The race conditions are rare but provably impossible to solve in all cases)
-- If you were to simply schedule a job from another job but not call JobHandle.Complete from the job, then there is no way to gurantee determinism. The main thread has to the JobHandle.Complete() call but who gives it to the main thread to wait on it?
+* If you were to simply schedule a job from another job but not call JobHandle.Complete from the job, then there is no way to gurantee determinism. The main thread has to call JobHandle.Complete() but who passes that JobHandle to the main thread and how do you know the job that schedules the job has already executed?
 
-In summary, it's the first instinct to want to schedule jobs and wait for jobs from a job.
+In summary, first instinct is to simply schedule jobs from jobs and wait for jobs from a job.
 But experience tells us that this is always a bad idea. So the C# job system does not support it.
 
 
-Ok but how do I process workloads where I don't know the exact size upfront?
+**Ok but how do I process workloads where I don't know the exact size upfront?**
 
-Its totally fine to schedule some jobs, conservatively. And then simply early out and do nothing if it turns out the number of actual elements to operate on is only calculated in a previous job and not known at schedule time.
+Its totally fine to schedule jobs conservatively. And then simply early out and do nothing if it turns out the number of actual elements to process when the job executes is much less than the conservative number of elements that we determined at schedule time. 
+
 In fact this way of doing it leads to deterministic execution and if the early out can skip a whole batch of operations its not really a performance issue.
 Also there is no possibility of causing internal job scheduler dead locks.
 

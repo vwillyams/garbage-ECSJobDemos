@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Data;
-using Unity.ECS;
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -9,7 +9,7 @@ public class PlanetSpawner : MonoBehaviour
 {
     [SerializeField] private GameObject _planetPrefab;
     [SerializeField] private int _initialCount = 10;
-    [SerializeField] readonly float radius = 10.0f;
+    [SerializeField] readonly float radius = 100.0f;
     private EntityManager _entityManager;
     [SerializeField] private Material[] _teamMaterials;
     static Dictionary<Entity, GameObject> entities = new Dictionary<Entity, GameObject>();
@@ -28,7 +28,7 @@ public class PlanetSpawner : MonoBehaviour
         {
 
 
-            var sphereRadius = 2.0f;
+            var sphereRadius = 20.0f;
             var safe = false;
             float3 pos;
             int attempts = 0;
@@ -51,7 +51,7 @@ public class PlanetSpawner : MonoBehaviour
             var meshGo = go.GetComponentsInChildren<Transform>().First(c => c.gameObject != go).gameObject;
             var meshEntity = meshGo.GetComponent<GameObjectEntity>().Entity;
 
-            var randomScale = Random.Range(1.0f, 4.0f);
+            var randomScale = Random.Range(10.0f, 40.0f);
             meshGo.transform.localScale = new Vector3(randomScale, randomScale, randomScale);
 
             var planetData = new PlanetData

@@ -1,5 +1,5 @@
 ﻿using Data;
-using Unity.ECS;
+using Unity.Entities;
 using UnityEngine;
 
 namespace Other

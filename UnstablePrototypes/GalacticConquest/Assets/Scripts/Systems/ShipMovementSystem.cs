@@ -1,7 +1,7 @@
 ﻿using System;
 using Data;
 using Unity.Collections;
-using Unity.ECS;
+using Unity.Entities;
 using Unity.Jobs;
 using Unity.Transforms;
 using UnityEngine;
@@ -51,7 +51,7 @@ namespace Systems
                 var targetPosition = TargetPlanet[shipData.TargetEntity].Position;
                 var transform = Transforms[index];
 
-                var newPos = Vector3.MoveTowards(transform.Value, targetPosition, DeltaTime);
+                var newPos = Vector3.MoveTowards(transform.Value, targetPosition, DeltaTime * 2.0f);
 
                 for (var planetIndex = 0; planetIndex < Planets.Length; planetIndex++)
                 {

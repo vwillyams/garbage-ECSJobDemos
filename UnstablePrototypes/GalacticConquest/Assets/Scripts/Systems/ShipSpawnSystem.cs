@@ -2,8 +2,8 @@
 using Data;
 using Other;
 using Unity.Collections;
-using Unity.ECS;
-using Unity.Core.Hybrid;
+using Unity.Entities;
+using Unity.Entities.Hybrid;
 using Unity.Transforms;
 using Unity.Mathematics;
 using UnityEngine;

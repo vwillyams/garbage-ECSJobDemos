@@ -1,7 +1,7 @@
 ﻿using Data;
 using Unity.Collections;
 using UnityEngine;
-using Unity.ECS;
+using Unity.Entities;
 using Unity.Jobs;
 
 namespace Systems

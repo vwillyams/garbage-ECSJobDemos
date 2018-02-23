@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Data;
-using Unity.ECS;
+using Unity.Entities;
 using UnityEngine;
 
 namespace Systems

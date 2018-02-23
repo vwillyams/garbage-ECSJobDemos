@@ -1,6 +1,6 @@
 ﻿using Data;
 using Unity.Collections;
-using Unity.ECS;
+using Unity.Entities;
 using UnityEngine;
 using Unity.Rendering.Hybrid;
 

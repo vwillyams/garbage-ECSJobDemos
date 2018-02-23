@@ -239,6 +239,7 @@ namespace Unity.Entities
             }
 
             iterator.m_Length = length;
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             iterator.m_MaxIndex = length-1;
             iterator.m_MinIndex = 0;
 
@@ -271,6 +272,7 @@ namespace Unity.Entities
                 }
             }
             Assert.AreEqual(cache.ProcessTypesCount, iterator.m_SafetyReadWriteCount + iterator.m_SafetyReadOnlyCount);
+#endif
         }
     }
 

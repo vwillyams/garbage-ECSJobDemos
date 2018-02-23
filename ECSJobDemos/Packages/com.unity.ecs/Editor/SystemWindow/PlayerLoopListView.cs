@@ -10,25 +10,25 @@ namespace UnityEditor.ECS
 {
 	public class PlayerLoopListView : TreeView
 	{
-	
+
 		private HashSet<string> systemNames = new HashSet<string>();
 		private Dictionary<int, PlayerLoopSystem> playerLoopSystemsByListID;
 		private HashSet<int> systemSubtreeIDs;
 		private static readonly string kPlayerlooplistviewItemId = "PlayerLoopListView Item ID";
 		private PlayerLoopSystem playerLoop;
-	
+
 		public PlayerLoopListView(TreeViewState state) : base(state)
 		{
 			Reload();
 		}
-	
+
 		public void UpdatePlayerLoop(PlayerLoopSystem playerLoop, HashSet<string> systemNames)
 		{
 			this.playerLoop = playerLoop;
 			this.systemNames = systemNames;
 			Reload();
 		}
-	
+
 		protected override TreeViewItem BuildRoot()
 		{
 			var currentID = 0;
@@ -49,7 +49,7 @@ namespace UnityEditor.ECS
 			SetupDepthsFromParentsAndChildren(root);
 			return root;
 		}
-	
+
 		private void CreateItemsForLoopSystem(PlayerLoopSystem system, ref int currentID, out TreeViewItem parent, out bool hasSystems)
 		{
 			parent = new TreeViewItem
@@ -59,7 +59,7 @@ namespace UnityEditor.ECS
 				displayName = system.type == null ? "null" : system.type.Name
 			};
 			playerLoopSystemsByListID.Add(parent.id, system);
-			
+
 			hasSystems = system.type != null && systemNames.Contains(system.type.FullName);
 			if (system.subSystemList != null)
 			{
@@ -77,14 +77,14 @@ namespace UnityEditor.ECS
 				systemSubtreeIDs.Add(parent.id);
 			}
 		}
-	
+
 		private void RecreatePlayerLoop()
 		{
 			var newPlayerLoop = BuildSystemFromList(rootItem);
-			World.SetPlayerLoopAndNotify(newPlayerLoop);
+		    ScriptBehaviourUpdateOrder.SetPlayerLoopAndNotify(newPlayerLoop);
 			Reload();
 		}
-	
+
 		private PlayerLoopSystem BuildSystemFromList(TreeViewItem parent)
 		{
 			var parentSystem = playerLoopSystemsByListID[parent.id];
@@ -99,12 +99,12 @@ namespace UnityEditor.ECS
 			}
 			return parentSystem;
 		}
-	
+
 		protected override bool CanStartDrag(CanStartDragArgs args)
 		{
 			return systemSubtreeIDs.Contains(args.draggedItem.id) && systemNames.Contains(playerLoopSystemsByListID[args.draggedItem.id].type.FullName);
 		}
-	
+
 		protected override void SetupDragAndDrop(SetupDragAndDropArgs args)
 		{
 			var itemId = args.draggedItemIDs[0];
@@ -139,7 +139,7 @@ namespace UnityEditor.ECS
 	    }
 
 	    private void SetExpandedFromTypes(IEnumerable<Type> expandedTypes)
-	    {	    
+	    {
 	        SetExpanded((from x in playerLoopSystemsByListID.Keys
 	            where expandedTypes.Contains(playerLoopSystemsByListID[x].type)
 	            select x).ToList());
@@ -150,7 +150,7 @@ namespace UnityEditor.ECS
 	        var newItem = Find(x => playerLoopSystemsByListID[x.id].type == type, rootItem);
 	        SetSelection(new List<int>{newItem.id});
 	    }
-	
+
 		protected override DragAndDropVisualMode HandleDragAndDrop(DragAndDropArgs args)
 		{
 			var dropData = DragAndDrop.GetGenericData(kPlayerlooplistviewItemId);
@@ -158,7 +158,7 @@ namespace UnityEditor.ECS
 			{
 				return DragAndDropVisualMode.None;
 			}
-			
+
 			switch (args.dragAndDropPosition)
 			{
 				case DragAndDropPosition.OutsideItems:
@@ -178,7 +178,7 @@ namespace UnityEditor.ECS
 						args.parentItem.children.Insert(args.insertAtIndex, item);
 					    var selectedType = playerLoopSystemsByListID[itemId].type;
 					    var expandedTypes = GetExpandedTypes();
-					    
+
 						RecreatePlayerLoop();
 
 					    SetExpandedFromTypes(expandedTypes);
@@ -187,22 +187,22 @@ namespace UnityEditor.ECS
 					break;
 				default:
 					throw new ArgumentException("Unrecognized DragAndDropPosition");
-								
+
 			}
-			
+
 			return DragAndDropVisualMode.Move;
 		}
-	
+
 		protected override bool CanMultiSelect(TreeViewItem item)
 		{
 			return false;
 		}
-	
+
 		protected override bool CanBeParent(TreeViewItem item)
 		{
 			return false;
 		}
-	
+
 		protected override void RowGUI(RowGUIArgs args)
 		{
 			GUI.enabled = systemSubtreeIDs.Contains(args.item.id);
@@ -210,5 +210,5 @@ namespace UnityEditor.ECS
 			GUI.enabled = true;
 		}
 	}
-	
+
 }

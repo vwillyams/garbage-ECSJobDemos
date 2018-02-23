@@ -2,7 +2,6 @@
 using System.Reflection;
 using System;
 using System.Collections.ObjectModel;
-using UnityEngine.Experimental.LowLevel;
 
 namespace Unity.Entities
 {
@@ -160,7 +159,7 @@ namespace Unity.Entities
 			if (!m_BehaviourManagers.Remove(manager))
 				throw new ArgumentException($"manager does not exist in the world");
 
-		    
+
 			var type = manager.GetType();
 			while (type != typeof(ScriptBehaviourManager))
 			{
@@ -213,29 +212,6 @@ namespace Unity.Entities
 		{
 			RemoveManagerInteral(manager);
 		    manager.DestroyInstance();
-		}
-
-		public static void UpdatePlayerLoop(params World[] worlds)
-		{
-			var defaultLoop = PlayerLoop.GetDefaultPlayerLoop();
-
-			if (worlds.Length > 0)
-			{
-				var ecsLoop = ScriptBehaviourUpdateOrder.InsertWorldManagersInPlayerLoop(defaultLoop, worlds);
-				SetPlayerLoopAndNotify(ecsLoop);
-			}
-			else
-			{
-				SetPlayerLoopAndNotify(defaultLoop);
-			}
-		}
-
-		public static event Action<PlayerLoopSystem> OnSetPlayerLoop;
-
-		public static void SetPlayerLoopAndNotify(PlayerLoopSystem playerLoop)
-		{
-			PlayerLoop.SetPlayerLoop(playerLoop);
-			OnSetPlayerLoop?.Invoke(playerLoop);
 		}
 	}
 }

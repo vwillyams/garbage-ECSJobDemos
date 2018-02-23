@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEngine.Experimental.LowLevel;
 
 namespace Unity.Entities.Hybrid
 {
@@ -16,7 +17,7 @@ namespace Unity.Entities.Hybrid
                 World.Active.Dispose ();
                 World.Active = null;
 
-                World.UpdatePlayerLoop();
+                ScriptBehaviourUpdateOrder.UpdatePlayerLoop();
             }
             else
             {
@@ -93,7 +94,7 @@ namespace Unity.Entities.Hybrid
                 }
             }
 
-            World.UpdatePlayerLoop(world);
+            ScriptBehaviourUpdateOrder.UpdatePlayerLoop(world);
         }
     }
 }

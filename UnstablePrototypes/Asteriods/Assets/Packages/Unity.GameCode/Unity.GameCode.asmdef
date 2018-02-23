@@ -1,7 +1,7 @@
 {
     "name": "Unity.GameCode",
     "references": [
-        "UnityEngine.ECS"
+        "Unity.Core"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],

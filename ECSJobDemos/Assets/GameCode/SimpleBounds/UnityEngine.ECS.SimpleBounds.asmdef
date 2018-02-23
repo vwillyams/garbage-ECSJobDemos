@@ -1,0 +1,10 @@
+{
+    "name": "UnityEngine.ECS.SimpleBounds",
+    "references": [
+        "Unity.Core"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false
+}

@@ -1,10 +1,10 @@
-﻿using Unity.Mathematics;
+﻿using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.ECS;
-using UnityEngine.ECS.MeshInstancedShim;
+using Unity.Rendering.Hybrid;
 using UnityEngine.ECS.SimpleMovement;
-using UnityEngine.ECS.Transform;
-using UnityEngine.ECS.Transform2D;
+using Unity.Transforms;
+using Unity.Transforms2D;
 
 namespace TwoStickPureExample
 {
@@ -15,10 +15,10 @@ namespace TwoStickPureExample
         public static EntityArchetype BasicEnemyArchetype;
         public static EntityArchetype ShotSpawnArchetype;
 
-        public static MeshInstancedShim PlayerLook;
-        public static MeshInstancedShim PlayerShotLook;
-        public static MeshInstancedShim EnemyShotLook;
-        public static MeshInstancedShim EnemyLook;
+        public static MeshInstanceRenderer PlayerLook;
+        public static MeshInstanceRenderer PlayerShotLook;
+        public static MeshInstanceRenderer EnemyShotLook;
+        public static MeshInstanceRenderer EnemyLook;
 
         public static TwoStickExampleSettings Settings;
 
@@ -40,8 +40,8 @@ namespace TwoStickPureExample
         {
             var entityManager = World.Active.GetOrCreateManager<EntityManager>();
             Entity player = entityManager.CreateEntity(PlayerArchetype);
-            entityManager.SetComponentData(player, new Position2D {position = new float2(0.0f, 0.0f)});
-            entityManager.SetComponentData(player, new Heading2D  {heading = new float2(0.0f, 1.0f)});
+            entityManager.SetComponentData(player, new Position2D {Value = new float2(0.0f, 0.0f)});
+            entityManager.SetComponentData(player, new Heading2D  {Value = new float2(0.0f, 1.0f)});
             entityManager.SetComponentData(player, new Faction { Value = Faction.kPlayer });
             entityManager.SetComponentData(player, new Health { Value = Settings.playerInitialHealth });
             entityManager.AddSharedComponentData(player, PlayerLook);
@@ -76,10 +76,10 @@ namespace TwoStickPureExample
             World.Active.GetOrCreateManager<UpdatePlayerHUD>().SetupGameObjects();
         }
 
-        private static MeshInstancedShim GetLookFromPrototype(string protoName)
+        private static MeshInstanceRenderer GetLookFromPrototype(string protoName)
         {
             var proto = GameObject.Find(protoName);
-            var result = proto.GetComponent<MeshInstancedShimComponent>().Value;
+            var result = proto.GetComponent<MeshInstanceRendererComponent>().Value;
             Object.Destroy(proto);
             return result;
         }

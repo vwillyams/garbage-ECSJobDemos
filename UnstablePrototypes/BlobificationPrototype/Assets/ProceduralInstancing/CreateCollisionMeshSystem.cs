@@ -2,7 +2,7 @@
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.ECS;
 using static Unity.Mathematics.math;
 
 public class CreateCollisionMeshSystem : ComponentSystem

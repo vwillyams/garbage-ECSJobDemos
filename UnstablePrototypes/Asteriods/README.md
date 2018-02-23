@@ -16,11 +16,13 @@
     - you should be able to start a server through a player/editor and connect multiple clients (also using player/editor and through lan).
     - you should be able to spawn up to ~ 1k objects on the server (asteroids) that will be synchronized on each connected client.
 
-  - deliverables
-    - [ ] multiplayer packet - reliability layer, snapshot code, time/frame synchronization
-    - [ ] guideline document - snapshot interpolations, server / client seperation handling and startup.
-    - [ ] 5k objects synchronized - client move + draw / server handling collisions.
-    - [ ] state and command synchronization using snapshot interpolation. (e.g playable with 100ms and 2% pkt loss)
+### snapshot interpolation
+
+- deliverables
+  - [ ] multiplayer packet - reliability layer, snapshot code, time/frame synchronization
+  - [ ] guideline document - snapshot interpolations, server / client seperation handling and startup.
+  - [ ] 5k objects synchronized - client move + draw / server handling collisions.
+  - [ ] state and command synchronization using snapshot interpolation. (e.g playable with 100ms and 2% pkt loss)
 
 ### snapshot compression
 

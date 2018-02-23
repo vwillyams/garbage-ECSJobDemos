@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.Entities;
 
 using Unity.Collections;
 using Unity.Mathematics;
@@ -124,6 +124,7 @@ namespace Asteriods.Server
             jobHandle.Complete();
 
             // check all asteroids against players (TODO: add asteroids VS. asteroids when required).
+            /*
             for (int i = 0; i < asteroidColliders.Length; ++i)
             {
                 var firstRadius = asteroidColliders.spheres[i].radius;
@@ -141,6 +142,7 @@ namespace Asteriods.Server
                     }
                 }
             }
+            */
 
             asteroidData.Dispose();
 

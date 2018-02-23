@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.Entities;
 
 using Unity.Multiplayer;
 
@@ -34,7 +34,8 @@ public class ServerSettings
 
     void Instantiate(World world)
     {
-        this.networkServer = new NetworkServer("127.0.0.1", 50001);
+        //this.networkServer = new NetworkServer("127.0.0.1", 50001);
+        this.networkServer = new NetworkServer("0.0.0.0", 50001);
         this.world = world;
         var manager = world.GetOrCreateManager<EntityManager>();
 
@@ -46,10 +47,11 @@ public class ServerSettings
         bulletVelocity = 10f;
 
         playerArchetype = manager.CreateArchetype(
+            //typeof(CollisionSphereComponentData),
+            typeof(PlayerInputComponentData),
             typeof(PositionComponentData),
             typeof(RotationComponentData),
             typeof(PlayerTagComponentData),
-            typeof(CollisionSphereComponentData),
             typeof(NetworkIdCompmonentData),
             typeof(VelocityComponentData),
             typeof(EntityTypeComponentData),

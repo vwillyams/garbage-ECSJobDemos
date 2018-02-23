@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.Entities;
 using Unity.Mathematics;
 
 [System.Serializable]

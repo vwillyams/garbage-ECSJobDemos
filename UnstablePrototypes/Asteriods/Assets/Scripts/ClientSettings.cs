@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.Entities;
 
 using Unity.Multiplayer;
 
@@ -8,6 +8,8 @@ public class ClientSettings
     public GameObject playerPrefab;
 
     public EntityArchetype playerClientArchetype;
+    public EntityArchetype shipArchetype;
+    public EntityArchetype playerBaseShipArchetype;
     public EntityArchetype asteroidClientArchetype;
     public EntityArchetype bulletClientArchetype;
     public NetworkClient networkClient;
@@ -34,13 +36,26 @@ public class ClientSettings
         playerPrefab = Resources.Load("Prefabs/Ship") as GameObject;
         var manager = world.GetOrCreateManager<EntityManager>();
 
-        playerClientArchetype = manager.CreateArchetype(
+        playerBaseShipArchetype = manager.CreateArchetype(
+            typeof(ShipTagComponentData),
+            typeof(ShipStateComponentData),
+            typeof(NetworkIdCompmonentData));
+
+        shipArchetype = manager.CreateArchetype(
+            typeof(ShipTagComponentData),
+            typeof(ShipStateComponentData),
             typeof(PositionComponentData),
             typeof(RotationComponentData),
+            typeof(ParticleEmitterComponentData),
+            typeof(NetworkIdCompmonentData));
+
+
+        playerClientArchetype = manager.CreateArchetype(
             typeof(PlayerTagComponentData),
+            typeof(ShipInfoComponentData),
             typeof(PlayerInputComponentData),
             typeof(NetworkIdCompmonentData),
-            typeof(ParticleEmitterComponentData));
+            typeof(PlayerStateComponentData));
 
         asteroidClientArchetype = manager.CreateArchetype(
             typeof(PositionComponentData),

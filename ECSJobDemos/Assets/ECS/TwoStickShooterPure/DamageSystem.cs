@@ -1,7 +1,7 @@
 ﻿using Unity.Collections;
+using Unity.Entities;
 using Unity.Mathematics;
-using UnityEngine.ECS;
-using UnityEngine.ECS.Transform2D;
+using Unity.Transforms2D;
 
 namespace TwoStickPureExample
 {
@@ -9,12 +9,12 @@ namespace TwoStickPureExample
     /// <summary>
     /// Assigns out damage from shots colliding with entities of other factions.
     /// </summary>
-    public class ShotDamageSystem : ComponentSystem
+    class ShotDamageSystem : ComponentSystem
     {
         /// <summary>
         /// An array of entities that can take damage (players/enemies both included)
         /// </summary>
-        private struct ReceiverData
+        struct ReceiverData
         {
             public int Length;
             public ComponentDataArray<Health> Health;
@@ -27,7 +27,7 @@ namespace TwoStickPureExample
         /// <summary>
         /// All our shots, and the factions who fired them.
         /// </summary>
-        private struct ShotData
+        struct ShotData
         {
             public int Length;
             public ComponentDataArray<Shot> Shot;
@@ -50,14 +50,14 @@ namespace TwoStickPureExample
                 float collisionRadius = GetCollisionRadius(settings, m_Receivers.Faction[pi].Value);
                 float collisionRadiusSquared = collisionRadius * collisionRadius;
 
-                float2 receiverPos = m_Receivers.Position[pi].position;
+                float2 receiverPos = m_Receivers.Position[pi].Value;
                 int receiverFaction = m_Receivers.Faction[pi].Value;
 
                 for (int si = 0; si < m_Shots.Length; ++si)
                 {
                     if (m_Shots.Faction[si].Value != receiverFaction)
                     {
-                        float2 shotPos = m_Shots.Position[si].position;
+                        float2 shotPos = m_Shots.Position[si].Value;
                         float2 delta = shotPos - receiverPos;
                         float distSquared = math.dot(delta, delta);
                         if (distSquared <= collisionRadiusSquared)
@@ -80,7 +80,7 @@ namespace TwoStickPureExample
             }
         }
 
-        private float GetCollisionRadius(TwoStickExampleSettings settings, int faction)
+        float GetCollisionRadius(TwoStickExampleSettings settings, int faction)
         {
             // This simply picks the collision radius based on whether the receiver is the player or not.
             // In a real game, this would be much more sophisticated, perhaps with a CollisionRadius component.

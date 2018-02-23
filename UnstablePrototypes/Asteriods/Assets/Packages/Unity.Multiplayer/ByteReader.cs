@@ -21,6 +21,11 @@ namespace Unity.Multiplayer
             return (byte)m_Reader.ReadBits(sizeof(byte) * 8);
         }
 
+        public unsafe void ReadBytes(byte* data, int length)
+        {
+            m_Reader.ReadBytes(data, length);
+        }
+
         public short ReadShort()
         {
             return (short)m_Reader.ReadBits(sizeof(short) * 8);

@@ -1,0 +1,12 @@
+{
+    "name": "Unity.Core.Hybrid",
+    "references": [
+        "Unity.Core",
+        "Unity.Collections",
+        "Unity.Jobs"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+	"allowUnsafeCode": true
+}

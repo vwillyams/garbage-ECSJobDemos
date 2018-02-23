@@ -1,7 +1,7 @@
 ﻿using System;
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.ECS;
 using UnityEngine.UI;
 
 namespace TwoStickHybridExample

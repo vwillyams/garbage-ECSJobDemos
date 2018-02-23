@@ -1,9 +1,9 @@
 ﻿using Unity.Collections;
+using Unity.Entities;
 using UnityEngine;
-using UnityEngine.ECS;
 using UnityEngine.ECS.SimpleMovement;
 using UnityEngine.ECS.SimpleMovement2D;
-using UnityEngine.ECS.Transform;
+using Unity.Transforms;
 
 namespace TwoStickPureExample
 {

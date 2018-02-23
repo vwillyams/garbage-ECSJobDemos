@@ -1,15 +1,15 @@
 ﻿using Unity.Collections;
+using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.ECS;
 using UnityEngine.ECS.SimpleMovement;
-using UnityEngine.ECS.Transform2D;
+using Unity.Transforms2D;
 
 namespace TwoStickPureExample
 {
     // Spawns new enemies.
-    public class EnemySpawnSystem : ComponentSystem
+    class EnemySpawnSystem : ComponentSystem
     {
 
         public struct State
@@ -19,7 +19,7 @@ namespace TwoStickPureExample
             public ComponentDataArray<EnemySpawnSystemState> S;
         }
 
-        [Inject] private State m_State;
+        [Inject] State m_State;
 
         protected override void OnUpdate()
         {
@@ -27,7 +27,7 @@ namespace TwoStickPureExample
                 return;
 
             float cooldown = m_State.Cooldown[0].Value;
- 
+
             cooldown = Mathf.Max(0.0f, m_State.Cooldown[0].Value - Time.deltaTime);
             bool spawn = cooldown <= 0.0f;
 
@@ -60,8 +60,8 @@ namespace TwoStickPureExample
 
             // Need to do this after we're done accessing our injected arrays.
             Entity e = EntityManager.CreateEntity(TwoStickBootstrap.BasicEnemyArchetype);
-            EntityManager.SetComponentData(e, new Position2D { position = spawnPosition });
-            EntityManager.SetComponentData(e, new Heading2D { heading = new float2(0.0f, -1.0f) });
+            EntityManager.SetComponentData(e, new Position2D { Value = spawnPosition });
+            EntityManager.SetComponentData(e, new Heading2D { Value = new float2(0.0f, -1.0f) });
             EntityManager.SetComponentData(e, default(Enemy));
             EntityManager.SetComponentData(e, new Health { Value = TwoStickBootstrap.Settings.enemyInitialHealth });
             EntityManager.SetComponentData(e, new EnemyShootState { Cooldown = 0.5f });
@@ -70,12 +70,12 @@ namespace TwoStickPureExample
             EntityManager.AddSharedComponentData(e, TwoStickBootstrap.EnemyLook);
         }
 
-        private float ComputeCooldown()
+        float ComputeCooldown()
         {
             return 0.15f;
         }
 
-        private float2 ComputeSpawnLocation()
+        float2 ComputeSpawnLocation()
         {
             var settings = TwoStickBootstrap.Settings;
 
@@ -88,7 +88,7 @@ namespace TwoStickPureExample
         }
     }
 
-    public class EnemyMoveSystem : JobComponentSystem
+    class EnemyMoveSystem : JobComponentSystem
     {
         public struct Data
         {
@@ -98,7 +98,7 @@ namespace TwoStickPureExample
             public ComponentDataArray<Position2D> Position;
         }
 
-        [Inject] private Data m_Data;
+        [Inject] Data m_Data;
 
         public struct boundaryKillJob : IJobParallelFor
         {
@@ -110,7 +110,7 @@ namespace TwoStickPureExample
 
             public void Execute(int index)
             {
-                var position = Position[index].position;
+                var position = Position[index].Value;
 
                 if (position.y > MaxY || position.y < MinY)
                 {
@@ -135,7 +135,7 @@ namespace TwoStickPureExample
         }
     }
 
-    public class EnemyShootSystem : ComponentSystem
+    class EnemyShootSystem : ComponentSystem
     {
         public struct Data
         {
@@ -160,9 +160,7 @@ namespace TwoStickPureExample
             if (m_Data.Length == 0 || m_Player.Length == 0)
                 return;
 
-            var playerPos = m_Player.Position[0].position;
-
-            var cmds = new EntityCommandBuffer();
+            var playerPos = m_Player.Position[0].Value;
 
             float dt = Time.deltaTime;
             float shootRate = TwoStickBootstrap.Settings.enemyShootRate;
@@ -182,18 +180,15 @@ namespace TwoStickPureExample
                     spawn.Shot.TimeToLive = shotTtl;
                     spawn.Shot.Energy = shotEnergy;
                     spawn.Position = m_Data.Position[i];
-                    spawn.Heading = new Heading2D {heading = math.normalize(playerPos - m_Data.Position[i].position)};
+                    spawn.Heading = new Heading2D {Value = math.normalize(playerPos - m_Data.Position[i].Value)};
                     spawn.Faction = new Faction { Value = Faction.kEnemy };
 
-                    cmds.CreateEntity(TwoStickBootstrap.ShotSpawnArchetype);
-                    cmds.SetComponent(spawn);
+                    PostUpdateCommands.CreateEntity(TwoStickBootstrap.ShotSpawnArchetype);
+                    PostUpdateCommands.SetComponent(spawn);
                 }
 
                 m_Data.ShootState[i] = state;
             }
-
-            cmds.Playback(EntityManager);
-            cmds.Dispose();
         }
     }
 

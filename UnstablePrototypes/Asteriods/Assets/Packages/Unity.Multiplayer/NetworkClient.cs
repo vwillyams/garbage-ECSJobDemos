@@ -169,13 +169,12 @@ namespace Unity.Multiplayer
                 MaximumConnections = 1
             };
             m_Connection.Id = -1;
-            m_Socket = new GameSocket("127.0.0.1", 0, configuration);
-            m_ConnectionArray = new NativeArray<int>(1, Allocator.Persistent);
+            m_Socket = new GameSocket("0.0.0.0", 0, configuration);
 
-            m_Buffer = new NativeArray<byte>(1024 * 1024, Allocator.Persistent);
+            m_Buffer = new NativeArray<byte>(200*1024 * 1024, Allocator.Persistent);
             m_DataQueue = new NativeQueue<SliceInformation>(Allocator.Persistent);
 
-            m_PacketBuffer = new PacketBuffer(GameSocket.Constants.MaxPacketSize, 100);
+            m_PacketBuffer = new PacketBuffer(GameSocket.Constants.MaxPacketSize, 10000);
         }
 
         public void Update()
@@ -190,9 +189,7 @@ namespace Unity.Multiplayer
             {
                 var slice = m_PacketBuffer.Reserve();
 
-                //var slice = m_Buffer.Slice(m_Offset, GameSocket.Constants.MaxPacketSize);
                 eventType = m_Socket.ReceiveEventSuppliedBuffer(slice, out connectionId, out receivedLength);
-
                 switch (eventType)
                 {
                     case GameSocketEventType.Connect:
@@ -200,7 +197,6 @@ namespace Unity.Multiplayer
                             if (m_Connection.Id != -1 && m_Connection.Id == connectionId)
                             {
                                 m_State = ConnectionState.Connected;
-                                m_ConnectionArray[0] = connectionId;
                             }
                             else
                                 throw new System.Exception("ConnectionId does not match");
@@ -244,7 +240,6 @@ namespace Unity.Multiplayer
             m_Connection = new NetworkConnection(id);
         }
 
-        //public bool ReadMessage(out NativeSlice<byte> message)
         public bool PeekMessage(out NativeSlice<byte> message)
         {
             int id;
@@ -258,7 +253,7 @@ namespace Unity.Multiplayer
 
         public bool WriteMessage(NativeSlice<byte> message)
         {
-            var length = m_Socket.SendData(message, m_ConnectionArray.Slice());
+            var length = m_Socket.SendData(message, m_Connection.Id);
             return message.Length == length;
         }
 
@@ -267,18 +262,10 @@ namespace Unity.Multiplayer
             get { return  m_State == ConnectionState.Connected; }
         }
 
-        public bool IsCreated
-        {
-            get { return m_ConnectionArray.IsCreated; }
-        }
-
         public void Dispose()
         {
             m_Socket.Dispose();
             m_PacketBuffer.Dispose();
-
-            if (m_ConnectionArray.IsCreated)
-                m_ConnectionArray.Dispose();
 
             if (m_Buffer.IsCreated)
                 m_Buffer.Dispose();
@@ -304,10 +291,8 @@ namespace Unity.Multiplayer
 
         NativeQueue<SliceInformation> m_DataQueue;
 
-        NativeArray<int> m_ConnectionArray;
         GameSocket m_Socket;
 
-        // TODO (michalb): create a circular buffer implementation, as we are duplicating this once again.
         int m_Offset;
         NativeArray<byte> m_Buffer;
     }

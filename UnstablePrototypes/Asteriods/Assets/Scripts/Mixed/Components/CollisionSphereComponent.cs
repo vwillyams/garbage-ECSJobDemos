@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.Entities;
 
 [System.Serializable]
 public struct CollisionSphereComponentData : IComponentData

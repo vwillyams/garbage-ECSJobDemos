@@ -1,8 +1,8 @@
 ﻿using Unity.Collections;
+using Unity.Entities;
 using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.ECS;
 using UnityEngine.Jobs;
 
 namespace RotatorSamples

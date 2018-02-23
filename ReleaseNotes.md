@@ -1,3 +1,17 @@
+# 0.0.3
+
+## Changes
+* UnityPackageManager -> Packages folder. (Unity 2018.1 beta 7 introduces this change and we reflected it in the sample project)
+
+* EntityManager.CreateComponentGroup should be replaced with ComponentSystem.GetComponentGroup.
+It automatically associates & caches the ComponentGroup with the system (It is automatically disposed by ComponentSystem) and thus input dependencies will be setup correctly.
+
+Additionally ComponentSystem.GetComponentGroup should not be called in OnUpdate() (Create and cache in OnCreateManager instead). ComponentSystem.GetComponentGroup allocates GC memory because the input is a param ComponentType[]...
+
+* [DisableSystemWhenEmpty] disables a system (OnUpdate will not be called) if all it's used ComponentGroups have zero entities. It is recommended to use this attribute on all systems unless they absolutely have to run every frame for performance reasons (We measured 5 - 10x speedup for empty systems using this attribute)
+
+* EntityManager.GetComponentFromEntity/GetFixedArrayFromEntity have been moved to JobComponentSystem.GetComponentFromEntity. This way they can be safely used in jobs with the correct dependencies passed via the OnUpdate (JobHandle dependency)
+
 # 0.0.2
 
 ## New Features

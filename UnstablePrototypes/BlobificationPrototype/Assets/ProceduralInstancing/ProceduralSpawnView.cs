@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using UnityEngine.ECS;
+using Unity.ECS;
 
 public class ProceduralSpawnView : MonoBehaviour
 {

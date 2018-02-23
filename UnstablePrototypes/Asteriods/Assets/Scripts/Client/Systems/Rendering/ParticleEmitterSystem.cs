@@ -2,7 +2,7 @@ using Unity;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Jobs;
 
@@ -39,9 +39,8 @@ namespace Asteriods.Client
             public ComponentDataArray<RotationComponentData> rotation;
             public ComponentDataArray<ParticleVelocityComponentData> velocity;
             public ComponentDataArray<ParticleAgeComponentData> age;
-
-
         }
+
         [ComputeJobOptimization]
         struct ParticleIntializeJob : IJobParallelFor
         {

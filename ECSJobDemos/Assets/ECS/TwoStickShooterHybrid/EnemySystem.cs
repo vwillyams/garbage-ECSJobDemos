@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.ECS;
 
 namespace TwoStickHybridExample
 {
     // Spawns new enemies.
+    [DisableSystemWhenEmpty]
     public class EnemySpawnSystem : ComponentSystem
     {
 
@@ -19,9 +20,6 @@ namespace TwoStickHybridExample
 
         protected override void OnUpdate()
         {
-            if (m_State.Length == 0)
-                return;
-
             var state = m_State.S[0];
 
             var oldState = Random.state;
@@ -94,6 +92,7 @@ namespace TwoStickHybridExample
         }
     }
     
+    [DisableSystemWhenEmpty]
     public class EnemyShootSystem : ComponentSystem
     {
         public struct Data
@@ -116,9 +115,6 @@ namespace TwoStickHybridExample
 
         protected override void OnUpdate()
         {
-            if (m_Data.Length == 0 || m_Player.Length == 0)
-                return;
-
             var playerPos = m_Player.Transform2D[0].Position;
 
             var shotSpawnData = new List<ShotSpawnData>();

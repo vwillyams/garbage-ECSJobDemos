@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Unity.Entities;
+using Unity.Entities.Hybrid;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -38,7 +39,7 @@ namespace TwoStickHybridExample
             }
 
             state.RandomState = Random.state;
-            
+
             Random.state = oldState;
         }
 
@@ -50,7 +51,7 @@ namespace TwoStickHybridExample
         private void ComputeSpawnLocation(Transform2D xform)
         {
             var settings = TwoStickBootstrap.Settings;
-            
+
             float r = Random.value;
             float x0 = settings.playfield.xMin;
             float x1 = settings.playfield.xMax;
@@ -91,7 +92,7 @@ namespace TwoStickHybridExample
             }
         }
     }
-    
+
     [DisableSystemWhenEmpty]
     public class EnemyShootSystem : ComponentSystem
     {

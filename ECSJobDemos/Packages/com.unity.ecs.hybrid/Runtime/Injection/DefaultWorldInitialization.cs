@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using Unity.ECS.Hybrid;
 
 namespace Unity.Entities.Hybrid
 {
@@ -46,6 +45,7 @@ namespace Unity.Entities.Hybrid
             // Register hybrid injection hooks
             InjectionHookSupport.RegisterHook(new GameObjectArrayInjectionHook());
             InjectionHookSupport.RegisterHook(new TransformAccessArrayInjectionHook());
+            InjectionHookSupport.RegisterHook(new ComponentArrayInjectionHook());
 
             PlayerLoopManager.RegisterDomainUnload (DomainUnloadShutdown, 10000);
 

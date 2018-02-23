@@ -3,9 +3,24 @@ using System.Linq;
 using System.Reflection;
 
 using Unity.Collections.LowLevel.Unsafe;
-
+using Unity.Entities.Hybrid;
 using UnityEngine;
 using UnityEngine.Scripting;
+
+namespace Unity.Entities
+{
+    public static class ComponentGroupExtensionsForGameObjectArray
+    {
+        public static GameObjectArray GetGameObjectArray(this ComponentGroup group)
+        {
+            int length;
+            ComponentChunkIterator iterator;
+            group.GetComponentChunkIterator(out length, out iterator);
+            iterator.IndexInComponentGroup = group.GetIndexInComponentGroup(TypeManager.GetTypeIndex<Transform>());
+            return new GameObjectArray(iterator, length, group.ArchetypeManager);
+        }
+    }
+}
 
 namespace Unity.Entities.Hybrid
 {
@@ -67,16 +82,16 @@ namespace Unity.Entities.Hybrid
 
     [Preserve]
     [CustomInjectionHook]
-    sealed class GameObjectArrayInjectionHook : IInjectionHook
+    sealed class GameObjectArrayInjectionHook : InjectionHook
     {
-        public Type FieldTypeOfInterest => typeof(GameObjectArray);
+        public override Type FieldTypeOfInterest => typeof(GameObjectArray);
 
-        public bool IsInterestedInField(FieldInfo fieldInfo)
+        public override bool IsInterestedInField(FieldInfo fieldInfo)
         {
             return fieldInfo.FieldType == typeof(GameObjectArray);
         }
 
-        public string ValidateField(FieldInfo field, bool isReadOnly, InjectionContext injectionInfo)
+        public override string ValidateField(FieldInfo field, bool isReadOnly, InjectionContext injectionInfo)
         {
             if (field.FieldType != typeof(GameObjectArray))
                 return null;
@@ -91,36 +106,24 @@ namespace Unity.Entities.Hybrid
             return null;
         }
 
-        public InjectionContext.Entry CreateInjectionInfoFor(FieldInfo field, bool isReadOnly)
+        public override InjectionContext.Entry CreateInjectionInfoFor(FieldInfo field, bool isReadOnly)
         {
             return new InjectionContext.Entry
             {
                 Hook = this,
                 FieldInfo = field,
+                IsReadOnly = isReadOnly,
+                AccessMode = isReadOnly ? ComponentType.AccessMode.ReadOnly : ComponentType.AccessMode.ReadWrite,
+                IndexInComponentGroup = -1,
                 FieldOffset = UnsafeUtility.GetFieldOffset(field),
                 ComponentRequirements = new[] { typeof(Transform) }
             };
         }
 
-        public unsafe void UpdateInjection(InjectionContext.Entry info, ComponentGroup entityGroup, byte* groupStructPtr)
+        internal override unsafe void InjectEntry(InjectionContext.Entry entry, ComponentGroup entityGroup, ref ComponentChunkIterator iterator, int length, byte* groupStructPtr)
         {
             var gameObjectArray = entityGroup.GetGameObjectArray();
-            UnsafeUtility.CopyStructureToPtr(ref gameObjectArray, groupStructPtr + info.FieldOffset);
-        }
-    }
-}
-
-namespace Unity.Entities.Hybrid
-{
-    public static class ComponentGroupExtensionsForGameObjectArray
-    {
-        public static GameObjectArray GetGameObjectArray(this ComponentGroup group)
-        {
-            int length;
-            ComponentChunkIterator iterator;
-            group.GetComponentChunkIterator(out length, out iterator);
-            iterator.IndexInComponentGroup = group.GetIndexInComponentGroup(TypeManager.GetTypeIndex<Transform>());
-            return new GameObjectArray(iterator, length, group.ArchetypeManager);
+            UnsafeUtility.CopyStructureToPtr(ref gameObjectArray, groupStructPtr + entry.FieldOffset);
         }
     }
 }

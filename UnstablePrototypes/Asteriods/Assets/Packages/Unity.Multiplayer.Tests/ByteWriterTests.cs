@@ -31,6 +31,29 @@ namespace Unity.Multiplayer.Tests
         }
 
         [Test]
+        public unsafe void TestWriteByteInBitBuffer_AFewValues_ShouldReadAFewValues()
+        {
+            var data = new NativeArray<byte>(1024, Allocator.Temp);
+            ByteWriter byteWriter = new ByteWriter(data.GetUnsafePtr(), data.Length);
+            byteWriter.Write((int)1);
+            byteWriter.Write((int)2);
+            byteWriter.Write((int)3);
+            byteWriter.Write((int)4);
+
+            BitWriter bw = new BitWriter(m_NativeArray.GetUnsafePtr(), m_NativeArray.Length);
+            bw.WriteBytes((byte*)data.GetUnsafePtr(), byteWriter.GetBytesWritten());
+
+            var br = new ByteReader(m_NativeArray.GetUnsafePtr(), m_NativeArray.Length);
+
+            Assert.AreEqual(1, br.ReadInt());
+            Assert.AreEqual(2, br.ReadInt());
+            Assert.AreEqual(3, br.ReadInt());
+            Assert.AreEqual(4, br.ReadInt());
+
+            data.Dispose();
+        }
+
+        [Test]
         public unsafe void TestWrite_AFewValues_ShouldReadAFewValues()
         {
             BitWriter bw = new BitWriter();

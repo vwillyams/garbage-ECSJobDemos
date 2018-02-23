@@ -22,6 +22,11 @@ namespace Asteriods.Server
         NetworkServer m_NetworkServer;
         NativeArray<byte> m_Buffer;
 
+        // Should be per connection
+        int m_Sequence;
+        NativeArray<byte> m_FragmentBuffer;
+        Fragmenter m_Fragmenter;
+
         struct NetworkedItems
         {
             public int Length;
@@ -40,8 +45,11 @@ namespace Asteriods.Server
             m_NetworkServer = ServerSettings.Instance().networkServer;
 
             DespawnQueue = new NativeQueue<DespawnCommand>(Allocator.Persistent);
-            m_Buffer = new NativeArray<byte>(GameSocket.Constants.MaxPacketSize, Allocator.Persistent);
             Debug.Assert(DespawnQueue.IsCreated);
+
+
+            m_Fragmenter = new Fragmenter();
+            m_Buffer = new NativeArray<byte>(1024*1024, Allocator.Persistent);
         }
 
         override protected void OnDestroyManager()
@@ -52,6 +60,8 @@ namespace Asteriods.Server
                 DespawnQueue.Dispose();
             if (m_Buffer.IsCreated)
                 m_Buffer.Dispose();
+
+            m_Fragmenter.Dispose();
         }
 
 
@@ -75,13 +85,16 @@ namespace Asteriods.Server
                     snapshot.DespawnCommands.Add(DespawnQueue.Dequeue());
                 }
 
+                // TODO (michalb): super hacky, move everything to one stream!
                 var bw = new ByteWriter(m_Buffer.GetUnsafePtr(), m_Buffer.Length);
                 bw.Write((byte)AsteroidsProtocol.Snapshot);
                 snapshot.Serialize(ref bw);
 
                 var slice = m_Buffer.Slice(0, bw.GetBytesWritten());
-                m_NetworkServer.WriteMessage(slice);
+                // m_NetworkServer.WriteMessage(slice);
+                WriteFragmented(slice, -1);
             }
+
 
             int id;
             Entity e;
@@ -97,11 +110,34 @@ namespace Asteriods.Server
 
                 rsp.Serialize(ref bw);
 
-                m_NetworkServer.WriteMessage(m_Buffer.Slice(0, bw.GetBytesWritten()), id);
+                //m_NetworkServer.WriteMessage(m_Buffer.Slice(0, bw.GetBytesWritten()), id);
+                WriteFragmented(m_Buffer.Slice(0, bw.GetBytesWritten()), id);
 
                 m_SpawnSystem.SpawnPlayer(e);
                 EntityManager.SetComponentData<PlayerStateComponentData>(e, new PlayerStateComponentData(PlayerState.Playing));
             }
+        }
+        unsafe void WriteFragmented(NativeSlice<byte> slice, int id)
+        {
+            m_Fragmenter.FragmentPacket(slice, m_Sequence++);
+
+            var packet = new NativeArray<byte>(1400, Allocator.Temp);
+            while (m_Fragmenter.fragmentedOutgoing.Count > 0)
+            {
+                var pw = new ByteWriter(packet.GetUnsafePtr(), packet.Length);
+                var fragment = m_Fragmenter.fragmentedOutgoing.Dequeue();
+                pw.Write(fragment.ID);
+                pw.Write(fragment.SequenceNum);
+                pw.Write(fragment.SequenceCnt);
+                pw.Write(fragment.packetData.Length);
+                pw.WriteBytes((byte*)fragment.packetData.GetUnsafePtr(), fragment.packetData.Length);
+
+                if (id == -1)
+                    m_NetworkServer.WriteMessage(packet.Slice(0, pw.GetBytesWritten()));
+                else
+                    m_NetworkServer.WriteMessage(packet.Slice(0, pw.GetBytesWritten()), id);
+            }
+            packet.Dispose();
         }
     }
 }

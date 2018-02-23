@@ -75,7 +75,7 @@ namespace Asteriods.Server
                 }
             }
 
-            var maxAsteroids = players.Length * 2;
+            var maxAsteroids = players.Length * 10000;
 
             for (int i = asteroids.Length; i < maxAsteroids; i++)
             {

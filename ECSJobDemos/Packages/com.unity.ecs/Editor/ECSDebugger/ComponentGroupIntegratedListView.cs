@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
@@ -66,6 +67,7 @@ namespace UnityEditor.ECS
             this.window = window;
             selectedSystem = system;
             Reload();
+            SetSelection(GetSelection());
         }
 
         protected override TreeViewItem BuildRoot()
@@ -74,16 +76,22 @@ namespace UnityEditor.ECS
             entitiesById = new Dictionary<int, Entity>();
             var currentID = 0;
             var root  = new TreeViewItem { id = currentID++, depth = -1, displayName = "Root" };
-            if (SelectedSystem == null)
+            if (window.WorldSelection == null)
+            {
+                root.AddChild(new TreeViewItem { id = currentID++, displayName = "No world selected"});
+            }
+            else if (SelectedSystem == null)
             {
                 var groupItem = new TreeViewItem { id = currentID++, displayName = "All Entities" };
                 root.AddChild(groupItem);
-//                var entityArray = window.WorldSelection.GetExistingManager<EntityManager>().;
-//                for (var i = 0; i < entityArray.Length; ++i)
-//                {
-//                    var entityItem = new TreeViewItem { id = currentID++, displayName = $"Entity {entityArray[i].Index.ToString()}" };
-//                    groupItem.AddChild(entityItem);
-//                }
+                var entityArray = window.WorldSelection.GetExistingManager<EntityManager>().GetAllEntities(Allocator.Temp);
+                for (var i = 0; i < entityArray.Length; ++i)
+                {
+                    entitiesById.Add(currentID, entityArray[i]);
+                    var entityItem = new TreeViewItem { id = currentID++, displayName = $"Entity {entityArray[i].Index.ToString()}" };
+                    groupItem.AddChild(entityItem);
+                }
+                entityArray.Dispose();
                 SetupDepthsFromParentsAndChildren(root);
             }
             else if (SelectedSystem.ComponentGroups.Length == 0)

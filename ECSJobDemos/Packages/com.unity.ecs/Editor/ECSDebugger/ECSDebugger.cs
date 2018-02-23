@@ -205,16 +205,23 @@ namespace UnityEditor.ECS
         void EntityHeader()
         {
             GUILayout.BeginHorizontal();
-            var type = systemSelection.GetType();
-            AlignHeader(() => GUILayout.Label(type.Namespace, EditorStyles.label));
-            GUILayout.Label(type.Name, EditorStyles.boldLabel);
-            if (SystemSelection is ComponentSystemBase)
+            if (SystemSelection == null)
             {
-                GUILayout.FlexibleSpace();
+                GUILayout.Label("All Entities", EditorStyles.boldLabel);
+            }
+            else
+            {
+                var type = SystemSelection.GetType();
+                AlignHeader(() => GUILayout.Label(type.Namespace, EditorStyles.label));
+                GUILayout.Label(type.Name, EditorStyles.boldLabel);
+                if (SystemSelection is ComponentSystemBase)
+                {
+                    GUILayout.FlexibleSpace();
 
-                var system = (ComponentSystemBase) SystemSelection;
-                var running = system.Enabled && system.ShouldRunSystem();
-                AlignHeader(() => GUILayout.Label($"running: {running}"));
+                    var system = (ComponentSystemBase) SystemSelection;
+                    var running = system.Enabled && system.ShouldRunSystem();
+                    AlignHeader(() => GUILayout.Label($"running: {running}"));
+                }
             }
             GUILayout.EndHorizontal();
         }
@@ -251,7 +258,7 @@ namespace UnityEditor.ECS
             
             GUILayout.BeginVertical(GUILayout.Width(position.width - kSystemListWidth)); // begin Entity List
 
-            if (SystemSelection != null)
+            if (EditorApplication.isPlaying)
             {
                 EntityHeader();
             

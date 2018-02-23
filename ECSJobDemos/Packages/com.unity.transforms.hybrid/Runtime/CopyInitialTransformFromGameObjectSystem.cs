@@ -1,5 +1,6 @@
 ﻿using Unity.Collections;
-using Unity.ECS;
+using Unity.Entities;
+using Unity.ECS.Hybrid;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine.Jobs;
@@ -112,6 +113,7 @@ namespace Unity.Transforms.Hybrid
                 removeComponentQueue = m_DeferredEntityChangeSystem.GetRemoveComponentQueue<CopyInitialTransformFromGameObject>()
             };
 
+            transforms.Dispose();
             return copyTransformsJob.Schedule(stashTransformsJobHandle);
         }
     }

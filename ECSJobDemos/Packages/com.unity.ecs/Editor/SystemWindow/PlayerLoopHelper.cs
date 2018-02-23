@@ -1,5 +1,5 @@
 ﻿using System;
-using Unity.ECS;
+using Unity.Entities;
 using UnityEngine.Experimental.LowLevel;
 
 namespace UnityEditor.ECS

@@ -6,7 +6,7 @@ using Unity.Collections.LowLevel.Unsafe;
 
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Unity.Core.Tests")]
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     static internal class FastEquality
     {
@@ -143,7 +143,7 @@ namespace Unity.ECS
         {
             return Equals(UnsafeUtility.AddressOf(ref lhs), UnsafeUtility.AddressOf(ref rhs), layout);
         }
-        
+
         unsafe public static bool Equals(void* lhsPtr, void* rhsPtr, Layout[] layout)
         {
             byte* lhs = (byte*)lhsPtr;

@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using Unity.ECS.Hybrid;
 
-namespace Unity.ECS.Hybrid
+namespace Unity.Entities.Hybrid
 {
     static class DefaultWorldInitialization
     {
@@ -44,6 +45,7 @@ namespace Unity.ECS.Hybrid
 
             // Register hybrid injection hooks
             InjectionHookSupport.RegisterHook(new GameObjectArrayInjectionHook());
+            InjectionHookSupport.RegisterHook(new TransformAccessArrayInjectionHook());
 
             PlayerLoopManager.RegisterDomainUnload (DomainUnloadShutdown, 10000);
 

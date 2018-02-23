@@ -1,7 +1,7 @@
 ﻿using System;
 using NUnit.Framework;
 using Unity.Collections;
-using Unity.ECS;
+using Unity.Entities;
 using Unity.Jobs;
 
 namespace UnityEngine.ECS.Tests
@@ -14,20 +14,6 @@ namespace UnityEngine.ECS.Tests
             var cmds = new EntityCommandBuffer(Allocator.TempJob);
             cmds.Playback(m_Manager);
             cmds.Dispose();
-        }
-
-        [Test]
-        public void DoubleDisposeThrows()
-        {
-            var cmds = new EntityCommandBuffer(Allocator.TempJob);
-            cmds.CreateEntity();
-            cmds.AddComponent(new EcsTestData { value = 12 });
-            cmds.Playback(m_Manager);
-            cmds.Dispose();
-            Assert.Throws<InvalidOperationException>(() =>
-            {
-                 cmds.Dispose();
-            });
         }
 
         struct TestJob : IJob

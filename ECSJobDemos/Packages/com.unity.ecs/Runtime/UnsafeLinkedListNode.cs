@@ -1,6 +1,6 @@
 ﻿using Unity.Assertions;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     // IMPORTANT NOTE:
     // UnsafeLinkedListNode may NOT be put into any memory owned by a class.

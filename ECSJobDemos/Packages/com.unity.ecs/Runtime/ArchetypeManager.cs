@@ -5,7 +5,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Assertions;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     struct ComponentTypeInArchetype
     {

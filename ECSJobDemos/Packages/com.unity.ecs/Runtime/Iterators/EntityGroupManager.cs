@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using Unity.Collections;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     unsafe class EntityGroupManager : IDisposable
     {

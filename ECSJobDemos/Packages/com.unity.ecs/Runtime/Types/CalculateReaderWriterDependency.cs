@@ -1,6 +1,6 @@
 ﻿using Unity.Collections;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     static class CalculateReaderWriterDependency
     {

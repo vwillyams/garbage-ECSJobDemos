@@ -1,4 +1,4 @@
-﻿namespace Unity.ECS
+﻿namespace Unity.Entities
 {
     static unsafe class HashUtility
     {

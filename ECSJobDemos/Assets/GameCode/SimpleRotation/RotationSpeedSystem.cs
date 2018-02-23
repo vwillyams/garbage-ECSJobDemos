@@ -1,5 +1,5 @@
 ﻿using Unity.Collections;
-using Unity.ECS;
+using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -15,7 +15,7 @@ namespace UnityEngine.ECS.SimpleRotation
 
             public void Execute(ref Rotation rotation, [ReadOnly]ref RotationSpeed speed)
             {
-                rotation.Value = math.mul(math.normalize(rotation.Value), math.axisAngle(math.up(), speed.speed * dt));
+                rotation.Value = math.mul(math.normalize(rotation.Value), math.axisAngle(math.up(), speed.Value * dt));
             }
         }
 

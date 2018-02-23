@@ -6,7 +6,7 @@ using DisallowMultipleComponent = UnityEngine.DisallowMultipleComponent;
 using GameObject = UnityEngine.GameObject;
 using Component = UnityEngine.Component;
 
-namespace Unity.ECS
+namespace Unity.Entities
 {
     //@TODO: This should be fully implemented in C++ for efficiency
     [RequireComponent(typeof(GameObjectEntity))]

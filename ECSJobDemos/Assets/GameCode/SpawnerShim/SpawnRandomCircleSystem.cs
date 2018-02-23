@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using Unity.Collections;
-using Unity.ECS;
+using Unity.Entities;
+using Unity.Entities.Hybrid;
 using Unity.Mathematics;
 using UnityEngine.ECS.SpawnerShim;
 using Unity.Transforms;
 using UnityEngine.ECS.Utilities;
-using Unity.Core.Hybrid;
 
 namespace ECS.Spawners
 {

@@ -1,4 +1,4 @@
-﻿using Unity.ECS;
+﻿using Unity.Entities;
 
 namespace UnityEditor.ECS
 {

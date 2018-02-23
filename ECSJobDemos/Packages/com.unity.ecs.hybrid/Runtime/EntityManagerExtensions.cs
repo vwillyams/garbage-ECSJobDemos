@@ -1,21 +1,24 @@
 ﻿using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.ECS;
+using Unity.Entities;
 using UnityEngine;
 
-namespace Unity.Core.Hybrid
+namespace Unity.Entities.Hybrid
 {
     public static class EntityManagerExtensions
     {
-        public static Entity Instantiate(this EntityManager entityManager, GameObject srcGameObject)
+        unsafe public static Entity Instantiate(this EntityManager entityManager, GameObject srcGameObject)
         {
-            var components = srcGameObject.GetComponents<ComponentDataWrapperBase>();
-            var componentTypes = new ComponentType[components.Length];
-            for (var t = 0; t != components.Length; ++t)
+            var components = entityManager.m_CachedComponentList;
+            srcGameObject.GetComponents(components);
+            var count = components.Count;
+            ComponentType* componentTypes = stackalloc ComponentType[count];
+
+            for (var t = 0; t != count; ++t)
                 componentTypes[t] = components[t].GetComponentType(entityManager);
 
-            var srcEntity = entityManager.CreateEntity(componentTypes);
-            for (var t = 0; t != components.Length; ++t)
+            var srcEntity = entityManager.CreateEntity(entityManager.CreateArchetype(componentTypes, count));
+            for (var t = 0; t != count; ++t)
                 components[t].UpdateComponentData(entityManager, srcEntity);
 
             return srcEntity;

@@ -1,5 +1,5 @@
 //#define STRESS_TEST_PARTICLES
-using Unity.ECS;
+using Unity.Entities;
 using UnityEngine;
 
 using Unity.Collections;

@@ -1,5 +1,5 @@
 ﻿using Unity.Collections;
-using Unity.ECS;
+using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
@@ -61,7 +61,7 @@ namespace TwoStickPureExample
             // Need to do this after we're done accessing our injected arrays.
             Entity e = EntityManager.CreateEntity(TwoStickBootstrap.BasicEnemyArchetype);
             EntityManager.SetComponentData(e, new Position2D { Value = spawnPosition });
-            EntityManager.SetComponentData(e, new Heading2D { Heading = new float2(0.0f, -1.0f) });
+            EntityManager.SetComponentData(e, new Heading2D { Value = new float2(0.0f, -1.0f) });
             EntityManager.SetComponentData(e, default(Enemy));
             EntityManager.SetComponentData(e, new Health { Value = TwoStickBootstrap.Settings.enemyInitialHealth });
             EntityManager.SetComponentData(e, new EnemyShootState { Cooldown = 0.5f });
@@ -162,8 +162,6 @@ namespace TwoStickPureExample
 
             var playerPos = m_Player.Position[0].Value;
 
-            var cmds = new EntityCommandBuffer(Allocator.TempJob);
-
             float dt = Time.deltaTime;
             float shootRate = TwoStickBootstrap.Settings.enemyShootRate;
             float shotTtl = TwoStickBootstrap.Settings.enemyShotTimeToLive;
@@ -182,18 +180,15 @@ namespace TwoStickPureExample
                     spawn.Shot.TimeToLive = shotTtl;
                     spawn.Shot.Energy = shotEnergy;
                     spawn.Position = m_Data.Position[i];
-                    spawn.Heading = new Heading2D {Heading = math.normalize(playerPos - m_Data.Position[i].Value)};
+                    spawn.Heading = new Heading2D {Value = math.normalize(playerPos - m_Data.Position[i].Value)};
                     spawn.Faction = new Faction { Value = Faction.kEnemy };
 
-                    cmds.CreateEntity(TwoStickBootstrap.ShotSpawnArchetype);
-                    cmds.SetComponent(spawn);
+                    PostUpdateCommands.CreateEntity(TwoStickBootstrap.ShotSpawnArchetype);
+                    PostUpdateCommands.SetComponent(spawn);
                 }
 
                 m_Data.ShootState[i] = state;
             }
-
-            cmds.Playback(EntityManager);
-            cmds.Dispose();
         }
     }
 

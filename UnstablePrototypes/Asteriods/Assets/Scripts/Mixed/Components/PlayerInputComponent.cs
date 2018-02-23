@@ -1,5 +1,5 @@
 using UnityEngine;
-using Unity.ECS;
+using Unity.Entities;
 
 public struct PlayerInputComponentData : IComponentData
 {

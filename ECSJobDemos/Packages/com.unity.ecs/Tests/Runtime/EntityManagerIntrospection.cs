@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using Unity.Entities;
 using UnityEditor;
 
 namespace UnityEngine.ECS.Tests

@@ -8,11 +8,11 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Properties.Serialization;
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.Entities;
 using UnityEngine.Profiling;
 using Debug = UnityEngine.Debug;
 
-namespace Unity.Properties.ECS.Test
+namespace Unity.Properties.Entities.Test
 {
     public struct TestComponent : IComponentData
     {

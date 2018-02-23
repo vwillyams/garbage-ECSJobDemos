@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine.ECS;
+using Unity.Entities;
 
-namespace Unity.Properties.ECS
+namespace Unity.Properties.Entities
 {
     public static class TypeInformation
     {

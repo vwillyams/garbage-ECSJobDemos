@@ -11,7 +11,7 @@ namespace Unity.Entities
             public static int typeIndex;
         }
 
-        internal enum TypeCategory
+        public enum TypeCategory
         {
             ComponentData,
             ISharedComponentData,
@@ -20,7 +20,7 @@ namespace Unity.Entities
             Class
         }
 
-        internal struct ComponentType
+        public struct ComponentType
         {
             public ComponentType(Type type, int size, TypeCategory category, FastEquality.Layout[] layout)
             {

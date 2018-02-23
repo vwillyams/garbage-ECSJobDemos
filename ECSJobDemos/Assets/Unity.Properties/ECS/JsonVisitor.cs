@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.Mathematics;
 using Unity.Properties.Serialization;
 
-namespace Unity.Properties.ECS
+namespace Unity.Properties.Entities
 {
     public interface IOptimizedVisitor : IBuiltInPropertyVisitor
         , IPropertyVisitor<float2>

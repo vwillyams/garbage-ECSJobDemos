@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using UnityEngine.ECS;
+using Unity.Entities;
 
-namespace Unity.Properties.ECS
+namespace Unity.Properties.Entities
 {
     /// <summary>
     /// Container to iterate on Entity instances.

@@ -421,10 +421,10 @@ namespace Unity.Entities
             
             Archetype* archetype = m_Entities->GetArchetype(entity);
 
-            var components = new NativeArray<ComponentType>(archetype->typesCount - 1, allocator);
+            var components = new NativeArray<ComponentType>(archetype->TypesCount - 1, allocator);
 
-            for (int i = 1; i < archetype->typesCount;i++)
-                components[i-1] = archetype->types[i].ToComponentType();
+            for (int i = 1; i < archetype->TypesCount;i++)
+                components[i-1] = archetype->Types[i].ToComponentType();
 
             return components;
         }
@@ -433,7 +433,7 @@ namespace Unity.Entities
         {
             m_Entities->AssertEntitiesExist(&entity, 1);
             Archetype* archetype = m_Entities->GetArchetype(entity);
-            return archetype->typesCount - 1;
+            return archetype->TypesCount - 1;
         }
 
         public int GetComponentTypeIndex(Entity entity, int index)
@@ -441,19 +441,19 @@ namespace Unity.Entities
             m_Entities->AssertEntitiesExist(&entity, 1);
             Archetype* archetype = m_Entities->GetArchetype(entity);
 
-            if ((uint) index >= archetype->typesCount)
+            if ((uint) index >= archetype->TypesCount)
             {
                 return -1;
             }
 
-            return archetype->types[index + 1].typeIndex;
+            return archetype->Types[index + 1].TypeIndex;
         }
 
         public void SetComponentDataRaw(Entity entity, int typeIndex, void* data, int size)
         {
             m_Entities->AssertEntityHasComponent(entity, typeIndex);
 
-            m_JobSafetyManager.CompleteReadAndWriteDependency(typeIndex);
+            ComponentJobSafetyManager.CompleteReadAndWriteDependency(typeIndex);
 
             byte* ptr = m_Entities->GetComponentDataWithType (entity, typeIndex);
             UnsafeUtility.MemCpy(ptr, data, size);
@@ -463,7 +463,7 @@ namespace Unity.Entities
         {
             m_Entities->AssertEntityHasComponent(entity, typeIndex);
 
-            m_JobSafetyManager.CompleteReadAndWriteDependency(typeIndex);
+            ComponentJobSafetyManager.CompleteReadAndWriteDependency(typeIndex);
 
             byte* ptr = m_Entities->GetComponentDataWithType (entity, typeIndex);
             return ptr;
@@ -471,9 +471,9 @@ namespace Unity.Entities
         
         public object GetComponentBoxed(Entity entity, ComponentType componentType)
         {
-            var ptr = GetComponentDataRaw(entity, componentType.typeIndex);
+            var ptr = GetComponentDataRaw(entity, componentType.TypeIndex);
 
-            var type = TypeManager.GetType(componentType.typeIndex);
+            var type = TypeManager.GetType(componentType.TypeIndex);
             var boxed = Activator.CreateInstance(type);
 
             ulong gcHandle;
@@ -488,12 +488,12 @@ namespace Unity.Entities
         
         public void SetComponentBoxed(Entity entity, ComponentType componentType, object boxedObject)
         {
-            var type = TypeManager.GetType(componentType.typeIndex);
+            var type = TypeManager.GetType(componentType.TypeIndex);
 
             ulong gcHandle;
             byte* boxedPtr = (byte*)UnsafeUtility.PinGCObjectAndGetAddress(boxedObject, out gcHandle);
             //@TODO: harcoded object class sizeof hack
-            SetComponentDataRaw(entity, componentType.typeIndex, boxedPtr + 16, UnsafeUtility.SizeOf(type));
+            SetComponentDataRaw(entity, componentType.TypeIndex, boxedPtr + 16, UnsafeUtility.SizeOf(type));
             
             UnsafeUtility.ReleaseGCObject(gcHandle);
         }

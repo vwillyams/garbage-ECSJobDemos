@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Unity.Properties.ECS
+namespace Unity.Properties.Entities
 {
     public unsafe struct StructProxy : IPropertyContainer
     {

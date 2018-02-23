@@ -1,4 +1,6 @@
-﻿using Unity.Collections;
+﻿using System.ComponentModel.Design;
+using System.Runtime.CompilerServices;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms2D;

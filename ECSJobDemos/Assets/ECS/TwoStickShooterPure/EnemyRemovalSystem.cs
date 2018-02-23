@@ -1,4 +1,5 @@
-﻿using Unity.Collections;
+﻿using System.Runtime.CompilerServices;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Transforms2D;
@@ -8,49 +9,32 @@ namespace TwoStickPureExample
     // Removes enemies that are off screen
     class EnemyRemovalSystem : JobComponentSystem
     {
-        public struct Data
+        public struct BoundaryKillJob : IJobProcessComponentData<Health, Position2D, Enemy>
         {
-            public int Length;
-            [ReadOnly] public ComponentDataArray<Enemy> EnemyTag;
-            public ComponentDataArray<Health> Health;
-            [ReadOnly] public ComponentDataArray<Position2D> Position;
-        }
-
-        [Inject] Data m_Data;
-
-        public struct BoundaryKillJob : IJobParallelFor
-        {
-            public ComponentDataArray<Health> Health;
-            [ReadOnly] public ComponentDataArray<Position2D> Position;
-
             public float MinY;
             public float MaxY;
 
-            public void Execute(int index)
+            public void Execute(ref Health health, [ReadOnly] ref Position2D pos, [ReadOnly] ref Enemy enemyTag)
             {
-                var position = Position[index].Value;
-
-                if (position.y > MaxY || position.y < MinY)
+                if (pos.Value.y > MaxY || pos.Value.y < MinY)
                 {
-                    Health[index] = new Health { Value = -1.0f };
+                    health.Value = -1.0f;
                 }
             }
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            if (!TwoStickBootstrap.Settings)
+            if (TwoStickBootstrap.Settings == null)
                 return inputDeps;
 
             var boundaryKillJob = new BoundaryKillJob
             {
-                Health = m_Data.Health,
-                Position = m_Data.Position,
                 MinY = TwoStickBootstrap.Settings.playfield.yMin,
                 MaxY = TwoStickBootstrap.Settings.playfield.yMax,
             };
 
-            return boundaryKillJob.Schedule(m_Data.Length, 64, inputDeps);
+            return boundaryKillJob.Schedule(this, 64, inputDeps);
         }
     }
 }

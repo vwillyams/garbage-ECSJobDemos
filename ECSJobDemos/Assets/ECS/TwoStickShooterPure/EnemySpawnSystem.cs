@@ -62,7 +62,6 @@ namespace TwoStickPureExample
             EntityManager.SetComponentData(e, default(Enemy));
             EntityManager.SetComponentData(e, new Health { Value = TwoStickBootstrap.Settings.enemyInitialHealth });
             EntityManager.SetComponentData(e, new EnemyShootState { Cooldown = 0.5f });
-            EntityManager.SetComponentData(e, new Faction { Value = Faction.kEnemy });
             EntityManager.SetComponentData(e, new MoveSpeed { speed = TwoStickBootstrap.Settings.enemySpeed });
             EntityManager.AddSharedComponentData(e, TwoStickBootstrap.EnemyLook);
         }

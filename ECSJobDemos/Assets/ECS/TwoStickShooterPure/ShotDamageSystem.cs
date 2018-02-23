@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms2D;
 
@@ -11,82 +12,121 @@ namespace TwoStickPureExample
     /// <summary>
     /// Assigns out damage from shots colliding with entities of other factions.
     /// </summary>
-    class ShotDamageSystem : ComponentSystem
+    class ShotDamageSystem : JobComponentSystem
     {
-        /// <summary>
-        /// An array of entities that can take damage (players/enemies both included)
-        /// </summary>
-        struct ReceiverData
+        struct Players
         {
             public int Length;
             public ComponentDataArray<Health> Health;
-            [ReadOnly] public ComponentDataArray<Faction> Faction;
             [ReadOnly] public ComponentDataArray<Position2D> Position;
+            [ReadOnly] public ComponentDataArray<PlayerInput> PlayerMarker;
         }
 
-        [Inject] ReceiverData m_Receivers;
+        [Inject] Players m_Players;
+
+        struct Enemies
+        {
+            public int Length;
+            public ComponentDataArray<Health> Health;
+            [ReadOnly] public ComponentDataArray<Position2D> Position;
+            [ReadOnly] public ComponentDataArray<Enemy> EnemyMarker;
+        }
+
+        [Inject] Enemies m_Enemies;
 
         /// <summary>
-        /// All our shots, and the factions who fired them.
+        /// All player shots.
         /// </summary>
-        struct ShotData
+        struct PlayerShotData
         {
             public int Length;
             public ComponentDataArray<Shot> Shot;
             [ReadOnly] public ComponentDataArray<Position2D> Position;
-            [ReadOnly] public ComponentDataArray<Faction> Faction;
+            [ReadOnly] public ComponentDataArray<PlayerShot> PlayerShotMarker;
         }
-        [Inject] ShotData m_Shots;
+        [Inject] PlayerShotData m_PlayerShots;
 
-        protected override void OnUpdate()
+        /// <summary>
+        /// All enemy shots.
+        /// </summary>
+        struct EnemyShotData
         {
-            if (0 == m_Receivers.Length || 0 == m_Shots.Length)
-                return;
+            public int Length;
+            public ComponentDataArray<Shot> Shot;
+            [ReadOnly] public ComponentDataArray<Position2D> Position;
+            [ReadOnly] public ComponentDataArray<EnemyShot> EnemyShotMarker;
+        }
+        [Inject] EnemyShotData m_EnemyShots;
 
-            var settings = TwoStickBootstrap.Settings;
+        struct CollisionJob : IJobParallelFor
+        {
+            public float CollisionRadiusSquared;
 
-            for (int pi = 0; pi < m_Receivers.Length; ++pi)
+            public ComponentDataArray<Health> Health;
+            [ReadOnly] public ComponentDataArray<Position2D> Positions;
+
+            [NativeDisableParallelForRestriction]
+            public ComponentDataArray<Shot> Shots;
+
+            [NativeDisableParallelForRestriction]
+            [ReadOnly] public ComponentDataArray<Position2D> ShotPositions;
+
+            public void Execute(int index)
             {
                 float damage = 0.0f;
 
-                float collisionRadius = GetCollisionRadius(settings, m_Receivers.Faction[pi].Value);
-                float collisionRadiusSquared = collisionRadius * collisionRadius;
+                float2 receiverPos = Positions[index].Value;
 
-                float2 receiverPos = m_Receivers.Position[pi].Value;
-                int receiverFaction = m_Receivers.Faction[pi].Value;
-
-                for (int si = 0; si < m_Shots.Length; ++si)
+                for (int si = 0; si < Shots.Length; ++si)
                 {
-                    if (m_Shots.Faction[si].Value != receiverFaction)
+                    float2 shotPos = ShotPositions[si].Value;
+                    float2 delta = shotPos - receiverPos;
+                    float distSquared = math.dot(delta, delta);
+                    if (distSquared <= CollisionRadiusSquared)
                     {
-                        float2 shotPos = m_Shots.Position[si].Value;
-                        float2 delta = shotPos - receiverPos;
-                        float distSquared = math.dot(delta, delta);
-                        if (distSquared <= collisionRadiusSquared)
-                        {
-                            var shot = m_Shots.Shot[si];
+                        var shot = Shots[si];
 
-                            damage += shot.Energy;
+                        damage += shot.Energy;
 
-                            // Set the shot's time to live to zero, so it will be collected by the shot destroy system
-                            shot.TimeToLive = 0.0f;
+                        // Set the shot's time to live to zero, so it will be collected by the shot destroy system
+                        shot.TimeToLive = 0.0f;
 
-                            m_Shots.Shot[si] = shot;
-                        }
+                        Shots[si] = shot;
                     }
                 }
 
-                var h = m_Receivers.Health[pi];
+                var h = Health[index];
                 h.Value = math.max(h.Value - damage, 0.0f);
-                m_Receivers.Health[pi] = h;
+                Health[index] = h;
             }
         }
 
-        float GetCollisionRadius(TwoStickSettings settings, int faction)
+        protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
-            // This simply picks the collision radius based on whether the receiver is the player or not.
-            // In a real game, this would be much more sophisticated, perhaps with a CollisionRadius component.
-            return faction == Faction.kPlayer ? settings.playerCollisionRadius : settings.enemyCollisionRadius;
+            var settings = TwoStickBootstrap.Settings;
+
+            if (settings == null)
+                return inputDeps;
+
+            var enemiesVsPlayers = new CollisionJob
+            {
+                ShotPositions = m_EnemyShots.Position,
+                Shots = m_EnemyShots.Shot,
+                CollisionRadiusSquared = settings.playerCollisionRadius * settings.playerCollisionRadius,
+                Health = m_Players.Health,
+                Positions = m_Players.Position,
+            }.Schedule(m_Players.Length, 1, inputDeps);
+
+            var playersVsEnemies = new CollisionJob
+            {
+                ShotPositions = m_PlayerShots.Position,
+                Shots = m_PlayerShots.Shot,
+                CollisionRadiusSquared = settings.enemyCollisionRadius * settings.enemyCollisionRadius,
+                Health = m_Enemies.Health,
+                Positions = m_Enemies.Position,
+            }.Schedule(m_Enemies.Length, 1, enemiesVsPlayers);
+
+            return playersVsEnemies;
         }
     }
 }

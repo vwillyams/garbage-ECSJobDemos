@@ -36,17 +36,19 @@ namespace TwoStickPureExample
                 em.AddComponentData(shotEntity, sd.Shot);
                 em.AddComponentData(shotEntity, sd.Position);
                 em.AddComponentData(shotEntity, sd.Heading);
-                em.AddComponentData(shotEntity, sd.Faction);
                 em.AddComponentData(shotEntity, default(TransformMatrix));
-                if (sd.Faction.Value == Faction.kPlayer)
+                if (sd.Faction == Factions.kPlayer)
                 {
+                    em.AddComponentData(shotEntity, new PlayerShot());
                     em.AddComponentData(shotEntity, new MoveSpeed {speed = TwoStickBootstrap.Settings.bulletMoveSpeed});
+                    em.AddSharedComponentData(shotEntity, TwoStickBootstrap.PlayerShotLook);
                 }
                 else
                 {
+                    em.AddComponentData(shotEntity, new EnemyShot());
                     em.AddComponentData(shotEntity, new MoveSpeed {speed = TwoStickBootstrap.Settings.enemyShotSpeed});
+                    em.AddSharedComponentData(shotEntity, TwoStickBootstrap.EnemyShotLook);
                 }
-                em.AddSharedComponentData(shotEntity, sd.Faction.Value == Faction.kPlayer ? TwoStickBootstrap.PlayerShotLook : TwoStickBootstrap.EnemyShotLook);
             }
 
             spawnData.Dispose();

@@ -32,7 +32,7 @@ namespace TwoStickPureExample
             // Create player archetype
             PlayerArchetype = entityManager.CreateArchetype(
                 typeof(Position2D), typeof(Heading2D), typeof(PlayerInput),
-                typeof(Faction), typeof(Health), typeof(TransformMatrix));
+                typeof(Health), typeof(TransformMatrix));
 
             // Create an archetype for "shot spawn request" entities
             ShotSpawnArchetype = entityManager.CreateArchetype(typeof(ShotSpawnData));
@@ -40,7 +40,7 @@ namespace TwoStickPureExample
             // Create an archetype for basic enemies.
             BasicEnemyArchetype = entityManager.CreateArchetype(
                 typeof(Enemy), typeof(Health), typeof(EnemyShootState),
-                typeof(Faction), typeof(Position2D), typeof(Heading2D),
+                typeof(Position2D), typeof(Heading2D),
                 typeof(TransformMatrix), typeof(MoveSpeed), typeof(MoveForward));
         }
 
@@ -57,7 +57,6 @@ namespace TwoStickPureExample
             // We can tweak a few components to make more sense like this.
             entityManager.SetComponentData(player, new Position2D {Value = new float2(0.0f, 0.0f)});
             entityManager.SetComponentData(player, new Heading2D  {Value = new float2(0.0f, 1.0f)});
-            entityManager.SetComponentData(player, new Faction { Value = Faction.kPlayer });
             entityManager.SetComponentData(player, new Health { Value = Settings.playerInitialHealth });
 
             // Finally we add a shared component which dictates the rendered look

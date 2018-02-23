@@ -50,7 +50,7 @@ namespace TwoStickPureExample
                         },
                         Position = new Position2D{ Value = position },
                         Heading = new Heading2D{ Value = heading },
-                        Faction = new Faction { Value = Faction.kPlayer },
+                        Faction = Factions.kPlayer,
                     });
                 }
 

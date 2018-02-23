@@ -2,78 +2,113 @@
 
 In this series of posts, we're going to make a simple game using the Unity ECS and jobs as much as possible. The game type we picked for this was a simple two-stick shooter, something everyone can imagine building in a traditional way pretty easily.
 
-Post 1 based on commit `82dc183d4e84baea4ced6256ee58181ce9fa8711`
-
-## Post 1: The genesis
+## Scene Setup
  
-### Step 1: Scene Setup
-
-We're going to spawn everything in ECS ourselves. Therefore the scene we need for this tutorial is almost empty. The only things we use the scene for are:
+For this tutorial, we're going to use the ECS as much as possible. in ECS ourselves.
+Therefore the scene we need for this tutorial is almost empty as there are very few
+`GameObject`s involved. The only things we use the scene for are:
 
 * A camera
 * A light source
 * Template objects that hold parameters we'll use to spawn ECS entities
+* A couple of UI objects to start the game and display health
 
-### Step 2: Bootstrapping
+The tutorial project is located in `Assets/ECS/TwoStickShooterPure`.
 
-How do you bootstrap your game when using ECS? After all, you need something to insert those initial entities in the system before anything can update.
+## Bootstrapping
 
-One simple answer is to just run some code when the project starts playing. In the project, there's a class `TwoStickMain` which comes with two methods. The first one initializes early, and creates the core `EntityManager` we're going to use to interact with ECS.
+How do you bootstrap your game when using ECS? After all, you need something to insert
+those initial entities in the system before anything can update.
 
-TODO - insert a screenshot or some code of TwoStickMain
+One simple answer is to just run some code when the project starts playing. In this project,
+there's a class `TwoStickMain` which comes with two methods. The first one initializes early,
+and creates the core `EntityManager` we're going to use to interact with ECS.
 
-It also creates _archetypes_ which you can think of as blueprints for what components will be attached to an entity later on when it is instantiated. This step is optional, but avoids reallocating memory and moving objects later when they are spawned, because they will be created with the correct memory layout right away. 
+Overall, here's what the bootstrapping code achieves:
 
-For our player entity, I've chosen these components:
+* It creates an _entity manager_, a key ECS abtraction we use to create and modify
+  entities and their components
+* It creates _archetypes_, which you can think of as blueprints for what components
+  will be attached to an entity later on when it is instantiated. This step is optional,
+  but avoids reallocating memory and moving objects later when they are spawned, because
+  they will be created with the correct memory layout right away. 
+  
+### Archetypes
 
-* `WorldPos` - The location/heading of the player in the world
-* `PlayerInput` - Captures player [input](https://docs.unity3d.com/ScriptReference/Input.html)
-* `TransformMatrix` - Required as a storage endpoint for [4x4 matrices](https://docs.unity3d.com/ScriptReference/Matrix4x4.html) read by the instance rendering system that works with ECS
+As this is a very small game, we can describe all the entity archetypes we need directly
+in the bootstrap code. To make an archetype, you simply list all the component types that
+you need to go on an instance of that archetype when it is created. 
 
-You can think of the ECS player-controlled entity as a combination of those three components.
+Let's look at one archetype - `PlayerArchetype` - which is for creating, well, players:
 
 ```c#
-[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-public static void Initialize()
-{
-    var entityManager = World.Active.GetOrCreateManager<EntityManager>();
-
-    PlayerArchetype = entityManager.CreateArchetype(typeof(WorldPos), typeof(PlayerInput), typeof(TransformMatrix));
-}
+PlayerArchetype = entityManager.CreateArchetype(
+    typeof(Position2D), typeof(Heading2D), typeof(PlayerInput),
+    typeof(Faction), typeof(Health), typeof(TransformMatrix));
 ```
+
+The player archetype has the following component types:
+  * `Position2D` and `Heading2D` - These stock components allow the player's avator to be
+     positioned and automatically rendered using built-in 2D->3D transformations.
+  * `PlayerInput` is a component we fill in every frame based on player [input](https://docs.unity3d.com/ScriptReference/Input.html)
+  * `Faction` describes the "team" the player is on. It'll come in useful later when we need
+    to have shots just hit the opposing team.
+  * `Health` simply contains a hit point counter
+  * Finally, I've added another stock component `TransformMatrix` which is required as a
+    storage endpoint for [4x4 matrices](https://docs.unity3d.com/ScriptReference/Matrix4x4.html)
+    read by the instance rendering system that works with ECS.
+
+You can think of the ECS player-controlled entity as a combination of these components.
+  
+The other archetypes are set up similarly.
 
 The next initialization method runs after the scene has loaded, because it needs to access a blueprint object from the scene:
 
+### Extracting configuration from the scene
+
+Once the scene has been loaded, our `InitializeWithScene` method is going to be called. Here,
+we pull out a few objects from the scene, including a `Settings` object we can use to tweak
+the ECS code while it's running.
+
+### Starting a new game
+
+To start a game, we have to put a player entity in the world. This is accomplished with this code:
+
 ```c#
-[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-public static void InitializeWithScene()
+public static void NewGame()
 {
+    // Access the ECS entity manager
     var entityManager = World.Active.GetOrCreateManager<EntityManager>();
-
-    // Create the player's position
+    
+    // Create an entity based on the player archetype. It will get default-constructed
+    // defaults for all the component types we listed.
     Entity player = entityManager.CreateEntity(PlayerArchetype);
-    WorldPos initialPos;
-    initialPos.Position = new float2(0, 0);
-    initialPos.Heading = new float2(0, 1);
-
-    entityManager.SetComponent(player, initialPos);
-
-    // Fill in the player's render data from blueprint
-    var playerRenderPrototype = GameObject.Find("PlayerRenderPrototype");
-    var wrapper = playerRenderPrototype.GetComponent<InstanceRendererComponent>();
-    entityManager.AddSharedComponent(player, wrapper.Value);
-    // Discard blueprint
-    Object.Destroy(playerRenderPrototype);
+    
+    // We can tweak a few components to make more sense like this.
+    entityManager.SetComponentData(player, new Position2D {Value = new float2(0.0f, 0.0f)});
+    entityManager.SetComponentData(player, new Heading2D  {Value = new float2(0.0f, 1.0f)});
+    entityManager.SetComponentData(player, new Faction { Value = Faction.kPlayer });
+    entityManager.SetComponentData(player, new Health { Value = Settings.playerInitialHealth });
+    
+    // Finally we add a shared component which dictates the rendered look
+    entityManager.AddSharedComponentData(player, PlayerLook);
 }
 ```
 
-### Step 3: Systems
+## Systems!
 
 We need a few data transformations to happen to render a frame. 
 
-* We need to fill in the `TransformMatrix` output for anything that needs to be rendered. You can find this code in `TwoStickRenderer.cs`.
-* We need to update the player's WorldPos based on input. You can find this code in `PlayerMoveSystem.cs`.
-* We need to compute player input based on controller input. You can find this code in `PlayerInputSystem.cs`.
+* We sample player input (`PlayerInputSystem`)
+* We move the player and allow them to shoot (`PlayerMoveSystem`)
+* We need to sometimes spawn new enemies (`EnemySpawnSystem`)
+* The enemies need to move (`EnemyMoveSystem`)
+* The enemies need to shoot (`EnemyShootSystem`)
+* We need to spawn new shots based on player or enemy action (`ShotSpawnSystem`)
+* We need a way to clean up old shots when they time out (`ShotDestroySystem`)
+* We need to deal damage from shots (`ShotDamageSystem`)
+* We need to cull any entities that no health left (`RemoveDeadSystem`)
+* We need to push some data to the UI objects (`UpdatePlayerHUD`)
 
 ## Post 2: Shooting
 

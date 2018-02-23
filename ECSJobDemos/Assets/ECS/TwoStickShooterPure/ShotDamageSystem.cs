@@ -80,7 +80,7 @@ namespace TwoStickPureExample
             }
         }
 
-        float GetCollisionRadius(TwoStickExampleSettings settings, int faction)
+        float GetCollisionRadius(TwoStickSettings settings, int faction)
         {
             // This simply picks the collision radius based on whether the receiver is the player or not.
             // In a real game, this would be much more sophisticated, perhaps with a CollisionRadius component.

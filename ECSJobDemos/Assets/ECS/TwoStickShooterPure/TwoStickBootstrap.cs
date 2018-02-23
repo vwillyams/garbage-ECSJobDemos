@@ -19,7 +19,7 @@ namespace TwoStickPureExample
         public static MeshInstanceRenderer EnemyShotLook;
         public static MeshInstanceRenderer EnemyLook;
 
-        public static TwoStickExampleSettings Settings;
+        public static TwoStickSettings Settings;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void Initialize()
@@ -69,7 +69,7 @@ namespace TwoStickPureExample
         public static void InitializeWithScene()
         {
             var settingsGO = GameObject.Find("Settings");
-            Settings = settingsGO?.GetComponent<TwoStickExampleSettings>();
+            Settings = settingsGO?.GetComponent<TwoStickSettings>();
             if (!Settings)
                 return;
 

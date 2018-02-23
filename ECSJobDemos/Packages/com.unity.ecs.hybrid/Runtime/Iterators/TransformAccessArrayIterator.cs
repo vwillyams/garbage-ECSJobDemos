@@ -3,14 +3,54 @@ using System.Linq;
 using System.Reflection;
 
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.Entities;
+using Unity.Entities.Hybrid;
 using UnityEngine;
 using UnityEngine.Jobs;
 using UnityEngine.Scripting;
 
-namespace Unity.ECS.Hybrid
+namespace Unity.Entities
 {
+    struct TransformAccessArrayState : IDisposable
+    {
+        public TransformAccessArray Data;
+        public int OrderVersion;
 
+        public void Dispose()
+        {
+            if (Data.IsCreated)
+                Data.Dispose();
+        }
+    }
+
+    public static class ComponentGroupExtensionsForTransformAccessArray
+    {
+        public static unsafe TransformAccessArray GetTransformAccessArray(this ComponentGroup group)
+        {
+            var state = (TransformAccessArrayState?)group.m_CachedState ?? new TransformAccessArrayState();
+            var orderVersion = group.EntityDataManager->GetComponentTypeOrderVersion(TypeManager.GetTypeIndex<Transform>());
+
+            if (state.Data.IsCreated && orderVersion == state.OrderVersion)
+                return state.Data;
+
+            state.OrderVersion = orderVersion;
+
+            UnityEngine.Profiling.Profiler.BeginSample("DirtyTransformAccessArrayUpdate");
+            var trans = group.GetComponentArray<Transform>();
+            if (!state.Data.IsCreated)
+                state.Data = new TransformAccessArray(trans.ToArray());
+            else
+                state.Data.SetTransforms(trans.ToArray());
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            group.m_CachedState = state;
+
+            return state.Data;
+        }
+    }
+}
+
+namespace Unity.Entities.Hybrid
+{
     [Preserve]
     [CustomInjectionHook]
     sealed class TransformAccessArrayInjectionHook : IInjectionHook
@@ -49,47 +89,6 @@ namespace Unity.ECS.Hybrid
         {
             var transformsArray = entityGroup.GetTransformAccessArray();
             UnsafeUtility.CopyStructureToPtr(ref transformsArray, groupStructPtr + info.FieldOffset);
-        }
-    }
-}
-
-namespace Unity.ECS.Hybrid
-{
-    struct TransformAccessArrayState : IDisposable
-    {
-        public TransformAccessArray Data;
-        public int OrderVersion;
-
-        public void Dispose()
-        {
-            if (Data.IsCreated)
-                Data.Dispose();
-        }
-    }
-
-    public static class ComponentGroupExtensionsForTransformAccessArray
-    {
-        public static unsafe TransformAccessArray GetTransformAccessArray(this ComponentGroup group)
-        {
-            var state = (TransformAccessArrayState?) group.m_CachedState ?? new TransformAccessArrayState();
-            var orderVersion = group.EntityDataManager->GetComponentTypeOrderVersion(TypeManager.GetTypeIndex<Transform>());
-
-            if (state.Data.IsCreated && orderVersion == state.OrderVersion)
-                return state.Data;
-
-            state.OrderVersion = orderVersion;
-
-            UnityEngine.Profiling.Profiler.BeginSample("DirtyTransformAccessArrayUpdate");
-            var trans = group.GetComponentArray<Transform>();
-            if (!state.Data.IsCreated)
-                state.Data = new TransformAccessArray(trans.ToArray());
-            else
-                state.Data.SetTransforms(trans.ToArray());
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            group.m_CachedState = state;
-
-            return state.Data;
         }
     }
 }

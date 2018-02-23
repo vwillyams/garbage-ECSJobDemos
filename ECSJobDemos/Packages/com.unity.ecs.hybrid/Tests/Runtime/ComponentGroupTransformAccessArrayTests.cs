@@ -1,6 +1,5 @@
 ﻿using NUnit.Framework;
 using Unity.Entities;
-using Unity.ECS.Hybrid;
 using Unity.Entities.Hybrid;
 using UnityEngine.Jobs;
 

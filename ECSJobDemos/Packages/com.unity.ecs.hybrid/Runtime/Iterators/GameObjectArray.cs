@@ -3,9 +3,24 @@ using System.Linq;
 using System.Reflection;
 
 using Unity.Collections.LowLevel.Unsafe;
-
+using Unity.Entities.Hybrid;
 using UnityEngine;
 using UnityEngine.Scripting;
+
+namespace Unity.Entities
+{
+    public static class ComponentGroupExtensionsForGameObjectArray
+    {
+        public static GameObjectArray GetGameObjectArray(this ComponentGroup group)
+        {
+            int length;
+            ComponentChunkIterator iterator;
+            group.GetComponentChunkIterator(out length, out iterator);
+            iterator.IndexInComponentGroup = group.GetIndexInComponentGroup(TypeManager.GetTypeIndex<Transform>());
+            return new GameObjectArray(iterator, length, group.ArchetypeManager);
+        }
+    }
+}
 
 namespace Unity.Entities.Hybrid
 {
@@ -106,21 +121,6 @@ namespace Unity.Entities.Hybrid
         {
             var gameObjectArray = entityGroup.GetGameObjectArray();
             UnsafeUtility.CopyStructureToPtr(ref gameObjectArray, groupStructPtr + info.FieldOffset);
-        }
-    }
-}
-
-namespace Unity.Entities.Hybrid
-{
-    public static class ComponentGroupExtensionsForGameObjectArray
-    {
-        public static GameObjectArray GetGameObjectArray(this ComponentGroup group)
-        {
-            int length;
-            ComponentChunkIterator iterator;
-            group.GetComponentChunkIterator(out length, out iterator);
-            iterator.IndexInComponentGroup = group.GetIndexInComponentGroup(TypeManager.GetTypeIndex<Transform>());
-            return new GameObjectArray(iterator, length, group.ArchetypeManager);
         }
     }
 }

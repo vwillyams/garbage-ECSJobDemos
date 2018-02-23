@@ -52,7 +52,7 @@ namespace UnityEngine.ECS.SimpleRotation
                         {
                             rotationSpeeds[positionIndex] = new RotationSpeed
                             {
-                                speed = speed
+                                Value = speed
                             };
                         }
                     }

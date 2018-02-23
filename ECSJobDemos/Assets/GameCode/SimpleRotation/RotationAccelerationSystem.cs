@@ -15,7 +15,7 @@ namespace UnityEngine.ECS.SimpleRotation
         
             public void Execute(ref RotationSpeed speed, [ReadOnly]ref RotationAcceleration acceleration)
             {
-                speed.speed = math.max(0.0f, speed.speed + (acceleration.speed * dt));
+                speed.Value = math.max(0.0f, speed.Value + (acceleration.speed * dt));
             }
         }
 

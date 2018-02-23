@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using Boo.Lang;
 using Unity.Collections.LowLevel.Unsafe;
 
@@ -160,7 +159,7 @@ namespace Unity.Entities
                     uint* rhsInt = (uint*)(rhs + offset);
                     int count = layout[k].count;
                     for (int i = 0; i != count; i++)
-                        same &= lhs[i] == rhs[i];
+                        same &= lhsInt[i] == rhsInt[i];
                 }
                 else
                 {
@@ -169,7 +168,7 @@ namespace Unity.Entities
                     byte* rhsByte = rhs + offset;
                     int count = layout[k].count;
                     for (int i = 0; i != count; i++)
-                        same &= lhs[i] == rhs[i];
+                        same &= lhsByte[i] == rhsByte[i];
                 }
             }
 

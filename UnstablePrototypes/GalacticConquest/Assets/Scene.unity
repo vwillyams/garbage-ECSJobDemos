@@ -207,7 +207,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _planetPrefab: {fileID: 1674148786222118, guid: 1fdc2b27bb987e148a5ec7ba5af5bb90,
     type: 2}
-  _initialCount: 10
+  _initialCount: 20
   _teamMaterials:
   - {fileID: 2100000, guid: 13e5f576628b2bc498ba972e54e46f07, type: 2}
   - {fileID: 2100000, guid: dc71f18ed4367da4592e542d6e83e82a, type: 2}
@@ -273,7 +273,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.01
+  near clip plane: 0.001
   far clip plane: 1000
   field of view: 60
   orthographic: 1

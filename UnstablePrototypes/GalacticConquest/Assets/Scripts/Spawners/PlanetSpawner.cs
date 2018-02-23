@@ -10,7 +10,7 @@ public class PlanetSpawner : MonoBehaviour
     [SerializeField]
     GameObject _planetPrefab;
     [SerializeField]
-    int _initialCount = 10;
+    int _initialCount = 20;
     [SerializeField] readonly float radius = 100.0f;
     EntityManager _entityManager;
     [SerializeField]
@@ -31,15 +31,16 @@ public class PlanetSpawner : MonoBehaviour
         {
 
 
-            var sphereRadius = 20.0f;
+            var sphereRadius = Random.Range(5.0f, 20.0f);
             var safe = false;
             float3 pos;
             int attempts = 0;
             do
             {
-                if (++attempts >= 100)
+                if (++attempts >= 500)
                 {
-                    Debug.LogAssertion("Tried spawning planets too many times. Aborting");
+                    Debug.Log("Couldn't find a good planet placement. Settling for the planets we already have");
+                    return;
                 }
                 var randomValue = (Vector3) Random.insideUnitSphere;
                 randomValue.y = 0;
@@ -52,15 +53,16 @@ public class PlanetSpawner : MonoBehaviour
             var go = GameObject.Instantiate(_planetPrefab, pos, Quaternion.identity);
             var planetEntity = go.GetComponent<GameObjectEntity>().Entity;
             var meshGo = go.GetComponentsInChildren<Transform>().First(c => c.gameObject != go).gameObject;
+            var collider = go.GetComponent<SphereCollider>();
             var meshEntity = meshGo.GetComponent<GameObjectEntity>().Entity;
 
-            var randomScale = Random.Range(10.0f, 40.0f);
-            meshGo.transform.localScale = new Vector3(randomScale, randomScale, randomScale);
+            collider.radius = sphereRadius;
+            meshGo.transform.localScale = new Vector3(sphereRadius * 2.0f, sphereRadius * 2.0f, sphereRadius * 2.0f);
 
             var planetData = new PlanetData
             {
                 TeamOwnership = 0,
-                Radius = randomScale * 0.5f,
+                Radius = sphereRadius,
                 Position = pos
             };
             var rotationData = new RotationData

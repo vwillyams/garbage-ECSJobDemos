@@ -33,7 +33,7 @@ namespace Unity.Properties.Entities
                     else
                     {
                         // assumption: use an IOptimizedVisitor everywhere
-                        if (OptimizedVisitor.Supports(field.FieldType))
+                        if (OptimizedVisitor.Supports(field.FieldType) || field.FieldType.IsEnum)
                         {
                             // primitive
                             // TODO: this is a hack until we have code gen

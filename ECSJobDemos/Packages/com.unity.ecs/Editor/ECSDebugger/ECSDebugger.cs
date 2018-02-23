@@ -127,12 +127,21 @@ namespace UnityEditor.ECS
                 new ComponentGroupIntegratedListView(componentListState, this, SystemSelection as ComponentSystemBase);
             selectionProxy = ScriptableObject.CreateInstance<EntitySelectionProxy>();
             selectionProxy.hideFlags = HideFlags.HideAndDontSave;
+            EditorApplication.playModeStateChanged += OnPlayModeStateChange;
         }
 
         private void OnDisable()
         {
             if (selectionProxy)
                 DestroyImmediate(selectionProxy);
+            
+            EditorApplication.playModeStateChanged -= OnPlayModeStateChange;
+        }
+
+        void OnPlayModeStateChange(PlayModeStateChange change)
+        {
+            if (change == PlayModeStateChange.ExitingPlayMode && Selection.activeObject == selectionProxy)
+                Selection.activeObject = null;
         }
         
         private float lastUpdate;

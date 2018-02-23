@@ -1,4 +1,5 @@
 ﻿
+using Unity.Mathematics;
 using Unity.Properties;
 using Unity.Properties.Entities;
 using UnityEngine;
@@ -20,6 +21,11 @@ namespace UnityEditor.ECS
         {
             var targetProxy = (EntitySelectionProxy) target;
             targetProxy.container.PropertyBag.VisitStruct(ref targetProxy.container, visitor);
+        }
+
+        public override bool RequiresConstantRepaint()
+        {
+            return true;
         }
     }
 }

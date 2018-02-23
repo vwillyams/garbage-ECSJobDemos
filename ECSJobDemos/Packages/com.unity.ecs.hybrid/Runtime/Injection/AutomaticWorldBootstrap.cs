@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Unity.Entities.Hybrid
+namespace Unity.Entities
 {
 #if !UNITY_DISABLE_AUTOMATIC_SYSTEM_BOOTSTRAP
     static class AutomaticWorldBootstrap

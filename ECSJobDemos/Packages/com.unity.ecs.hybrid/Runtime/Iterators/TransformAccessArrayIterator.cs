@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.Entities.Hybrid;
+using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Jobs;
 using UnityEngine.Scripting;
@@ -49,7 +49,7 @@ namespace Unity.Entities
     }
 }
 
-namespace Unity.Entities.Hybrid
+namespace Unity.Entities
 {
     [Preserve]
     [CustomInjectionHook]

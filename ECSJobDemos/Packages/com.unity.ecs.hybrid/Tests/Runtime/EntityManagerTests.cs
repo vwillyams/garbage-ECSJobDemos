@@ -4,7 +4,7 @@ using Unity.Entities;
 using UnityEngine;
 using UnityEngine.ECS.Tests;
 
-namespace Unity.Entities.Hybrid.Tests
+namespace Unity.Entities.Tests
 {
     public class EntityManagerTests : ECSTestsFixture
     {

@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.Experimental.LowLevel;
 
-namespace Unity.Entities.Hybrid
+namespace Unity.Entities
 {
     static class DefaultWorldInitialization
     {

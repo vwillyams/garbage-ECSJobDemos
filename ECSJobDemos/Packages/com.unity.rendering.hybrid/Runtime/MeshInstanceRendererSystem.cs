@@ -7,7 +7,7 @@ using UnityEngine.Assertions;
 using Unity.Transforms;
 using UnityEngine.Experimental.PlayerLoop;
 
-namespace Unity.Rendering.Hybrid
+namespace Unity.Rendering
 {
     /// <summary>
     /// Renders all Entities containing both MeshInstanceRenderer & TransformMatrix components.

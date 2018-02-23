@@ -6,7 +6,6 @@ using System;
 using System.Reflection;
 using System.Linq;
 using Unity.Entities;
-using Unity.Entities;
 
 namespace UnityEditor.ECS
 {

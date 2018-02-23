@@ -1,6 +1,4 @@
-﻿using System;
-using NUnit.Framework;
-using Unity.Entities;
+﻿using NUnit.Framework;
 using Unity.Entities;
 using UnityEngine.ECS.Tests;
 

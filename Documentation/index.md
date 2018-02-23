@@ -15,6 +15,7 @@
 * [How the Job System Works](content/job_system.md)
 * [Low Level Overview - Creating Containers & Custom Job Types](content/custom_job_types.md)
 * [How to Optimize for the Burst Compiler](content/burst_optimization.md)
+* [Scheduling a Job from a job - Why not?](content/SchedulingAJobFromAJob.md)
 
 # Tutorials
 

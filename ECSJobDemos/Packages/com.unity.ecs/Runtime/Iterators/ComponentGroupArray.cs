@@ -8,8 +8,6 @@ using Unity.Assertions;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
-using Component = UnityEngine.Component;
-
 namespace Unity.Entities
 {
     public class ComponentGroupArrayStaticCache
@@ -57,7 +55,7 @@ namespace Unity.Entities
                     componentDataFieldOffsetsBuilder.Add(offset);
                     componentDataTypesBuilder.Add(new ComponentType(elementType, accessMode));
                 }
-                else if (fieldType.IsSubclassOf(typeof(Component)))
+                else if (fieldType.IsSubclassOf(TypeManager.UnityEngineComponentType))
                 {
                     componentFieldOffsetsBuilder.Add(offset);
                     componentTypesBuilder.Add(fieldType);

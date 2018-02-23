@@ -61,7 +61,7 @@ namespace Unity.Entities
                     c = (Chunk*)m->Archetype->ChunkList.Begin;
                     e = (Chunk*)m->Archetype->ChunkList.End;
                 }
-            } while (!(ComponentGroupData.ChunkMatchesFilter(m, c, m_FilteredSharedComponents) && (c->Capacity > 0)));
+            } while (!(c->MatchesFilter(m, m_FilteredSharedComponents) && (c->Capacity > 0)));
             m_CurrentMatchingArchetype = m;
             m_CurrentChunk = c;
         }
@@ -142,7 +142,7 @@ namespace Unity.Entities
 
                     m_CurrentChunk = (Chunk*) m_CurrentMatchingArchetype->Archetype->ChunkList.Begin;
                     m_CurrentChunkIndex = 0;
-                    if (!(ComponentGroupData.ChunkMatchesFilter(m_CurrentMatchingArchetype, m_CurrentChunk, m_FilteredSharedComponents) &&
+                    if (!(m_CurrentChunk->MatchesFilter(m_CurrentMatchingArchetype, m_FilteredSharedComponents) &&
                           (m_CurrentChunk->Count > 0)))
                     {
                         MoveToNextMatchingChunk();

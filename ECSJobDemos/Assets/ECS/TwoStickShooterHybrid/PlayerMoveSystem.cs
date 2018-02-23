@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Unity.Entities;
+using Unity.Entities.Hybrid;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -37,7 +38,7 @@ namespace TwoStickHybridExample
                 {
                     xform.Heading = math.normalize(playerInput.Shoot);
                     playerInput.FireCooldown = settings.playerFireCoolDown;
-                    
+
                     firingPlayers.Add(xform);
                 }
             }
@@ -50,7 +51,7 @@ namespace TwoStickHybridExample
                     Heading = xform.Heading,
                     Faction = xform.GetComponent<Faction>()
                 };
-                
+
                 ShotSpawnSystem.SpawnShot(newShotData);
             }
         }

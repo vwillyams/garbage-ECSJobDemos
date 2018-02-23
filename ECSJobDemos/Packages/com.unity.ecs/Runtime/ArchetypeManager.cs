@@ -113,6 +113,24 @@ namespace Unity.Entities
         {
             return kChunkSize - numSharedComponents * sizeof(int);
         }
+
+        public bool MatchesFilter(MatchingArchetypes* match, int* filteredSharedComponents)
+        {
+            var sharedComponentsInChunk = SharedComponentValueArray;
+            var filteredCount = filteredSharedComponents[0];
+            var filtered = filteredSharedComponents + 1;
+            for(var i=0; i<filteredCount; ++i)
+            {
+                var componetIndexInComponentGroup = filtered[i * 2];
+                var sharedComponentIndex = filtered[i * 2 + 1];
+                var componentIndexInArcheType = match->TypeIndexInArchetypeArray[componetIndexInComponentGroup];
+                var componentIndexInChunk = match->Archetype->SharedComponentOffset[componentIndexInArcheType];
+                if (sharedComponentsInChunk[componentIndexInChunk] != sharedComponentIndex)
+                    return false;
+            }
+
+            return true;
+        }
     }
 
     unsafe struct Archetype

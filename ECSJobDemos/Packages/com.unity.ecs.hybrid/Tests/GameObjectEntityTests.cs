@@ -8,11 +8,13 @@ namespace UnityEngine.ECS.Hybrid.Tests
 {
 	public class GameObjectEntityTests : ECSTestsFixture
 	{
+	    ComponentArrayInjectionHook m_ComponentArrayInjectionHook = new ComponentArrayInjectionHook();
 	    GameObjectArrayInjectionHook m_GameObjectArrayInjectionHook = new GameObjectArrayInjectionHook();
 
 	    [OneTimeSetUp]
 	    public void Init()
 	    {
+	        InjectionHookSupport.RegisterHook(m_ComponentArrayInjectionHook);
 	        InjectionHookSupport.RegisterHook(m_GameObjectArrayInjectionHook);
 	    }
 
@@ -20,6 +22,7 @@ namespace UnityEngine.ECS.Hybrid.Tests
 	    public void Cleanup()
 	    {
 	        InjectionHookSupport.UnregisterHook(m_GameObjectArrayInjectionHook);
+	        InjectionHookSupport.RegisterHook(m_ComponentArrayInjectionHook);
 	    }
 
 	    [DisableAutoCreation]
@@ -57,6 +60,39 @@ namespace UnityEngine.ECS.Hybrid.Tests
 
 	        Object.DestroyImmediate (go);
 	        TearDown();
+	    }
+
+	    [Test]
+	    public void ComponentDataAndTransformArray()
+	    {
+	        var go = new GameObject("test", typeof(EcsTestComponent));
+	        var entity = GameObjectEntity.AddToEntityManager(m_Manager, go);
+
+	        m_Manager.SetComponentData(entity, new EcsTestData(5));
+
+	        var grp = m_Manager.CreateComponentGroup(typeof(Transform), typeof(EcsTestData));
+	        var arr = grp.GetComponentArray<Transform>();
+
+	        Assert.AreEqual(1, arr.Length);
+	        Assert.AreEqual(go.transform, arr[0]);
+	        Assert.AreEqual(5, grp.GetComponentDataArray<EcsTestData>()[0].value);
+
+	        Object.DestroyImmediate (go);
+	    }
+
+	    [Test]
+	    public void RigidbodyComponentArray()
+	    {
+	        var go = new GameObject("test", typeof(Rigidbody));
+	        /*var entity =*/ GameObjectEntity.AddToEntityManager(m_Manager, go);
+
+	        var grp = m_Manager.CreateComponentGroup(typeof(Rigidbody));
+
+	        var arr = grp.GetComponentArray<Rigidbody>();
+	        Assert.AreEqual(1, arr.Length);
+	        Assert.AreEqual(go.GetComponent<Rigidbody>(), arr[0]);
+
+	        Object.DestroyImmediate(go);
 	    }
 	}
 }

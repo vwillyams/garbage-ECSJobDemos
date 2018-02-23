@@ -53,16 +53,16 @@ namespace Unity.Entities.Hybrid
 {
     [Preserve]
     [CustomInjectionHook]
-    sealed class TransformAccessArrayInjectionHook : IInjectionHook
+    sealed class TransformAccessArrayInjectionHook : InjectionHook
     {
-        public Type FieldTypeOfInterest => typeof(TransformAccessArray);
+        public override Type FieldTypeOfInterest => typeof(TransformAccessArray);
 
-        public bool IsInterestedInField(FieldInfo fieldInfo)
+        public override bool IsInterestedInField(FieldInfo fieldInfo)
         {
             return fieldInfo.FieldType == typeof(TransformAccessArray);
         }
 
-        public string ValidateField(FieldInfo field, bool isReadOnly, InjectionContext injectionInfo)
+        public override string ValidateField(FieldInfo field, bool isReadOnly, InjectionContext injectionInfo)
         {
             if (isReadOnly)
                 return "[ReadOnly] may not be used on a TransformAccessArray only on ComponentDataArray<>";
@@ -74,21 +74,24 @@ namespace Unity.Entities.Hybrid
             return null;
         }
 
-        public InjectionContext.Entry CreateInjectionInfoFor(FieldInfo field, bool isReadOnly)
+        public override InjectionContext.Entry CreateInjectionInfoFor(FieldInfo field, bool isReadOnly)
         {
             return new InjectionContext.Entry
             {
                 Hook = this,
                 FieldInfo = field,
+                IsReadOnly = isReadOnly,
+                AccessMode = isReadOnly ? ComponentType.AccessMode.ReadOnly : ComponentType.AccessMode.ReadWrite,
+                IndexInComponentGroup = -1,
                 FieldOffset = UnsafeUtility.GetFieldOffset(field),
                 ComponentRequirements = new[] { typeof(Transform) }
             };
         }
 
-        public unsafe void UpdateInjection(InjectionContext.Entry info, ComponentGroup entityGroup, byte* groupStructPtr)
+        internal override unsafe void InjectEntry(InjectionContext.Entry entry, ComponentGroup entityGroup, ref ComponentChunkIterator iterator, int length, byte* groupStructPtr)
         {
             var transformsArray = entityGroup.GetTransformAccessArray();
-            UnsafeUtility.CopyStructureToPtr(ref transformsArray, groupStructPtr + info.FieldOffset);
+            UnsafeUtility.CopyStructureToPtr(ref transformsArray, groupStructPtr + entry.FieldOffset);
         }
     }
 }

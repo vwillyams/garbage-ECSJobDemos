@@ -45,6 +45,7 @@ namespace Unity.Entities.Hybrid
             // Register hybrid injection hooks
             InjectionHookSupport.RegisterHook(new GameObjectArrayInjectionHook());
             InjectionHookSupport.RegisterHook(new TransformAccessArrayInjectionHook());
+            InjectionHookSupport.RegisterHook(new ComponentArrayInjectionHook());
 
             PlayerLoopManager.RegisterDomainUnload (DomainUnloadShutdown, 10000);
 

@@ -2,6 +2,7 @@
     "name": "Unity.Core.Editor",
     "references": [
         "Unity.Core",
+        "Unity.Core.Hybrid",
         "Unity.Mathematics"
     ],
     "includePlatforms": [

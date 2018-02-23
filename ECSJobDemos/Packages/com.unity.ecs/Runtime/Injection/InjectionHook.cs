@@ -16,7 +16,11 @@ namespace Unity.Entities
             public int FieldOffset;
             public FieldInfo FieldInfo;
             public Type[] ComponentRequirements;
-            public IInjectionHook Hook;
+            public InjectionHook Hook;
+            public ComponentType.AccessMode AccessMode;
+            public int IndexInComponentGroup;
+            public bool IsReadOnly;
+            public ComponentType ComponentType;
         }
 
         readonly List<Entry> m_Entries = new List<Entry>();
@@ -47,51 +51,65 @@ namespace Unity.Entities
             m_Entries.Add(entry);
         }
 
-        internal unsafe void UpdateInjection(ComponentGroup entityGroup, byte* groupStructPtr)
+        public void PrepareEntries(ComponentGroup entityGroup)
+        {
+            if(!HasEntries)
+                return;
+
+            for (var index = 0; index < m_Entries.Count; index++)
+            {
+                var entry = m_Entries[index];
+                entry.Hook.PrepareEntry(ref entry, entityGroup);
+                m_Entries[index] = entry;
+            }
+        }
+
+        internal unsafe void UpdateEntries(ComponentGroup entityGroup, ref ComponentChunkIterator iterator, int length, byte* groupStructPtr)
         {
             if(!HasEntries)
                 return;
 
             foreach (var info in m_Entries)
             {
-                info.Hook.UpdateInjection(info, entityGroup, groupStructPtr);
+                info.Hook.InjectEntry(info, entityGroup, ref iterator, length, groupStructPtr);
             }
         }
     }
 
-    public interface IInjectionHook
+    public abstract unsafe class InjectionHook
     {
-        Type FieldTypeOfInterest { get; }
-        
-        bool IsInterestedInField(FieldInfo fieldInfo);
+        public abstract Type FieldTypeOfInterest { get; }
+        public abstract bool IsInterestedInField(FieldInfo fieldInfo);
+        public abstract InjectionContext.Entry CreateInjectionInfoFor(FieldInfo field, bool isReadOnly);
+        internal abstract void InjectEntry(InjectionContext.Entry entry, ComponentGroup entityGroup, ref ComponentChunkIterator iterator, int length, byte* groupStructPtr);
+        public abstract string ValidateField(FieldInfo field, bool isReadOnly, InjectionContext injectionInfo);
 
-        string ValidateField(FieldInfo field, bool isReadOnly, InjectionContext injectionInfo);
+        public virtual void PrepareEntry(ref InjectionContext.Entry entry, ComponentGroup entityGroup)
+        {
 
-        InjectionContext.Entry CreateInjectionInfoFor(FieldInfo field, bool isReadOnly);
-
-        unsafe void UpdateInjection(InjectionContext.Entry info, ComponentGroup entityGroup, byte* groupStructPtr);
+        }
     }
 
     public static class InjectionHookSupport
     {
         static bool s_HasHooks;
-        static readonly List<IInjectionHook> k_Hooks = new List<IInjectionHook>();
+        static readonly List<InjectionHook> k_Hooks = new List<InjectionHook>();
 
-        internal static IReadOnlyCollection<IInjectionHook> Hooks => k_Hooks;
+        internal static IReadOnlyCollection<InjectionHook> Hooks => k_Hooks;
 
-        public static void RegisterHook(IInjectionHook hook)
+        public static void RegisterHook(InjectionHook hook)
         {
             s_HasHooks = true;
             k_Hooks.Add(hook);
         }
 
-        public static void UnregisterHook(IInjectionHook hook)
+        public static void UnregisterHook(InjectionHook hook)
         {
             k_Hooks.Remove(hook);
             s_HasHooks = k_Hooks.Count != 0;
         }
 
-        internal static IInjectionHook HookFor(FieldInfo fieldInfo)
+        internal static InjectionHook HookFor(FieldInfo fieldInfo)
         {
             if (!s_HasHooks)
                 return null;
@@ -112,7 +130,7 @@ namespace Unity.Entities
                 return false;
             if (type.ContainsGenericParameters)
                 return false;
-            if (!typeof(IInjectionHook).IsAssignableFrom(type))
+            if (!typeof(InjectionHook).IsAssignableFrom(type))
                 return false;
             return type.GetCustomAttributes(typeof(CustomInjectionHookAttribute), true).Length != 0;
         }

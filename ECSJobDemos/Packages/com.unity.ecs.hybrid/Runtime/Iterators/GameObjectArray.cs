@@ -82,16 +82,16 @@ namespace Unity.Entities.Hybrid
 
     [Preserve]
     [CustomInjectionHook]
-    sealed class GameObjectArrayInjectionHook : IInjectionHook
+    sealed class GameObjectArrayInjectionHook : InjectionHook
     {
-        public Type FieldTypeOfInterest => typeof(GameObjectArray);
+        public override Type FieldTypeOfInterest => typeof(GameObjectArray);
 
-        public bool IsInterestedInField(FieldInfo fieldInfo)
+        public override bool IsInterestedInField(FieldInfo fieldInfo)
         {
             return fieldInfo.FieldType == typeof(GameObjectArray);
         }
 
-        public string ValidateField(FieldInfo field, bool isReadOnly, InjectionContext injectionInfo)
+        public override string ValidateField(FieldInfo field, bool isReadOnly, InjectionContext injectionInfo)
         {
             if (field.FieldType != typeof(GameObjectArray))
                 return null;
@@ -106,21 +106,24 @@ namespace Unity.Entities.Hybrid
             return null;
         }
 
-        public InjectionContext.Entry CreateInjectionInfoFor(FieldInfo field, bool isReadOnly)
+        public override InjectionContext.Entry CreateInjectionInfoFor(FieldInfo field, bool isReadOnly)
         {
             return new InjectionContext.Entry
             {
                 Hook = this,
                 FieldInfo = field,
+                IsReadOnly = isReadOnly,
+                AccessMode = isReadOnly ? ComponentType.AccessMode.ReadOnly : ComponentType.AccessMode.ReadWrite,
+                IndexInComponentGroup = -1,
                 FieldOffset = UnsafeUtility.GetFieldOffset(field),
                 ComponentRequirements = new[] { typeof(Transform) }
             };
         }
 
-        public unsafe void UpdateInjection(InjectionContext.Entry info, ComponentGroup entityGroup, byte* groupStructPtr)
+        internal override unsafe void InjectEntry(InjectionContext.Entry entry, ComponentGroup entityGroup, ref ComponentChunkIterator iterator, int length, byte* groupStructPtr)
         {
             var gameObjectArray = entityGroup.GetGameObjectArray();
-            UnsafeUtility.CopyStructureToPtr(ref gameObjectArray, groupStructPtr + info.FieldOffset);
+            UnsafeUtility.CopyStructureToPtr(ref gameObjectArray, groupStructPtr + entry.FieldOffset);
         }
     }
 }

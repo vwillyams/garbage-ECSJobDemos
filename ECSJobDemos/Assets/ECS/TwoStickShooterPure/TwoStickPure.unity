@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.1802837, g: 0.22571404, b: 0.30692273, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -113,6 +113,56 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1001 &77120302
+Prefab:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 400000, guid: 9930946b7c5f48e44aef1e56c2de7315, type: 2}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 9930946b7c5f48e44aef1e56c2de7315, type: 2}
+      propertyPath: m_LocalPosition.y
+      value: -5
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 9930946b7c5f48e44aef1e56c2de7315, type: 2}
+      propertyPath: m_LocalPosition.z
+      value: 28.98
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 9930946b7c5f48e44aef1e56c2de7315, type: 2}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 9930946b7c5f48e44aef1e56c2de7315, type: 2}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 9930946b7c5f48e44aef1e56c2de7315, type: 2}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 9930946b7c5f48e44aef1e56c2de7315, type: 2}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 9930946b7c5f48e44aef1e56c2de7315, type: 2}
+      propertyPath: m_RootOrder
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: 9930946b7c5f48e44aef1e56c2de7315, type: 2}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: 9930946b7c5f48e44aef1e56c2de7315, type: 2}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_ParentPrefab: {fileID: 100100000, guid: 9930946b7c5f48e44aef1e56c2de7315, type: 2}
+  m_IsPrefabParent: 0
 --- !u!1 &307864025
 GameObject:
   m_ObjectHideFlags: 0
@@ -214,7 +264,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.37019402, g: 0.39866152, b: 0.4433962, a: 0}
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -348,8 +398,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SerializedData:
-    mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
-    material: {fileID: 2100000, guid: 42e178f0b6d294f1cb4e0c13ae07f1f8, type: 2}
+    mesh: {fileID: 4300004, guid: 9ddab293e2a8af3499dac05f5fd6169c, type: 3}
+    material: {fileID: 2100000, guid: 018627a9baccfcc4ebadae31bfeba3de, type: 2}
     castShadows: 1
     receiveShadows: 1
 --- !u!114 &810341803
@@ -516,8 +566,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SerializedData:
-    mesh: {fileID: 4300000, guid: 36b9185e8239a874c80cc1e74520eb36, type: 3}
-    material: {fileID: 2100000, guid: b78417893dd51443aac36a699b0a02b9, type: 2}
+    mesh: {fileID: 4300002, guid: d9808401c68af274a8edfbed3d1b53c7, type: 3}
+    material: {fileID: 2100000, guid: e4716517faf36e841bfbe96ea40ed616, type: 2}
     castShadows: 1
     receiveShadows: 1
 --- !u!114 &1135269815
@@ -686,7 +736,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_Color: {r: 0.8113208, g: 0.8113208, b: 0.8113208, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -742,10 +792,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SerializedData:
-    mesh: {fileID: 4300000, guid: c4f8ab5610007da4db316c2391e994fe, type: 3}
-    material: {fileID: 2100000, guid: 32bf30f90a6a049be8fb2aca13ddebb6, type: 2}
-    castShadows: 1
-    receiveShadows: 1
+    mesh: {fileID: 4300010, guid: a90544ebf3b75f448b7c5050d823ee4d, type: 3}
+    material: {fileID: 2100000, guid: 3b62b7f6cf83b444a9efcdf896d83ffe, type: 2}
+    castShadows: 0
+    receiveShadows: 0
 --- !u!114 &1730901641
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -873,10 +923,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SerializedData:
-    mesh: {fileID: 4300000, guid: c4f8ab5610007da4db316c2391e994fe, type: 3}
-    material: {fileID: 2100000, guid: 9943fd098bfb84e1a8f79ca1b6ad9fd2, type: 2}
-    castShadows: 1
-    receiveShadows: 1
+    mesh: {fileID: 4300000, guid: a90544ebf3b75f448b7c5050d823ee4d, type: 3}
+    material: {fileID: 2100000, guid: 3b62b7f6cf83b444a9efcdf896d83ffe, type: 2}
+    castShadows: 0
+    receiveShadows: 0
 --- !u!114 &1807246247
 MonoBehaviour:
   m_ObjectHideFlags: 0

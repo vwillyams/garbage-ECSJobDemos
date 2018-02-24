@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Msagl.Core.Layout;
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Entities;
@@ -31,7 +32,6 @@ namespace UnityEngine.ECS.Tests
             }
         }
         
-        
         [Test]
         public void JobProcessSimple()
         {
@@ -42,7 +42,7 @@ namespace UnityEngine.ECS.Tests
             
             Assert.AreEqual(42, m_Manager.GetComponentData<EcsTestData2>(entity).value1);
         }
-        
+                
         [Test]
         public void JobProcessComponentGroupCorrect()
         {
@@ -58,16 +58,33 @@ namespace UnityEngine.ECS.Tests
             Assert.IsTrue(EmptySystem.ComponentGroups[0].CompareComponents(expectedTypes));
             Assert.AreEqual(group, EmptySystem.ComponentGroups[0]);
         }
-        
-        [Test]
-        public void JobProcessStress_1()
+
+        public enum ProcessMode
+        {
+            Single,
+            Parallel,
+            Run
+        }
+
+        void Schedule<T>(ProcessMode mode) where T : struct, IBaseJobProcessComponentData
+        {
+            if (mode == ProcessMode.Parallel)
+                new T().Schedule(EmptySystem, 13).Complete();
+            else if (mode == ProcessMode.Run)
+                new T().Run(EmptySystem);
+            else 
+                new T().Schedule(EmptySystem).Complete();
+        }
+
+        [Theory]
+        public void JobProcessStress_1(ProcessMode mode)
         {
             var archetype = m_Manager.CreateArchetype(typeof(EcsTestData));
 
             var entities = new NativeArray<Entity>(StressTestEntityCount, Allocator.Temp);
             m_Manager.CreateEntity(archetype, entities);
 
-            new Process1().Schedule(EmptySystem, 13).Complete();
+            Schedule<Process1>(mode);
 
             for (int i = 0; i < entities.Length; i++)
                 Assert.AreEqual(1, m_Manager.GetComponentData<EcsTestData>(entities[i]).value);
@@ -75,8 +92,8 @@ namespace UnityEngine.ECS.Tests
             entities.Dispose();
         }
         
-        [Test]
-        public void JobProcessStress_2()
+        [Theory]
+        public void JobProcessStress_2(ProcessMode mode)
         {
             var archetype = m_Manager.CreateArchetype(typeof(EcsTestData), typeof(EcsTestData2));
 
@@ -86,7 +103,7 @@ namespace UnityEngine.ECS.Tests
             for (int i = 0;i<entities.Length;i++)
                 m_Manager.SetComponentData(entities[i], new EcsTestData(i));
 
-            new Process2().Schedule(EmptySystem, 13).Complete();
+            Schedule<Process2>(mode);
 
             for (int i = 0; i < entities.Length; i++)
                 Assert.AreEqual(i, m_Manager.GetComponentData<EcsTestData2>(entities[i]).value1);
@@ -94,8 +111,8 @@ namespace UnityEngine.ECS.Tests
             entities.Dispose();
         }
 
-        [Test]
-        public void JobProcessStress_3()
+        [Theory]
+        public void JobProcessStress_3(ProcessMode mode)
         {
             var archetype = m_Manager.CreateArchetype(typeof(EcsTestData), typeof(EcsTestData2), typeof(EcsTestData3));
 
@@ -104,7 +121,7 @@ namespace UnityEngine.ECS.Tests
             for (int i = 0;i<entities.Length;i++)
                 m_Manager.SetComponentData(entities[i], new EcsTestData(i));
 
-            new Process3().Schedule(EmptySystem, 13).Complete();
+            Schedule<Process3>(mode);
 
             for (int i = 0; i < entities.Length; i++)
             {

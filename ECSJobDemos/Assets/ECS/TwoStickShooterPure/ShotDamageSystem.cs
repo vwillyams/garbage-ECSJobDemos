@@ -58,6 +58,7 @@ namespace TwoStickPureExample
         }
         [Inject] EnemyShotData m_EnemyShots;
 
+        [ComputeJobOptimization]
         struct CollisionJob : IJobParallelFor
         {
             public float CollisionRadiusSquared;

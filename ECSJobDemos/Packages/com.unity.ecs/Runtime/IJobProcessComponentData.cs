@@ -34,12 +34,6 @@ namespace Unity.Entities
         }
     }
 
-
-    public interface IAutoComponentSystemJob
-    {
-        void Prepare();
-    }
-
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public interface IBaseJobProcessComponentData
     {
@@ -636,37 +630,6 @@ namespace Unity.Entities
                     ExecuteInnerLoop(ref jobData, 0, jobData.Iterator.m_Length);
                 }
             }
-        }
-    }
-
-    public class GenericProcessComponentSystem<TJob, TComponentData0> : JobComponentSystem
-        where TJob : struct, IAutoComponentSystemJob, IJobProcessComponentData<TComponentData0>
-        where TComponentData0 : struct, IComponentData
-    {
-        protected override JobHandle OnUpdate(JobHandle inputDeps)
-        {
-            const int batchSize = 32;
-
-            var jobData = default(TJob);
-            jobData.Prepare();
-
-            return JobProcessComponentDataExtensions.ScheduleInternal_1(ref jobData, this, batchSize, inputDeps, ScheduleMode.Batched);
-        }
-    }
-
-    public class GenericProcessComponentSystem<TJob, TComponentData0, TComponentData1> : JobComponentSystem
-        where TJob : struct, IAutoComponentSystemJob, IJobProcessComponentData<TComponentData0, TComponentData1>
-        where TComponentData0 : struct, IComponentData
-        where TComponentData1 : struct, IComponentData
-    {
-        protected override JobHandle OnUpdate(JobHandle inputDeps)
-        {
-            const int batchSize = 32;
-
-            var jobData = default(TJob);
-            jobData.Prepare();
-
-            return JobProcessComponentDataExtensions.ScheduleInternal_2(ref jobData, this, batchSize, inputDeps, ScheduleMode.Batched);
         }
     }
 }

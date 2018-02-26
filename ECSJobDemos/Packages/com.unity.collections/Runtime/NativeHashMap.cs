@@ -422,7 +422,6 @@ namespace Unity.Collections
 		static unsafe public bool TryGetFirstValueAtomic(NativeHashMapData* data, TKey key, out TValue item, out NativeMultiHashMapIterator<TKey> it)
 		{
 			it.key = key;
-
             if (data->allocatedIndexLength <= 0)
 			{
 				it.EntryIndex = it.NextEntryIndex = -1;

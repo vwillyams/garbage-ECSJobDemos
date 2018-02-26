@@ -1,10 +1,10 @@
 {
-    "name": "Unity.Core.Editor.Tests",
+    "name": "Unity.Entities.Editor.Tests",
     "references": [
-        "Unity.Core",
-        "Unity.Core.Editor",
+        "Unity.Entities",
+        "Unity.Entities.Editor",
         "Unity.Collections",
-        "Unity.Core.Tests"
+        "Unity.Entities.Tests"
     ],
     "optionalUnityReferences": [
         "TestAssemblies"

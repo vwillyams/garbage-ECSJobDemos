@@ -1,7 +1,7 @@
 {
     "name": "UnityEngine.ECS.Boids",
     "references": [
-        "Unity.Core",
+        "Unity.Entities",
         "UnityEngine.ECS.SimpleBounds",
         "UnityEngine.ECS.SimpleRotation",
         "UnityEngine.ECS.SimpleSpatialQuery",

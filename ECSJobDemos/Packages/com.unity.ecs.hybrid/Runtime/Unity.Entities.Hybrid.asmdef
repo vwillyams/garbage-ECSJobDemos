@@ -1,8 +1,9 @@
 {
-    "name": "Unity.Core",
+    "name": "Unity.Entities.Hybrid",
     "references": [
+        "Unity.Entities",
         "Unity.Collections",
-        "Unity.Burst"
+        "Unity.Jobs"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],

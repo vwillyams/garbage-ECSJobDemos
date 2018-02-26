@@ -3,7 +3,7 @@ using System.Reflection;
 using Boo.Lang;
 using Unity.Collections.LowLevel.Unsafe;
 
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Unity.Core.Tests")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Unity.Entities.Tests")]
 
 namespace Unity.Entities
 {

@@ -21,17 +21,37 @@ How do you bootstrap your game when using ECS? After all, you need something to 
 those initial entities in the system before anything can update.
 
 One simple answer is to just run some code when the project starts playing. In this project,
-there's a class `TwoStickMain` which comes with two methods. The first one initializes early,
-and creates the core `EntityManager` we're going to use to interact with ECS.
+there's a class `TwoStickBootsrap` which comes with two methods. The first one initializes
+early and creates the core `EntityManager` we're going to use to interact with ECS.
 
 Overall, here's what the bootstrapping code achieves:
 
 * It creates an _entity manager_, a key ECS abtraction we use to create and modify
   entities and their components
+
 * It creates _archetypes_, which you can think of as blueprints for what components
   will be attached to an entity later on when it is instantiated. This step is optional,
   but avoids reallocating memory and moving objects later when they are spawned, because
   they will be created with the correct memory layout right away. 
+
+* It pulls out some prototypes and settings from the scene.
+
+### Scene Data
+
+Pure ECS data isn't supported in a great way in the editor yet, so we'll take two
+approaches in the interim to configure our game:
+
+1. For things like asset references, we'll create a couple of _prototype_ game objects
+   in the scene, where we can add wrapped `IComponentData` types. This is the approach
+   we've taken to customize the appearance of the hero and the shots. Once we've fished
+   out the configuration, we can discard these prototype objects.
+   
+2. For "bags of settings", it's convenient to retain a traditional Unity component on an
+   empty game object, because that allows you to tweak the values in play mode. The
+   example project uses a component `TwoStickExampleSettings` for this purpose which we
+   put on an empty game object called `Settings`. This allows us to fetch the component
+   and keep it around globally in our app as well as to receive updates when values are
+   tweaked.
   
 ### Archetypes
 
@@ -112,6 +132,9 @@ We need a few data transformations to happen to render a frame.
 
 ### Player Input, Movement and Shooting
 
+It's worth calling out that multiplayer concerns are front and center in an ECS style:
+we always have an array of players.
+
 `PlayerInputSystem` is responsible for fetching input from the regular Unity input API and
 inserting that data into a `PlayerInput` component. It also counts down the _fire cooldown_,
 that is, the waiting period before the player can fire again.
@@ -134,84 +157,82 @@ architecture.
 
 ### Enemy Spawning, Moving and Shooting
 
-TODO sections:
-* We need to sometimes spawn new enemies (`EnemySpawnSystem`)
-* The enemies need to move (`EnemyMoveSystem`)
-* The enemies need to shoot (`EnemyShootSystem`)
-* We need to spawn new shots based on player or enemy action (`ShotSpawnSystem`)
-* We need a way to clean up old shots when they time out (`ShotDestroySystem`)
-* We need to deal damage from shots (`ShotDamageSystem`)
-* We need to cull any entities that no health left (`RemoveDeadSystem`)
-* We need to push some data to the UI objects (`UpdatePlayerHUD`)
+It wouldn't be a very challenging game without enemies shooting back at you, so naturally
+there are a few systems dedicated to this.
 
+Of the enemy systems, the most interesting one is the spawning system. It needs to keep
+track of when to spawn an enemy, but we don't want to put that state in the system itself.
+One of the design principles of ECS is that it shouldn't prevent you from recording
+component state and playing it back later to reconstruct a scene. So storing a bunch of
+state variables that carry meaning from frame to frame will break that contract.
 
-## Post 2: Shooting
+The spawning system instead stores it state in a singleton component, attached to a
+singleton entity. We create the entity and the initial values for this component in
+a setup function `EnemySpawner.SetupComponentData()`. Here we also initialize a random
+seed and store that along with the rest of the data, so that games will predictably spawn
+enemies in the same pattern every time, regardless of frame rate or if something fancy like
+state replay is happening.
 
-(Based on commit `954d2aa7157f4c16aeb274ec69b715b724704dfb`)
+Inside the system, due to `ref return` not being implemented yet, we have to take a copy
+of our system's state from the singular `State` array, and then when we've modified it for
+next frame, we store it back in to the component.
 
-We need our hero to shoot bullets against the hordes of enemies we'll be adding next.
+This may look like a lot of boilerplate (and it is) but it's also kind interesting to think
+about this in a different way. What if we renamed `State` to `Wave` and update more than one
+of them at a time, orchestrated by some other system? We would get multiple simultaneous
+waves spawning and updating in concert. ECS makes these sort of transformations much easier
+and cleaner than if we had used global data attached to the system. 
 
-### Accessing Configuration Data
+Another quirk is that we have to put off actually spawning an entity until we've completed
+the above step of storing back our component state, because touching the entity manager will
+immediately invalidate all injected arrays (including the one where our state is kept!) Our
+solution to this is command buffers (via `EntityCommandBuffer` - but command buffers don't
+yet support `ISharedComponentData` which is needed here to set the rendered look.)
 
-First, let's clean up interfacing the parameters of things like player movement, bullet time-to-live and similar things into the Unity editor where we can tweak them.
+So why worry about this when it would be simpler to just put the random number generator
+state in the system? Sometimes you need a
+container to keep state between a few jobs and then reset it each frame, and that's OK,
+but the general rule should be to put things in components.
 
-Pure ECS data isn't supported in a great way in the editor yet, so we'll take two approaches in the interim to configure our game:
+Enemies move automatically using the stock `MoveForward` component, so that's taken
+care of.
 
-1. For things like asset references, we'll create a couple of _prototype_ game objects in the scene, where we can add wrapped `IComponentData` types. This is the approach we've taken to customize the appearance of the hero and the shots. Once we've fished out the configuration, we can discard these prototype objects.
+We need them to shoot however, and `EnemyShootSystem` does just that. It creates
+entities with `ShotSpawnData` data on them which will be converted to shots later, together
+with any player shots.
 
-2. For "bags of settings", it's convenient to retain a traditional Unity component on an empty game object, because that allows you to tweak the values in play mode. The example project uses a component `TwoStickExampleSettings` for this purpose which we put on an empty game object called `Settings`. This allows us to fetch the component and keep it around globally in our app as well as to receive updates when values are tweaked.
+Finally we also need a way to get rid of enemies that go off screen. `EnemyRemovalSystem`
+goes through all enemy positions and kills off-screen enemies by setting their health to -1.
 
-### Spawning Shots
+### Handling Shots
 
-In this design, when the player shoots, it doesn't directly create a shot entity. The reason is that we wanted to create all the shots centrally, all at once. Therefore, when the player fires we create a new entity and attach a `ShotSpawnData` on it. This records where the shot should appear, it's life time and a few other parameters, but nothing _happens_ right away. You can think of this pattern as a type of event.
+`ShotSpawnSystem` deals with creating actual shots from the requests dropped into the ECS by
+players and enemies. This is a simple straight forward affair that just loops over all 
+`ShotSpawnData` and converts them into shots.
 
-Next, the `ShotSpawnSystem` picks up any shot spawn requests and repurposes the entity. It removes the `ShotSpawnData` and adds the components that are required to make the entity a simulating shot, well as the instance rendering information.
+More interesting is `ShotDamageSystem` which intersects bullets with targets and deals
+damage. This uses 4 injected groups:
 
-Shots all move in batch via the `ShotMoveSystem`. This simply does linear movement of the shots.
+* Players
+* Shots fired by players
+* Enemies
+* Shots fired by enemies
 
-Finally, the `ShotDestroySystem` is responsible for decrementing the time-to-live on shots and destroys the shots that have expired.
+This way it can kick off two jobs:
 
-## Post 3: Enemies!
+* Players vs Enemy Shots
+* Enemies vs Player Shots
 
-(Based on commit `43d97bc6c8c4f95f3e24beffdb1486ede044a8a6`)
+It uses a very simplistic point against circle collision test.
 
-We need something for our hero to shoot at, so next we'll be adding some enemies.
+We also need to get rid of shots that don't hit anything and just fly off. When their time to
+live goes to zero, we let `ShotDestroySystem` remove them.
 
-First let's define what data an enemy needs to carry around. For this simple example, all we really need to keep track of is the health of the enemy. The combination of health, a 2D transform and a 3D matrix for rendering is enough to start moving some enemies across the screen. We'll need more data later to make them shoot and move in formation, but this will do for now.
+### Final Pieces
 
-There are three systems that deal with enemies:
+We need something that culls dead objects from the world, and `RemoveDeadSystem` does just
+that.
 
-* `EnemySpawnSystem` will spawn new enemies in random locations
-* `EnemyMoveSystem` simply moves enemies across the screen and flags them for destruction when they go too far out of bounds
-* `EnemyDestroySystem` will (unsurprisingly) destroy enemies that have a zero or negative health
+Finally, we want to display some data about the player's health on the screen
+and `UpdatePlayerHUD` accomplishes this task.
 
-In this ECS design, when we interact with the `EntityManager` to create or destroy entities, we're using a main thread `ComponentSystem` class. The movement code however can run in jobs as it doesn't interface with the entity manager, and therefore it can be a `JobComponentSystem`.
-
-### Spawning, ECS style
-
-Of the three systems, the most interesting one is the spawning system. It needs to keep track of when to spawn an enemy, but we don't want to put that state in the system itself. One of the design principles of ECS is that it shouldn't prevent you from recording component state and playing it back later to reconstruct a scene. So storing a bunch of state variables that carry meaning from frame to frame will break that contract.
-
-The spawning system instead stores it state in a singleton component, attached to a singleton entity. We create the entity and the initial values for this component in `OnCreateManager`. Here we also initialize a random seed and store that along with the rest of the data, so that games will predictably spawn enemies in the same pattern every time, regardless of frame rate or if something fancy like state replay is happening.
-
-Due to `ref return` not being implemented yet, we have to take a copy of our system's state from the singular `State` array, and then when we've modified it for next frame, we store it back in to the component.
-
-A further quirk is that we have to put off actually spawning an entity until we've completed the above step of storing back our component state, because touching the entity manager will immediately invalidate all injected arrays (including the one where our state is kept!)
-
-This may look like a lot of boilerplate (and it is) but it's also kind interesting to think about this in a different way. What if we renamed `State` to `Wave` and update more than one of them at a time, orchestrated by some other system? We would get multiple simultaneous waves spawning and updating in concert. ECS makes these sort of transformations much easier and cleaner than if we had used global data attached to the system.
-
-## Post 4: Shooting and Damage
-
-(Based on commit `31cb6bdd133f01fd9185d851406c720aa78c22e1`)
-
-To get some bullets flying from enemies, we add a system that deals with a cooldown time for each enemy, and creates `ShotSpawnData` when it needs to shoot. We use the player position (of the first player!) to aim. It's worth calling out that multiplayer concerns are front and center in an ECS style: we always have an array of players.
-
-That wasn't too bad - but now we need to start making sense of the gameplay of shooting bullets around. To track that, we'll introduce the contept of a `Health` component, which is simply a number. We define that entities with a zero health component should be deleted, and repurpose the system that destroyed off screen enemies to just remove anything that has a zero health. This will include players too!
-
-The other concept we need is that of a `Faction`, which is just an integer of 0 (meaning "players") or 1 (meaning "enemies"). This is because we don't want shots spawned from the player to hurt the player, and vice versa.
-
-Now we're ready to put it all together and deal damage in the `DamageSystem`. This is a very simple, unoptimized affair that collides all shots against anything that can be damaged. It's worth while noting that logical concepts appear in the code, without having a concrete class they belong to:
-
-* In `DamageSystem`, a _receiver_ is something that has `Health`, `Faction` and `Transform2D`
-* In `DestroyDead` system, what we operate on is the concept of something having just a `Health` component.
-
-The final piece of the flair for this post is to display the player's health on the screen, as the game ends when they are destroyed. For this, we have to reach outside the ECS and use a UI component.

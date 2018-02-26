@@ -8,8 +8,7 @@ namespace TwoStickPureExample
 {
     class EnemySpawnSystem : ComponentSystem
     {
-
-        public struct State
+        struct State
         {
             public int Length;
             public ComponentDataArray<EnemySpawnCooldown> Cooldown;
@@ -17,6 +16,23 @@ namespace TwoStickPureExample
         }
 
         [Inject] State m_State;
+
+        public static void SetupComponentData(EntityManager mgr)
+        {
+            var entityManager = World.Active.GetOrCreateManager<EntityManager>();
+            var arch = entityManager.CreateArchetype(typeof(EnemySpawnCooldown), typeof(EnemySpawnSystemState));
+            var stateEntity = entityManager.CreateEntity(arch);
+            var oldState = Random.state;
+            Random.InitState(0xaf77);
+            entityManager.SetComponentData(stateEntity, new EnemySpawnCooldown { Value = 0.0f });
+            entityManager.SetComponentData(stateEntity, new EnemySpawnSystemState
+            {
+                SpawnedEnemyCount = 0,
+                RandomState = Random.state
+            });
+            Random.state = oldState;
+        }
+
 
         protected override void OnUpdate()
         {

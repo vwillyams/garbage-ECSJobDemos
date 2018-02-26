@@ -18,12 +18,23 @@ namespace Unity.Collections
 	[StructLayout (LayoutKind.Sequential)]
 	internal unsafe struct NativeHashMapData
 	{
+	    public static int ceilPow2(int i)
+	    {
+	        i -= 1;
+	        i |= i >> 1;
+	        i |= i >> 2;
+	        i |= i >> 4;
+	        i |= i >> 8;
+	        i |= i >> 16;
+	        return i + 1;
+	    }
+
 		public byte*            values;
 		public byte*	        keys;
 		public byte*	        next;
 		public byte*            buckets;
 		public int				capacity;
-		public int				bucketCapacity;
+		public int				bucketCapacityMask; // = bucket capacity - 1
 		// Add padding between fields to ensure they are on separate cache-lines
 		private fixed byte 		padding1[60];
         public fixed int firstFreeTLS[JobsUtility.MaxJobThreadCount * IntsPerCacheLine];
@@ -59,8 +70,10 @@ namespace Unity.Collections
 
 		    NativeHashMapData* data = (NativeHashMapData*)UnsafeUtility.Malloc (sizeof(NativeHashMapData), UnsafeUtility.AlignOf<NativeHashMapData>(), label);
 
+		    bucketLength = ceilPow2(bucketLength);
+
 			data->capacity = length;
-			data->bucketCapacity = bucketLength;
+			data->bucketCapacityMask = bucketLength - 1;
 
 			int keyOffset, nextOffset, bucketOffset;
 			int totalSize = CalculateDataSize<TKey, TValue>(length, bucketLength, out keyOffset, out nextOffset, out bucketOffset);
@@ -76,7 +89,9 @@ namespace Unity.Collections
 			where TKey : struct
 			where TValue : struct
 		{
-			if (data->capacity == newCapacity && data->bucketCapacity == newBucketCapacity)
+		    newBucketCapacity = ceilPow2(newBucketCapacity);
+
+			if (data->capacity == newCapacity && (data->bucketCapacityMask + 1) == newBucketCapacity)
 				return;
 
 			if (data->capacity > newCapacity)
@@ -100,7 +115,7 @@ namespace Unity.Collections
 			// re-hash the buckets, first clear the new bucket list, then insert all values from the old list
 			for (int bucket = 0; bucket < newBucketCapacity; ++bucket)
 				((int*)newBuckets)[bucket] = -1;
-			for (int bucket = 0; bucket < data->bucketCapacity; ++bucket)
+			for (int bucket = 0; bucket <= data->bucketCapacityMask; ++bucket)
 			{
 				int* buckets = (int*)data->buckets;
 				int* nextPtrs = (int*)newNext;
@@ -108,7 +123,7 @@ namespace Unity.Collections
 				{
 					int curEntry = buckets[bucket];
 					buckets[bucket] = nextPtrs[curEntry];
-					int newBucket = Math.Abs(UnsafeUtility.ReadArrayElement<TKey> (data->keys, curEntry).GetHashCode()) % newBucketCapacity;
+					int newBucket = Math.Abs(UnsafeUtility.ReadArrayElement<TKey> (data->keys, curEntry).GetHashCode()) & (newBucketCapacity-1);
 					nextPtrs[curEntry] = ((int*)newBuckets)[newBucket];
 					((int*)newBuckets)[newBucket] = curEntry;
 				}
@@ -122,7 +137,7 @@ namespace Unity.Collections
 			data->next = newNext;
 			data->buckets = newBuckets;
 			data->capacity = newCapacity;
-			data->bucketCapacity = newBucketCapacity;
+			data->bucketCapacityMask = newBucketCapacity - 1;
 		}
 		public unsafe static void DeallocateHashMap(NativeHashMapData* data, Allocator allocation)
 		{
@@ -163,7 +178,7 @@ namespace Unity.Collections
 		static unsafe public void Clear(NativeHashMapData* data)
 		{
 			int* buckets = (int*)data->buckets;
-			for (int i = 0; i < data->bucketCapacity; ++i)
+			for (int i = 0; i <= data->bucketCapacityMask; ++i)
 				buckets[i] = -1;
 			int* nextPtrs = (int*)data->next;
 			for (int i = 0; i < data->capacity; ++i)
@@ -232,11 +247,11 @@ namespace Unity.Collections
 			nextPtrs[idx] = -1;
 			return idx;
 		}
-		static unsafe public bool TryAddAtomic(NativeHashMapData* data, TKey key, TValue item, bool isMultiHashMap, int threadIndex)
+		static unsafe public bool TryAddAtomic(NativeHashMapData* data, TKey key, TValue item, int threadIndex)
 		{
 			TValue tempItem;
 			NativeMultiHashMapIterator<TKey> tempIt;
-			if (!isMultiHashMap && TryGetFirstValueAtomic(data, key, out tempItem, out tempIt))
+			if (TryGetFirstValueAtomic(data, key, out tempItem, out tempIt))
 				return false;
 			// Allocate an entry from the free list
 			int idx = AllocEntry(data, threadIndex);
@@ -245,7 +260,7 @@ namespace Unity.Collections
 			UnsafeUtility.WriteArrayElement (data->keys, idx, key);
 			UnsafeUtility.WriteArrayElement (data->values, idx, item);
 
-			int bucket = Math.Abs(key.GetHashCode()) % data->bucketCapacity;
+			int bucket = key.GetHashCode() & data->bucketCapacityMask;
 			// Add the index to the hash-map
 			int* buckets = (int*)data->buckets;
 			if (Interlocked.CompareExchange(ref buckets[bucket], idx, -1) != -1)
@@ -254,7 +269,7 @@ namespace Unity.Collections
 				do
 				{
 					nextPtrs[idx] = buckets[bucket];
-					if (!isMultiHashMap && TryGetFirstValueAtomic(data, key, out tempItem, out tempIt))
+					if (TryGetFirstValueAtomic(data, key, out tempItem, out tempIt))
 					{
 						// Put back the entry in the free list if someone else added it while trying to add
 						do
@@ -270,7 +285,36 @@ namespace Unity.Collections
 			}
 			return true;
 		}
-		static unsafe public bool TryAdd(NativeHashMapData* data, TKey key, TValue item, bool isMultiHashMap, Allocator allocation)
+
+	    static unsafe public bool TryAddAtomicMulti(NativeHashMapData* data, TKey key, TValue item, int threadIndex)
+	    {
+	        TValue tempItem;
+	        NativeMultiHashMapIterator<TKey> tempIt;
+	        // Allocate an entry from the free list
+	        int idx = AllocEntry(data, threadIndex);
+
+	        // Write the new value to the entry
+	        UnsafeUtility.WriteArrayElement (data->keys, idx, key);
+	        UnsafeUtility.WriteArrayElement (data->values, idx, item);
+
+	        int bucket = key.GetHashCode() & data->bucketCapacityMask;
+	        // Add the index to the hash-map
+	        int* buckets = (int*)data->buckets;
+
+	        int nextPtr;
+	        int* nextPtrs = (int*)data->next;
+	        do
+            {
+                nextPtr = buckets[bucket];
+                nextPtrs[idx] = nextPtr;
+            }
+            while (Interlocked.CompareExchange(ref buckets[bucket], idx, nextPtr) != nextPtr);
+
+
+	        return true;
+	    }
+
+	    static unsafe public bool TryAdd(NativeHashMapData* data, TKey key, TValue item, bool isMultiHashMap, Allocator allocation)
 		{
 			TValue tempItem;
 			NativeMultiHashMapIterator<TKey> tempIt;
@@ -315,7 +359,7 @@ namespace Unity.Collections
 			UnsafeUtility.WriteArrayElement (data->keys, idx, key);
 			UnsafeUtility.WriteArrayElement (data->values, idx, item);
 
-			int bucket = Math.Abs(key.GetHashCode()) % data->bucketCapacity;
+			int bucket = key.GetHashCode() & data->bucketCapacityMask;
 			// Add the index to the hash-map
 			int* buckets = (int*)data->buckets;
 			nextPtrs = (int*)data->next;
@@ -331,7 +375,7 @@ namespace Unity.Collections
 			// First find the slot based on the hash
 			int* buckets = (int*)data->buckets;
 			int* nextPtrs = (int*)data->next;
-			int bucket = Math.Abs(key.GetHashCode()) % data->bucketCapacity;
+			int bucket = key.GetHashCode() & data->bucketCapacityMask;
 
 			int prevEntry = -1;
 			int entryIdx = buckets[bucket];
@@ -365,7 +409,7 @@ namespace Unity.Collections
 			// First find the slot based on the hash
 			int* buckets = (int*)data->buckets;
 			int* nextPtrs = (int*)data->next;
-			int bucket = Math.Abs(it.key.GetHashCode()) % data->bucketCapacity;
+			int bucket = it.key.GetHashCode() & data->bucketCapacityMask;
 
 			int entryIdx = buckets[bucket];
 			if (entryIdx == it.EntryIndex)
@@ -388,7 +432,8 @@ namespace Unity.Collections
 		static unsafe public bool TryGetFirstValueAtomic(NativeHashMapData* data, TKey key, out TValue item, out NativeMultiHashMapIterator<TKey> it)
 		{
 			it.key = key;
-			if (data->allocatedIndexLength <= 0)
+
+            if (data->allocatedIndexLength <= 0)
 			{
 				it.EntryIndex = it.NextEntryIndex = -1;
 				item = default(TValue);
@@ -396,7 +441,7 @@ namespace Unity.Collections
 			}
 			// First find the slot based on the hash
 			int* buckets = (int*)data->buckets;
-			int bucket = Math.Abs(key.GetHashCode()) % data->bucketCapacity;
+			int bucket = key.GetHashCode() & data->bucketCapacityMask;
 			it.EntryIndex = it.NextEntryIndex = buckets[bucket];
 			return TryGetNextValueAtomic(data, out item, ref it);
 		}
@@ -602,7 +647,7 @@ namespace Unity.Collections
 				#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 				#endif
-				return NativeHashMapBase<TKey, TValue>.TryAddAtomic((NativeHashMapData*)m_Buffer, key, item, false, m_ThreadIndex);
+				return NativeHashMapBase<TKey, TValue>.TryAddAtomic((NativeHashMapData*)m_Buffer, key, item, m_ThreadIndex);
 			}
 		}
 	}
@@ -793,7 +838,7 @@ namespace Unity.Collections
 				#if ENABLE_UNITY_COLLECTIONS_CHECKS
 				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 				#endif
-				NativeHashMapBase<TKey, TValue>.TryAddAtomic((NativeHashMapData*)m_Buffer, key, item, true, m_ThreadIndex);
+				NativeHashMapBase<TKey, TValue>.TryAddAtomicMulti((NativeHashMapData*)m_Buffer, key, item, m_ThreadIndex);
 			}
 		}
 	}

@@ -7,6 +7,12 @@
 
 * Can now create entities/components from jobs and merge them into
   the world later via command buffers from injected `BarrierSystem`s
+  
+* `NativeArraySharedValues<T>` for creating index tables of shared/unique values in a NativeArray.
+* `NearestTargetPositionSystem<TNearestTarget,TTarget>` demonstrates how to use generics in JobComponentSystem
+* `CopyComponentData<TSource,TDestination>` utility to copy ISingleValue ComponentData to NativeArray
+
+
 
 # 0.0.3
 

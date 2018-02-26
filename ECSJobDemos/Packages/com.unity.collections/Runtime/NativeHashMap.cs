@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs.LowLevel.Unsafe;
+using Unity.Mathematics;
 
 namespace Unity.Collections
 {
@@ -18,17 +19,6 @@ namespace Unity.Collections
 	[StructLayout (LayoutKind.Sequential)]
 	internal unsafe struct NativeHashMapData
 	{
-	    public static int ceilPow2(int i)
-	    {
-	        i -= 1;
-	        i |= i >> 1;
-	        i |= i >> 2;
-	        i |= i >> 4;
-	        i |= i >> 8;
-	        i |= i >> 16;
-	        return i + 1;
-	    }
-
 		public byte*            values;
 		public byte*	        keys;
 		public byte*	        next;
@@ -70,7 +60,7 @@ namespace Unity.Collections
 
 		    NativeHashMapData* data = (NativeHashMapData*)UnsafeUtility.Malloc (sizeof(NativeHashMapData), UnsafeUtility.AlignOf<NativeHashMapData>(), label);
 
-		    bucketLength = ceilPow2(bucketLength);
+		    bucketLength = math.ceil_pow2(bucketLength);
 
 			data->capacity = length;
 			data->bucketCapacityMask = bucketLength - 1;
@@ -89,7 +79,7 @@ namespace Unity.Collections
 			where TKey : struct
 			where TValue : struct
 		{
-		    newBucketCapacity = ceilPow2(newBucketCapacity);
+		    newBucketCapacity = math.ceil_pow2(newBucketCapacity);
 
 			if (data->capacity == newCapacity && (data->bucketCapacityMask + 1) == newBucketCapacity)
 				return;

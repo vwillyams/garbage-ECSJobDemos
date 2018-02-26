@@ -20,6 +20,22 @@ namespace Unity.Mathematics
             return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
         }
 
+        /// <summary>
+        /// Returns the smallest power of two that is greater than or equal to the given integer
+        /// </summary>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        public static int ceil_pow2(int i)
+        {
+            i -= 1;
+            i |= i >> 1;
+            i |= i >> 2;
+            i |= i >> 4;
+            i |= i >> 8;
+            i |= i >> 16;
+            return i + 1;
+        }
+
         // Packs components with an enabled mask (LSB) to the left
         // The value of components after the last packed component are undefined.
         // Returns the number of enabled mask bits. (0 ... 4)
@@ -130,7 +146,7 @@ namespace Unity.Mathematics
         public static float3 nfence(float3 value) { return value; }
         [MethodImpl((MethodImplOptions)0x100)]
         public static float4 nfence(float4 value) { return value; }
-        
+
 #if false
 
         //@TODO: Complete all versions of this also, this implementation doesn't actaully do  msb(y) ? -x : x...

@@ -11,5 +11,5 @@
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": true
+	  "allowUnsafeCode": true
 }

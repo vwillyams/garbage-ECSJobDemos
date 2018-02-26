@@ -1,0 +1,16 @@
+{
+    "name": "Unity.Properties.Entities.Test",
+    "references": [
+        "Unity.Core",
+        "Unity.Mathematics",
+        "Unity.Properties",
+        "Unity.Jobs",
+        "Unity.Properties.Entities"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true
+}

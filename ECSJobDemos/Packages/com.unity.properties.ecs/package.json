@@ -1,0 +1,11 @@
+{
+  "name": "com.unity.properties.ecs",
+  "version": "0.0.1",
+  "unity": "2018.1",
+  "description": "ECS Support for Unity Properties",
+  "keywords": [
+    "ecs",
+    "properties",
+    "unity"
+  ]
+}

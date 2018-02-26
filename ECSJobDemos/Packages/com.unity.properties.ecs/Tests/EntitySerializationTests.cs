@@ -12,7 +12,7 @@ using Unity.Entities;
 using UnityEngine.Profiling;
 using Debug = UnityEngine.Debug;
 
-namespace Unity.Properties.Entities.Test
+namespace Unity.Properties.Entities.Tests
 {
     public struct TestComponent : IComponentData
     {

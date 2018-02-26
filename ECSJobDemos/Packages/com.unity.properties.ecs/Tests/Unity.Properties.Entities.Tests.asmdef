@@ -1,5 +1,5 @@
 {
-    "name": "Unity.Properties.Entities.Test",
+    "name": "Unity.Properties.Entities.Tests",
     "references": [
         "Unity.Core",
         "Unity.Mathematics",
@@ -9,6 +9,9 @@
     ],
     "optionalUnityReferences": [
         "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -1,3 +1,13 @@
+# Next Release
+
+## Changes
+
+* An `EntityCommandBuffer` that plays back automically after a `ComponentSystem`'s update is
+  available as `PostUpdateCommands`
+
+* Can now create entities/components from jobs and merge them into
+  the world later via command buffers from injected `BarrierSystem`s
+
 # 0.0.3
 
 ## Changes

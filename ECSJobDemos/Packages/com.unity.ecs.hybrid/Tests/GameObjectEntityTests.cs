@@ -1,10 +1,8 @@
-﻿using System;
-using NUnit.Framework;
-using Unity.Entities;
+﻿using NUnit.Framework;
 using Unity.Entities;
 using UnityEngine.ECS.Tests;
 
-namespace UnityEngine.ECS.Hybrid.Tests
+namespace UnityEngine.Entities.Tests
 {
 	public class GameObjectEntityTests : ECSTestsFixture
 	{

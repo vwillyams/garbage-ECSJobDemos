@@ -2,7 +2,7 @@
 
 namespace TwoStickPureExample
 {
-    public class TwoStickExampleSettings : MonoBehaviour
+    public class TwoStickSettings : MonoBehaviour
     {
         public float playerMoveSpeed = 15.0f;
         public float bulletMoveSpeed = 30.0f;

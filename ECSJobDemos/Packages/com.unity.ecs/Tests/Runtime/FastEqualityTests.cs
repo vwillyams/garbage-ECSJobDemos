@@ -43,6 +43,12 @@ namespace UnityEngine.ECS.Tests
         {
             double a;
             float b;
+
+            public EndPadding(double a, float b)
+            {
+                this.a = a;
+                this.b = b;
+            }
         }
         
         [StructLayout(LayoutKind.Sequential)]
@@ -128,7 +134,19 @@ namespace UnityEngine.ECS.Tests
             var layout = FastEquality.CreateLayout(typeof(int4));
                         
             Assert.IsTrue(FastEquality.Equals(new int4(1, 2, 3, 4), new int4(1, 2, 3, 4), layout));
-            Assert.IsTrue(FastEquality.Equals(new int4(1, 2, 3, 4), new int4(1, 2, 3, 5), layout));
+            Assert.IsFalse(FastEquality.Equals(new int4(1, 2, 3, 4), new int4(1, 2, 3, 5), layout));
+            Assert.IsFalse(FastEquality.Equals(new int4(1, 2, 3, 4), new int4(0, 2, 3, 4), layout));
+            Assert.IsFalse(FastEquality.Equals(new int4(1, 2, 3, 4), new int4(5, 6, 7, 8), layout));
+        }
+        
+        [Test]
+        public void EqualsPadding()
+        {
+            var layout = FastEquality.CreateLayout(typeof(EndPadding));
+            
+            Assert.IsTrue(FastEquality.Equals(new EndPadding(1, 2), new EndPadding(1, 2), layout));
+            Assert.IsFalse(FastEquality.Equals(new EndPadding(1, 2), new EndPadding(1, 3), layout));
+            Assert.IsFalse(FastEquality.Equals(new EndPadding(1, 2), new EndPadding(4, 2), layout));
         }
         
         [Test]

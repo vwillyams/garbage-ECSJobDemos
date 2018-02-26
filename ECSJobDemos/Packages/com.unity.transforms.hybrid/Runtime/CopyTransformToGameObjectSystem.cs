@@ -3,7 +3,7 @@ using Unity.Entities;
 using Unity.Jobs;
 using UnityEngine.Jobs;
 
-namespace Unity.Transforms.Hybrid
+namespace Unity.Transforms
 {
     [DisableSystemWhenEmpty]
     public class CopyTransformToGameObjectSystem : JobComponentSystem

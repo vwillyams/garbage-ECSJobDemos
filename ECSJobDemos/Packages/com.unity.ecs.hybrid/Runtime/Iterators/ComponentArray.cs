@@ -2,7 +2,6 @@
 using System.Reflection;
 
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Scripting;
 

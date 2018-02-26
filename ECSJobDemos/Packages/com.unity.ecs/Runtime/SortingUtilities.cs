@@ -29,9 +29,9 @@ namespace Unity.Entities
         }
 
     }
-    
-    struct NativeArraySharedValues<T> : IDisposable
-        where T : struct, IComparable
+
+    public struct NativeArraySharedValues<T> : IDisposable
+        where T : struct, IComparable<T>
     {
         private NativeArray<int> m_Buffer;
         [ReadOnly] private NativeArray<T> m_Source;
@@ -44,22 +44,24 @@ namespace Unity.Entities
             m_SortedBuffer = 0;
         }
 
+        [ComputeJobOptimization]
         struct InitializeIndices : IJobParallelFor
         {
             public NativeArray<int> buffer;
-            
+
             public void Execute(int index)
             {
                 buffer[index] = index;
             }
         }
 
+        [ComputeJobOptimization]
         struct MergeSortedPairs : IJobParallelFor
         {
             [NativeDisableParallelForRestriction] public NativeArray<int> buffer;
             [ReadOnly] public NativeArray<T> source;
             public int sortedCount;
-            public int outputBuffer; 
+            public int outputBuffer;
 
             public void Execute(int index)
             {
@@ -80,7 +82,7 @@ namespace Unity.Entities
                         var rightIndex = buffer[inputOffset + offset + leftCount + rightNext];
                         var leftValue = source[leftIndex];
                         var rightValue = source[rightIndex];
-                    
+
                         if (rightValue.CompareTo(leftValue) < 0)
                         {
                             buffer[outputOffset+ offset + i] = rightIndex;
@@ -107,7 +109,8 @@ namespace Unity.Entities
                 }
             }
         }
-        
+
+        [ComputeJobOptimization]
         struct MergeRemainderPair : IJob
         {
             public NativeArray<int> buffer;
@@ -115,7 +118,7 @@ namespace Unity.Entities
             public int leftCount;
             public int rightCount;
             public int startIndex;
-            public int outputBuffer; 
+            public int outputBuffer;
 
             public void Execute()
             {
@@ -134,7 +137,7 @@ namespace Unity.Entities
                         var rightIndex = buffer[inputOffset + offset + leftCount + rightNext];
                         var leftValue = source[leftIndex];
                         var rightValue = source[rightIndex];
-                    
+
                         if (rightValue.CompareTo(leftValue) < 0)
                         {
                             buffer[outputOffset+ offset + i] = rightIndex;
@@ -162,6 +165,7 @@ namespace Unity.Entities
             }
         }
 
+        [ComputeJobOptimization]
         struct CopyRemainder : IJobParallelFor
         {
             [NativeDisableParallelForRestriction] public NativeArray<int> buffer;
@@ -203,12 +207,12 @@ namespace Unity.Entities
                     rightCount = remainder-sortedCount,
                     outputBuffer = outputBuffer
                 };
-                
+
                 // There's no overlap, but write to the same array, so extra dependency:
                 var mergeRemainderPairJobHandle = mergeRemainderPairJob.Schedule(mergeSortedPairsJobHandle);
                 return mergeRemainderPairJobHandle;
             }
-            
+
             if (remainder > 0)
             {
                 var copyRemainderPairJob = new CopyRemainder
@@ -218,21 +222,22 @@ namespace Unity.Entities
                     source = m_Source,
                     outputBuffer = outputBuffer
                 };
-                
+
                 // There's no overlap, but write to the same array, so extra dependency:
                 var copyRemainderPairJobHandle = copyRemainderPairJob.Schedule(remainder,64,mergeSortedPairsJobHandle);
                 return copyRemainderPairJobHandle;
             }
-            
+
             return mergeSortedPairsJobHandle;
         }
-        
+
+        [ComputeJobOptimization]
         struct AssignSharedValues : IJob
         {
             public NativeArray<int> buffer;
             [ReadOnly] public NativeArray<T> source;
             public int sortedBuffer;
-            
+
             public void Execute()
             {
                 int sortedIndicesOffset = sortedBuffer * source.Length;
@@ -240,7 +245,7 @@ namespace Unity.Entities
                 int sharedValueIndexCountOffset = 2 * source.Length;
                 int sharedValueStartIndicesOffset = 3 * source.Length;
                 int sharedValueCountOffset = 4 * source.Length;
-                
+
                 int index = 0;
                 int valueIndex = buffer[sortedIndicesOffset + index];
                 var sharedValue = source[valueIndex];
@@ -267,14 +272,14 @@ namespace Unity.Entities
                         buffer[sharedValueIndexCountOffset + (sharedValueCount - 1)]++;
                         buffer[sharedValueIndicesOffset + valueIndex] = sharedValueCount - 1;
                     }
-                    
+
                     index++;
                 }
 
                 buffer[sharedValueCountOffset] = sharedValueCount;
             }
         }
-        
+
         JobHandle Sort(JobHandle inputDeps)
         {
             int sortedCount = 1;
@@ -301,9 +306,13 @@ namespace Unity.Entities
             var assignSharedValuesJobHandle = assignSharedValuesJob.Schedule(inputDeps);
             return assignSharedValuesJobHandle;
         }
-            
+
         public JobHandle Schedule(JobHandle inputDeps)
         {
+            if (m_Source.Length <= 1)
+            {
+                return inputDeps;
+            }
             var initializeIndicesJob = new InitializeIndices
             {
                 buffer = m_Buffer
@@ -316,7 +325,7 @@ namespace Unity.Entities
 
         public unsafe NativeArray<int> GetSortedIndices()
         {
-            int* rawIndices = ((int*) m_Buffer.GetUnsafePtr()) + (m_SortedBuffer * m_Source.Length);
+            int* rawIndices = ((int*) m_Buffer.GetUnsafeReadOnlyPtr()) + (m_SortedBuffer * m_Source.Length);
             var arr = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<int>(rawIndices,m_Source.Length,Allocator.Invalid);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref arr, NativeArrayUnsafeUtility.GetAtomicSafetyHandle(m_Buffer));
@@ -325,14 +334,14 @@ namespace Unity.Entities
         }
 
         public int SharedValueCount => m_Buffer[m_Source.Length * 4];
-        
+
         public NativeArray<int> GetSharedValueIndicesBySourceIndex(int index)
         {
             int sharedValueIndicesOffset = (m_SortedBuffer^ 1) * m_Source.Length;
             int sharedValueIndex = m_Buffer[sharedValueIndicesOffset + index];
             return GetSharedValueIndicesBySharedValueIndex(sharedValueIndex);
         }
-        
+
         public unsafe NativeArray<int> GetSharedValueIndicesBySharedValueIndex(int index)
         {
             int sharedValueIndexCountOffset = 2 * m_Source.Length;
@@ -341,7 +350,7 @@ namespace Unity.Entities
             int sharedValueStartIndex = m_Buffer[sharedValueStartIndicesOffset + index];
             int sortedValueOffset = m_SortedBuffer * m_Source.Length;
 
-            int* rawIndices = ((int*) m_Buffer.GetUnsafePtr()) + (sortedValueOffset + sharedValueStartIndex);
+            int* rawIndices = ((int*) m_Buffer.GetUnsafeReadOnlyPtr()) + (sortedValueOffset + sharedValueStartIndex);
             var arr = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<int>(rawIndices,sharedValueIndexCount,Allocator.Invalid);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref arr, NativeArrayUnsafeUtility.GetAtomicSafetyHandle(m_Buffer));

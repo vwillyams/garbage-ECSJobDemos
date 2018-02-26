@@ -13,10 +13,6 @@
 * `CopyComponentData<TSource,TDestination>` utility to copy ISingleValue ComponentData to NativeArray
 
 
-
-# 0.0.3
-
-## Changes
 * UnityPackageManager -> Packages folder. (Unity 2018.1 beta 7 introduces this change and we reflected it in the sample project)
 
 * EntityManager.CreateComponentGroup should be replaced with ComponentSystem.GetComponentGroup.
@@ -27,6 +23,12 @@ Additionally ComponentSystem.GetComponentGroup should not be called in OnUpdate(
 * [DisableSystemWhenEmpty] disables a system (OnUpdate will not be called) if all it's used ComponentGroups have zero entities. It is recommended to use this attribute on all systems unless they absolutely have to run every frame for performance reasons (We measured 5 - 10x speedup for empty systems using this attribute)
 
 * EntityManager.GetComponentFromEntity/GetFixedArrayFromEntity have been moved to JobComponentSystem.GetComponentFromEntity. This way they can be safely used in jobs with the correct dependencies passed via the OnUpdate (JobHandle dependency)
+
+* EntityManager.GetComponentFromEntity/GetFixedArrayFromEntity have been moved to JobComponentSystem.GetComponentFromEntity. This way they can be safely used in jobs with the correct dependencies passed via the OnUpdate (JobHandle dependency)
+
+* Removed IAutoComponentSystemJob support
+
+* Various namespace refactoring. Unity.ECS -> Unity.Entities.
 
 # 0.0.2
 

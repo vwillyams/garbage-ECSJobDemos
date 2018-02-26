@@ -278,8 +278,6 @@ namespace Unity.Collections
 
 	    static unsafe public bool TryAddAtomicMulti(NativeHashMapData* data, TKey key, TValue item, int threadIndex)
 	    {
-	        TValue tempItem;
-	        NativeMultiHashMapIterator<TKey> tempIt;
 	        // Allocate an entry from the free list
 	        int idx = AllocEntry(data, threadIndex);
 

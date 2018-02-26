@@ -110,6 +110,41 @@ We need a few data transformations to happen to render a frame.
 * We need to cull any entities that no health left (`RemoveDeadSystem`)
 * We need to push some data to the UI objects (`UpdatePlayerHUD`)
 
+### Player Input, Movement and Shooting
+
+`PlayerInputSystem` is responsible for fetching input from the regular Unity input API and
+inserting that data into a `PlayerInput` component. It also counts down the _fire cooldown_,
+that is, the waiting period before the player can fire again.
+
+`PlayerMoveSystem` handles basic movement and shooting based on the input from the input
+system. It is relatively straight forward except for how it creates a shot in case the
+player has fired. Rather than spawning a shot directly, it creates a `ShotSpawnData`
+component which instructs a different system to do that work later. This separation
+of concerns solves several problems:
+
+1. `PlayerMoveSystem` doesn't need to know what components to on an entity to make a
+   working shot.
+2. `ShotSpawnSystem` (which spawns shots from both enemies and players) doesn't need
+   to know all the reasons shots get fired.
+3. We can spawn the shots into the world all at once at some later, well defined
+   point in time.
+
+This setup achieves something similar to a delayed event in a traditional component
+architecture.
+
+### Enemy Spawning, Moving and Shooting
+
+TODO sections:
+* We need to sometimes spawn new enemies (`EnemySpawnSystem`)
+* The enemies need to move (`EnemyMoveSystem`)
+* The enemies need to shoot (`EnemyShootSystem`)
+* We need to spawn new shots based on player or enemy action (`ShotSpawnSystem`)
+* We need a way to clean up old shots when they time out (`ShotDestroySystem`)
+* We need to deal damage from shots (`ShotDamageSystem`)
+* We need to cull any entities that no health left (`RemoveDeadSystem`)
+* We need to push some data to the UI objects (`UpdatePlayerHUD`)
+
+
 ## Post 2: Shooting
 
 (Based on commit `954d2aa7157f4c16aeb274ec69b715b724704dfb`)

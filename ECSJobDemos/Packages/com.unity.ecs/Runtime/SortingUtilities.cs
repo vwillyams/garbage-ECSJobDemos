@@ -2,6 +2,7 @@ using System;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
+using Unity.Mathematics;
 
 namespace Unity.Entities
 {
@@ -117,57 +118,102 @@ namespace Unity.Entities
         }
 
         [ComputeJobOptimization]
-        struct MergeRemainderPair : IJob
+        struct MergeLeft : IJobParallelFor
         {
-            public NativeArray<int> buffer;
+            [NativeDisableParallelForRestriction] public NativeArray<int> buffer;
+            [ReadOnly] public NativeArray<T> source;
+            public int leftCount;
+            public int rightCount;
+            public int startIndex;
+            public int outputBuffer;
+            
+            // On left, equal is equivalent to less-than
+            int FindInsertNext(int startOffset, int minNext, int maxNext, T testValue)
+            {
+                if (minNext == maxNext)
+                {
+                    var index = buffer[startOffset + minNext];
+                    var value = source[index];
+                    var compare = testValue.CompareTo(value);
+                    if (compare <= 0)
+                    {
+                        return minNext;
+                    }
+                    return minNext + 1;
+                }
+                int midNext = minNext + (maxNext - minNext) / 2;
+                {
+                    var index = buffer[startOffset + midNext];
+                    var value = source[index];
+                    var compare = testValue.CompareTo(value);
+                    if (compare <= 0)
+                    {
+                        return FindInsertNext(startOffset, minNext, math.max(midNext - 1,minNext), testValue);
+                    }
+                }
+                return FindInsertNext(startOffset,math.min(midNext+1,maxNext),maxNext,testValue);
+            }
+            
+            public void Execute(int leftNext)
+            {
+                int inputOffset  = (outputBuffer ^ 1) * source.Length;
+                int outputOffset = (outputBuffer) * source.Length;
+                var leftIndex    = buffer[inputOffset + startIndex + leftNext];
+                var leftValue    = source[leftIndex];
+                var rightNext    = FindInsertNext(inputOffset + startIndex + leftCount, 0, rightCount - 1, leftValue);
+                var mergeNext    = leftNext + rightNext;
+                
+                buffer[outputOffset + startIndex + mergeNext] = leftIndex;
+            }
+        }
+        
+        [ComputeJobOptimization]
+        struct MergeRight : IJobParallelFor
+        {
+            [NativeDisableParallelForRestriction] public NativeArray<int> buffer;
             [ReadOnly] public NativeArray<T> source;
             public int leftCount;
             public int rightCount;
             public int startIndex;
             public int outputBuffer;
 
-            public void Execute()
+            // On right, equal is equivalent to greater-than
+            int FindInsertNext(int startOffset, int minNext, int maxNext, T testValue)
             {
-                int offset = startIndex;
-                int mergedCount = leftCount + rightCount;
-                int inputOffset = (outputBuffer ^ 1) * source.Length;
-                int outputOffset = (outputBuffer) * source.Length;
-                var leftNext = 0;
-                var rightNext = 0;
-
-                for (int i = 0; i < mergedCount; i++)
+                if (minNext == maxNext)
                 {
-                    if ((leftNext < leftCount) && (rightNext < rightCount))
+                    var index = buffer[startOffset + minNext];
+                    var value = source[index];
+                    var compare = testValue.CompareTo(value);
+                    if (compare < 0)
                     {
-                        var leftIndex = buffer[inputOffset + offset + leftNext];
-                        var rightIndex = buffer[inputOffset + offset + leftCount + rightNext];
-                        var leftValue = source[leftIndex];
-                        var rightValue = source[rightIndex];
-
-                        if (rightValue.CompareTo(leftValue) < 0)
-                        {
-                            buffer[outputOffset+ offset + i] = rightIndex;
-                            rightNext++;
-                        }
-                        else
-                        {
-                            buffer[outputOffset + offset + i] = leftIndex;
-                            leftNext++;
-                        }
+                        return minNext;
                     }
-                    else if (leftNext < leftCount)
+                    return minNext + 1;
+                }
+                int midNext = minNext + (maxNext - minNext) / 2;
+                {
+                    var index = buffer[startOffset + midNext];
+                    var value = source[index];
+                    var compare = testValue.CompareTo(value);
+                    if (compare < 0)
                     {
-                        var leftIndex = buffer[inputOffset + offset + leftNext];
-                        buffer[outputOffset + offset + i] = leftIndex;
-                        leftNext++;
-                    }
-                    else
-                    {
-                        var rightIndex = buffer[inputOffset + offset + leftCount + rightNext];
-                        buffer[outputOffset+ offset + i] = rightIndex;
-                        rightNext++;
+                        return FindInsertNext(startOffset, minNext, math.max(midNext - 1,minNext), testValue);
                     }
                 }
+                return FindInsertNext(startOffset,math.min(midNext+1,maxNext),maxNext,testValue);
+            }
+
+            public void Execute(int rightNext)
+            {
+                int inputOffset   = (outputBuffer ^ 1) * source.Length;
+                int outputOffset  = (outputBuffer) * source.Length;
+                var rightIndex    = buffer[inputOffset + startIndex + leftCount + rightNext];
+                var rightValue    = source[rightIndex];
+                var leftNext      = FindInsertNext(inputOffset + startIndex, 0, leftCount - 1, rightValue);
+                var mergeNext     = rightNext + leftNext;
+                
+                buffer[outputOffset + startIndex + mergeNext] = rightIndex;
             }
         }
 
@@ -193,18 +239,54 @@ namespace Unity.Entities
         JobHandle MergeSortedLists(JobHandle inputDeps, int sortedCount, int outputBuffer)
         {
             var pairCount = m_Source.Length / (sortedCount*2);
-            var mergeSortedPairsJob = new MergeSortedPairs
+
+            JobHandle mergeSortedPairsJobHandle = inputDeps;
+            
+            if (pairCount <= 4)
             {
-                buffer = m_Buffer,
-                source = m_Source,
-                sortedCount = sortedCount,
-                outputBuffer = outputBuffer
-            };
-            var mergeSortedPairsJobHandle = mergeSortedPairsJob.Schedule(pairCount, (pairCount+1)/8, inputDeps);
+                for (int i = 0; i < pairCount; i++)
+                {
+                    var mergeRemainderLeftJob = new MergeLeft
+                    {
+                        startIndex = i * sortedCount * 2,
+                        buffer = m_Buffer,
+                        source = m_Source,
+                        leftCount = sortedCount,
+                        rightCount = sortedCount,
+                        outputBuffer = outputBuffer
+                    };
+                    // There's no overlap, but write to the same array, so extra dependency:
+                    mergeSortedPairsJobHandle = mergeRemainderLeftJob.Schedule(sortedCount, 64, mergeSortedPairsJobHandle);
+                
+                    var mergeRemainderRightJob = new MergeRight
+                    {
+                        startIndex = i * sortedCount * 2,
+                        buffer = m_Buffer,
+                        source = m_Source,
+                        leftCount = sortedCount,
+                        rightCount = sortedCount,
+                        outputBuffer = outputBuffer
+                    };
+                    // There's no overlap, but write to the same array, so extra dependency:
+                    mergeSortedPairsJobHandle = mergeRemainderRightJob.Schedule(sortedCount, 64, mergeSortedPairsJobHandle);
+                }
+            }
+            else
+            {
+                var mergeSortedPairsJob = new MergeSortedPairs
+                {
+                    buffer = m_Buffer,
+                    source = m_Source,
+                    sortedCount = sortedCount,
+                    outputBuffer = outputBuffer
+                };
+                mergeSortedPairsJobHandle = mergeSortedPairsJob.Schedule(pairCount, (pairCount + 1) / 8, inputDeps);
+            }
+            
             var remainder = m_Source.Length - (pairCount * sortedCount * 2);
             if (remainder > sortedCount)
             {
-                var mergeRemainderPairJob = new MergeRemainderPair
+                var mergeRemainderLeftJob = new MergeLeft
                 {
                     startIndex = pairCount * sortedCount * 2,
                     buffer = m_Buffer,
@@ -213,10 +295,21 @@ namespace Unity.Entities
                     rightCount = remainder-sortedCount,
                     outputBuffer = outputBuffer
                 };
-
                 // There's no overlap, but write to the same array, so extra dependency:
-                var mergeRemainderPairJobHandle = mergeRemainderPairJob.Schedule(mergeSortedPairsJobHandle);
-                return mergeRemainderPairJobHandle;
+                var mergeLeftJobHandle = mergeRemainderLeftJob.Schedule(sortedCount, 64, mergeSortedPairsJobHandle);
+                
+                var mergeRemainderRightJob = new MergeRight
+                {
+                    startIndex = pairCount * sortedCount * 2,
+                    buffer = m_Buffer,
+                    source = m_Source,
+                    leftCount = sortedCount,
+                    rightCount = remainder-sortedCount,
+                    outputBuffer = outputBuffer
+                };
+                // There's no overlap, but write to the same array, so extra dependency:
+                var mergeRightJobHandle = mergeRemainderRightJob.Schedule(remainder-sortedCount, 64, mergeLeftJobHandle);
+                return mergeRightJobHandle;
             }
 
             if (remainder > 0)
@@ -366,7 +459,7 @@ namespace Unity.Entities
         }
 
         /// <summary>
-        /// Array of indiices into source NativeArray which share the same source value
+        /// Array of indices into source NativeArray which share the same source value
         /// </summary>
         /// <param name="index">Index of source value</param>
         /// <returns></returns>
@@ -391,7 +484,7 @@ namespace Unity.Entities
         }
 
         /// <summary>
-        /// Array of indiices into source NativeArray which share the same source value
+        /// Array of indices into source NativeArray which share the same source value
         /// </summary>
         /// <param name="index">Index of shared value</param>
         /// <returns></returns>

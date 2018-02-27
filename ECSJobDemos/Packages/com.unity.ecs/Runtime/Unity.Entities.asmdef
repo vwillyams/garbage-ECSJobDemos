@@ -2,7 +2,8 @@
     "name": "Unity.Entities",
     "references": [
         "Unity.Collections",
-        "Unity.Burst"
+        "Unity.Burst",
+        "Unity.Mathematics"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],

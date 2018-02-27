@@ -74,6 +74,7 @@ namespace UnityEngine.ECS.Tests
         public void NativeArraySharedValuesFoundAllValues()
         {
             int count = 1024 + 1023;
+            // int count = 32 + 31;
             var source = new NativeArray<int>(count, Allocator.Temp);
             for (int i = 0; i < count; i++)
             {

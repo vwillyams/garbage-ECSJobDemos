@@ -8,6 +8,7 @@ namespace UnityEngine.ECS.Tests
 	public class InjectComponentGroupTests : ECSTestsFixture
 	{
 		[DisableAutoCreation]
+		[AlwaysUpdateSystem]
 		public class PureEcsTestSystem : ComponentSystem
 		{
 			public struct DataAndEntites
@@ -26,6 +27,7 @@ namespace UnityEngine.ECS.Tests
 		}
 
 		[DisableAutoCreation]
+		[AlwaysUpdateSystem]
 		public class PureReadOnlySystem : ComponentSystem
 		{
 			public struct Datas
@@ -43,6 +45,7 @@ namespace UnityEngine.ECS.Tests
 		}
 
 		[DisableAutoCreation]
+		[AlwaysUpdateSystem]
 		public class SubtractiveSystem : ComponentSystem
 		{
 			public struct Datas
@@ -67,6 +70,7 @@ namespace UnityEngine.ECS.Tests
 	    }
 
 	    [DisableAutoCreation]
+	    [AlwaysUpdateSystem]
 	    public class SharedComponentSystem : ComponentSystem
 	    {
 	        public struct Datas

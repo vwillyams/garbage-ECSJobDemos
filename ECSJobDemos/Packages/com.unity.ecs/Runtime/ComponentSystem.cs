@@ -28,27 +28,29 @@ namespace Unity.Entities
         EntityManager                       m_EntityManager;
         World                               m_World;
         
-        bool                                m_HasDisableSystemIfEmpty;
+        bool                                m_AlwaysUpdateSystem;
 
         public ComponentGroup[] 			ComponentGroups => m_ComponentGroups;
 
         protected bool ShouldRunSystem()
         {
-            if (m_HasDisableSystemIfEmpty)
-            {
-                int length = m_ComponentGroups.Length;
-                for (int i = 0;i != length;i++)
-                {
-                    if (m_ComponentGroups[i].IsEmpty)
-                        return false;
-                }
+            if (m_AlwaysUpdateSystem)
+                return true;
 
+            int length = m_ComponentGroups.Length;
+
+            if (length == 0)
                 return true;
-            }
-            else
+            
+            // If all the groups are empty, skip it.
+            // (There’s no way to know what they key value is without other markup)
+            for (int i = 0;i != length;i++)
             {
-                return true;
+                if (!m_ComponentGroups[i].IsEmpty)
+                    return true;
             }
+
+            return false;
         }
 
         protected override void OnBeforeCreateManagerInternal(World world, int capacity)
@@ -56,7 +58,7 @@ namespace Unity.Entities
             m_World = world;
             m_EntityManager = world.GetOrCreateManager<EntityManager>();
             m_SafetyManager = m_EntityManager.ComponentJobSafetyManager;
-            m_HasDisableSystemIfEmpty = GetType().GetCustomAttributes(typeof(DisableSystemWhenEmptyAttribute), true).Length != 0;
+            m_AlwaysUpdateSystem = GetType().GetCustomAttributes(typeof(AlwaysUpdateSystemAttribute), true).Length != 0;
 
             m_ComponentGroups = new ComponentGroup[0];
             m_CachedComponentGroupArrays = new ComponentGroupArrayStaticCache[0];

@@ -6,7 +6,6 @@ using UnityEngine.Jobs;
 
 namespace Unity.Transforms
 {
-    [DisableSystemWhenEmpty]
     public class CopyTransformFromGameObjectSystem : JobComponentSystem
     {
         [Inject] ComponentDataFromEntity<LocalPosition> m_LocalPositions;

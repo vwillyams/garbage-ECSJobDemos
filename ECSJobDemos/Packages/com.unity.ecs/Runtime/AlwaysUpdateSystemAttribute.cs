@@ -3,5 +3,5 @@
 namespace Unity.Entities
 {
     [AttributeUsage(AttributeTargets.Class)]
-    public class DisableSystemWhenEmptyAttribute : System.Attribute { }
+    public class AlwaysUpdateSystemAttribute : System.Attribute { }
 }

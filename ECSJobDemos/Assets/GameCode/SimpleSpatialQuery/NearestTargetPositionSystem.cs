@@ -6,7 +6,6 @@ using Unity.Transforms;
 
 namespace UnityEngine.ECS.SimpleSpatialQuery
 {
-    [DisableSystemWhenEmpty]
     public class NearestTargetPositionSystem<TNearestTarget,TTarget> : JobComponentSystem
         where TNearestTarget : struct, IComponentData, ISingleValue<float3>
         where TTarget : struct, IComponentData

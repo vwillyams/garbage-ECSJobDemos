@@ -10,7 +10,6 @@ using UnityEngine.ECS.Utilities;
 
 namespace UnityEngine.ECS.Boids
 {
-    [DisableSystemWhenEmpty]
     public class BoidSystem : JobComponentSystem
     {
         ComponentGroup m_MainGroup;

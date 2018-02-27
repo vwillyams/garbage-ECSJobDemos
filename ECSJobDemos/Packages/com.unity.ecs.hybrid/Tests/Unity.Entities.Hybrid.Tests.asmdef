@@ -1,9 +1,9 @@
 {
-    "name": "Unity.Core.Hybrid.Tests",
+    "name": "Unity.Entities.Hybrid.Tests",
     "references": [
-        "Unity.Core",
-        "Unity.Core.Hybrid",
-        "Unity.Core.Tests",
+        "Unity.Entities",
+        "Unity.Entities.Hybrid",
+        "Unity.Entities.Tests",
         "Unity.Collections",
         "Unity.Jobs"
     ],

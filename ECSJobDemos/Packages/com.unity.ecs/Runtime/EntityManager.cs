@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using Unity.Jobs;
 using Unity.Assertions;
 
-[assembly:InternalsVisibleTo("Unity.Core.Hybrid")]
+[assembly:InternalsVisibleTo("Unity.Entities.Hybrid")]
 
 namespace Unity.Entities
 {

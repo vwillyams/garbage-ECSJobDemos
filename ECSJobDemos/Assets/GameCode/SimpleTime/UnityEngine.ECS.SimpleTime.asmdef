@@ -1,7 +1,7 @@
 {
     "name": "UnityEngine.ECS.SimpleTime",
     "references": [
-        "Unity.Core",
+        "Unity.Entities",
         "Unity.Collections",
         "Unity.Burst",
         "Unity.Jobs",

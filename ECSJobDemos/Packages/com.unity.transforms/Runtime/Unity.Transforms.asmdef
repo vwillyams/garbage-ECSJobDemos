@@ -1,7 +1,7 @@
 {
     "name": "Unity.Transforms",
     "references": [
-        "Unity.Core",
+        "Unity.Entities",
         "Unity.Collections",
         "Unity.Burst",
         "Unity.Jobs",

@@ -59,38 +59,6 @@ namespace Unity.Entities
                 {
                     GetBehaviourManagerAndLogException(world, type);
                 }
-
-                // Create All IAutoComponentSystemJob
-                var genericTypes = new List<Type>();
-                var jobTypes = allTypes.Where(t => typeof(IAutoComponentSystemJob).IsAssignableFrom(t) && !t.IsAbstract && t.GetCustomAttributes(typeof(DisableAutoCreationAttribute), true).Length == 0);
-                foreach (var jobType in jobTypes)
-                {
-                    genericTypes.Clear();
-                    genericTypes.Add(jobType);
-                    foreach (var iType in jobType.GetInterfaces())
-                    {
-                        if (iType.Name.StartsWith("IJobProcessComponentData"))
-                        {
-                            genericTypes.AddRange(iType.GetGenericArguments());
-                        }
-                    }
-
-                    if (genericTypes.Count == 2)
-                    {
-                        var type = typeof(GenericProcessComponentSystem<,>).MakeGenericType(genericTypes.ToArray());
-                        GetBehaviourManagerAndLogException(world, type);
-                    }
-                    else if (genericTypes.Count == 3)
-                    {
-                        var type = typeof(GenericProcessComponentSystem<,,>).MakeGenericType(genericTypes.ToArray());
-                        GetBehaviourManagerAndLogException(world, type);
-                    }
-                    else
-                    {
-                        Debug.LogError(
-                            $"{jobType} implements the IAutoComponentSystemJob interface, for it to run, you also need to IJobProcessComponentData");
-                    }
-                }
             }
 
             ScriptBehaviourUpdateOrder.UpdatePlayerLoop(world);

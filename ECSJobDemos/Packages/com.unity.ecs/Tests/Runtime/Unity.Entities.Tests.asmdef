@@ -1,7 +1,7 @@
 {
-    "name": "Unity.Core.Tests",
+    "name": "Unity.Entities.Tests",
     "references": [
-        "Unity.Core",
+        "Unity.Entities",
         "Unity.Collections",
         "Unity.Jobs",
         "Unity.Mathematics"

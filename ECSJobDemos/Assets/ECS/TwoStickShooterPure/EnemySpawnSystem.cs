@@ -36,9 +36,6 @@ namespace TwoStickPureExample
 
         protected override void OnUpdate()
         {
-            if (m_State.Length == 0)
-                return;
-
             float cooldown = m_State.Cooldown[0].Value;
 
             cooldown = Mathf.Max(0.0f, m_State.Cooldown[0].Value - Time.deltaTime);

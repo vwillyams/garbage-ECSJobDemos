@@ -8,7 +8,6 @@ using UnityEngine.ECS.Utilities;
 
 namespace ECS.Spawners
 {
-    [DisableSystemWhenEmpty]
     public class SpawnRandomInSphereSystem : ComponentSystem
     {
         struct SpawnRandomInSphereInstance

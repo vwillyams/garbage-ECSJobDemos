@@ -1,7 +1,7 @@
 {
     "name": "Unity.Rendering.Hybrid",
     "references": [
-        "Unity.Core",
+        "Unity.Entities",
         "Unity.Transforms",
         "Unity.Collections",
         "Unity.Burst",

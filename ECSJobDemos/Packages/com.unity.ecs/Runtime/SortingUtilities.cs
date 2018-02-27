@@ -384,8 +384,9 @@ namespace Unity.Entities
         /// <returns></returns>
         public int GetSharedValueIndexCountBySourceIndex(int index)
         {
+            int sharedValueIndex = GetSharedIndexBySourceIndex(index);
             int sharedValueIndexCountOffset = 2 * m_Source.Length;
-            int sharedValueIndexCount = m_Buffer[sharedValueIndexCountOffset + index];
+            int sharedValueIndexCount = m_Buffer[sharedValueIndexCountOffset + sharedValueIndex];
             return sharedValueIndexCount;
         }
 

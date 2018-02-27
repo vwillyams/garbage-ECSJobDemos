@@ -60,7 +60,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
   m_Materials:
-  - {fileID: 2100000, guid: 32bf30f90a6a049be8fb2aca13ddebb6, type: 2}
+  - {fileID: 2100000, guid: 3b62b7f6cf83b444a9efcdf896d83ffe, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -86,7 +86,7 @@ MeshFilter:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1440049258192928}
-  m_Mesh: {fileID: 4300000, guid: c4f8ab5610007da4db316c2391e994fe, type: 3}
+  m_Mesh: {fileID: 4300010, guid: a90544ebf3b75f448b7c5050d823ee4d, type: 3}
 --- !u!114 &114058845182533826
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -118,7 +118,6 @@ MonoBehaviour:
   Speed: 1
   TimeToLive: 2
   Energy: 1
-  Faction: {fileID: 114689111833512416, guid: 67bd73ba4d05e4d06a1a3593252f1ad2, type: 2}
 --- !u!114 &114870753745506052
 MonoBehaviour:
   m_ObjectHideFlags: 1

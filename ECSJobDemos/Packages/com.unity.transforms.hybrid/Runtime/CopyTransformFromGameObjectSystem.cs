@@ -42,36 +42,33 @@ namespace Unity.Transforms
         }
 
         [ComputeJobOptimization]
-        struct CopyTransforms : IJob
+        struct CopyTransforms : IJobParallelFor
         {
-            public ComponentDataFromEntity<LocalPosition> localPositions;
-            public ComponentDataFromEntity<LocalRotation> localRotations;
-            public ComponentDataFromEntity<Position> positions;
-            public ComponentDataFromEntity<Rotation> rotations;
+            [NativeDisableParallelForRestriction] public ComponentDataFromEntity<LocalPosition> localPositions;
+            [NativeDisableParallelForRestriction] public ComponentDataFromEntity<LocalRotation> localRotations;
+            [NativeDisableParallelForRestriction] public ComponentDataFromEntity<Position> positions;
+            [NativeDisableParallelForRestriction] public ComponentDataFromEntity<Rotation> rotations;
             [DeallocateOnJobCompletion] public NativeArray<TransformStash> transformStashes;
 
-            public void Execute()
+            public void Execute(int index)
             {
-                for (int index=0;index<transformStashes.Length;index++)
+                var transformStash = transformStashes[index];
+                var entity = transformStashes[index].entity;
+                if (positions.Exists(entity))
                 {
-                    var transformStash = transformStashes[index];
-                    var entity = transformStashes[index].entity;
-                    if (positions.Exists(entity))
-                    {
-                        positions[entity] = new Position { Value = transformStash.position };
-                    }
-                    if (rotations.Exists(entity))
-                    {
-                        rotations[entity] = new Rotation { Value = transformStash.rotation };
-                    }
-                    if (localPositions.Exists(entity))
-                    {
-                        localPositions[entity] = new LocalPosition { Value = transformStash.localPosition };
-                    }
-                    if (localRotations.Exists(entity))
-                    {
-                        localRotations[entity] = new LocalRotation { Value = transformStash.localRotation };
-                    }
+                    positions[entity] = new Position { Value = transformStash.position };
+                }
+                if (rotations.Exists(entity))
+                {
+                    rotations[entity] = new Rotation { Value = transformStash.rotation };
+                }
+                if (localPositions.Exists(entity))
+                {
+                    localPositions[entity] = new LocalPosition { Value = transformStash.localPosition };
+                }
+                if (localRotations.Exists(entity))
+                {
+                    localRotations[entity] = new LocalRotation { Value = transformStash.localRotation };
                 }
             }
         }
@@ -106,7 +103,7 @@ namespace Unity.Transforms
                 transformStashes = transformStashes,
             };
 
-            return copyTransformsJob.Schedule(stashTransformsJobHandle);
+            return copyTransformsJob.Schedule(transformStashes.Length,64,stashTransformsJobHandle);
         }
     }
 }

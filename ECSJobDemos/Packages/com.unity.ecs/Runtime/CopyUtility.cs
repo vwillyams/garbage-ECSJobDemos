@@ -1,5 +1,4 @@
 ﻿using Unity.Collections;
-using Unity.Entities;
 using Unity.Jobs;
 
 namespace Unity.Entities
@@ -15,7 +14,7 @@ namespace Unity.Entities
     /// <typeparam name="TSource">Component data type of ISingleValue<T></typeparam>
     /// <typeparam name="TDestination">Blittable type matching T in source</typeparam>
     
-    // [ComputeJobOptimization]
+    [ComputeJobOptimization]
     public struct CopyComponentData<TSource,TDestination> : IJobParallelFor
     where TSource : struct, IComponentData, ISingleValue<TDestination>
     where TDestination : struct

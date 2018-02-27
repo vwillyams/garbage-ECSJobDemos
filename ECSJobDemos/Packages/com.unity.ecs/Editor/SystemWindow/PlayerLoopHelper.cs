@@ -11,12 +11,12 @@ namespace UnityEditor.ECS
         public static event Action<PlayerLoopSystem> OnUpdatePlayerLoop;
 
         public static PlayerLoopSystem currentPlayerLoop { get; private set; }
-        
+
         static PlayerLoopHelper()
         {
-            World.OnSetPlayerLoop += UpdatePlayerLoop;
+            ScriptBehaviourUpdateOrder.OnSetPlayerLoop += UpdatePlayerLoop;
         }
-	
+
         static void UpdatePlayerLoop(PlayerLoopSystem newPlayerLoop)
         {
             currentPlayerLoop = newPlayerLoop;

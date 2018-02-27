@@ -1,9 +1,8 @@
 ﻿using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.Entities;
 using UnityEngine;
 
-namespace Unity.Entities.Hybrid
+namespace Unity.Entities
 {
     public static class EntityManagerExtensions
     {

@@ -1,13 +1,11 @@
 ﻿using Unity.Collections;
 using Unity.Entities;
-using Unity.ECS.Hybrid;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine.Jobs;
 
-namespace Unity.Transforms.Hybrid
+namespace Unity.Transforms
 {
-    [DisableSystemWhenEmpty]
     public class CopyTransformFromGameObjectSystem : JobComponentSystem
     {
         [Inject] ComponentDataFromEntity<LocalPosition> m_LocalPositions;
@@ -21,14 +19,12 @@ namespace Unity.Transforms.Hybrid
             public float3 position;
             public quaternion localRotation;
             public quaternion rotation;
-            public Entity entity;
         }
 
         [ComputeJobOptimization]
         struct StashTransforms : IJobParallelForTransform
         {
             public NativeArray<TransformStash> transformStashes;
-            public EntityArray entities;
 
             public void Execute(int index, TransformAccess transform)
             {
@@ -38,42 +34,39 @@ namespace Unity.Transforms.Hybrid
                     rotation       = transform.rotation,
                     position       = transform.position,
                     localRotation  = transform.localRotation,
-                    entity         = entities[index]
                 };
             }
         }
 
         [ComputeJobOptimization]
-        struct CopyTransforms : IJob
+        struct CopyTransforms : IJobParallelFor
         {
-            public ComponentDataFromEntity<LocalPosition> localPositions;
-            public ComponentDataFromEntity<LocalRotation> localRotations;
-            public ComponentDataFromEntity<Position> positions;
-            public ComponentDataFromEntity<Rotation> rotations;
+            [NativeDisableParallelForRestriction] public ComponentDataFromEntity<LocalPosition> localPositions;
+            [NativeDisableParallelForRestriction] public ComponentDataFromEntity<LocalRotation> localRotations;
+            [NativeDisableParallelForRestriction] public ComponentDataFromEntity<Position> positions;
+            [NativeDisableParallelForRestriction] public ComponentDataFromEntity<Rotation> rotations;
+            public EntityArray entities;
             [DeallocateOnJobCompletion] public NativeArray<TransformStash> transformStashes;
 
-            public void Execute()
+            public void Execute(int index)
             {
-                for (int index=0;index<transformStashes.Length;index++)
+                var transformStash = transformStashes[index];
+                var entity = entities[index];
+                if (positions.Exists(entity))
                 {
-                    var transformStash = transformStashes[index];
-                    var entity = transformStashes[index].entity;
-                    if (positions.Exists(entity))
-                    {
-                        positions[entity] = new Position { Value = transformStash.position };
-                    }
-                    if (rotations.Exists(entity))
-                    {
-                        rotations[entity] = new Rotation { Value = transformStash.rotation };
-                    }
-                    if (localPositions.Exists(entity))
-                    {
-                        localPositions[entity] = new LocalPosition { Value = transformStash.localPosition };
-                    }
-                    if (localRotations.Exists(entity))
-                    {
-                        localRotations[entity] = new LocalRotation { Value = transformStash.localRotation };
-                    }
+                    positions[entity] = new Position { Value = transformStash.position };
+                }
+                if (rotations.Exists(entity))
+                {
+                    rotations[entity] = new Rotation { Value = transformStash.rotation };
+                }
+                if (localPositions.Exists(entity))
+                {
+                    localPositions[entity] = new LocalPosition { Value = transformStash.localPosition };
+                }
+                if (localRotations.Exists(entity))
+                {
+                    localRotations[entity] = new LocalRotation { Value = transformStash.localRotation };
                 }
             }
         }
@@ -93,8 +86,7 @@ namespace Unity.Transforms.Hybrid
             var transformStashes = new NativeArray<TransformStash>(transforms.Length, Allocator.TempJob);
             var stashTransformsJob = new StashTransforms
             {
-                transformStashes = transformStashes,
-                entities = entities
+                transformStashes = transformStashes
             };
 
             var stashTransformsJobHandle = stashTransformsJob.Schedule(transforms, inputDeps);
@@ -106,9 +98,10 @@ namespace Unity.Transforms.Hybrid
                 localPositions = m_LocalPositions,
                 localRotations = m_LocalRotations,
                 transformStashes = transformStashes,
+                entities = entities
             };
 
-            return copyTransformsJob.Schedule(stashTransformsJobHandle);
+            return copyTransformsJob.Schedule(transformStashes.Length,64,stashTransformsJobHandle);
         }
     }
 }

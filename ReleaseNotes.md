@@ -1,6 +1,18 @@
-# 0.0.3
+# Next Release
 
 ## Changes
+
+* An `EntityCommandBuffer` that plays back automically after a `ComponentSystem`'s update is
+  available as `PostUpdateCommands`
+
+* Can now create entities/components from jobs and merge them into
+  the world later via command buffers from injected `BarrierSystem`s
+  
+* `NativeArraySharedValues<T>` for creating index tables of shared/unique values in a NativeArray.
+* `NearestTargetPositionSystem<TNearestTarget,TTarget>` demonstrates how to use generics in JobComponentSystem
+* `CopyComponentData<TSource,TDestination>` utility to copy ISingleValue ComponentData to NativeArray
+
+
 * UnityPackageManager -> Packages folder. (Unity 2018.1 beta 7 introduces this change and we reflected it in the sample project)
 
 * EntityManager.CreateComponentGroup should be replaced with ComponentSystem.GetComponentGroup.
@@ -8,9 +20,23 @@ It automatically associates & caches the ComponentGroup with the system (It is a
 
 Additionally ComponentSystem.GetComponentGroup should not be called in OnUpdate() (Create and cache in OnCreateManager instead). ComponentSystem.GetComponentGroup allocates GC memory because the input is a param ComponentType[]...
 
-* [DisableSystemWhenEmpty] disables a system (OnUpdate will not be called) if all it's used ComponentGroups have zero entities. It is recommended to use this attribute on all systems unless they absolutely have to run every frame for performance reasons (We measured 5 - 10x speedup for empty systems using this attribute)
+* Systems are automatically disabled when all ComponentGroups have zero entities.
+[AlwaysUpdateSystem] can be used to always force update a system.
+(We measured 5 - 10x speedup for empty systems)
 
 * EntityManager.GetComponentFromEntity/GetFixedArrayFromEntity have been moved to JobComponentSystem.GetComponentFromEntity. This way they can be safely used in jobs with the correct dependencies passed via the OnUpdate (JobHandle dependency)
+
+* EntityManager.GetComponentFromEntity/GetFixedArrayFromEntity have been moved to JobComponentSystem.GetComponentFromEntity. This way they can be safely used in jobs with the correct dependencies passed via the OnUpdate (JobHandle dependency)
+
+* Removed IAutoComponentSystemJob support
+
+* Various namespace refactoring. Unity.ECS -> Unity.Entities.
+
+* Optimizations for NativeHashMap and NativeMultiHashMap
+
+* Can now get an array of shared component data from a component group (ComponentGroup.GetSharedComponentDataArray)
+  SharedComponentDataArray<T> can also be injected similar to ComponentDataArray<T>
+  Access through SharedComponentDataArray is always read only
 
 # 0.0.2
 

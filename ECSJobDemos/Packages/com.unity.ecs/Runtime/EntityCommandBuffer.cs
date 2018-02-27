@@ -211,7 +211,7 @@ namespace Unity.Entities
 #endif
         }
 
-        public void Dispose()
+        internal void Dispose()
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckDeallocateAndThrow(m_Safety);

@@ -2,7 +2,6 @@
 using NUnit.Framework;
 using Unity.Entities;
 using UnityEngine.ECS.Tests;
-using UnityEditor.ECS;
 using UnityEditor.IMGUI.Controls;
 
 namespace UnityEditor.ECS

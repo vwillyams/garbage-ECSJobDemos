@@ -1,3 +1,3 @@
 ﻿using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("Unity.Core.Hybrid.Tests")]
+[assembly: InternalsVisibleTo("Unity.Entities.Hybrid.Tests")]

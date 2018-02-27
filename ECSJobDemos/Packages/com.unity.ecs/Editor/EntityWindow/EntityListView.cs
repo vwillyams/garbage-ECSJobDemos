@@ -30,7 +30,7 @@ namespace UnityEditor.ECS
         {
             if (headerStates == null)
                 headerStates = new List<MultiColumnHeaderState>();
-            
+
             var types = system.Types;
 
             foreach (var headerState in headerStates)
@@ -72,7 +72,7 @@ namespace UnityEditor.ECS
             var cellWidth = listWidth;
             if (totalCells > 0f)
                 cellWidth /= totalCells;
-            
+
             for (var i = 0; i < types.Length; ++i)
             {
                 columns.Add(new MultiColumnHeaderState.Column
@@ -82,7 +82,7 @@ namespace UnityEditor.ECS
 					headerTextAlignment = TextAlignment.Center,
 					sortedAscending = true,
 					sortingArrowAlignment = TextAlignment.Right,
-					width = cells[i] * cellWidth, 
+					width = cells[i] * cellWidth,
 					minWidth = 60,
 					maxWidth = 500,
 					autoResize = false,
@@ -97,9 +97,9 @@ namespace UnityEditor.ECS
 
         public void PrepareData()
         {
-            var emptyArgs = new object[0]; 
-            var emptyTypes = new Type[0]; 
-            var emptyModifiers = new ParameterModifier[0]; 
+            var emptyArgs = new object[0];
+            var emptyTypes = new Type[0];
+            var emptyModifiers = new ParameterModifier[0];
 
             if (currentSystem != null)
             {
@@ -119,9 +119,9 @@ namespace UnityEditor.ECS
                     }
                     else if (typeof(Component).IsAssignableFrom(type))
                     {
-                        var method = typeof(ComponentGroup).GetMethod("GetComponentArray", attr);
+                        var method = typeof(ComponentGroupExtensionsForComponentArray).GetMethod("GetComponentArray", attr);
                         method = method.MakeGenericMethod(type);
-                        var array = method.Invoke(currentSystem, emptyArgs);
+                        var array = method.Invoke(null, new []{currentSystem});
                         nativeArrays.Add(type, array);
                     }
                     else if (type == typeof(Entity))
@@ -212,7 +212,7 @@ namespace UnityEditor.ECS
                 return;
             var arrayIndexer = arrayType.GetProperty("Item", BindingFlags.Public | BindingFlags.Instance).GetGetMethod();
             var arrayElement = arrayIndexer.Invoke(array, new object[]{item.id});
-            
+
             cellRect.height -= pointsBetweenRows;
             StructGUI.CellGUI(cellRect, arrayElement, linesPerRow);
         }

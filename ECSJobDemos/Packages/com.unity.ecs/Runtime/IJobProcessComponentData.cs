@@ -34,12 +34,6 @@ namespace Unity.Entities
         }
     }
 
-
-    public interface IAutoComponentSystemJob
-    {
-        void Prepare();
-    }
-
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public interface IBaseJobProcessComponentData
     {
@@ -86,6 +80,7 @@ namespace Unity.Entities
     struct JobProcessComponentDataCache
     {
         public IntPtr              JobReflectionData;
+        public IntPtr              JobReflectionDataParallelFor;
         public ComponentType[]     Types;
 
         public int                 ProcessTypesCount;
@@ -107,6 +102,8 @@ namespace Unity.Entities
         public int                 IsReadOnly0;
         public int                 IsReadOnly1;
         public int                 IsReadOnly2;
+
+        public bool                m_IsParallelFor;
 
         public int                 m_Length;
 
@@ -172,8 +169,11 @@ namespace Unity.Entities
             return componentTypes.ToArray();
         }
 
-        static IntPtr GetJobReflection(Type jobType, Type wrapperJobType, Type interfaceType)
+        static IntPtr GetJobReflection(Type jobType, Type wrapperJobType, Type interfaceType, bool isIJobParallelFor)
         {
+            Assert.AreNotEqual(null, wrapperJobType);
+            Assert.AreNotEqual(null, interfaceType);
+    
             var genericArgs = interfaceType.GetGenericArguments();
 
             var jobTypeAndGenericArgs = new List<Type>();
@@ -181,7 +181,8 @@ namespace Unity.Entities
             jobTypeAndGenericArgs.AddRange(genericArgs);
             var resolvedWrapperJobType = wrapperJobType.MakeGenericType(jobTypeAndGenericArgs.ToArray());
 
-            var reflectionDataRes = resolvedWrapperJobType.GetMethod("Initialize").Invoke(null, null);
+            object[] parameters = { isIJobParallelFor ? JobType.ParallelFor : JobType.Single };
+            var reflectionDataRes = resolvedWrapperJobType.GetMethod("Initialize").Invoke(null, parameters);
             return (IntPtr)reflectionDataRes;
         }
 
@@ -196,16 +197,21 @@ namespace Unity.Entities
             return null;
         }
 
-        unsafe internal static void Initialize(ComponentSystemBase system, Type jobType, Type wrapperJobType, ref JobProcessComponentDataCache cache, out ProcessIterationData iterator)
+        unsafe internal static void Initialize(ComponentSystemBase system, Type jobType, Type wrapperJobType, bool isParallelFor, ref JobProcessComponentDataCache cache, out ProcessIterationData iterator)
         {
-            if (cache.JobReflectionData == IntPtr.Zero)
+            if ((isParallelFor && cache.JobReflectionDataParallelFor == IntPtr.Zero) ||
+                (!isParallelFor && cache.JobReflectionData == IntPtr.Zero))
             {
                 var iType = GetIJobProcessComponentDataInterface(jobType);
-                cache.JobReflectionData = GetJobReflection(jobType, wrapperJobType, iType);
-                cache.Types = GetComponentTypes(jobType, iType, out cache.ProcessTypesCount);
+                if (cache.Types == null)
+                    cache.Types = GetComponentTypes(jobType, iType, out cache.ProcessTypesCount);
 
-                Assert.AreNotEqual(null, wrapperJobType );
-                Assert.AreNotEqual(null, iType);
+                var res = GetJobReflection(jobType, wrapperJobType, iType, isParallelFor);
+
+                if (isParallelFor)
+                    cache.JobReflectionDataParallelFor = res;
+                else
+                    cache.JobReflectionData = res;
             }
 
             if (cache.ComponentSystem != system)
@@ -238,7 +244,9 @@ namespace Unity.Entities
                 }
             }
 
+            iterator.m_IsParallelFor = isParallelFor;
             iterator.m_Length = length;
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
             iterator.m_MaxIndex = length-1;
             iterator.m_MinIndex = 0;
 
@@ -271,6 +279,7 @@ namespace Unity.Entities
                 }
             }
             Assert.AreEqual(cache.ProcessTypesCount, iterator.m_SafetyReadWriteCount + iterator.m_SafetyReadOnlyCount);
+#endif
         }
     }
 
@@ -282,6 +291,11 @@ namespace Unity.Entities
         public static JobHandle Schedule<T>(this T jobData, ComponentSystemBase system, int innerloopBatchCount, JobHandle dependsOn = default(JobHandle))
             where T : struct, IBaseJobProcessComponentData
         {
+            #if ENABLE_UNITY_COLLECTIONS_CHECKS
+            if (innerloopBatchCount <= 0)
+                throw new System.ArgumentException($"innerloopBatchCount must be larger than 0.");
+            #endif
+
             var typeT = typeof(T);
             if (typeof(IBaseJobProcessComponentData_1).IsAssignableFrom(typeT))
                 return ScheduleInternal_1(ref jobData, system, innerloopBatchCount, dependsOn, ScheduleMode.Batched);
@@ -289,6 +303,18 @@ namespace Unity.Entities
                 return ScheduleInternal_2(ref jobData, system, innerloopBatchCount, dependsOn, ScheduleMode.Batched);
             else
                 return ScheduleInternal_3(ref jobData, system, innerloopBatchCount, dependsOn, ScheduleMode.Batched);
+        }
+
+        public static JobHandle Schedule<T>(this T jobData, ComponentSystemBase system, JobHandle dependsOn = default(JobHandle))
+            where T : struct, IBaseJobProcessComponentData
+        {
+            var typeT = typeof(T);
+            if (typeof(IBaseJobProcessComponentData_1).IsAssignableFrom(typeT))
+                return ScheduleInternal_1(ref jobData, system, -1, dependsOn, ScheduleMode.Batched);
+            else if (typeof(IBaseJobProcessComponentData_2).IsAssignableFrom(typeT))
+                return ScheduleInternal_2(ref jobData, system, -1, dependsOn, ScheduleMode.Batched);
+            else
+                return ScheduleInternal_3(ref jobData, system, -1, dependsOn, ScheduleMode.Batched);
         }
 
         public static void Run<T>(this T jobData, ComponentSystemBase system)
@@ -310,11 +336,20 @@ namespace Unity.Entities
             JobStruct_ProcessInfer_1<T> fullData;
             fullData.Data = jobData;
 
-            IJobProcessComponentDataUtility.Initialize(system, typeof(T), typeof(JobStruct_Process1<,>), ref JobStruct_ProcessInfer_1<T>.Cache, out fullData.Iterator);
+            bool isParallelFor = innerloopBatchCount != -1; 
+            IJobProcessComponentDataUtility.Initialize(system, typeof(T), typeof(JobStruct_Process1<,>), isParallelFor, ref JobStruct_ProcessInfer_1<T>.Cache, out fullData.Iterator);
 
-            var length = fullData.Iterator.m_Length;
-            var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct_ProcessInfer_1<T>.Cache.JobReflectionData, dependsOn, mode);
-            return JobsUtility.ScheduleParallelFor(ref scheduleParams, length, innerloopBatchCount <= 0 ? length : innerloopBatchCount);
+            if (isParallelFor)
+            {
+                var length = fullData.Iterator.m_Length;
+                var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct_ProcessInfer_1<T>.Cache.JobReflectionDataParallelFor, dependsOn, mode);
+                return JobsUtility.ScheduleParallelFor(ref scheduleParams, length, innerloopBatchCount);
+            }
+            else
+            {
+                var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct_ProcessInfer_1<T>.Cache.JobReflectionData, dependsOn, mode);
+                return JobsUtility.Schedule(ref scheduleParams);                
+            }
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -334,45 +369,59 @@ namespace Unity.Entities
             public ProcessIterationData      Iterator;
             public T Data;
 
-            public static IntPtr Initialize()
+            public static IntPtr Initialize(JobType jobType)
             {
-                return JobsUtility.CreateJobReflectionData(typeof(JobStruct_Process1<T, U0>), typeof(T), JobType.ParallelFor, (ExecuteJobFunction) Execute);
+                return JobsUtility.CreateJobReflectionData(typeof(JobStruct_Process1<T, U0>), typeof(T), jobType, (ExecuteJobFunction) Execute);
             }
 
             delegate void ExecuteJobFunction(ref JobStruct_Process1<T, U0> data, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
-            static unsafe void Execute(ref JobStruct_Process1<T, U0> jobData, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
+            static unsafe void ExecuteInnerLoop(ref JobStruct_Process1<T, U0> jobData, int begin, int end)
             {
                 ComponentChunkCache cache0;
 
-                int begin;
-                int end;
-                while (JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
+                while (begin != end)
                 {
-                    while (begin != end)
+                    jobData.Iterator.Iterator0.UpdateCache(begin, out cache0);
+                    var ptr0 = cache0.CachedPtr;
+
+                    var curEnd = Math.Min(end, cache0.CachedEndIndex);
+
+                    for (var i = begin; i != curEnd; i++)
                     {
-                        jobData.Iterator.Iterator0.UpdateCache(begin, out cache0);
-                        var ptr0 = cache0.CachedPtr;
+                        //@TODO: use ref returns to pass by ref instead of double copy
+                        var value0 = UnsafeUtility.ReadArrayElement<U0>(ptr0, i);
 
-                        var curEnd = Math.Min(end, cache0.CachedEndIndex);
+                        jobData.Data.Execute(ref value0);
 
-                        for (var i = begin; i != curEnd; i++)
-                        {
-                            //@TODO: use ref returns to pass by ref instead of double copy
-                            var value0 = UnsafeUtility.ReadArrayElement<U0>(ptr0, i);
-
-                            jobData.Data.Execute(ref value0);
-
-                            if (jobData.Iterator.IsReadOnly0 == 0)
-                                UnsafeUtility.WriteArrayElement(ptr0, i, value0);
-                        }
-
-                        begin = curEnd;
+                        if (jobData.Iterator.IsReadOnly0 == 0)
+                            UnsafeUtility.WriteArrayElement(ptr0, i, value0);
                     }
+
+                    begin = curEnd;
+                }
+            }
+
+            static unsafe void Execute(ref JobStruct_Process1<T, U0> jobData, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
+            {
+                if (jobData.Iterator.m_IsParallelFor)
+                {
+                    int begin;
+                    int end;
+                    while (JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
+                    {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                        JobsUtility.PatchBufferMinMaxRanges(bufferRangePatchData, UnsafeUtility.AddressOf(ref jobData), begin, end - begin);
+#endif
+                        ExecuteInnerLoop(ref jobData, begin, end);
+                    }
+                }
+                else
+                {
+                    ExecuteInnerLoop(ref jobData, 0, jobData.Iterator.m_Length);
                 }
             }
         }
-
 
         internal unsafe static JobHandle ScheduleInternal_2<T>(ref T jobData, ComponentSystemBase system, int innerloopBatchCount, JobHandle dependsOn, ScheduleMode mode)
             where T : struct
@@ -380,14 +429,21 @@ namespace Unity.Entities
             JobStruct_ProcessInfer_2<T> fullData;
             fullData.Data = jobData;
 
-            IJobProcessComponentDataUtility.Initialize(system, typeof(T), typeof(JobStruct_Process2<,,>), ref JobStruct_ProcessInfer_2<T>.Cache, out fullData.Iterator);
+            bool isParallelFor = innerloopBatchCount != -1;
+            IJobProcessComponentDataUtility.Initialize(system, typeof(T), typeof(JobStruct_Process2<,,>), isParallelFor, ref JobStruct_ProcessInfer_2<T>.Cache, out fullData.Iterator);
 
-            var length = fullData.Iterator.m_Length;
-            var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct_ProcessInfer_2<T>.Cache.JobReflectionData, dependsOn, mode);
-            return JobsUtility.ScheduleParallelFor(ref scheduleParams, length, innerloopBatchCount <= 0 ? length : innerloopBatchCount);
+            if (isParallelFor)
+            {
+                var length = fullData.Iterator.m_Length;
+                var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct_ProcessInfer_2<T>.Cache.JobReflectionDataParallelFor, dependsOn, mode);
+                return JobsUtility.ScheduleParallelFor(ref scheduleParams, length, innerloopBatchCount);
+            }
+            else
+            {
+                var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct_ProcessInfer_2<T>.Cache.JobReflectionData, dependsOn, mode);
+                return JobsUtility.Schedule(ref scheduleParams);
+            }
         }
-
-
 
         [StructLayout(LayoutKind.Sequential)]
         struct JobStruct_ProcessInfer_2<T> where T : struct
@@ -407,47 +463,63 @@ namespace Unity.Entities
             public ProcessIterationData      Iterator;
             public T                         Data;
 
-            public static IntPtr Initialize()
+            public static IntPtr Initialize(JobType jobType)
             {
-                return JobsUtility.CreateJobReflectionData(typeof(JobStruct_Process2<T, U0, U1>), typeof(T), JobType.ParallelFor, (ExecuteJobFunction)Execute);
+                return JobsUtility.CreateJobReflectionData(typeof(JobStruct_Process2<T, U0, U1>), typeof(T), jobType, (ExecuteJobFunction)Execute);
             }
 
             delegate void ExecuteJobFunction(ref JobStruct_Process2<T, U0, U1> data, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
-            static unsafe void Execute(ref JobStruct_Process2<T, U0, U1> jobData, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
+
+            static unsafe void ExecuteInnerLoop(ref JobStruct_Process2<T, U0, U1> jobData, int begin, int end)
             {
                 ComponentChunkCache cache0, cache1;
-
-                int begin;
-                int end;
-                while (JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
+                
+                while (begin != end)
                 {
-                    while (begin != end)
+                    jobData.Iterator.Iterator0.UpdateCache(begin, out cache0);
+                    var ptr0 = cache0.CachedPtr;
+
+                    jobData.Iterator.Iterator1.UpdateCache(begin, out cache1);
+                    var ptr1 = cache1.CachedPtr;
+
+                    var curEnd = Math.Min(end, cache0.CachedEndIndex);
+
+                    for (var i = begin; i != curEnd; i++)
                     {
-                        jobData.Iterator.Iterator0.UpdateCache(begin, out cache0);
-                        var ptr0 = cache0.CachedPtr;
+                        //@TODO: use ref returns to pass by ref instead of double copy
+                        var value0 = UnsafeUtility.ReadArrayElement<U0>(ptr0, i);
+                        var value1 = UnsafeUtility.ReadArrayElement<U1>(ptr1, i);
 
-                        jobData.Iterator.Iterator1.UpdateCache(begin, out cache1);
-                        var ptr1 = cache1.CachedPtr;
+                        jobData.Data.Execute(ref value0, ref value1);
 
-                        var curEnd = Math.Min(end, cache0.CachedEndIndex);
-
-                        for (var i = begin; i != curEnd; i++)
-                        {
-                            //@TODO: use ref returns to pass by ref instead of double copy
-                            var value0 = UnsafeUtility.ReadArrayElement<U0>(ptr0, i);
-                            var value1 = UnsafeUtility.ReadArrayElement<U1>(ptr1, i);
-
-                            jobData.Data.Execute(ref value0, ref value1);
-
-                            if (jobData.Iterator.IsReadOnly0 == 0)
-                                UnsafeUtility.WriteArrayElement(ptr0, i, value0);
-                            if (jobData.Iterator.IsReadOnly1 == 0)
-                                UnsafeUtility.WriteArrayElement(ptr1, i, value1);
-                        }
-
-                        begin = curEnd;
+                        if (jobData.Iterator.IsReadOnly0 == 0)
+                            UnsafeUtility.WriteArrayElement(ptr0, i, value0);
+                        if (jobData.Iterator.IsReadOnly1 == 0)
+                            UnsafeUtility.WriteArrayElement(ptr1, i, value1);
                     }
+
+                    begin = curEnd;
+                }
+            }
+
+            static unsafe void Execute(ref JobStruct_Process2<T, U0, U1> jobData, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
+            {
+                if (jobData.Iterator.m_IsParallelFor)
+                {
+                    int begin;
+                    int end;
+                    while (JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
+                    {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                        JobsUtility.PatchBufferMinMaxRanges(bufferRangePatchData, UnsafeUtility.AddressOf(ref jobData), begin, end - begin);
+#endif
+                        ExecuteInnerLoop(ref jobData, begin, end);
+                    }
+                }
+                else
+                {
+                    ExecuteInnerLoop(ref jobData, 0, jobData.Iterator.m_Length);
                 }
             }
         }
@@ -458,11 +530,20 @@ namespace Unity.Entities
             JobStruct_ProcessInfer_3<T> fullData;
             fullData.Data = jobData;
 
-            IJobProcessComponentDataUtility.Initialize(system, typeof(T), typeof(JobStruct_Process3<,,,>), ref JobStruct_ProcessInfer_3<T>.Cache, out fullData.Iterator);
+            bool isParallelFor = innerloopBatchCount != -1;
+            IJobProcessComponentDataUtility.Initialize(system, typeof(T), typeof(JobStruct_Process3<,,,>), isParallelFor, ref JobStruct_ProcessInfer_3<T>.Cache, out fullData.Iterator);
 
-            var length = fullData.Iterator.m_Length;
-            var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct_ProcessInfer_3<T>.Cache.JobReflectionData, dependsOn, mode);
-            return JobsUtility.ScheduleParallelFor(ref scheduleParams, length, innerloopBatchCount <= 0 ? length : innerloopBatchCount);
+            if (isParallelFor)
+            {
+                var length = fullData.Iterator.m_Length;
+                var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct_ProcessInfer_3<T>.Cache.JobReflectionDataParallelFor, dependsOn, mode);
+                return JobsUtility.ScheduleParallelFor(ref scheduleParams, length, innerloopBatchCount);
+            }
+            else
+            {
+                var scheduleParams = new JobsUtility.JobScheduleParameters(UnsafeUtility.AddressOf(ref fullData), JobStruct_ProcessInfer_3<T>.Cache.JobReflectionData, dependsOn, mode);
+                return JobsUtility.Schedule(ref scheduleParams);
+            }
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -484,86 +565,71 @@ namespace Unity.Entities
             public ProcessIterationData      Iterator;
             public T                       Data;
 
-            public static IntPtr Initialize()
+            public static IntPtr Initialize(JobType jobType)
             {
-                return JobsUtility.CreateJobReflectionData(typeof(JobStruct_Process3<T, U0, U1, U2>), typeof(T), JobType.ParallelFor, (ExecuteJobFunction)Execute);
+                return JobsUtility.CreateJobReflectionData(typeof(JobStruct_Process3<T, U0, U1, U2>), typeof(T), jobType, (ExecuteJobFunction)Execute);
             }
 
             delegate void ExecuteJobFunction(ref JobStruct_Process3<T, U0, U1, U2> data, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
 
-            static unsafe void Execute(ref JobStruct_Process3<T, U0, U1, U2> jobData, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
+            static unsafe void ExecuteInnerLoop(ref JobStruct_Process3<T, U0, U1, U2> jobData, int begin, int end)
             {
                 ComponentChunkCache cache0, cache1, cache2;
 
-                int begin;
-                int end;
-                while (JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
+                while (begin != end)
                 {
-                    while (begin != end)
+                    jobData.Iterator.Iterator0.UpdateCache(begin, out cache0);
+                    var ptr0 = cache0.CachedPtr;
+
+                    jobData.Iterator.Iterator1.UpdateCache(begin, out cache1);
+                    var ptr1 = cache1.CachedPtr;
+
+                    jobData.Iterator.Iterator2.UpdateCache(begin, out cache2);
+                    var ptr2 = cache2.CachedPtr;
+
+                    var curEnd = Math.Min(end, cache0.CachedEndIndex);
+
+                    for (var i = begin; i != curEnd; i++)
                     {
-                        jobData.Iterator.Iterator0.UpdateCache(begin, out cache0);
-                        var ptr0 = cache0.CachedPtr;
+                        //@TODO: use ref returns to pass by ref instead of double copy
+                        var value0 = UnsafeUtility.ReadArrayElement<U0>(ptr0, i);
+                        var value1 = UnsafeUtility.ReadArrayElement<U1>(ptr1, i);
+                        var value2 = UnsafeUtility.ReadArrayElement<U2>(ptr2, i);
 
-                        jobData.Iterator.Iterator1.UpdateCache(begin, out cache1);
-                        var ptr1 = cache1.CachedPtr;
+                        jobData.Data.Execute(ref value0, ref value1, ref value2);
 
-                        jobData.Iterator.Iterator2.UpdateCache(begin, out cache2);
-                        var ptr2 = cache2.CachedPtr;
-
-                        var curEnd = Math.Min(end, cache0.CachedEndIndex);
-
-                        for (var i = begin; i != curEnd; i++)
-                        {
-                            //@TODO: use ref returns to pass by ref instead of double copy
-                            var value0 = UnsafeUtility.ReadArrayElement<U0>(ptr0, i);
-                            var value1 = UnsafeUtility.ReadArrayElement<U1>(ptr1, i);
-                            var value2 = UnsafeUtility.ReadArrayElement<U2>(ptr2, i);
-
-                            jobData.Data.Execute(ref value0, ref value1, ref value2);
-
-                            if (jobData.Iterator.IsReadOnly0 == 0)
-                                UnsafeUtility.WriteArrayElement(ptr0, i, value0);
-                            if (jobData.Iterator.IsReadOnly1 == 0)
-                                UnsafeUtility.WriteArrayElement(ptr1, i, value1);
-                            if (jobData.Iterator.IsReadOnly2 == 0)
-                                UnsafeUtility.WriteArrayElement(ptr2, i, value2);
-                        }
-
-                        begin = curEnd;
+                        if (jobData.Iterator.IsReadOnly0 == 0)
+                            UnsafeUtility.WriteArrayElement(ptr0, i, value0);
+                        if (jobData.Iterator.IsReadOnly1 == 0)
+                            UnsafeUtility.WriteArrayElement(ptr1, i, value1);
+                        if (jobData.Iterator.IsReadOnly2 == 0)
+                            UnsafeUtility.WriteArrayElement(ptr2, i, value2);
                     }
+
+                    begin = curEnd;
                 }
             }
-        }
-    }
 
-    public class GenericProcessComponentSystem<TJob, TComponentData0> : JobComponentSystem
-        where TJob : struct, IAutoComponentSystemJob, IJobProcessComponentData<TComponentData0>
-        where TComponentData0 : struct, IComponentData
-    {
-        protected override JobHandle OnUpdate(JobHandle inputDeps)
-        {
-            const int batchSize = 32;
 
-            var jobData = default(TJob);
-            jobData.Prepare();
-
-            return JobProcessComponentDataExtensions.ScheduleInternal_1(ref jobData, this, batchSize, inputDeps, ScheduleMode.Batched);
-        }
-    }
-
-    public class GenericProcessComponentSystem<TJob, TComponentData0, TComponentData1> : JobComponentSystem
-        where TJob : struct, IAutoComponentSystemJob, IJobProcessComponentData<TComponentData0, TComponentData1>
-        where TComponentData0 : struct, IComponentData
-        where TComponentData1 : struct, IComponentData
-    {
-        protected override JobHandle OnUpdate(JobHandle inputDeps)
-        {
-            const int batchSize = 32;
-
-            var jobData = default(TJob);
-            jobData.Prepare();
-
-            return JobProcessComponentDataExtensions.ScheduleInternal_2(ref jobData, this, batchSize, inputDeps, ScheduleMode.Batched);
+            static unsafe void Execute(ref JobStruct_Process3<T, U0, U1, U2> jobData, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
+            {
+                if (jobData.Iterator.m_IsParallelFor)
+                {
+                    int begin;
+                    int end;
+                    while (JobsUtility.GetWorkStealingRange(ref ranges, jobIndex, out begin, out end))
+                    {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                        JobsUtility.PatchBufferMinMaxRanges(bufferRangePatchData, UnsafeUtility.AddressOf(ref jobData), begin, end - begin);
+#endif
+                        ExecuteInnerLoop(ref jobData, begin, end);
+                    }
+                }
+                else
+                {
+                    ExecuteInnerLoop(ref jobData, 0, jobData.Iterator.m_Length);
+                }
+            }
         }
     }
 }

@@ -86,21 +86,24 @@ namespace Unity.Entities
     {
         // NOTE: Order of the UnsafeLinkedListNode is required to be this in order
         //       to allow for casting & grabbing Chunk* from nodes...
-        public UnsafeLinkedListNode  ChunkListNode;
-        public UnsafeLinkedListNode  ChunkListWithEmptySlotsNode;
+        public UnsafeLinkedListNode  ChunkListNode;                 // 16 | 8 
+        public UnsafeLinkedListNode  ChunkListWithEmptySlotsNode;   // 32 | 16
 
-        public Archetype*            Archetype;
-        public int* 		         SharedComponentValueArray;
+        public Archetype*            Archetype;                     // 40 | 20
+        public int* 		         SharedComponentValueArray;     // 48 | 24
 
         // This is meant as read-only.
         // ArchetypeManager.SetChunkCount should be used to change the count.
-        public int 		             Count;
-        public int 		             Capacity;
+        public int 		             Count;                         // 52 | 28
+        public int 		             Capacity;                      // 56 | 32
 
-        public int                   ManagedArrayIndex;
+        public int                   ManagedArrayIndex;             // 60 | 36
 
-        public int                   Padding0;
+        public int                   Padding0;                      // 64 | 40
+        public void*                 Padding1;                      // 72 | 44
+        public void*                 Padding2;                      // 80 | 48
 
+        
         // Component data buffer
         public fixed byte 		     Buffer[4];
 
@@ -117,6 +120,24 @@ namespace Unity.Entities
         public static int GetSharedComponentOffset(int numSharedComponents)
         {
             return kChunkSize - numSharedComponents * sizeof(int);
+        }
+
+        public bool MatchesFilter(MatchingArchetypes* match, int* filteredSharedComponents)
+        {
+            var sharedComponentsInChunk = SharedComponentValueArray;
+            var filteredCount = filteredSharedComponents[0];
+            var filtered = filteredSharedComponents + 1;
+            for(var i=0; i<filteredCount; ++i)
+            {
+                var componetIndexInComponentGroup = filtered[i * 2];
+                var sharedComponentIndex = filtered[i * 2 + 1];
+                var componentIndexInArcheType = match->TypeIndexInArchetypeArray[componetIndexInComponentGroup];
+                var componentIndexInChunk = match->Archetype->SharedComponentOffset[componentIndexInArcheType];
+                if (sharedComponentsInChunk[componentIndexInChunk] != sharedComponentIndex)
+                    return false;
+            }
+
+            return true;
         }
     }
 
@@ -171,9 +192,11 @@ namespace Unity.Entities
             m_EmptyChunkPool = (UnsafeLinkedListNode*)m_ArchetypeChunkAllocator.Allocate(sizeof(UnsafeLinkedListNode), UnsafeUtility.AlignOf<UnsafeLinkedListNode>());
             UnsafeLinkedListNode.InitializeList(m_EmptyChunkPool);
 
+#if UNITY_ASSERTIONS
             // Buffer should be 16 byte aligned to ensure component data layout itself can gurantee being aligned
             var offset = UnsafeUtility.GetFieldOffset(typeof(Chunk).GetField("Buffer"));
-            Assert.AreEqual(0, offset % 16);
+            Assert.IsTrue(offset % 16 == 0, "Chunk buffer must be 16 byte aligned");
+#endif
         }
 
         public void Dispose()

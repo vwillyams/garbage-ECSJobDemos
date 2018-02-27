@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Security.Policy;
 using Unity.Collections.LowLevel.Unsafe;
 
 namespace Unity.Entities

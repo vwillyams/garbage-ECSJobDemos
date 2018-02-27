@@ -794,5 +794,28 @@ namespace Unity.Entities
             return ecsPlayerLoop;
         }
 
+        public static void UpdatePlayerLoop(params World[] worlds)
+        {
+            var defaultLoop = PlayerLoop.GetDefaultPlayerLoop();
+
+            if (worlds.Length > 0)
+            {
+                var ecsLoop = InsertWorldManagersInPlayerLoop(defaultLoop, worlds);
+                SetPlayerLoopAndNotify(ecsLoop);
+            }
+            else
+            {
+                SetPlayerLoopAndNotify(defaultLoop);
+            }
+        }
+
+        public static event Action<PlayerLoopSystem> OnSetPlayerLoop;
+
+        public static void SetPlayerLoopAndNotify(PlayerLoopSystem playerLoop)
+        {
+            PlayerLoop.SetPlayerLoop(playerLoop);
+            OnSetPlayerLoop?.Invoke(playerLoop);
+        }
+
     }
 }

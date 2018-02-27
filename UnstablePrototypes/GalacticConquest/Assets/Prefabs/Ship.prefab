@@ -23,7 +23,7 @@ GameObject:
   - component: {fileID: 114015798461427038}
   - component: {fileID: 114347223073065474}
   - component: {fileID: 114430328901482626}
-  - component: {fileID: 114982482828800980}
+  - component: {fileID: 114721542705289032}
   m_Layer: 0
   m_Name: Ship
   m_TagString: Ship
@@ -88,7 +88,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2327f3002fc94f2b91d287c740439550, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &114982482828800980
+--- !u!114 &114721542705289032
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -96,11 +96,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1904721804032362}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2c0cfb790335ef9429dc7851c36ce645, type: 3}
+  m_Script: {fileID: 11500000, guid: 9b0fd4427893a4a16ba0c267dfd00217, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_SerializedData:
     mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
-    material: {fileID: 2100000, guid: 17aecc7542efbbe4785780284c9bc387, type: 2}
+    material: {fileID: 2100000, guid: b884ce0ddb9c211478183159f5bd6cbb, type: 2}
     castShadows: 0
     receiveShadows: 0

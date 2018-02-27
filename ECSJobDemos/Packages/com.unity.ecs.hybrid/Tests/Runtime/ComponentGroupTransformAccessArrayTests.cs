@@ -1,7 +1,5 @@
 ﻿using NUnit.Framework;
 using Unity.Entities;
-using Unity.ECS.Hybrid;
-using Unity.Entities.Hybrid;
 using UnityEngine.Jobs;
 
 namespace UnityEngine.ECS.Tests
@@ -10,17 +8,20 @@ namespace UnityEngine.ECS.Tests
 	{
 
 	    TransformAccessArrayInjectionHook m_TransformAccessArrayInjectionHook = new TransformAccessArrayInjectionHook();
+	    ComponentArrayInjectionHook m_ComponentArrayInjectionHook = new ComponentArrayInjectionHook();
 
 	    [OneTimeSetUp]
 	    public void Init()
 	    {
+	        InjectionHookSupport.RegisterHook(m_ComponentArrayInjectionHook);
 	        InjectionHookSupport.RegisterHook(m_TransformAccessArrayInjectionHook);
 	    }
 
 	    [OneTimeTearDown]
 	    public void Cleanup()
 	    {
-	        InjectionHookSupport.UnregisterHook(m_TransformAccessArrayInjectionHook);
+	        InjectionHookSupport.RegisterHook(m_TransformAccessArrayInjectionHook);
+	        InjectionHookSupport.UnregisterHook(m_ComponentArrayInjectionHook);
 	    }
 
         public ComponentGroupTransformAccessArrayTests()

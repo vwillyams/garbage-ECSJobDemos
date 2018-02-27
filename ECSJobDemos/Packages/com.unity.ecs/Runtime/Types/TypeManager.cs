@@ -2,6 +2,8 @@
 using System.Threading;
 using Unity.Collections.LowLevel.Unsafe;
 
+using Component = UnityEngine.Component;
+
 namespace Unity.Entities
 {
     public unsafe static class TypeManager
@@ -29,7 +31,7 @@ namespace Unity.Entities
                 Category = category;
                 FastEqualityLayout = layout;
             }
-            
+
             public readonly Type                  Type;
             public readonly int                   SizeInChunk;
             public readonly FastEquality.Layout[] FastEqualityLayout;
@@ -44,7 +46,9 @@ namespace Unity.Entities
 
         public static int ObjectOffset;
 
-        
+        // TODO: this creates a dependency on UnityEngine, but makes splitting code in separate assemblies easier. We need to remove it during the biggere refactor.
+        internal static readonly Type UnityEngineComponentType = typeof(Component);
+
         struct ObjectOffsetType
         {
             void* v0;

@@ -5,11 +5,9 @@ using Unity.Mathematics;
 using UnityEngine.ECS.SimpleMovement;
 using UnityEngine.ECS.SpawnerShim;
 using Unity.Transforms;
-using Unity.Entities.Hybrid;
 
 namespace ECS.Spawners
 {
-    [DisableSystemWhenEmpty]
     public class SpawnChainSystem : ComponentSystem
     {
         struct SpawnChainInstance

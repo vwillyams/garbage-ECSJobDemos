@@ -8,8 +8,6 @@ using Unity.Assertions;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
-using Component = UnityEngine.Component;
-
 namespace Unity.Entities
 {
     public class ComponentGroupArrayStaticCache
@@ -48,17 +46,16 @@ namespace Unity.Entities
                     var isReadOnly = field.GetCustomAttributes(typeof(ReadOnlyAttribute), true).Length != 0;
                     var accessMode = isReadOnly ? ComponentType.AccessMode.ReadOnly : ComponentType.AccessMode.ReadWrite;
 
-                    //@TODO: Find out if there is a non-string based version of doing this...
-                    var pointerTypeFullName = fieldType.FullName;
-                    var valueType = fieldType.Assembly.GetType(pointerTypeFullName.Remove(pointerTypeFullName.Length - 1));
+                    var elementType = fieldType.GetElementType();
+
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-                    if (!typeof(IComponentData).IsAssignableFrom(valueType) && valueType != typeof(Entity))
+                    if (!typeof(IComponentData).IsAssignableFrom(elementType) && elementType != typeof(Entity))
                         throw new ArgumentException($"{type}.{field.Name} is a pointer type but not a IComponentData. Only IComponentData or Entity may be a pointer type for enumeration.");
 #endif
                     componentDataFieldOffsetsBuilder.Add(offset);
-                    componentDataTypesBuilder.Add(new ComponentType(valueType, accessMode));
+                    componentDataTypesBuilder.Add(new ComponentType(elementType, accessMode));
                 }
-                else if (fieldType.IsSubclassOf(typeof(Component)))
+                else if (fieldType.IsSubclassOf(TypeManager.UnityEngineComponentType))
                 {
                     componentFieldOffsetsBuilder.Add(offset);
                     componentTypesBuilder.Add(fieldType);

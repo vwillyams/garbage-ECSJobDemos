@@ -4,8 +4,6 @@ using Unity.Jobs;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
-using Component = UnityEngine.Component;
-
 namespace Unity.Entities
 {
     unsafe struct ComponentGroupData
@@ -115,7 +113,7 @@ namespace Unity.Entities
                         var archeType = match->Archetype;
                         for (var c = (Chunk*) archeType->ChunkList.Begin; c != archeType->ChunkList.End; c = (Chunk*) c->ChunkListNode.Next)
                         {
-                            if (!ComponentGroupData.ChunkMatchesFilter(match, c, m_FilteredSharedComponents))
+                            if (!c->MatchesFilter(match, m_FilteredSharedComponents))
                                 continue;
 
                             if (c->Count > 0)
@@ -158,7 +156,7 @@ namespace Unity.Entities
                     var archeType = match->Archetype;
                     for (var c = (Chunk*)archeType->ChunkList.Begin; c != archeType->ChunkList.End; c = (Chunk*)c->ChunkListNode.Next)
                     {
-                        if (!ComponentGroupData.ChunkMatchesFilter(match, c, m_FilteredSharedComponents))
+                        if (!c->MatchesFilter(match, m_FilteredSharedComponents))
                             continue;
 
                         if (c->Count <= 0)
@@ -179,24 +177,6 @@ namespace Unity.Entities
             outIterator = first == null
                 ? new ComponentChunkIterator(null, 0, null, null)
                 : new ComponentChunkIterator(first, length, firstNonEmptyChunk, m_FilteredSharedComponents);
-        }
-
-        internal static bool ChunkMatchesFilter(MatchingArchetypes* match, Chunk* chunk, int* filteredSharedComponents)
-        {
-            var sharedComponentsInChunk = chunk->SharedComponentValueArray;
-            var filteredCount = filteredSharedComponents[0];
-            var filtered = filteredSharedComponents + 1;
-            for(var i=0; i<filteredCount; ++i)
-            {
-                var componetIndexInComponentGroup = filtered[i * 2];
-                var sharedComponentIndex = filtered[i * 2 + 1];
-                var componentIndexInArcheType = match->TypeIndexInArchetypeArray[componetIndexInComponentGroup];
-                var componentIndexInChunk = match->Archetype->SharedComponentOffset[componentIndexInArcheType];
-                if (sharedComponentsInChunk[componentIndexInChunk] != sharedComponentIndex)
-                    return false;
-            }
-
-            return true;
         }
 
         internal int GetIndexInComponentGroup(int componentType)
@@ -310,7 +290,7 @@ namespace Unity.Entities
                         if (c->Count <= 0)
                             continue;
 
-                        if ((m_FilteredSharedComponents != null) && (!ComponentGroupData.ChunkMatchesFilter(matchingArchetype, c, m_FilteredSharedComponents)))
+                        if ((m_FilteredSharedComponents != null) && (!c->MatchesFilter(matchingArchetype, m_FilteredSharedComponents)))
                             continue;
 
                         if (c == entityChunk)
@@ -344,7 +324,7 @@ namespace Unity.Entities
         readonly ArchetypeManager             m_TypeManager;
         readonly ComponentGroupData           m_ComponentGroupData;
         readonly EntityDataManager*           m_EntityDataManager;
-        
+
         // TODO: this is temporary, used to cache some state to avoid recomputing the TransformAccessArray. We need to improve this.
         internal IDisposable m_CachedState;
 
@@ -497,25 +477,6 @@ namespace Unity.Entities
 
             EntityArray res;
             GetEntityArray(ref iterator, length, out res);
-            return res;
-        }
-
-        internal void GetComponentArray<T>(ref ComponentChunkIterator iterator, int indexInComponentGroup, int length, out ComponentArray<T> output) where T : Component
-        {
-            iterator.IndexInComponentGroup = indexInComponentGroup;
-            output = new ComponentArray<T>(iterator, length, m_TypeManager);
-        }
-
-        public ComponentArray<T> GetComponentArray<T>() where T : Component
-        {
-            int length;
-            ComponentChunkIterator iterator;
-            GetComponentChunkIterator(out length, out iterator);
-            var indexInComponentGroup = GetIndexInComponentGroup(TypeManager.GetTypeIndex<T>());
-
-
-            ComponentArray<T> res;
-            GetComponentArray<T>(ref iterator, indexInComponentGroup, length, out res);
             return res;
         }
 

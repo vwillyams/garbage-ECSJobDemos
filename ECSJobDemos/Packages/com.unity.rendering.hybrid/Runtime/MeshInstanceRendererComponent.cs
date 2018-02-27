@@ -3,7 +3,7 @@ using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace Unity.Rendering.Hybrid
+namespace Unity.Rendering
 {
     /// <summary>
     /// Render Mesh wiih Material (must be instanced material) by object to world matrix

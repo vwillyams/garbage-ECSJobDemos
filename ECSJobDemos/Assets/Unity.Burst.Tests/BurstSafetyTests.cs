@@ -16,20 +16,68 @@ public class BurstSafetyTests
             throw new System.ArgumentException("Blah");
         }
     }
-
+    
     [Test]
-    public void ThrowException()
+    public void ThrowExceptionParallelForStress()
     {
         LogAssert.Expect(LogType.Exception, new Regex("ArgumentException: Blah"));
 
         var jobData = new ThrowExceptionJob();
         jobData.Schedule(100, 1).Complete();
     }
+    
+    [ComputeJobOptimization(CompileSynchronously = true)]
+    struct WriteToReadOnlyArrayJob : IJob
+    {
+        [ReadOnly]
+        public NativeArray<int> test;
+        public void Execute()
+        {
+            test[0] = 5;
+        }
+    }
+    
+    [Test]
+    public void WriteToReadOnlyArray()
+    {
+        LogAssert.Expect(LogType.Exception, new Regex("InvalidOperationException"));
+
+        var jobData = new WriteToReadOnlyArrayJob();
+        jobData.test = new NativeArray<int>(1, Allocator.Persistent);
+
+        jobData.Run();
+
+        jobData.test.Dispose();
+    }
+    
+    [ComputeJobOptimization(CompileSynchronously = true)]
+    struct ParallelForIndexChecksJob : IJobParallelFor
+    {
+        public NativeArray<int> test;
+
+        public void Execute(int index)
+        {
+            test[0] = 5;
+        }
+    }
+    
+    [Test]
+    public void ParallelForMinMaxChecks()
+    {
+        LogAssert.Expect(LogType.Exception, new Regex("IndexOutOfRangeException"));
+
+        var jobData = new ParallelForIndexChecksJob();
+        jobData.test = new NativeArray<int>(2, Allocator.Persistent);
+
+        jobData.Schedule(100, 1).Complete();
+
+        jobData.test.Dispose();
+    }
 
     [ComputeJobOptimization(CompileSynchronously = true)]
-    struct AccessNullNativeArrayJob : IJob
+    struct AccessNullNativeArrayJob : IJobParallelFor
     {
-        public void Execute()
+        public void Execute(int index)
         {
             var array = new NativeArray<float>();
             array[0] = 5;
@@ -37,12 +85,12 @@ public class BurstSafetyTests
     }
 
     [Test]
-    [Ignore("Crashing")]
+    [Ignore("Crashes Unity - Important")]
     public void AccessNullNativeArray()
     {
         LogAssert.Expect(LogType.Exception, new Regex("NullReferenceException"));
 
-        new AccessNullNativeArrayJob().Run();
+        new AccessNullNativeArrayJob().Schedule(100, 1).Complete();
     }
 
     [ComputeJobOptimization(CompileSynchronously = true)]
@@ -55,9 +103,9 @@ public class BurstSafetyTests
             myArray[0] = 5;
         }
     }
-
+    
     [Test]
-    [Ignore("Crashing")]
+    [Ignore("Crashes Unity - No user is supposed to write code like this, so not very important")]
     public void AccessNullUnsafePtr()
     {
         LogAssert.Expect(LogType.Exception, new Regex("NullReferenceException"));

@@ -1,12 +1,10 @@
 ﻿using Unity.Collections;
 using Unity.Entities;
-using Unity.ECS.Hybrid;
 using Unity.Jobs;
 using UnityEngine.Jobs;
 
-namespace Unity.Transforms.Hybrid
+namespace Unity.Transforms
 {
-    [DisableSystemWhenEmpty]
     public class CopyTransformToGameObjectSystem : JobComponentSystem
     {
         [Inject] [ReadOnly] ComponentDataFromEntity<Position> m_Positions;

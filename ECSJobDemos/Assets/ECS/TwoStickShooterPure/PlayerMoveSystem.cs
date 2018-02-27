@@ -1,5 +1,4 @@
-﻿using Unity.Collections;
-using Unity.Entities;
+﻿using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using Unity.Transforms2D;
@@ -20,9 +19,6 @@ namespace TwoStickPureExample
 
         protected override void OnUpdate()
         {
-            if (m_Data.Length == 0)
-                return;
-
             var settings = TwoStickBootstrap.Settings;
 
             float dt = Time.deltaTime;
@@ -51,7 +47,7 @@ namespace TwoStickPureExample
                         },
                         Position = new Position2D{ Value = position },
                         Heading = new Heading2D{ Value = heading },
-                        Faction = new Faction { Value = Faction.kPlayer },
+                        Faction = Factions.kPlayer,
                     });
                 }
 

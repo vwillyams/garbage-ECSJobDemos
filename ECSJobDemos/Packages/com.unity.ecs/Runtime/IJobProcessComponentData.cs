@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -8,7 +7,8 @@ using Unity.Assertions;
 using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.Collections;
+
+[assembly:InternalsVisibleTo("Unity.Entities.Editor")]
 
 namespace Unity.Entities
 {
@@ -146,7 +146,8 @@ namespace Unity.Entities
 
             for (var i = 0; i < genericArgs.Length; i++)
             {
-                var isReadonly = executeMethodParameters[i].GetCustomAttributes(typeof(ReadOnlyAttribute)).Count() != 0 || executeMethodParameters[i].GetCustomAttributes(typeof(IsReadOnlyAttribute)).Count() != 0;
+                var isReadonly = executeMethodParameters[i].GetCustomAttribute(typeof(Unity.Collections.ReadOnlyAttribute)) != null || 
+                                 executeMethodParameters[i].GetCustomAttribute(typeof(System.Runtime.CompilerServices.IsReadOnlyAttribute)) != null;
                 componentTypes.Add(new ComponentType(genericArgs[i], isReadonly ? ComponentType.AccessMode.ReadOnly : ComponentType.AccessMode.ReadWrite));
             }
 
@@ -362,7 +363,7 @@ namespace Unity.Entities
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct JobStruct_Process1<T, U0>
+        internal struct JobStruct_Process1<T, U0>
             where T : struct, IJobProcessComponentData<U0>
             where U0 : struct, IComponentData
         {
@@ -455,7 +456,7 @@ namespace Unity.Entities
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct JobStruct_Process2<T, U0, U1>
+        internal struct JobStruct_Process2<T, U0, U1>
             where T : struct, IJobProcessComponentData<U0, U1>
             where U0 : struct, IComponentData
             where U1 : struct, IComponentData
@@ -556,7 +557,7 @@ namespace Unity.Entities
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct JobStruct_Process3<T, U0, U1, U2>
+        internal struct JobStruct_Process3<T, U0, U1, U2>
             where T : struct, IJobProcessComponentData<U0, U1, U2>
             where U0 : struct, IComponentData
             where U1 : struct, IComponentData

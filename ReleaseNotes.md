@@ -38,6 +38,8 @@ Additionally ComponentSystem.GetComponentGroup should not be called in OnUpdate(
   SharedComponentDataArray<T> can also be injected similar to ComponentDataArray<T>
   Access through SharedComponentDataArray is always read only
 
+* IJobProcessComponentData is significantly simplified. Supports 1, 2, 3 parameters. Supports read only, supports additional required components & subtractive components. https://github.com/Unity-Technologies/ECSJobDemos/blob/stable/ECSJobDemos/Assets/GameCode/SimpleRotation/RotationSpeedSystem.cs
+
 # 0.0.2
 
 ## New Features

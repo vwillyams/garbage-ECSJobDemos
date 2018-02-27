@@ -1,5 +1,5 @@
 {
-    "name": "Unity.Properties.Entities",
+    "name": "Unity.Entities.Properties",
     "references": [
         "Unity.Core",
         "Unity.Mathematics",

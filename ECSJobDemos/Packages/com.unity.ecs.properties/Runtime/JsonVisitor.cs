@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
+using Unity.Properties;
 using Unity.Properties.Serialization;
 
-namespace Unity.Properties.Entities
+namespace Unity.Entities.Properties
 {
     public interface IOptimizedVisitor : IBuiltInPropertyVisitor
         , IPropertyVisitor<float2>

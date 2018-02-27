@@ -1,11 +1,11 @@
 {
-    "name": "Unity.Properties.Entities.Tests",
+    "name": "Unity.Entities.Properties.Tests",
     "references": [
         "Unity.Core",
         "Unity.Mathematics",
         "Unity.Properties",
         "Unity.Jobs",
-        "Unity.Properties.Entities"
+        "Unity.Entities.Properties"
     ],
     "optionalUnityReferences": [
         "TestAssemblies"

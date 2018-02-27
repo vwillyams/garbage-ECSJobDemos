@@ -30,6 +30,12 @@ namespace Unity.Entities
 
     }
 
+    /// <summary>
+    /// Merge sort index list referencing NativeArray values.
+    /// Provide list of shared values, indices to shared values, and lists of source i
+    /// value indices with identical shared value.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public struct NativeArraySharedValues<T> : IDisposable
         where T : struct, IComparable<T>
     {
@@ -194,7 +200,7 @@ namespace Unity.Entities
                 sortedCount = sortedCount,
                 outputBuffer = outputBuffer
             };
-            var mergeSortedPairsJobHandle = mergeSortedPairsJob.Schedule(pairCount, 64, inputDeps);
+            var mergeSortedPairsJobHandle = mergeSortedPairsJob.Schedule(pairCount, (pairCount+1)/8, inputDeps);
             var remainder = m_Source.Length - (pairCount * sortedCount * 2);
             if (remainder > sortedCount)
             {
@@ -224,7 +230,7 @@ namespace Unity.Entities
                 };
 
                 // There's no overlap, but write to the same array, so extra dependency:
-                var copyRemainderPairJobHandle = copyRemainderPairJob.Schedule(remainder,64,mergeSortedPairsJobHandle);
+                var copyRemainderPairJobHandle = copyRemainderPairJob.Schedule(remainder,(pairCount+1)/8,mergeSortedPairsJobHandle);
                 return copyRemainderPairJobHandle;
             }
 
@@ -307,6 +313,11 @@ namespace Unity.Entities
             return assignSharedValuesJobHandle;
         }
 
+        /// <summary>
+        /// Schedule jobs to collect and sort shared values.
+        /// </summary>
+        /// <param name="inputDeps">Dependent JobHandle</param>
+        /// <returns>JobHandle</returns>
         public JobHandle Schedule(JobHandle inputDeps)
         {
             if (m_Source.Length <= 1)
@@ -317,12 +328,16 @@ namespace Unity.Entities
             {
                 buffer = m_Buffer
             };
-            var initializeIndicesJobHandle = initializeIndicesJob.Schedule(m_Source.Length, 64, inputDeps);
+            var initializeIndicesJobHandle = initializeIndicesJob.Schedule(m_Source.Length, (m_Source.Length+1)/8, inputDeps);
             var sortJobHandle = Sort(initializeIndicesJobHandle);
             var resolveSharedGroupsJobHandle = ResolveSharedGroups(sortJobHandle);
             return resolveSharedGroupsJobHandle;
         }
 
+        /// <summary>
+        /// Indices into source NativeArray sorted by value
+        /// </summary>
+        /// <returns>Index NativeArray where each element refers to alement ini source NativeArray</returns>
         public unsafe NativeArray<int> GetSortedIndices()
         {
             int* rawIndices = ((int*) m_Buffer.GetUnsafeReadOnlyPtr()) + (m_SortedBuffer * m_Source.Length);
@@ -333,16 +348,53 @@ namespace Unity.Entities
             return arr;
         }
 
+        /// <summary>
+        /// Number of shared (unique) values in source NativeArray
+        /// </summary>
         public int SharedValueCount => m_Buffer[m_Source.Length * 4];
 
+        /// <summary>
+        /// Index of shared value
+        /// </summary>
+        /// <param name="index">Index of source value</param>
+        /// <returns></returns>
+        public int GetSharedIndexBySourceIndex(int index)
+        {
+            int sharedValueIndicesOffset = (m_SortedBuffer^ 1) * m_Source.Length;
+            int sharedValueIndex = m_Buffer[sharedValueIndicesOffset + index];
+            return sharedValueIndex;
+        }
+
+        /// <summary>
+        /// Array of indiices into source NativeArray which share the same source value
+        /// </summary>
+        /// <param name="index">Index of source value</param>
+        /// <returns></returns>
         public NativeArray<int> GetSharedValueIndicesBySourceIndex(int index)
         {
             int sharedValueIndicesOffset = (m_SortedBuffer^ 1) * m_Source.Length;
             int sharedValueIndex = m_Buffer[sharedValueIndicesOffset + index];
-            return GetSharedValueIndicesBySharedValueIndex(sharedValueIndex);
+            return GetSharedValueIndicesBySharedIndex(sharedValueIndex);
         }
 
-        public unsafe NativeArray<int> GetSharedValueIndicesBySharedValueIndex(int index)
+        /// <summary>
+        /// Number of values which share the same value.
+        /// </summary>
+        /// <param name="index">Number of values which share the same value.</param>
+        /// <returns></returns>
+        public int GetSharedValueIndexCountBySourceIndex(int index)
+        {
+            int sharedValueIndexCountOffset = 2 * m_Source.Length;
+            int sharedValueIndexCount = m_Buffer[sharedValueIndexCountOffset + index];
+            return sharedValueIndexCount;
+        }
+
+        /// <summary>
+        /// Array of indiices into source NativeArray which share the same source value
+        /// </summary>
+        /// <param name="index">Index of shared value</param>
+        /// <returns></returns>
+        public unsafe NativeArray<int> GetSharedValueIndicesBySharedIndex(int index)
         {
             int sharedValueIndexCountOffset = 2 * m_Source.Length;
             int sharedValueIndexCount = m_Buffer[sharedValueIndexCountOffset + index];
@@ -358,6 +410,18 @@ namespace Unity.Entities
             return arr;
         }
 
+        /// <summary>
+        /// Get internal buffer for disposal
+        /// </summary>
+        /// <returns></returns>
+        public NativeArray<int> GetBuffer()
+        {
+            return m_Buffer;
+        }
+
+        /// <summary>
+        /// Dispose internal buffer
+        /// </summary>
         public void Dispose()
         {
             m_Buffer.Dispose();

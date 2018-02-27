@@ -14,7 +14,7 @@ namespace UnityEngine.ECS.SimpleSpatialQuery
         ComponentGroup m_TargetGroup;
         ComponentGroup m_NearestTargetPositionGroup;
 
-        // [ComputeJobOptimization]
+        [ComputeJobOptimization]
         struct NearestTargetPosition : IJobParallelFor
         {
             [ReadOnly] [DeallocateOnJobCompletion] public NativeArray<float3> targetPositions;

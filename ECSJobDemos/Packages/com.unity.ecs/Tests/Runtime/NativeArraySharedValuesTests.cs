@@ -108,7 +108,7 @@ namespace UnityEngine.ECS.Tests
             var source = new NativeArray<int>(count, Allocator.Temp);
             for (int i = 0; i < count; i++)
             {
-                source[i] = Random.Range(-count, count);
+                source[i] = count - (i / 2);
             }
             var sharedValues = new NativeArraySharedValues<int>(source, Allocator.Temp);
             var sharedValuesJobHandle = sharedValues.Schedule(default(JobHandle));

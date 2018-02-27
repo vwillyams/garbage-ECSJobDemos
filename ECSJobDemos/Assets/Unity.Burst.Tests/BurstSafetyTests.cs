@@ -18,6 +18,7 @@ public class BurstSafetyTests
     }
     
     [Test]
+    [Ignore("JOE FIXES IN PROGRESS")]
     public void ThrowExceptionParallelForStress()
     {
         LogAssert.Expect(LogType.Exception, new Regex("ArgumentException: Blah"));
@@ -38,6 +39,7 @@ public class BurstSafetyTests
     }
     
     [Test]
+    [Ignore("JOE FIXES IN PROGRESS")]
     public void WriteToReadOnlyArray()
     {
         LogAssert.Expect(LogType.Exception, new Regex("InvalidOperationException"));
@@ -62,6 +64,7 @@ public class BurstSafetyTests
     }
     
     [Test]
+    [Ignore("JOE FIXES IN PROGRESS")]
     public void ParallelForMinMaxChecks()
     {
         LogAssert.Expect(LogType.Exception, new Regex("IndexOutOfRangeException"));

@@ -32,6 +32,12 @@ Additionally ComponentSystem.GetComponentGroup should not be called in OnUpdate(
 
 * Various namespace refactoring. Unity.ECS -> Unity.Entities.
 
+* Optimizations for NativeHashMap and NativeMultiHashMap
+
+* Can now get an array of shared component data from a component group (ComponentGroup.GetSharedComponentDataArray)
+  SharedComponentDataArray<T> can also be injected similar to ComponentDataArray<T>
+  Access through SharedComponentDataArray is always read only
+
 # 0.0.2
 
 ## New Features

@@ -19,14 +19,12 @@ namespace Unity.Transforms
             public float3 position;
             public quaternion localRotation;
             public quaternion rotation;
-            public Entity entity;
         }
 
         [ComputeJobOptimization]
         struct StashTransforms : IJobParallelForTransform
         {
             public NativeArray<TransformStash> transformStashes;
-            public EntityArray entities;
 
             public void Execute(int index, TransformAccess transform)
             {
@@ -36,7 +34,6 @@ namespace Unity.Transforms
                     rotation       = transform.rotation,
                     position       = transform.position,
                     localRotation  = transform.localRotation,
-                    entity         = entities[index]
                 };
             }
         }
@@ -48,12 +45,13 @@ namespace Unity.Transforms
             [NativeDisableParallelForRestriction] public ComponentDataFromEntity<LocalRotation> localRotations;
             [NativeDisableParallelForRestriction] public ComponentDataFromEntity<Position> positions;
             [NativeDisableParallelForRestriction] public ComponentDataFromEntity<Rotation> rotations;
+            public EntityArray entities;
             [DeallocateOnJobCompletion] public NativeArray<TransformStash> transformStashes;
 
             public void Execute(int index)
             {
                 var transformStash = transformStashes[index];
-                var entity = transformStashes[index].entity;
+                var entity = entities[index];
                 if (positions.Exists(entity))
                 {
                     positions[entity] = new Position { Value = transformStash.position };
@@ -88,8 +86,7 @@ namespace Unity.Transforms
             var transformStashes = new NativeArray<TransformStash>(transforms.Length, Allocator.TempJob);
             var stashTransformsJob = new StashTransforms
             {
-                transformStashes = transformStashes,
-                entities = entities
+                transformStashes = transformStashes
             };
 
             var stashTransformsJobHandle = stashTransformsJob.Schedule(transforms, inputDeps);
@@ -101,6 +98,7 @@ namespace Unity.Transforms
                 localPositions = m_LocalPositions,
                 localRotations = m_LocalRotations,
                 transformStashes = transformStashes,
+                entities = entities
             };
 
             return copyTransformsJob.Schedule(transformStashes.Length,64,stashTransformsJobHandle);

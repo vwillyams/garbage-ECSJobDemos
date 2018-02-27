@@ -2,16 +2,13 @@ using System;
 
 using Unity.Multiplayer;
 using Unity.Collections;
-public interface INetworkedMessage
-{
-    void Serialize(ref ByteWriter writer);
-    void Deserialize(ref ByteReader reader);
-}
 
 public enum AsteroidsProtocol
 {
     Command,
-    Snapshot
+    Snapshot,
+    ReadyReq,
+    ReadyRsp
 }
 
 public enum SpawnType
@@ -19,6 +16,19 @@ public enum SpawnType
     Ship,
     Asteroid,
     Bullet
+}
+
+public struct ReadyRsp : INetworkedMessage
+{
+    public int NetworkId;
+    public void Serialize(ref ByteWriter writer)
+    {
+        writer.Write(NetworkId);
+    }
+    public void Deserialize(ref ByteReader reader)
+    {
+        NetworkId = reader.ReadInt();
+    }
 }
 
 public struct Command : INetworkedMessage, IDisposable
@@ -44,7 +54,7 @@ public struct Command : INetworkedMessage, IDisposable
         writer.Write(InputCommands.Length);
 
         NativeArray<PlayerInputComponentData> inputs = InputCommands;
-        foreach(var input in inputs)
+        foreach (var input in inputs)
         {
             writer.Write(input.left);
             writer.Write(input.right);
@@ -70,7 +80,7 @@ public struct Command : INetworkedMessage, IDisposable
     }
 }
 
-public struct Snapshot :  INetworkedMessage, IDisposable
+public struct Snapshot : INetworkedMessage, IDisposable
 {
     int sequence;
     public NativeList<SpawnCommand> SpawnCommands;
@@ -100,19 +110,19 @@ public struct Snapshot :  INetworkedMessage, IDisposable
         writer.Write(sequence);
         writer.Write(SpawnCommands.Length);
         NativeArray<SpawnCommand> spawns = SpawnCommands;
-        foreach(var command in spawns)
+        foreach (var command in spawns)
         {
             command.Serialize(ref writer);
         }
         writer.Write(DespawnCommands.Length);
         NativeArray<DespawnCommand> despawns = DespawnCommands;
-        foreach(var command in despawns)
+        foreach (var command in despawns)
         {
             command.Serialize(ref writer);
         }
         writer.Write(MovementDatas.Length);
         NativeArray<MovementData> movements = MovementDatas;
-        foreach(var command in movements)
+        foreach (var command in movements)
         {
             command.Serialize(ref writer);
         }

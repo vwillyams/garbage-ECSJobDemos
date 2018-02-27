@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.Entities;
 
 using Unity.Mathematics;
 
@@ -16,7 +16,7 @@ namespace Asteriods.Server
             ComponentDataArray<AsteroidTagComponentData> tags;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         Asteroids asteroids;
 
         override protected void OnUpdate()

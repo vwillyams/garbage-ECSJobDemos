@@ -1,8 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Jobs;
+using UnityEngine;
+using UnityEngine.Profiling;
 
 public class NativeQueuePerf : MonoBehaviour
 {
@@ -31,16 +30,16 @@ public class NativeQueuePerf : MonoBehaviour
 	void Update ()
 	{
 		m_queue.Clear();
-		UnityEngine.Profiling.Profiler.BeginSample("QueueST");
+		Profiler.BeginSample("QueueST");
 		for (int i = 0; i < 1024*1024; ++i)
 			m_queue.Enqueue(i);
-		UnityEngine.Profiling.Profiler.EndSample();
+		Profiler.EndSample();
 		m_queue.Clear();
-		UnityEngine.Profiling.Profiler.BeginSample("QueueST.Concurrent");
+		Profiler.BeginSample("QueueST.Concurrent");
 		NativeQueue<int>.Concurrent cq = m_queue;
 		for (int i = 0; i < 1024*1024; ++i)
 			cq.Enqueue(i);
-		UnityEngine.Profiling.Profiler.EndSample();
+		Profiler.EndSample();
 		m_queue.Clear();
 		var qjob = new NativeQueueEnqueue();
 		qjob.m_queue = m_queue;

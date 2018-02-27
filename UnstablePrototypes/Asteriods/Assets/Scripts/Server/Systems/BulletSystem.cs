@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.Entities;
 
 using Unity.Mathematics;
 
@@ -17,7 +17,7 @@ namespace Asteriods.Server
         }
 
 
-        [InjectComponentGroup]
+        [Inject]
         Bullet bullets;
 
         override protected void OnCreateManager(int capacity)

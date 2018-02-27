@@ -2,7 +2,7 @@ using Unity;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine.Rendering;
 using Unity.Jobs;
@@ -33,7 +33,7 @@ namespace Asteriods.Client
         {
             public ComponentDataArray<LineRendererComponentData> line;
         }
-        [InjectComponentGroup]
+        [Inject]
         LineListComponents m_LineListComponent;
         [Inject]
         EntityManager m_EntityManager;
@@ -82,7 +82,7 @@ namespace Asteriods.Client
 
 			// Fake singleton entity
             m_SingletonEntity = m_EntityManager.CreateEntity();
-            m_EntityManager.AddComponent(m_SingletonEntity, new LineRendererComponentData());
+            m_EntityManager.AddComponentData(m_SingletonEntity, new LineRendererComponentData());
 
             m_LineList = new NativeList<Line>(MaxLines, Allocator.Persistent);
 

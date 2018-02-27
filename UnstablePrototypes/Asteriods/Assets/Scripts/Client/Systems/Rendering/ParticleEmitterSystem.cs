@@ -2,7 +2,7 @@ using Unity;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Jobs;
 
@@ -39,9 +39,8 @@ namespace Asteriods.Client
             public ComponentDataArray<RotationComponentData> rotation;
             public ComponentDataArray<ParticleVelocityComponentData> velocity;
             public ComponentDataArray<ParticleAgeComponentData> age;
-
-
         }
+
         [ComputeJobOptimization]
         struct ParticleIntializeJob : IJobParallelFor
         {
@@ -81,10 +80,10 @@ namespace Asteriods.Client
 
         }
 
-        [InjectComponentGroup]
+        [Inject]
         ParticleEmitters emitters;
 
-        [InjectComponentGroup]
+        [Inject]
         ParticleIntialize initializers;
 
         struct ParticleSpawner
@@ -167,16 +166,16 @@ namespace Asteriods.Client
                     particleArchetype = m_ParticleArchetype;
                 // Create the first particle, then instantiate the rest based on its value
                 var particle = m_EntityManager.CreateEntity(particleArchetype);
-                m_EntityManager.SetComponent(particle, spawners[em].emitter);
+                m_EntityManager.SetComponentData(particle, spawners[em].emitter);
                 // Set initial data
-                m_EntityManager.SetComponent(particle, new ParticleVelocityComponentData(spawners[em].velocity));
-                m_EntityManager.SetComponent(particle, new PositionComponentData(spawners[em].position.x + spawnOffset.x, spawners[em].position.y + spawnOffset.y));
-                m_EntityManager.SetComponent(particle, new RotationComponentData(spawners[em].rotation));
+                m_EntityManager.SetComponentData(particle, new ParticleVelocityComponentData(spawners[em].velocity));
+                m_EntityManager.SetComponentData(particle, new PositionComponentData(spawners[em].position.x + spawnOffset.x, spawners[em].position.y + spawnOffset.y));
+                m_EntityManager.SetComponentData(particle, new RotationComponentData(spawners[em].rotation));
                 if (colorTrans)
-                    m_EntityManager.SetComponent(particle,
+                    m_EntityManager.SetComponentData(particle,
                         new ParticleColorTransitionComponentData(spawners[em].emitter.startColor, spawners[em].emitter.endColor));
                 if (sizeTrans)
-                    m_EntityManager.SetComponent(particle,
+                    m_EntityManager.SetComponentData(particle,
                         new ParticleSizeTransitionComponentData(spawners[em].emitter.startLength,
                         spawners[em].emitter.endLength, spawners[em].emitter.startWidth, spawners[em].emitter.endWidth));
                 if (particles > 1)

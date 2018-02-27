@@ -1,17 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using Data;
 using Other;
 using Unity.Collections;
+using Unity.Entities;
+using Unity.Entities.Hybrid;
+using Unity.Transforms;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.ECS;
-using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 namespace Systems
 {
-    [UpdateAfter(typeof(UserActionSystem))]
+    [UpdateAfter(typeof(UserInputSystem))]
     public class ShipSpawnSystem : ComponentSystem
     {
         public ShipSpawnSystem()
@@ -32,15 +32,26 @@ namespace Systems
             public int TeamOwnership { get; set; }
         }
 
-        [InjectComponentGroup] private SpawningPlanets _planets;
-        private PrefabManager _prefabManager;
-        private EntityManager _entityManager;
+        protected override void OnCreateManager(int capacity)
+        {
+            _shipsToSpawn = new NativeList<ShipSpawnData>(Allocator.Persistent);
+        }
 
-        private float spawnCounter = 0.0f;
+        protected override void OnDestroyManager()
+        {
+            _shipsToSpawn.Dispose();
+        }
+
+        [Inject]
+        SpawningPlanets _planets;
+        PrefabManager _prefabManager;
+        EntityManager _entityManager;
+
+        NativeList<ShipSpawnData> _shipsToSpawn;
 
         protected override void OnUpdate()
         {
-            var shipData = new NativeList<ShipSpawnData>(Allocator.Temp);
+
             for(var planetIndex = 0; planetIndex < _planets.Length; planetIndex++)
             {
                 var planetLaunchData = _planets.Data[planetIndex];
@@ -54,13 +65,12 @@ namespace Systems
                 int shipCount;
                 var shipsToSpawn = planetLaunchData.NumberToSpawn;
 
-                spawnCounter += Time.deltaTime;
-                var deltaSpawn = Math.Max(1, Convert.ToInt32(500.0f * spawnCounter));
-                if (deltaSpawn >= 1)
-                    spawnCounter = 0;
+                var dt = Time.deltaTime;
+                var deltaSpawn = Math.Max(1, Convert.ToInt32(1000.0f * dt));
+
                 if (deltaSpawn < shipsToSpawn)
                     shipsToSpawn = deltaSpawn;
-                var targetPlanet = _entityManager.GetComponent<PlanetData>(planetLaunchData.TargetEntity);
+                var targetPlanet = _entityManager.GetComponentData<PlanetData>(planetLaunchData.TargetEntity);
                 var planetDistance = Vector3.Distance(planetPos, targetPlanet.Position);
                 for (shipCount = 0; shipCount < shipsToSpawn; shipCount++)
                 {
@@ -73,7 +83,7 @@ namespace Systems
                         shipPos = planetPos + (onSphere * (planetRadius + _prefabManager.ShipPrefab.transform.localScale.x));
                     } while (Vector3.Distance(shipPos, targetPlanet.Position) > planetDistance);
 
-                    shipData.Add(new ShipSpawnData
+                    _shipsToSpawn.Add(new ShipSpawnData
                     {
                         SpawnPosition = shipPos,
                         TargetEntity = planetLaunchData.TargetEntity,
@@ -90,19 +100,32 @@ namespace Systems
                 };
                 _planets.Data[planetIndex] = launchData;
             }
-            for (int i = 0; i < shipData.Length; i++)
+            var entities = new NativeArray<Entity>(_shipsToSpawn.Length, Allocator.Temp);
+            _entityManager.Instantiate(_prefabManager.ShipPrefab, entities);
+            for (int i = 0; i < _shipsToSpawn.Length; i++)
             {
-                var go = Object.Instantiate<GameObject>(_prefabManager.ShipPrefab, shipData[i].SpawnPosition, Quaternion.identity);
-
                 var data = new ShipData
                 {
-                    TargetEntity = shipData[i].TargetEntity,
-                    TeamOwnership = shipData[i].TeamOwnership
+                    TargetEntity = _shipsToSpawn[i].TargetEntity,
+                    TeamOwnership = _shipsToSpawn[i].TeamOwnership
                 };
-                _entityManager.AddComponent(go.GetComponent<GameObjectEntity>().Entity, data);
-            }
+                _entityManager.AddComponentData(entities[i], data);
+                var spawnPosition = new Position
+                {
+                    Value = _shipsToSpawn[i].SpawnPosition
+                };
 
-            shipData.Dispose();
+                var transformMatix = new TransformMatrix
+                {
+                    Value = math.scale(new float3(0.02f, 0.02f, 0.02f))
+                };
+
+                _entityManager.SetComponentData(entities[i], transformMatix);
+                _entityManager.SetComponentData(entities[i], spawnPosition);
+
+            }
+            entities.Dispose();
+            _shipsToSpawn.Clear();
         }
     }
 }

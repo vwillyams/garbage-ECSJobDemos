@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.Entities;
 
 using Unity.Collections;
 
@@ -19,7 +19,7 @@ namespace Asteriods.Server
             public EntityArray refs;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         DamagedEntities entities;
 
         [Inject]

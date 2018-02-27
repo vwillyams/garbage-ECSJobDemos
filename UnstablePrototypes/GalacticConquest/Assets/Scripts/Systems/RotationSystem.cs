@@ -1,27 +1,39 @@
 ﻿using Data;
+using Unity.Entities;
+using Unity.Jobs;
 using UnityEngine;
-using UnityEngine.ECS;
+using UnityEngine.Jobs;
 
 namespace Systems
 {
-    public class RotationSystem : ComponentSystem
+    public class RotationSystem : JobComponentSystem
     {
         struct Planets
         {
             public int Length;
             public ComponentDataArray<RotationData> Data;
-            public ComponentArray<Transform> Transform;
+            public TransformAccessArray Transforms;
         }
 
-        [InjectComponentGroup] private Planets _planets;
-        protected override void OnUpdate()
+        struct RotationJob : IJobParallelForTransform
         {
-            for (var i = 0; i < _planets.Length; ++i)
+            public ComponentDataArray<RotationData> Rotations;
+            public void Execute(int index, TransformAccess transform)
             {
-                var transform = _planets.Transform[i];
-                var rotSpeed = _planets.Data[i].RotationSpeed;
-                transform.Rotate(rotSpeed);
+                transform.rotation = transform.rotation * Quaternion.Euler( Rotations[index].RotationSpeed);
             }
+        }
+
+        [Inject]
+        Planets _planets;
+        protected override JobHandle OnUpdate(JobHandle inputDeps)
+        {
+            var job = new RotationJob
+            {
+                Rotations = _planets.Data
+            };
+
+            return job.Schedule(_planets.Transforms, inputDeps);
         }
     }
 }

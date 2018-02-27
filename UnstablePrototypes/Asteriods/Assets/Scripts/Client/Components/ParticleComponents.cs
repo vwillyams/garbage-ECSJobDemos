@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.Entities;
 using Unity.Mathematics;
 
 public struct ParticleComponentData : IComponentData

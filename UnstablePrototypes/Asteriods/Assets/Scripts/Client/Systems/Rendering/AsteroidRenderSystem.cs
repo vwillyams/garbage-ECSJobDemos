@@ -2,7 +2,7 @@ using Unity;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
-using UnityEngine.ECS;
+using Unity.Entities;
 using Unity.Mathematics;
 
 
@@ -26,14 +26,14 @@ namespace Asteriods.Client
             public ComponentDataArray<RotationComponentData> rotation;
         }
 
-        [InjectComponentGroup]
+        [Inject]
         Asteroid asteroids;
 
         struct LineList
         {
             public ComponentDataArray<LineRendererComponentData> line;
         }
-        [InjectComponentGroup]
+        [Inject]
         LineList m_LineListComponent;
 
         static float pulse = 1;

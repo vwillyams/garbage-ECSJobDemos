@@ -1,7 +1,7 @@
 {
     "name": "Unity.Blobs.Tests",
     "references": [
-        "UnityEngine.ECS",
+        "Unity.Core",
         "Unity.Blobs"
     ],
     "optionalUnityReferences": [
@@ -10,5 +10,6 @@
     "includePlatforms": [
         "Editor"
     ],
-    "excludePlatforms": []
+    "excludePlatforms": [],
+    "allowUnsafeCode": true
 }

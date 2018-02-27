@@ -4,7 +4,7 @@ root = true
 
 [*]
 # help with sharing files across os's (i.e. network share or through local vm)
-end_of_line = lf
+#end_of_line = lf
 #charset temporarily disabled due to bug in VS2017 changing to UTF-8 with BOM (https://favro.com/card/c564ede4ed3337f7b17986b6/Uni-17877)
 #charset = utf-8
 trim_trailing_whitespace = true

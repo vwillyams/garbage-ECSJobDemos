@@ -2,8 +2,6 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.PostProcessing
 {
-    using Settings = MotionBlurModel.Settings;
-
     public sealed class MotionBlurComponent : PostProcessingComponentCommandBuffer<MotionBlurModel>
     {
         static class Uniforms
@@ -81,7 +79,7 @@ namespace UnityEngine.PostProcessing
                 return SystemInfo.supportsMotionVectors;
             }
 
-            public void ProcessImage(PostProcessingContext context, CommandBuffer cb, ref Settings settings, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material)
+            public void ProcessImage(PostProcessingContext context, CommandBuffer cb, ref MotionBlurModel.Settings settings, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material)
             {
                 // Calculate the maximum blur radius in pixels.
                 int maxBlurPixels = (int)(settings.maxBlurRadius * context.height / 100);

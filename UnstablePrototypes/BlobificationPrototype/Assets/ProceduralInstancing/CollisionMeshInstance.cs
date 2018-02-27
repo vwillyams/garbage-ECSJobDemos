@@ -1,5 +1,5 @@
 ﻿using Unity.Mathematics;
-using UnityEngine.ECS;
+using Unity.ECS;
 
 public struct CollisionMeshInstance : IComponentData
 {

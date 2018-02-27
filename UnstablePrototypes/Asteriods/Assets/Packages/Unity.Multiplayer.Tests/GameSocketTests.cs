@@ -44,6 +44,15 @@ namespace Unity.Multiplayer.Tests
             m_Server.Dispose();
         }
 
+
+        [Test]
+        public void CreateSocket_NewSocket_ShouldWorkAsExpected()
+        {
+            var socket = new GameSocket("0.0.0.0", k_ServerPort-1, m_ServerConfiguration);
+            Assert.NotNull(socket);
+            socket.Dispose();
+        }
+
         [Test]
         public void CreateSocket_UseAlreadyUsedPort_ShouldThrowError()
         {

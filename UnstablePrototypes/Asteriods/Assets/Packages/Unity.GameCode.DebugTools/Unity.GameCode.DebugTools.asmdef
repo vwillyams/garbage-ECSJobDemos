@@ -1,9 +1,10 @@
 {
     "name": "Unity.GameCode.Debug",
     "references": [
-        "UnityEngine.ECS"
+        "Unity.Core"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],
-    "excludePlatforms": []
+    "excludePlatforms": [],
+    "allowUnsafeCode": true
 }

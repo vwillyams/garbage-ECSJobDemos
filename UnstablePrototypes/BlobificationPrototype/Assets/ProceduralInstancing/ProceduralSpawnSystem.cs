@@ -1,12 +1,12 @@
-﻿using System;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.ECS;
-using UnityEngine.ECS.Rendering;
+using Unity.ECS;
+using Unity.Core.Hybrid;
 using UnityEngine.Profiling;
+using Unity.Transforms;
 
 public struct ProceduralChunkScene : ISharedComponentData
 {
@@ -23,21 +23,10 @@ public class ProceduralSpawnSystem : JobComponentSystem
     const int                          MaxDestroyChunksPerFrame = 12;
     const bool                         Deterministic = false;
 
-    struct GridChunk : IEquatable<int2>
-    {
-        public int2             Pos;
-        public ComponentType    ChunkSceneType;
-
-        public bool Equals(int2 pos)
-        {
-            return Pos.Equals(pos);
-        }
-    }
-
 
     //@TODO: This would be better expressed with a hashmap,
     //       however we currently can't iterate over all elements...
-    NativeList<GridChunk> m_CreatedChunks;
+    NativeList<int2> m_CreatedChunks;
 
 
     NativeList<SpawnData>[] m_SpawnLocationCaches;
@@ -56,16 +45,19 @@ public class ProceduralSpawnSystem : JobComponentSystem
         public ComponentDataArray<CollisionMeshInstance> Instances;
     }
 
-    [InjectComponentGroup] CollisionMeshInstances m_CollisionMeshes;
+    [Inject] CollisionMeshInstances m_CollisionMeshes;
 
 
     World m_ConstructionWorld;
     EntityManager m_ConstructionManager;
+    ComponentGroup m_AllChunksGroup;
 
 
     protected override void OnCreateManager(int capacity)
     {
-        m_CreatedChunks = new NativeList<GridChunk>(capacity, Allocator.Persistent);
+        m_AllChunksGroup = EntityManager.CreateComponentGroup(typeof(ProceduralChunkScene));
+
+        m_CreatedChunks = new NativeList<int2>(capacity, Allocator.Persistent);
         m_SpawnLocationCaches = new NativeList<SpawnData>[MaxCreateChunksPerFrame];
 
         for (int i = 0;i != m_SpawnLocationCaches.Length;i++)
@@ -74,16 +66,17 @@ public class ProceduralSpawnSystem : JobComponentSystem
         prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/VegetationAssets/ECSVegetation0.prefab");
 
 
-
         //@TODO: how does leak detection work for world creation?
         m_ConstructionWorld = new World("Procedural construction world");
         m_ConstructionManager = m_ConstructionWorld.GetOrCreateManager<EntityManager>();
         //@TODO: Would be nice if this wasn't necessary and transactions could increase capacity...
-        m_ConstructionManager.EntityCapacity = 1000 * 1000;
+        m_ConstructionManager.EntityCapacity = 1000 * 1000;            
     }
 
     protected override void OnDestroyManager()
     {
+        m_AllChunksGroup.Dispose();
+        
         m_ConstructionWorld.Dispose();
 
         m_CreatedChunks.Dispose();
@@ -118,7 +111,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
         }
     }
 
-    static int GetToBeCreatedGridPositions(NativeArray<GridChunk> createdChunks, NativeArray<int2> visible, NativeArray<int2> outGridPositions)
+    static int GetToBeCreatedGridPositions(NativeArray<int2> createdChunks, NativeArray<int2> visible, NativeArray<int2> outGridPositions)
     {
         //@TODO: Foreach support
         // foreach (var gridPos in visible)
@@ -136,13 +129,13 @@ public class ProceduralSpawnSystem : JobComponentSystem
         return count;
     }
 
-    static int GetToBeDestroyedGridPositions(NativeArray<GridChunk> createdChunks, NativeArray<int2> visible, NativeArray<int2> toBeDestroyed)
+    static int GetToBeDestroyedGridPositions(NativeArray<int2> createdChunks, NativeArray<int2> visible, NativeArray<int2> toBeDestroyed)
     {
         int count = 0;
         for (int i = 0; i != createdChunks.Length && count != toBeDestroyed.Length; i++)
         {
-            if (!visible.Contains(createdChunks[i].Pos))
-                toBeDestroyed[count++] = createdChunks[i].Pos;
+            if (!visible.Contains(createdChunks[i]))
+                toBeDestroyed[count++] = createdChunks[i];
         }
         return count;
     }
@@ -192,6 +185,8 @@ public class ProceduralSpawnSystem : JobComponentSystem
 
         public void Execute()
         {
+            SpawnLocations.Clear();
+            
             //@TODO: Why is this cast necessary? Seems wrong...
             float2 min = ChunkPosition * (int)GridSize;
             float2 max = min + new float2(GridSize);
@@ -219,7 +214,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
         //@TODO: Would be nice if this could be a local variable in the job...
         public NativeList<int2> visibleGridPositions;
 
-        public NativeArray<GridChunk>  createdChunks;
+        public NativeArray<int2>  createdChunks;
 
         public NativeList<int2> destroyGridPositions;
         public NativeList<int2> createGridPositions;
@@ -244,42 +239,48 @@ public class ProceduralSpawnSystem : JobComponentSystem
 
     struct PopulateChunk : IJob
     {
-        //@TODO: This is just a hack. No data from the prefab gets transported except for ISharedComponentData
-        public EntityArchetype      Archetype;
-
-        public EntityTransaction    EntityTransaction;
-        public int2                 ChunkPosition;
+        public ExclusiveEntityTransaction   EntityTransaction;
+        public int2                         ChunkPosition;
+        public Entity                       Prefab;
+        public bool                         DestroyPrefab;
 
         [ReadOnly]
         //@TODO: Not supported. This is super annoying...
         //[DeallocateOnJobCompletion]
         public NativeList<SpawnData> SpawnLocations;
 
-
         public void Execute()
         {
-            var entities = new NativeArray<Entity>(SpawnLocations.Length, Allocator.Temp);
-            EntityTransaction.CreateEntity(Archetype, entities);
+            var entities = new NativeArray<Entity>(SpawnLocations.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            
+            EntityTransaction.AddComponent(Prefab, ComponentType.Create<ProceduralChunkScene>());
+            EntityTransaction.SetSharedComponentData(Prefab, new ProceduralChunkScene() { Position = ChunkPosition });
 
+            EntityTransaction.Instantiate(Prefab, entities);
+            
             for (int i = 0; i != entities.Length; i++)
             {
-                InstanceRendererTransform transform;
-                transform.matrix = Matrix4x4.Translate(SpawnLocations[i].Position);
-                EntityTransaction.SetComponent(entities[i], transform);
+                TransformMatrix transform;
+                transform.Value = Matrix4x4.Translate(SpawnLocations[i].Position);
+                EntityTransaction.SetComponentData(entities[i], transform);
             }
 
+            if (DestroyPrefab)
+                EntityTransaction.DestroyEntity(Prefab);
+            else
+                EntityTransaction.RemoveComponent(Prefab, ComponentType.Create<ProceduralChunkScene>());
+            
             entities.Dispose();
         }
     }
-
+    
     void DestroyChunk(int2 position)
     {
         var chunkScene = new ProceduralChunkScene();
         chunkScene.Position = position;
 
         Profiler.BeginSample("DestroyChunk.CreateComponentGroup");
-        var chunkSceneType = EntityManager.CreateSharedComponentType(chunkScene);
-        var group = EntityManager.CreateComponentGroup(chunkSceneType);
+        var group = m_AllChunksGroup.GetVariation(chunkScene);
         Profiler.EndSample();
 
         //@TODO: This is highly inconvenient...
@@ -302,32 +303,19 @@ public class ProceduralSpawnSystem : JobComponentSystem
         m_CreatedChunks.RemoveAtSwapBack(m_CreatedChunks.IndexOf(position));
     }
 
-    //@TODO: Wow this is just insane amounts of code necessary for the simplest possible thing...
-    void GetArchetype(int2 chunkPosition, out EntityArchetype archetype, out ComponentType chunkSceneType)
-    {
-        ComponentType[] types;
-        Component[] components;
-        GameObjectEntity.GetComponents(m_ConstructionManager, prefab, false, out types, out components);
-
-        ComponentType[] typesWithChunk = new ComponentType[types.Length + 1];
-        types.CopyTo(typesWithChunk, 0);
-
-        var chunkSceneComponent = new ProceduralChunkScene() { Position = chunkPosition };
-        chunkSceneType = m_ConstructionManager.CreateSharedComponentType(chunkSceneComponent);
-        typesWithChunk[types.Length ] = chunkSceneType;
-
-        archetype = m_ConstructionManager.CreateArchetype(typesWithChunk);
-    }
-
-
     protected override JobHandle OnUpdate(JobHandle dependency)
     {
         //@TODO: When is a good time for this to be called?
         Profiler.BeginSample("CommitTransaction");
 
-        bool scheduleCreation = Deterministic || m_ConstructionManager.EntityTransactionDependency.IsCompleted;
+        bool scheduleCreation = Deterministic || m_ConstructionManager.ExclusiveEntityTransactionDependency.IsCompleted;
         if (scheduleCreation)
-            EntityManager.MoveEntitiesFrom(m_ConstructionManager);
+        {
+            m_ConstructionManager.EndExclusiveEntityTransaction();
+            EntityManager.MoveEntitiesFrom(m_ConstructionManager);    
+        }
+
+        
         Profiler.EndSample();
 
         Profiler.BeginSample("CalculateVisible");
@@ -356,7 +344,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
 
         Profiler.BeginSample("DestroyChunk");
         {
-            for (int i = 0; i != calculateVisibleJob.destroyGridPositions.Length; i++)
+           for (int i = 0; i != calculateVisibleJob.destroyGridPositions.Length; i++)
                 DestroyChunk(calculateVisibleJob.destroyGridPositions[i]);
         }
         Profiler.EndSample();
@@ -372,9 +360,6 @@ public class ProceduralSpawnSystem : JobComponentSystem
                 dependency = ScheduleCreateChunks(dependency, calculateVisibleJob.createGridPositions);
                 Profiler.EndSample();
             }
-
-            //@TODO: Error message produced from this seems wrong...
-            //toBeCreatedChunks.Dispose();
         }
 
         calculateVisibleJob.createGridPositions.Dispose();
@@ -392,63 +377,55 @@ public class ProceduralSpawnSystem : JobComponentSystem
         doubleBufferCollision.SrcCollisionInstances = m_CollisionMeshes.Instances;
         dependency = doubleBufferCollision.Schedule(m_CollisionMeshes.Instances.Length, 16, dependency);
 
-        // Extract all archetypes first, because extracting the archetype will CommitTransaction...
-        // @TODO: When Simons SharedComponentData refactor is ready this should be unnecessary...
-        var archetypes = new NativeArray<EntityArchetype>(toBeCreatedChunks.Length, Allocator.Temp);
-        var chunkSceneTypes = new NativeArray<ComponentType>(toBeCreatedChunks.Length, Allocator.Temp);
-        for (int i = 0; i != toBeCreatedChunks.Length; i++)
-        {
-            ComponentType type;
-            EntityArchetype arch;
-            GetArchetype(toBeCreatedChunks[i], out arch, out type);
-            chunkSceneTypes[i] = type;
-            archetypes[i] = arch;
-        }
+        Profiler.BeginSample("Instantiate__");
+        var prefabEntity = m_ConstructionManager.Instantiate(prefab);
+        Profiler.EndSample();
+        
+        var spawnDependencies = new NativeArray<JobHandle>(toBeCreatedChunks.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
-        var spawnDependencies = new NativeArray<JobHandle>(toBeCreatedChunks.Length, Allocator.Temp);
-
-        var transaction = m_ConstructionManager.BeginTransaction();
+        Profiler.BeginSample("BeginTransaction__");
+        var transaction = m_ConstructionManager.BeginExclusiveEntityTransaction();
+        Profiler.EndSample();
+        
+        Profiler.BeginSample("1__");
         for (int i = 0; i != toBeCreatedChunks.Length; i++)
         {
             var createPos = toBeCreatedChunks[i];
 
-            var spawnLocationJob = new CalculateChunkSpawnLocationsJob();
+            CalculateChunkSpawnLocationsJob spawnLocationJob;
             spawnLocationJob.ChunkPosition = createPos;
             spawnLocationJob.CollisionInstances = doubleBufferCollision.DstCollisionInstances;
             spawnLocationJob.SpawnLocations = m_SpawnLocationCaches[i];
-            spawnLocationJob.SpawnLocations.Clear();
 
             spawnDependencies[i] = spawnLocationJob.Schedule(dependency);
         }
+        Profiler.EndSample();
+
+        Profiler.BeginSample("2__");
 
         for (int i = 0; i != toBeCreatedChunks.Length; i++)
         {
             var createPos = toBeCreatedChunks[i];
-
-            GridChunk gridChunk;
-            gridChunk.Pos = createPos;
-            gridChunk.ChunkSceneType = chunkSceneTypes[i];
 
             PopulateChunk chunkJob;
             chunkJob.EntityTransaction = transaction;
             chunkJob.ChunkPosition = createPos;
             chunkJob.SpawnLocations = m_SpawnLocationCaches[i];
-            chunkJob.Archetype = archetypes[i];
+            chunkJob.Prefab = prefabEntity;
+            chunkJob.DestroyPrefab = i == toBeCreatedChunks.Length - 1;
 
-            m_CreatedChunks.Add(gridChunk);
-
-            var chunkDependency = JobHandle.CombineDependencies(spawnDependencies[i], m_ConstructionManager.EntityTransactionDependency);
-            m_ConstructionManager.EntityTransactionDependency = chunkJob.Schedule(chunkDependency);
+            m_CreatedChunks.Add(createPos);
+            var chunkDependency = JobHandle.CombineDependencies(spawnDependencies[i], m_ConstructionManager.ExclusiveEntityTransactionDependency);
+            m_ConstructionManager.ExclusiveEntityTransactionDependency = chunkJob.Schedule(chunkDependency);
         }
+        Profiler.EndSample();
 
         spawnDependencies.Dispose();
-        archetypes.Dispose();
-        chunkSceneTypes.Dispose();
 
         var deallocateCollisionJob = new DeallocateCollisionInstancesJob();
         deallocateCollisionJob.CollisionInstances = doubleBufferCollision.DstCollisionInstances;
-        m_ConstructionManager.EntityTransactionDependency = deallocateCollisionJob.Schedule(deallocateCollisionJob.CollisionInstances.Length, 16, m_ConstructionManager.EntityTransactionDependency);
-
+        m_ConstructionManager.ExclusiveEntityTransactionDependency = deallocateCollisionJob.Schedule(deallocateCollisionJob.CollisionInstances.Length, 16, m_ConstructionManager.ExclusiveEntityTransactionDependency);
+        
         return dependency;
     }
 }

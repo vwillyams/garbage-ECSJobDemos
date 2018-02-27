@@ -1,9 +1,9 @@
-﻿using UnityEngine;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine.ECS;
-using UnityEngine.Profiling;
+using Unity.Entities;
 using Unity.Jobs.LowLevel.Unsafe;
+using UnityEngine;
+using UnityEngine.Profiling;
 
 public class ECSInstantiatePerformance : MonoBehaviour
 {

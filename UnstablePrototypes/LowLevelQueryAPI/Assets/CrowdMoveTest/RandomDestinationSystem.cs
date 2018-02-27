@@ -2,7 +2,7 @@
 using UnityEngine;
 using Unity.Collections;
 using Unity.Jobs;
-using UnityEngine.ECS;
+using Unity.ECS;
 using UnityEngine.Experimental.AI;
 
 [UpdateAfter(typeof(CrowdSystem))]
@@ -15,7 +15,7 @@ public class RandomDestinationSystem : JobComponentSystem
         public ComponentDataArray<CrowdAgentNavigator> agentNavigators;
     }
 
-    [InjectComponentGroup]
+    [Inject]
     CrowdGroup m_Crowd;
 
     NavMeshQuery m_NavMeshQuery;

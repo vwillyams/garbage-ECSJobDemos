@@ -1,6 +1,6 @@
-﻿using Unity.Mathematics;
+﻿using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.ECS;
 
 namespace Data
 {
@@ -16,4 +16,7 @@ namespace Data
     {
         public float3 RotationSpeed;
     }
+
+    public struct ShipArrivedTag : IComponentData
+    {}
 }

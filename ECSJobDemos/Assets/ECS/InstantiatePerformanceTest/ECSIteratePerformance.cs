@@ -1,11 +1,11 @@
-﻿using UnityEngine;
-using Unity.Collections;
-using Unity.Jobs;
-using UnityEngine.ECS;
-using UnityEngine.Profiling;
+﻿using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.Mathematics;
+using Unity.Entities;
+using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
+using Unity.Mathematics;
+using UnityEngine;
+using UnityEngine.Profiling;
 
 // 64 + 16 + 12 + 128 + 4 + 4 = 228 bytes
 
@@ -47,13 +47,22 @@ struct Component128Bytes : IComponentData
 
 public class ECSIteratePerformance : MonoBehaviour
 {
-	unsafe struct EntityIter
+    [DisableAutoCreation]
+    class DummyComponentSystem : JobComponentSystem
+    {
+        protected override JobHandle OnUpdate(JobHandle inputDeps)
+        {
+            return inputDeps;
+        }
+    }
+
+    unsafe struct EntityIter
 	{
 		public Component4Bytes* 	src;
 		public Component4BytesDst* 	dst;
 	}
 
-	[ComputeJobOptimization]
+    [ComputeJobOptimization(CompileSynchronously = true)]
 	struct Iterate_ComponentDataFromEntity : IJob
 	{
 		public NativeArray<Entity> 							entities;
@@ -74,7 +83,7 @@ public class ECSIteratePerformance : MonoBehaviour
 		}
 	}
 
-	[ComputeJobOptimization]
+    [ComputeJobOptimization(CompileSynchronously = true)]
 	struct Iterate_ComponentDataArray : IJob
 	{
 		public ComponentDataArray<Component4Bytes> 		src;
@@ -91,7 +100,7 @@ public class ECSIteratePerformance : MonoBehaviour
 		}
 	}
 
-	[ComputeJobOptimization]
+    [ComputeJobOptimization(CompileSynchronously = true)]
 	struct Iterate_ProcessEntities : IJobProcessEntities<EntityIter>
 	{
 		unsafe public void Execute(EntityIter entity)
@@ -113,7 +122,7 @@ public class ECSIteratePerformance : MonoBehaviour
 		}
 	}
 
-	[ComputeJobOptimization]
+    [ComputeJobOptimization(CompileSynchronously = true)]
 	struct Iterate_ProcessComponentData : IJobProcessComponentData<Component4Bytes, Component4BytesDst>
 	{
 		public void Execute(ref Component4Bytes src, ref Component4BytesDst dst)
@@ -122,7 +131,7 @@ public class ECSIteratePerformance : MonoBehaviour
 		}
 	}
 
-	[ComputeJobOptimization]
+    [ComputeJobOptimization(CompileSynchronously = true)]
 	unsafe struct Iterate_FloatPointer : IJob
 	{
 		[NativeDisableUnsafePtrRestriction]
@@ -141,7 +150,7 @@ public class ECSIteratePerformance : MonoBehaviour
 		}
 	}
 
-	[ComputeJobOptimization]
+    [ComputeJobOptimization(CompileSynchronously = true)]
 	struct Iterate_NativeArrayParallelFor : IJobParallelFor
 	{
 		[NativeMatchesParallelForLength]
@@ -156,7 +165,7 @@ public class ECSIteratePerformance : MonoBehaviour
 		}
 	}
 
-	[ComputeJobOptimization]
+    [ComputeJobOptimization(CompileSynchronously = true)]
 	struct Iterate_NativeArray : IJob
 	{
 		public NativeArray<float> 	src;
@@ -172,7 +181,7 @@ public class ECSIteratePerformance : MonoBehaviour
 		}
 	}
 
-	[ComputeJobOptimization]
+    [ComputeJobOptimization(CompileSynchronously = true)]
 	struct Iterate_NativeSlice : IJob
 	{
 		public NativeSlice<float> 	src;
@@ -277,9 +286,10 @@ public class ECSIteratePerformance : MonoBehaviour
 		}
 
 		var entityManager = World.Active.GetOrCreateManager<EntityManager>();
+	    var dummySystem = World.Active.GetOrCreateManager<DummyComponentSystem>();
 
 		var archetype = entityManager.CreateEntity(typeof(Component128Bytes), typeof(Component12Bytes), typeof(Component64Bytes), typeof(Component16Bytes), typeof(Component4Bytes), typeof(Component4BytesDst));
-		var group = entityManager.CreateComponentGroup(typeof(Component4Bytes), typeof(Component4BytesDst));
+		var group = dummySystem.GetComponentGroup(typeof(Component4Bytes), typeof(Component4BytesDst));
 
 	    var instances = new NativeArray<Entity>(PerformanceTestConfiguration.InstanceCount - 1, Allocator.Temp);
 
@@ -292,12 +302,12 @@ public class ECSIteratePerformance : MonoBehaviour
 		var componentDataArrayJob = new Iterate_ComponentDataArray() { src = src, dst = dst };
 		componentDataArrayJob.Run();
 
-		var componentDataFromEntityJob = new Iterate_ComponentDataFromEntity() { src = entityManager.GetComponentDataFromEntity<Component4Bytes>(), dst = entityManager.GetComponentDataFromEntity<Component4BytesDst>(), entities = instances };
+		var componentDataFromEntityJob = new Iterate_ComponentDataFromEntity() { src = dummySystem.GetComponentDataFromEntity<Component4Bytes>(), dst = dummySystem.GetComponentDataFromEntity<Component4BytesDst>(), entities = instances };
 		componentDataFromEntityJob.Run();
 
 		var componentProcessDataJob = new Iterate_ProcessComponentData();
 		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
-			componentProcessDataJob.Run(src, dst);
+			componentProcessDataJob.Run(dummySystem);
 
 		var entityArrayCache = new ComponentGroupArrayStaticCache(typeof(EntityIter), entityManager);
 		var entityArray = new ComponentGroupArray<EntityIter>(entityArrayCache);
@@ -319,7 +329,6 @@ public class ECSIteratePerformance : MonoBehaviour
 		entityManager.DestroyEntity (archetype);
 
 		instances.Dispose ();
-		group.Dispose();
 
 		if (oldRoot != null)
 		{

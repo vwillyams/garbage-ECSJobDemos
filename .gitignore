@@ -31,6 +31,10 @@ UnstablePrototypes/GalacticConquest/Temp
 UnstablePrototypes/GalacticConquest/obj
 UnstablePrototypes/GalacticConquest/.editorconfig
 
+StressTest/Assets/Plugins*
+StressTest/Library
+StressTest/Temp
+StressTest/obj
 
 *.idea
 *.csproj
@@ -39,3 +43,6 @@ UnstablePrototypes/GalacticConquest/.editorconfig
 *.userprefs
 *.app
 *.VC.*
+.DS_Store
+
+.vs/

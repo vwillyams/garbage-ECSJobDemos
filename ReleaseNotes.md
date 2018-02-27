@@ -7,6 +7,7 @@
 
 * Can now create entities/components from jobs and merge them into
   the world later via command buffers from injected `BarrierSystem`s
+* `DeferredEntityChangeSystem` replaced by `EndFrameBarrier` (Note: This removes support for concurrent add/remove components. You'll need to change to IJob to add/remove components.)
   
 * `NativeArraySharedValues<T>` for creating index tables of shared/unique values in a NativeArray.
 * `NearestTargetPositionSystem<TNearestTarget,TTarget>` demonstrates how to use generics in JobComponentSystem

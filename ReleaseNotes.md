@@ -20,7 +20,9 @@ It automatically associates & caches the ComponentGroup with the system (It is a
 
 Additionally ComponentSystem.GetComponentGroup should not be called in OnUpdate() (Create and cache in OnCreateManager instead). ComponentSystem.GetComponentGroup allocates GC memory because the input is a param ComponentType[]...
 
-* [DisableSystemWhenEmpty] disables a system (OnUpdate will not be called) if all it's used ComponentGroups have zero entities. It is recommended to use this attribute on all systems unless they absolutely have to run every frame for performance reasons (We measured 5 - 10x speedup for empty systems using this attribute)
+* Systems are automatically disabled when all ComponentGroups have zero entities.
+[AlwaysUpdateSystem] can be used to always force update a system.
+(We measured 5 - 10x speedup for empty systems)
 
 * EntityManager.GetComponentFromEntity/GetFixedArrayFromEntity have been moved to JobComponentSystem.GetComponentFromEntity. This way they can be safely used in jobs with the correct dependencies passed via the OnUpdate (JobHandle dependency)
 

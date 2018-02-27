@@ -18,8 +18,10 @@ Project folder for basic ECS dev & tests
 * Entity Component System implementation
 * Boid demo using ECS
 * InstanceRenderer using Entities
-* Culling demo
-* NativeList, Nativehashmap and tests
+* Rotator demo
+* Simple Verlet rope physics
+* Two stick shooter demo
+* Transform component & Hierarchy demo
 
 # AI Navigation & Batched raycasts
 Sandbox project for pathfinding: [LowLevelQueryAPI](UnstablePrototypes/LowLevelQueryAPI).

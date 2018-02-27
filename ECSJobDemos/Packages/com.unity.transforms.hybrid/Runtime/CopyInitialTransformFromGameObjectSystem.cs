@@ -49,7 +49,6 @@ namespace Unity.Transforms
             public ComponentDataFromEntity<Position> positions;
             public ComponentDataFromEntity<Rotation> rotations;
             [DeallocateOnJobCompletion] public NativeArray<TransformStash> transformStashes;
-            public NativeQueue<Entity>.Concurrent removeComponentQueue;
 
             public void Execute()
             {
@@ -73,12 +72,26 @@ namespace Unity.Transforms
                     {
                         localRotations[entity] = new LocalRotation { Value = transformStash.localRotation };
                     }
-                    removeComponentQueue.Enqueue(entity);
                 }
             }
         }
 
-        [Inject] DeferredEntityChangeSystem m_DeferredEntityChangeSystem;
+        struct RemoveCopyInitialTransformFromGameObjectComponent : IJob
+        {
+            public EntityArray entities;
+            public EntityCommandBuffer entityCommandBuffer;
+            
+            public void Execute()
+            {
+                for (int i = 0; i < entities.Length; i++)
+                {
+                    entityCommandBuffer.RemoveComponent<CopyInitialTransformFromGameObject>(entities[i]);
+                }
+                
+            }
+        }
+
+        [Inject] private EndFrameBarrier m_EndFrameBarrier;
 
         ComponentGroup m_InitialTransformGroup;
 
@@ -108,10 +121,17 @@ namespace Unity.Transforms
                 localPositions = m_LocalPositions,
                 localRotations = m_LocalRotations,
                 transformStashes = transformStashes,
-                removeComponentQueue = m_DeferredEntityChangeSystem.GetRemoveComponentQueue<CopyInitialTransformFromGameObject>()
             };
 
-            return copyTransformsJob.Schedule(stashTransformsJobHandle);
+            var copyTransformsJobHandle = copyTransformsJob.Schedule(stashTransformsJobHandle);
+
+            var removeComponentsJob = new RemoveCopyInitialTransformFromGameObjectComponent
+            {
+                entities = entities,
+                entityCommandBuffer = m_EndFrameBarrier.CreateCommandBuffer()
+            };
+            var removeComponentsJobHandle = removeComponentsJob.Schedule(copyTransformsJobHandle);
+            return removeComponentsJobHandle;
         }
     }
 }

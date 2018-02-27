@@ -6,7 +6,6 @@ using UnityEngine;
 namespace TwoStickHybridExample
 {
     // Spawns new enemies.
-    [DisableSystemWhenEmpty]
     public class EnemySpawnSystem : ComponentSystem
     {
 
@@ -92,7 +91,6 @@ namespace TwoStickHybridExample
         }
     }
 
-    [DisableSystemWhenEmpty]
     public class EnemyShootSystem : ComponentSystem
     {
         public struct Data

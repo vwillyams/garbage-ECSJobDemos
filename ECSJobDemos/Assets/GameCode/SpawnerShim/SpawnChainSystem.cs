@@ -8,7 +8,6 @@ using Unity.Transforms;
 
 namespace ECS.Spawners
 {
-    [DisableSystemWhenEmpty]
     public class SpawnChainSystem : ComponentSystem
     {
         struct SpawnChainInstance

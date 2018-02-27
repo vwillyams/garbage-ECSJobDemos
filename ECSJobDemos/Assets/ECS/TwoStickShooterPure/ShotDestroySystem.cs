@@ -28,10 +28,6 @@ namespace TwoStickPureExample
 
         protected override void OnUpdate()
         {
-            // Handle common no-op case.
-            if (m_Data.Length == 0)
-                return;
-
             bool playerDead = m_PlayerCheck.Length == 0;
             float dt = Time.deltaTime;
 

@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 namespace TwoStickPureExample
 {
+    [AlwaysUpdateSystem]
     public class UpdatePlayerHUD : ComponentSystem
     {
         public struct PlayerData

@@ -19,9 +19,6 @@ namespace TwoStickPureExample
 
         protected override void OnUpdate()
         {
-            if (m_Data.Length == 0)
-                return;
-
             var settings = TwoStickBootstrap.Settings;
 
             float dt = Time.deltaTime;

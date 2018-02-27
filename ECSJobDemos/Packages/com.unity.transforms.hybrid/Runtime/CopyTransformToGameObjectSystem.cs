@@ -5,7 +5,6 @@ using UnityEngine.Jobs;
 
 namespace Unity.Transforms
 {
-    [DisableSystemWhenEmpty]
     public class CopyTransformToGameObjectSystem : JobComponentSystem
     {
         [Inject] [ReadOnly] ComponentDataFromEntity<Position> m_Positions;

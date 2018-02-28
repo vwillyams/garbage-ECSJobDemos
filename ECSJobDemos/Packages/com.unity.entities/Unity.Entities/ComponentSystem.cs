@@ -304,21 +304,15 @@ namespace Unity.Entities
                 for (var index = 0; index < m_JobDependencyForReadingManagersLength; index++)
                 {
                     var type = m_JobDependencyForReadingManagersPtr[index];
-                    var readerDependency = m_SafetyManager.GetDependency(&type, 1, null, 0);
-                    CheckJobDependencies(type, true, readerDependency);
-
-                    var writerDependency = m_SafetyManager.GetDependency(null, 0, &type, 1);
-                    CheckJobDependencies(type, false, writerDependency);
+                    CheckJobDependencies(type, true);
+                    CheckJobDependencies(type, false);
                 }
 
                 for (var index = 0; index < m_JobDependencyForWritingManagersLength; index++)
                 {
                     var type = m_JobDependencyForWritingManagersPtr[index];
-                    var readerDependency = m_SafetyManager.GetDependency(&type, 1, null, 0);
-                    CheckJobDependencies(type, true, readerDependency);
-
-                    var writerDependency = m_SafetyManager.GetDependency(null, 0, &type, 1);
-                    CheckJobDependencies(type, false, writerDependency);
+                    CheckJobDependencies(type, true);
+                    CheckJobDependencies(type, false);
                 }
             }
             catch (InvalidOperationException)
@@ -370,32 +364,36 @@ namespace Unity.Entities
         }
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        void CheckJobDependencies(int type, bool isReading, JobHandle dependency)
+        unsafe void CheckJobDependencies(int type, bool isReading)
         {
+            JobHandle dependency;
+            
+            if (isReading)
+                dependency = m_SafetyManager.GetDependency(&type, 1, null, 0);
+            else
+                dependency = m_SafetyManager.GetDependency(null, 0, &type, 1);
+            
             var h = m_SafetyManager.GetSafetyHandle(type, true);
-
-            unsafe
+            
+            if (!isReading)
             {
-                if (!isReading)
-                {
-                    var readerCount = AtomicSafetyHandle.GetReaderArray(h, 0, IntPtr.Zero);
-                    JobHandle* readers = stackalloc JobHandle[readerCount];
-                    AtomicSafetyHandle.GetReaderArray(h, readerCount, (IntPtr) readers);
+                var readerCount = AtomicSafetyHandle.GetReaderArray(h, 0, IntPtr.Zero);
+                JobHandle* readers = stackalloc JobHandle[readerCount];
+                AtomicSafetyHandle.GetReaderArray(h, readerCount, (IntPtr) readers);
 
-                    for (var i = 0; i < readerCount; ++i)
+                for (var i = 0; i < readerCount; ++i)
+                {
+                    if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(readers[i], dependency))
                     {
-                        if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(readers[i], dependency))
-                        {
-                            throw new InvalidOperationException($"The system {GetType()} reads {TypeManager.GetType(type)} via {AtomicSafetyHandle.GetReaderName(h, i)} but that type was not returned as a job dependency. To ensure correct behavior of other systems, the job or a dependency of it must be returned from the OnUpdate method.");
-                        }
+                        throw new InvalidOperationException($"The system {GetType()} reads {TypeManager.GetType(type)} via {AtomicSafetyHandle.GetReaderName(h, i)} but that type was not returned as a job dependency. To ensure correct behavior of other systems, the job or a dependency of it must be returned from the OnUpdate method.");
                     }
                 }
+            }
 
-                var writer = AtomicSafetyHandle.GetWriter(h);
-                if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(writer, dependency))
-                {
-                    throw new InvalidOperationException($"The system {GetType()} writes {TypeManager.GetType(type)} via {AtomicSafetyHandle.GetWriterName(h)} but that was not returned as a job dependency. To ensure correct behavior of other systems, the job or a dependency of it must be returned from the OnUpdate method.");
-                }
+            var writer = AtomicSafetyHandle.GetWriter(h);
+            if (!JobHandle.CheckFenceIsDependencyOrDidSyncFence(writer, dependency))
+            {
+                throw new InvalidOperationException($"The system {GetType()} writes {TypeManager.GetType(type)} via {AtomicSafetyHandle.GetWriterName(h)} but that was not returned as a job dependency. To ensure correct behavior of other systems, the job or a dependency of it must be returned from the OnUpdate method.");
             }
         }
 

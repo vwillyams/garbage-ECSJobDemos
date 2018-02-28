@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
@@ -64,6 +65,30 @@ namespace Unity.Entities
             }
         }
 
+        unsafe internal int InsertSharedComponentBoxed(int typeIndex, object newData)
+        {
+            int index = FindSharedComponentIndexBoxed(typeIndex, newData);
+
+            if (index == 0)
+            {
+                return 0;
+            }
+            else if (index != -1)
+            {
+                m_SharedComponentRefCount[index]++;
+                return index;
+            }
+            else
+            {
+                var fastLayout = TypeManager.GetComponentType(typeIndex).FastEqualityLayout;
+                ulong newHandle;
+                void* newValue = PinGCObjectAndGetAddress(newData, out newHandle);
+                var hashcode = FastEquality.GetHashCode(newValue, fastLayout);
+                UnsafeUtility.ReleaseGCObject(newHandle);
+                return Add(typeIndex, hashcode, newData);
+            }
+        }
+
         unsafe int FindSharedComponentIndex<T>(int typeIndex, T newData) where T : struct
         {
             var defaultVal = default(T);
@@ -73,6 +98,32 @@ namespace Unity.Entities
             else
                 return FindNonDefaultSharedComponentIndex(typeIndex, FastEquality.GetHashCode(ref newData, fastLayout),
                     UnsafeUtility.AddressOf(ref newData), fastLayout);
+        }
+
+        unsafe int FindSharedComponentIndexBoxed(int typeIndex, object newData)
+        {
+            var defaultVal = Activator.CreateInstance(newData.GetType());
+
+            var fastLayout = TypeManager.GetComponentType(typeIndex).FastEqualityLayout;
+
+            ulong defaultHandle;
+            ulong newHandle;
+
+            void* defaultValue = PinGCObjectAndGetAddress(defaultVal, out defaultHandle);
+            void* newValue = PinGCObjectAndGetAddress(newData, out newHandle);
+
+            bool isDefault = FastEquality.Equals(newValue, defaultValue, fastLayout);
+            int result = 0;
+
+            if (!isDefault)
+            {
+                result = FindNonDefaultSharedComponentIndex(typeIndex, FastEquality.GetHashCode(newValue, fastLayout), newValue, fastLayout);
+            }
+
+            UnsafeUtility.ReleaseGCObject(newHandle);
+            UnsafeUtility.ReleaseGCObject(defaultHandle);
+
+            return result;
         }
 
         unsafe int FindNonDefaultSharedComponentIndex(int typeIndex, int hashCode, void* newData, FastEquality.Layout[] layout)

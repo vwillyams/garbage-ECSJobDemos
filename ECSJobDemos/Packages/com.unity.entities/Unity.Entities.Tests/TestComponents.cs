@@ -38,5 +38,19 @@ namespace UnityEngine.ECS.Tests
 
         public EcsTestData4(int inValue) { value3 = value2 = value1 = value0 = inValue; }
     }
-    
+
+    public struct EcsTestSharedComp : ISharedComponentData
+    {
+        public int value;
+
+        public EcsTestSharedComp(int inValue) { value = inValue; }
+    }
+
+    public struct EcsTestSharedComp2 : ISharedComponentData
+    {
+        public int value0;
+        public int value1;
+
+        public EcsTestSharedComp2(int inValue) { value0 = value1 = inValue; }
+    }
 }

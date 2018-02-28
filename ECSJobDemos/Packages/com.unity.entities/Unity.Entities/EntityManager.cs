@@ -370,6 +370,13 @@ namespace Unity.Entities
             SetSharedComponentData(entity, componentData);
         }
 
+        internal void AddSharedComponentDataBoxed(Entity entity, int typeIndex, object componentData)
+        {
+            //TODO: optimize this (no need to move the entity to a new chunk twice)
+            AddComponent(entity, new ComponentType(componentData.GetType()));
+            SetSharedComponentDataBoxed(entity, typeIndex, componentData);
+        }
+
         public void SetSharedComponentData<T>(Entity entity, T componentData) where T: struct, ISharedComponentData
         {
             BeforeStructuralChange();
@@ -378,6 +385,17 @@ namespace Unity.Entities
             m_Entities->AssertEntityHasComponent(entity, typeIndex);
 
             var newSharedComponentDataIndex = m_SharedComponentManager.InsertSharedComponent(componentData);
+            m_Entities->SetSharedComponentDataIndex(m_ArchetypeManager, m_SharedComponentManager, entity, typeIndex, newSharedComponentDataIndex);
+            m_SharedComponentManager.RemoveReference(newSharedComponentDataIndex);
+        }
+
+        internal void SetSharedComponentDataBoxed(Entity entity, int typeIndex, object componentData)
+        {
+            BeforeStructuralChange();
+
+            m_Entities->AssertEntityHasComponent(entity, typeIndex);
+
+            var newSharedComponentDataIndex = m_SharedComponentManager.InsertSharedComponentBoxed(typeIndex, componentData);
             m_Entities->SetSharedComponentDataIndex(m_ArchetypeManager, m_SharedComponentManager, entity, typeIndex, newSharedComponentDataIndex);
             m_SharedComponentManager.RemoveReference(newSharedComponentDataIndex);
         }

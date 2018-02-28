@@ -169,12 +169,12 @@ namespace Unity.Multiplayer
                 MaximumConnections = 1
             };
             m_Connection.Id = -1;
-            m_Socket = new GameSocket("127.0.0.1", 0, configuration);
+            m_Socket = new GameSocket("0.0.0.0", 0, configuration);
 
-            m_Buffer = new NativeArray<byte>(1024 * 1024, Allocator.Persistent);
+            m_Buffer = new NativeArray<byte>(200*1024 * 1024, Allocator.Persistent);
             m_DataQueue = new NativeQueue<SliceInformation>(Allocator.Persistent);
 
-            m_PacketBuffer = new PacketBuffer(GameSocket.Constants.MaxPacketSize, 100);
+            m_PacketBuffer = new PacketBuffer(GameSocket.Constants.MaxPacketSize, 10000);
         }
 
         public void Update()

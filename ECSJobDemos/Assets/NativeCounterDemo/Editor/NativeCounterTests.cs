@@ -1,9 +1,5 @@
-using System.Text.RegularExpressions;
-using UnityEngine;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
-using UnityEngine.TestTools;
 using NUnit.Framework;
 
 public class NativeCounterTests

@@ -62,11 +62,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 206d9b88d9fd4c4c9e5a1a976224e421, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SerializedData:
-    value:
-      x: 0
-      y: 0
-      z: 0
 --- !u!114 &114080190520665040
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -109,10 +104,8 @@ MonoBehaviour:
     cellRadius: 4
     separationWeight: 2
     alignmentWeight: 1
-    targetWeight: 0.75
-    obstacleWeight: 8
+    targetWeight: 2
     obstacleAversionDistance: 20
-    rotationalSpeed: 160
 --- !u!114 &114153346486449396
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -190,11 +183,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 168b0e3756704251859c57ee75912ca1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SerializedData:
-    position:
-      x: 0
-      y: 0
-      z: 0
 --- !u!114 &114878148870236606
 MonoBehaviour:
   m_ObjectHideFlags: 1

@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
-using Unity.ECS;
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.ECS;
 
 namespace TwoStickHybridExample
 {
@@ -20,9 +19,6 @@ namespace TwoStickHybridExample
 
         protected override void OnUpdate()
         {
-            if (m_State.Length == 0)
-                return;
-
             var state = m_State.S[0];
 
             var oldState = Random.state;
@@ -41,7 +37,7 @@ namespace TwoStickHybridExample
             }
 
             state.RandomState = Random.state;
-            
+
             Random.state = oldState;
         }
 
@@ -53,14 +49,14 @@ namespace TwoStickHybridExample
         private void ComputeSpawnLocation(Transform2D xform)
         {
             var settings = TwoStickBootstrap.Settings;
-            
+
             float r = Random.value;
             float x0 = settings.playfield.xMin;
             float x1 = settings.playfield.xMax;
             float x = x0 + (x1 - x0) * r;
 
             xform.Position = new float2(x, settings.playfield.yMax);
-            xform.Heading = new float2(0, 1);
+            xform.Heading = new float2(0, 0);
         }
     }
 
@@ -94,7 +90,7 @@ namespace TwoStickHybridExample
             }
         }
     }
-    
+
     public class EnemyShootSystem : ComponentSystem
     {
         public struct Data
@@ -117,9 +113,6 @@ namespace TwoStickHybridExample
 
         protected override void OnUpdate()
         {
-            if (m_Data.Length == 0 || m_Player.Length == 0)
-                return;
-
             var playerPos = m_Player.Transform2D[0].Position;
 
             var shotSpawnData = new List<ShotSpawnData>();

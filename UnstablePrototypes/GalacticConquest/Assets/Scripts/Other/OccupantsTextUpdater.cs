@@ -1,18 +1,18 @@
-﻿using Components;
-using Data;
+﻿using Data;
+using Unity.Entities;
 using UnityEngine;
-using UnityEngine.ECS;
 
 namespace Other
 {
     public class OccupantsTextUpdater : MonoBehaviour
     {
-        private Entity _planetEntity;
-        private TextMesh _text;
-        private int LastOccupantCount = -1;
-        [SerializeField] private EntityManager _entityManager;
+        Entity _planetEntity;
+        TextMesh _text;
+        int LastOccupantCount = -1;
+        [SerializeField]
+        EntityManager _entityManager;
 
-        private void Start()
+        void Start()
         {
             _entityManager = World.Active.GetOrCreateManager<EntityManager>();
             _planetEntity = transform.parent.GetComponent<GameObjectEntity>().Entity;
@@ -20,9 +20,9 @@ namespace Other
 
         }
 
-        private void Update()
+        void Update()
         {
-            var data = _entityManager.GetComponent<PlanetData>(_planetEntity);
+            var data = _entityManager.GetComponentData<PlanetData>(_planetEntity);
             if (data.Occupants == LastOccupantCount)
                 return;
             LastOccupantCount = data.Occupants;

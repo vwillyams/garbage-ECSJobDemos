@@ -4,9 +4,9 @@ using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using Unity.ECS;
+using Unity.Core.Hybrid;
 using UnityEngine.Profiling;
-using UnityEngine.ECS.MeshInstancedShim;
-using UnityEngine.ECS.Transform;
+using Unity.Transforms;
 
 public struct ProceduralChunkScene : ISharedComponentData
 {
@@ -239,10 +239,10 @@ public class ProceduralSpawnSystem : JobComponentSystem
 
     struct PopulateChunk : IJob
     {
-        public EntityTransaction    EntityTransaction;
-        public int2                 ChunkPosition;
-        public Entity               Prefab;
-        public bool                 DestroyPrefab;
+        public ExclusiveEntityTransaction   EntityTransaction;
+        public int2                         ChunkPosition;
+        public Entity                       Prefab;
+        public bool                         DestroyPrefab;
 
         [ReadOnly]
         //@TODO: Not supported. This is super annoying...
@@ -261,7 +261,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
             for (int i = 0; i != entities.Length; i++)
             {
                 TransformMatrix transform;
-                transform.matrix = Matrix4x4.Translate(SpawnLocations[i].Position);
+                transform.Value = Matrix4x4.Translate(SpawnLocations[i].Position);
                 EntityTransaction.SetComponentData(entities[i], transform);
             }
 
@@ -308,10 +308,10 @@ public class ProceduralSpawnSystem : JobComponentSystem
         //@TODO: When is a good time for this to be called?
         Profiler.BeginSample("CommitTransaction");
 
-        bool scheduleCreation = Deterministic || m_ConstructionManager.EntityTransactionDependency.IsCompleted;
+        bool scheduleCreation = Deterministic || m_ConstructionManager.ExclusiveEntityTransactionDependency.IsCompleted;
         if (scheduleCreation)
         {
-            m_ConstructionManager.EndTransaction();
+            m_ConstructionManager.EndExclusiveEntityTransaction();
             EntityManager.MoveEntitiesFrom(m_ConstructionManager);    
         }
 
@@ -384,7 +384,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
         var spawnDependencies = new NativeArray<JobHandle>(toBeCreatedChunks.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
         Profiler.BeginSample("BeginTransaction__");
-        var transaction = m_ConstructionManager.BeginTransaction();
+        var transaction = m_ConstructionManager.BeginExclusiveEntityTransaction();
         Profiler.EndSample();
         
         Profiler.BeginSample("1__");
@@ -415,8 +415,8 @@ public class ProceduralSpawnSystem : JobComponentSystem
             chunkJob.DestroyPrefab = i == toBeCreatedChunks.Length - 1;
 
             m_CreatedChunks.Add(createPos);
-            var chunkDependency = JobHandle.CombineDependencies(spawnDependencies[i], m_ConstructionManager.EntityTransactionDependency);
-            m_ConstructionManager.EntityTransactionDependency = chunkJob.Schedule(chunkDependency);
+            var chunkDependency = JobHandle.CombineDependencies(spawnDependencies[i], m_ConstructionManager.ExclusiveEntityTransactionDependency);
+            m_ConstructionManager.ExclusiveEntityTransactionDependency = chunkJob.Schedule(chunkDependency);
         }
         Profiler.EndSample();
 
@@ -424,7 +424,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
 
         var deallocateCollisionJob = new DeallocateCollisionInstancesJob();
         deallocateCollisionJob.CollisionInstances = doubleBufferCollision.DstCollisionInstances;
-        m_ConstructionManager.EntityTransactionDependency = deallocateCollisionJob.Schedule(deallocateCollisionJob.CollisionInstances.Length, 16, m_ConstructionManager.EntityTransactionDependency);
+        m_ConstructionManager.ExclusiveEntityTransactionDependency = deallocateCollisionJob.Schedule(deallocateCollisionJob.CollisionInstances.Length, 16, m_ConstructionManager.ExclusiveEntityTransactionDependency);
         
         return dependency;
     }

@@ -166,6 +166,8 @@ namespace UnityEngine.ECS.Boids
                 var separationAndAlignmentSteerJobHandle = separationAndAlignmentSteerJob.Schedule(positions.Length, 64,
                     JobHandle.CombineDependencies(sharedHashesJobHandle, copyHeadingsJobHandle, copyPositionsJobHandle));
 
+                cells.GetBuffer();
+
                 var steerJob = new Steer
                 {
                     positions = copyPositionsResults,

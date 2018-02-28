@@ -470,7 +470,8 @@ namespace Unity.Entities
         
         public unsafe NativeArray<int> GetSharedIndexArray()
         {
-            int* rawIndices = ((int*) m_Buffer.GetUnsafeReadOnlyPtr()) + ((m_SortedBuffer^1) * m_Source.Length);
+            // Capacity cannot be changed, so offset is valid.
+            int* rawIndices = (int*) NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(m_Buffer) + ((m_SortedBuffer^1) * m_Source.Length);
             var arr = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<int>(rawIndices,m_Source.Length,Allocator.Invalid);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             SharedIndexArraySetSafetyHandle(ref arr);
@@ -514,7 +515,8 @@ namespace Unity.Entities
         
         public unsafe NativeArray<int> GetSharedValueIndexCountArray()
         {
-            int* rawIndices = ((int*) m_Buffer.GetUnsafeReadOnlyPtr()) + (2 * m_Source.Length);
+            // Capacity cannot be changed, so offset is valid.
+            int* rawIndices = (int*) NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(m_Buffer) + (2 * m_Source.Length);
             var arr = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<int>(rawIndices,m_Source.Length,Allocator.Invalid);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             SharedValueIndexCountArraySetSafetyHandle(ref arr);
@@ -544,7 +546,8 @@ namespace Unity.Entities
             int sharedValueStartIndex = m_Buffer[sharedValueStartIndicesOffset + index];
             int sortedValueOffset = m_SortedBuffer * m_Source.Length;
 
-            int* rawIndices = ((int*) m_Buffer.GetUnsafeReadOnlyPtr()) + (sortedValueOffset + sharedValueStartIndex);
+            // Capacity cannot be changed, so offset is valid.
+            int* rawIndices = (int*) NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(m_Buffer) + (sortedValueOffset + sharedValueStartIndex);
             var arr = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<int>(rawIndices,sharedValueIndexCount,Allocator.Invalid);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             SharedValueIndicesSetSafetyHandle(ref arr);

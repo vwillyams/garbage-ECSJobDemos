@@ -19,7 +19,7 @@ Here is a quick overview of things to consider before trying out ECS:
 * Pros:
     * Process collections of components in batches asyncronosly instead of one by one.
     * You can use the Mono "old way" at the same time as introducing the "new way" of coding with ECS.
-    * Multi-threading
+    * Multithreading
     * Makes debugging performance easier in profiler when you disable parts of your code to check their load.
     * etc...
 

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Entities.Hybrid;
 using Unity.Mathematics;
 using UnityEngine.ECS.SpawnerShim;
 using Unity.Transforms;
@@ -9,7 +8,6 @@ using UnityEngine.ECS.Utilities;
 
 namespace ECS.Spawners
 {
-    [DisableSystemWhenEmpty]
     public class SpawnRandomCircleSystem : ComponentSystem
     {
         struct SpawnRandomCircleInstance

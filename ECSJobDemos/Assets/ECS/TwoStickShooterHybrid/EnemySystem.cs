@@ -6,7 +6,6 @@ using UnityEngine;
 namespace TwoStickHybridExample
 {
     // Spawns new enemies.
-    [DisableSystemWhenEmpty]
     public class EnemySpawnSystem : ComponentSystem
     {
 
@@ -38,7 +37,7 @@ namespace TwoStickHybridExample
             }
 
             state.RandomState = Random.state;
-            
+
             Random.state = oldState;
         }
 
@@ -50,14 +49,14 @@ namespace TwoStickHybridExample
         private void ComputeSpawnLocation(Transform2D xform)
         {
             var settings = TwoStickBootstrap.Settings;
-            
+
             float r = Random.value;
             float x0 = settings.playfield.xMin;
             float x1 = settings.playfield.xMax;
             float x = x0 + (x1 - x0) * r;
 
             xform.Position = new float2(x, settings.playfield.yMax);
-            xform.Heading = new float2(0, 1);
+            xform.Heading = new float2(0, 0);
         }
     }
 
@@ -91,8 +90,7 @@ namespace TwoStickHybridExample
             }
         }
     }
-    
-    [DisableSystemWhenEmpty]
+
     public class EnemyShootSystem : ComponentSystem
     {
         public struct Data

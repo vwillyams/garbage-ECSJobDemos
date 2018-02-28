@@ -6,7 +6,6 @@ using Unity.Transforms;
 
 namespace UnityEngine.ECS.SimpleSpatialQuery
 {
-    [DisableSystemWhenEmpty]
     public class NearestTargetPositionSystem<TNearestTarget,TTarget> : JobComponentSystem
         where TNearestTarget : struct, IComponentData, ISingleValue<float3>
         where TTarget : struct, IComponentData
@@ -14,7 +13,7 @@ namespace UnityEngine.ECS.SimpleSpatialQuery
         ComponentGroup m_TargetGroup;
         ComponentGroup m_NearestTargetPositionGroup;
 
-        // [ComputeJobOptimization]
+        [ComputeJobOptimization]
         struct NearestTargetPosition : IJobParallelFor
         {
             [ReadOnly] [DeallocateOnJobCompletion] public NativeArray<float3> targetPositions;

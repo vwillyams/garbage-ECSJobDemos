@@ -144,6 +144,8 @@ namespace Unity.Entities
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         public override string ToString()
         {
+            //@TODO: Empty ComponentType should visualize that it is null or something
+            
             return IsFixedArray ? $"FixedArray(typeof({GetManagedType()}, {FixedArrayLength}))" : GetManagedType().ToString();
         }
 #endif

@@ -7,6 +7,7 @@ using Unity.Jobs;
 using Unity.Assertions;
 
 [assembly:InternalsVisibleTo("Unity.Entities.Hybrid")]
+[assembly:InternalsVisibleTo("Unity.Entities.Properties")]
 
 namespace Unity.Entities
 {
@@ -337,16 +338,6 @@ namespace Unity.Entities
             UnsafeUtility.CopyStructureToPtr (ref componentData, ptr);
         }
 
-        internal void SetComponentRaw(Entity entity, int typeIndex, void* data, int size)
-        {
-            m_Entities->AssertEntityHasComponent(entity, typeIndex);
-
-            ComponentJobSafetyManager.CompleteReadAndWriteDependency(typeIndex);
-
-            var ptr = m_Entities->GetComponentDataWithType (entity, typeIndex);
-            UnsafeUtility.MemCpy(ptr, data, size);
-        }
-
         internal void SetComponentObject(Entity entity, ComponentType componentType, object componentObject)
         {
             m_Entities->AssertEntityHasComponent(entity, componentType.TypeIndex);
@@ -415,6 +406,99 @@ namespace Unity.Entities
             return array;
         }
 
+        public NativeArray<Entity> GetAllEntities(Allocator allocator = Allocator.Temp)
+        {
+            var entityGroup = CreateComponentGroup();
+            var groupArray = entityGroup.GetEntityArray();
+            
+            var array = new NativeArray<Entity>(groupArray.Length, allocator);
+            groupArray.CopyTo(array);
+            return array;
+        }
+
+        unsafe public NativeArray<ComponentType> GetComponentTypes(Entity entity, Allocator allocator = Allocator.Temp)
+        {
+            m_Entities->AssertEntitiesExist(&entity, 1);
+            
+            Archetype* archetype = m_Entities->GetArchetype(entity);
+
+            var components = new NativeArray<ComponentType>(archetype->TypesCount - 1, allocator);
+
+            for (int i = 1; i < archetype->TypesCount;i++)
+                components[i-1] = archetype->Types[i].ToComponentType();
+
+            return components;
+        }
+        
+        public int GetComponentCount(Entity entity)
+        {
+            m_Entities->AssertEntitiesExist(&entity, 1);
+            Archetype* archetype = m_Entities->GetArchetype(entity);
+            return archetype->TypesCount - 1;
+        }
+
+        internal int GetComponentTypeIndex(Entity entity, int index)
+        {
+            m_Entities->AssertEntitiesExist(&entity, 1);
+            Archetype* archetype = m_Entities->GetArchetype(entity);
+
+            if ((uint) index >= archetype->TypesCount)
+            {
+                return -1;
+            }
+
+            return archetype->Types[index + 1].TypeIndex;
+        }
+
+        internal void SetComponentDataRaw(Entity entity, int typeIndex, void* data, int size)
+        {
+            m_Entities->AssertEntityHasComponent(entity, typeIndex);
+
+            ComponentJobSafetyManager.CompleteReadAndWriteDependency(typeIndex);
+
+            byte* ptr = m_Entities->GetComponentDataWithType (entity, typeIndex);
+            UnsafeUtility.MemCpy(ptr, data, size);
+        }
+        
+        internal void* GetComponentDataRaw(Entity entity, int typeIndex)
+        {
+            m_Entities->AssertEntityHasComponent(entity, typeIndex);
+
+            ComponentJobSafetyManager.CompleteReadAndWriteDependency(typeIndex);
+
+            byte* ptr = m_Entities->GetComponentDataWithType (entity, typeIndex);
+            return ptr;
+        }
+        
+        internal object GetComponentBoxed(Entity entity, ComponentType componentType)
+        {
+            var ptr = GetComponentDataRaw(entity, componentType.TypeIndex);
+
+            var type = TypeManager.GetType(componentType.TypeIndex);
+            var boxed = Activator.CreateInstance(type);
+
+            ulong gcHandle;
+            byte* boxedPtr = (byte*)UnsafeUtility.PinGCObjectAndGetAddress(boxed, out gcHandle);
+            //@TODO: harcoded object class sizeof hack
+            UnsafeUtility.MemCpy(boxedPtr + 16, ptr, UnsafeUtility.SizeOf(type));
+            
+            UnsafeUtility.ReleaseGCObject(gcHandle);
+
+            return boxed;
+        }
+        
+        public void SetComponentBoxed(Entity entity, ComponentType componentType, object boxedObject)
+        {
+            var type = TypeManager.GetType(componentType.TypeIndex);
+
+            ulong gcHandle;
+            byte* boxedPtr = (byte*)UnsafeUtility.PinGCObjectAndGetAddress(boxedObject, out gcHandle);
+            //@TODO: harcoded object class sizeof hack
+            SetComponentDataRaw(entity, componentType.TypeIndex, boxedPtr + 16, UnsafeUtility.SizeOf(type));
+            
+            UnsafeUtility.ReleaseGCObject(gcHandle);
+        }
+        
         public int GetComponentOrderVersion<T>()
         {
             return m_Entities->GetComponentTypeOrderVersion(TypeManager.GetTypeIndex<T>());

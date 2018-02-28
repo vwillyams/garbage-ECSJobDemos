@@ -7,9 +7,9 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace Unity.Entities
 {
-    static internal class FastEquality
+    static public class FastEquality
     {
-        internal struct Layout
+        public struct Layout
         {
             public int  offset;
             public int  count;

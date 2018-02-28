@@ -1,3 +1,8 @@
-﻿{
-	"name": "Unity.Blobs"
+{
+    "name": "Unity.Blobs",
+    "references": [],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true
 }

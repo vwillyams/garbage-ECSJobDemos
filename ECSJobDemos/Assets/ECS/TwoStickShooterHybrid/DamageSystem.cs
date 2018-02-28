@@ -1,8 +1,7 @@
 ﻿using System;
-using Unity.ECS;
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.ECS;
 using UnityEngine.UI;
 
 namespace TwoStickHybridExample
@@ -58,7 +57,7 @@ namespace TwoStickHybridExample
 
                             damage += shot.Energy;
 
-                            // Set the shot's time to live to zero, so it will be collected by the shot destroy system 
+                            // Set the shot's time to live to zero, so it will be collected by the shot destroy system
                             shot.TimeToLive = 0.0f;
                         }
                     }
@@ -71,8 +70,8 @@ namespace TwoStickHybridExample
 
         static float GetCollisionRadius(TwoStickExampleSettings settings, Faction.Type faction)
         {
-            // This simply picks the collision radius based on whether the receiver is the player or not. 
-            // In a real game, this would be much more sophisticated, perhaps with a CollisionRadius component. 
+            // This simply picks the collision radius based on whether the receiver is the player or not.
+            // In a real game, this would be much more sophisticated, perhaps with a CollisionRadius component.
             return faction == Faction.Type.Player ? settings.playerCollisionRadius : settings.enemyCollisionRadius;
         }
     }

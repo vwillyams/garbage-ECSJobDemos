@@ -105,7 +105,7 @@ public class BuildWindow : EditorWindow
     void BuildForTarget(string name)
     {
         // TODO: Build target selection UI
-        BuildTarget target = BuildTarget.StandaloneWindows;
+        BuildTarget target = BuildTarget.StandaloneWindows64;
         Debug.Log("Current Platform: " + Application.platform);
 
         if(Application.platform == RuntimePlatform.OSXEditor)

@@ -1,8 +1,7 @@
-﻿using Unity.ECS;
+﻿using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.ECS;
-using UnityEngine.ECS.Transform2D;
+using Unity.Transforms2D;
 
 namespace TwoStickPureExample
 {
@@ -20,18 +19,13 @@ namespace TwoStickPureExample
 
         protected override void OnUpdate()
         {
-            if (m_Data.Length == 0)
-                return;
-
-            var cmds = new EntityCommandBuffer();
-
             var settings = TwoStickBootstrap.Settings;
 
             float dt = Time.deltaTime;
             for (int index = 0; index < m_Data.Length; ++index)
             {
-                var position = m_Data.Position[index].position;
-                var heading = m_Data.Heading[index].heading;
+                var position = m_Data.Position[index].Value;
+                var heading = m_Data.Heading[index].Value;
 
                 var playerInput = m_Data.Input[index];
 
@@ -43,27 +37,24 @@ namespace TwoStickPureExample
 
                     playerInput.FireCooldown = settings.playerFireCoolDown;
 
-                    cmds.CreateEntity(TwoStickBootstrap.ShotSpawnArchetype);
-                    cmds.SetComponent(new ShotSpawnData
+                    PostUpdateCommands.CreateEntity(TwoStickBootstrap.ShotSpawnArchetype);
+                    PostUpdateCommands.SetComponent(new ShotSpawnData
                     {
                         Shot = new Shot
                         {
                             TimeToLive = settings.bulletTimeToLive,
                             Energy = settings.playerShotEnergy,
                         },
-                        Position = new Position2D{ position = position },
-                        Heading = new Heading2D{ heading = heading },
-                        Faction = new Faction { Value = Faction.kPlayer },
+                        Position = new Position2D{ Value = position },
+                        Heading = new Heading2D{ Value = heading },
+                        Faction = Factions.kPlayer,
                     });
                 }
 
-                m_Data.Position[index] = new Position2D {position = position};
-                m_Data.Heading[index] = new Heading2D {heading = heading};
+                m_Data.Position[index] = new Position2D {Value = position};
+                m_Data.Heading[index] = new Heading2D {Value = heading};
                 m_Data.Input[index] = playerInput;
             }
-
-            cmds.Playback(EntityManager);
-            cmds.Dispose();
         }
     }
 }

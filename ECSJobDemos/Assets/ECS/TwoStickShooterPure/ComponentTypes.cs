@@ -1,8 +1,7 @@
-﻿using Unity.ECS;
+﻿using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.ECS;
-using UnityEngine.ECS.Transform2D;
+using Unity.Transforms2D;
 
 namespace TwoStickPureExample
 {
@@ -21,20 +20,18 @@ namespace TwoStickPureExample
         public float Energy;
     }
 
+    public struct Factions
+    {
+        public const int kPlayer = 0;
+        public const int kEnemy = 1;
+    }
+
     public struct ShotSpawnData : IComponentData
     {
         public Shot Shot;
         public Position2D Position;
         public Heading2D Heading;
-        public Faction Faction;
-    }
-
-    public struct Faction : IComponentData
-    {
-        public const int kPlayer = 0;
-        public const int kEnemy = 1;
-
-        public int Value;
+        public int Faction;
     }
 
     public struct Health : IComponentData
@@ -42,8 +39,10 @@ namespace TwoStickPureExample
         public float Value;
     }
 
-    // Pure marker type
+    // Pure marker types
     public struct Enemy : IComponentData { }
+    public struct EnemyShot : IComponentData { }
+    public struct PlayerShot : IComponentData { }
 
     public struct EnemyShootState : IComponentData
     {

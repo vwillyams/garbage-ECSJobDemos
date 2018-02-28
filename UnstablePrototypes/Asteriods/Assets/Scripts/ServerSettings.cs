@@ -1,5 +1,5 @@
 using UnityEngine;
-using Unity.ECS;
+using Unity.Entities;
 
 using Unity.Multiplayer;
 
@@ -34,7 +34,8 @@ public class ServerSettings
 
     void Instantiate(World world)
     {
-        this.networkServer = new NetworkServer("127.0.0.1", 50001);
+        //this.networkServer = new NetworkServer("127.0.0.1", 50001);
+        this.networkServer = new NetworkServer("0.0.0.0", 50001);
         this.world = world;
         var manager = world.GetOrCreateManager<EntityManager>();
 

@@ -1,4 +1,4 @@
-﻿using UnityEngine.ECS;
+﻿using Unity.ECS;
 using NUnit.Framework;
 
 //@TODO: This is just duplicated code... Can't reference test assembly from another test assembly...

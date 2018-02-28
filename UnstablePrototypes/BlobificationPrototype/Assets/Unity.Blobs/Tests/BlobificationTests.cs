@@ -147,14 +147,20 @@ public class BlobTests : ECSTestsFixture
         }
     }
 
-	[Test]
+    class DummySystem : JobComponentSystem
+    {
+        
+    }
+
+    [Test]
 	public unsafe void ParallelBlobAccessFromEntityJob()
 	{
 		var blob = CreateBlobEntities();
 
 	    var jobData = new ValidateBlobInComponentJob();
-	    var components = m_Manager.CreateComponentGroup(typeof(ComponentWithBlobData)).GetComponentDataArray<ComponentWithBlobData>();
-	    var jobHandle = jobData.Schedule(components, 1);
+	    
+	    var system = World.Active.GetOrCreateManager<DummySystem>();
+	    var jobHandle = jobData.Schedule(system, 1);
 
 	    ValidateBlobData((MyData*)blob.GetUnsafePtr());
 
@@ -172,8 +178,8 @@ public class BlobTests : ECSTestsFixture
 
         var jobData = new ValidateBlobInComponentJob();
         jobData.ExpectException = true;
-        var components = m_Manager.CreateComponentGroup(typeof(ComponentWithBlobData)).GetComponentDataArray<ComponentWithBlobData>();
-        var jobHandle = jobData.Schedule(components, 1);
+        var system = World.Active.GetOrCreateManager<DummySystem>();
+        var jobHandle = jobData.Schedule(system, 1);
 
         jobHandle.Complete ();
     }

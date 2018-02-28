@@ -1,12 +1,21 @@
 using UnityEngine;
 using UnityEngine.Assertions;
 
+using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
 namespace Unity.Multiplayer
 {
     public struct BitWriter
     {
+        NativeSlice<byte> m_Slice;
+
+        unsafe public BitWriter(NativeSlice<byte> slice)
+            : this (slice.GetUnsafePtr(), slice.Length)
+        {
+            m_Slice = slice;
+        }
+
         unsafe public BitWriter(void* data, int bytes)
         {
             Assert.IsTrue(data != null);
@@ -17,6 +26,7 @@ namespace Unity.Multiplayer
             m_ScratchBuffer = 0;
             m_BitIndex = 0;
             m_ByteIndex = 0;
+            m_Slice = default(NativeSlice<byte>);
         }
 
         public unsafe void WriteBits(uint value, int bits)
@@ -47,6 +57,14 @@ namespace Unity.Multiplayer
 
         public unsafe void WriteBytes(byte* data, int bytes)
         {
+            if (GetBytesWritten() + bytes <= m_Length * 8)
+            {
+                WriteAlign();
+                UnsafeUtility.MemCpy(m_Data + m_ByteIndex, data, bytes);
+                m_ByteIndex += bytes;
+            }
+            else
+                throw new System.ArgumentOutOfRangeException();
         }
 
         public int GetAlignBits()

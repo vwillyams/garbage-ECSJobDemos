@@ -2,8 +2,6 @@ using UnityEngine.PostProcessing;
 
 namespace UnityEditor.PostProcessing
 {
-    using Settings = DepthOfFieldModel.Settings;
-
     [PostProcessingModelEditor(typeof(DepthOfFieldModel))]
     public class DepthOfFieldModelEditor : PostProcessingModelEditor
     {

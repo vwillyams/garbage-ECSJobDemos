@@ -313,5 +313,37 @@ namespace UnityEngine.ECS.Tests
 
             cmds.Dispose();
         }
+
+        struct TestJobWithManagedSharedData : IJob
+        {
+            public EntityCommandBuffer Buffer;
+            public EcsTestSharedComp2 Blah;
+
+            public void Execute()
+            {
+                Buffer.CreateEntity();
+                Buffer.AddSharedComponent(Blah);
+            }
+        }
+
+        [Test]
+        public void JobWithSharedComponentData()
+        {
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
+            var job = new TestJobWithManagedSharedData { Buffer = cmds, Blah = new EcsTestSharedComp2(12) };
+
+            job.Schedule().Complete();
+            cmds.Playback(m_Manager);
+            cmds.Dispose();
+
+            var list = new List<EcsTestSharedComp2>();
+            m_Manager.GetAllUniqueSharedComponentDatas<EcsTestSharedComp2>(list);
+
+            Assert.AreEqual(2, list.Count);
+            Assert.AreEqual(0, list[0].value0);
+            Assert.AreEqual(0, list[0].value1);
+            Assert.AreEqual(12, list[1].value0);
+            Assert.AreEqual(12, list[1].value1);
+        }
     }
 }

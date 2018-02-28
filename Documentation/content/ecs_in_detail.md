@@ -92,7 +92,7 @@ EntityManager.Instantiate(entity, instances);
 EntityManager.DestroyEntity(instances);
 ```
 
-## Chunk - Implementation detail
+## Chunk - implementation detail
 
 The ComponentData for each Entity is stored in what we internally refer to as a chunk. ComponentData is laid out by stream. Meaning all components of type A, are tightly packed in an array. Followed by all components of type B etc.
 

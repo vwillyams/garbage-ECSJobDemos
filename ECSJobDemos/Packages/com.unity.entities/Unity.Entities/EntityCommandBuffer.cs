@@ -106,6 +106,7 @@ namespace Unity.Entities
         {
             public EntityCommand Header;
             public int ComponentTypeIndex;
+            public int HashCode;
             public GCHandle BoxedObject;
             public EntitySharedComponentCommand* Prev;
         }
@@ -192,7 +193,7 @@ namespace Unity.Entities
             data->ComponentTypeIndex = t.TypeIndex;
         }
 
-        private void AddEntitySharedComponentCommand<T>(Command op, Entity e, object boxedObject) where T : struct
+        private void AddEntitySharedComponentCommand<T>(Command op, Entity e, int hashCode, object boxedObject) where T : struct
         {
             var typeIndex = TypeManager.GetTypeIndex<T>();
             var sizeNeeded = Align(sizeof(EntitySharedComponentCommand), 8);
@@ -203,10 +204,19 @@ namespace Unity.Entities
             data->Header.Header.TotalSize = sizeNeeded;
             data->Header.Entity = e;
             data->ComponentTypeIndex = typeIndex;
-            data->BoxedObject = GCHandle.Alloc(boxedObject);
-            // We need to store all GCHandles on a cleanup list so we can dispose them later, regardless of if playback occurs or not.
-            data->Prev = m_Data->m_CleanupList;
-            m_Data->m_CleanupList = data;
+            data->HashCode = hashCode;
+
+            if (boxedObject != null)
+            {
+                data->BoxedObject = GCHandle.Alloc(boxedObject);
+                // We need to store all GCHandles on a cleanup list so we can dispose them later, regardless of if playback occurs or not.
+                data->Prev = m_Data->m_CleanupList;
+                m_Data->m_CleanupList = data;
+            }
+            else
+            {
+                data->BoxedObject = new GCHandle();
+            }
         }
 
         [Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
@@ -313,28 +323,69 @@ namespace Unity.Entities
             AddEntityComponentCommand(Command.AddComponentImplicit, Entity.Null, component);
         }
 
+        private static bool IsDefaultObject<T>(ref T component, out int hashCode) where T : struct, ISharedComponentData
+        {
+            int typeIndex = TypeManager.GetTypeIndex<T>();
+            var layout = TypeManager.GetComponentType(typeIndex).FastEqualityLayout;
+            var defaultValue = default(T);
+            hashCode = FastEquality.GetHashCode(ref component, layout);
+            return FastEquality.Equals(ref defaultValue, ref component, layout);
+        }
+
         public void AddSharedComponent<T>(T component) where T : struct, ISharedComponentData
         {
             EnforceSingleThreadOwnership();
-            AddEntitySharedComponentCommand<T>(Command.AddSharedComponentDataImplicit, Entity.Null, component);
+            int hashCode;
+            if (IsDefaultObject(ref component, out hashCode))
+            {
+                AddEntitySharedComponentCommand<T>(Command.AddSharedComponentDataImplicit, Entity.Null, hashCode, null);
+            }
+            else
+            {
+                AddEntitySharedComponentCommand<T>(Command.AddSharedComponentDataImplicit, Entity.Null, hashCode, component);
+            }
         }
 
         public void AddSharedComponent<T>(Entity e, T component) where T : struct, ISharedComponentData
         {
             EnforceSingleThreadOwnership();
-            AddEntitySharedComponentCommand<T>(Command.AddSharedComponentDataExplicit, e, component);
+            int hashCode;
+            if (IsDefaultObject(ref component, out hashCode))
+            {
+                AddEntitySharedComponentCommand<T>(Command.AddSharedComponentDataExplicit, e, hashCode, null);
+            }
+            else
+            {
+                AddEntitySharedComponentCommand<T>(Command.AddSharedComponentDataExplicit, e, hashCode, component);
+            }
         }
 
         public void SetSharedComponent<T>(T component) where T : struct, ISharedComponentData
         {
             EnforceSingleThreadOwnership();
-            AddEntitySharedComponentCommand<T>(Command.SetSharedComponentDataImplicit, Entity.Null, component);
+            int hashCode;
+            if (IsDefaultObject(ref component, out hashCode))
+            {
+                AddEntitySharedComponentCommand<T>(Command.SetSharedComponentDataImplicit, Entity.Null, hashCode, null);
+            }
+            else
+            {
+                AddEntitySharedComponentCommand<T>(Command.SetSharedComponentDataImplicit, Entity.Null, hashCode, component);
+            }
         }
 
         public void SetSharedComponent<T>(Entity e, T component) where T : struct, ISharedComponentData
         {
             EnforceSingleThreadOwnership();
-            AddEntitySharedComponentCommand<T>(Command.SetSharedComponentDataExplicit, e, component);
+            int hashCode;
+            if (IsDefaultObject(ref component, out hashCode))
+            {
+                AddEntitySharedComponentCommand<T>(Command.SetSharedComponentDataExplicit, e, hashCode, null);
+            }
+            else
+            {
+                AddEntitySharedComponentCommand<T>(Command.SetSharedComponentDataExplicit, e, hashCode, component);
+            }
         }
 
         enum Command
@@ -439,28 +490,28 @@ namespace Unity.Entities
                         case Command.AddSharedComponentDataImplicit:
                             {
                                 var cmd = (EntitySharedComponentCommand*)header;
-                                mgr.AddSharedComponentDataBoxed(lastEntity, cmd->ComponentTypeIndex, cmd->BoxedObject.Target);
+                                mgr.AddSharedComponentDataBoxed(lastEntity, cmd->ComponentTypeIndex, cmd->HashCode, cmd->BoxedObject.Target);
                             }
                             break;
 
                         case Command.AddSharedComponentDataExplicit:
                             {
                                 var cmd = (EntitySharedComponentCommand*)header;
-                                mgr.AddSharedComponentDataBoxed(cmd->Header.Entity, cmd->ComponentTypeIndex, cmd->BoxedObject.Target);
+                                mgr.AddSharedComponentDataBoxed(cmd->Header.Entity, cmd->ComponentTypeIndex, cmd->HashCode, cmd->BoxedObject.Target);
                             }
                             break;
 
                         case Command.SetSharedComponentDataImplicit:
                             {
                                 var cmd = (EntitySharedComponentCommand*)header;
-                                mgr.SetSharedComponentDataBoxed(lastEntity, cmd->ComponentTypeIndex, cmd->BoxedObject.Target);
+                                mgr.SetSharedComponentDataBoxed(lastEntity, cmd->ComponentTypeIndex, cmd->HashCode, cmd->BoxedObject.Target);
                             }
                             break;
 
                         case Command.SetSharedComponentDataExplicit:
                             {
                                 var cmd = (EntitySharedComponentCommand*)header;
-                                mgr.SetSharedComponentDataBoxed(cmd->Header.Entity, cmd->ComponentTypeIndex, cmd->BoxedObject.Target);
+                                mgr.SetSharedComponentDataBoxed(cmd->Header.Entity, cmd->ComponentTypeIndex, cmd->HashCode, cmd->BoxedObject.Target);
                             }
                             break;
                     }

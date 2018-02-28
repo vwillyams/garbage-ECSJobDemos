@@ -29,6 +29,12 @@ namespace UnityEngine.ECS.Boids
             }
         }
 
+        struct CellSteering
+        {
+            public float3 alignment;
+            public float3 separation;
+        }
+
         [ComputeJobOptimization]
         struct SeparationAndAlignmentSteer : IJobParallelFor
         {
@@ -36,8 +42,7 @@ namespace UnityEngine.ECS.Boids
             [ReadOnly] public Boid settings;
             [ReadOnly] public NativeArray<float3> positions;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> headings;
-            public NativeArray<float3> alignmentResults;
-            public NativeArray<float3> separationResults;
+            public NativeArray<CellSteering> cellSteerings;
 
             public void Execute(int index)
             {
@@ -60,12 +65,16 @@ namespace UnityEngine.ECS.Boids
                     separationSteering -= otherPosition;
                     averageHeading += otherForward;
                 }
-                
-                separationResults[index] = separationSteering;
-                alignmentResults[index] = (averageHeading / neighbors.Length);
+
+                cellSteerings[index] = new CellSteering
+                {
+                    separation = separationSteering,
+                    alignment = (averageHeading / neighbors.Length)
+                };
             }
         }
 
+        
         [ComputeJobOptimization]
         struct Steer : IJobParallelFor
         {
@@ -75,8 +84,7 @@ namespace UnityEngine.ECS.Boids
             [ReadOnly] public ComponentDataArray<BoidNearestTargetPosition> nearestTargetPositions;
             [ReadOnly] public ComponentDataArray<BoidNearestObstaclePosition> nearestObstaclePositions;
             [ReadOnly] public Boid settings;
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> alignmentSteering;
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> separationSteering;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<CellSteering> cellSteerings;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> positionHashes;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> cellsBuffer;
             public float dt;
@@ -90,8 +98,10 @@ namespace UnityEngine.ECS.Boids
                 var avoidObstacle = (math.length(obstacleSteering) < settings.obstacleAversionDistance);
                 var sharedIndex = cells.GetSharedIndexBySourceIndex(index);
                 var neighborCount = cells.GetSharedValueIndexCountBySourceIndex(index);
-                var s0 = settings.alignmentWeight * math_experimental.normalizeSafe(alignmentSteering[sharedIndex]-forward);
-                var s1 = settings.separationWeight * math_experimental.normalizeSafe((position * neighborCount) + separationSteering[sharedIndex]);
+                var alignmentSteering = cellSteerings[sharedIndex].alignment;
+                var separationSteering = cellSteerings[sharedIndex].separation;
+                var s0 = settings.alignmentWeight * math_experimental.normalizeSafe(alignmentSteering-forward);
+                var s1 = settings.separationWeight * math_experimental.normalizeSafe((position * neighborCount) + separationSteering);
                 var s2 = settings.targetWeight * math_experimental.normalizeSafe(nearestTargetPositions[index].Value - position);
                 var normalHeading = math_experimental.normalizeSafe(s0 + s1 + s2);
                 var avoidObstacleHeading = (nearestObstaclePosition + math_experimental.normalizeSafe(obstacleSteering) * settings.obstacleAversionDistance)-position;
@@ -99,6 +109,7 @@ namespace UnityEngine.ECS.Boids
                 var steer = math_experimental.normalizeSafe(forward + dt*(s5-forward));
                 headings[index] = new Heading { Value = steer };
             }
+ 
         }
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
@@ -142,16 +153,14 @@ namespace UnityEngine.ECS.Boids
                 };
                 var copyHeadingsJobHandle = copyHeadingsJob.Schedule(positions.Length, 64, inputDeps);
 
-                var separationResults = new NativeArray<float3>(positions.Length, Allocator.TempJob);
-                var alignmentResults = new NativeArray<float3>(positions.Length, Allocator.TempJob);
+                var cellSteerings = new NativeArray<CellSteering>(positions.Length, Allocator.TempJob);
                 var separationAndAlignmentSteerJob = new SeparationAndAlignmentSteer
                 {
                     positions = copyPositionsResults,
                     headings = copyHeadingsResults,
                     cells = cells,
                     settings = settings,
-                    separationResults = separationResults,
-                    alignmentResults = alignmentResults,
+                    cellSteerings = cellSteerings
                 };
                 var separationAndAlignmentSteerJobHandle = separationAndAlignmentSteerJob.Schedule(positions.Length, 64,
                     JobHandle.CombineDependencies(sharedHashesJobHandle, copyHeadingsJobHandle, copyPositionsJobHandle));
@@ -164,14 +173,13 @@ namespace UnityEngine.ECS.Boids
                     nearestTargetPositions = nearestTargetPositions,
                     nearestObstaclePositions = nearestObstaclePositions,
                     settings = settings,
-                    alignmentSteering = alignmentResults,
-                    separationSteering = separationResults,
+                    cellSteerings = cellSteerings,
                     positionHashes = positionHashes,
                     cellsBuffer = cells.GetBuffer(),
                     dt = Time.deltaTime
                 };
 
-                inputDeps = steerJob.Schedule(positions.Length, 64, separationAndAlignmentSteerJobHandle);
+                inputDeps = steerJob.Schedule(positions.Length, 1024, separationAndAlignmentSteerJobHandle);
                 group.Dispose();
             }
             m_UniqueTypes.Clear();

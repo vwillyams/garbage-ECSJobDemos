@@ -1,5 +1,5 @@
 ![Unity](https://unity3d.com/files/images/ogimg.jpg?1)
-# ECS user manual
+# Entity-component-system user manual
 
 * [How ECS works](content/getting_started.md)
     * [Naming conventions](content/ecs_concepts.md)

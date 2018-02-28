@@ -55,7 +55,7 @@ class RotatorSystem : ComponentSystem
     struct Group
     {
         // Define what components are required for this 
-        // ComponenetSystem to handle them.
+        // ComponentSystem to handle them.
         Transform Transform;
         Rotator   Rotator;
     }

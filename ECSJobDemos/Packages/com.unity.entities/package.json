@@ -1,0 +1,10 @@
+{
+  "name": "com.unity.entities",
+  "version": "0.0.1",
+  "unity": "2018.1",
+  "description": "Unity Entity Component System - Core Entity Component System, New Transform components, basic Instance Mesh Renderer",
+  "keywords": [
+    "entities",
+    "unity"
+  ]
+}

@@ -7,12 +7,12 @@
         "com.unity.collections",
         "com.unity.ecs",
         "com.unity.ecs.hybrid",
+        "com.unity.ecs.properties",
         "com.unity.transforms",
         "com.unity.transforms2d",
         "com.unity.transforms.hybrid",
         "com.unity.jobs",
-        "com.unity.mathematics",
-        "com.unity.properties.ecs"
+        "com.unity.mathematics"
 	],
 	"registry": "https://staging-packages.unity.com"
 }

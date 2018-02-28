@@ -8,11 +8,9 @@ namespace Unity.Entities
 {
     internal unsafe struct EntityCommandBufferData
     {
-        [NativeDisableUnsafePtrRestriction]
         public EntityCommandBuffer.Chunk* m_Tail;
-
-        [NativeDisableUnsafePtrRestriction]
         public EntityCommandBuffer.Chunk* m_Head;
+        public EntityCommandBuffer.EntitySharedComponentCommand* m_CleanupList;
 
         public int m_MinimumChunkSize;
 
@@ -74,33 +72,42 @@ namespace Unity.Entities
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct BasicCommand
+        internal struct BasicCommand
         {
             public int CommandType;
             public int TotalSize;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct CreateCommand
+        internal struct CreateCommand
         {
             public BasicCommand Header;
             public EntityArchetype Archetype;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct EntityCommand
+        internal struct EntityCommand
         {
             public BasicCommand Header;
             public Entity Entity;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct EntityComponentCommand
+        internal struct EntityComponentCommand
         {
             public EntityCommand Header;
             public int ComponentTypeIndex;
             public int ComponentSize;
             // Data follows if command has an associated component payload
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct EntitySharedComponentCommand
+        {
+            public EntityCommand Header;
+            public int ComponentTypeIndex;
+            public GCHandle BoxedObject;
+            public EntitySharedComponentCommand* Prev;
         }
 
         byte* Reserve(int size)
@@ -173,9 +180,8 @@ namespace Unity.Entities
             return (size + alignmentPowerOfTwo - 1) & ~(alignmentPowerOfTwo - 1);
         }
 
-        private void AddEntityComponentTypeCommand<T>(Command op, Entity e) where T : struct
+        private void AddEntityComponentTypeCommand(Command op, Entity e, ComponentType t)
         {
-            var typeIndex = TypeManager.GetTypeIndex<T>();
             var sizeNeeded = Align(sizeof(EntityComponentCommand), 8);
 
             var data = (EntityComponentCommand*) Reserve(sizeNeeded);
@@ -183,7 +189,24 @@ namespace Unity.Entities
             data->Header.Header.CommandType = (int) op;
             data->Header.Header.TotalSize = sizeNeeded;
             data->Header.Entity = e;
+            data->ComponentTypeIndex = t.TypeIndex;
+        }
+
+        private void AddEntitySharedComponentCommand<T>(Command op, Entity e, object boxedObject) where T : struct
+        {
+            var typeIndex = TypeManager.GetTypeIndex<T>();
+            var sizeNeeded = Align(sizeof(EntitySharedComponentCommand), 8);
+
+            var data = (EntitySharedComponentCommand*) Reserve(sizeNeeded);
+
+            data->Header.Header.CommandType = (int) op;
+            data->Header.Header.TotalSize = sizeNeeded;
+            data->Header.Entity = e;
             data->ComponentTypeIndex = typeIndex;
+            data->BoxedObject = GCHandle.Alloc(boxedObject);
+            // We need to store all GCHandles on a cleanup list so we can dispose them later, regardless of if playback occurs or not.
+            data->Prev = m_Data->m_CleanupList;
+            m_Data->m_CleanupList = data;
         }
 
         [Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
@@ -205,6 +228,7 @@ namespace Unity.Entities
             m_Data->m_Tail = null;
             m_Data->m_Head = null;
             m_Data->m_MinimumChunkSize = kDefaultMinimumChunkSize;
+            m_Data->m_CleanupList = null;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             m_Safety = AtomicSafetyHandle.Create();
@@ -218,6 +242,14 @@ namespace Unity.Entities
 #endif
             if (m_Data != null)
             {
+                EntitySharedComponentCommand* cleanup_list = m_Data->m_CleanupList;
+                while (cleanup_list != null)
+                {
+                    cleanup_list->BoxedObject.Free();
+                    cleanup_list = cleanup_list->Prev;
+                }
+                m_Data->m_CleanupList = null;
+
                 var label = m_Data->m_Allocator;
 
                 while (m_Data->m_Tail != null)
@@ -269,16 +301,40 @@ namespace Unity.Entities
             AddEntityComponentCommand(Command.SetComponentExplicit, e, component);
         }
 
-        public void RemoveComponent<T>(Entity e) where T: struct, IComponentData
+        public void RemoveComponent<T>(Entity e)
         {
             EnforceSingleThreadOwnership();
-            AddEntityComponentTypeCommand<T>(Command.RemoveComponentExplicit, e);
+            AddEntityComponentTypeCommand(Command.RemoveComponentExplicit, e, ComponentType.Create<T>());
         }
 
         public void AddComponent<T>(T component) where T: struct, IComponentData
         {
             EnforceSingleThreadOwnership();
             AddEntityComponentCommand(Command.AddComponentImplicit, Entity.Null, component);
+        }
+
+        public void AddSharedComponent<T>(T component) where T : struct, ISharedComponentData
+        {
+            EnforceSingleThreadOwnership();
+            AddEntitySharedComponentCommand<T>(Command.AddSharedComponentDataImplicit, Entity.Null, component);
+        }
+
+        public void AddSharedComponent<T>(Entity e, T component) where T : struct, ISharedComponentData
+        {
+            EnforceSingleThreadOwnership();
+            AddEntitySharedComponentCommand<T>(Command.AddSharedComponentDataExplicit, e, component);
+        }
+
+        public void SetSharedComponent<T>(T component) where T : struct, ISharedComponentData
+        {
+            EnforceSingleThreadOwnership();
+            AddEntitySharedComponentCommand<T>(Command.SetSharedComponentDataImplicit, Entity.Null, component);
+        }
+
+        public void SetSharedComponent<T>(Entity e, T component) where T : struct, ISharedComponentData
+        {
+            EnforceSingleThreadOwnership();
+            AddEntitySharedComponentCommand<T>(Command.SetSharedComponentDataExplicit, e, component);
         }
 
         enum Command
@@ -292,7 +348,13 @@ namespace Unity.Entities
             // Commands that either create a new entity or operate implicitly on a just-created entity (which doesn't yet exist when the command is buffered)
             CreateEntityImplicit,
             AddComponentImplicit,
-            SetComponentImplicit
+            SetComponentImplicit,
+
+            // Commands that manipulate shared component data
+            AddSharedComponentDataImplicit,
+            AddSharedComponentDataExplicit,
+            SetSharedComponentDataImplicit,
+            SetSharedComponentDataExplicit,
         }
 
         /// <summary>
@@ -371,6 +433,34 @@ namespace Unity.Entities
                                 var cmd = (EntityComponentCommand*)header;
                                 //var componentType = (ComponentType)TypeManager.GetType(cmd->ComponentTypeIndex);
                                 mgr.SetComponentDataRaw(lastEntity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
+                            }
+                            break;
+
+                        case Command.AddSharedComponentDataImplicit:
+                            {
+                                var cmd = (EntitySharedComponentCommand*)header;
+                                mgr.AddSharedComponentDataBoxed(lastEntity, cmd->ComponentTypeIndex, cmd->BoxedObject.Target);
+                            }
+                            break;
+
+                        case Command.AddSharedComponentDataExplicit:
+                            {
+                                var cmd = (EntitySharedComponentCommand*)header;
+                                mgr.AddSharedComponentDataBoxed(cmd->Header.Entity, cmd->ComponentTypeIndex, cmd->BoxedObject.Target);
+                            }
+                            break;
+
+                        case Command.SetSharedComponentDataImplicit:
+                            {
+                                var cmd = (EntitySharedComponentCommand*)header;
+                                mgr.SetSharedComponentDataBoxed(lastEntity, cmd->ComponentTypeIndex, cmd->BoxedObject.Target);
+                            }
+                            break;
+
+                        case Command.SetSharedComponentDataExplicit:
+                            {
+                                var cmd = (EntitySharedComponentCommand*)header;
+                                mgr.SetSharedComponentDataBoxed(cmd->Header.Entity, cmd->ComponentTypeIndex, cmd->BoxedObject.Target);
                             }
                             break;
                     }

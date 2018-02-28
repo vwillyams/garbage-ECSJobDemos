@@ -3,6 +3,7 @@ using NUnit.Framework;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
+using System.Collections.Generic;
 
 namespace UnityEngine.ECS.Tests
 {
@@ -211,6 +212,106 @@ namespace UnityEngine.ECS.Tests
                 }
                 group.Dispose();
             }
+        }
+
+        [Test]
+        public void AddSharedComponent()
+        {
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
+
+            var entity = m_Manager.CreateEntity();
+            cmds.AddSharedComponent(entity, new EcsTestSharedComp(10));
+            cmds.AddSharedComponent(entity, new EcsTestSharedComp2(20));
+
+            cmds.Playback(m_Manager);
+
+            Assert.AreEqual(10, m_Manager.GetSharedComponentData<EcsTestSharedComp>(entity).value);
+            Assert.AreEqual(20, m_Manager.GetSharedComponentData<EcsTestSharedComp2>(entity).value1);
+
+            cmds.Dispose();
+        }
+
+        [Test]
+        public void SetSharedComponent()
+        {
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
+
+            var entity = m_Manager.CreateEntity();
+            var sharedComponent = new EcsTestSharedComp(10);
+            m_Manager.AddSharedComponentData(entity, sharedComponent);
+
+            cmds.SetSharedComponent(entity, new EcsTestSharedComp(33));
+
+            cmds.Playback(m_Manager);
+
+            Assert.AreEqual(33, m_Manager.GetSharedComponentData<EcsTestSharedComp>(entity).value);
+
+            cmds.Dispose();
+        }
+
+        [Test]
+        public void RemoveSharedComponent()
+        {
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
+
+            var entity = m_Manager.CreateEntity();
+            var sharedComponent = new EcsTestSharedComp(10);
+            m_Manager.AddSharedComponentData(entity, sharedComponent);
+
+            cmds.RemoveComponent<EcsTestSharedComp>(entity);
+
+            cmds.Playback(m_Manager);
+
+            Assert.IsFalse(m_Manager.HasComponent<EcsTestSharedComp>(entity), "The shared component was not removed.");
+
+            cmds.Dispose();
+        }
+
+        [Test]
+        public void ImplicitAddSharedComponent()
+        {
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
+
+            cmds.CreateEntity();
+            cmds.AddSharedComponent(new EcsTestSharedComp(10));
+            cmds.AddSharedComponent(new EcsTestSharedComp2(20));
+
+            cmds.Playback(m_Manager);
+
+            var sharedComp1List = new List<EcsTestSharedComp>();
+            var sharedComp2List = new List<EcsTestSharedComp2>();
+
+            m_Manager.GetAllUniqueSharedComponentDatas<EcsTestSharedComp>(sharedComp1List);
+            m_Manager.GetAllUniqueSharedComponentDatas<EcsTestSharedComp2>(sharedComp2List);
+
+            // the count must be 2 - the default value of the shared component and the one we actually set
+            Assert.AreEqual(2, sharedComp1List.Count);
+            Assert.AreEqual(2, sharedComp2List.Count);
+
+            Assert.AreEqual(10, sharedComp1List[1].value);
+            Assert.AreEqual(20, sharedComp2List[1].value1);
+
+            cmds.Dispose();
+        }
+
+        [Test]
+        public void ImplicitSetSharedComponent()
+        {
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
+
+            cmds.CreateEntity();
+            cmds.AddSharedComponent(new EcsTestSharedComp(10));
+            cmds.SetSharedComponent(new EcsTestSharedComp(33));
+
+            cmds.Playback(m_Manager);
+
+            var sharedCompList = new List<EcsTestSharedComp>();
+            m_Manager.GetAllUniqueSharedComponentDatas<EcsTestSharedComp>(sharedCompList);
+
+            Assert.AreEqual(2, sharedCompList.Count);
+            Assert.AreEqual(33, sharedCompList[1].value);
+
+            cmds.Dispose();
         }
     }
 }

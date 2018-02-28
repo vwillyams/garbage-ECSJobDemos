@@ -6,7 +6,7 @@ using UnityEditor.IMGUI.Controls;
 
 namespace UnityEditor.ECS
 {
-    public class ECSDebuggerTests : ECSTestsFixture
+    public class EntityDebuggerTests : ECSTestsFixture
     {
 
         class FakeWindow : IEntitySelectionWindow

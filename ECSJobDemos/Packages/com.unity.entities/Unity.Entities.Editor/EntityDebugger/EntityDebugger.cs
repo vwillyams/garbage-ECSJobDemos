@@ -9,13 +9,13 @@ using UnityEditor.IMGUI.Controls;
 
 namespace UnityEditor.ECS
 {
-    public class ECSDebugger : EditorWindow, ISystemSelectionWindow, IEntitySelectionWindow {
+    public class EntityDebugger : EditorWindow, ISystemSelectionWindow, IEntitySelectionWindow {
         private const float kSystemListWidth = 350f;
 
-        [MenuItem("Window/ECS Debugger", false, 2017)]
+        [MenuItem("Window/Entity Debugger", false, 2017)]
         static void OpenWindow()
         {
-            GetWindow<ECSDebugger>("ECS Debugger");
+            GetWindow<EntityDebugger>("Entity Debugger");
         }
 
         private static GUIStyle Box

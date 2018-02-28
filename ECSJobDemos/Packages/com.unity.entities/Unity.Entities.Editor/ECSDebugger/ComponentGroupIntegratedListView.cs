@@ -76,7 +76,7 @@ namespace UnityEditor.ECS
             entitiesById = new Dictionary<int, Entity>();
             var currentID = 0;
             var root  = new TreeViewItem { id = currentID++, depth = -1, displayName = "Root" };
-            if (window.WorldSelection == null)
+            if (window?.WorldSelection == null)
             {
                 root.AddChild(new TreeViewItem { id = currentID++, displayName = "No world selected"});
             }
@@ -138,6 +138,8 @@ namespace UnityEditor.ECS
 
         override protected void SelectionChanged(IList<int> selectedIds)
         {
+            if (window == null)
+                return;
             if (selectedIds.Count > 0 && entitiesById.ContainsKey(selectedIds[0]))
             {
                 window.EntitySelection = entitiesById[selectedIds[0]];

@@ -436,7 +436,7 @@ namespace Unity.Entities
             return archetype->TypesCount - 1;
         }
 
-        public int GetComponentTypeIndex(Entity entity, int index)
+        internal int GetComponentTypeIndex(Entity entity, int index)
         {
             m_Entities->AssertEntitiesExist(&entity, 1);
             Archetype* archetype = m_Entities->GetArchetype(entity);
@@ -449,7 +449,7 @@ namespace Unity.Entities
             return archetype->Types[index + 1].TypeIndex;
         }
 
-        public void SetComponentDataRaw(Entity entity, int typeIndex, void* data, int size)
+        internal void SetComponentDataRaw(Entity entity, int typeIndex, void* data, int size)
         {
             m_Entities->AssertEntityHasComponent(entity, typeIndex);
 
@@ -459,7 +459,7 @@ namespace Unity.Entities
             UnsafeUtility.MemCpy(ptr, data, size);
         }
         
-        public void* GetComponentDataRaw(Entity entity, int typeIndex)
+        internal void* GetComponentDataRaw(Entity entity, int typeIndex)
         {
             m_Entities->AssertEntityHasComponent(entity, typeIndex);
 
@@ -469,7 +469,7 @@ namespace Unity.Entities
             return ptr;
         }
         
-        public object GetComponentBoxed(Entity entity, ComponentType componentType)
+        internal object GetComponentBoxed(Entity entity, ComponentType componentType)
         {
             var ptr = GetComponentDataRaw(entity, componentType.TypeIndex);
 

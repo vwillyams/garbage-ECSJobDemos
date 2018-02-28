@@ -5,12 +5,7 @@
 	},
 	"testables": [
         "com.unity.collections",
-        "com.unity.ecs",
-        "com.unity.ecs.hybrid",
-        "com.unity.ecs.properties",
-        "com.unity.transforms",
-        "com.unity.transforms2d",
-        "com.unity.transforms.hybrid",
+        "com.unity.entities",
         "com.unity.jobs",
         "com.unity.mathematics"
 	],

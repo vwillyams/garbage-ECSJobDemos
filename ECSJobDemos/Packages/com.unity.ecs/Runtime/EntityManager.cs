@@ -7,6 +7,7 @@ using Unity.Jobs;
 using Unity.Assertions;
 
 [assembly:InternalsVisibleTo("Unity.Entities.Hybrid")]
+[assembly:InternalsVisibleTo("Unity.Entities.Properties")]
 
 namespace Unity.Entities
 {

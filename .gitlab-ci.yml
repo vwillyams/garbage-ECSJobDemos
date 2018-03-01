@@ -15,7 +15,7 @@ build:macOS:
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath $(pwd)/ECSJobDemos -batchmode -nographics -silentcrashes -automated -logfile output-macos-vanilla-build.log -quit
   artifacts:
-    name: "mac-build-logs"
+    name: "artifacts-macos-build"
     when: always
     paths:
       - "*.log"
@@ -29,14 +29,14 @@ standalone:boids:macOS:
   script:
     - echo BUILDING MONO
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath ECSJobDemos -batchmode -buildOSXUniversalPlayer build/mono/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-boids-build-mono.log -quit -scene Assets/BoidExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-    - echo RUNNING MONO
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/mono/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-boids-run-mono.log -timeout 60 -timeoutIgnore
     - echo BUILDING IL2CPP
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath ECSJobDemos -batchmode -buildOSXUniversalPlayer build/il2cpp/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-boids-build-il2cpp.log -quit -scene Assets/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - echo RUNNING MONO
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/mono/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-boids-run-mono.log -timeout 60 -timeoutIgnore
     - echo RUNNING IL2CPP
     - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/il2cpp/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-boids-run-il2cpp.log -timeout 60 -timeoutIgnore
   artifacts:
-    name: "mac-standalone-logs"
+    name: "artifacts-macos-boids"
     when: always
     paths:
       - "*.log"
@@ -51,7 +51,7 @@ test:macOS:
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath $(pwd)/ECSJobDemos -batchmode -nographics -silentcrashes -automated -logfile output-macos-test.log -runtests -testresults results.xml
   artifacts:
-    name: "mac-test-logs"
+    name: "artifacts-macos-test"
     when: always
     paths:
       - "*.log"
@@ -65,7 +65,7 @@ build:windows:
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -nographics -silentcrashes -automated -logfile output-win-vanilla-build.log -quit
   artifacts:
-    name: "windows-build-logs"
+    name: "artifacts-win-build"
     when: always
     paths:
       - "*.log"
@@ -79,14 +79,14 @@ standalone:boids:windows:
   script:
     - echo BUILDING MONO
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-boids-build-mono.log -quit -scene Assets/BoidExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-    - echo RUNNING MONO
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/mono/windows-standalone.exe -logfile output-win-boids-run-mono.log -timeout 60 -timeoutIgnore
     - echo BUILDING IL2CPP
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-boids-build-il2cpp.log -quit -scene Assets/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - echo RUNNING MONO
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/mono/windows-standalone.exe -logfile output-win-boids-run-mono.log -timeout 60 -timeoutIgnore
     - echo RUNNING IL2CPP
     - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/il2cpp/windows-standalone.exe -logfile output-win-boids-run-il2cpp.log -timeout 60 -timeoutIgnore
   artifacts:
-    name: "windows-standalone-logs"
+    name: "artifacts-win-boids"
     when: always
     paths:
       - "*.log"
@@ -101,7 +101,7 @@ test:windows:
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -nographics -silentcrashes -automated -logfile output-win-test.log -runtests -testresults results.xml
   artifacts:
-    name: "windows-test-logs"
+    name: "artifacts-win-test"
     when: always
     paths:
       - "*.log"

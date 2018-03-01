@@ -15,7 +15,7 @@ namespace UnityEditor.ECS
         World WorldSelection { get; }
     }
     
-    public class ComponentGroupListView : TreeView {
+    public class EntityListView : TreeView {
         private readonly Dictionary<int, ComponentGroup> componentGroupsById = new Dictionary<int, ComponentGroup>();
         private readonly Dictionary<int, Entity> entitiesById = new Dictionary<int, Entity>();
 
@@ -35,7 +35,7 @@ namespace UnityEditor.ECS
 
         IEntitySelectionWindow window;
 
-        public ComponentGroupListView(TreeViewState state, IEntitySelectionWindow window, ComponentSystemBase system) : base(state)
+        public EntityListView(TreeViewState state, IEntitySelectionWindow window, ComponentSystemBase system) : base(state)
         {
             this.window = window;
             selectedSystem = system;

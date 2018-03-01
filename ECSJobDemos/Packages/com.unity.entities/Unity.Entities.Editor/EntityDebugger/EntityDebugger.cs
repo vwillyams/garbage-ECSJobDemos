@@ -68,7 +68,7 @@ namespace UnityEditor.ECS
         [SerializeField]
         private TreeViewState entityListState = new TreeViewState();
 
-        private ComponentGroupListView entityListView;
+        private EntityListView entityListView;
 
         private string[] worldNames => (from x in World.AllWorlds select x.Name).ToArray();
 
@@ -124,7 +124,7 @@ namespace UnityEditor.ECS
             var systemListHeader = new MultiColumnHeader(SystemListView.GetHeaderState());
             systemListView = new SystemListView(systemListState, systemListHeader, this);
             entityListView =
-                new ComponentGroupListView(entityListState, this, SystemSelection as ComponentSystemBase);
+                new EntityListView(entityListState, this, SystemSelection as ComponentSystemBase);
             selectionProxy = ScriptableObject.CreateInstance<EntitySelectionProxy>();
             selectionProxy.hideFlags = HideFlags.HideAndDontSave;
             EditorApplication.playModeStateChanged += OnPlayModeStateChange;

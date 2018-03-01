@@ -27,22 +27,22 @@ Create Empty object in the scene and name it RotatingCubeSpawner.
 ![](https://i.imgur.com/GlQ7sMB.png)
 
 Add components to RotatingCubeSpawner:
-1. Scripts/[```UnityEngine.ECS.Spawners/Spawn Random Circle Component```](https://hackmd.io/CYdghmCsIJwwtAZgGwGMTwCyQBwLDpAAxZgCMkZAZmFUZgKYNA==)
-2. Scripts/[```UnityEngine.ECS.Transform/Transform Position Component```](https://hackmd.io/GYJgrAzAhgxg7ADgLQBMpjEgLAiEkJShIAMARgJwBsApgIwXQl1lA===)
-3. Scripts/[```UnityEngine.ECS.Transform/Copy Initial Transform Position From Game Object Component```](https://hackmd.io/EwTgbGIOwBwIYFoBmckEYEBY5pgmAJnIgEZoEEDGwcApvWgKxA==)
+1. Scripts/[```UnityEngine.ECS.Spawners/Spawn Random Circle component```](https://hackmd.io/CYdghmCsIJwwtAZgGwGMTwCyQBwLDpAAxZgCMkZAZmFUZgKYNA==)
+2. Scripts/[```UnityEngine.ECS.Transform/Transform Position component```](https://hackmd.io/GYJgrAzAhgxg7ADgLQBMpjEgLAiEkJShIAMARgJwBsApgIwXQl1lA===)
+3. Scripts/[```UnityEngine.ECS.Transform/Copy Initial Transform Position From GameObject component```](https://hackmd.io/EwTgbGIOwBwIYFoBmckEYEBY5pgmAJnIgEZoEEDGwcApvWgKxA==)
 
-Set the properties of ```Spawn Random Circle Component```
+Set the properties of ```Spawn Random Circle component```
 1. Prefab: [Assets/SampleAssets/TestRotatingCube.prefab](https://hackmd.io/BwFgZsAMCmCsYFoAmBmF0EgOwoGwIEMAjAYwEYEjZgtpcVhcyCsg) 
-This is a prefab container which contains the Components for the each Entity that will be spawned. 
+This is a prefab container which contains the components for the each Entity that will be spawned. 
 2. Radius: 25 
 Spawn entities 25m from the center of the circle.
 3. Count: 100
 Spawn 100 entities.
 
 
-The ```Transform Position Component``` specifies that the entity that is created from the RotatingCubeSpawner GameObject has a position in the ECS. That position is used as the center of the circle for spawning. (Required)
+The ```Transform Position component``` specifies that the entity that is created from the RotatingCubeSpawner GameObject has a position in the ECS. That position is used as the center of the circle for spawning. (Required)
 
-The ```Copy Initial Transform Position From Game Object Component``` specifies that _only_ the initial value for ```Transform Position Component``` in ECS will be copied from the GameObject's transform. 
+The ```Copy Initial Transform Position From GameObject component``` specifies that _only_ the initial value for ```Transform Position component``` in ECS will be copied from the GameObject's transform. 
 
 ## Move sphere about same circle and reset rotations when intersecting cubes
 
@@ -53,42 +53,42 @@ Create Empty object in the scene and name it TestResetRotationSphere.
 ![](https://i.imgur.com/7WmSLyN.png)
 
 Add components to TestResetRotationSphere:
-1. Scripts/[```UnityEngine.ECS.Transform/Transform Position Component```](https://hackmd.io/GYJgrAzAhgxg7ADgLQBMpjEgLAiEkJShIAMARgJwBsApgIwXQl1lA===)
-2. Scripts/[```UnityEngine.ECS.Transform/Copy Initial Transform Position From Game Object Component```](https://hackmd.io/EwTgbGIOwBwIYFoBmckEYEBY5pgmAJnIgEZoEEDGwcApvWgKxA==)
-3. Scripts/[```UnityEngine.ECS.Transform/Transform Matrix Component```](https://hackmd.io/MYZgRgbAnDCGC0ATAZgVgQFlARnlCyA7PLAKYAMYYsiUqEY2QA==)
-4. Scripts/[```UnityEngine.ECS.Rendering/Instance Renderer Component```](https://hackmd.io/EYQwDAjAnGDGAsBaAZgDhKx9gTIk8sArIgGxgDsEwxAzKQKZghA=)
-5. Scripts/[```UnityEngine.ECS.SimpleMovement/Move Speed Component```](https://hackmd.io/GYZghgDAnA7AjAVgLQwEwDY5ICxgEbKwRhJQDGeEAHJuCHiEA===)
-6. Scripts/[```UnityEngine.ECS.SimpleMovement/Move Along Circle Component```](https://hackmd.io/JwRgxgZgzARgJgBgLQDYoCYAcSAsB2ApTCBbCYPYFAVnWoFMcxqg)
-7. Scripts/[```UnityEngine.ECS.SimpleRotation/Rotation Speed Reset Sphere Component```](https://hackmd.io/KYBgrALAbARgHHAtMGMBMiIGY0bmgEwxAjgHYQYBjARgDMQ4og==)
+1. Scripts/[```UnityEngine.ECS.Transform/Transform Position component```](https://hackmd.io/GYJgrAzAhgxg7ADgLQBMpjEgLAiEkJShIAMARgJwBsApgIwXQl1lA===)
+2. Scripts/[```UnityEngine.ECS.Transform/Copy Initial Transform Position From GameObject component```](https://hackmd.io/EwTgbGIOwBwIYFoBmckEYEBY5pgmAJnIgEZoEEDGwcApvWgKxA==)
+3. Scripts/[```UnityEngine.ECS.Transform/Transform Matrix component```](https://hackmd.io/MYZgRgbAnDCGC0ATAZgVgQFlARnlCyA7PLAKYAMYYsiUqEY2QA==)
+4. Scripts/[```UnityEngine.ECS.Rendering/Instance Renderer component```](https://hackmd.io/EYQwDAjAnGDGAsBaAZgDhKx9gTIk8sArIgGxgDsEwxAzKQKZghA=)
+5. Scripts/[```UnityEngine.ECS.SimpleMovement/Move Speed component```](https://hackmd.io/GYZghgDAnA7AjAVgLQwEwDY5ICxgEbKwRhJQDGeEAHJuCHiEA===)
+6. Scripts/[```UnityEngine.ECS.SimpleMovement/Move Along Circle component```](https://hackmd.io/JwRgxgZgzARgJgBgLQDYoCYAcSAsB2ApTCBbCYPYFAVnWoFMcxqg)
+7. Scripts/[```UnityEngine.ECS.SimpleRotation/Rotation Speed Reset Sphere component```](https://hackmd.io/KYBgrALAbARgHHAtMGMBMiIGY0bmgEwxAjgHYQYBjARgDMQ4og==)
 
-Like the RotatingCubeSpawner, The ```Transform Position Component``` specifies that the entity that is created from the TestResetRotationSphere GameObject has a position in the ECS and the ```Copy Initial Transform Position From Game Object Component``` specifies that _only_ the initial value for ```Transform Position Component``` in ECS will be copied from the GameObject's transform. 
+Like the RotatingCubeSpawner, The ```Transform Position component``` specifies that the entity that is created from the TestResetRotationSphere GameObject has a position in the ECS and the ```Copy Initial Transform Position From GameObject component``` specifies that _only_ the initial value for ```Transform Position component``` in ECS will be copied from the GameObject's transform. 
 
-The ```Transform Matrix Component``` specifies that a 4x4 matrix should be stored. That matrix is updated automatically based on changes to the ```Transform Position Component```.
+The ```Transform Matrix component``` specifies that a 4x4 matrix should be stored. That matrix is updated automatically based on changes to the ```Transform Position component```.
 
-Set the properties of the ```Instance Renderer Component```
+Set the properties of the ```Instance Renderer component```
 1. Mesh: Sphere
 2. Material: InstanceMat
 Assign a Material that has GPU Instancing enabled.
 
 This component specfies that this Mesh/Material combination should be rendered with the corresponding ```Transform Matrix``` (Required)
 
-Set the properties of the ```Move Speed Component```
+Set the properties of the ```Move Speed component```
 1. Speed: 1
 
-This component requests that if another component is moving the ```Transform Position Component``` it should respect this value and move the position at the constant speed specified.
+This component requests that if another component is moving the ```Transform Position component``` it should respect this value and move the position at the constant speed specified.
 
-Set the properties of the ```Move Along Circle Component```
+Set the properties of the ```Move Along Circle component```
 1. Center: 0,0,0
 2. Radius: 25
 The center and radius correspond to the circle of entities that is being spawned by RotatingCubeSpawner.
 
-This component will update the corresponding ```Transform Position Component``` at the rate specified by ```Move Speed Component``` in radians per second.
+This component will update the corresponding ```Transform Position component``` at the rate specified by ```Move Speed component``` in radians per second.
 
-Set the properties of the ```Rotation Speed Reset Sphere Component```
+Set the properties of the ```Rotation Speed Reset Sphere component```
 1. Speed: 4 (radians per second)
 2. Radius: 2 (meters)
 
-This component specifies that if any other ```Transform Position Component``` is within the sphere defined by the ```Transform Position Component``` on this entity and the radius, the ```Transform Rotation Component``` on that entity should be set to speed, if it exists.
+This component specifies that if any other ```Transform Position component``` is within the sphere defined by the ```Transform Position component``` on this entity and the radius, the ```Transform Rotation component``` on that entity should be set to speed, if it exists.
 
 
 

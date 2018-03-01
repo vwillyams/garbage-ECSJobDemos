@@ -4,11 +4,11 @@
 
 __Entity__ is an ID. You can think of it as a super lightweight __GameObject__ that does not even have a name by default.
 
-You can add and remove __Components__ from Entities at runtime. Entity ID's are stable. In fact they are the only stable way to store a reference to another Component or Entity.
+You can add and remove components from Entities at runtime. Entity ID's are stable. In fact they are the only stable way to store a reference to another component or Entity.
 
 ## IComponentData
 
-Traditional Unity components (including __MonoBehaviour__) are [object-oriented](https://en.wikipedia.org/wiki/Object-oriented_programming) classes which contain data and methods for behavior. __IComponentData__ is a pure ECS-style Component, meaning that it defines no behavior, only data. IComponentDatas are structs rather than classes, meaning that they are copied [by value instead of by reference](https://stackoverflow.com/questions/373419/whats-the-difference-between-passing-by-reference-vs-passing-by-value?answertab=votes#tab-top) by default. You will usually need to use the following pattern to modify data:
+Traditional Unity components (including __MonoBehaviour__) are [object-oriented](https://en.wikipedia.org/wiki/Object-oriented_programming) classes which contain data and methods for behavior. __IComponentData__ is a pure ECS-style component, meaning that it defines no behavior, only data. IComponentDatas are structs rather than classes, meaning that they are copied [by value instead of by reference](https://stackoverflow.com/questions/373419/whats-the-difference-between-passing-by-reference-vs-passing-by-value?answertab=votes#tab-top) by default. You will usually need to use the following pattern to modify data:
 
 ```C#
 var transform = group.transform[index]; // Read
@@ -167,12 +167,13 @@ See [EntityCommandBuffer](#entitycommandbuffer) for more on avoiding sync points
 
 ### Multiple Worlds
 
-Every World has its own EntityManager and thus a seperate set of Job handle dependency management. A hard sync point in one world will not affect the other world. As a result for streaming and proc-gen use cases it is useful to create entities in one World and then move them to another world in one transaction at the beginning of the frame. 
+Every World has its own EntityManager and thus a separate set of Job handle dependency management. A hard sync point in one world will not affect the other world. As a result, for streaming and procedural generation scenarios, it is useful to create entities in one World and then move them to another world in one transaction at the beginning of the frame. 
 
-See [ExclusiveEntityTransaction](#exclusiveentitytransaction) for more on avoiding sync points for Proc-gen & Streaming use cases.
+See [ExclusiveEntityTransaction](#exclusiveentitytransaction) for more on avoiding sync points for procedural generation & streaming scenarios.
 
 
 ## Shared ComponentData
+
 IComponentData is appropriate for data that varies between Entities, such as storing a world position. __ISharedComponentData__ is useful when many Entities have something in common, for example in the boid demo we instantiate many Entities from the same Prefab and thus the __InstanceRenderer__ between many boid Entities is exactly the same. 
 
 ```cs
@@ -195,7 +196,7 @@ We use ISharedComponentData to group all entities using the same InstanceRendere
 
 * [InstanceRendererSystem.cs](https://github.com/Unity-Technologies/ECSJobDemos/blob/master/ECSJobDemos/Assets/ECS/InstanceRenderer/InstanceRendererSystem.cs)
 
-**Some important notes about SharedComponentData:**
+### Some important notes about SharedComponentData:
 
 * Entities with the same SharedComponentData are grouped together in the same chunks. The index to the SharedComponentData is stored once per chunk, not per Entity. As a result SharedComponentData have zero memory overhead on a per Entity basis. 
 * Using ComponentGroup we can iterate over all Entities with the same type.

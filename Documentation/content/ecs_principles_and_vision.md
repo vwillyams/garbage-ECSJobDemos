@@ -54,7 +54,7 @@ Our build pipeline must be [deterministic](https://en.wikipedia.org/wiki/Determi
 This is important for Networking, Replay features and even advanced debugging tools.
 
 
-We will leverage our burst compiler to produce exact floating point math between different platforms. Imagine a linux server & iOS device running the same floating point math code. This is useful for many use cases particularly for connected games, but also debugging, replay etc.
+We will leverage our burst compiler to produce exact floating point math between different platforms. Imagine a linux server & iOS device running the same floating point math code. This is useful for many scenarios particularly for connected games, but also debugging, replay etc.
 
 TODO - link/explain the floating math problem a little before the burst complier solved it (so those who are unaware of the fp math issue get the point.) Is this a good reference I'm not sure: https://hal.archives-ouvertes.fr/file/index/docid/281429/filename/floating-point-article.pdf
 
@@ -102,7 +102,7 @@ Previously most of our engine code was written in C++ which creates a disconnect
 
 We believe Unity users and developers working at Unity are all on the same team. Our purpose is to help all Unity users create the best game experiences faster, higher quality, and with great performance. 
 
-We believe every feature we develop must be developed with real use cases and real production feedback early on. The PackageManager facilitates that.
+We believe every feature we develop must be developed with real scenarios and real production feedback early on. The PackageManager facilitates that.
 
 For those in the community that want to contribute engine code, we aim to make that easy by working directly on the same code repositories that contributors can commit to as well. Through well defined principles, full test coverage of all features etc, we hope to keep the quality of contributions high as well. 
 

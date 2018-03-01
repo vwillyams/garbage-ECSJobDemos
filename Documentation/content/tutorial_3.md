@@ -41,15 +41,15 @@ Overall, here's what the bootstrapping code achieves:
 Pure ECS data isn't supported in a great way in the editor yet, so we'll take two
 approaches in the interim to configure our game:
 
-1. For things like asset references, we'll create a couple of _prototype_ game objects
+1. For things like asset references, we'll create a couple of _prototype_ GameObjects
    in the scene, where we can add wrapped `IComponentData` types. This is the approach
    we've taken to customize the appearance of the hero and the shots. Once we've fished
    out the configuration, we can discard these prototype objects.
    
 2. For "bags of settings", it's convenient to retain a traditional Unity component on an
-   empty game object, because that allows you to tweak the values in play mode. The
+   empty GameObject, because that allows you to tweak the values in play mode. The
    example project uses a component `TwoStickExampleSettings` for this purpose which we
-   put on an empty game object called `Settings`. This allows us to fetch the component
+   put on an empty GameObject called `Settings`. This allows us to fetch the component
    and keep it around globally in our app as well as to receive updates when values are
    tweaked.
   

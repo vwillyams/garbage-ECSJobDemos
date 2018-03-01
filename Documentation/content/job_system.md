@@ -2,7 +2,7 @@
 
 TODO: WHY MULTITHREAD?
 
-# How the job system works
+## How the job system works
 
 The job system in Unity is designed to allow users to write multi-threaded code which interacts well with the rest of the engine, while making it easier to write correct code.
 
@@ -40,7 +40,7 @@ To make it easier to write multithreaded code the JobSystem in Unity aims to det
 
 The main way this is achieved is by making sure jobs only operate on a copy of all data that is passed to it. If no-one else has access to the data that the job operates on then it cannot possibly cause a race condition. Copying data this way means that a job can only have access to [blittable](https://en.wikipedia.org/wiki/Blittable_types) data, not [managed](https://en.wikipedia.org/wiki/Managed_code) types. This is quite limiting, as you cannot return any result from the job. 
 
-To make it possible to write code to solve real world use cases there is one exception to the rule of copying data. That exception is __NativeContainers__.
+To make it possible to write code to solve real world scenarios there is one exception to the rule of copying data. That exception is __NativeContainers__.
 
 Unity ships with a set of NativeContainers: __NativeArray__, __NativeList__, __NativeHashMap__, and __NativeQueue__.
 
@@ -128,7 +128,7 @@ result.Dispose();
 
 ## ParallelFor jobs
 
-Scheduling jobs, as in the previous section, means there can only be one job doing one thing. In a game it very common to want to perform the same operation on a large number of things. For this use case there is a separate job type: IJobParallelFor.
+Scheduling jobs, as in the previous section, means there can only be one job doing one thing. In a game it very common to want to perform the same operation on a large number of things. For this scenario there is a separate job type: IJobParallelFor.
 IJobParallelFor behaves similarly to IJob, but instead of getting a single __Execute__ callback you get one Execute callback per item in an array. The system will not actually schedule one job per item, it will schedule up to one job per CPU core and redistribute the work load, but that is dealt with internally in the system.
 When scheduling ParallelForJobs you must specify the length of the array you are splitting, since the system cannot know which array you want to use as primary if there are several in the struct. You also need to specify a batch count. The batch count controls how many jobs you will get, and how fine grained the redistribution of work between threads is.
 Having a low batch count, such as 1, will give you a more even distribution of work between threads. It does however come with some overhead so in some cases it is better to increase the batch count slightly. Starting at 1 and increasing the batch count until there are negligible performance gains is a valid strategy.

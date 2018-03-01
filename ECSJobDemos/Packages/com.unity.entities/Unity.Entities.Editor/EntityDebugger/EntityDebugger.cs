@@ -228,6 +228,8 @@ namespace UnityEditor.ECS
 
         void EntityList()
         {
+            if (repainted && EditorApplication.isPlaying && !EditorApplication.isPaused)
+                entityListView.RefreshData();
             entityListView.OnGUI(GUIHelpers.GetExpandingRect());
         }
 
@@ -238,6 +240,8 @@ namespace UnityEditor.ECS
             header();
             GUILayout.EndVertical();
         }
+
+        private bool repainted = false;
 
         void OnGUI()
         {
@@ -272,6 +276,8 @@ namespace UnityEditor.ECS
             GUILayout.EndHorizontal();
 
             lastUpdate = EditorApplication.isPlaying ? 0f : Time.time;
+
+            repainted = Event.current.type == EventType.Repaint;
         }
         
         

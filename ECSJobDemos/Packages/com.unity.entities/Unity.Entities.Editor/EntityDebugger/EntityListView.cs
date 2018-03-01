@@ -49,21 +49,22 @@ namespace UnityEditor.ECS
 
         protected override TreeViewItem BuildRoot()
         {
-            var currentID = 0;
-            var root  = new TreeViewItem { id = currentID++, depth = -1, displayName = "Root" };
             componentGroupsById.Clear();
             entitiesById.Clear();
+            var managerId = -1;
+            var root  = new TreeViewItem { id = managerId--, depth = -1, displayName = "Root" };
             if (window?.WorldSelection == null)
             {
-                root.AddChild(new TreeViewItem { id = currentID++, displayName = "No world selected"});
+                root.AddChild(new TreeViewItem { id = managerId, displayName = "No world selected"});
             }
             else if (SelectedSystem == null)
             {
                 var entityArray = window.WorldSelection.GetExistingManager<EntityManager>().GetAllEntities(Allocator.Temp);
                 for (var i = 0; i < entityArray.Length; ++i)
                 {
-                    entitiesById.Add(currentID, entityArray[i]);
-                    var entityItem = new TreeViewItem { id = currentID++, displayName = $"Entity {entityArray[i].Index.ToString()}" };
+                    var entity = entityArray[i];
+                    entitiesById.Add(entity.Index, entity);
+                    var entityItem = new TreeViewItem { id = entity.Index, displayName = $"Entity {entity.Index.ToString()}" };
                     root.AddChild(entityItem);
                 }
                 entityArray.Dispose();
@@ -71,23 +72,24 @@ namespace UnityEditor.ECS
             }
             else if (SelectedSystem.ComponentGroups.Length == 0)
             {
-                root.AddChild(new TreeViewItem { id = currentID++, displayName = "No Component Groups in Manager"});
+                root.AddChild(new TreeViewItem { id = managerId, displayName = "No Component Groups in Manager"});
             }
             else
             {
                 foreach (var group in SelectedSystem.ComponentGroups)
                 {
-                    componentGroupsById.Add(currentID, group);
+                    componentGroupsById.Add(managerId, group);
                     var types = group.Types;
                     var groupName = string.Join(", ", (from x in types select x.Name).ToArray());
 
-                    var groupItem = new TreeViewItem { id = currentID++, displayName = groupName };
+                    var groupItem = new TreeViewItem { id = managerId--, displayName = groupName };
                     root.AddChild(groupItem);
                     var entityArray = group.GetEntityArray();
                     for (var i = 0; i < entityArray.Length; ++i)
                     {
-                        entitiesById.Add(currentID, entityArray[i]);
-                        var entityItem = new TreeViewItem { id = currentID++, displayName = $"Entity {entityArray[i].Index.ToString()}" };
+                        var entity = entityArray[i];
+                        entitiesById.Add(entity.Index, entity);
+                        var entityItem = new TreeViewItem { id = entity.Index, displayName = $"Entity {entity.Index.ToString()}" };
                         groupItem.AddChild(entityItem);
                     }
                 }

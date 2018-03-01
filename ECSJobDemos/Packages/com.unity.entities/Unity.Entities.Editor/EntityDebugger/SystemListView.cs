@@ -16,7 +16,7 @@ namespace UnityEditor.ECS
 
     }
     
-    public class GroupedSystemListView : TreeView {
+    public class SystemListView : TreeView {
 
         Dictionary<Type, List<ScriptBehaviourManager>> managersByGroup = new Dictionary<Type, List<ScriptBehaviourManager>>();
         private List<ScriptBehaviourManager> floatingManagers = new List<ScriptBehaviourManager>();
@@ -122,7 +122,7 @@ namespace UnityEditor.ECS
             return stateForCurrentWorld;
         }
 
-        public GroupedSystemListView(TreeViewState state, MultiColumnHeader header, ISystemSelectionWindow window) : base(state, header)
+        public SystemListView(TreeViewState state, MultiColumnHeader header, ISystemSelectionWindow window) : base(state, header)
         {
             this.window = window;
             columnIndexForTreeFoldouts = 1;

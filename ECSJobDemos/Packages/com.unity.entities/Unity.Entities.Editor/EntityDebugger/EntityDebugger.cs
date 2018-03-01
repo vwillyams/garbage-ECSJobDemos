@@ -63,12 +63,12 @@ namespace UnityEditor.ECS
         [SerializeField]
         private TreeViewState systemListState = new TreeViewState();
         
-        private GroupedSystemListView systemListView;
+        private SystemListView systemListView;
         
         [SerializeField]
         private TreeViewState componentListState = new TreeViewState();
 
-        private ComponentGroupIntegratedListView componentListView;
+        private ComponentGroupListView componentListView;
 
         private string[] worldNames => (from x in World.AllWorlds select x.Name).ToArray();
 
@@ -121,10 +121,10 @@ namespace UnityEditor.ECS
 
         void OnEnable()
         {
-            var systemListHeader = new MultiColumnHeader(GroupedSystemListView.GetHeaderState());
-            systemListView = new GroupedSystemListView(systemListState, systemListHeader, this);
+            var systemListHeader = new MultiColumnHeader(SystemListView.GetHeaderState());
+            systemListView = new SystemListView(systemListState, systemListHeader, this);
             componentListView =
-                new ComponentGroupIntegratedListView(componentListState, this, SystemSelection as ComponentSystemBase);
+                new ComponentGroupListView(componentListState, this, SystemSelection as ComponentSystemBase);
             selectionProxy = ScriptableObject.CreateInstance<EntitySelectionProxy>();
             selectionProxy.hideFlags = HideFlags.HideAndDontSave;
             EditorApplication.playModeStateChanged += OnPlayModeStateChange;
@@ -231,11 +231,11 @@ namespace UnityEditor.ECS
             componentListView.OnGUI(GUIHelpers.GetExpandingRect());
         }
 
-        void AlignHeader(System.Action action)
+        void AlignHeader(System.Action header)
         {
             GUILayout.BeginVertical();
             GUILayout.Space(6f);
-            action();
+            header();
             GUILayout.EndVertical();
         }
 

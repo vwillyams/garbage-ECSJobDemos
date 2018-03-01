@@ -14,7 +14,7 @@ namespace UnityEditor.ECS
         World WorldSelection { get; }
     }
     
-    public class ComponentGroupIntegratedListView : TreeView {
+    public class ComponentGroupListView : TreeView {
 
         Dictionary<int, ComponentGroup> componentGroupsById;
         private Dictionary<int, Entity> entitiesById;
@@ -32,37 +32,7 @@ namespace UnityEditor.ECS
 
         IEntitySelectionWindow window;
 
-//        public static TreeViewState GetStateForSystem(ComponentSystemBase system, ref List<TreeViewState> states, ref List<string> stateNames)
-//        {
-//            if (system == null)
-//                return new TreeViewState();
-//
-//            if (states == null)
-//            {
-//                states = new List<TreeViewState>();
-//                stateNames = new List<string>();
-//            }
-//            var currentSystemName = system.GetType().Name.ToString();
-//
-//            TreeViewState stateForCurrentSystem = null;
-//            for (var i = 0; i < states.Count; ++i)
-//            {
-//                if (stateNames[i] == currentSystemName)
-//                {
-//                    stateForCurrentSystem = states[i];
-//                    break;
-//                }
-//            }
-//            if (stateForCurrentSystem == null)
-//            {
-//                stateForCurrentSystem = new TreeViewState();
-//                states.Add(stateForCurrentSystem);
-//                stateNames.Add(currentSystemName);
-//            }
-//            return stateForCurrentSystem;
-//        }
-
-        public ComponentGroupIntegratedListView(TreeViewState state, IEntitySelectionWindow window, ComponentSystemBase system) : base(state)
+        public ComponentGroupListView(TreeViewState state, IEntitySelectionWindow window, ComponentSystemBase system) : base(state)
         {
             this.window = window;
             selectedSystem = system;

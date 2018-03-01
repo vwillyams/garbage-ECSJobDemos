@@ -1,4 +1,5 @@
-﻿using UnityEditor.IMGUI.Controls;
+﻿using System;
+using UnityEditor.IMGUI.Controls;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -15,17 +16,19 @@ namespace UnityEditor.ECS
     }
     
     public class ComponentGroupListView : TreeView {
-
-        Dictionary<int, ComponentGroup> componentGroupsById;
-        private Dictionary<int, Entity> entitiesById;
+        private readonly Dictionary<int, ComponentGroup> componentGroupsById = new Dictionary<int, ComponentGroup>();
+        private readonly Dictionary<int, Entity> entitiesById = new Dictionary<int, Entity>();
 
         public ComponentSystemBase SelectedSystem
         {
             get { return selectedSystem; }
             set
             {
-                selectedSystem = value;
-                Reload();
+                if (selectedSystem != value)
+                {
+                    selectedSystem = value;
+                    Reload();
+                }
             }
         }
         private ComponentSystemBase selectedSystem;
@@ -37,15 +40,19 @@ namespace UnityEditor.ECS
             this.window = window;
             selectedSystem = system;
             Reload();
-            SetSelection(GetSelection());
+        }
+        
+        public void RefreshData()
+        {
+            Reload();
         }
 
         protected override TreeViewItem BuildRoot()
         {
-            componentGroupsById = new Dictionary<int, ComponentGroup>();
-            entitiesById = new Dictionary<int, Entity>();
             var currentID = 0;
             var root  = new TreeViewItem { id = currentID++, depth = -1, displayName = "Root" };
+            componentGroupsById.Clear();
+            entitiesById.Clear();
             if (window?.WorldSelection == null)
             {
                 root.AddChild(new TreeViewItem { id = currentID++, displayName = "No world selected"});
@@ -95,7 +102,7 @@ namespace UnityEditor.ECS
                 base.OnGUI(rect);
         }
 
-        override protected void RowGUI(RowGUIArgs args)
+        protected override void RowGUI(RowGUIArgs args)
         {
             base.RowGUI(args);
             if (!componentGroupsById.ContainsKey(args.item.id))
@@ -104,7 +111,7 @@ namespace UnityEditor.ECS
             DefaultGUI.LabelRightAligned(args.rowRect, countString, args.selected, args.focused);
         }
 
-        override protected void SelectionChanged(IList<int> selectedIds)
+        protected override void SelectionChanged(IList<int> selectedIds)
         {
             if (window == null)
                 return;
@@ -118,10 +125,9 @@ namespace UnityEditor.ECS
             }
         }
 
-        override protected bool CanMultiSelect(TreeViewItem item)
+        protected override bool CanMultiSelect(TreeViewItem item)
         {
             return false;
         }
-
     }
 }

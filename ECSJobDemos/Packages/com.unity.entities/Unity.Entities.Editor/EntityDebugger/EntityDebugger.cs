@@ -41,7 +41,7 @@ namespace UnityEditor.ECS
             set
             {
                 systemSelection = value;
-                componentListView.SelectedSystem = systemSelection as ComponentSystemBase;
+                entityListView.SelectedSystem = systemSelection as ComponentSystemBase;
             }
         }
 
@@ -66,9 +66,9 @@ namespace UnityEditor.ECS
         private SystemListView systemListView;
         
         [SerializeField]
-        private TreeViewState componentListState = new TreeViewState();
+        private TreeViewState entityListState = new TreeViewState();
 
-        private ComponentGroupListView componentListView;
+        private ComponentGroupListView entityListView;
 
         private string[] worldNames => (from x in World.AllWorlds select x.Name).ToArray();
 
@@ -123,8 +123,8 @@ namespace UnityEditor.ECS
         {
             var systemListHeader = new MultiColumnHeader(SystemListView.GetHeaderState());
             systemListView = new SystemListView(systemListState, systemListHeader, this);
-            componentListView =
-                new ComponentGroupListView(componentListState, this, SystemSelection as ComponentSystemBase);
+            entityListView =
+                new ComponentGroupListView(entityListState, this, SystemSelection as ComponentSystemBase);
             selectionProxy = ScriptableObject.CreateInstance<EntitySelectionProxy>();
             selectionProxy.hideFlags = HideFlags.HideAndDontSave;
             EditorApplication.playModeStateChanged += OnPlayModeStateChange;
@@ -226,9 +226,9 @@ namespace UnityEditor.ECS
             GUILayout.EndHorizontal();
         }
 
-        void ComponentList()
+        void EntityList()
         {
-            componentListView.OnGUI(GUIHelpers.GetExpandingRect());
+            entityListView.OnGUI(GUIHelpers.GetExpandingRect());
         }
 
         void AlignHeader(System.Action header)
@@ -263,7 +263,7 @@ namespace UnityEditor.ECS
                 EntityHeader();
             
                 GUILayout.BeginVertical(Box);
-                ComponentList();
+                EntityList();
                 GUILayout.EndVertical();
             }
             

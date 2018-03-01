@@ -109,6 +109,14 @@ namespace Unity.Entities
             public int HashCode;
             public GCHandle BoxedObject;
             public EntitySharedComponentCommand* Prev;
+
+            internal object GetBoxedObject()
+            {
+                if (BoxedObject.IsAllocated)
+                    return BoxedObject.Target;
+                else
+                    return null;
+            }
         }
 
         byte* Reserve(int size)
@@ -452,7 +460,7 @@ namespace Unity.Entities
                             {
                                 var cmd = (EntitySharedComponentCommand*)header;
                                 var entity = cmd->Header.Entity == Entity.Null ? lastEntity : cmd->Header.Entity;
-                                mgr.AddSharedComponentDataBoxed(entity, cmd->ComponentTypeIndex, cmd->HashCode, cmd->BoxedObject.Target);
+                                mgr.AddSharedComponentDataBoxed(entity, cmd->ComponentTypeIndex, cmd->HashCode, cmd->GetBoxedObject());
                             }
                             break;
 
@@ -460,7 +468,7 @@ namespace Unity.Entities
                             {
                                 var cmd = (EntitySharedComponentCommand*)header;
                                 var entity = cmd->Header.Entity == Entity.Null ? lastEntity : cmd->Header.Entity;
-                                mgr.SetSharedComponentDataBoxed(entity, cmd->ComponentTypeIndex, cmd->HashCode, cmd->BoxedObject.Target);
+                                mgr.SetSharedComponentDataBoxed(entity, cmd->ComponentTypeIndex, cmd->HashCode, cmd->GetBoxedObject());
                             }
                             break;
                     }

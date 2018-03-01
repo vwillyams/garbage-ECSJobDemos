@@ -1,8 +1,8 @@
-# Two-Stick Shooter ECS Tutorial
+# Two-stick shooter ECS tutorial
 
 In this series of posts, we're going to make a simple game using the Unity ECS and jobs as much as possible. The game type we picked for this was a simple two-stick shooter, something everyone can imagine building in a traditional way pretty easily.
 
-## Scene Setup
+## Scene setup
  
 For this tutorial, we're going to use the ECS as much as possible.
 The scene we need for this tutorial is almost empty as there are very few
@@ -36,7 +36,7 @@ Overall, here's what the bootstrapping code achieves:
 
 * It pulls out some prototypes and settings from the scene.
 
-### Scene Data
+### Scene data
 
 Pure ECS data isn't supported in a great way in the editor yet, so we'll take two
 approaches in the interim to configure our game:
@@ -84,7 +84,7 @@ The other archetypes are set up similarly.
 
 The next initialization method runs after the scene has loaded, because it needs to access a blueprint object from the scene:
 
-### Extracting configuration from the scene
+### Extracting configuration from the Scene
 
 Once the scene has been loaded, our `InitializeWithScene` method is going to be called. Here,
 we pull out a few objects from the scene, including a `Settings` object we can use to tweak
@@ -130,7 +130,7 @@ We need a few data transformations to happen to render a frame.
 * We need to cull any entities that no health left (`RemoveDeadSystem`)
 * We need to push some data to the UI objects (`UpdatePlayerHUD`)
 
-### Player Input, Movement and Shooting
+### Player input, movement, and shooting
 
 It's worth calling out that multiplayer concerns are front and center in an ECS style
 of writing code: we always have an array of players.
@@ -155,7 +155,7 @@ of concerns solves several problems:
 This setup achieves something similar to a delayed event in a traditional component
 architecture.
 
-### Enemy Spawning, Moving and Shooting
+### Enemy spawning, moving, and shooting
 
 It wouldn't be a very challenging game without enemies shooting back at you, so naturally
 there are a few systems dedicated to this.
@@ -199,7 +199,7 @@ with any player shots.
 Finally we also need a way to get rid of enemies that go off screen. `EnemyRemovalSystem`
 goes through all enemy positions and kills off-screen enemies by setting their health to -1.
 
-### Handling Shots
+### Handling shots
 
 `ShotSpawnSystem` deals with creating actual shots from the requests dropped into the ECS by
 players and enemies. This is a simple straight forward affair that just loops over all 
@@ -223,7 +223,7 @@ It uses a very simplistic point against circle collision test.
 We also need to get rid of shots that didn't hit anything and just fly off. When their time to
 live go to zero, we let `ShotDestroySystem` remove them.
 
-### Final Pieces
+### Final pieces
 
 We need something that culls dead objects from the world, and `RemoveDeadSystem` does just
 that.

@@ -1,4 +1,4 @@
-# Scheduling a Job from a Job. Why not?
+# Scheduling a job from a job - Why not?
 
 We have a couple of important principles that drive our design.
 
@@ -8,10 +8,12 @@ We have a couple of important principles that drive our design.
 These two principles applied result in some choices / restrictions that we enforce.
 
 **Jobs can only be Completed on the main thread. But why?**
+
 If you were to call JobHandle.Complete, that will lead to impossible to solve job scheduler dead locks.
 (We have tried this over the last couple years with Unity C++ code base, and every single case has resulted in tears and us reverting such patterns in our code.) The dead-locks are rare but provably impossible to solve in all cases, they are heavily dependent on timing of jobs.
 
 **Jobs can only be scheduled on the main thread. But why?**
+
 If you were to simply schedule a job from another job but not call JobHandle.Complete from the job, then there is no way to gurantee determinism. The main thread has to call JobHandle.Complete() but who passes that JobHandle to the main thread and how do you know the job that schedules the job has already executed?
 
 In summary, first instinct is to simply schedule jobs from jobs and wait for jobs from a job.

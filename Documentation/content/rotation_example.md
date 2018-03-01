@@ -1,13 +1,16 @@
 # RotationExample.unity
+
 ![](https://media.giphy.com/media/3o7WIPjJUcuIEze5Ww/giphy.gif)
 
 ## Basic description
+
 1. Cubes are spawned randomly in a circle.
 2. A sphere is moved along the same circle.
 3. When the sphere intersects a cube, the cube rotates at a fixed rate about the y-axis.
 4. When the sphere does not intersect a cube, the cube's rotation decays at a fixed rate.
 
 ## What this sample demonstrates
+
 1. Spawning pure ECS entities/components (not GameObjects)
 2. Updating positions
 3. Initializing positions from GameObject transform
@@ -41,7 +44,7 @@ The ```Transform Position Component``` specifies that the entity that is created
 
 The ```Copy Initial Transform Position From Game Object Component``` specifies that _only_ the initial value for ```Transform Position Component``` in ECS will be copied from the GameObject's transform. 
 
-## Move sphere about same circle and reset rotations when intersecting cubes.
+## Move sphere about same circle and reset rotations when intersecting cubes
 
 ![](https://i.imgur.com/GyBUpSo.png)
 

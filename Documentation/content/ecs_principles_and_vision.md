@@ -1,6 +1,7 @@
-# ECS Principles and Vision
+# ECS principles and vision
 
-## Performance by Default
+## Performance by default
+
 We want to make it simple to create efficient machine code for all platforms.
 
 We measure ourselves against the performance that can be achieved in C++ with handwritten highly optimized [simd](https://en.wikipedia.org/wiki/SIMD) intrinsics.
@@ -13,14 +14,15 @@ We are using a combination of compiler technology (Burst), containers (Unity.Col
 * Instantiation speed - TODO
 
 At Unite Austin we showcased a demo with 100.000 individual units in a massive battle simulation running at 60 FPS. All game code was running multicore.
-[See ECS Performance Demo [Video]](https://www.youtube.com/watch?v=0969LalB7vw)
+[See ECS performance demo [Video]](https://www.youtube.com/watch?v=0969LalB7vw)
 
 ## Simple
 
-Writing performant code must be simple. We believe that we can make writing fast code as simple as MonoBehaviour.Update 
+Writing performance code must be simple. We believe that we can make writing fast code as simple as MonoBehaviour.Update 
 *(To set expectations right, we think we still have some ways to go to achieve this goal).*
 
-## One Way of Writing Code
+## One way of writing code
+
 We want to define a single way of writing game code, editor code, asset pipeline code, engine code. We believe this creates a simpler tool for our users, and more ability to change things around.
 
 Physics is a great example. Currently Physics is a blackbox solution. In practice many developers want to tweak the simulation code to fit it to their games needs. If Physics engine code was written the same way as game code using ECS it would make it easy to plug your own simulation code in between existing physics simulation stages or take full control.
@@ -35,9 +37,10 @@ Then it would be easy to configure the package manager that the same FBX import 
 We believe this will at the foundation level make unity significantly more flexible than it is today.
 
 ## Networking
+
 We want to define one simple way of writing all game code. When following this approach, your game can use one of 3 network architectures depending on what type of game you create.
 
-We are focused on providing best of class network engine support for hosted games. Using the recently aquired [Multiplay.com](http://Multiplay.com) service we offer a simple pipeline to host said games.
+We are focused on providing best of class network engine support for hosted games. Using the recently acquired [Multiplay.com](http://Multiplay.com) service we offer a simple pipeline to host said games.
 
 * FPS - Simulation on the server
 * RTS - Deterministic lock step simulation
@@ -45,6 +48,7 @@ We are focused on providing best of class network engine support for hosted game
 TODO: More detail / Links (maybe a game type example of what you would use each network architecture for)
 
 ## Determinism
+
 Our build pipeline must be [deterministic](https://en.wikipedia.org/wiki/Deterministic_algorithm). Users can choose if all simulation code should run deterministically.
 
 This is important for Networking, Replay features and even advanced debugging tools.
@@ -55,6 +59,7 @@ We will leverage our burst compiler to produce exact floating point math between
 TODO - link/explain the floating math problem a little before the burst complier solved it (so those who are unaware of the fp math issue get the point.) Is this a good reference I'm not sure: https://hal.archives-ouvertes.fr/file/index/docid/281429/filename/floating-point-article.pdf
 
 ## Sandbox
+
 Unity is a sandbox, safe and simple.
 
 We provide great error messages when API's are used incorrectly, we never put ourselves in a position where incorrect usage results in a crash and that is by design (as opposed to a bug we can quickly fix).
@@ -62,20 +67,23 @@ We provide great error messages when API's are used incorrectly, we never put ou
 A good example of Sandbox behaviour is that our C# job system gurantees that none of your code using C# jobs has race conditions. We deterministically check all possile race conditions through a combination of static code analysis & runtime checks. We give you well written error messages about any race conditions right away. So you can trust that your code works and feel safe in that even developers who write multithreaded game code for the first time will do it safely.
 
 ## Tiny
+
 We want Unity to be usable for all content from < 50kb executable + content to gigabite sized games. We want Unity to load in less than 1 second for small content.
 
-## Iteration Time
+## Iteration time
+
 We aim to keep iteration time for any common operations in a large project folder below 500ms.
 
 As an example we are working on rewriting the C# compiler to be fully incremental with the goal of:
 
 > When changing a single .cs file in a large project. The combined compile and hotreload time should be less than 500ms.
 
-## Our Code Comes With Full Unit Test Coverage
+## Our code comes with full unit test coverage
 
 We believe in shipping robust code from the start. We use unit tests to prove that our code works correctly when it is committed written by the developer. Tests are shipped as part of the packages.
 
 ## Evolution
+
 We are aware that we are proposing a rather large change in how to write code. From MonoBehaviour.Update to ComponentSystem & using Jobs.
 
 We believe that ultimately the only thing that convinces a game developer is trying it and seeing the result with your own eyes, on your own game. 
@@ -83,6 +91,7 @@ We believe that ultimately the only thing that convinces a game developer is try
 Thus it is very important that applying the ECS approach on an existing project should be a very easy and quick to do. Our goal is that within 30 minutes a user can in a large project, change some code from MonoBehaviour.Update to ComponentSystem and have a succesful exerperience optimizing his game code.
 
 ## Packages
+
 We want the majority of our engine code to be written in C# deployed in a Package. All source code available to all Unity Pro customers.
 
 We want a rapid feedback loop with customers, given that we can push code and get feedback on something quickly in a package without destabilizing other parts.
@@ -90,6 +99,7 @@ We want a rapid feedback loop with customers, given that we can push code and ge
 Previously most of our engine code was written in C++ which creates a disconnect with how our customers write code and how programmers at Unity write code. Due to the burst compiler tech & ECS, we can achieve better than C++ performance with C# code and as a result we can write all code exactly the same way.
 
 ## Collaboration
+
 We believe Unity users and developers working at Unity are all on the same team. Our purpose is to help all Unity users create the best game experiences faster, higher quality, and with great performance. 
 
 We believe every feature we develop must be developed with real use cases and real production feedback early on. The PackageManager facilitates that.
@@ -99,16 +109,6 @@ For those in the community that want to contribute engine code, we aim to make t
 The source code repositories will be available for all Pro Customers.
 
 ## Transparency
+
 We believe in transparency. We develop our features in the open, we actively communicate on both forum and blogs. We reserve time so each developer can spend time with customers and understand our users pain points.
 
-### Do's and Don'ts List
-TODO
-Here is a quick cheatsheet of things to do and not do when incorporating ECS into yor code:
-
-* Do: 
-    * Use structs instead of classes for holding data
-    * Seperate data and behavior by using ComponentSystem 
-    * etc...
-
-* Don'ts:
-    * etc...

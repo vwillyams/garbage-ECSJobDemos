@@ -1,1 +1,1 @@
-# Tutorial 1: MonoBehaviour vs Hybrid ECS
+# Tutorial 1: MonoBehaviour vs hybrid ECS

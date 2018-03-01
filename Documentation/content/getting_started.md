@@ -1,4 +1,4 @@
-# Getting Started 
+# Getting started 
 
 **What are we trying to solve?**
 

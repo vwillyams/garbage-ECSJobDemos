@@ -1,4 +1,4 @@
-# How to Optimize for the Burst compiler
+# How to optimize for the Burst compiler
 
 * Use Unity.Mathematics, Burst natively understands the math operations and is optimized for it.
 * Avoid branches. Use math.min, math.max, math.select instead.

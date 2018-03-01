@@ -1,4 +1,4 @@
-# ECS Features in Detail
+# ECS features in detail
 
 ## Entity
 
@@ -92,7 +92,7 @@ EntityManager.Instantiate(entity, instances);
 EntityManager.DestroyEntity(instances);
 ```
 
-## Chunk - implementation detail
+## Chunk implementation detail
 
 The ComponentData for each Entity is stored in what we internally refer to as a chunk. ComponentData is laid out by stream. Meaning all components of type A, are tightly packed in an array. Followed by all components of type B etc.
 
@@ -254,7 +254,6 @@ var position = m_LocalPositions[myEntity];
 EntityTransaction is an API to create & destroy entities from a job. The purpose is to enable procedural generation scenarios where construction of massive scale instantiation must happen on jobs. This API is very much a work in progress.
 
 ## EntityCommandBuffer
-
 
 ## GameObjectEntity
 

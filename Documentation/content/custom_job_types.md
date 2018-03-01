@@ -1,4 +1,5 @@
 # Custom job types
+
 On the lowest level of the job system, jobs are scheduled by calling one of the **Schedule** functions in **JobsUtility**. The currently existing job types all use these functions, but it is also possible to create specialized job types using the same APIs.
 
 These APIs use unsafe code and have to be crafted carefully, since they can easily introduce unwanted race conditions. If you add your own job types, we strongly recommend to aim for full test coverage.
@@ -37,6 +38,7 @@ The **arrayLength** and **innerloopBatchCount** parameter passed to **SchedulePa
 **ScheduleParallelForTransform** is similar to ScheduleParallelFor, but it also has access to a **TransformAccessArray** that allows you to modify **Transform** components on **GameObjects**. The number of indices and batch size is inferred from the TransformAccessArray.
 
 ## Execution and JobRanges
+
 After scheduling the job, Unity will call the entry point you specified directly from the native side. It works in a similar way to how **Update** is called on MonoBehaviours, but from inside a job instead. You only get one call per job and there is either one job, or one job per worker thread; in the case of ParallelFor.
 
 The signature used for Execute is
@@ -60,6 +62,7 @@ JobsUtility.PatchBufferMinMaxRanges(bufferRangePatchData, UnsafeUtility.AddressO
 ```
 
 # Custom NativeContainers
+
 When writing jobs, the data communication between jobs is one of the hardest parts to get right. Just using __NativeArray__ is very limiting. Using __NativeQueue__, __NativeHashMap__ and __NativeMultiHashMap__ and their __Concurrent__ versions solves most scenarios.
 
 For the remaining scenarios it is possible to write your own custom NativeContainers.
@@ -233,7 +236,9 @@ handle.Complete();
 Debug.Log("The array countains " + counter.Count + " zeros");
 counter.Dispose();
 ```
+
 ## Better cache usage
+
 The NativeCounter from the previous section is a working implementation of a counter, but all jobs in the ParallelFor will access the same atomic to increment the value. This is not optimal as it means the same cache line is used by all threads.
 The way this is generally solved in NativeContainers is to have a local cache per worker thread, which is stored on its own cache line.
 

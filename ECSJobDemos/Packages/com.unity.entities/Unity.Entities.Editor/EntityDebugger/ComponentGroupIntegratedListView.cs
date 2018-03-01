@@ -82,14 +82,12 @@ namespace UnityEditor.ECS
             }
             else if (SelectedSystem == null)
             {
-                var groupItem = new TreeViewItem { id = currentID++, displayName = "All Entities" };
-                root.AddChild(groupItem);
                 var entityArray = window.WorldSelection.GetExistingManager<EntityManager>().GetAllEntities(Allocator.Temp);
                 for (var i = 0; i < entityArray.Length; ++i)
                 {
                     entitiesById.Add(currentID, entityArray[i]);
                     var entityItem = new TreeViewItem { id = currentID++, displayName = $"Entity {entityArray[i].Index.ToString()}" };
-                    groupItem.AddChild(entityItem);
+                    root.AddChild(entityItem);
                 }
                 entityArray.Dispose();
                 SetupDepthsFromParentsAndChildren(root);

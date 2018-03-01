@@ -5,8 +5,8 @@ variables:
 
 stages:
   - build
-  - standalone
   - test
+  - standalone
 
 build:macOS:
   stage: build

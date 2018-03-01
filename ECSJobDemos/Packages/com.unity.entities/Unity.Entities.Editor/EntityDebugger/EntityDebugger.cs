@@ -52,8 +52,12 @@ namespace UnityEditor.ECS
             {
                 if (value != Entity.Null)
                 {
-                    selectionProxy.container = new EntityContainer(WorldSelection.GetExistingManager<EntityManager>(), value);
+                    selectionProxy.SetEntity(WorldSelection.GetExistingManager<EntityManager>(), value);
                     Selection.activeObject = selectionProxy;
+                }
+                else if (Selection.activeObject == selectionProxy)
+                {
+                    Selection.activeObject = null;
                 }
             }
         }
@@ -245,6 +249,15 @@ namespace UnityEditor.ECS
 
         void OnGUI()
         {
+            if (Selection.activeObject == selectionProxy)
+            {
+                if (!WorldSelection?.GetExistingManager<EntityManager>()?.Exists(selectionProxy.Entity) ?? true)
+                {
+                    Selection.activeObject = null;
+                    entityListView.SelectNothing();
+                }
+            }
+
             var worldsExisted = worldsExist;
             worldsExist = World.AllWorlds.Count > 0;
             worldsAppeared = !worldsExisted && worldsExist;

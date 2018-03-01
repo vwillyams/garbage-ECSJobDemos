@@ -40,6 +40,7 @@ namespace UnityEditor.ECS
             this.window = window;
             selectedSystem = system;
             Reload();
+            SelectionChanged(GetSelection());
         }
         
         public void RefreshData()
@@ -130,6 +131,11 @@ namespace UnityEditor.ECS
         protected override bool CanMultiSelect(TreeViewItem item)
         {
             return false;
+        }
+
+        public void SelectNothing()
+        {
+            SetSelection(new List<int>());
         }
     }
 }

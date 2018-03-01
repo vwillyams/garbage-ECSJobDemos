@@ -20,7 +20,9 @@ namespace UnityEditor.ECS
         public override void OnInspectorGUI()
         {
             var targetProxy = (EntitySelectionProxy) target;
-            targetProxy.container.PropertyBag.VisitStruct(ref targetProxy.container, visitor);
+            if (!targetProxy.Exists)
+                return;
+            targetProxy.Container.PropertyBag.VisitStruct(ref targetProxy.Container, visitor);
         }
 
         public override bool RequiresConstantRepaint()

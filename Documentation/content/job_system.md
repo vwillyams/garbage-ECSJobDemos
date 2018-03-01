@@ -18,15 +18,15 @@ When the CPU does a context switch it needs to do a lot of work to make sure the
 
 ## What is a job system?
 
-A JobSystem solves the task of parallelizing the code in a slightly different way. Instead of systems creating threads they create something called [jobs](https://en.wikipedia.org/wiki/Job_(computing)). A job is similar to a function call, including the parameters and data it needs, all of which is put into a [job queue](https://en.wikipedia.org/wiki/Job_queue) to execute. Jobs should be kept fairly small and do one specific thing.
+A job system solves the task of parallelizing the code in a slightly different way. Instead of systems creating threads they create something called [jobs](https://en.wikipedia.org/wiki/Job_(computing)). A job is similar to a function call, including the parameters and data it needs, all of which is put into a [job queue](https://en.wikipedia.org/wiki/Job_queue) to execute. Jobs should be kept fairly small and do one specific thing.
 
-The JobSystem has a set of worker threads, usually one thread per logical CPU core to avoid context switching. The worker threads take items from the job queue and executes them.
+The job system has a set of worker threads, usually one thread per logical CPU core to avoid context switching. The worker threads take items from the job queue and executes them.
 
 If each job is self contained this is all you need. However in more complex systems the likelyhood of all jobs being completely self contained is usually not the case, since that would result in large jobs doing a lot of things. So what you usually end up with is one job preparing the data for the next job.
 
 To make this easier, jobs support [dependencies](http://tutorials.jenkov.com/ood/understanding-dependencies.html). If Job A is scheduled with a dependency on Job B the system will guarantee that Job B has completed before Job A starts executing.
 
-An important aspect of the Unity JobSystem, and one of the reasons it is a custom API and not one of the existing thread models from C#, is that the JobSystem integrates with what the Unity engine uses internally. This means that user written code and the engine will share worker threads to avoid creating more threads than CPU cores - which would cause contention for CPU resources.
+An important aspect of the Unity job system, and one of the reasons it is a custom API and not one of the existing thread models from C#, is that the job system integrates with what the Unity engine uses internally. This means that user written code and the engine will share worker threads to avoid creating more threads than CPU cores - which would cause contention for CPU resources.
 
 ## Race conditions & safety system
 
@@ -36,7 +36,7 @@ A race condition is not always a bug, but it is always a source of indeterminist
 
 To a large extent, this is what makes writing multithreaded code difficult, but fear not - we've got your back.
 
-To make it easier to write multithreaded code the JobSystem in Unity aims to detect all potential race condition and protect you from the bugs they can cause.
+To make it easier to write multithreaded code the job system in Unity aims to detect all potential race condition and protect you from the bugs they can cause.
 
 The main way this is achieved is by making sure jobs only operate on a copy of all data that is passed to it. If no-one else has access to the data that the job operates on then it cannot possibly cause a race condition. Copying data this way means that a job can only have access to [blittable](https://en.wikipedia.org/wiki/Blittable_types) data, not [managed](https://en.wikipedia.org/wiki/Managed_code) types. This is quite limiting, as you cannot return any result from the job. 
 
@@ -60,7 +60,7 @@ TODO - what does 'lets you add entries' mean? Adding jobs to the queue? somethin
 
 ## Scheduling jobs
 
-As mentioned in the previous section, the JobSystem relies on blittable data and NativeContainers. To schedule a job you need to implement the __IJob__ interface, create an instance of your struct, fill it with data and call __Schedule__ on it. When you schedule it you will get back a job handle which can be used as a dependency for other jobs, or you can wait for it when you need to access the NativeContainers passed to the X on the main thread again.
+As mentioned in the previous section, the job system relies on blittable data and NativeContainers. To schedule a job you need to implement the __IJob__ interface, create an instance of your struct, fill it with data and call __Schedule__ on it. When you schedule it you will get back a job handle which can be used as a dependency for other jobs, or you can wait for it when you need to access the NativeContainers passed to the X on the main thread again.
 
 TODO - What is X at the end of the above sentence? a word seems to be missing (or you have a few too many words and it's unclear). Below: what does flush mean? do we have a good link to a definition for devs who are unfamiliar with the term?
 

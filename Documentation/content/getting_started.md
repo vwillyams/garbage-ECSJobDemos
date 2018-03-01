@@ -10,7 +10,7 @@ When making games with __GameObject__/__MonoBehaviour__, it is easy to write cod
 
 In addition to being a better way of approaching game programming for design reasons, using ECS puts you in an ideal position to leverage Unity's job system and Burst compiler, letting you take full advantage of today's multicore processors.
 
-We have exposed Unity's native job system so that users can gain the benefits of [multithreaded](https://en.wikipedia.org/wiki/Thread_(computing)) batch processing from within their ECS C# scripts. The Native Job System has built in safety features for detecting [race conditions](https://en.wikipedia.org/wiki/Race_condition).
+We have exposed Unity's native job system so that users can gain the benefits of [multithreaded](https://en.wikipedia.org/wiki/Thread_(computing)) batch processing from within their ECS C# scripts. The native job system has built in safety features for detecting [race conditions](https://en.wikipedia.org/wiki/Race_condition).
 
 However we need to introduce a new way of thinking and coding to take full advantage of the job system.
 

@@ -13,13 +13,13 @@
 * [How the job system works](content/job_system.md)
 * [Low-level overview - Creating containers & custom job types](content/custom_job_types.md)
 * [How to optimize for the Burst compiler](content/burst_optimization.md)
-* [Scheduling a job from a job - Why not?](content/SchedulingAJobFromAJob.md)
+* [Scheduling a job from a job - why not?](content/scheduling_a_job_from_a_job.md)
 
 ## Tutorials
 
 * [Tutorial walk through #1: MonoBehaviour vs hybrid ECS](content/tutorial_1.md)
 * [Tutorial walk through #2: MonoBehaviour vs pure ECS](content/tutorial_2.md)
-* [Tutorial walk through #3: Two-Stick shooter in ECS](content/tutorial_3.md)
+* [Tutorial walk through #3: A two-stick shooter in ECS](content/tutorial_3.md)
 
 ## Simple examples
 

@@ -49,13 +49,13 @@ namespace UnityEngine.ECS.Tests
 	    unsafe public void InstantiateZeroEntities()
 	    {
 	        var array = new NativeArray<Entity>(0, Allocator.Temp);
-	        
+
 	        var srcEntity = m_Manager.CreateEntity(typeof(EcsTestData));
 	        m_Manager.Instantiate(srcEntity , array);
 	        array.Dispose();
 	    }
 
-	    
+
         [Test]
         unsafe public void CreateAndDestroyThree()
         {
@@ -174,6 +174,20 @@ namespace UnityEngine.ECS.Tests
 			m_Manager.DestroyEntity(entity);
 		}
 
+	    [Test]
+	    public void AddComponentClearsComponent()
+	    {
+	        // create and destroy an entity to poison the memory of the component
+	        var entity1 = m_Manager.CreateEntity();
+            m_Manager.AddComponentData(entity1, new EcsTestData(-1));
+	        m_Manager.DestroyEntity(entity1);
+
+
+	        var entity2 = m_Manager.CreateEntity();
+	        m_Manager.AddComponent(entity2, ComponentType.Create<EcsTestData>());
+	        Assert.AreEqual(0, m_Manager.GetComponentData<EcsTestData>(entity2).value);
+	    }
+
 		[Test]
 		public void ReadOnlyAndNonReadOnlyArchetypeAreEqual()
 		{
@@ -211,7 +225,7 @@ namespace UnityEngine.ECS.Tests
 
 			var value = UnsafeUtility.RefArrayElementWithStride<float>(memory, 0, 4);
 			value = 5;
-			
+
 			Assert.AreEqual(5, UnsafeUtility.ReadArrayElementWithStride<float>(memory, 0, 4));
 		}
 	}

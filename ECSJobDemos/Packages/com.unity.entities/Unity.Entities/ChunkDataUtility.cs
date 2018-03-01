@@ -1,5 +1,8 @@
-﻿using Unity.Assertions;
+﻿using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
+using Unity.Assertions;
 using Unity.Collections.LowLevel.Unsafe;
+using UnityEngine;
 
 namespace Unity.Entities
 {
@@ -167,6 +170,31 @@ namespace Unity.Entities
                     ++dstI;
                 }
             }
+        }
+
+        private static void Memset(void* destination, byte value, int count)
+        {
+            for (int i = 0; i < count; ++i)
+            {
+                ((byte*) destination)[i] = value;
+            }
+        }
+
+        public static void PoisonUnusedChunkData(Chunk* chunk, byte value)
+        {
+            var arch = chunk->Archetype;
+            int bufferSize = Chunk.GetChunkBufferSize(arch->NumSharedComponents);
+            byte* buffer = chunk->Buffer;
+            int count = chunk->Count;
+
+            for (int i = 0; i<arch->TypesCount-1; ++i)
+            {
+                int startOffset = arch->Offsets[i] + count * arch->SizeOfs[i];
+                int endOffset = arch->Offsets[i + 1];
+                Memset(buffer + startOffset, value, endOffset - startOffset);
+            }
+            int lastStartOffset = arch->Offsets[arch->TypesCount-1] + count * arch->SizeOfs[arch->TypesCount-1];
+            Memset(buffer + lastStartOffset, value, bufferSize - lastStartOffset);
         }
 
         public static void CopyManagedObjects(ArchetypeManager typeMan, Chunk* srcChunk, int srcStartIndex, Chunk* dstChunk, int dstStartIndex, int count)

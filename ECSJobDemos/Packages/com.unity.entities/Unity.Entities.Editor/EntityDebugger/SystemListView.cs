@@ -222,12 +222,16 @@ namespace UnityEditor.ECS
                 return;
             var item = args.item;
 
+            var enabled = GUI.enabled;
+            
             if (managersByID.ContainsKey(item.id))
             {
                 var manager = managersByID[item.id];
                 var toggleRect = args.GetCellRect(0);
                 toggleRect.xMin = toggleRect.xMin + 4f;
                 manager.Enabled = GUI.Toggle(toggleRect, manager.Enabled, GUIContent.none);
+                
+                GUI.enabled = (manager as ComponentSystemBase)?.ShouldRunSystem() ?? true;
 
                 var timingRect = args.GetCellRect(2);
                 var recorder = recordersByManager[manager];
@@ -238,6 +242,7 @@ namespace UnityEditor.ECS
             var nameRect = args.GetCellRect(1);
             nameRect.xMin = nameRect.xMin + indent;
             GUI.Label(nameRect, item.displayName);
+            GUI.enabled = enabled;
         }
 
         protected override void SelectionChanged(IList<int> selectedIds)

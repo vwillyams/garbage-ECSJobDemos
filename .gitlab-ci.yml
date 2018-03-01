@@ -4,25 +4,10 @@ variables:
   UNITY_EXECUTABLE_PATH_WINDOWS: "C:/Program Files/Unity-2c0750f9d615/Editor/Unity.exe"
 
 stages:
-  - build
   - test
   - standalone
 
-build:macOS:
-  stage: build
-  tags:
-    - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath $(pwd)/ECSJobDemos -batchmode -nographics -silentcrashes -automated -logfile output-macos-vanilla-build.log -quit
-  artifacts:
-    name: "artifacts-macos-build"
-    when: always
-    paths:
-      - "*.log"
-      - "*.xml"
-    expire_in: 1 week
-
-standalone:boids:macOS:
+mac:boids:
   stage: standalone
   tags:
     - macOS
@@ -44,7 +29,7 @@ standalone:boids:macOS:
       - "ECSJobDemos/build/"
     expire_in: 1 week
 
-test:macOS:
+mac:test:
   stage: test
   tags:
     - macOS
@@ -58,21 +43,7 @@ test:macOS:
       - "*.xml"
     expire_in: 1 week
 
-build:windows:
-  stage: build
-  tags:
-    - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -nographics -silentcrashes -automated -logfile output-win-vanilla-build.log -quit
-  artifacts:
-    name: "artifacts-win-build"
-    when: always
-    paths:
-      - "*.log"
-      - "*.xml"
-    expire_in: 1 week
-
-standalone:boids:windows:
+win:boids:
   stage: standalone
   tags:
     - windows
@@ -94,7 +65,7 @@ standalone:boids:windows:
       - "ECSJobDemos/build/"
     expire_in: 1 week
 
-test:windows:
+win:test:
   stage: test
   tags:
     - windows

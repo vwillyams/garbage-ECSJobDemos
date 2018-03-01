@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
@@ -102,7 +103,7 @@ namespace Unity.Entities
             return -1;
         }
 
-        unsafe int InsertSharedComponentAssumeNonDefault(int typeIndex, int hashCode, object newData, FastEquality.Layout[] layout)
+        internal unsafe int InsertSharedComponentAssumeNonDefault(int typeIndex, int hashCode, object newData, FastEquality.Layout[] layout)
         {
             ulong handle;
             void* newDataPtr = PinGCObjectAndGetAddress(newData, out handle);

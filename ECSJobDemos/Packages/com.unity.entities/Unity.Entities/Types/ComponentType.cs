@@ -20,8 +20,13 @@ namespace Unity.Entities
 
         public static ComponentType Create<T>()
         {
+            return FromTypeIndex(TypeManager.GetTypeIndex<T>());
+        }
+
+        public static ComponentType FromTypeIndex(int typeIndex)
+        {
             ComponentType type;
-            type.TypeIndex = TypeManager.GetTypeIndex<T>();
+            type.TypeIndex = typeIndex;
             type.AccessModeType = AccessMode.ReadWrite;
             type.FixedArrayLength = -1;
             return type;

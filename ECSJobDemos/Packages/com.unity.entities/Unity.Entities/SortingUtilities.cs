@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
@@ -436,10 +437,19 @@ namespace Unity.Entities
             int* rawIndices = ((int*) m_Buffer.GetUnsafeReadOnlyPtr()) + (m_SortedBuffer * m_Source.Length);
             var arr = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<int>(rawIndices,m_Source.Length,Allocator.Invalid);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref arr, NativeArrayUnsafeUtility.GetAtomicSafetyHandle(m_Buffer));
+            SortedIndicesSetSafetyHandle(ref arr);
 #endif
             return arr;
         }
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+        // Uncomment when NativeArrayUnsafeUtility includes these conditional checks
+        // [Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
+        void SortedIndicesSetSafetyHandle(ref NativeArray<int> arr)
+        {
+            NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref arr, NativeArrayUnsafeUtility.GetAtomicSafetyHandle(m_Buffer));
+        }
+#endif
 
         /// <summary>
         /// Number of shared (unique) values in source NativeArray
@@ -457,6 +467,26 @@ namespace Unity.Entities
             int sharedValueIndex = m_Buffer[sharedValueIndicesOffset + index];
             return sharedValueIndex;
         }
+        
+        public unsafe NativeArray<int> GetSharedIndexArray()
+        {
+            // Capacity cannot be changed, so offset is valid.
+            int* rawIndices = (int*) NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(m_Buffer) + ((m_SortedBuffer^1) * m_Source.Length);
+            var arr = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<int>(rawIndices,m_Source.Length,Allocator.Invalid);
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            SharedIndexArraySetSafetyHandle(ref arr);
+#endif
+            return arr;
+        }
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+        // Uncomment when NativeArrayUnsafeUtility includes these conditional checks
+        // [Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
+        void SharedIndexArraySetSafetyHandle(ref NativeArray<int> arr)
+        {
+            NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref arr, NativeArrayUnsafeUtility.GetAtomicSafetyHandle(m_Buffer));
+        }
+#endif
 
         /// <summary>
         /// Array of indices into source NativeArray which share the same source value
@@ -482,6 +512,26 @@ namespace Unity.Entities
             int sharedValueIndexCount = m_Buffer[sharedValueIndexCountOffset + sharedValueIndex];
             return sharedValueIndexCount;
         }
+        
+        public unsafe NativeArray<int> GetSharedValueIndexCountArray()
+        {
+            // Capacity cannot be changed, so offset is valid.
+            int* rawIndices = (int*) NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(m_Buffer) + (2 * m_Source.Length);
+            var arr = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<int>(rawIndices,m_Source.Length,Allocator.Invalid);
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            SharedValueIndexCountArraySetSafetyHandle(ref arr);
+#endif
+            return arr;
+        }
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+        // Uncomment when NativeArrayUnsafeUtility includes these conditional checks
+        // [Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
+        void SharedValueIndexCountArraySetSafetyHandle(ref NativeArray<int> arr)
+        {
+            NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref arr, NativeArrayUnsafeUtility.GetAtomicSafetyHandle(m_Buffer));
+        }
+#endif
 
         /// <summary>
         /// Array of indices into source NativeArray which share the same source value
@@ -496,13 +546,23 @@ namespace Unity.Entities
             int sharedValueStartIndex = m_Buffer[sharedValueStartIndicesOffset + index];
             int sortedValueOffset = m_SortedBuffer * m_Source.Length;
 
-            int* rawIndices = ((int*) m_Buffer.GetUnsafeReadOnlyPtr()) + (sortedValueOffset + sharedValueStartIndex);
+            // Capacity cannot be changed, so offset is valid.
+            int* rawIndices = (int*) NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(m_Buffer) + (sortedValueOffset + sharedValueStartIndex);
             var arr = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<int>(rawIndices,sharedValueIndexCount,Allocator.Invalid);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref arr, NativeArrayUnsafeUtility.GetAtomicSafetyHandle(m_Buffer));
+            SharedValueIndicesSetSafetyHandle(ref arr);
 #endif
             return arr;
         }
+        
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+        // Uncomment when NativeArrayUnsafeUtility includes these conditional checks
+        // [Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
+        void SharedValueIndicesSetSafetyHandle(ref NativeArray<int> arr)
+        {
+            NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref arr, NativeArrayUnsafeUtility.GetAtomicSafetyHandle(m_Buffer));
+        }
+#endif
 
         /// <summary>
         /// Get internal buffer for disposal

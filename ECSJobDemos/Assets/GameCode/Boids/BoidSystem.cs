@@ -79,7 +79,8 @@ namespace UnityEngine.ECS.Boids
         struct Steer : IJobParallelFor
         {
             public ComponentDataArray<Heading> headings;
-            [ReadOnly] public NativeArraySharedValues<int> cells;
+            [ReadOnly] public NativeArray<int> sharedIndices;
+            [ReadOnly] public NativeArray<int> sharedValueIndexCounts;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> positions;
             [ReadOnly] public ComponentDataArray<BoidNearestTargetPosition> nearestTargetPositions;
             [ReadOnly] public ComponentDataArray<BoidNearestObstaclePosition> nearestObstaclePositions;
@@ -96,8 +97,8 @@ namespace UnityEngine.ECS.Boids
                 var nearestObstaclePosition = nearestObstaclePositions[index].Value;
                 var obstacleSteering = (position - nearestObstaclePosition);
                 var avoidObstacle = (math.length(obstacleSteering) < settings.obstacleAversionDistance);
-                var sharedIndex = cells.GetSharedIndexBySourceIndex(index);
-                var neighborCount = cells.GetSharedValueIndexCountBySourceIndex(index);
+                var sharedIndex = sharedIndices[index];
+                var neighborCount = sharedValueIndexCounts[sharedIndex];
                 var alignmentSteering = cellSteerings[sharedIndex].alignment;
                 var separationSteering = cellSteerings[sharedIndex].separation;
                 var s0 = settings.alignmentWeight * math_experimental.normalizeSafe(alignmentSteering-forward);
@@ -165,11 +166,14 @@ namespace UnityEngine.ECS.Boids
                 var separationAndAlignmentSteerJobHandle = separationAndAlignmentSteerJob.Schedule(positions.Length, 64,
                     JobHandle.CombineDependencies(sharedHashesJobHandle, copyHeadingsJobHandle, copyPositionsJobHandle));
 
+                cells.GetBuffer();
+
                 var steerJob = new Steer
                 {
                     positions = copyPositionsResults,
                     headings = headings,
-                    cells = cells,
+                    sharedIndices = cells.GetSharedIndexArray(),
+                    sharedValueIndexCounts = cells.GetSharedValueIndexCountArray(),
                     nearestTargetPositions = nearestTargetPositions,
                     nearestObstaclePositions = nearestObstaclePositions,
                     settings = settings,

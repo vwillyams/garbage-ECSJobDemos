@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Diagnostics;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
@@ -39,12 +39,7 @@ namespace Unity.Entities
         internal void* GetUnsafeChunkPtr(int startIndex, int maxCount, out int actualCount)
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
-
-            if (startIndex < m_MinIndex)
-                FailOutOfRangeError(startIndex);
-            else if (startIndex + maxCount > m_MaxIndex + 1)
-                FailOutOfRangeError(startIndex + maxCount);
+            GetUnsafeChunkPtrCheck(startIndex, maxCount);
 #endif
 
             m_Iterator.UpdateCache(startIndex, out m_Cache);
@@ -54,6 +49,19 @@ namespace Unity.Entities
 
             return ptr;
         }
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+        [Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
+        private void GetUnsafeChunkPtrCheck(int startIndex, int maxCount)
+        {
+            AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
+
+            if (startIndex < m_MinIndex)
+                FailOutOfRangeError(startIndex);
+            else if (startIndex + maxCount > m_MaxIndex + 1)
+                FailOutOfRangeError(startIndex + maxCount);
+        }
+#endif
 
         public NativeArray<T> GetChunkArray(int startIndex, int maxCount)
         {
@@ -86,9 +94,7 @@ namespace Unity.Entities
             get
             {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-                AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
-                if (index < m_MinIndex || index > m_MaxIndex)
-                    FailOutOfRangeError(index);
+                GetValueCheck(index);
 #endif
 
                 if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
@@ -100,9 +106,7 @@ namespace Unity.Entities
 			set
 			{
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-				AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
-				if (index < m_MinIndex || index > m_MaxIndex)
-					FailOutOfRangeError(index);
+				SetValueCheck(index);
 #endif
 
                 if (index < m_Cache.CachedBeginIndex || index >= m_Cache.CachedEndIndex)
@@ -113,6 +117,27 @@ namespace Unity.Entities
 		}
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
+        [Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
+        private void SetValueCheck(int index)
+        {
+            AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
+            if (index < m_MinIndex || index > m_MaxIndex)
+                FailOutOfRangeError(index);
+        }
+#endif
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+        [Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
+        private void GetValueCheck(int index)
+        {
+            AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
+            if (index < m_MinIndex || index > m_MaxIndex)
+                FailOutOfRangeError(index);
+        }
+#endif
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+        [Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
         void FailOutOfRangeError(int index)
 		{
 			//@TODO: Make error message utility and share with NativeArray...

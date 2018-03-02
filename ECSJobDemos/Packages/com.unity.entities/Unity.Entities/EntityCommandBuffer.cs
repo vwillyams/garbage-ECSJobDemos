@@ -129,14 +129,15 @@ namespace Unity.Entities
                 int chunkSize = math.max(MinimumChunkSize, size);
 
                 var c = (Chunk*)UnsafeUtility.Malloc(sizeof(Chunk) + chunkSize, 16, data->m_Allocator);
+                Chunk* prev = data->m_Tail;
                 c->Next = null;
-                c->Prev = data->m_Tail != null ? data->m_Tail : null;
+                c->Prev = prev;
                 c->Used = 0;
                 c->Size = chunkSize;
 
-                if (data->m_Tail != null)
+                if (prev != null)
                 {
-                    data->m_Tail->Next = c;
+                    prev->Next = c;
                 }
 
                 if (data->m_Head == null)

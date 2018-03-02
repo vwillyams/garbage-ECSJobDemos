@@ -52,17 +52,13 @@ Having multiple jobs reading the same data in parallel is allowed of course.
 
 The same read and write restrictions apply to accessing the data from the main thread.
 
-Some containers also have special rules for allowing safe and deterministic write access from __ParallelFor__ jobs. As an example __NativeHashMap.Concurrent__ lets you add entries in parallel from __IJobParallelFor__.
-
-TODO - what does 'lets you add entries' mean? Adding jobs to the queue? something else? Please clarify.
+Some containers also have special rules for allowing safe and deterministic write access from __ParallelFor__ jobs. As an example __NativeHashMap.Concurrent__ lets you add items in parallel from __IJobParallelFor__.
 
 > Note: At the moment protection against accessing static data from within a job is not in place. This means you can technically get access to anything from within the job. This is something we aim to protect against in the future. If you do access static data inside a job you should expect your code to break in future versions.
 
 ## Scheduling jobs
 
-As mentioned in the previous section, the job system relies on blittable data and NativeContainers. To schedule a job you need to implement the __IJob__ interface, create an instance of your struct, fill it with data and call __Schedule__ on it. When you schedule it you will get back a job handle which can be used as a dependency for other jobs, or you can wait for it when you need to access the NativeContainers passed to the X on the main thread again.
-
-TODO - What is X at the end of the above sentence? a word seems to be missing (or you have a few too many words and it's unclear). Below: what does flush mean? do we have a good link to a definition for devs who are unfamiliar with the term?
+As mentioned in the previous section, the job system relies on blittable data and NativeContainers. To schedule a job you need to implement the __IJob__ interface, create an instance of your struct, fill it with data and call __Schedule__ on it. When you schedule it you will get back a job handle which can be used as a dependency for other jobs, or you can wait for it when you need to access the NativeContainers passed to the job on the main thread again.
 
 Jobs will actually not start executing immediately when you schedule them. We create a batch of jobs to schedule which needs to be flushed. In ECS the batch is implicitly flushed, outside ECS you need to explicitly flush it by calling the static function __JobHandle.ScheduleBatchedJobs()__.
 ```C#
@@ -97,7 +93,7 @@ result.Dispose();
 ```
 If we have multiple jobs operating on the same data we need to use dependencies:
 ```C#
-public struct MyIncreaseJob : IJob
+public struct AddOneJob : IJob
 {
     public NativeArray<float> result;
     public void Execute()
@@ -115,7 +111,7 @@ jobData.b = 10;
 jobData.result = result;
 // Schedule the job
 JobHandle firstHandle = jobData.Schedule();
-MyIncreaseJob incJobData = new MyIncreaseJob();
+AddOneJob incJobData = new AddOneJob();
 incJobData.result = result;
 JobHandle handle = incJobData.Schedule(firstHandle);
 // Wait for the job to complete
@@ -149,8 +145,8 @@ public struct MyParallelJob : IJobParallelFor
 ```
 ```C#
 var jobData = new MyParallelJob();
-jobData.a = inputA; // TODO - where does inputA/B come from? It reads like it is a variable/property from somewhere that is not listed (compared to the other examples). If you can just put 10 and 10 again that is clearer. 
-jobData.b = inputB;
+jobData.a = 10;  
+jobData.b = 10;
 jobData.result = result;
 // Schedule the job with one Execute per index in the results array and only 1 item per processing batch
 JobHandle handle = jobData.Schedule(result.Length, 1);

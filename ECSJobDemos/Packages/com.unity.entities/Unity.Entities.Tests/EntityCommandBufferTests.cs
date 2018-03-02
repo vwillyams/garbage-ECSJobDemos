@@ -370,38 +370,32 @@ namespace UnityEngine.ECS.Tests
         //[ComputeJobOptimization(CompileSynchronously = true)]
         public struct TestBurstCommandBufferJob : IJob
         {
-            public EntityArray Entities;
-            public ComponentDataArray<EcsTestData> TestData;
+            public Entity e0;
+            public Entity e1;
             public EntityCommandBuffer Buffer;
 
             public void Execute()
             {
-                for (int i = 0; i < Entities.Length; ++i)
-                {
-                    if (TestData[i].value < 500)
-                    {
-                        Buffer.DestroyEntity(Entities[i]);
-                    }
-                }
+                Buffer.DestroyEntity(e0);
+                Buffer.DestroyEntity(e1);
             }
         }
 
         [Test]
         public void TestCommandBufferDelete()
         {
-            for (int i = 0; i < 1000; ++i)
+            Entity[] entities = new Entity[2];
+            for (int i = 0; i < entities.Length; ++i)
             {
-                var entity = m_Manager.CreateEntity();
-                m_Manager.AddComponentData(entity, new EcsTestData { value = i });
+                entities[i] = m_Manager.CreateEntity();
+                m_Manager.AddComponentData(entities[i], new EcsTestData { value = i });
             }
 
             var cmds = new EntityCommandBuffer(Allocator.TempJob);
 
-            var group = m_Manager.CreateComponentGroup(typeof(EcsTestData));
-
             new TestBurstCommandBufferJob {
-                Entities = group.GetEntityArray(),
-                TestData = group.GetComponentDataArray<EcsTestData>(),
+                e0 = entities[0],
+                e1 = entities[1],
                 Buffer = cmds,
             }.Schedule().Complete();
 
@@ -413,7 +407,7 @@ namespace UnityEngine.ECS.Tests
             int count = allEntities.Length;
             allEntities.Dispose();
 
-            Assert.AreEqual(500, count);
+            Assert.AreEqual(0, count);
         }
     }
 }

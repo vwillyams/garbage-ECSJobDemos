@@ -1,10 +1,14 @@
-﻿using Unity.Collections;
+﻿using System.Threading;
+using Unity.Collections;
 using Unity.Entities;
 using UnityEngine.ECS.SimpleMovement;
 using Unity.Transforms;
 
 namespace TwoStickPureExample
 {
+    public class ShotSpawnBarrier : BarrierSystem
+    {}
+
     public class ShotSpawnSystem : ComponentSystem
     {
         public struct Data

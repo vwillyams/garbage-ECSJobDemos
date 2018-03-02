@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.Msagl.Core.DataStructures;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
@@ -14,26 +16,52 @@ namespace UnityEngine.ECS.Boids
     {
         private ComponentGroup m_MainGroup;
         private List<Boid> m_UniqueTypes = new List<Boid>(10);
-        private List<NativeHashMap<int,int>> m_Cells = new List<NativeHashMap<int,int>>();
+        private List<NativeHashMap<CellHash,int>> m_Cells = new List<NativeHashMap<CellHash,int>>();
+
+        struct CellHash : IEquatable<CellHash>
+        {
+            private int hash;
+
+            public int Value
+            {
+                get { return hash; }
+                set { hash = value; }
+            }
+
+            public CellHash(int value)
+            {
+                hash = value;
+            }
+
+            public override int GetHashCode()
+            {
+                return hash;
+            }
+
+            public bool Equals(CellHash other)
+            {
+                return hash == other.hash;
+            }
+        }
 
         [ComputeJobOptimization]
         struct HashPositions : IJobParallelFor
         {
             [ReadOnly] public ComponentDataArray<Position> positions;
-            public NativeArray<int> positionHashes;
+            public NativeArray<CellHash> positionHashes;
             public float cellRadius;
 
             public void Execute(int index)
             {
                 var hash = GridHash.Hash(positions[index].Value, cellRadius);
-                positionHashes[index] = hash;
+                positionHashes[index] = new CellHash(hash);
             }
         }
 
         [ComputeJobOptimization]
         struct ClearHashCellIndices : IJob
         {
-            public NativeHashMap<int, int> hashCellIndices;
+            public NativeHashMap<CellHash, int> hashCellIndices;
 
             public void Execute()
             {
@@ -50,14 +78,14 @@ namespace UnityEngine.ECS.Boids
         [ComputeJobOptimization]
         struct Cells : IJob
         {
-            [ReadOnly] public NativeArray<int> positionHashes;
+            [ReadOnly] public NativeArray<CellHash> positionHashes;
             [NativeDisableParallelForRestriction] public NativeArray<int> cellIndices;
             [NativeDisableParallelForRestriction] public NativeArray<int> neighborCount;
             [NativeDisableParallelForRestriction] public NativeArray<int> cellCount;
             [NativeDisableParallelForRestriction] public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
             [ReadOnly] public ComponentDataArray<Heading> headings;
             [ReadOnly] public ComponentDataArray<Position> positions;
-            public NativeHashMap<int, int> hashCellIndices;
+            public NativeHashMap<CellHash, int> hashCellIndices;
 
             public void Execute()
             {
@@ -150,57 +178,44 @@ namespace UnityEngine.ECS.Boids
             }
         }
 
-        struct ObstacleDistance
+        struct TargetObstacle
         {
+            public float3 target;
             public float3 obstacle;
-            public float3 distance;
+            public float avoidObstacle;
         }
         
         [ComputeJobOptimization]
-        struct HeadingObstacle : IJobParallelFor
+        struct HeadingTargetObstacle : IJobParallelFor
         {
             [ReadOnly] public ComponentDataArray<Position> positions;
             [ReadOnly] public ComponentDataArray<BoidNearestObstaclePosition> nearestObstaclePositions;
+            [ReadOnly] public ComponentDataArray<BoidNearestTargetPosition> nearestTargetPositions;
             [ReadOnly] public Boid settings;
-            public NativeArray<ObstacleDistance> obstacleDistance;
+            public NativeArray<TargetObstacle> targetObstacle;
             
             public void Execute(int index)
             {
                 var position = positions[index].Value;
                 var nearestObstaclePosition = nearestObstaclePositions[index].Value;
                 var obstacleSteering = (position - nearestObstaclePosition);
-                var distance = math.length(obstacleSteering);
+                var obstacleDistance = math.length(obstacleSteering);
                 var avoidObstacleHeading = (nearestObstaclePosition + math_experimental.normalizeSafe(obstacleSteering) * settings.obstacleAversionDistance)-position;
+                var targetHeading = settings.targetWeight * math_experimental.normalizeSafe(nearestTargetPositions[index].Value - position);
 
-                obstacleDistance[index] = new ObstacleDistance
+                targetObstacle[index] = new TargetObstacle
                 {
+                    avoidObstacle = obstacleDistance - settings.obstacleAversionDistance,
                     obstacle = avoidObstacleHeading,
-                    distance = distance
+                    target = targetHeading
                 };
             }
         }
 
         [ComputeJobOptimization]
-        struct HeadingTarget : IJobParallelFor
-        {
-            [ReadOnly] public ComponentDataArray<Position> positions;
-            [ReadOnly] public ComponentDataArray<BoidNearestTargetPosition> nearestTargetPositions;
-            [ReadOnly] public Boid settings;
-            public NativeArray<float3> target;
-            
-            public void Execute(int index)
-            {
-                var position = positions[index].Value;
-                var result = settings.targetWeight * math_experimental.normalizeSafe(nearestTargetPositions[index].Value - position);
-                target[index] = result;
-            }
-        }
-        
-        [ComputeJobOptimization]
         struct Steer : IJobParallelFor
         {
-            [ReadOnly] public NativeArray<float3> target;
-            [ReadOnly] public NativeArray<ObstacleDistance> obstacleDistance;
+            [ReadOnly] public NativeArray<TargetObstacle> targetObstacle;
             [ReadOnly] public NativeArray<AlignmentSeparation> alignmentSeparation;
             [ReadOnly] public Boid settings;
             public float dt;
@@ -209,9 +224,8 @@ namespace UnityEngine.ECS.Boids
             public void Execute(int index)
             {
                 var forward = headings[index].Value;
-                var avoidObstacle = (obstacleDistance[index].distance < settings.obstacleAversionDistance);
-                var normalHeading = math_experimental.normalizeSafe(alignmentSeparation[index].alignment + alignmentSeparation[index].separation + target[index]);
-                var targetForward = math.select(normalHeading,obstacleDistance[index].obstacle,avoidObstacle);
+                var normalHeading = math_experimental.normalizeSafe(alignmentSeparation[index].alignment + alignmentSeparation[index].separation + targetObstacle[index].target);
+                var targetForward = math.select(normalHeading,targetObstacle[index].obstacle,targetObstacle[index].avoidObstacle < 0);
                 var steer = math_experimental.normalizeSafe(forward + dt*(targetForward-forward));
                 headings[index] = new Heading { Value = steer };
             }
@@ -223,9 +237,8 @@ namespace UnityEngine.ECS.Boids
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> cellIndices;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> neighborCount;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> positionHashes;
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> target;
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<ObstacleDistance> obstacleDistance;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<CellHash> positionHashes;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<TargetObstacle> targetObstacle;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<AlignmentSeparation> alignmentSeparation;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> cellCount;
 
@@ -252,7 +265,7 @@ namespace UnityEngine.ECS.Boids
 
                 var boidCount = positions.Length;
 
-                var positionHashes = new NativeArray<int>(boidCount, Allocator.TempJob);
+                var positionHashes = new NativeArray<CellHash>(boidCount, Allocator.TempJob);
                 var hashBoidLocationsJob = new HashPositions
                 {
                     positions = positions,
@@ -266,10 +279,10 @@ namespace UnityEngine.ECS.Boids
                 var cellAlignmentSeparation = new NativeArray<AlignmentSeparation>(boidCount, Allocator.TempJob);
                 var cellCount = new NativeArray<int>(1, Allocator.TempJob);
                 
-                NativeHashMap<int,int> cells;
+                NativeHashMap<CellHash,int> cells;
                 if (cacheIndex > (m_Cells.Count - 1))
                 {
-                    cells = new NativeHashMap<int,int>(boidCount,Allocator.Persistent);
+                    cells = new NativeHashMap<CellHash,int>(boidCount,Allocator.Persistent);
                     m_Cells.Add(cells);
                 }
                 else
@@ -299,25 +312,16 @@ namespace UnityEngine.ECS.Boids
                 };
                 var trackBoidCellsJobHandle = trackBoidCellsJob.Schedule(trackBarrierJobHandle);
                 
-                var target = new NativeArray<float3>(boidCount, Allocator.TempJob);
-                var targetJob = new HeadingTarget
-                {
-                    positions = positions,
-                    nearestTargetPositions = nearestTargetPositions,
-                    settings = settings,
-                    target = target
-                };
-                var targetJobHandle = targetJob.Schedule(boidCount, 64, trackBarrierJobHandle);
-                
-                var obstacleDistance = new NativeArray<ObstacleDistance>(boidCount, Allocator.TempJob);
-                var obstacleJob = new HeadingObstacle
+                var targetObstacle = new NativeArray<TargetObstacle>(boidCount, Allocator.TempJob);
+                var targetObstacleJob = new HeadingTargetObstacle
                 {
                     positions = positions,
                     nearestObstaclePositions = nearestObstaclePositions,
+                    nearestTargetPositions = nearestTargetPositions,
                     settings = settings,
-                    obstacleDistance = obstacleDistance
+                    targetObstacle = targetObstacle
                 };
-                var obstacleJobHandle = obstacleJob.Schedule(boidCount, 64, trackBarrierJobHandle);
+                var targetObstacleJobHandle = targetObstacleJob.Schedule(boidCount, 64, trackBarrierJobHandle);
                 
                 var divideAlignmentBoidCellsJob = new CellsDivideAlignment
                 {
@@ -325,7 +329,7 @@ namespace UnityEngine.ECS.Boids
                     cellAlignmentSeparation = cellAlignmentSeparation,
                     cellCount = cellCount
                 };
-                var divideAlignmentBoidCellsJobHandle = divideAlignmentBoidCellsJob.Schedule(boidCount, 1024, trackBoidCellsJobHandle);
+                var divideAlignmentBoidCellsJobHandle = divideAlignmentBoidCellsJob.Schedule(boidCount, 64, trackBoidCellsJobHandle);
 
                 var alignmentSeparation = new NativeArray<AlignmentSeparation>(boidCount,Allocator.TempJob);
                 var alignmentSeparationJob = new HeadingAlignmentSeparation
@@ -338,25 +342,23 @@ namespace UnityEngine.ECS.Boids
                     settings = settings,
                     alignmentSeparation = alignmentSeparation
                 };
-                var alignmentSeparationJobHandle = alignmentSeparationJob.Schedule(boidCount, 1024, divideAlignmentBoidCellsJobHandle);
+                var alignmentSeparationJobHandle = alignmentSeparationJob.Schedule(boidCount, 64, divideAlignmentBoidCellsJobHandle);
 
-                var steerBarrierJobHandle = JobHandle.CombineDependencies(targetJobHandle, obstacleJobHandle, alignmentSeparationJobHandle);
+                var steerBarrierJobHandle = JobHandle.CombineDependencies(targetObstacleJobHandle, alignmentSeparationJobHandle);
                 
                 var steerJob = new Steer
                 {
-                    target = target,
-                    obstacleDistance = obstacleDistance,
+                    targetObstacle = targetObstacle,
                     alignmentSeparation = alignmentSeparation,
                     settings = settings,
                     dt = Time.deltaTime,
                     headings = headings
                 };
-                var steerJobHandle = steerJob.Schedule(boidCount, 1024, steerBarrierJobHandle);
+                var steerJobHandle = steerJob.Schedule(boidCount, 64, steerBarrierJobHandle);
 
                 var disposeJob = new Dispose
                 {
-                    target = target,
-                    obstacleDistance = obstacleDistance,
+                    targetObstacle = targetObstacle,
                     cellAlignmentSeparation = cellAlignmentSeparation,
                     cellIndices = cellIndices,
                     neighborCount = neighborCount,

@@ -109,6 +109,14 @@ namespace Unity.Entities
             public int HashCode;
             public GCHandle BoxedObject;
             public EntitySharedComponentCommand* Prev;
+
+            internal object GetBoxedObject()
+            {
+                if (BoxedObject.IsAllocated)
+                    return BoxedObject.Target;
+                else
+                    return null;
+            }
         }
 
         byte* Reserve(int size)
@@ -278,49 +286,47 @@ namespace Unity.Entities
         public void CreateEntity()
         {
             EnforceSingleThreadOwnership();
-            AddCreateCommand(Command.CreateEntityImplicit, new EntityArchetype());
+            AddCreateCommand(Command.CreateEntity, new EntityArchetype());
         }
 
         public void CreateEntity(EntityArchetype archetype)
         {
             EnforceSingleThreadOwnership();
-            AddCreateCommand(Command.CreateEntityImplicit, archetype);
+            AddCreateCommand(Command.CreateEntity, archetype);
         }
 
         public void DestroyEntity(Entity e)
         {
             EnforceSingleThreadOwnership();
-            AddEntityCommand(Command.DestroyEntityExplicit, e);
+            AddEntityCommand(Command.DestroyEntity, e);
         }
 
         public void AddComponent<T>(Entity e, T component) where T: struct, IComponentData
         {
             EnforceSingleThreadOwnership();
-            AddEntityComponentCommand(Command.AddComponentExplicit, e, component);
+            AddEntityComponentCommand(Command.AddComponent, e, component);
+        }
+
+        public void AddComponent<T>(T component) where T: struct, IComponentData
+        {
+            AddComponent(Entity.Null, component);
         }
 
         public void SetComponent<T>(T component) where T: struct, IComponentData
         {
-            EnforceSingleThreadOwnership();
-            AddEntityComponentCommand(Command.SetComponentImplicit, Entity.Null, component);
+            SetComponent(Entity.Null, component);
         }
 
         public void SetComponent<T>(Entity e, T component) where T: struct, IComponentData
         {
             EnforceSingleThreadOwnership();
-            AddEntityComponentCommand(Command.SetComponentExplicit, e, component);
+            AddEntityComponentCommand(Command.SetComponent, e, component);
         }
 
         public void RemoveComponent<T>(Entity e)
         {
             EnforceSingleThreadOwnership();
-            AddEntityComponentTypeCommand(Command.RemoveComponentExplicit, e, ComponentType.Create<T>());
-        }
-
-        public void AddComponent<T>(T component) where T: struct, IComponentData
-        {
-            EnforceSingleThreadOwnership();
-            AddEntityComponentCommand(Command.AddComponentImplicit, Entity.Null, component);
+            AddEntityComponentTypeCommand(Command.RemoveComponent, e, ComponentType.Create<T>());
         }
 
         private static bool IsDefaultObject<T>(ref T component, out int hashCode) where T : struct, ISharedComponentData
@@ -334,16 +340,7 @@ namespace Unity.Entities
 
         public void AddSharedComponent<T>(T component) where T : struct, ISharedComponentData
         {
-            EnforceSingleThreadOwnership();
-            int hashCode;
-            if (IsDefaultObject(ref component, out hashCode))
-            {
-                AddEntitySharedComponentCommand<T>(Command.AddSharedComponentDataImplicit, Entity.Null, hashCode, null);
-            }
-            else
-            {
-                AddEntitySharedComponentCommand<T>(Command.AddSharedComponentDataImplicit, Entity.Null, hashCode, component);
-            }
+            AddSharedComponent<T>(Entity.Null, component);
         }
 
         public void AddSharedComponent<T>(Entity e, T component) where T : struct, ISharedComponentData
@@ -352,26 +349,17 @@ namespace Unity.Entities
             int hashCode;
             if (IsDefaultObject(ref component, out hashCode))
             {
-                AddEntitySharedComponentCommand<T>(Command.AddSharedComponentDataExplicit, e, hashCode, null);
+                AddEntitySharedComponentCommand<T>(Command.AddSharedComponentData, e, hashCode, null);
             }
             else
             {
-                AddEntitySharedComponentCommand<T>(Command.AddSharedComponentDataExplicit, e, hashCode, component);
+                AddEntitySharedComponentCommand<T>(Command.AddSharedComponentData, e, hashCode, component);
             }
         }
 
         public void SetSharedComponent<T>(T component) where T : struct, ISharedComponentData
         {
-            EnforceSingleThreadOwnership();
-            int hashCode;
-            if (IsDefaultObject(ref component, out hashCode))
-            {
-                AddEntitySharedComponentCommand<T>(Command.SetSharedComponentDataImplicit, Entity.Null, hashCode, null);
-            }
-            else
-            {
-                AddEntitySharedComponentCommand<T>(Command.SetSharedComponentDataImplicit, Entity.Null, hashCode, component);
-            }
+            SetSharedComponent<T>(Entity.Null, component);
         }
 
         public void SetSharedComponent<T>(Entity e, T component) where T : struct, ISharedComponentData
@@ -380,32 +368,25 @@ namespace Unity.Entities
             int hashCode;
             if (IsDefaultObject(ref component, out hashCode))
             {
-                AddEntitySharedComponentCommand<T>(Command.SetSharedComponentDataExplicit, e, hashCode, null);
+                AddEntitySharedComponentCommand<T>(Command.SetSharedComponentData, e, hashCode, null);
             }
             else
             {
-                AddEntitySharedComponentCommand<T>(Command.SetSharedComponentDataExplicit, e, hashCode, component);
+                AddEntitySharedComponentCommand<T>(Command.SetSharedComponentData, e, hashCode, component);
             }
         }
 
         enum Command
         {
-            // Commands that operate on a known entity
-            DestroyEntityExplicit,
-            AddComponentExplicit,
-            RemoveComponentExplicit,
-            SetComponentExplicit,
+            CreateEntity,
+            DestroyEntity,
 
-            // Commands that either create a new entity or operate implicitly on a just-created entity (which doesn't yet exist when the command is buffered)
-            CreateEntityImplicit,
-            AddComponentImplicit,
-            SetComponentImplicit,
+            AddComponent,
+            RemoveComponent,
+            SetComponent,
 
-            // Commands that manipulate shared component data
-            AddSharedComponentDataImplicit,
-            AddSharedComponentDataExplicit,
-            SetSharedComponentDataImplicit,
-            SetSharedComponentDataExplicit,
+            AddSharedComponentData,
+            SetSharedComponentData,
         }
 
         /// <summary>
@@ -433,34 +414,21 @@ namespace Unity.Entities
 
                     switch ((Command)header->CommandType)
                     {
-                        case Command.DestroyEntityExplicit:
-                            mgr.DestroyEntity(((EntityCommand*)header)->Entity);
-                            break;
-
-                        case Command.AddComponentExplicit:
+                        case Command.DestroyEntity:
                             {
-                                var cmd = (EntityComponentCommand*)header;
-                                var componentType = (ComponentType)TypeManager.GetType(cmd->ComponentTypeIndex);
-                                mgr.AddComponent(cmd->Header.Entity, componentType);
-                                mgr.SetComponentDataRaw(cmd->Header.Entity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
+                                mgr.DestroyEntity(((EntityCommand*)header)->Entity);
                             }
                             break;
 
-                        case Command.RemoveComponentExplicit:
+                        case Command.RemoveComponent:
                             {
                                 var cmd = (EntityComponentCommand*)header;
-                                mgr.RemoveComponent(cmd->Header.Entity, TypeManager.GetType(cmd->ComponentTypeIndex));
+                                var entity = cmd->Header.Entity == Entity.Null ? lastEntity : cmd->Header.Entity;
+                                mgr.RemoveComponent(entity, TypeManager.GetType(cmd->ComponentTypeIndex));
                             }
                             break;
 
-                        case Command.SetComponentExplicit:
-                            {
-                                var cmd = (EntityComponentCommand*)header;
-                                mgr.SetComponentDataRaw(cmd->Header.Entity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
-                            }
-                            break;
-
-                        case Command.CreateEntityImplicit:
+                        case Command.CreateEntity:
                             {
                                 var cmd = (CreateCommand*)header;
                                 if (cmd->Archetype.Valid)
@@ -470,48 +438,37 @@ namespace Unity.Entities
                                 break;
                             }
 
-                        case Command.AddComponentImplicit:
+                        case Command.AddComponent:
                             {
                                 var cmd = (EntityComponentCommand*)header;
                                 var componentType = (ComponentType)TypeManager.GetType(cmd->ComponentTypeIndex);
-                                mgr.AddComponent(lastEntity, componentType);
-                                mgr.SetComponentDataRaw(lastEntity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
+                                var entity = cmd->Header.Entity == Entity.Null ? lastEntity : cmd->Header.Entity;
+                                mgr.AddComponent(entity, componentType);
+                                mgr.SetComponentDataRaw(entity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
                             }
                             break;
 
-                        case Command.SetComponentImplicit:
+                        case Command.SetComponent:
                             {
                                 var cmd = (EntityComponentCommand*)header;
-                                //var componentType = (ComponentType)TypeManager.GetType(cmd->ComponentTypeIndex);
-                                mgr.SetComponentDataRaw(lastEntity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
+                                var entity = cmd->Header.Entity == Entity.Null ? lastEntity : cmd->Header.Entity;
+                                mgr.SetComponentDataRaw(entity, cmd->ComponentTypeIndex, (cmd + 1), cmd->ComponentSize);
                             }
                             break;
 
-                        case Command.AddSharedComponentDataImplicit:
+                        case Command.AddSharedComponentData:
                             {
                                 var cmd = (EntitySharedComponentCommand*)header;
-                                mgr.AddSharedComponentDataBoxed(lastEntity, cmd->ComponentTypeIndex, cmd->HashCode, cmd->BoxedObject.Target);
+                                var entity = cmd->Header.Entity == Entity.Null ? lastEntity : cmd->Header.Entity;
+                                mgr.AddSharedComponentDataBoxed(entity, cmd->ComponentTypeIndex, cmd->HashCode, cmd->GetBoxedObject());
                             }
                             break;
 
-                        case Command.AddSharedComponentDataExplicit:
+                        case Command.SetSharedComponentData:
                             {
                                 var cmd = (EntitySharedComponentCommand*)header;
-                                mgr.AddSharedComponentDataBoxed(cmd->Header.Entity, cmd->ComponentTypeIndex, cmd->HashCode, cmd->BoxedObject.Target);
-                            }
-                            break;
-
-                        case Command.SetSharedComponentDataImplicit:
-                            {
-                                var cmd = (EntitySharedComponentCommand*)header;
-                                mgr.SetSharedComponentDataBoxed(lastEntity, cmd->ComponentTypeIndex, cmd->HashCode, cmd->BoxedObject.Target);
-                            }
-                            break;
-
-                        case Command.SetSharedComponentDataExplicit:
-                            {
-                                var cmd = (EntitySharedComponentCommand*)header;
-                                mgr.SetSharedComponentDataBoxed(cmd->Header.Entity, cmd->ComponentTypeIndex, cmd->HashCode, cmd->BoxedObject.Target);
+                                var entity = cmd->Header.Entity == Entity.Null ? lastEntity : cmd->Header.Entity;
+                                mgr.SetSharedComponentDataBoxed(entity, cmd->ComponentTypeIndex, cmd->HashCode, cmd->GetBoxedObject());
                             }
                             break;
                     }

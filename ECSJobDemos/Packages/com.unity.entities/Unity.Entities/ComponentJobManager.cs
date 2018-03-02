@@ -1,4 +1,5 @@
-﻿using Unity.Collections.LowLevel.Unsafe;
+﻿using System.Runtime.InteropServices.ComTypes;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Collections;
 
@@ -143,6 +144,23 @@ namespace Unity.Entities
 
             for (var i = 0; i != readerTypesCount; i++)
                 CompleteWriteDependency(readerTypes[i]);
+        }
+
+        public bool HasReaderOrWriterDependency(int type, JobHandle dependency)
+        {
+            var writer = m_ComponentSafetyHandles[type].WriteFence;
+            if (JobHandle.CheckFenceIsDependencyOrDidSyncFence(dependency, writer))
+                return true;
+
+            int count = m_ComponentSafetyHandles[type].NumReadFences;
+            for (int r = 0; r < count; r++)
+            {
+                var reader = m_ReadJobFences[type * kMaxReadJobHandles + r];
+                if (JobHandle.CheckFenceIsDependencyOrDidSyncFence(dependency, reader))
+                    return true;
+            }
+
+            return false;
         }
 
         public JobHandle GetDependency(int* readerTypes, int readerTypesCount, int* writerTypes, int writerTypesCount)

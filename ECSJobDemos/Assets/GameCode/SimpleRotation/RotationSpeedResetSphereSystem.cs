@@ -18,7 +18,7 @@ namespace UnityEngine.ECS.SimpleRotation
             public int Length;
         }
 
-        [Inject] private RotationSpeedResetSphereGroup m_RotationSpeedResetSphereGroup;
+        [Inject] RotationSpeedResetSphereGroup m_RotationSpeedResetSphereGroup;
 
         struct RotationSpeedGroup
         {
@@ -27,34 +27,30 @@ namespace UnityEngine.ECS.SimpleRotation
             public int Length;
         }
 
-        [Inject] private RotationSpeedGroup m_RotationSpeedGroup;
+        [Inject] RotationSpeedGroup m_RotationSpeedGroup;
 
         [ComputeJobOptimization]
-        struct RotationSpeedResetSphereRotation : IJob
+        struct RotationSpeedResetSphereRotation : IJobParallelFor
         {
             public ComponentDataArray<RotationSpeed> rotationSpeeds;
+            [ReadOnly] public ComponentDataArray<Position> positions;
+
             [ReadOnly] public ComponentDataArray<RotationSpeedResetSphere> rotationSpeedResetSpheres;
             [ReadOnly] public ComponentDataArray<Radius> spheres;
             [ReadOnly] public ComponentDataArray<Position> rotationSpeedResetSpherePositions;
-            [ReadOnly] public ComponentDataArray<Position> positions;
 
-            public void Execute()
+            public void Execute(int i)
             {
-                for (int i = 0; i < rotationSpeedResetSpheres.Length; i++)
-                {
-                    var center = rotationSpeedResetSpherePositions[i].Value;
-                    var radius = spheres[i].radius;
-                    var speed = rotationSpeedResetSpheres[i].speed;
+                var center = positions[i].Value;
 
-                    for (int positionIndex = 0; positionIndex < positions.Length; positionIndex++)
+                for (int positionIndex = 0; positionIndex < rotationSpeedResetSpheres.Length; positionIndex++)
+                {
+                    if (math.distance(rotationSpeedResetSpherePositions[positionIndex].Value, center) < spheres[positionIndex].radius)
                     {
-                        if (math.distance(positions[positionIndex].Value, center) < radius)
+                        rotationSpeeds[i] = new RotationSpeed
                         {
-                            rotationSpeeds[positionIndex] = new RotationSpeed
-                            {
-                                Value = speed
-                            };
-                        }
+                            Value = rotationSpeedResetSpheres[positionIndex].speed
+                        };
                     }
                 }
             }
@@ -70,7 +66,7 @@ namespace UnityEngine.ECS.SimpleRotation
                 rotationSpeedResetSpherePositions = m_RotationSpeedResetSphereGroup.positions,
                 positions = m_RotationSpeedGroup.positions
             };
-            return rotationSpeedResetSphereRotationJob.Schedule(inputDeps);
+            return rotationSpeedResetSphereRotationJob.Schedule(m_RotationSpeedGroup.Length, 32, inputDeps);
         }
     }
 }

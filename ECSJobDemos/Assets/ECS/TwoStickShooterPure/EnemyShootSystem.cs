@@ -1,12 +1,13 @@
 ﻿using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms2D;
 using UnityEngine;
 
 namespace TwoStickPureExample
 {
-    class EnemyShootSystem : ComponentSystem
+    class EnemyShootSystem : JobComponentSystem
     {
         public struct Data
         {
@@ -25,41 +26,68 @@ namespace TwoStickPureExample
         }
 
         [Inject] private PlayerData m_Player;
+        [Inject] private ShotSpawnBarrier m_ShotSpawnBarrier;
 
-        protected override void OnUpdate()
+        // [ComputeJobOptimization]
+        // This cannot currently be burst compiled because CommandBuffer.SetComponent() accesses a static field.
+        struct SpawnEnemyShots : IJob
+        {
+            public float2 PlayerPos;
+            public float DeltaTime;
+            public float ShootRate;
+            public float ShotTtl;
+            public float ShotEnergy;
+            public EntityArchetype ShotArchetype;
+
+            [ReadOnly] public ComponentDataArray<Position2D> Position;
+            public ComponentDataArray<EnemyShootState> ShootState;
+
+            public EntityCommandBuffer CommandBuffer;
+
+            public void Execute()
+            {
+                for (int i = 0; i < ShootState.Length; ++i)
+                {
+                    var state = ShootState[i];
+
+                    state.Cooldown -= DeltaTime;
+                    if (state.Cooldown <= 0.0)
+                    {
+                        state.Cooldown = ShootRate;
+
+                        ShotSpawnData spawn;
+                        spawn.Shot.TimeToLive = ShotTtl;
+                        spawn.Shot.Energy = ShotEnergy;
+                        spawn.Position = Position[i];
+                        spawn.Heading = new Heading2D {Value = math.normalize(PlayerPos - Position[i].Value)};
+                        spawn.Faction = Factions.kEnemy;
+
+                        CommandBuffer.CreateEntity(ShotArchetype);
+                        CommandBuffer.SetComponent(spawn);
+                    }
+
+                    ShootState[i] = state;
+                }
+            }
+        }
+
+        protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
             if (m_Data.Length == 0 || m_Player.Length == 0)
-                return;
+                return inputDeps;
 
-            var playerPos = m_Player.Position[0].Value;
-
-            float dt = Time.deltaTime;
-            float shootRate = TwoStickBootstrap.Settings.enemyShootRate;
-            float shotTtl = TwoStickBootstrap.Settings.enemyShotTimeToLive;
-            float shotEnergy = TwoStickBootstrap.Settings.enemyShotEnergy;
-
-            for (int i = 0; i < m_Data.Length; ++i)
+            return new SpawnEnemyShots
             {
-                var state = m_Data.ShootState[i];
-
-                state.Cooldown -= dt;
-                if (state.Cooldown <= 0.0)
-                {
-                    state.Cooldown = shootRate;
-
-                    ShotSpawnData spawn;
-                    spawn.Shot.TimeToLive = shotTtl;
-                    spawn.Shot.Energy = shotEnergy;
-                    spawn.Position = m_Data.Position[i];
-                    spawn.Heading = new Heading2D {Value = math.normalize(playerPos - m_Data.Position[i].Value)};
-                    spawn.Faction = Factions.kEnemy;
-
-                    PostUpdateCommands.CreateEntity(TwoStickBootstrap.ShotSpawnArchetype);
-                    PostUpdateCommands.SetComponent(spawn);
-                }
-
-                m_Data.ShootState[i] = state;
-            }
+                PlayerPos = m_Player.Position[0].Value,
+                DeltaTime = Time.deltaTime,
+                ShootRate = TwoStickBootstrap.Settings.enemyShootRate,
+                ShotTtl = TwoStickBootstrap.Settings.enemyShotTimeToLive,
+                ShotEnergy = TwoStickBootstrap.Settings.enemyShotEnergy,
+                Position = m_Data.Position,
+                ShootState = m_Data.ShootState,
+                CommandBuffer = m_ShotSpawnBarrier.CreateCommandBuffer(),
+                ShotArchetype = TwoStickBootstrap.ShotSpawnArchetype,
+            }.Schedule(inputDeps);
         }
     }
 }

@@ -4,6 +4,7 @@
         "Unity.Entities",
         "Unity.Collections",
         "Unity.Jobs",
+        "Unity.Burst",
         "Unity.Mathematics"
     ],
     "optionalUnityReferences": [

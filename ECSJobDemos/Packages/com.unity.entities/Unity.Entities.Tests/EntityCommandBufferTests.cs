@@ -365,5 +365,36 @@ namespace UnityEngine.ECS.Tests
             Assert.AreEqual(12, list[1].value0);
             Assert.AreEqual(12, list[1].value1);
         }
+
+        [ComputeJobOptimization(CompileSynchronously = true)]
+        public struct TestBurstCommandBufferJob : IJob
+        {
+            public Entity e;
+            public EntityCommandBuffer buf;
+
+            public void Execute()
+            {
+                buf.DestroyEntity(e);
+            }
+        }
+
+        [Test]
+        public void TestCommandBufferDelete()
+        {
+            var entity = m_Manager.CreateEntity();
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
+
+            new TestBurstCommandBufferJob { e = entity, buf = cmds }.Schedule().Complete();
+
+            cmds.Playback(m_Manager);
+
+            cmds.Dispose();
+
+            var allEntities = m_Manager.GetAllEntities();
+            int count = allEntities.Length;
+            allEntities.Dispose();
+
+            Assert.AreEqual(0, count);
+        }
     }
 }

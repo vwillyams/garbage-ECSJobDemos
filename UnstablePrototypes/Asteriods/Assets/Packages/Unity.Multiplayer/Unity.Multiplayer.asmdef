@@ -1,8 +1,8 @@
 {
     "name": "Unity.Multiplayer",
     "references": [
-        "Unity.Core",
         "Unity.Collections",
+        "Unity.Entities",
         "Unity.Mathematics"
     ],
     "optionalUnityReferences": [],

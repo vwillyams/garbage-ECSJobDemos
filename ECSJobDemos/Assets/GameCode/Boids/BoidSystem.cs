@@ -7,6 +7,7 @@ using Unity.Mathematics.Experimental;
 using UnityEngine.ECS.SimpleRotation;
 using Unity.Transforms;
 using UnityEngine.ECS.Utilities;
+using UnityEngine.Experimental.UIElements.StyleEnums;
 
 namespace UnityEngine.ECS.Boids
 {
@@ -30,12 +31,6 @@ namespace UnityEngine.ECS.Boids
             }
         }
 
-        struct CellSteering
-        {
-            public float3 alignment;
-            public float3 separation;
-        }
-
         [ComputeJobOptimization]
         struct ClearCellIndices : IJob
         {
@@ -47,14 +42,20 @@ namespace UnityEngine.ECS.Boids
             }
         }
 
+        struct AlignmentSeparation
+        {
+            public float3 alignment;
+            public float3 separation;
+        }
+
         [ComputeJobOptimization]
         struct TrackBoidCells : IJob
         {
             [ReadOnly] public NativeArray<int> positionHashes;
-            [NativeDisableParallelForRestriction] public NativeArray<int> boidCellIndices;
-            [NativeDisableParallelForRestriction] public NativeArray<int> cellBoidCount;
+            [NativeDisableParallelForRestriction] public NativeArray<int> cellIndices;
+            [NativeDisableParallelForRestriction] public NativeArray<int> neighborCount;
             [NativeDisableParallelForRestriction] public NativeArray<int> cellCount;
-            [NativeDisableParallelForRestriction] public NativeArray<CellSteering> cellSteerings;
+            [NativeDisableParallelForRestriction] public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
             [ReadOnly] public ComponentDataArray<Heading> headings;
             [ReadOnly] public ComponentDataArray<Position> positions;
             public NativeHashMap<int, int> hashCellIndices;
@@ -74,22 +75,22 @@ namespace UnityEngine.ECS.Boids
                     {
                         hashCellIndices.TryAdd(hash, nextCellIndex);
                         cellIndex = nextCellIndex;
-                        cellBoidCount[cellIndex] = 0;
-                        cellSteerings[cellIndex] = default(CellSteering);
+                        neighborCount[cellIndex] = 0;
+                        cellAlignmentSeparation[cellIndex] = new AlignmentSeparation();
                         nextCellIndex++;
                     }
-                    boidCellIndices[i] = cellIndex;
-                    cellBoidCount[cellIndex]++;
+                    cellIndices[i] = (int)cellIndex;
+                    neighborCount[cellIndex]++;
 
-                    var separation = cellSteerings[cellIndex].separation;
-                    var alignment  = cellSteerings[cellIndex].alignment;
+                    var separation = cellAlignmentSeparation[cellIndex].separation;
+                    var alignment = cellAlignmentSeparation[cellIndex].alignment;
                     var otherSeparation = -positions[i].Value;
                     var otherAlignment  = headings[i].Value;
-                    
-                    cellSteerings[cellIndex] = new CellSteering
+
+                    cellAlignmentSeparation[cellIndex] = new AlignmentSeparation
                     {
                         separation = separation + otherSeparation,
-                        alignment  = alignment + otherAlignment
+                        alignment = alignment + otherAlignment
                     };
                 }
 
@@ -100,9 +101,9 @@ namespace UnityEngine.ECS.Boids
         [ComputeJobOptimization]
         struct DivideAlignmentBoidCells : IJobParallelFor
         {
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> cellCount;
-            public NativeArray<CellSteering> cellSteerings;
-            public NativeArray<int> cellBoidCount;
+            [ReadOnly] public NativeArray<int> cellCount;
+            public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
+            public NativeArray<int> neighborCount;
 
             public void Execute(int cellIndex)
             {
@@ -110,53 +111,131 @@ namespace UnityEngine.ECS.Boids
                 {
                     return;
                 }
-                var separation = cellSteerings[cellIndex].separation;
-                var alignment  = cellSteerings[cellIndex].alignment;
-                var boidCount = cellBoidCount[cellIndex];
+                
+                var alignment = cellAlignmentSeparation[cellIndex].alignment;
+                var separation = cellAlignmentSeparation[cellIndex].separation;
+                var boidCount = neighborCount[cellIndex];
 
-                cellSteerings[cellIndex] = new CellSteering
+                cellAlignmentSeparation[cellIndex] = new AlignmentSeparation
                 {
-                    separation = separation,
-                    alignment = alignment / boidCount
+                    alignment = alignment / boidCount,
+                    separation = separation
                 };
+            }
+        }
+
+        [ComputeJobOptimization]
+        struct HeadingAlignmentSeparation : IJobParallelFor
+        {
+            [ReadOnly] public ComponentDataArray<Heading> headings;
+            [ReadOnly] public ComponentDataArray<Position> positions;
+            [ReadOnly] public NativeArray<int> cellIndices;
+            [ReadOnly] public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
+            [ReadOnly] public NativeArray<int> neighborCount;
+            [ReadOnly] public Boid settings;
+            public NativeArray<AlignmentSeparation> alignmentSeparation;
+            
+            public void Execute(int index)
+            {
+                var forward = headings[index].Value;
+                var position = positions[index].Value;
+                var cellIndex = cellIndices[index];
+                var alignmentSteering = cellAlignmentSeparation[cellIndex].alignment;
+                var alignmentResult = settings.alignmentWeight * math_experimental.normalizeSafe(alignmentSteering-forward);
+                var count = neighborCount[cellIndex];
+                var separationSteering = cellAlignmentSeparation[cellIndex].separation;
+                var separationResult = settings.separationWeight * math_experimental.normalizeSafe((position * count) + separationSteering);
+                
+                alignmentSeparation[index] = new AlignmentSeparation
+                {
+                    separation = separationResult,
+                    alignment = alignmentResult
+                };
+            }
+        }
+
+        struct ObstacleDistance
+        {
+            public float3 obstacle;
+            public float3 distance;
+        }
+        
+        [ComputeJobOptimization]
+        struct HeadingObstacle : IJobParallelFor
+        {
+            [ReadOnly] public ComponentDataArray<Position> positions;
+            [ReadOnly] public ComponentDataArray<BoidNearestObstaclePosition> nearestObstaclePositions;
+            [ReadOnly] public Boid settings;
+            public NativeArray<ObstacleDistance> obstacleDistance;
+            
+            public void Execute(int index)
+            {
+                var position = positions[index].Value;
+                var nearestObstaclePosition = nearestObstaclePositions[index].Value;
+                var obstacleSteering = (position - nearestObstaclePosition);
+                var distance = math.length(obstacleSteering);
+                var avoidObstacleHeading = (nearestObstaclePosition + math_experimental.normalizeSafe(obstacleSteering) * settings.obstacleAversionDistance)-position;
+
+                obstacleDistance[index] = new ObstacleDistance
+                {
+                    obstacle = avoidObstacleHeading,
+                    distance = distance
+                };
+            }
+        }
+
+        [ComputeJobOptimization]
+        struct HeadingTarget : IJobParallelFor
+        {
+            [ReadOnly] public ComponentDataArray<Position> positions;
+            [ReadOnly] public ComponentDataArray<BoidNearestTargetPosition> nearestTargetPositions;
+            [ReadOnly] public Boid settings;
+            public NativeArray<float3> target;
+            
+            public void Execute(int index)
+            {
+                var position = positions[index].Value;
+                var result = settings.targetWeight * math_experimental.normalizeSafe(nearestTargetPositions[index].Value - position);
+                target[index] = result;
             }
         }
         
         [ComputeJobOptimization]
         struct Steer : IJobParallelFor
         {
-            public ComponentDataArray<Heading> headings;
-            [ReadOnly] public ComponentDataArray<Position> positions;
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> sharedIndices;
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> sharedValueIndexCounts;
-            [ReadOnly] public ComponentDataArray<BoidNearestTargetPosition> nearestTargetPositions;
-            [ReadOnly] public ComponentDataArray<BoidNearestObstaclePosition> nearestObstaclePositions;
+            [ReadOnly] public NativeArray<float3> target;
+            [ReadOnly] public NativeArray<ObstacleDistance> obstacleDistance;
+            [ReadOnly] public NativeArray<AlignmentSeparation> alignmentSeparation;
             [ReadOnly] public Boid settings;
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<CellSteering> cellSteerings;
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> positionHashes;
             public float dt;
+            public ComponentDataArray<Heading> headings;
 
             public void Execute(int index)
             {
-                var position = positions[index].Value;
                 var forward = headings[index].Value;
-                var nearestObstaclePosition = nearestObstaclePositions[index].Value;
-                var obstacleSteering = (position - nearestObstaclePosition);
-                var avoidObstacle = (math.length(obstacleSteering) < settings.obstacleAversionDistance);
-                var sharedIndex = sharedIndices[index];
-                var neighborCount = sharedValueIndexCounts[sharedIndex];
-                var alignmentSteering = cellSteerings[sharedIndex].alignment;
-                var separationSteering = cellSteerings[sharedIndex].separation;
-                var s0 = settings.alignmentWeight * math_experimental.normalizeSafe(alignmentSteering-forward);
-                var s1 = settings.separationWeight * math_experimental.normalizeSafe((position * neighborCount) + separationSteering);
-                var s2 = settings.targetWeight * math_experimental.normalizeSafe(nearestTargetPositions[index].Value - position);
-                var normalHeading = math_experimental.normalizeSafe(s0 + s1 + s2);
-                var avoidObstacleHeading = (nearestObstaclePosition + math_experimental.normalizeSafe(obstacleSteering) * settings.obstacleAversionDistance)-position;
-                var s5 = math.select(normalHeading,avoidObstacleHeading,avoidObstacle);
-                var steer = math_experimental.normalizeSafe(forward + dt*(s5-forward));
+                var avoidObstacle = (obstacleDistance[index].distance < settings.obstacleAversionDistance);
+                var normalHeading = math_experimental.normalizeSafe(alignmentSeparation[index].alignment + alignmentSeparation[index].separation + target[index]);
+                var targetForward = math.select(normalHeading,obstacleDistance[index].obstacle,avoidObstacle);
+                var steer = math_experimental.normalizeSafe(forward + dt*(targetForward-forward));
                 headings[index] = new Heading { Value = steer };
             }
- 
+        }
+        
+        [ComputeJobOptimization]
+        struct Dispose : IJob
+        {
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> cellIndices;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> neighborCount;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> positionHashes;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> target;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<ObstacleDistance> obstacleDistance;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<AlignmentSeparation> alignmentSeparation;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> cellCount;
+
+            public void Execute()
+            {
+            }
         }
         
         protected override JobHandle OnUpdate(JobHandle inputDeps)
@@ -174,31 +253,33 @@ namespace UnityEngine.ECS.Boids
                 var nearestTargetPositions = variation.GetComponentDataArray<BoidNearestTargetPosition>();
                 var headings = variation.GetComponentDataArray<Heading>();
                 variation.Dispose();
-                     
-                var positionHashes = new NativeArray<int>(positions.Length, Allocator.TempJob);
+
+                var boidCount = positions.Length;
+
+                var positionHashes = new NativeArray<int>(boidCount, Allocator.TempJob);
                 var hashBoidLocationsJob = new HashBoidLocations
                 {
                     positions = positions,
                     positionHashes = positionHashes,
                     cellRadius = settings.cellRadius
                 };
-                var hashBoidLocationsJobHandle = hashBoidLocationsJob.Schedule(positions.Length, 64, inputDeps);
+                var hashBoidLocationsJobHandle = hashBoidLocationsJob.Schedule(boidCount, 64, inputDeps);
                 
-                var boidCellIndices = new NativeArray<int>(positions.Length, Allocator.TempJob);
-                var cellBoidCount = new NativeArray<int>(positions.Length, Allocator.TempJob);
-                var cellSteerings = new NativeArray<CellSteering>(positions.Length, Allocator.TempJob);
+                var cellIndices = new NativeArray<int>(boidCount, Allocator.TempJob);
+                var neighborCount = new NativeArray<int>(boidCount, Allocator.TempJob);
+                var cellAlignmentSeparation = new NativeArray<AlignmentSeparation>(boidCount, Allocator.TempJob);
                 var cellCount = new NativeArray<int>(1, Allocator.TempJob);
                 
                 NativeHashMap<int,int> cells;
                 if (cacheIndex > (m_Cells.Count - 1))
                 {
-                    cells = new NativeHashMap<int,int>(positions.Length,Allocator.Persistent);
+                    cells = new NativeHashMap<int,int>(boidCount,Allocator.Persistent);
                     m_Cells.Add(cells);
                 }
                 else
                 {
                     cells = m_Cells[cacheIndex];
-                    cells.Capacity = math.max(cells.Capacity, positions.Length);
+                    cells.Capacity = math.max(cells.Capacity, boidCount);
                 }
 
                 var clearCellIndicesJob = new ClearCellIndices
@@ -207,44 +288,91 @@ namespace UnityEngine.ECS.Boids
                 };
                 var clearCellIndicesJobHandle = clearCellIndicesJob.Schedule(inputDeps);
 
-                inputDeps = JobHandle.CombineDependencies(hashBoidLocationsJobHandle, clearCellIndicesJobHandle);
-                
+                var trackBarrierJobHandle =
+                    JobHandle.CombineDependencies(hashBoidLocationsJobHandle, clearCellIndicesJobHandle);
+
                 var trackBoidCellsJob = new TrackBoidCells
                 {
                     positionHashes = positionHashes,
-                    boidCellIndices = boidCellIndices,
-                    cellBoidCount = cellBoidCount,
-                    cellSteerings = cellSteerings,
+                    cellIndices = cellIndices,
+                    neighborCount = neighborCount,
+                    cellAlignmentSeparation = cellAlignmentSeparation,
                     positions = positions,
                     headings = headings,
                     cellCount = cellCount,
                     hashCellIndices = cells
                 };
-                inputDeps = trackBoidCellsJob.Schedule(inputDeps);
-                    
+                var trackBoidCellsJobHandle = trackBoidCellsJob.Schedule(trackBarrierJobHandle);
+                
+                var target = new NativeArray<float3>(boidCount, Allocator.TempJob);
+                var targetJob = new HeadingTarget
+                {
+                    positions = positions,
+                    nearestTargetPositions = nearestTargetPositions,
+                    settings = settings,
+                    target = target
+                };
+                var targetJobHandle = targetJob.Schedule(boidCount, 64, trackBarrierJobHandle);
+                
+                var obstacleDistance = new NativeArray<ObstacleDistance>(boidCount, Allocator.TempJob);
+                var obstacleJob = new HeadingObstacle
+                {
+                    positions = positions,
+                    nearestObstaclePositions = nearestObstaclePositions,
+                    settings = settings,
+                    obstacleDistance = obstacleDistance
+                };
+                var obstacleJobHandle = obstacleJob.Schedule(boidCount, 64, trackBarrierJobHandle);
+                
                 var divideAlignmentBoidCellsJob = new DivideAlignmentBoidCells
                 {
-                    cellBoidCount = cellBoidCount,
-                    cellSteerings = cellSteerings,
+                    neighborCount = neighborCount,
+                    cellAlignmentSeparation = cellAlignmentSeparation,
                     cellCount = cellCount
                 };
-                inputDeps = divideAlignmentBoidCellsJob.Schedule(positions.Length, 1024, inputDeps);
+                var divideAlignmentBoidCellsJobHandle = divideAlignmentBoidCellsJob.Schedule(boidCount, 1024, trackBoidCellsJobHandle);
+
+                var alignmentSeparation = new NativeArray<AlignmentSeparation>(boidCount,Allocator.TempJob);
+                var alignmentSeparationJob = new HeadingAlignmentSeparation
+                {
+                    headings = headings,
+                    positions = positions,
+                    cellIndices = cellIndices,
+                    cellAlignmentSeparation = cellAlignmentSeparation,
+                    neighborCount = neighborCount,
+                    settings = settings,
+                    alignmentSeparation = alignmentSeparation
+                };
+                var alignmentSeparationJobHandle = alignmentSeparationJob.Schedule(boidCount, 1024, divideAlignmentBoidCellsJobHandle);
+
+                var weightedHeadingsJobHandle =
+                    JobHandle.CombineDependencies(targetJobHandle, obstacleJobHandle, alignmentSeparationJobHandle);
                 
                 var steerJob = new Steer
                 {
-                    positions = positions,
-                    headings = headings,
-                    sharedIndices = boidCellIndices,
-                    sharedValueIndexCounts = cellBoidCount,
-                    nearestTargetPositions = nearestTargetPositions,
-                    nearestObstaclePositions = nearestObstaclePositions,
+                    target = target,
+                    obstacleDistance = obstacleDistance,
+                    alignmentSeparation = alignmentSeparation,
                     settings = settings,
-                    cellSteerings = cellSteerings,
-                    positionHashes = positionHashes,
-                    dt = Time.deltaTime
+                    dt = Time.deltaTime,
+                    headings = headings
                 };
+                var steerJobHandle = steerJob.Schedule(boidCount, 1024, weightedHeadingsJobHandle);
 
-                inputDeps = steerJob.Schedule(positions.Length, 1024, inputDeps);
+                var disposeJob = new Dispose
+                {
+                    target = target,
+                    obstacleDistance = obstacleDistance,
+                    cellAlignmentSeparation = cellAlignmentSeparation,
+                    cellIndices = cellIndices,
+                    neighborCount = neighborCount,
+                    alignmentSeparation = alignmentSeparation,
+                    positionHashes = positionHashes,
+                    cellCount = cellCount
+                };
+                var disposeJobHandle = disposeJob.Schedule(steerJobHandle);
+                
+                inputDeps = disposeJobHandle;
             }
             m_UniqueTypes.Clear();
 

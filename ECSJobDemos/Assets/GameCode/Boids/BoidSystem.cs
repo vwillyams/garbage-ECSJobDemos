@@ -401,9 +401,9 @@ namespace UnityEngine.ECS.Boids
         {
             m_MainGroup = GetComponentGroup(
                 ComponentType.ReadOnly(typeof(Boid)),
-                ComponentType.ReadOnly(typeof(Position)),
-                ComponentType.ReadOnly(typeof(TransformMatrix)),
                 ComponentType.ReadOnly(typeof(MoveSpeed)),
+                typeof(Position),
+                typeof(TransformMatrix),
                 typeof(Heading));
             m_TargetGroup = GetComponentGroup(    
                 ComponentType.ReadOnly(typeof(BoidTarget)),

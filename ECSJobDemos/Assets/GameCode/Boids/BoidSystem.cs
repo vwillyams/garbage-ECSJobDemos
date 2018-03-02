@@ -127,36 +127,6 @@ namespace UnityEngine.ECS.Boids
             }
         }
 
-        [ComputeJobOptimization]
-        struct HeadingAlignmentSeparation : IJobParallelFor
-        {
-            [ReadOnly] public ComponentDataArray<Heading> headings;
-            [ReadOnly] public ComponentDataArray<Position> positions;
-            [ReadOnly] public NativeArray<int> cellIndices;
-            [ReadOnly] public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
-            [ReadOnly] public NativeArray<int> neighborCount;
-            [ReadOnly] public Boid settings;
-            public NativeArray<AlignmentSeparation> alignmentSeparation;
-            
-            public void Execute(int index)
-            {
-                var forward = headings[index].Value;
-                var position = positions[index].Value;
-                var cellIndex = cellIndices[index];
-                var count = neighborCount[cellIndex];
-                var alignmentSteering = cellAlignmentSeparation[cellIndex].alignment/count;
-                var alignmentResult = settings.alignmentWeight * math_experimental.normalizeSafe(alignmentSteering-forward);
-                var separationSteering = cellAlignmentSeparation[cellIndex].separation;
-                var separationResult = settings.separationWeight * math_experimental.normalizeSafe((position * count) + separationSteering);
-                
-                alignmentSeparation[index] = new AlignmentSeparation
-                {
-                    separation = separationResult,
-                    alignment = alignmentResult
-                };
-            }
-        }
-
         struct TargetObstacle
         {
             public float3 target;
@@ -190,20 +160,30 @@ namespace UnityEngine.ECS.Boids
                 };
             }
         }
-
+        
         [ComputeJobOptimization]
         struct Steer : IJobParallelFor
         {
-            [ReadOnly] public NativeArray<TargetObstacle> targetObstacle;
-            [ReadOnly] public NativeArray<AlignmentSeparation> alignmentSeparation;
+            [ReadOnly] public ComponentDataArray<Position> positions;
+            [ReadOnly] public NativeArray<int> cellIndices;
+            [ReadOnly] public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
+            [ReadOnly] public NativeArray<int> neighborCount;
             [ReadOnly] public Boid settings;
+            [ReadOnly] public NativeArray<TargetObstacle> targetObstacle;
             public float dt;
             public ComponentDataArray<Heading> headings;
 
             public void Execute(int index)
             {
                 var forward = headings[index].Value;
-                var normalHeading = math_experimental.normalizeSafe(alignmentSeparation[index].alignment + alignmentSeparation[index].separation + targetObstacle[index].target);
+                var position = positions[index].Value;
+                var cellIndex = cellIndices[index];
+                var count = neighborCount[cellIndex];
+                var alignmentSteering = cellAlignmentSeparation[cellIndex].alignment/count;
+                var alignmentResult = settings.alignmentWeight * math_experimental.normalizeSafe(alignmentSteering-forward);
+                var separationSteering = cellAlignmentSeparation[cellIndex].separation;
+                var separationResult = settings.separationWeight * math_experimental.normalizeSafe((position * count) + separationSteering);
+                var normalHeading = math_experimental.normalizeSafe(alignmentResult + separationResult + targetObstacle[index].target);
                 var targetForward = math.select(normalHeading,targetObstacle[index].obstacle,targetObstacle[index].avoidObstacle < 0);
                 var steer = math_experimental.normalizeSafe(forward + dt*(targetForward-forward));
                 headings[index] = new Heading { Value = steer };
@@ -218,7 +198,6 @@ namespace UnityEngine.ECS.Boids
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<CellHash> positionHashes;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<TargetObstacle> targetObstacle;
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<AlignmentSeparation> alignmentSeparation;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> cellCount;
 
             public void Execute()
@@ -302,25 +281,15 @@ namespace UnityEngine.ECS.Boids
                 };
                 var cellsJobHandle = cellsJob.Schedule(trackBarrierJobHandle);
                 
-                var alignmentSeparation = new NativeArray<AlignmentSeparation>(boidCount,Allocator.TempJob);
-                var alignmentSeparationJob = new HeadingAlignmentSeparation
+                var steerBarrierJobHandle = JobHandle.CombineDependencies(targetObstacleJobHandle, cellsJobHandle);
+                
+                var steerJob = new Steer
                 {
-                    headings = headings,
                     positions = positions,
                     cellIndices = cellIndices,
                     cellAlignmentSeparation = cellAlignmentSeparation,
                     neighborCount = neighborCount,
-                    settings = settings,
-                    alignmentSeparation = alignmentSeparation
-                };
-                var alignmentSeparationJobHandle = alignmentSeparationJob.Schedule(boidCount, 1024, cellsJobHandle);
-
-                var steerBarrierJobHandle = JobHandle.CombineDependencies(targetObstacleJobHandle, alignmentSeparationJobHandle);
-                
-                var steerJob = new Steer
-                {
                     targetObstacle = targetObstacle,
-                    alignmentSeparation = alignmentSeparation,
                     settings = settings,
                     dt = Time.deltaTime,
                     headings = headings
@@ -333,7 +302,6 @@ namespace UnityEngine.ECS.Boids
                     cellAlignmentSeparation = cellAlignmentSeparation,
                     cellIndices = cellIndices,
                     neighborCount = neighborCount,
-                    alignmentSeparation = alignmentSeparation,
                     positionHashes = positionHashes,
                     cellCount = cellCount
                 };

@@ -7,7 +7,6 @@ using Unity.Mathematics.Experimental;
 using UnityEngine.ECS.SimpleRotation;
 using Unity.Transforms;
 using UnityEngine.ECS.Utilities;
-using UnityEngine.Experimental.UIElements.StyleEnums;
 
 namespace UnityEngine.ECS.Boids
 {
@@ -18,7 +17,7 @@ namespace UnityEngine.ECS.Boids
         private List<NativeHashMap<int,int>> m_Cells = new List<NativeHashMap<int,int>>();
 
         [ComputeJobOptimization]
-        struct HashBoidLocations : IJobParallelFor
+        struct HashPositions : IJobParallelFor
         {
             [ReadOnly] public ComponentDataArray<Position> positions;
             public NativeArray<int> positionHashes;
@@ -32,7 +31,7 @@ namespace UnityEngine.ECS.Boids
         }
 
         [ComputeJobOptimization]
-        struct ClearCellIndices : IJob
+        struct ClearHashCellIndices : IJob
         {
             public NativeHashMap<int, int> hashCellIndices;
 
@@ -49,7 +48,7 @@ namespace UnityEngine.ECS.Boids
         }
 
         [ComputeJobOptimization]
-        struct TrackBoidCells : IJob
+        struct Cells : IJob
         {
             [ReadOnly] public NativeArray<int> positionHashes;
             [NativeDisableParallelForRestriction] public NativeArray<int> cellIndices;
@@ -63,9 +62,6 @@ namespace UnityEngine.ECS.Boids
             public void Execute()
             {
                 var positionCount = positions.Length;
-                
-                hashCellIndices.Clear();
-                
                 int nextCellIndex = 0;
                 for (int i = 0; i < positionCount; i++)
                 {
@@ -79,7 +75,7 @@ namespace UnityEngine.ECS.Boids
                         cellAlignmentSeparation[cellIndex] = new AlignmentSeparation();
                         nextCellIndex++;
                     }
-                    cellIndices[i] = (int)cellIndex;
+                    cellIndices[i] = cellIndex;
                     neighborCount[cellIndex]++;
 
                     var separation = cellAlignmentSeparation[cellIndex].separation;
@@ -99,7 +95,7 @@ namespace UnityEngine.ECS.Boids
         }
 
         [ComputeJobOptimization]
-        struct DivideAlignmentBoidCells : IJobParallelFor
+        struct CellsDivideAlignment : IJobParallelFor
         {
             [ReadOnly] public NativeArray<int> cellCount;
             public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
@@ -257,7 +253,7 @@ namespace UnityEngine.ECS.Boids
                 var boidCount = positions.Length;
 
                 var positionHashes = new NativeArray<int>(boidCount, Allocator.TempJob);
-                var hashBoidLocationsJob = new HashBoidLocations
+                var hashBoidLocationsJob = new HashPositions
                 {
                     positions = positions,
                     positionHashes = positionHashes,
@@ -282,16 +278,15 @@ namespace UnityEngine.ECS.Boids
                     cells.Capacity = math.max(cells.Capacity, boidCount);
                 }
 
-                var clearCellIndicesJob = new ClearCellIndices
+                var clearCellIndicesJob = new ClearHashCellIndices
                 {
                     hashCellIndices = cells
                 };
                 var clearCellIndicesJobHandle = clearCellIndicesJob.Schedule(inputDeps);
 
-                var trackBarrierJobHandle =
-                    JobHandle.CombineDependencies(hashBoidLocationsJobHandle, clearCellIndicesJobHandle);
+                var trackBarrierJobHandle = JobHandle.CombineDependencies(hashBoidLocationsJobHandle, clearCellIndicesJobHandle);
 
-                var trackBoidCellsJob = new TrackBoidCells
+                var trackBoidCellsJob = new Cells
                 {
                     positionHashes = positionHashes,
                     cellIndices = cellIndices,
@@ -324,7 +319,7 @@ namespace UnityEngine.ECS.Boids
                 };
                 var obstacleJobHandle = obstacleJob.Schedule(boidCount, 64, trackBarrierJobHandle);
                 
-                var divideAlignmentBoidCellsJob = new DivideAlignmentBoidCells
+                var divideAlignmentBoidCellsJob = new CellsDivideAlignment
                 {
                     neighborCount = neighborCount,
                     cellAlignmentSeparation = cellAlignmentSeparation,
@@ -345,8 +340,7 @@ namespace UnityEngine.ECS.Boids
                 };
                 var alignmentSeparationJobHandle = alignmentSeparationJob.Schedule(boidCount, 1024, divideAlignmentBoidCellsJobHandle);
 
-                var weightedHeadingsJobHandle =
-                    JobHandle.CombineDependencies(targetJobHandle, obstacleJobHandle, alignmentSeparationJobHandle);
+                var steerBarrierJobHandle = JobHandle.CombineDependencies(targetJobHandle, obstacleJobHandle, alignmentSeparationJobHandle);
                 
                 var steerJob = new Steer
                 {
@@ -357,7 +351,7 @@ namespace UnityEngine.ECS.Boids
                     dt = Time.deltaTime,
                     headings = headings
                 };
-                var steerJobHandle = steerJob.Schedule(boidCount, 1024, weightedHeadingsJobHandle);
+                var steerJobHandle = steerJob.Schedule(boidCount, 1024, steerBarrierJobHandle);
 
                 var disposeJob = new Dispose
                 {

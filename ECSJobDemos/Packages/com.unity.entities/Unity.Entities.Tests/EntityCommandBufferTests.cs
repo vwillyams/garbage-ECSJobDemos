@@ -367,7 +367,7 @@ namespace UnityEngine.ECS.Tests
         }
 
         // TODO: Burst breaks this test.
-        [ComputeJobOptimization(CompileSynchronously = true)]
+        //[ComputeJobOptimization(CompileSynchronously = true)]
         public struct TestBurstCommandBufferJob : IJob
         {
             public Entity e0;

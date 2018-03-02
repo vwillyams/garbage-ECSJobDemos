@@ -435,6 +435,8 @@ namespace Unity.Entities
 
         protected override void OnDestroyManager()
         {
+            FlushBuffers(false);
+
             m_PendingBuffers.Dispose();
 
             base.OnDestroyManager();
@@ -442,16 +444,22 @@ namespace Unity.Entities
 
         protected sealed override void OnUpdate()
         {
+            FlushBuffers(true);
+
+            m_PendingBuffers.Clear();
+        }
+
+        private void FlushBuffers(bool playBack)
+        {
             m_ProducerHandle.Complete();
             m_ProducerHandle = new JobHandle();
 
             for (int i = 0; i < m_PendingBuffers.Length; ++i)
             {
-                m_PendingBuffers[i].Playback(EntityManager);
+                if (playBack)
+                    m_PendingBuffers[i].Playback(EntityManager);
                 m_PendingBuffers[i].Dispose();
             }
-
-            m_PendingBuffers.Clear();
         }
     }
 }

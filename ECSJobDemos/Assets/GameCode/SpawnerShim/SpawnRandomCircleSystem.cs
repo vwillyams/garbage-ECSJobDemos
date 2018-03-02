@@ -25,6 +25,11 @@ namespace ECS.Spawners
             m_MainGroup = GetComponentGroup(typeof(SpawnRandomCircle),typeof(Position));
         }
 
+        /// <summary>
+        /// Spawn count Entities based on the specified Prefab. Components on the Prefab will be added to the Entities.
+        /// The TransformPositionComponent of each Entity will be set to a random position on the circle described by
+        /// the TransformPositionComponent associated with this component and the radius.
+        /// </summary>
         protected override void OnUpdate()
         {
             var uniqueTypes = new List<SpawnRandomCircle>(10);

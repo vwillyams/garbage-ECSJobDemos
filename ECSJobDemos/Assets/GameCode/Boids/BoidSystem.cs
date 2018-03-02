@@ -14,6 +14,8 @@ namespace UnityEngine.ECS.Boids
     public class BoidSystem : JobComponentSystem
     {
         private ComponentGroup m_MainGroup;
+        private ComponentGroup m_TargetGroup;
+        private ComponentGroup m_ObstacleGroup;
         private List<Boid> m_UniqueTypes = new List<Boid>(10);
         private List<NativeHashMap<CellHash,int>> m_Cells = new List<NativeHashMap<CellHash,int>>();
 
@@ -138,23 +140,46 @@ namespace UnityEngine.ECS.Boids
         struct HeadingTargetObstacle : IJobParallelFor
         {
             [ReadOnly] public ComponentDataArray<Position> positions;
-            [ReadOnly] public ComponentDataArray<BoidNearestObstaclePosition> nearestObstaclePositions;
-            [ReadOnly] public ComponentDataArray<BoidNearestTargetPosition> nearestTargetPositions;
+            [ReadOnly] public NativeArray<float3> targetPositions;
+            [ReadOnly] public NativeArray<float3> obstaclePositions;
             [ReadOnly] public Boid settings;
             public NativeArray<TargetObstacle> targetObstacle;
+
+            void NearestPosition(NativeArray<float3> targets, float3 position, out float3 nearestPosition, out float nearestDistance )
+            {
+                nearestPosition = targets[0];
+                nearestDistance = math.lengthSquared(position-nearestPosition);
+                for (int i = 1; i < targets.Length; i++)
+                {
+                    var targetPosition = targets[i];
+                    var distance = math.lengthSquared(position-targetPosition);
+                    var nearest = distance < nearestDistance;
+
+                    nearestDistance = math.select(nearestDistance, distance, nearest);
+                    nearestPosition = math.select(nearestPosition, targetPosition, nearest);
+                }
+                nearestDistance = math.sqrt(nearestDistance);
+            }
             
             public void Execute(int index)
             {
                 var position = positions[index].Value;
-                var nearestObstaclePosition = nearestObstaclePositions[index].Value;
+                
+                float3 nearestObstaclePosition;
+                float nearestObstacleDistance;
+                NearestPosition(obstaclePositions,position,out nearestObstaclePosition,out nearestObstacleDistance);
+                
+                float3 nearestTargetPosition;
+                float nearestTargetDistance;
+                NearestPosition(targetPositions,position,out nearestTargetPosition,out nearestTargetDistance);
+                
                 var obstacleSteering = (position - nearestObstaclePosition);
-                var obstacleDistance = math.length(obstacleSteering);
                 var avoidObstacleHeading = (nearestObstaclePosition + math_experimental.normalizeSafe(obstacleSteering) * settings.obstacleAversionDistance)-position;
-                var targetHeading = settings.targetWeight * math_experimental.normalizeSafe(nearestTargetPositions[index].Value - position);
+                var targetHeading = settings.targetWeight * math_experimental.normalizeSafe(nearestTargetPosition - position);
 
                 targetObstacle[index] = new TargetObstacle
                 {
-                    avoidObstacle = obstacleDistance - settings.obstacleAversionDistance,
+                    avoidObstacle = nearestObstacleDistance - settings.obstacleAversionDistance,
                     obstacle = avoidObstacleHeading,
                     target = targetHeading
                 };
@@ -199,6 +224,8 @@ namespace UnityEngine.ECS.Boids
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<CellHash> positionHashes;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<TargetObstacle> targetObstacle;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> cellCount;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> targetPositions;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> obstaclePositions;
 
             public void Execute()
             {
@@ -216,8 +243,6 @@ namespace UnityEngine.ECS.Boids
                 var cacheIndex = typeIndex - 1;
                 var variation = m_MainGroup.GetVariation(settings);
                 var positions = variation.GetComponentDataArray<Position>();
-                var nearestObstaclePositions = variation.GetComponentDataArray<BoidNearestObstaclePosition>();
-                var nearestTargetPositions = variation.GetComponentDataArray<BoidNearestTargetPosition>();
                 var headings = variation.GetComponentDataArray<Heading>();
                 variation.Dispose();
 
@@ -254,17 +279,37 @@ namespace UnityEngine.ECS.Boids
                     hashCellIndices = cells
                 };
                 var clearCellIndicesJobHandle = clearCellIndicesJob.Schedule(inputDeps);
+
+                var targetSourcePositions = m_TargetGroup.GetComponentDataArray<Position>();
+                var targetPositions = new NativeArray<float3>(targetSourcePositions.Length, Allocator.TempJob);
+                var targetPositionsJob = new CopyComponentData<Position, float3>
+                {
+                    source = targetSourcePositions,
+                    results = targetPositions
+                };
+                var targetPositionsJobHandle = targetPositionsJob.Schedule(targetSourcePositions.Length,4,inputDeps);
                 
-                var trackBarrierJobHandle = JobHandle.CombineDependencies(hashBoidLocationsJobHandle, clearCellIndicesJobHandle);
+                var obstacleSourcePositions = m_ObstacleGroup.GetComponentDataArray<Position>();
+                var obstaclePositions = new NativeArray<float3>(obstacleSourcePositions.Length, Allocator.TempJob);
+                var obstaclePositionsJob = new CopyComponentData<Position, float3>
+                {
+                    source = obstacleSourcePositions,
+                    results = obstaclePositions
+                };
+                var obstaclePositionsJobHandle = obstaclePositionsJob.Schedule(obstacleSourcePositions.Length,4,inputDeps);
+
+                var trackBarrierJobHandle = JobHandle.CombineDependencies(
+                    JobHandle.CombineDependencies(hashBoidLocationsJobHandle, clearCellIndicesJobHandle),
+                    JobHandle.CombineDependencies(targetPositionsJobHandle, obstaclePositionsJobHandle));
                 
                 var targetObstacle = new NativeArray<TargetObstacle>(boidCount, Allocator.TempJob);
                 var targetObstacleJob = new HeadingTargetObstacle
                 {
+                    targetObstacle = targetObstacle,
+                    targetPositions = targetPositions,
+                    obstaclePositions= obstaclePositions,
                     positions = positions,
-                    nearestObstaclePositions = nearestObstaclePositions,
-                    nearestTargetPositions = nearestTargetPositions,
                     settings = settings,
-                    targetObstacle = targetObstacle
                 };
                 var targetObstacleJobHandle = targetObstacleJob.Schedule(boidCount, 1024, trackBarrierJobHandle);
                 
@@ -303,7 +348,9 @@ namespace UnityEngine.ECS.Boids
                     cellIndices = cellIndices,
                     neighborCount = neighborCount,
                     positionHashes = positionHashes,
-                    cellCount = cellCount
+                    cellCount = cellCount,
+                    targetPositions = targetPositions,
+                    obstaclePositions = obstaclePositions
                 };
                 var disposeJobHandle = disposeJob.Schedule(steerJobHandle);
                 
@@ -319,10 +366,15 @@ namespace UnityEngine.ECS.Boids
             m_MainGroup = GetComponentGroup(
                 ComponentType.ReadOnly(typeof(Boid)),
                 ComponentType.ReadOnly(typeof(Position)),
-                ComponentType.ReadOnly(typeof(BoidNearestObstaclePosition)),
-                ComponentType.ReadOnly(typeof(BoidNearestTargetPosition)),
                 typeof(Heading));
+            m_TargetGroup = GetComponentGroup(    
+                ComponentType.ReadOnly(typeof(BoidTarget)),
+                ComponentType.ReadOnly(typeof(Position)));
+            m_ObstacleGroup = GetComponentGroup(    
+                ComponentType.ReadOnly(typeof(BoidObstacle)),
+                ComponentType.ReadOnly(typeof(Position)));
         }
+        
 
         protected override void OnDestroyManager()
         {

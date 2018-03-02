@@ -309,12 +309,15 @@ namespace Unity.Transforms
             var rotRoots = new NativeArray<Entity>(m_RootRotGroup.Length, Allocator.TempJob);
             
             m_Hierarchy.Capacity = math.max(m_ParentGroup.Length + rootCount,m_Hierarchy.Capacity);
+            m_Hierarchy.Clear();
 
+            /*
             var clearHierarchyJob = new ClearHierarchy
             {
                 hierarchy = m_Hierarchy
             };
             var clearHierarchyJobHandle = clearHierarchyJob.Schedule(inputDeps);
+            */
 
             var copyTransRootsJob = new CopyEntities
             {
@@ -344,7 +347,7 @@ namespace Unity.Transforms
             };
             var copyRotRootsJobHandle = copyRotRootsJob.Schedule(m_RootRotGroup.Length, 64, inputDeps);
 
-            var hiearchyBarrierJobHandle = JobHandle.CombineDependencies(inputDeps, clearHierarchyJobHandle);
+            // var hiearchyBarrierJobHandle = JobHandle.CombineDependencies(inputDeps, clearHierarchyJobHandle);
         
             var buildHierarchyJob = new BuildHierarchy
             {
@@ -352,7 +355,7 @@ namespace Unity.Transforms
                 transformParents = m_ParentGroup.transformParents,
                 entities = m_ParentGroup.entities
             };
-            var buildHierarchyJobHandle = buildHierarchyJob.Schedule(m_ParentGroup.Length, 64, hiearchyBarrierJobHandle);
+            var buildHierarchyJobHandle = buildHierarchyJob.Schedule(m_ParentGroup.Length, 64, inputDeps);
                 
             var updateRotTransTransformRootsJob = new UpdateRotTransTransformRoots
             {

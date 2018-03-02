@@ -7,6 +7,7 @@ using Unity.Mathematics;
 using Unity.Mathematics.Experimental;
 using UnityEngine.ECS.SimpleRotation;
 using Unity.Transforms;
+using UnityEngine.ECS.SimpleMovement;
 using UnityEngine.ECS.Utilities;
 
 namespace UnityEngine.ECS.Boids
@@ -189,7 +190,7 @@ namespace UnityEngine.ECS.Boids
         [ComputeJobOptimization]
         struct Steer : IJobParallelFor
         {
-            [ReadOnly] public ComponentDataArray<Position> positions;
+            public ComponentDataArray<Position> positions;
             [ReadOnly] public NativeArray<int> cellIndices;
             [ReadOnly] public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
             [ReadOnly] public NativeArray<int> neighborCount;
@@ -197,6 +198,7 @@ namespace UnityEngine.ECS.Boids
             [ReadOnly] public NativeArray<TargetObstacle> targetObstacle;
             public float dt;
             public ComponentDataArray<Heading> headings;
+            [ReadOnly] public ComponentDataArray<MoveSpeed> moveSpeeds;
 
             public void Execute(int index)
             {
@@ -211,9 +213,32 @@ namespace UnityEngine.ECS.Boids
                 var normalHeading = math_experimental.normalizeSafe(alignmentResult + separationResult + targetObstacle[index].target);
                 var targetForward = math.select(normalHeading,targetObstacle[index].obstacle,targetObstacle[index].avoidObstacle < 0);
                 var steer = math_experimental.normalizeSafe(forward + dt*(targetForward-forward));
+                var speed = moveSpeeds[index].speed;
                 headings[index] = new Heading { Value = steer };
+                positions[index] = new Position {Value = position + (steer * speed * dt)};
             }
         }
+
+        [ComputeJobOptimization]
+        struct Transform : IJobParallelFor
+        {
+            [ReadOnly] public ComponentDataArray<Position> positions;
+            [ReadOnly] public ComponentDataArray<Heading> headings;
+            public ComponentDataArray<TransformMatrix> transformMatrices;
+
+            public void Execute(int index)
+            {
+                float3 heading = math_experimental.normalizeSafe(headings[index].Value);
+                float3 position = positions[index].Value;
+                float4x4 rottrans = math.lookRotationToMatrix(position, heading, math.up());
+
+                transformMatrices[index] = new TransformMatrix
+                {
+                    Value = rottrans
+                };
+            }
+        }
+        
         
         [ComputeJobOptimization]
         struct Dispose : IJob
@@ -244,6 +269,8 @@ namespace UnityEngine.ECS.Boids
                 var variation = m_MainGroup.GetVariation(settings);
                 var positions = variation.GetComponentDataArray<Position>();
                 var headings = variation.GetComponentDataArray<Heading>();
+                var transformMatrices = variation.GetComponentDataArray<TransformMatrix>();
+                var moveSpeeds = variation.GetComponentDataArray<MoveSpeed>();
                 variation.Dispose();
 
                 var boidCount = positions.Length;
@@ -298,7 +325,7 @@ namespace UnityEngine.ECS.Boids
                 };
                 var obstaclePositionsJobHandle = obstaclePositionsJob.Schedule(obstacleSourcePositions.Length,4,inputDeps);
 
-                var trackBarrierJobHandle = JobHandle.CombineDependencies(
+                var cellsBarrierJobHandle = JobHandle.CombineDependencies(
                     JobHandle.CombineDependencies(hashBoidLocationsJobHandle, clearCellIndicesJobHandle),
                     JobHandle.CombineDependencies(targetPositionsJobHandle, obstaclePositionsJobHandle));
                 
@@ -311,7 +338,15 @@ namespace UnityEngine.ECS.Boids
                     positions = positions,
                     settings = settings,
                 };
-                var targetObstacleJobHandle = targetObstacleJob.Schedule(boidCount, 1024, trackBarrierJobHandle);
+                var targetObstacleJobHandle = targetObstacleJob.Schedule(boidCount, 1024, cellsBarrierJobHandle);
+                
+                var transformJob = new Transform
+                {
+                    positions = positions,
+                    headings = headings,
+                    transformMatrices = transformMatrices,
+                };
+                var transformJobHandle = transformJob.Schedule(boidCount, 1024, targetObstacleJobHandle);
                 
                 var cellsJob = new Cells
                 {
@@ -324,9 +359,9 @@ namespace UnityEngine.ECS.Boids
                     cellCount = cellCount,
                     hashCellIndices = cells
                 };
-                var cellsJobHandle = cellsJob.Schedule(trackBarrierJobHandle);
-                
-                var steerBarrierJobHandle = JobHandle.CombineDependencies(targetObstacleJobHandle, cellsJobHandle);
+                var cellsJobHandle = cellsJob.Schedule(cellsBarrierJobHandle);
+
+                var steerBarrierJobHandle = JobHandle.CombineDependencies(targetObstacleJobHandle, cellsJobHandle,transformJobHandle);
                 
                 var steerJob = new Steer
                 {
@@ -337,7 +372,8 @@ namespace UnityEngine.ECS.Boids
                     targetObstacle = targetObstacle,
                     settings = settings,
                     dt = Time.deltaTime,
-                    headings = headings
+                    headings = headings,
+                    moveSpeeds = moveSpeeds
                 };
                 var steerJobHandle = steerJob.Schedule(boidCount, 1024, steerBarrierJobHandle);
 
@@ -353,7 +389,7 @@ namespace UnityEngine.ECS.Boids
                     obstaclePositions = obstaclePositions
                 };
                 var disposeJobHandle = disposeJob.Schedule(steerJobHandle);
-                
+
                 inputDeps = disposeJobHandle;
             }
             m_UniqueTypes.Clear();
@@ -366,6 +402,8 @@ namespace UnityEngine.ECS.Boids
             m_MainGroup = GetComponentGroup(
                 ComponentType.ReadOnly(typeof(Boid)),
                 ComponentType.ReadOnly(typeof(Position)),
+                ComponentType.ReadOnly(typeof(TransformMatrix)),
+                ComponentType.ReadOnly(typeof(MoveSpeed)),
                 typeof(Heading));
             m_TargetGroup = GetComponentGroup(    
                 ComponentType.ReadOnly(typeof(BoidTarget)),

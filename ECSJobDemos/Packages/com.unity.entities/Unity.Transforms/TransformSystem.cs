@@ -15,6 +15,7 @@ namespace Unity.Transforms
 
         struct RootTransGroup
         {
+            [ReadOnly] public SubtractiveComponent<TransformExternal> transfromExternal;
             [ReadOnly] public SubtractiveComponent<Rotation> rotations;
             [ReadOnly] public SubtractiveComponent<TransformParent> parents;
             [ReadOnly] public ComponentDataArray<Position> positions;
@@ -26,6 +27,7 @@ namespace Unity.Transforms
         
         struct RootRotGroup
         {
+            [ReadOnly] public SubtractiveComponent<TransformExternal> transfromExternal;
             [ReadOnly] public ComponentDataArray<Rotation> rotations;
             [ReadOnly] public SubtractiveComponent<TransformParent> parents;
             [ReadOnly] public SubtractiveComponent<Position> positions;
@@ -37,6 +39,7 @@ namespace Unity.Transforms
         
         struct RootRotTransNoTransformGroup
         {
+            [ReadOnly] public SubtractiveComponent<TransformExternal> transfromExternal;
             [ReadOnly] public ComponentDataArray<Rotation> rotations;
             [ReadOnly] public SubtractiveComponent<TransformParent> parents;
             [ReadOnly] public ComponentDataArray<Position> positions;
@@ -49,6 +52,7 @@ namespace Unity.Transforms
         
         struct RootRotTransTransformGroup
         {
+            [ReadOnly] public SubtractiveComponent<TransformExternal> transfromExternal;
             [ReadOnly] public ComponentDataArray<Rotation> rotations;
             [ReadOnly] public SubtractiveComponent<TransformParent> parents;
             [ReadOnly] public ComponentDataArray<Position> positions;
@@ -61,6 +65,7 @@ namespace Unity.Transforms
 
         struct ParentGroup
         {
+            [ReadOnly] public SubtractiveComponent<TransformExternal> transfromExternal;
             [ReadOnly] public ComponentDataArray<TransformParent> transformParents;
             [ReadOnly] public EntityArray entities;
             public int Length;

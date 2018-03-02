@@ -15,26 +15,26 @@ namespace UnityEditor.ECS
             public World WorldSelection { get; }
         }
         
-        [Test]
-        public void ComponentGroupIntegratedListView_CanSetNullSystem()
-        {
-
-            var listView = new EntityListView(new TreeViewState(), EmptySystem, new FakeWindow());
-            
-            Assert.DoesNotThrow( () => listView.SelectedSystem = null );
-        }
-        
-        [Test]
-        public void ComponentGroupIntegratedListView_CanCreateWithNullWindow()
-        {
-            EntityListView listView;
-            
-            Assert.DoesNotThrow( () =>
-            {
-                listView = new EntityListView(new TreeViewState(), EmptySystem, null);
-                listView.SelectedSystem = null;
-            });
-        }
+//        [Test]
+//        public void ComponentGroupIntegratedListView_CanSetNullSystem()
+//        {
+//
+//            var listView = new EntityListView(new TreeViewState(), EmptySystem, new FakeWindow());
+//            
+//            Assert.DoesNotThrow( () => listView.SelectedSystem = null );
+//        }
+//        
+//        [Test]
+//        public void ComponentGroupIntegratedListView_CanCreateWithNullWindow()
+//        {
+//            EntityListView listView;
+//            
+//            Assert.DoesNotThrow( () =>
+//            {
+//                listView = new EntityListView(new TreeViewState(), EmptySystem, null);
+//                listView.SelectedSystem = null;
+//            });
+//        }
         
     }
 }

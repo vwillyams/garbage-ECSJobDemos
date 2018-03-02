@@ -9,7 +9,7 @@ using UnityEditor.IMGUI.Controls;
 
 namespace UnityEditor.ECS
 {
-    public class EntityDebugger : EditorWindow, ISystemSelectionWindow, IEntitySelectionWindow {
+    public class EntityDebugger : EditorWindow, ISystemSelectionWindow, IEntitySelectionWindow, IComponentGroupSelectionWindow {
         private const float kSystemListWidth = 350f;
 
         [MenuItem("Window/Entity Debugger", false, 2017)]
@@ -41,12 +41,24 @@ namespace UnityEditor.ECS
             set
             {
                 systemSelection = value;
-                CreateEntityListView();
+                CreateComponentGroupListView();
             }
         }
 
         private ScriptBehaviourManager systemSelection;
 
+        public ComponentGroup ComponentGroupSelection
+        {
+            get { return componentGroupSelection; }
+            set
+            {
+                componentGroupSelection = value;
+                entityListView.SelectedComponentGroup = value;
+            }
+        }
+
+        private ComponentGroup componentGroupSelection;
+        
         public Entity EntitySelection
         {
             get { return selectionProxy.Entity; }
@@ -65,20 +77,18 @@ namespace UnityEditor.ECS
         }
 
         private EntitySelectionProxy selectionProxy;
-
+        
+        [SerializeField] private List<TreeViewState> componentGroupListStates = new List<TreeViewState>();
+        [SerializeField] private List<string> componentGroupListStateNames = new List<string>();
+        private ComponentGroupListView componentGroupListView;
+        
         [SerializeField] private List<TreeViewState> systemListStates = new List<TreeViewState>();
-
         [SerializeField] private List<string> systemListStateNames = new List<string>();
-        
         private SystemListView systemListView;
-        
 
-        [SerializeField] private List<TreeViewState> entityListStates = new List<TreeViewState>();
-
-        [SerializeField] private List<string> entityListStateNames = new List<string>();
-
+        [SerializeField] private TreeViewState entityListState = new TreeViewState();
         private EntityListView entityListView;
-
+        
         private string[] worldNames => (from x in World.AllWorlds select x.Name).ToArray();
 
         private void SelectWorldByName(string name)
@@ -110,15 +120,19 @@ namespace UnityEditor.ECS
             }
         }
 
+        private void CreateEntityListView()
+        {
+            entityListView = new EntityListView(entityListState, ComponentGroupSelection, this);
+        }
+
         private void CreateSystemListView()
         {
             systemListView = SystemListView.CreateList(WorldSelection, systemListStates, systemListStateNames, this);
         }
 
-        private void CreateEntityListView()
+        private void CreateComponentGroupListView()
         {
-            entityListView = EntityListView.CreateList(SystemSelection as ComponentSystemBase, entityListStates, entityListStateNames, this);
-            entityListView.SetEntitySelection(EntitySelection);
+            componentGroupListView = ComponentGroupListView.CreateList(SystemSelection as ComponentSystemBase, componentGroupListStates, componentGroupListStateNames, this);
         }
 
         private World worldSelection;
@@ -145,6 +159,7 @@ namespace UnityEditor.ECS
             selectionProxy.hideFlags = HideFlags.HideAndDontSave;
             CreateSystemListView();
             CreateEntityListView();
+            CreateComponentGroupListView();
             EditorApplication.playModeStateChanged += OnPlayModeStateChange;
         }
 
@@ -244,8 +259,23 @@ namespace UnityEditor.ECS
             GUILayout.EndHorizontal();
         }
 
+        void ComponentGroupList()
+        {
+            if (SystemSelection is ComponentSystemBase)
+            {
+                GUILayout.BeginVertical(Box, GUILayout.Height(componentGroupListView.Height + 4f));
+                componentGroupListView.OnGUI(GUIHelpers.GetExpandingRect());
+                GUILayout.EndVertical();
+            }
+        }
+
         void EntityList()
         {
+            var showingAllEntities = !(SystemSelection is ComponentSystemBase);
+            var componentGroupHasEntities = ComponentGroupSelection != null && !ComponentGroupSelection.IsEmpty;
+            var somethingToShow = showingAllEntities || componentGroupHasEntities;
+            if (!somethingToShow)
+                return;
             if (repainted && EditorApplication.isPlaying && !EditorApplication.isPaused)
                 entityListView.RefreshData();
             entityListView.OnGUI(GUIHelpers.GetExpandingRect());
@@ -292,10 +322,8 @@ namespace UnityEditor.ECS
             if (EditorApplication.isPlaying)
             {
                 EntityHeader();
-            
-                GUILayout.BeginVertical(Box);
+                ComponentGroupList();
                 EntityList();
-                GUILayout.EndVertical();
             }
             
             GUILayout.EndVertical(); // end Component List
@@ -306,7 +334,5 @@ namespace UnityEditor.ECS
 
             repainted = Event.current.type == EventType.Repaint;
         }
-        
-        
     }
 }

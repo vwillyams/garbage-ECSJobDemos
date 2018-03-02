@@ -6,63 +6,43 @@ using JetBrains.Annotations;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
+using UnityEngine.Analytics;
 
 namespace UnityEditor.ECS
 {
-    public interface IEntitySelectionWindow
+    public interface IEntitySelectionWindow : IWorldSelectionWindow
     {
         Entity EntitySelection { set; }
+    }
+
+    public interface IWorldSelectionWindow
+    {
         World WorldSelection { get; }
     }
     
     public class EntityListView : TreeView {
-        private readonly Dictionary<int, ComponentGroup> componentGroupsById = new Dictionary<int, ComponentGroup>();
         private readonly Dictionary<int, Entity> entitiesById = new Dictionary<int, Entity>();
 
-        public ComponentSystemBase SelectedSystem
+        public ComponentGroup SelectedComponentGroup
         {
-            get { return selectedSystem; }
+            get { return selectedComponentGroup; }
             set
             {
-                if (selectedSystem != value)
+                if (selectedComponentGroup != value)
                 {
-                    selectedSystem = value;
+                    selectedComponentGroup = value;
                     Reload();
                 }
             }
         }
-        private ComponentSystemBase selectedSystem;
+        private ComponentGroup selectedComponentGroup;
 
         IEntitySelectionWindow window;
 
-        private static TreeViewState GetStateForSystem(ComponentSystemBase system, List<TreeViewState> states, List<string> stateNames)
-        {
-            if (system == null)
-                return new TreeViewState();
-            
-            var currentSystemName = system.GetType().FullName;
-
-            var stateForCurrentSystem = states.Where((t, i) => stateNames[i] == currentSystemName).FirstOrDefault();
-            if (stateForCurrentSystem != null)
-                return stateForCurrentSystem;
-            
-            stateForCurrentSystem = new TreeViewState();
-            states.Add(stateForCurrentSystem);
-            stateNames.Add(currentSystemName);
-            return stateForCurrentSystem;
-        }
-
-        public static EntityListView CreateList([CanBeNull] ComponentSystemBase system, [NotNull] List<TreeViewState> states, [NotNull] List<string> stateNames,
-            IEntitySelectionWindow window)
-        {
-            var state = GetStateForSystem(system, states, stateNames);
-            return new EntityListView(state, system, window);
-        }
-
-        public EntityListView(TreeViewState state, ComponentSystemBase system, IEntitySelectionWindow window) : base(state)
+        public EntityListView(TreeViewState state, ComponentGroup componentGroup, IEntitySelectionWindow window) : base(state)
         {
             this.window = window;
-            selectedSystem = system;
+            SelectedComponentGroup = componentGroup;
             Reload();
             SelectionChanged(GetSelection());
         }
@@ -72,9 +52,14 @@ namespace UnityEditor.ECS
             Reload();
         }
 
+        private TreeViewItem CreateEntityItem(Entity entity)
+        {
+            entitiesById.Add(entity.Index, entity);
+            return new TreeViewItem { id = entity.Index };
+        }
+
         protected override TreeViewItem BuildRoot()
         {
-            componentGroupsById.Clear();
             entitiesById.Clear();
             var managerId = -1;
             var root  = new TreeViewItem { id = managerId--, depth = -1, displayName = "Root" };
@@ -82,41 +67,25 @@ namespace UnityEditor.ECS
             {
                 root.AddChild(new TreeViewItem { id = managerId, displayName = "No world selected"});
             }
-            else if (SelectedSystem == null)
-            {
-                var entityArray = window.WorldSelection.GetExistingManager<EntityManager>().GetAllEntities(Allocator.Temp);
-                for (var i = 0; i < entityArray.Length; ++i)
-                {
-                    var entity = entityArray[i];
-                    entitiesById.Add(entity.Index, entity);
-                    var entityItem = new TreeViewItem { id = entity.Index, displayName = $"Entity {entity.Index.ToString()}" };
-                    root.AddChild(entityItem);
-                }
-                entityArray.Dispose();
-                SetupDepthsFromParentsAndChildren(root);
-            }
-            else if (SelectedSystem.ComponentGroups.Length == 0)
-            {
-                root.AddChild(new TreeViewItem { id = managerId, displayName = "No Component Groups in Manager"});
-            }
             else
             {
-                foreach (var group in SelectedSystem.ComponentGroups)
+                if (SelectedComponentGroup == null)
                 {
-                    componentGroupsById.Add(managerId, group);
-                    var types = group.Types;
-                    var groupName = string.Join(", ", (from x in types select x.Name).ToArray());
-
-                    var groupItem = new TreeViewItem { id = managerId--, displayName = groupName };
-                    root.AddChild(groupItem);
-                    var entityArray = group.GetEntityArray();
+                    var array = window.WorldSelection.GetExistingManager<EntityManager>().GetAllEntities(Allocator.Temp);
+                    for (var i = 0; i < array.Length; ++i)
+                        root.AddChild(CreateEntityItem(array[i]));
+                    array.Dispose();
+                }
+                else
+                {
+                    var entityArray = SelectedComponentGroup.GetEntityArray();
                     for (var i = 0; i < entityArray.Length; ++i)
-                    {
-                        var entity = entityArray[i];
-                        entitiesById.Add(entity.Index, entity);
-                        var entityItem = new TreeViewItem { id = entity.Index, displayName = $"Entity {entity.Index.ToString()}" };
-                        groupItem.AddChild(entityItem);
-                    }
+                        root.AddChild(CreateEntityItem(entityArray[i]));
+                }
+
+                if (entitiesById.Count == 0)
+                {
+                    root.AddChild(new TreeViewItem { id = managerId, displayName = "ComponentGroup is empty"});
                 }
                 SetupDepthsFromParentsAndChildren(root);
             }
@@ -131,11 +100,9 @@ namespace UnityEditor.ECS
 
         protected override void RowGUI(RowGUIArgs args)
         {
+            if (args.item.displayName == null)
+                args.item.displayName = $"Entity {entitiesById[args.item.id].Index.ToString()}";
             base.RowGUI(args);
-            if (!componentGroupsById.ContainsKey(args.item.id))
-                return;
-            var countString = componentGroupsById[args.item.id].CalculateLength().ToString();
-            DefaultGUI.LabelRightAligned(args.rowRect, countString, args.selected, args.focused);
         }
 
         protected override void SelectionChanged(IList<int> selectedIds)

@@ -35,7 +35,31 @@ namespace UnityEditor.ECS
 
         IEntitySelectionWindow window;
 
-        public EntityListView(TreeViewState state, IEntitySelectionWindow window, ComponentSystemBase system) : base(state)
+        private static TreeViewState GetStateForSystem(ComponentSystemBase system, List<TreeViewState> states, List<string> stateNames)
+        {
+            if (system == null)
+                return new TreeViewState();
+            
+            var currentSystemName = system.GetType().FullName;
+
+            var stateForCurrentSystem = states.Where((t, i) => stateNames[i] == currentSystemName).FirstOrDefault();
+            if (stateForCurrentSystem != null)
+                return stateForCurrentSystem;
+            
+            stateForCurrentSystem = new TreeViewState();
+            states.Add(stateForCurrentSystem);
+            stateNames.Add(currentSystemName);
+            return stateForCurrentSystem;
+        }
+
+        public static EntityListView CreateList([CanBeNull] ComponentSystemBase system, [NotNull] List<TreeViewState> states, [NotNull] List<string> stateNames,
+            IEntitySelectionWindow window)
+        {
+            var state = GetStateForSystem(system, states, stateNames);
+            return new EntityListView(state, system, window);
+        }
+
+        public EntityListView(TreeViewState state, ComponentSystemBase system, IEntitySelectionWindow window) : base(state)
         {
             this.window = window;
             selectedSystem = system;
@@ -136,6 +160,12 @@ namespace UnityEditor.ECS
         public void SelectNothing()
         {
             SetSelection(new List<int>());
+        }
+
+        public void SetEntitySelection(Entity entitySelection)
+        {
+            if (entitySelection != Entity.Null && window.WorldSelection.GetExistingManager<EntityManager>().Exists(entitySelection))
+                SetSelection(new List<int>{entitySelection.Index});
         }
     }
 }

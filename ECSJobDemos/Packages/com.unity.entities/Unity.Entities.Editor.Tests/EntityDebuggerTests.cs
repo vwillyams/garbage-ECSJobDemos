@@ -19,7 +19,7 @@ namespace UnityEditor.ECS
         public void ComponentGroupIntegratedListView_CanSetNullSystem()
         {
 
-            var listView = new EntityListView(new TreeViewState(), new FakeWindow(), EmptySystem);
+            var listView = new EntityListView(new TreeViewState(), EmptySystem, new FakeWindow());
             
             Assert.DoesNotThrow( () => listView.SelectedSystem = null );
         }
@@ -31,7 +31,7 @@ namespace UnityEditor.ECS
             
             Assert.DoesNotThrow( () =>
             {
-                listView = new EntityListView(new TreeViewState(), null, EmptySystem);
+                listView = new EntityListView(new TreeViewState(), EmptySystem, null);
                 listView.SelectedSystem = null;
             });
         }

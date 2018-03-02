@@ -3,6 +3,7 @@ using UnityEditor.IMGUI.Controls;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using JetBrains.Annotations;
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -17,18 +18,17 @@ namespace UnityEditor.ECS
     }
     
     public class SystemListView : TreeView {
+        private readonly Dictionary<Type, List<ScriptBehaviourManager>> managersByGroup = new Dictionary<Type, List<ScriptBehaviourManager>>();
+        private readonly List<ScriptBehaviourManager> floatingManagers = new List<ScriptBehaviourManager>();
+        private readonly Dictionary<int, ScriptBehaviourManager> managersByID = new Dictionary<int, ScriptBehaviourManager>();
+        private readonly Dictionary<ScriptBehaviourManager, Recorder> recordersByManager = new Dictionary<ScriptBehaviourManager, Recorder>();
 
-        Dictionary<Type, List<ScriptBehaviourManager>> managersByGroup = new Dictionary<Type, List<ScriptBehaviourManager>>();
-        private List<ScriptBehaviourManager> floatingManagers = new List<ScriptBehaviourManager>();
-        Dictionary<int, ScriptBehaviourManager> managersByID = new Dictionary<int, ScriptBehaviourManager>();
-        Dictionary<ScriptBehaviourManager, Recorder> recordersByManager = new Dictionary<ScriptBehaviourManager, Recorder>();
-
-        private World world;
+        private readonly World world;
 
         private const float kToggleWidth = 22f;
         private const float kTimingWidth = 70f;
 
-        readonly ISystemSelectionWindow window;
+        private readonly ISystemSelectionWindow window;
 
         private static GUIStyle RightAlignedLabel
         {
@@ -46,7 +46,7 @@ namespace UnityEditor.ECS
 
         private static GUIStyle rightAlignedText;
 
-        public static MultiColumnHeaderState GetHeaderState()
+        private static MultiColumnHeaderState GetHeaderState()
         {
             var columns = new[]
             {
@@ -91,52 +91,45 @@ namespace UnityEditor.ECS
             return new MultiColumnHeaderState(columns);
         }
 
-        public static TreeViewState GetStateForWorld(World world, ref List<TreeViewState> states,
-            ref List<string> stateNames)
+        private static TreeViewState GetStateForWorld(World world, List<TreeViewState> states, List<string> stateNames)
         {
             if (world == null)
                 return new TreeViewState();
+            
+            var currentWorldName = world.Name;
 
-            if (states == null)
-            {
-                states = new List<TreeViewState>();
-                stateNames = new List<string>();
-            }
-            var currentWorldName = world.GetType().Name;
-
-            TreeViewState stateForCurrentWorld = null;
-            for (var i = 0; i < states.Count; ++i)
-            {
-                if (stateNames[i] == currentWorldName)
-                {
-                    stateForCurrentWorld = states[i];
-                    break;
-                }
-            }
-            if (stateForCurrentWorld == null)
-            {
-                stateForCurrentWorld = new TreeViewState();
-                states.Add(stateForCurrentWorld);
-                stateNames.Add(currentWorldName);
-            }
+            var stateForCurrentWorld = states.Where((t, i) => stateNames[i] == currentWorldName).FirstOrDefault();
+            if (stateForCurrentWorld != null)
+                return stateForCurrentWorld;
+            
+            stateForCurrentWorld = new TreeViewState();
+            states.Add(stateForCurrentWorld);
+            stateNames.Add(currentWorldName);
             return stateForCurrentWorld;
         }
 
-        public SystemListView(TreeViewState state, MultiColumnHeader header, ISystemSelectionWindow window) : base(state, header)
+        public static SystemListView CreateList([CanBeNull] World world, [NotNull] List<TreeViewState> states, [NotNull] List<string> stateNames,
+            ISystemSelectionWindow window)
+        {
+            var state = GetStateForWorld(world, states, stateNames);
+            var header = new MultiColumnHeader(GetHeaderState());
+            return new SystemListView(state, header, world, window);
+        }
+        
+        private SystemListView(TreeViewState state, MultiColumnHeader header, World world, ISystemSelectionWindow window) : base(state, header)
         {
             this.window = window;
+            this.world = world;
             columnIndexForTreeFoldouts = 1;
             Reload();
-        }
-
-        public void SetWorld(World world)
-        {
-            this.world = world;
             SetManagers();
         }
         
         void SetManagers()
         {
+            if (world == null)
+                return;
+            
             Dictionary<Type, ScriptBehaviourUpdateOrder.ScriptBehaviourGroup> allGroups;
             Dictionary<Type, ScriptBehaviourUpdateOrder.DependantBehavior> dependencies;
             ScriptBehaviourUpdateOrder.CollectGroups(world.BehaviourManagers, out allGroups, out dependencies);

@@ -41,13 +41,15 @@ namespace UnityEditor.ECS
             set
             {
                 systemSelection = value;
-                entityListView.SelectedSystem = systemSelection as ComponentSystemBase;
+                CreateEntityListView();
             }
         }
 
         private ScriptBehaviourManager systemSelection;
 
-        public Entity EntitySelection {
+        public Entity EntitySelection
+        {
+            get { return selectionProxy.Entity; }
             set
             {
                 if (value != Entity.Null)
@@ -64,13 +66,16 @@ namespace UnityEditor.ECS
 
         private EntitySelectionProxy selectionProxy;
 
-        [SerializeField]
-        private TreeViewState systemListState = new TreeViewState();
+        [SerializeField] private List<TreeViewState> systemListStates = new List<TreeViewState>();
+
+        [SerializeField] private List<string> systemListStateNames = new List<string>();
         
         private SystemListView systemListView;
         
-        [SerializeField]
-        private TreeViewState entityListState = new TreeViewState();
+
+        [SerializeField] private List<TreeViewState> entityListStates = new List<TreeViewState>();
+
+        [SerializeField] private List<string> entityListStateNames = new List<string>();
 
         private EntityListView entityListView;
 
@@ -100,9 +105,20 @@ namespace UnityEditor.ECS
                     worldSelection = value;
                     if (worldSelection != null)
                         lastSelectedWorldName = worldSelection.Name;
-                    systemListView.SetWorld(worldSelection);
+                    CreateSystemListView();
                 }
             }
+        }
+
+        private void CreateSystemListView()
+        {
+            systemListView = SystemListView.CreateList(WorldSelection, systemListStates, systemListStateNames, this);
+        }
+
+        private void CreateEntityListView()
+        {
+            entityListView = EntityListView.CreateList(SystemSelection as ComponentSystemBase, entityListStates, entityListStateNames, this);
+            entityListView.SetEntitySelection(EntitySelection);
         }
 
         private World worldSelection;
@@ -125,12 +141,10 @@ namespace UnityEditor.ECS
 
         void OnEnable()
         {
-            var systemListHeader = new MultiColumnHeader(SystemListView.GetHeaderState());
-            systemListView = new SystemListView(systemListState, systemListHeader, this);
-            entityListView =
-                new EntityListView(entityListState, this, SystemSelection as ComponentSystemBase);
             selectionProxy = ScriptableObject.CreateInstance<EntitySelectionProxy>();
             selectionProxy.hideFlags = HideFlags.HideAndDontSave;
+            CreateSystemListView();
+            CreateEntityListView();
             EditorApplication.playModeStateChanged += OnPlayModeStateChange;
         }
 

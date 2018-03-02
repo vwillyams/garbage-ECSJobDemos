@@ -12,8 +12,9 @@ namespace UnityEngine.ECS.Boids
 {
     public class BoidSystem : JobComponentSystem
     {
-        ComponentGroup m_MainGroup;
-        List<Boid> m_UniqueTypes = new List<Boid>(10);
+        private ComponentGroup m_MainGroup;
+        private List<Boid> m_UniqueTypes = new List<Boid>(10);
+        private List<NativeHashMap<int,int>> m_Cells = new List<NativeHashMap<int,int>>();
 
         [ComputeJobOptimization]
         struct HashBoidLocations : IJobParallelFor
@@ -36,63 +37,108 @@ namespace UnityEngine.ECS.Boids
         }
 
         [ComputeJobOptimization]
-        struct SeparationAndAlignmentSteer : IJobParallelFor
+        struct ClearCellIndices : IJob
         {
-            [ReadOnly] public NativeArraySharedValues<int> cells;
-            [ReadOnly] public Boid settings;
-            [ReadOnly] public NativeArray<float3> positions;
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> headings;
-            public NativeArray<CellSteering> cellSteerings;
+            public NativeHashMap<int, int> hashCellIndices;
 
-            public void Execute(int index)
+            public void Execute()
             {
-                // Number of shared values not known when job is scheduled.
-                if (index >= cells.SharedValueCount)
-                {
-                    return;
-                }
-                
-                var separationSteering = new float3(0);
-                var averageHeading = new float3(0);
-                var neighbors = cells.GetSharedValueIndicesBySharedIndex(index);
-                
-                for (int i=0;i<neighbors.Length;i++)
-                {
-                    var neighborIndex = neighbors[i];
-                    var otherPosition = positions[neighborIndex];
-                    var otherForward  = headings[neighborIndex];
-
-                    separationSteering -= otherPosition;
-                    averageHeading += otherForward;
-                }
-
-                cellSteerings[index] = new CellSteering
-                {
-                    separation = separationSteering,
-                    alignment = (averageHeading / neighbors.Length)
-                };
+                hashCellIndices.Clear();
             }
         }
 
+        [ComputeJobOptimization]
+        struct TrackBoidCells : IJob
+        {
+            [ReadOnly] public NativeArray<int> positionHashes;
+            [NativeDisableParallelForRestriction] public NativeArray<int> boidCellIndices;
+            [NativeDisableParallelForRestriction] public NativeArray<int> cellBoidCount;
+            [NativeDisableParallelForRestriction] public NativeArray<int> cellCount;
+            [NativeDisableParallelForRestriction] public NativeArray<CellSteering> cellSteerings;
+            [ReadOnly] public ComponentDataArray<Heading> headings;
+            [ReadOnly] public ComponentDataArray<Position> positions;
+            public NativeHashMap<int, int> hashCellIndices;
+
+            public void Execute()
+            {
+                var positionCount = positions.Length;
+                
+                hashCellIndices.Clear();
+                
+                int nextCellIndex = 0;
+                for (int i = 0; i < positionCount; i++)
+                {
+                    var hash = positionHashes[i];
+                    int cellIndex;
+                    if (!hashCellIndices.TryGetValue(hash, out cellIndex))
+                    {
+                        hashCellIndices.TryAdd(hash, nextCellIndex);
+                        cellIndex = nextCellIndex;
+                        cellBoidCount[cellIndex] = 0;
+                        cellSteerings[cellIndex] = default(CellSteering);
+                        nextCellIndex++;
+                    }
+                    boidCellIndices[i] = cellIndex;
+                    cellBoidCount[cellIndex]++;
+
+                    var separation = cellSteerings[cellIndex].separation;
+                    var alignment  = cellSteerings[cellIndex].alignment;
+                    var otherSeparation = -positions[i].Value;
+                    var otherAlignment  = headings[i].Value;
+                    
+                    cellSteerings[cellIndex] = new CellSteering
+                    {
+                        separation = separation + otherSeparation,
+                        alignment  = alignment + otherAlignment
+                    };
+                }
+
+                cellCount[0] = nextCellIndex;
+            }
+        }
+
+        [ComputeJobOptimization]
+        struct DivideAlignmentBoidCells : IJobParallelFor
+        {
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> cellCount;
+            public NativeArray<CellSteering> cellSteerings;
+            public NativeArray<int> cellBoidCount;
+
+            public void Execute(int cellIndex)
+            {
+                if (cellIndex > cellCount[0])
+                {
+                    return;
+                }
+                var separation = cellSteerings[cellIndex].separation;
+                var alignment  = cellSteerings[cellIndex].alignment;
+                var boidCount = cellBoidCount[cellIndex];
+
+                cellSteerings[cellIndex] = new CellSteering
+                {
+                    separation = separation,
+                    alignment = alignment / boidCount
+                };
+            }
+        }
         
         [ComputeJobOptimization]
         struct Steer : IJobParallelFor
         {
             public ComponentDataArray<Heading> headings;
-            [ReadOnly] public NativeArray<int> sharedIndices;
-            [ReadOnly] public NativeArray<int> sharedValueIndexCounts;
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> positions;
+            [ReadOnly] public ComponentDataArray<Position> positions;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> sharedIndices;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> sharedValueIndexCounts;
             [ReadOnly] public ComponentDataArray<BoidNearestTargetPosition> nearestTargetPositions;
             [ReadOnly] public ComponentDataArray<BoidNearestObstaclePosition> nearestObstaclePositions;
             [ReadOnly] public Boid settings;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<CellSteering> cellSteerings;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> positionHashes;
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> cellsBuffer;
             public float dt;
 
             public void Execute(int index)
             {
-                var position = positions[index];
+                var position = positions[index].Value;
                 var forward = headings[index].Value;
                 var nearestObstaclePosition = nearestObstaclePositions[index].Value;
                 var obstacleSteering = (position - nearestObstaclePosition);
@@ -112,20 +158,23 @@ namespace UnityEngine.ECS.Boids
             }
  
         }
-
+        
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
             EntityManager.GetAllUniqueSharedComponentDatas(m_UniqueTypes);
 
-            for (int typeIndex = 0; typeIndex < m_UniqueTypes.Count; typeIndex++)
+            // Ingore typeIndex 0, can't use the default for anything meaningful.
+            for (int typeIndex = 1; typeIndex < m_UniqueTypes.Count; typeIndex++)
             {
                 var settings = m_UniqueTypes[typeIndex];
-                var group = m_MainGroup.GetVariation(settings);
-                var positions = group.GetComponentDataArray<Position>();
-                var nearestObstaclePositions = group.GetComponentDataArray<BoidNearestObstaclePosition>();
-                var nearestTargetPositions = group.GetComponentDataArray<BoidNearestTargetPosition>();
-                var headings = group.GetComponentDataArray<Heading>();
-
+                var cacheIndex = typeIndex - 1;
+                var variation = m_MainGroup.GetVariation(settings);
+                var positions = variation.GetComponentDataArray<Position>();
+                var nearestObstaclePositions = variation.GetComponentDataArray<BoidNearestObstaclePosition>();
+                var nearestTargetPositions = variation.GetComponentDataArray<BoidNearestTargetPosition>();
+                var headings = variation.GetComponentDataArray<Heading>();
+                variation.Dispose();
+                     
                 var positionHashes = new NativeArray<int>(positions.Length, Allocator.TempJob);
                 var hashBoidLocationsJob = new HashBoidLocations
                 {
@@ -133,62 +182,72 @@ namespace UnityEngine.ECS.Boids
                     positionHashes = positionHashes,
                     cellRadius = settings.cellRadius
                 };
-
                 var hashBoidLocationsJobHandle = hashBoidLocationsJob.Schedule(positions.Length, 64, inputDeps);
-                var cells = new NativeArraySharedValues<int>(positionHashes,Allocator.TempJob);
-                var sharedHashesJobHandle = cells.Schedule(hashBoidLocationsJobHandle);
-
-                var copyPositionsResults = new NativeArray<float3>(positions.Length, Allocator.TempJob);
-                var copyPositionsJob = new CopyComponentData<Position,float3>
-                {
-                    source = positions,
-                    results = copyPositionsResults
-                };
-                var copyPositionsJobHandle = copyPositionsJob.Schedule(positions.Length, 64, inputDeps);
-
-                var copyHeadingsResults = new NativeArray<float3>(positions.Length, Allocator.TempJob);
-                var copyHeadingsJob = new CopyComponentData<Heading,float3>()
-                {
-                    source = headings,
-                    results = copyHeadingsResults
-                };
-                var copyHeadingsJobHandle = copyHeadingsJob.Schedule(positions.Length, 64, inputDeps);
-
+                
+                var boidCellIndices = new NativeArray<int>(positions.Length, Allocator.TempJob);
+                var cellBoidCount = new NativeArray<int>(positions.Length, Allocator.TempJob);
                 var cellSteerings = new NativeArray<CellSteering>(positions.Length, Allocator.TempJob);
-                var separationAndAlignmentSteerJob = new SeparationAndAlignmentSteer
+                var cellCount = new NativeArray<int>(1, Allocator.TempJob);
+                
+                NativeHashMap<int,int> cells;
+                if (cacheIndex > (m_Cells.Count - 1))
                 {
-                    positions = copyPositionsResults,
-                    headings = copyHeadingsResults,
-                    cells = cells,
-                    settings = settings,
-                    cellSteerings = cellSteerings
+                    cells = new NativeHashMap<int,int>(positions.Length,Allocator.Persistent);
+                    m_Cells.Add(cells);
+                }
+                else
+                {
+                    cells = m_Cells[cacheIndex];
+                    cells.Capacity = math.max(cells.Capacity, positions.Length);
+                }
+
+                var clearCellIndicesJob = new ClearCellIndices
+                {
+                    hashCellIndices = cells
                 };
-                var separationAndAlignmentSteerJobHandle = separationAndAlignmentSteerJob.Schedule(positions.Length, 64,
-                    JobHandle.CombineDependencies(sharedHashesJobHandle, copyHeadingsJobHandle, copyPositionsJobHandle));
+                var clearCellIndicesJobHandle = clearCellIndicesJob.Schedule(inputDeps);
 
-                cells.GetBuffer();
-
+                inputDeps = JobHandle.CombineDependencies(hashBoidLocationsJobHandle, clearCellIndicesJobHandle);
+                
+                var trackBoidCellsJob = new TrackBoidCells
+                {
+                    positionHashes = positionHashes,
+                    boidCellIndices = boidCellIndices,
+                    cellBoidCount = cellBoidCount,
+                    cellSteerings = cellSteerings,
+                    positions = positions,
+                    headings = headings,
+                    cellCount = cellCount,
+                    hashCellIndices = cells
+                };
+                inputDeps = trackBoidCellsJob.Schedule(inputDeps);
+                    
+                var divideAlignmentBoidCellsJob = new DivideAlignmentBoidCells
+                {
+                    cellBoidCount = cellBoidCount,
+                    cellSteerings = cellSteerings,
+                    cellCount = cellCount
+                };
+                inputDeps = divideAlignmentBoidCellsJob.Schedule(positions.Length, 1024, inputDeps);
+                
                 var steerJob = new Steer
                 {
-                    positions = copyPositionsResults,
+                    positions = positions,
                     headings = headings,
-                    sharedIndices = cells.GetSharedIndexArray(),
-                    sharedValueIndexCounts = cells.GetSharedValueIndexCountArray(),
+                    sharedIndices = boidCellIndices,
+                    sharedValueIndexCounts = cellBoidCount,
                     nearestTargetPositions = nearestTargetPositions,
                     nearestObstaclePositions = nearestObstaclePositions,
                     settings = settings,
                     cellSteerings = cellSteerings,
                     positionHashes = positionHashes,
-                    cellsBuffer = cells.GetBuffer(),
                     dt = Time.deltaTime
                 };
 
-                inputDeps = steerJob.Schedule(positions.Length, 1024, separationAndAlignmentSteerJobHandle);
-                group.Dispose();
+                inputDeps = steerJob.Schedule(positions.Length, 1024, inputDeps);
             }
             m_UniqueTypes.Clear();
 
-            // The return value only applies to jobs working with injected components
             return inputDeps;
         }
 
@@ -200,6 +259,14 @@ namespace UnityEngine.ECS.Boids
                 ComponentType.ReadOnly(typeof(BoidNearestObstaclePosition)),
                 ComponentType.ReadOnly(typeof(BoidNearestTargetPosition)),
                 typeof(Heading));
+        }
+
+        protected override void OnDestroyManager()
+        {
+            for (int i = 0; i < m_Cells.Count; i++)
+            {
+                m_Cells[i].Dispose();
+            }
         }
     }
 }

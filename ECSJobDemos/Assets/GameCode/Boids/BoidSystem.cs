@@ -99,23 +99,30 @@ namespace UnityEngine.ECS.Boids
                     {
                         hashCellIndices.TryAdd(hash, nextCellIndex);
                         cellIndex = nextCellIndex;
-                        neighborCount[cellIndex] = 0;
-                        cellAlignmentSeparation[cellIndex] = new AlignmentSeparation();
+                        cellAlignmentSeparation[cellIndex] = new AlignmentSeparation
+                        {
+                            separation = -positions[i].Value,
+                            alignment = headings[i].Value
+                        };
+                        cellIndices[i] = cellIndex;
+                        neighborCount[cellIndex] = 1;
                         nextCellIndex++;
                     }
-                    cellIndices[i] = cellIndex;
-                    neighborCount[cellIndex]++;
-
-                    var separation = cellAlignmentSeparation[cellIndex].separation;
-                    var alignment = cellAlignmentSeparation[cellIndex].alignment;
-                    var otherSeparation = -positions[i].Value;
-                    var otherAlignment  = headings[i].Value;
-
-                    cellAlignmentSeparation[cellIndex] = new AlignmentSeparation
+                    else
                     {
-                        separation = separation + otherSeparation,
-                        alignment = alignment + otherAlignment
-                    };
+                        var separation = cellAlignmentSeparation[cellIndex].separation;
+                        var alignment = cellAlignmentSeparation[cellIndex].alignment;
+                        var otherSeparation = -positions[i].Value;
+                        var otherAlignment  = headings[i].Value;
+
+                        cellAlignmentSeparation[cellIndex] = new AlignmentSeparation
+                        {
+                            separation = separation + otherSeparation,
+                            alignment = alignment + otherAlignment
+                        };
+                        cellIndices[i] = cellIndex;
+                        neighborCount[cellIndex]++;
+                    }
                 }
 
                 cellCount[0] = nextCellIndex;
@@ -272,7 +279,7 @@ namespace UnityEngine.ECS.Boids
                     positionHashes = positionHashes,
                     cellRadius = settings.cellRadius
                 };
-                var hashBoidLocationsJobHandle = hashBoidLocationsJob.Schedule(boidCount, 64, inputDeps);
+                var hashBoidLocationsJobHandle = hashBoidLocationsJob.Schedule(boidCount, 1024, inputDeps);
                 
                 var cellIndices = new NativeArray<int>(boidCount, Allocator.TempJob);
                 var neighborCount = new NativeArray<int>(boidCount, Allocator.TempJob);
@@ -296,9 +303,20 @@ namespace UnityEngine.ECS.Boids
                     hashCellIndices = cells
                 };
                 var clearCellIndicesJobHandle = clearCellIndicesJob.Schedule(inputDeps);
-
+                
                 var trackBarrierJobHandle = JobHandle.CombineDependencies(hashBoidLocationsJobHandle, clearCellIndicesJobHandle);
-
+                
+                var targetObstacle = new NativeArray<TargetObstacle>(boidCount, Allocator.TempJob);
+                var targetObstacleJob = new HeadingTargetObstacle
+                {
+                    positions = positions,
+                    nearestObstaclePositions = nearestObstaclePositions,
+                    nearestTargetPositions = nearestTargetPositions,
+                    settings = settings,
+                    targetObstacle = targetObstacle
+                };
+                var targetObstacleJobHandle = targetObstacleJob.Schedule(boidCount, 1024, trackBarrierJobHandle);
+                
                 var trackBoidCellsJob = new Cells
                 {
                     positionHashes = positionHashes,
@@ -312,24 +330,13 @@ namespace UnityEngine.ECS.Boids
                 };
                 var trackBoidCellsJobHandle = trackBoidCellsJob.Schedule(trackBarrierJobHandle);
                 
-                var targetObstacle = new NativeArray<TargetObstacle>(boidCount, Allocator.TempJob);
-                var targetObstacleJob = new HeadingTargetObstacle
-                {
-                    positions = positions,
-                    nearestObstaclePositions = nearestObstaclePositions,
-                    nearestTargetPositions = nearestTargetPositions,
-                    settings = settings,
-                    targetObstacle = targetObstacle
-                };
-                var targetObstacleJobHandle = targetObstacleJob.Schedule(boidCount, 64, trackBarrierJobHandle);
-                
                 var divideAlignmentBoidCellsJob = new CellsDivideAlignment
                 {
                     neighborCount = neighborCount,
                     cellAlignmentSeparation = cellAlignmentSeparation,
                     cellCount = cellCount
                 };
-                var divideAlignmentBoidCellsJobHandle = divideAlignmentBoidCellsJob.Schedule(boidCount, 64, trackBoidCellsJobHandle);
+                var divideAlignmentBoidCellsJobHandle = divideAlignmentBoidCellsJob.Schedule(boidCount, 1024, trackBoidCellsJobHandle);
 
                 var alignmentSeparation = new NativeArray<AlignmentSeparation>(boidCount,Allocator.TempJob);
                 var alignmentSeparationJob = new HeadingAlignmentSeparation
@@ -342,7 +349,7 @@ namespace UnityEngine.ECS.Boids
                     settings = settings,
                     alignmentSeparation = alignmentSeparation
                 };
-                var alignmentSeparationJobHandle = alignmentSeparationJob.Schedule(boidCount, 64, divideAlignmentBoidCellsJobHandle);
+                var alignmentSeparationJobHandle = alignmentSeparationJob.Schedule(boidCount, 1024, divideAlignmentBoidCellsJobHandle);
 
                 var steerBarrierJobHandle = JobHandle.CombineDependencies(targetObstacleJobHandle, alignmentSeparationJobHandle);
                 
@@ -354,7 +361,7 @@ namespace UnityEngine.ECS.Boids
                     dt = Time.deltaTime,
                     headings = headings
                 };
-                var steerJobHandle = steerJob.Schedule(boidCount, 64, steerBarrierJobHandle);
+                var steerJobHandle = steerJob.Schedule(boidCount, 1024, steerBarrierJobHandle);
 
                 var disposeJob = new Dispose
                 {

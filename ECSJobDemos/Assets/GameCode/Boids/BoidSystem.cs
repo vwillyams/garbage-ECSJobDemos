@@ -24,6 +24,8 @@ namespace UnityEngine.ECS.Boids
         {
             private int hash;
 
+            public int Value => hash;
+
             public CellHash(int value)
             {
                 hash = value;
@@ -38,10 +40,6 @@ namespace UnityEngine.ECS.Boids
             {
                 return hash == 0;
             }
-
-            public static int HashBucketCapacity => 65536;
-            public static int HashBucketCapacityMask => HashBucketCapacity - 1;
-            public int HashBucketIndex => hash & HashBucketCapacityMask;
         }
 
         [ComputeJobOptimization]
@@ -82,11 +80,11 @@ namespace UnityEngine.ECS.Boids
             public NativeArray<int> cellCount;
             public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
             public NativeArray<CellHashIndex> hashCellBuckets;
+            public int hashCellBucketCount;
             public int hashCellBucketBufferUsedCount;
             
-            bool TryGetHashIndex(CellHash hash, out int value)
+            bool TryGetHashIndex(CellHash hash, int hashBucketIndex, out int value)
             {
-                int hashBucketIndex = hash.HashBucketIndex;
                 var next = hashCellBuckets[hashBucketIndex];
                 if (next.hash.IsNull())
                 {
@@ -105,13 +103,12 @@ namespace UnityEngine.ECS.Boids
                         value = -1;
                         return false;
                     }
-                    next = hashCellBuckets[CellHash.HashBucketCapacity + next.next-1];
+                    next = hashCellBuckets[hashCellBucketCount + next.next-1];
                 }
             }
             
-            void AddHashIdex(CellHash hash, int value)
+            void AddHashIdex(CellHash hash, int hashBucketIndex, int value)
             {
-                int hashBucketIndex = hash.HashBucketIndex;
                 var first = hashCellBuckets[hashBucketIndex];
                 if (first.hash.IsNull())
                 {
@@ -125,7 +122,7 @@ namespace UnityEngine.ECS.Boids
                 else
                 {
                     int nextBucketIndex = hashCellBucketBufferUsedCount;
-                    hashCellBuckets[CellHash.HashBucketCapacity + nextBucketIndex] = hashCellBuckets[hashBucketIndex];
+                    hashCellBuckets[hashCellBucketCount + nextBucketIndex] = hashCellBuckets[hashBucketIndex];
                     hashCellBuckets[hashBucketIndex] = new CellHashIndex
                     {
                         hash = hash,
@@ -143,10 +140,11 @@ namespace UnityEngine.ECS.Boids
                 for (int i = 0; i < positionCount; i++)
                 {
                     var hash = positionHashes[i];
+                    var hashBucketIndex = hash.Value & (hashCellBucketCount - 1);
                     int cellIndex;
-                    if (!TryGetHashIndex(hash, out cellIndex))
+                    if (!TryGetHashIndex(hash, hashBucketIndex, out cellIndex))
                     {
-                        AddHashIdex(hash, nextCellIndex);
+                        AddHashIdex(hash, hashBucketIndex, nextCellIndex);
                         cellIndex = nextCellIndex;
                         cellAlignmentSeparation[cellIndex] = new AlignmentSeparation
                         {
@@ -331,7 +329,8 @@ namespace UnityEngine.ECS.Boids
                 var targetObstacle = new NativeArray<TargetObstacle>(boidCount, Allocator.TempJob);
                 var obstaclePositions = new NativeArray<float3>(obstacleSourcePositions.Length, Allocator.TempJob);
                 var cellIndices = new NativeArray<int>(boidCount, Allocator.TempJob);
-                var hashCellBuckets = new NativeArray<CellHashIndex>(CellHash.HashBucketCapacity+boidCount, Allocator.TempJob);
+                var hashCellBucketCount =  math.ceil_pow2(boidCount*2);
+                var hashCellBuckets = new NativeArray<CellHashIndex>(hashCellBucketCount+boidCount, Allocator.TempJob);
 
                 var hashPositionsJob = new HashPositions
                 {
@@ -388,6 +387,7 @@ namespace UnityEngine.ECS.Boids
                     cellCount = cellCount,
                     hashCellBuckets = hashCellBuckets,
                     hashCellBucketBufferUsedCount = 0,
+                    hashCellBucketCount = hashCellBucketCount
                 };
                 var cellsJobHandle = cellsJob.Schedule(cellsBarrierJobHandle);
                 

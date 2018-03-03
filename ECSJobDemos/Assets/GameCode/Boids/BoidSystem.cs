@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -18,32 +19,29 @@ namespace UnityEngine.ECS.Boids
         private ComponentGroup m_TargetGroup;
         private ComponentGroup m_ObstacleGroup;
         private List<Boid> m_UniqueTypes = new List<Boid>(10);
-        private List<NativeHashMap<CellHash,int>> m_Cells = new List<NativeHashMap<CellHash,int>>();
 
         struct CellHash : IEquatable<CellHash>
         {
             private int hash;
-
-            public int Value
-            {
-                get { return hash; }
-                set { hash = value; }
-            }
 
             public CellHash(int value)
             {
                 hash = value;
             }
 
-            public override int GetHashCode()
-            {
-                return hash;
-            }
-
             public bool Equals(CellHash other)
             {
                 return hash == other.hash;
             }
+
+            public bool IsNull()
+            {
+                return hash == 0;
+            }
+
+            public static int HashBucketCapacity => 65536;
+            public static int HashBucketCapacityMask => HashBucketCapacity - 1;
+            public int HashBucketIndex => hash & HashBucketCapacityMask;
         }
 
         [ComputeJobOptimization]
@@ -60,20 +58,17 @@ namespace UnityEngine.ECS.Boids
             }
         }
 
-        [ComputeJobOptimization]
-        struct ClearHashCellIndices : IJob
-        {
-            public NativeHashMap<CellHash, int> hashCellIndices;
-            public void Execute()
-            {
-                hashCellIndices.Clear();
-            }
-        }
-
         struct AlignmentSeparation
         {
             public float3 alignment;
             public float3 separation;
+        }
+
+        struct CellHashIndex
+        {
+            public CellHash hash;
+            public int value;
+            public int next;
         }
 
         [ComputeJobOptimization]
@@ -86,7 +81,60 @@ namespace UnityEngine.ECS.Boids
             public NativeArray<int> neighborCount;
             public NativeArray<int> cellCount;
             public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
-            public NativeHashMap<CellHash, int> hashCellIndices;
+            public NativeArray<CellHashIndex> hashCellBuckets;
+            public int hashCellBucketBufferUsedCount;
+            
+            bool TryGetHashIndex(CellHash hash, out int value)
+            {
+                int hashBucketIndex = hash.HashBucketIndex;
+                var next = hashCellBuckets[hashBucketIndex];
+                if (next.hash.IsNull())
+                {
+                    value = -1;
+                    return false;
+                }
+                while (true)
+                {
+                    if (next.hash.Equals(hash))
+                    {
+                        value = next.value;
+                        return true;
+                    }
+                    if (next.next == 0)
+                    {
+                        value = -1;
+                        return false;
+                    }
+                    next = hashCellBuckets[CellHash.HashBucketCapacity + next.next-1];
+                }
+            }
+            
+            void AddHashIdex(CellHash hash, int value)
+            {
+                int hashBucketIndex = hash.HashBucketIndex;
+                var first = hashCellBuckets[hashBucketIndex];
+                if (first.hash.IsNull())
+                {
+                    hashCellBuckets[hashBucketIndex] = new CellHashIndex
+                    {
+                        hash = hash,
+                        value = value,
+                        next = 0 
+                    };
+                }
+                else
+                {
+                    int nextBucketIndex = hashCellBucketBufferUsedCount;
+                    hashCellBuckets[CellHash.HashBucketCapacity + nextBucketIndex] = hashCellBuckets[hashBucketIndex];
+                    hashCellBuckets[hashBucketIndex] = new CellHashIndex
+                    {
+                        hash = hash,
+                        value = value,
+                        next = nextBucketIndex+1
+                    };
+                    hashCellBucketBufferUsedCount++;
+                }
+            }
 
             public void Execute()
             {
@@ -96,9 +144,9 @@ namespace UnityEngine.ECS.Boids
                 {
                     var hash = positionHashes[i];
                     int cellIndex;
-                    if (!hashCellIndices.TryGetValue(hash, out cellIndex))
+                    if (!TryGetHashIndex(hash, out cellIndex))
                     {
-                        hashCellIndices.TryAdd(hash, nextCellIndex);
+                        AddHashIdex(hash, nextCellIndex);
                         cellIndex = nextCellIndex;
                         cellAlignmentSeparation[cellIndex] = new AlignmentSeparation
                         {
@@ -198,7 +246,6 @@ namespace UnityEngine.ECS.Boids
             [ReadOnly] public NativeArray<TargetObstacle> targetObstacle;
             public float dt;
             public ComponentDataArray<Heading> headings;
-            [ReadOnly] public ComponentDataArray<MoveSpeed> moveSpeeds;
 
             public void Execute(int index)
             {
@@ -213,7 +260,7 @@ namespace UnityEngine.ECS.Boids
                 var normalHeading = math_experimental.normalizeSafe(alignmentResult + separationResult + targetObstacle[index].target);
                 var targetForward = math.select(normalHeading,targetObstacle[index].obstacle,targetObstacle[index].avoidObstacle < 0);
                 var steer = math_experimental.normalizeSafe(forward + dt*(targetForward-forward));
-                var speed = moveSpeeds[index].speed;
+                var speed = settings.speed;
                 headings[index] = new Heading { Value = steer };
                 positions[index] = new Position {Value = position + (steer * speed * dt)};
             }
@@ -239,7 +286,6 @@ namespace UnityEngine.ECS.Boids
             }
         }
         
-        
         [ComputeJobOptimization]
         struct Dispose : IJob
         {
@@ -251,7 +297,8 @@ namespace UnityEngine.ECS.Boids
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> cellCount;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> targetPositions;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> obstaclePositions;
-
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<CellHashIndex> hashCellBuckets;
+            
             public void Execute()
             {
             }
@@ -260,55 +307,41 @@ namespace UnityEngine.ECS.Boids
         protected override JobHandle OnUpdate(JobHandle inputDeps)
         {
             EntityManager.GetAllUniqueSharedComponentDatas(m_UniqueTypes);
-
+            
+            var obstacleSourcePositions = m_ObstacleGroup.GetComponentDataArray<Position>();
+            var targetSourcePositions = m_TargetGroup.GetComponentDataArray<Position>();
+            
             // Ingore typeIndex 0, can't use the default for anything meaningful.
             for (int typeIndex = 1; typeIndex < m_UniqueTypes.Count; typeIndex++)
             {
                 var settings = m_UniqueTypes[typeIndex];
-                var cacheIndex = typeIndex - 1;
                 var variation = m_MainGroup.GetVariation(settings);
                 var positions = variation.GetComponentDataArray<Position>();
                 var headings = variation.GetComponentDataArray<Heading>();
                 var transformMatrices = variation.GetComponentDataArray<TransformMatrix>();
-                var moveSpeeds = variation.GetComponentDataArray<MoveSpeed>();
                 variation.Dispose();
 
                 var boidCount = positions.Length;
-
+                
                 var positionHashes = new NativeArray<CellHash>(boidCount, Allocator.TempJob);
-                var hashBoidLocationsJob = new HashPositions
+                var neighborCount = new NativeArray<int>(boidCount, Allocator.TempJob);
+                var cellAlignmentSeparation = new NativeArray<AlignmentSeparation>(boidCount, Allocator.TempJob);
+                var cellCount = new NativeArray<int>(1, Allocator.TempJob);
+                var targetPositions = new NativeArray<float3>(targetSourcePositions.Length, Allocator.TempJob);
+                var targetObstacle = new NativeArray<TargetObstacle>(boidCount, Allocator.TempJob);
+                var obstaclePositions = new NativeArray<float3>(obstacleSourcePositions.Length, Allocator.TempJob);
+                var cellIndices = new NativeArray<int>(boidCount, Allocator.TempJob);
+                var hashCellBuckets = new NativeArray<CellHashIndex>(CellHash.HashBucketCapacity+boidCount, Allocator.TempJob);
+
+                var hashPositionsJob = new HashPositions
                 {
                     positions = positions,
                     positionHashes = positionHashes,
                     cellRadius = settings.cellRadius
                 };
-                var hashBoidLocationsJobHandle = hashBoidLocationsJob.Schedule(boidCount, 1024, inputDeps);
+                var hashPositionsJobHandle = hashPositionsJob.Schedule(boidCount, 1024, inputDeps);
                 
-                var cellIndices = new NativeArray<int>(boidCount, Allocator.TempJob);
-                var neighborCount = new NativeArray<int>(boidCount, Allocator.TempJob);
-                var cellAlignmentSeparation = new NativeArray<AlignmentSeparation>(boidCount, Allocator.TempJob);
-                var cellCount = new NativeArray<int>(1, Allocator.TempJob);
                 
-                NativeHashMap<CellHash,int> cells;
-                if (cacheIndex > (m_Cells.Count - 1))
-                {
-                    cells = new NativeHashMap<CellHash,int>(boidCount,Allocator.Persistent);
-                    m_Cells.Add(cells);
-                }
-                else
-                {
-                    cells = m_Cells[cacheIndex];
-                    cells.Capacity = math.max(cells.Capacity, boidCount);
-                }
-
-                var clearCellIndicesJob = new ClearHashCellIndices
-                {
-                    hashCellIndices = cells
-                };
-                var clearCellIndicesJobHandle = clearCellIndicesJob.Schedule(inputDeps);
-
-                var targetSourcePositions = m_TargetGroup.GetComponentDataArray<Position>();
-                var targetPositions = new NativeArray<float3>(targetSourcePositions.Length, Allocator.TempJob);
                 var targetPositionsJob = new CopyComponentData<Position, float3>
                 {
                     source = targetSourcePositions,
@@ -316,8 +349,7 @@ namespace UnityEngine.ECS.Boids
                 };
                 var targetPositionsJobHandle = targetPositionsJob.Schedule(targetSourcePositions.Length,4,inputDeps);
                 
-                var obstacleSourcePositions = m_ObstacleGroup.GetComponentDataArray<Position>();
-                var obstaclePositions = new NativeArray<float3>(obstacleSourcePositions.Length, Allocator.TempJob);
+                
                 var obstaclePositionsJob = new CopyComponentData<Position, float3>
                 {
                     source = obstacleSourcePositions,
@@ -325,11 +357,8 @@ namespace UnityEngine.ECS.Boids
                 };
                 var obstaclePositionsJobHandle = obstaclePositionsJob.Schedule(obstacleSourcePositions.Length,4,inputDeps);
 
-                var cellsBarrierJobHandle = JobHandle.CombineDependencies(
-                    JobHandle.CombineDependencies(hashBoidLocationsJobHandle, clearCellIndicesJobHandle),
-                    JobHandle.CombineDependencies(targetPositionsJobHandle, obstaclePositionsJobHandle));
+                var cellsBarrierJobHandle = JobHandle.CombineDependencies(hashPositionsJobHandle, targetPositionsJobHandle, obstaclePositionsJobHandle);
                 
-                var targetObstacle = new NativeArray<TargetObstacle>(boidCount, Allocator.TempJob);
                 var targetObstacleJob = new HeadingTargetObstacle
                 {
                     targetObstacle = targetObstacle,
@@ -347,7 +376,7 @@ namespace UnityEngine.ECS.Boids
                     transformMatrices = transformMatrices,
                 };
                 var transformJobHandle = transformJob.Schedule(boidCount, 1024, targetObstacleJobHandle);
-                
+
                 var cellsJob = new Cells
                 {
                     positionHashes = positionHashes,
@@ -357,10 +386,11 @@ namespace UnityEngine.ECS.Boids
                     positions = positions,
                     headings = headings,
                     cellCount = cellCount,
-                    hashCellIndices = cells
+                    hashCellBuckets = hashCellBuckets,
+                    hashCellBucketBufferUsedCount = 0,
                 };
                 var cellsJobHandle = cellsJob.Schedule(cellsBarrierJobHandle);
-
+                
                 var steerBarrierJobHandle = JobHandle.CombineDependencies(targetObstacleJobHandle, cellsJobHandle,transformJobHandle);
                 
                 var steerJob = new Steer
@@ -372,8 +402,7 @@ namespace UnityEngine.ECS.Boids
                     targetObstacle = targetObstacle,
                     settings = settings,
                     dt = Time.deltaTime,
-                    headings = headings,
-                    moveSpeeds = moveSpeeds
+                    headings = headings
                 };
                 var steerJobHandle = steerJob.Schedule(boidCount, 1024, steerBarrierJobHandle);
 
@@ -386,7 +415,8 @@ namespace UnityEngine.ECS.Boids
                     positionHashes = positionHashes,
                     cellCount = cellCount,
                     targetPositions = targetPositions,
-                    obstaclePositions = obstaclePositions
+                    obstaclePositions = obstaclePositions,
+                    hashCellBuckets = hashCellBuckets
                 };
                 var disposeJobHandle = disposeJob.Schedule(steerJobHandle);
 
@@ -401,7 +431,6 @@ namespace UnityEngine.ECS.Boids
         {
             m_MainGroup = GetComponentGroup(
                 ComponentType.ReadOnly(typeof(Boid)),
-                ComponentType.ReadOnly(typeof(MoveSpeed)),
                 typeof(Position),
                 typeof(TransformMatrix),
                 typeof(Heading));
@@ -411,15 +440,6 @@ namespace UnityEngine.ECS.Boids
             m_ObstacleGroup = GetComponentGroup(    
                 ComponentType.ReadOnly(typeof(BoidObstacle)),
                 ComponentType.ReadOnly(typeof(Position)));
-        }
-        
-
-        protected override void OnDestroyManager()
-        {
-            for (int i = 0; i < m_Cells.Count; i++)
-            {
-                m_Cells[i].Dispose();
-            }
         }
     }
 }

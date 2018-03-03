@@ -30,13 +30,13 @@ public class BlobTests : ECSTestsFixture
 	{
 		var allocator = new BlobAllocator(-1);
 
-		MyData* root = (MyData*)allocator.ConstructRoot<MyData>();
+		ref var root = ref allocator.ConstructRoot<MyData>();
 
-		allocator.Allocate(3, ref root->floatArray);
-		allocator.Allocate(ref root->oneVector3);
-		allocator.Allocate(2, ref root->nestedArray);
+		allocator.Allocate(3, ref root.floatArray);
+		allocator.Allocate(ref root.oneVector3);
+		allocator.Allocate(2, ref root.nestedArray);
 
-		BlobArray<int>* nestedArrays = (BlobArray<int>*)root->nestedArray.GetUnsafePtr();
+	    ref var nestedArrays = ref root.nestedArray;
 		allocator.Allocate(1, ref nestedArrays[0]);
 		allocator.Allocate(2, ref nestedArrays[1]);
 
@@ -44,12 +44,12 @@ public class BlobTests : ECSTestsFixture
 		nestedArrays[1][0] = 1;
 		nestedArrays[1][1] = 2;
 
-		root->floatArray[0] = 0;
-		root->floatArray[1] = 1;
-		root->floatArray[2] = 2;
+		root.floatArray[0] = 0;
+		root.floatArray[1] = 1;
+		root.floatArray[2] = 2;
 
-		root->embeddedFloat = 4;
-		root->oneVector3.Value = new Vector3 (3, 3, 3);
+		root.embeddedFloat = 4;
+		root.oneVector3.Value = new Vector3 (3, 3, 3);
 
 		var assetRef = allocator.CreateBlobAssetReference<MyData>(Allocator.Persistent);
 
@@ -58,23 +58,21 @@ public class BlobTests : ECSTestsFixture
 	    return assetRef;
 	}
 
-    unsafe static void ValidateBlobData(MyData* root)
+    unsafe static void ValidateBlobData(ref MyData root)
     {
-        Assert.AreEqual (3, root->floatArray.Length);
-        Assert.AreEqual (0, root->floatArray[0]);
-        Assert.AreEqual (1, root->floatArray[1]);
-        Assert.AreEqual (2, root->floatArray[2]);
-        Assert.AreEqual (new Vector3(3, 3, 3), root->oneVector3.Value);
-        Assert.AreEqual (4, root->embeddedFloat);
+        Assert.AreEqual (3, root.floatArray.Length);
+        Assert.AreEqual (0, root.floatArray[0]);
+        Assert.AreEqual (1, root.floatArray[1]);
+        Assert.AreEqual (2, root.floatArray[2]);
+        Assert.AreEqual (new Vector3(3, 3, 3), root.oneVector3.Value);
+        Assert.AreEqual (4, root.embeddedFloat);
 
-        Assert.AreEqual (1, root->nestedArray[0].Length);
-        Assert.AreEqual (2, root->nestedArray[1].Length);
+        Assert.AreEqual (1, root.nestedArray[0].Length);
+        Assert.AreEqual (2, root.nestedArray[1].Length);
 
-        var nested = (BlobArray<int>*)(root->nestedArray.GetUnsafePtr());
-
-        Assert.AreEqual (0, nested[0][0]);
-        Assert.AreEqual (1, nested[1][0]);
-        Assert.AreEqual (2, nested[1][1]);
+        Assert.AreEqual (0, root.nestedArray[0][0]);
+        Assert.AreEqual (1, root.nestedArray[1][0]);
+        Assert.AreEqual (2, root.nestedArray[1][1]);
     }
 
 
@@ -82,8 +80,7 @@ public class BlobTests : ECSTestsFixture
 	public unsafe void CreateBlobData()
 	{
 		var blob = ConstructBlobData ();
-		MyData* root = (MyData*)blob.GetUnsafePtr();
-	    ValidateBlobData(root);
+	    ValidateBlobData(ref blob.Value);
 
 		blob.Release();
 	}
@@ -104,8 +101,7 @@ public class BlobTests : ECSTestsFixture
 
 		public unsafe void Execute()
 		{
-			MyData* data = (MyData*)blob.GetUnsafePtr();
-		    ValidateBlobData(data);
+		    ValidateBlobData(ref blob.Value);
 		}
 	}
 
@@ -141,8 +137,7 @@ public class BlobTests : ECSTestsFixture
             }
             else
             {
-                MyData* data = (MyData*) component.blobAsset.GetUnsafePtr();
-                ValidateBlobData(data);
+                ValidateBlobData(ref component.blobAsset.Value);
             }
         }
     }
@@ -162,7 +157,7 @@ public class BlobTests : ECSTestsFixture
 	    var system = World.Active.GetOrCreateManager<DummySystem>();
 	    var jobHandle = jobData.Schedule(system, 1);
 
-	    ValidateBlobData((MyData*)blob.GetUnsafePtr());
+	    ValidateBlobData(ref blob.Value);
 
 	    jobHandle.Complete ();
 

@@ -196,12 +196,12 @@ namespace AnimationSampleCode
 
 			var blobAllocator = new BlobAllocator (-1);
 
-			var clipData = (DenseClip*)blobAllocator.ConstructRoot<DenseClip> ();
-			clipData->curveCount = bindings.Length;
-			clipData->frameCount = frameCount;
-			clipData->sampleRate = clip.frameRate;
+			ref var clipData = ref blobAllocator.ConstructRoot<DenseClip> ();
+			clipData.curveCount = bindings.Length;
+			clipData.frameCount = frameCount;
+			clipData.sampleRate = clip.frameRate;
 
-			blobAllocator.Allocate(clipData->curveCount * clipData->frameCount, ref clipData->samples);
+			blobAllocator.Allocate(clipData.curveCount * clipData.frameCount, ref clipData.samples);
 
 			int outputIndex = 0;
 			foreach (var binding in bindings)
@@ -212,8 +212,8 @@ namespace AnimationSampleCode
 				outBindings.bindings[outputIndex] = outBinding;
 
 				var curve = AnimationUtility.GetEditorCurve (clip, binding);
-				for (int f = 0; f != clipData->frameCount;f++)
-					clipData->samples[outputIndex + f * clipData->curveCount] = curve.Evaluate(f / clipData->sampleRate);
+				for (int f = 0; f != clipData.frameCount;f++)
+					clipData.samples[outputIndex + f * clipData.curveCount] = curve.Evaluate(f / clipData.sampleRate);
 
 				outputIndex++;
 			}

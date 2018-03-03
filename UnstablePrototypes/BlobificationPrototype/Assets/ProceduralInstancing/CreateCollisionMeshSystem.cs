@@ -29,8 +29,7 @@ public class CreateCollisionMeshSystem : ComponentSystem
             meshInstance.CollisionMesh = collisionMesh;
             meshInstance.Transform = entity.Transform.localToWorldMatrix;
 
-            var collisionMeshData = (CollisionMeshData*) collisionMesh.GetUnsafePtr();
-            meshInstance.Bounds = GeometryUtility.CalculateBounds(meshInstance.Transform, ref *collisionMeshData);
+            meshInstance.Bounds = GeometryUtility.CalculateBounds(meshInstance.Transform, ref collisionMesh.Value);
 
             PostUpdateCommands.AddComponent(entity.Transform.GetComponent<GameObjectEntity>().Entity, meshInstance);
         }
@@ -40,20 +39,20 @@ public class CreateCollisionMeshSystem : ComponentSystem
     {
         var allocator = new BlobAllocator(-1);
 
-        var meshData = (CollisionMeshData*) allocator.ConstructRoot<CollisionMeshData>();
+        ref var meshData = ref allocator.ConstructRoot<CollisionMeshData>();
 
         var tris = mesh.triangles;
-        allocator.Allocate(tris.Length / 3, ref meshData->Triangles);
+        allocator.Allocate(tris.Length / 3, ref meshData.Triangles);
         fixed (int* trisPtr = tris)
         {
-            UnsafeUtility.MemCpy(meshData->Triangles.GetUnsafePtr(), trisPtr, sizeof(int3) * meshData->Triangles.Length);
+            UnsafeUtility.MemCpy(meshData.Triangles.GetUnsafePtr(), trisPtr, sizeof(int3) * meshData.Triangles.Length);
         }
 
-        allocator.Allocate(mesh.vertexCount, ref meshData->Vertices);
+        allocator.Allocate(mesh.vertexCount, ref meshData.Vertices);
         var vertices = mesh.vertices;
         fixed (Vector3* vertexPtr = vertices)
         {
-            UnsafeUtility.MemCpy(meshData->Vertices.GetUnsafePtr(), vertexPtr, sizeof(float3) * meshData->Vertices.Length);
+            UnsafeUtility.MemCpy(meshData.Vertices.GetUnsafePtr(), vertexPtr, sizeof(float3) * meshData.Vertices.Length);
         }
 
         var assetRef = allocator.CreateBlobAssetReference<CollisionMeshData>(Allocator.Persistent);

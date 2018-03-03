@@ -4,7 +4,8 @@
     "com.unity.jobs": "file:../../../ECSJobDemos/Packages/com.unity.jobs",
     "com.unity.mathematics": "file:../../../ECSJobDemos/Packages/com.unity.mathematics",
     "com.unity.collections": "file:../../../ECSJobDemos/Packages/com.unity.collections",
-    "com.unity.burst": "0.1.29"
+    "com.unity.burst": "0.1.29",
+    "com.unity.incrementalcompiler": "0.0.23"
   },
   "testables": [
         "com.unity.collections",

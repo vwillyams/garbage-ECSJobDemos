@@ -118,9 +118,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
         for (int i = 0;i != visible.Length && count != outGridPositions.Length;i++)
         {
             var gridPos = visible[i];
-            //@TODO: Need Contains method here...
 
-            ComponentType type;
             if (!createdChunks.Contains(gridPos))
                 outGridPositions[count++] = gridPos;
         }
@@ -259,7 +257,9 @@ public class ProceduralSpawnSystem : JobComponentSystem
 
             for (int i = 0; i != entities.Length; i++)
             {
-                TransformMatrix transform;
+                //@TODO: Why can't i leave this uninitialized?
+                TransformMatrix transform = new TransformMatrix();
+
                 transform.Value = Matrix4x4.Translate(SpawnLocations[i].Position);
                 EntityTransaction.SetComponentData(entities[i], transform);
             }

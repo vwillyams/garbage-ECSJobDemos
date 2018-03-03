@@ -29,10 +29,8 @@ static public class GeometryUtility
             if (IntersectRayAABB(rayOrigin, rayVector, collider.Bounds.Center, collider.Bounds.Extents,
                 out outT0, out outT1) && outT0 < closestT)
             {
-                CollisionMeshData* mesh = (CollisionMeshData*)collider.CollisionMesh.GetUnsafePtr();
-
                 float t;
-                GeometryUtility.RayIntersectsMesh(rayOrigin, rayVector, collider.Transform, ref *mesh, out t);
+                GeometryUtility.RayIntersectsMesh(rayOrigin, rayVector, collider.Transform, ref collider.CollisionMesh.Value, out t);
 
                 closestT = math.min(t, closestT);
             }

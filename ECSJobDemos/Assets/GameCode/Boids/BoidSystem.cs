@@ -232,17 +232,17 @@ namespace UnityEngine.ECS.Boids
                 };
             }
         }
-        
+
         [ComputeJobOptimization]
         struct Steer : IJobParallelFor
         {
-            public ComponentDataArray<Position> positions;
             [ReadOnly] public NativeArray<int> cellIndices;
             [ReadOnly] public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
             [ReadOnly] public NativeArray<int> neighborCount;
             [ReadOnly] public Boid settings;
             [ReadOnly] public NativeArray<TargetObstacle> targetObstacle;
             public float dt;
+            public ComponentDataArray<Position> positions;
             public ComponentDataArray<Heading> headings;
 
             public void Execute(int index)
@@ -320,7 +320,6 @@ namespace UnityEngine.ECS.Boids
                 variation.Dispose();
 
                 var boidCount = positions.Length;
-                
                 var positionHashes = new NativeArray<CellHash>(boidCount, Allocator.TempJob);
                 var neighborCount = new NativeArray<int>(boidCount, Allocator.TempJob);
                 var cellAlignmentSeparation = new NativeArray<AlignmentSeparation>(boidCount, Allocator.TempJob);

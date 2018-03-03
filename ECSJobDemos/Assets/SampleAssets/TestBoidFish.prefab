@@ -26,8 +26,8 @@ GameObject:
   - component: {fileID: 114878148870236606}
   - component: {fileID: 114017445485928864}
   - component: {fileID: 114577371648038814}
-  - component: {fileID: 114151331784951154}
   - component: {fileID: 114095514458517400}
+  - component: {fileID: 114151331784951154}
   m_Layer: 0
   m_Name: TestBoidFish
   m_TagString: Untagged
@@ -103,6 +103,7 @@ MonoBehaviour:
     alignmentWeight: 1
     targetWeight: 2
     obstacleAversionDistance: 20
+    speed: 27
 --- !u!114 &114569172725802478
 MonoBehaviour:
   m_ObjectHideFlags: 1

@@ -2,13 +2,10 @@
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using UnityEngine;
-using Unity.ECS;
-using static Unity.Mathematics.math;
+using Unity.Entities;
 
 public class CreateCollisionMeshSystem : ComponentSystem
 {
-    [Inject] DeferredEntityChangeSystem m_DeferredChangeSystem;
-
     unsafe struct Group
     {
         public SubtractiveComponent<CollisionMeshInstance> NoMeshInstance;
@@ -35,12 +32,8 @@ public class CreateCollisionMeshSystem : ComponentSystem
             var collisionMeshData = (CollisionMeshData*) collisionMesh.GetUnsafePtr();
             meshInstance.Bounds = GeometryUtility.CalculateBounds(meshInstance.Transform, ref *collisionMeshData);
 
-            //@TODO: Blob data is currently leaking... because no event when deleting components...
-            m_DeferredChangeSystem.AddComponent(entity.Transform.GetComponent<GameObjectEntity>().Entity, meshInstance);
+            PostUpdateCommands.AddComponent(entity.Transform.GetComponent<GameObjectEntity>().Entity, meshInstance);
         }
-
-        if (entities.Length != 0)
-            m_DeferredChangeSystem.Update();
     }
 
     static unsafe BlobAssetReference<CollisionMeshData> ConstructMeshData(Mesh mesh)

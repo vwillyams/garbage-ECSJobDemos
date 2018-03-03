@@ -1,9 +1,9 @@
-﻿using Unity.ECS;
+﻿using Unity.Entities;
 using NUnit.Framework;
 
 //@TODO: This is just duplicated code... Can't reference test assembly from another test assembly...
 
-namespace Unity.ECS.Tests
+namespace Unity.Entities.Tests
 {
 	public class ECSTestsFixture
 	{
@@ -27,7 +27,7 @@ namespace Unity.ECS.Tests
             {
 	            World.Dispose();
 	            World = null;
-	            
+
                 World.Active = m_PreviousWorld;
                 m_PreviousWorld = null;
                 m_Manager = null;

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Mathematics;
 
 namespace Unity.Entities
 {
@@ -125,15 +126,18 @@ namespace Unity.Entities
 
             if (data->m_Tail == null || data->m_Tail->Capacity < size)
             {
-                var c = (Chunk*)UnsafeUtility.Malloc(sizeof(Chunk) + size, 16, data->m_Allocator);
-                c->Next = null;
-                c->Prev = data->m_Tail != null ? data->m_Tail : null;
-                c->Used = 0;
-                c->Size = size;
+                int chunkSize = math.max(MinimumChunkSize, size);
 
-                if (data->m_Tail != null)
+                var c = (Chunk*)UnsafeUtility.Malloc(sizeof(Chunk) + chunkSize, 16, data->m_Allocator);
+                Chunk* prev = data->m_Tail;
+                c->Next = null;
+                c->Prev = prev;
+                c->Used = 0;
+                c->Size = chunkSize;
+
+                if (prev != null)
                 {
-                    data->m_Tail->Next = c;
+                    prev->Next = c;
                 }
 
                 if (data->m_Head == null)

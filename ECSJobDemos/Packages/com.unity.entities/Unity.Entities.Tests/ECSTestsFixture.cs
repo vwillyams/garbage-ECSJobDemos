@@ -8,6 +8,17 @@ namespace UnityEngine.ECS.Tests
     public class EmptySystem : JobComponentSystem
     {
         protected override JobHandle OnUpdate(JobHandle dep) { return dep; }
+
+
+        new public ComponentGroup GetComponentGroup(params ComponentType[] componentTypes)
+        {
+            return base.GetComponentGroup(componentTypes);
+        }
+
+        new public ComponentGroupArray<T> GetEntities<T>() where T : struct
+        {
+            return base.GetEntities<T>();
+        }
     }
 
     public class ECSTestsFixture

@@ -181,6 +181,11 @@ namespace UnityEngine.ECS.Tests
 	        protected override void OnUpdate()
 	        {
 	        }
+
+	        public void UpdateInjectedComponentGroups()
+	        {
+	            base.UpdateInjectedComponentGroups();
+	        }
 	    }
 
 	    [Test]
@@ -223,6 +228,11 @@ namespace UnityEngine.ECS.Tests
 
 	        protected override void OnUpdate()
 	        {
+	        }
+
+	        public void UpdateInjectedComponentGroups()
+	        {
+	            base.UpdateInjectedComponentGroups();
 	        }
 	    }
 

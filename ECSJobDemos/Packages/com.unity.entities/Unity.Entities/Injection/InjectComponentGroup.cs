@@ -31,9 +31,7 @@ namespace Unity.Entities
             FieldInfo entityArrayInjection, FieldInfo indexFromEntityInjection, InjectionContext injectionContext,
             FieldInfo lengthInjection, ComponentType[] componentRequirements)
         {
-            var requiredComponentTypes = componentRequirements;
-
-            m_EntityGroup = system.GetComponentGroup(requiredComponentTypes);
+            m_EntityGroup = system.GetComponentGroupInternal(componentRequirements);
 
             m_ComponentDataInjections = componentDataInjections;
             m_FixedArrayInjections = fixedArrayInjections;

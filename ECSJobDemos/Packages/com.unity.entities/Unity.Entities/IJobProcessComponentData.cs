@@ -216,7 +216,7 @@ namespace Unity.Entities
 
             if (cache.ComponentSystem != system)
             {
-                cache.ComponentGroup = system.GetComponentGroup(cache.Types);
+                cache.ComponentGroup = system.GetComponentGroupInternal(cache.Types);
                 cache.ComponentSystem = system;
             }
 

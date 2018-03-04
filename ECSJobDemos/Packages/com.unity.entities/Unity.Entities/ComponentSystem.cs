@@ -133,7 +133,7 @@ namespace Unity.Entities
             }
         }
         
-        internal ComponentGroup GetComponentGroup(ComponentType* componentTypes, int count)
+        internal ComponentGroup GetComponentGroupInternal(ComponentType* componentTypes, int count)
         {
             for (var i = 0; i != m_ComponentGroups.Length; i++)
             {
@@ -155,15 +155,24 @@ namespace Unity.Entities
             return group;
         }
 
-        public ComponentGroup GetComponentGroup(params ComponentType[] componentTypes)
+        internal ComponentGroup GetComponentGroupInternal(ComponentType[] componentTypes)
         {
             fixed (ComponentType* typesPtr = componentTypes)
             {
-                return GetComponentGroup(typesPtr, componentTypes.Length);
+                return GetComponentGroupInternal(typesPtr, componentTypes.Length);
+            }
+        }
+
+
+        protected ComponentGroup GetComponentGroup(params ComponentType[] componentTypes)
+        {
+            fixed (ComponentType* typesPtr = componentTypes)
+            {
+                return GetComponentGroupInternal(typesPtr, componentTypes.Length);
             }
         }
         
-        public ComponentGroupArray<T> GetEntities<T>() where T : struct
+        protected ComponentGroupArray<T> GetEntities<T>() where T : struct
         {
             for (var i = 0; i != m_CachedComponentGroupArrays.Length; i++)
             {
@@ -176,7 +185,7 @@ namespace Unity.Entities
             return new ComponentGroupArray<T>(cache);
         }
 
-        public void UpdateInjectedComponentGroups()
+        protected void UpdateInjectedComponentGroups()
         {
             if (null == m_InjectedComponentGroups)
                 return;

@@ -257,9 +257,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
 
             for (int i = 0; i != entities.Length; i++)
             {
-                //@TODO: Why can't i leave this uninitialized?
-                TransformMatrix transform = new TransformMatrix();
-
+                TransformMatrix transform;
                 transform.Value = Matrix4x4.Translate(SpawnLocations[i].Position);
                 EntityTransaction.SetComponentData(entities[i], transform);
             }

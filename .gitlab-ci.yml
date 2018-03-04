@@ -43,7 +43,7 @@ mac:boids:mono:run:
   tags:
     - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/mono/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-boids-run-mono.log -timeout 60 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/mono/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-boids-run-mono.log -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macos-boids"
     when: always
@@ -59,7 +59,7 @@ mac:boids:il2cpp:run:
   tags:
     - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/il2cpp/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-boids-run-il2cpp.log -timeout 60 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/il2cpp/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-boids-run-il2cpp.log -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macos-boids"
     when: always
@@ -119,7 +119,7 @@ win:boids:mono:run:
   tags:
     - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/mono/windows-standalone.exe -logfile output-win-boids-run-mono.log -timeout 60 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/mono/windows-standalone.exe -logfile output-win-boids-run-mono.log -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-win-boids"
     when: always
@@ -135,7 +135,7 @@ win:boids:il2cpp:run:
   tags:
     - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/il2cpp/windows-standalone.exe -logfile output-win-boids-run-il2cpp.log -timeout 60 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/il2cpp/windows-standalone.exe -logfile output-win-boids-run-il2cpp.log -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-win-boids"
     when: always

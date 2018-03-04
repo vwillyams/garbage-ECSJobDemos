@@ -510,7 +510,7 @@ namespace Unity.Entities
             return boxed;
         }
         
-        public void SetComponentBoxed(Entity entity, ComponentType componentType, object boxedObject)
+        internal void SetComponentBoxed(Entity entity, ComponentType componentType, object boxedObject)
         {
             var type = TypeManager.GetType(componentType.TypeIndex);
 

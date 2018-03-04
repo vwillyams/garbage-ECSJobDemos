@@ -10,7 +10,7 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace Unity.Entities
 {
-    public class ComponentGroupArrayStaticCache
+    class ComponentGroupArrayStaticCache
     {
         public readonly Type                    CachedType;
 
@@ -326,7 +326,7 @@ namespace Unity.Entities
     {
         internal ComponentGroupArrayData     m_Data;
 
-        public ComponentGroupArray(ComponentGroupArrayStaticCache cache)
+        internal ComponentGroupArray(ComponentGroupArrayStaticCache cache)
         {
             m_Data = new ComponentGroupArrayData(cache);
         }

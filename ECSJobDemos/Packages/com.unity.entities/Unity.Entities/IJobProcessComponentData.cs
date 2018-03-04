@@ -383,7 +383,7 @@ namespace Unity.Entities
                 while (begin != end)
                 {
                     jobData.Iterator.Iterator0.UpdateCache(begin, out cache0);
-                    var ptr0 = cache0.CachedPtr;
+                    var ptr0 = UnsafeUtilityEx.RestrictNoAlias(cache0.CachedPtr);
 
                     var curEnd = Math.Min(end, cache0.CachedEndIndex);
 
@@ -482,10 +482,10 @@ namespace Unity.Entities
                 while (begin != end)
                 {
                     jobData.Iterator.Iterator0.UpdateCache(begin, out cache0);
-                    var ptr0 = cache0.CachedPtr;
+                    var ptr0 = UnsafeUtilityEx.RestrictNoAlias(cache0.CachedPtr);
 
                     jobData.Iterator.Iterator1.UpdateCache(begin, out cache1);
-                    var ptr1 = cache1.CachedPtr;
+                    var ptr1 = UnsafeUtilityEx.RestrictNoAlias(cache1.CachedPtr);
 
                     var curEnd = Math.Min(end, cache0.CachedEndIndex);
 
@@ -589,13 +589,13 @@ namespace Unity.Entities
                 while (begin != end)
                 {
                     jobData.Iterator.Iterator0.UpdateCache(begin, out cache0);
-                    var ptr0 = cache0.CachedPtr;
+                    var ptr0 = UnsafeUtilityEx.RestrictNoAlias(cache0.CachedPtr);
 
                     jobData.Iterator.Iterator1.UpdateCache(begin, out cache1);
-                    var ptr1 = cache1.CachedPtr;
+                    var ptr1 = UnsafeUtilityEx.RestrictNoAlias(cache1.CachedPtr);
 
                     jobData.Iterator.Iterator2.UpdateCache(begin, out cache2);
-                    var ptr2 = cache2.CachedPtr;
+                    var ptr2 = UnsafeUtilityEx.RestrictNoAlias(cache2.CachedPtr);
 
                     var curEnd = Math.Min(end, cache0.CachedEndIndex);
 

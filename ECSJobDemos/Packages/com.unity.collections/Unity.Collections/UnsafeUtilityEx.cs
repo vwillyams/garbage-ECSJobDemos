@@ -1,8 +1,8 @@
-﻿#if CSHARP_7_OR_LATER
-namespace Unity.Collections.LowLevel.Unsafe
+﻿namespace Unity.Collections.LowLevel.Unsafe
 {
     unsafe public static class UnsafeUtilityEx
     {
+#if CSHARP_7_OR_LATER
         public static ref T AsRef<T>(void* ptr) where T : struct
         {
             return ref System.Runtime.CompilerServices.Unsafe.AsRef<T>(ptr);
@@ -12,6 +12,10 @@ namespace Unity.Collections.LowLevel.Unsafe
         {
             return ref System.Runtime.CompilerServices.Unsafe.AsRef<T>((byte*)ptr + index * UnsafeUtility.SizeOf<T>());
         }
+#endif    
+        public static void* RestrictNoAlias(void* ptr)
+        {
+            return ptr;
+        }
     }
 }
-#endif

@@ -160,7 +160,12 @@ namespace Unity.Entities
                 if (srcArch->Types[srcI] < dstArch->Types[dstI])
                     ++srcI;
                 else if (srcArch->Types[srcI] > dstArch->Types[dstI])
+                {
+                    // Clear components in the destination that aren't copied
+                    var dst = dstChunk->Buffer + dstArch->Offsets[dstI] + dstIndex * dstArch->SizeOfs[dstI];
+                    UnsafeUtility.MemClear(dst, dstArch->SizeOfs[dstI]);
                     ++dstI;
+                }
                 else
                 {
                     var src = srcChunk->Buffer + srcArch->Offsets[srcI] + srcIndex * srcArch->SizeOfs[srcI];
@@ -169,6 +174,13 @@ namespace Unity.Entities
                     ++srcI;
                     ++dstI;
                 }
+            }
+
+            // Clear remaining components in the destination that aren't copied
+            for(; dstI < dstArch->TypesCount; ++dstI)
+            {
+                var dst = dstChunk->Buffer + dstArch->Offsets[dstI] + dstIndex * dstArch->SizeOfs[dstI];
+                UnsafeUtility.MemClear(dst, dstArch->SizeOfs[dstI]);
             }
         }
 

@@ -318,17 +318,17 @@ namespace UnityEngine.ECS.Boids
 
                 var cacheIndex = typeIndex - 1;
                 var boidCount = positions.Length;
-                var positionHashes = new NativeArray<PositionHash>(boidCount, Allocator.TempJob);
-                var copyHeadings = new NativeArray<float3>(boidCount, Allocator.TempJob);
-                var targetPositions = new NativeArray<float3>(targetSourcePositions.Length, Allocator.TempJob);
-                var targetObstacle = new NativeArray<TargetObstacle>(boidCount, Allocator.TempJob);
-                var obstaclePositions = new NativeArray<float3>(obstacleSourcePositions.Length, Allocator.TempJob);
+                var positionHashes = new NativeArray<PositionHash>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
+                var copyHeadings = new NativeArray<float3>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
+                var targetPositions = new NativeArray<float3>(targetSourcePositions.Length, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
+                var targetObstacle = new NativeArray<TargetObstacle>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
+                var obstaclePositions = new NativeArray<float3>(obstacleSourcePositions.Length, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
                 var hashCellBucketCount =  math.ceil_pow2(boidCount*2);
                 var hashCellBuckets = new NativeArray<CellHashIndex>(hashCellBucketCount+boidCount, Allocator.TempJob);
                 
-                var neighborCount = new NativeArray<int>(boidCount, Allocator.TempJob);
-                var cellAlignmentSeparation = new NativeArray<AlignmentSeparation>(boidCount, Allocator.TempJob);
-                var cellIndices = new NativeArray<int>(boidCount, Allocator.TempJob);
+                var neighborCount = new NativeArray<int>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
+                var cellAlignmentSeparation = new NativeArray<AlignmentSeparation>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
+                var cellIndices = new NativeArray<int>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
 
                 PrevCells? prevCells = null;
                 var nextCells = new PrevCells

@@ -65,6 +65,8 @@ namespace Unity.Entities
 
         internal List<ComponentDataWrapperBase>    m_CachedComponentList;
 
+        EntityManagerDebug m_Debug;
+
         protected override void OnBeforeCreateManagerInternal(World world, int capacity) { }
         protected override void OnBeforeDestroyManagerInternal() { }
         protected override void OnAfterDestroyManagerInternal() { }
@@ -509,7 +511,7 @@ namespace Unity.Entities
 
             return boxed;
         }
-        
+
         internal void SetComponentBoxed(Entity entity, ComponentType componentType, object boxedObject)
         {
             var type = TypeManager.GetType(componentType.TypeIndex);
@@ -613,9 +615,9 @@ namespace Unity.Entities
             return assignableTypes;
         }
 
-        public EntityManagerDebug Debug => new EntityManagerDebug(this);
+        internal EntityManagerDebug Debug => m_Debug ?? (m_Debug = new EntityManagerDebug(this));
 
-        public class EntityManagerDebug
+        internal class EntityManagerDebug
         {
             private EntityManager m_EntityManager;
 
@@ -626,10 +628,9 @@ namespace Unity.Entities
 
             public void PoisonUnusedDataInAllChunks(EntityArchetype archetype, byte value)
             {
-
                 for (var c = archetype.Archetype->ChunkList.Begin; c != archetype.Archetype->ChunkList.End; c = c->Next)
                 {
-                    ChunkDataUtility.PoisonUnusedChunkData(c, value);
+                    ChunkDataUtility.PoisonUnusedChunkData((Chunk*)c, value);
                 }
             }
 

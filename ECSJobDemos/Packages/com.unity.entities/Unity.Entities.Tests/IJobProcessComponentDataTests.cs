@@ -45,11 +45,8 @@ namespace UnityEngine.ECS.Tests
         [Test]
         public void JobProcessComponentGroupCorrect()
         {
-            m_Manager.CreateEntity(typeof(EcsTestData), typeof(EcsTestData2));
-
             ComponentType[] expectedTypes = { ComponentType.ReadOnly<EcsTestData>(), ComponentType.Create<EcsTestData2>() };
 
-            new Process2().Run(EmptySystem);
             new Process2().Run(EmptySystem);
             var group = EmptySystem.GetComponentGroup(expectedTypes);
                         
@@ -185,6 +182,8 @@ namespace UnityEngine.ECS.Tests
             Test(true, entityProcess);
         }
 
+
+        
 
         [Test]
         [Ignore("TODO")]

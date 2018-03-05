@@ -15,6 +15,7 @@ namespace Unity.Transforms
 
         struct RootTransGroup
         {
+            [ReadOnly] public SubtractiveComponent<TransformExternal> transfromExternal;
             [ReadOnly] public SubtractiveComponent<Rotation> rotations;
             [ReadOnly] public SubtractiveComponent<TransformParent> parents;
             [ReadOnly] public ComponentDataArray<Position> positions;
@@ -26,6 +27,7 @@ namespace Unity.Transforms
         
         struct RootRotGroup
         {
+            [ReadOnly] public SubtractiveComponent<TransformExternal> transfromExternal;
             [ReadOnly] public ComponentDataArray<Rotation> rotations;
             [ReadOnly] public SubtractiveComponent<TransformParent> parents;
             [ReadOnly] public SubtractiveComponent<Position> positions;
@@ -37,6 +39,7 @@ namespace Unity.Transforms
         
         struct RootRotTransNoTransformGroup
         {
+            [ReadOnly] public SubtractiveComponent<TransformExternal> transfromExternal;
             [ReadOnly] public ComponentDataArray<Rotation> rotations;
             [ReadOnly] public SubtractiveComponent<TransformParent> parents;
             [ReadOnly] public ComponentDataArray<Position> positions;
@@ -49,6 +52,7 @@ namespace Unity.Transforms
         
         struct RootRotTransTransformGroup
         {
+            [ReadOnly] public SubtractiveComponent<TransformExternal> transfromExternal;
             [ReadOnly] public ComponentDataArray<Rotation> rotations;
             [ReadOnly] public SubtractiveComponent<TransformParent> parents;
             [ReadOnly] public ComponentDataArray<Position> positions;
@@ -61,6 +65,7 @@ namespace Unity.Transforms
 
         struct ParentGroup
         {
+            [ReadOnly] public SubtractiveComponent<TransformExternal> transfromExternal;
             [ReadOnly] public ComponentDataArray<TransformParent> transformParents;
             [ReadOnly] public EntityArray entities;
             public int Length;
@@ -280,6 +285,17 @@ namespace Unity.Transforms
             }
         }
 
+        [ComputeJobOptimization]
+        struct ClearHierarchy : IJob
+        {
+            public  NativeMultiHashMap<Entity, Entity> hierarchy;
+
+            public void Execute()
+            {
+                hierarchy.Clear();
+            }
+        }
+
         NativeMultiHashMap<Entity, Entity> m_Hierarchy;
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
@@ -299,6 +315,14 @@ namespace Unity.Transforms
             
             m_Hierarchy.Capacity = math.max(m_ParentGroup.Length + rootCount,m_Hierarchy.Capacity);
             m_Hierarchy.Clear();
+
+            /*
+            var clearHierarchyJob = new ClearHierarchy
+            {
+                hierarchy = m_Hierarchy
+            };
+            var clearHierarchyJobHandle = clearHierarchyJob.Schedule(inputDeps);
+            */
 
             var copyTransRootsJob = new CopyEntities
             {
@@ -327,6 +351,8 @@ namespace Unity.Transforms
                 result = rotTransTransformRoots
             };
             var copyRotRootsJobHandle = copyRotRootsJob.Schedule(m_RootRotGroup.Length, 64, inputDeps);
+
+            // var hiearchyBarrierJobHandle = JobHandle.CombineDependencies(inputDeps, clearHierarchyJobHandle);
         
             var buildHierarchyJob = new BuildHierarchy
             {

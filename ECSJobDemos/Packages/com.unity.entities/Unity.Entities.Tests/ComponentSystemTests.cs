@@ -130,11 +130,19 @@ namespace UnityEngine.ECS.Tests
         [Test]
         public void DisposeSystemComponentGroupThrows()
         {
-            var system = World.CreateManager<TestSystem>();
+            var system = World.CreateManager<EmptySystem>();
             var group = system.GetComponentGroup(typeof(EcsTestData));
             Assert.Throws<ArgumentException>(() => group.Dispose());
         }
         
+        [Test]
+        public void DestroyManagerTwiceThrows()
+        {
+            var system = World.CreateManager<TestSystem>();
+            World.DestroyManager(system);
+            Assert.Throws<ArgumentException>(() => World.DestroyManager(system) );
+        }
+
         [Test]
         public void CreateTwoSystemsOfSameType()
         {

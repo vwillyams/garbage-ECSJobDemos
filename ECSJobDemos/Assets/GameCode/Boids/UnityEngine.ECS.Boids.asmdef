@@ -3,6 +3,7 @@
     "references": [
         "Unity.Entities",
         "UnityEngine.ECS.SimpleBounds",
+        "UnityEngine.ECS.SimpleMovement",
         "UnityEngine.ECS.SimpleRotation",
         "UnityEngine.ECS.SimpleSpatialQuery",
         "Unity.Transforms",

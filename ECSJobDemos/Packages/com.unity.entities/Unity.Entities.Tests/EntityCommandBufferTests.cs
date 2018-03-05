@@ -365,5 +365,49 @@ namespace UnityEngine.ECS.Tests
             Assert.AreEqual(12, list[1].value0);
             Assert.AreEqual(12, list[1].value1);
         }
+
+        // TODO: Burst breaks this test.
+        //[ComputeJobOptimization(CompileSynchronously = true)]
+        public struct TestBurstCommandBufferJob : IJob
+        {
+            public Entity e0;
+            public Entity e1;
+            public EntityCommandBuffer Buffer;
+
+            public void Execute()
+            {
+                Buffer.DestroyEntity(e0);
+                Buffer.DestroyEntity(e1);
+            }
+        }
+
+        [Test]
+        public void TestCommandBufferDelete()
+        {
+            Entity[] entities = new Entity[2];
+            for (int i = 0; i < entities.Length; ++i)
+            {
+                entities[i] = m_Manager.CreateEntity();
+                m_Manager.AddComponentData(entities[i], new EcsTestData { value = i });
+            }
+
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
+
+            new TestBurstCommandBufferJob {
+                e0 = entities[0],
+                e1 = entities[1],
+                Buffer = cmds,
+            }.Schedule().Complete();
+
+            cmds.Playback(m_Manager);
+
+            cmds.Dispose();
+
+            var allEntities = m_Manager.GetAllEntities();
+            int count = allEntities.Length;
+            allEntities.Dispose();
+
+            Assert.AreEqual(0, count);
+        }
     }
 }

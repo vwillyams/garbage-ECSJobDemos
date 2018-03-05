@@ -1,10 +1,14 @@
-﻿using Unity.Collections;
+﻿using System.Threading;
+using Unity.Collections;
 using Unity.Entities;
 using UnityEngine.ECS.SimpleMovement;
 using Unity.Transforms;
 
 namespace TwoStickPureExample
 {
+    public class ShotSpawnBarrier : BarrierSystem
+    {}
+
     public class ShotSpawnSystem : ComponentSystem
     {
         public struct Data
@@ -18,41 +22,32 @@ namespace TwoStickPureExample
 
         protected override void OnUpdate()
         {
-            var em = EntityManager;
-
-            // Need to copy the data out so we can spawn without invalidating these arrays.
-            // TODO: This cannot use an entity command buffer atm because it doesn't have shared component data support.
-            var entities = new NativeArray<Entity>(m_Data.Length, Allocator.Temp);
-            var spawnData = new NativeArray<ShotSpawnData>(m_Data.Length, Allocator.Temp);
-            m_Data.SpawnedEntities.CopyTo(entities);
-            m_Data.SpawnData.CopyTo(spawnData);
+            var em = PostUpdateCommands;
 
             for (int i = 0; i < m_Data.Length; ++i)
             {
-                var sd = spawnData[i];
-                var shotEntity = entities[i];
+                var sd = m_Data.SpawnData[i];
+                var shotEntity = m_Data.SpawnedEntities[i];
+
                 em.RemoveComponent<ShotSpawnData>(shotEntity);
-                em.AddSharedComponentData(shotEntity, default(MoveForward));
-                em.AddComponentData(shotEntity, sd.Shot);
-                em.AddComponentData(shotEntity, sd.Position);
-                em.AddComponentData(shotEntity, sd.Heading);
-                em.AddComponentData(shotEntity, default(TransformMatrix));
+                em.AddSharedComponent(shotEntity, default(MoveForward));
+                em.AddComponent(shotEntity, sd.Shot);
+                em.AddComponent(shotEntity, sd.Position);
+                em.AddComponent(shotEntity, sd.Heading);
+                em.AddComponent(shotEntity, default(TransformMatrix));
                 if (sd.Faction == Factions.kPlayer)
                 {
-                    em.AddComponentData(shotEntity, new PlayerShot());
-                    em.AddComponentData(shotEntity, new MoveSpeed {speed = TwoStickBootstrap.Settings.bulletMoveSpeed});
-                    em.AddSharedComponentData(shotEntity, TwoStickBootstrap.PlayerShotLook);
+                    em.AddComponent(shotEntity, new PlayerShot());
+                    em.AddComponent(shotEntity, new MoveSpeed {speed = TwoStickBootstrap.Settings.bulletMoveSpeed});
+                    em.AddSharedComponent(shotEntity, TwoStickBootstrap.PlayerShotLook);
                 }
                 else
                 {
-                    em.AddComponentData(shotEntity, new EnemyShot());
-                    em.AddComponentData(shotEntity, new MoveSpeed {speed = TwoStickBootstrap.Settings.enemyShotSpeed});
-                    em.AddSharedComponentData(shotEntity, TwoStickBootstrap.EnemyShotLook);
+                    em.AddComponent(shotEntity, new EnemyShot());
+                    em.AddComponent(shotEntity, new MoveSpeed {speed = TwoStickBootstrap.Settings.enemyShotSpeed});
+                    em.AddSharedComponent(shotEntity, TwoStickBootstrap.EnemyShotLook);
                 }
             }
-
-            spawnData.Dispose();
-            entities.Dispose();
         }
     }
 }

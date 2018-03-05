@@ -12,7 +12,7 @@ namespace Unity.Entities
     [RequireComponent(typeof(GameObjectEntity))]
     public abstract class ComponentDataWrapperBase : MonoBehaviour
     {
-        internal abstract ComponentType GetComponentType(EntityManager manager);
+        internal abstract ComponentType GetComponentType();
         internal abstract void UpdateComponentData(EntityManager manager, Entity entity);
     }
 
@@ -35,7 +35,7 @@ namespace Unity.Entities
         }
 
 
-        internal override ComponentType GetComponentType(EntityManager manager)
+        internal override ComponentType GetComponentType()
         {
             return ComponentType.Create<T>();
         }
@@ -65,7 +65,7 @@ namespace Unity.Entities
         }
 
 
-        internal override ComponentType GetComponentType(EntityManager manager)
+        internal override ComponentType GetComponentType()
         {
             return ComponentType.Create<T>();
         }
@@ -89,7 +89,7 @@ namespace Unity.Entities
         {
             ComponentType[] types;
             Component[] components;
-            GetComponents(entityManager, gameObject, true, out types, out components);
+            GetComponents(gameObject, true, out types, out components);
 
             var archetype = entityManager.CreateArchetype(types);
             var entity = CreateEntity(entityManager, archetype, components, types);
@@ -97,7 +97,7 @@ namespace Unity.Entities
             return entity;
         }
 
-        static void GetComponents(EntityManager entityManager, GameObject gameObject, bool includeGameObjectComponents, out ComponentType[] types, out Component[] components)
+        static void GetComponents(GameObject gameObject, bool includeGameObjectComponents, out ComponentType[] types, out Component[] components)
         {
             components = gameObject.GetComponents<Component>();
 
@@ -125,7 +125,7 @@ namespace Unity.Entities
                 var componentData = com as ComponentDataWrapperBase;
 
                 if (componentData != null)
-                    types[t++] = componentData.GetComponentType(entityManager);
+                    types[t++] = componentData.GetComponentType();
                 else if (includeGameObjectComponents && !(com is GameObjectEntity))
                     types[t++] = com.GetType();
             }

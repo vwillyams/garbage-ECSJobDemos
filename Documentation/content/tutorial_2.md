@@ -1,1 +1,1 @@
-# Tutorial 2: MonoBehaviour vs Pure ECS
+# Tutorial 2: MonoBehaviour vs pure ECS

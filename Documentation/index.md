@@ -1,5 +1,5 @@
 ![Unity](https://unity3d.com/files/images/ogimg.jpg?1)
-# ECS user manual
+# Entity-component-system user manual
 
 * [How ECS works](content/getting_started.md)
     * [Naming conventions](content/ecs_concepts.md)
@@ -8,24 +8,24 @@
 * [ECS features in detail](content/ecs_in_detail.md)
 * [ECS and Asset Store compatibility]
 
-# Job system overview
+## Job system overview
 
 * [How the job system works](content/job_system.md)
 * [Low-level overview - Creating containers & custom job types](content/custom_job_types.md)
 * [How to optimize for the Burst compiler](content/burst_optimization.md)
-* [Scheduling a job from a job - Why not?](content/SchedulingAJobFromAJob.md)
+* [Scheduling a job from a job - why not?](content/scheduling_a_job_from_a_job.md)
 
-# Tutorials
+## Tutorials
 
 * [Tutorial walk through #1: MonoBehaviour vs hybrid ECS](content/tutorial_1.md)
 * [Tutorial walk through #2: MonoBehaviour vs pure ECS](content/tutorial_2.md)
-* [Tutorial walk through #3: Two-Stick shooter in ECS](content/tutorial_3.md)
+* [Tutorial walk through #3: A two-stick shooter in ECS](content/tutorial_3.md)
 
-# Simple examples
+## Simple examples
 
 * [RotationExample.unity](content/rotation_example.md): Loop to change component if Entity position is inside a moving sphere.
 
-# Further information
+## Further information
 
 *Unite Austin 2017 - Writing high performance C# scripts*
 [![Unite Austin 2017 - Writing high performance C# scripts](http://img.youtube.com/vi/tGmnZdY5Y-E/0.jpg)](http://www.youtube.com/watch?v=tGmnZdY5Y-E)
@@ -35,7 +35,7 @@
 
 ---
 
-# Status of ECS
+## Status of ECS
 
 Entity iteration:
 * We have implemented various approaches (foreach vs arrays, injection vs API). Right now we expose all possible ways of doing it, so that users can give us feedback on which one they like by actually trying them. Later on we will decide on the best way and delete all others.

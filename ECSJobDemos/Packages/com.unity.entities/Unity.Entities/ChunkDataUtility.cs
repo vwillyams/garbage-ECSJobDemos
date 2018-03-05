@@ -184,14 +184,6 @@ namespace Unity.Entities
             }
         }
 
-        private static void Memset(void* destination, byte value, int count)
-        {
-            for (int i = 0; i < count; ++i)
-            {
-                ((byte*) destination)[i] = value;
-            }
-        }
-
         public static void PoisonUnusedChunkData(Chunk* chunk, byte value)
         {
             var arch = chunk->Archetype;
@@ -203,10 +195,10 @@ namespace Unity.Entities
             {
                 int startOffset = arch->Offsets[i] + count * arch->SizeOfs[i];
                 int endOffset = arch->Offsets[i + 1];
-                Memset(buffer + startOffset, value, endOffset - startOffset);
+                UnsafeUtilityEx.MemSet(buffer + startOffset, value, endOffset - startOffset);
             }
             int lastStartOffset = arch->Offsets[arch->TypesCount-1] + count * arch->SizeOfs[arch->TypesCount-1];
-            Memset(buffer + lastStartOffset, value, bufferSize - lastStartOffset);
+            UnsafeUtilityEx.MemSet(buffer + lastStartOffset, value, bufferSize - lastStartOffset);
         }
 
         public static void CopyManagedObjects(ArchetypeManager typeMan, Chunk* srcChunk, int srcStartIndex, Chunk* dstChunk, int dstStartIndex, int count)

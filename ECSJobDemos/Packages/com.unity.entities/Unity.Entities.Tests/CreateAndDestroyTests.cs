@@ -178,13 +178,13 @@ namespace UnityEngine.ECS.Tests
 	    public void AddComponentSetsValueOfComponentToDefault()
 	    {
 	        var archetype = m_Manager.CreateArchetype(typeof(EcsTestData));
-
 	        var dummyEntity = m_Manager.CreateEntity(archetype);
 	        m_Manager.Debug.PoisonUnusedDataInAllChunks(archetype, 0xCD);
 
 	        var entity = m_Manager.CreateEntity();
 	        m_Manager.AddComponent(entity, ComponentType.Create<EcsTestData>());
 	        Assert.AreEqual(0, m_Manager.GetComponentData<EcsTestData>(entity).value);
+
 	        m_Manager.DestroyEntity(dummyEntity);
 	        m_Manager.DestroyEntity(entity);
 	    }

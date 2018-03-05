@@ -214,6 +214,43 @@ Iterating over all entities that have a matching set of components, is at the ce
 
 ## Injection
 
+Injection allows your system to declare its dependencies, while those dependencies are then automatically injected into the injected variables before OnCreateManager, OnDestroyManager and OnUpdate.
+
+```cs
+class EnemyShootSystem : JobComponentSystem
+{
+    public struct Shots
+    {
+        [ReadOnly] 
+        public ComponentDataArray<Position2D> Position;
+        public ComponentDataArray<EnemyShootState> ShootState;
+        public int Length;
+    }
+    [Inject] private Shots m_Shots;
+}
+```
+
+This automatically creates a component group with Position2D and EnemyShootState required. And injects the ComponentDataArrays and Length values. So that you can now iterate over all entities that have those two components efficiently.
+
+```
+class PositionSystem : JobComponentSystem
+{
+    [Inject] ComponentDataFromEntity<Position> m_Positions;
+}
+```
+
+ComponentDataFromEntity can also be injected, this lets you lookup the position value for a given entity. 
+
+
+```
+class PositionSystem : JobComponentSystem
+{
+    [Inject] OtherSystem m_SomeOtherSystem;
+}
+```
+
+Lastly you can also inject a reference to another system. This will populate the reference to the other system for you.
+
 
 ## ComponentGroup
 

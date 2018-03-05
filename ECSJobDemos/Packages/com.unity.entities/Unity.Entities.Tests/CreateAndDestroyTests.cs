@@ -175,17 +175,18 @@ namespace UnityEngine.ECS.Tests
 		}
 
 	    [Test]
-	    public void AddComponentClearsComponent()
+	    public void AddComponentSetsValueOfComponentToDefault()
 	    {
-	        // create and destroy an entity to poison the memory of the component
-	        var entity1 = m_Manager.CreateEntity();
-            m_Manager.AddComponentData(entity1, new EcsTestData(-1));
-	        m_Manager.DestroyEntity(entity1);
+	        var archetype = m_Manager.CreateArchetype(typeof(EcsTestData));
 
+	        var dummyEntity = m_Manager.CreateEntity(archetype);
+	        m_Manager.Debug.PoisonUnusedDataInAllChunks(archetype, 0xCD);
 
-	        var entity2 = m_Manager.CreateEntity();
-	        m_Manager.AddComponent(entity2, ComponentType.Create<EcsTestData>());
-	        Assert.AreEqual(0, m_Manager.GetComponentData<EcsTestData>(entity2).value);
+	        var entity = m_Manager.CreateEntity();
+	        m_Manager.AddComponent(entity, ComponentType.Create<EcsTestData>());
+	        Assert.AreEqual(0, m_Manager.GetComponentData<EcsTestData>(entity).value);
+	        m_Manager.DestroyEntity(dummyEntity);
+	        m_Manager.DestroyEntity(entity);
 	    }
 
 		[Test]

@@ -232,7 +232,7 @@ class EnemyShootSystem : JobComponentSystem
 
 This automatically creates a component group with Position2D and EnemyShootState required. And injects the ComponentDataArrays and Length values. So that you can now iterate over all entities that have those two components efficiently.
 
-```
+```cs
 class PositionSystem : JobComponentSystem
 {
     [Inject] ComponentDataFromEntity<Position> m_Positions;
@@ -242,7 +242,7 @@ class PositionSystem : JobComponentSystem
 ComponentDataFromEntity can also be injected, this lets you lookup the position value for a given entity. 
 
 
-```
+```cs
 class PositionSystem : JobComponentSystem
 {
     [Inject] OtherSystem m_SomeOtherSystem;

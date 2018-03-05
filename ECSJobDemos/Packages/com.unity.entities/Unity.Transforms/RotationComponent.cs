@@ -1,4 +1,5 @@
-﻿using Unity.Entities;
+﻿using System;
+using Unity.Entities;
 using Unity.Mathematics;
 
 namespace Unity.Transforms
@@ -13,8 +14,7 @@ namespace Unity.Transforms
     /// 3. If a TrasformMatrix exists, the value will be stored as the rotation 
     /// part of the matrix.
     /// </summary>
-    [System.Serializable]
-    public struct Rotation : IComponentData
+    public struct Rotation : IComponentData, ISingleValue<quaternion>
     {
         public quaternion Value { get; set; }
     }

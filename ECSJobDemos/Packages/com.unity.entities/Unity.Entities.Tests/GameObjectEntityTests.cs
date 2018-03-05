@@ -58,11 +58,8 @@ namespace UnityEngine.ECS.Tests
             m_Manager.AddComponentData(entity, new EcsTestData(5));
             m_Manager.AddComponentData(entity, new EcsTestData2(6));
 
-            var cache = new ComponentGroupArrayStaticCache(typeof(MyEntity), m_Manager);
-
-            var array = new ComponentGroupArray<MyEntity>(cache);
             int iterations = 0;
-            foreach (var e in array )
+            foreach (var e in EmptySystem.GetEntities<MyEntity>() )
             {
                 Assert.AreEqual(5, e.testData->value);
                 Assert.AreEqual(6, e.testData2->value0);
@@ -72,7 +69,6 @@ namespace UnityEngine.ECS.Tests
             }
             Assert.AreEqual(1, iterations);
 
-            cache.Dispose();
             Object.DestroyImmediate(go);
         }
     }

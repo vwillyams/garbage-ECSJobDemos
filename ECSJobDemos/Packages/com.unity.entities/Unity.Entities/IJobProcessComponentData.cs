@@ -146,8 +146,7 @@ namespace Unity.Entities
 
             for (var i = 0; i < genericArgs.Length; i++)
             {
-                var isReadonly = executeMethodParameters[i].GetCustomAttribute(typeof(Unity.Collections.ReadOnlyAttribute)) != null || 
-                                 executeMethodParameters[i].GetCustomAttribute(typeof(System.Runtime.CompilerServices.IsReadOnlyAttribute)) != null;
+                var isReadonly = executeMethodParameters[i].GetCustomAttribute(typeof(Unity.Collections.ReadOnlyAttribute)) != null;
                 componentTypes.Add(new ComponentType(genericArgs[i], isReadonly ? ComponentType.AccessMode.ReadOnly : ComponentType.AccessMode.ReadWrite));
             }
 
@@ -217,7 +216,7 @@ namespace Unity.Entities
 
             if (cache.ComponentSystem != system)
             {
-                cache.ComponentGroup = system.GetComponentGroup(cache.Types);
+                cache.ComponentGroup = system.GetComponentGroupInternal(cache.Types);
                 cache.ComponentSystem = system;
             }
 
@@ -384,19 +383,23 @@ namespace Unity.Entities
                 while (begin != end)
                 {
                     jobData.Iterator.Iterator0.UpdateCache(begin, out cache0);
-                    var ptr0 = cache0.CachedPtr;
+                    var ptr0 = UnsafeUtilityEx.RestrictNoAlias(cache0.CachedPtr);
 
                     var curEnd = Math.Min(end, cache0.CachedEndIndex);
 
                     for (var i = begin; i != curEnd; i++)
                     {
-                        //@TODO: use ref returns to pass by ref instead of double copy
+#if CSHARP_7_OR_LATER
+                        ref var value0 = ref UnsafeUtilityEx.ArrayElementAsRef<U0>(ptr0, i);
+                        jobData.Data.Execute(ref value0);
+#else
                         var value0 = UnsafeUtility.ReadArrayElement<U0>(ptr0, i);
 
                         jobData.Data.Execute(ref value0);
 
                         if (jobData.Iterator.IsReadOnly0 == 0)
                             UnsafeUtility.WriteArrayElement(ptr0, i, value0);
+#endif
                     }
 
                     begin = curEnd;
@@ -479,16 +482,20 @@ namespace Unity.Entities
                 while (begin != end)
                 {
                     jobData.Iterator.Iterator0.UpdateCache(begin, out cache0);
-                    var ptr0 = cache0.CachedPtr;
+                    var ptr0 = UnsafeUtilityEx.RestrictNoAlias(cache0.CachedPtr);
 
                     jobData.Iterator.Iterator1.UpdateCache(begin, out cache1);
-                    var ptr1 = cache1.CachedPtr;
+                    var ptr1 = UnsafeUtilityEx.RestrictNoAlias(cache1.CachedPtr);
 
                     var curEnd = Math.Min(end, cache0.CachedEndIndex);
 
                     for (var i = begin; i != curEnd; i++)
                     {
-                        //@TODO: use ref returns to pass by ref instead of double copy
+#if CSHARP_7_OR_LATER
+                        ref var value0 = ref UnsafeUtilityEx.ArrayElementAsRef<U0>(ptr0, i);
+                        ref var value1 = ref UnsafeUtilityEx.ArrayElementAsRef<U1>(ptr1, i);
+                        jobData.Data.Execute(ref value0, ref value1);    
+#else
                         var value0 = UnsafeUtility.ReadArrayElement<U0>(ptr0, i);
                         var value1 = UnsafeUtility.ReadArrayElement<U1>(ptr1, i);
 
@@ -498,6 +505,8 @@ namespace Unity.Entities
                             UnsafeUtility.WriteArrayElement(ptr0, i, value0);
                         if (jobData.Iterator.IsReadOnly1 == 0)
                             UnsafeUtility.WriteArrayElement(ptr1, i, value1);
+
+#endif
                     }
 
                     begin = curEnd;
@@ -580,19 +589,24 @@ namespace Unity.Entities
                 while (begin != end)
                 {
                     jobData.Iterator.Iterator0.UpdateCache(begin, out cache0);
-                    var ptr0 = cache0.CachedPtr;
+                    var ptr0 = UnsafeUtilityEx.RestrictNoAlias(cache0.CachedPtr);
 
                     jobData.Iterator.Iterator1.UpdateCache(begin, out cache1);
-                    var ptr1 = cache1.CachedPtr;
+                    var ptr1 = UnsafeUtilityEx.RestrictNoAlias(cache1.CachedPtr);
 
                     jobData.Iterator.Iterator2.UpdateCache(begin, out cache2);
-                    var ptr2 = cache2.CachedPtr;
+                    var ptr2 = UnsafeUtilityEx.RestrictNoAlias(cache2.CachedPtr);
 
                     var curEnd = Math.Min(end, cache0.CachedEndIndex);
 
                     for (var i = begin; i != curEnd; i++)
                     {
-                        //@TODO: use ref returns to pass by ref instead of double copy
+#if CSHARP_7_OR_LATER
+                        ref var value0 = ref UnsafeUtilityEx.ArrayElementAsRef<U0>(ptr0, i);
+                        ref var value1 = ref UnsafeUtilityEx.ArrayElementAsRef<U1>(ptr1, i);
+                        ref var value2 = ref UnsafeUtilityEx.ArrayElementAsRef<U2>(ptr2, i);
+                        jobData.Data.Execute(ref value0, ref value1, ref value2);
+#else
                         var value0 = UnsafeUtility.ReadArrayElement<U0>(ptr0, i);
                         var value1 = UnsafeUtility.ReadArrayElement<U1>(ptr1, i);
                         var value2 = UnsafeUtility.ReadArrayElement<U2>(ptr2, i);
@@ -605,6 +619,7 @@ namespace Unity.Entities
                             UnsafeUtility.WriteArrayElement(ptr1, i, value1);
                         if (jobData.Iterator.IsReadOnly2 == 0)
                             UnsafeUtility.WriteArrayElement(ptr2, i, value2);
+#endif
                     }
 
                     begin = curEnd;

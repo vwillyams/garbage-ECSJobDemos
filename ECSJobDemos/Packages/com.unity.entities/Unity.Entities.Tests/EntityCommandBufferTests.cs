@@ -314,6 +314,26 @@ namespace UnityEngine.ECS.Tests
             cmds.Dispose();
         }
 
+        [Test]
+        public void ImplicitSetSharedComponentDefault()
+        {
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
+
+            cmds.CreateEntity();
+            cmds.AddSharedComponent(new EcsTestSharedComp());
+            cmds.SetSharedComponent(new EcsTestSharedComp());
+
+            cmds.Playback(m_Manager);
+
+            var sharedCompList = new List<EcsTestSharedComp>();
+            m_Manager.GetAllUniqueSharedComponentDatas<EcsTestSharedComp>(sharedCompList);
+
+            Assert.AreEqual(1, sharedCompList.Count);
+            Assert.AreEqual(0, sharedCompList[0].value);
+
+            cmds.Dispose();
+        }
+
         struct TestJobWithManagedSharedData : IJob
         {
             public EntityCommandBuffer Buffer;
@@ -344,6 +364,50 @@ namespace UnityEngine.ECS.Tests
             Assert.AreEqual(0, list[0].value1);
             Assert.AreEqual(12, list[1].value0);
             Assert.AreEqual(12, list[1].value1);
+        }
+
+        // TODO: Burst breaks this test.
+        //[ComputeJobOptimization(CompileSynchronously = true)]
+        public struct TestBurstCommandBufferJob : IJob
+        {
+            public Entity e0;
+            public Entity e1;
+            public EntityCommandBuffer Buffer;
+
+            public void Execute()
+            {
+                Buffer.DestroyEntity(e0);
+                Buffer.DestroyEntity(e1);
+            }
+        }
+
+        [Test]
+        public void TestCommandBufferDelete()
+        {
+            Entity[] entities = new Entity[2];
+            for (int i = 0; i < entities.Length; ++i)
+            {
+                entities[i] = m_Manager.CreateEntity();
+                m_Manager.AddComponentData(entities[i], new EcsTestData { value = i });
+            }
+
+            var cmds = new EntityCommandBuffer(Allocator.TempJob);
+
+            new TestBurstCommandBufferJob {
+                e0 = entities[0],
+                e1 = entities[1],
+                Buffer = cmds,
+            }.Schedule().Complete();
+
+            cmds.Playback(m_Manager);
+
+            cmds.Dispose();
+
+            var allEntities = m_Manager.GetAllEntities();
+            int count = allEntities.Length;
+            allEntities.Dispose();
+
+            Assert.AreEqual(0, count);
         }
     }
 }

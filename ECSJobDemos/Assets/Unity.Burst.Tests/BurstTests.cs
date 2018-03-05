@@ -1,4 +1,5 @@
-﻿using Unity.Collections;
+﻿using System;
+using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using NUnit.Framework;
@@ -169,4 +170,35 @@ public class BurstTests
 
 		jobData.list.Dispose();
 	}
+
+    unsafe struct ConditionalTestStruct
+    {
+	    public void* a;
+	    public void* b;
+    }
+
+    [ComputeJobOptimization(CompileSynchronously = true)]
+	unsafe struct PointerConditional : IJob
+	{
+	    [NativeDisableUnsafePtrRestriction]
+	    public ConditionalTestStruct* t;
+
+		public void Execute()
+		{
+		    t->b = t->a != null ? t->a : null;
+		}
+	}
+
+	[Test]
+	[Ignore("Bug that is being looked at by Burst devs")]
+	public unsafe void PointerCondtional()
+	{
+	    ConditionalTestStruct dummy;
+        dummy.a = (void*) 0x1122334455667788;
+        dummy.b = null;
+        var jobData = new PointerConditional { t = &dummy };
+        jobData.Schedule().Complete();
+        Assert.AreEqual((IntPtr) dummy.a, (IntPtr) dummy.b);
+	}
+
 }

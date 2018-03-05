@@ -58,8 +58,6 @@ namespace UnityEngine.ECS.Tests
             Assert.AreEqual(1, arr2.Length);
             arr2[0] = new EcsTestData2(55);
             Assert.AreEqual(55, arr2[0].value0);
-
-            m_Manager.DestroyEntity(entity);
         }
 
         [Test]

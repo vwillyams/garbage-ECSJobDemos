@@ -36,6 +36,16 @@ namespace Unity.Entities
     /// Merge sort index list referencing NativeArray values.
     /// Provide list of shared values, indices to shared values, and lists of source i
     /// value indices with identical shared value.
+    /// 
+    /// As an example:
+    /// Given Source NativeArray: AAABBCCAB
+    /// 
+    /// Provides:
+    ///     Shared value indices: 000112201
+    ///     Shared value counts: 432
+    ///     Shared values: ABC
+    ///     Sorted indices: 012734856
+    ///     Shared value start offsets (into sorted indices): 047
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public struct NativeArraySharedValues<T> : IDisposable

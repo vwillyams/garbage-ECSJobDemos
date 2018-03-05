@@ -373,7 +373,7 @@ namespace Unity.Entities
         internal void AddSharedComponentDataBoxed(Entity entity, int typeIndex, int hashCode, object componentData)
         {
             //TODO: optimize this (no need to move the entity to a new chunk twice)
-            AddComponent(entity, new ComponentType(componentData.GetType()));
+            AddComponent(entity, ComponentType.FromTypeIndex(typeIndex));
             SetSharedComponentDataBoxed(entity, typeIndex, hashCode, componentData);
         }
 
@@ -509,8 +509,8 @@ namespace Unity.Entities
 
             return boxed;
         }
-
-        public void SetComponentBoxed(Entity entity, ComponentType componentType, object boxedObject)
+        
+        internal void SetComponentBoxed(Entity entity, ComponentType componentType, object boxedObject)
         {
             var type = TypeManager.GetType(componentType.TypeIndex);
 

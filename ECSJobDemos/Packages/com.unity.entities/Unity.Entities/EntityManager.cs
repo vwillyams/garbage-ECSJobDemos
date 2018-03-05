@@ -431,6 +431,8 @@ namespace Unity.Entities
 
         public NativeArray<Entity> GetAllEntities(Allocator allocator = Allocator.Temp)
         {
+            BeforeStructuralChange();
+            
             var entityGroup = CreateComponentGroup();
             var groupArray = entityGroup.GetEntityArray();
             

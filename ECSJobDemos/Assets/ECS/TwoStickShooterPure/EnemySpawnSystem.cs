@@ -17,9 +17,8 @@ namespace TwoStickPureExample
 
         [Inject] State m_State;
 
-        public static void SetupComponentData(EntityManager mgr)
+        public static void SetupComponentData(EntityManager entityManager)
         {
-            var entityManager = World.Active.GetOrCreateManager<EntityManager>();
             var arch = entityManager.CreateArchetype(typeof(EnemySpawnCooldown), typeof(EnemySpawnSystemState));
             var stateEntity = entityManager.CreateEntity(arch);
             var oldState = Random.state;

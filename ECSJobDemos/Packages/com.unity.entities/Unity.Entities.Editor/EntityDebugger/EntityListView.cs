@@ -78,6 +78,7 @@ namespace UnityEditor.ECS
                 }
                 else
                 {
+                    SelectedComponentGroup.CompleteDependency();
                     var entityArray = SelectedComponentGroup.GetEntityArray();
                     for (var i = 0; i < entityArray.Length; ++i)
                         root.AddChild(CreateEntityItem(entityArray[i]));

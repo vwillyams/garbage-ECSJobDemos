@@ -1,0 +1,12 @@
+{
+    "name": "Unity.Entities.Properties",
+    "references": [
+        "Unity.Entities",
+        "Unity.Mathematics",
+        "Unity.Properties",
+        "Unity.Jobs"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true
+}

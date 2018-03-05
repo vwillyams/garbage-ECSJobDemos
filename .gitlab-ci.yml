@@ -1,93 +1,159 @@
 variables:
-  UNITY_EXECUTABLE_PATH_MAC: "/Applications/Unity-966b48dc5f14/Unity.app/Contents/MacOS/Unity"
+  UNITY_EXECUTABLE_PATH_MAC: "/Applications/Unity-2c0750f9d615/Unity.app/Contents/MacOS/Unity"
   UNITY_EXECUTABLE_PATH_LINUX: "/home/builduser/buildslave/unity/build/build/LinuxEditor/Unity"
-  UNITY_EXECUTABLE_PATH_WINDOWS: "C:/Program Files/Unity-966b48dc5f14/Editor/Unity.exe"
+  UNITY_EXECUTABLE_PATH_WINDOWS: "C:/Program Files/Unity-2c0750f9d615/Editor/Unity.exe"
 
 stages:
-  - build
-  - standalone
   - test
+  - build
+  - run
 
-build:macOS:
+mac:boids:mono:build:
   stage: build
   tags:
     - macOS
   script:
-    - dotnet ~/unity-log-wrapper/bin/Debug/netcoreapp2.0/UnityLogWrapper.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath $(pwd)/ECSJobDemos -batchmode -nographics -silentcrashes -automated -logfile output.log -quit
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath ECSJobDemos -batchmode -buildOSXUniversalPlayer build/mono/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-boids-build-mono.log -quit -scene Assets/BoidExample.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
-      name: "mac-build-logs"
-      when: always
-      paths:
-        - "*.log"
-        - "*.xml"
-      expire_in: 1 week
+    name: "artifacts-macos-boids"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "ECSJobDemos/build/"
+    expire_in: 1 week
 
-standalone:macOS:
-  stage: standalone
+mac:boids:il2cpp:build:
+  stage: build
   tags:
     - macOS
   script:
-    - dotnet ~/unity-log-wrapper/bin/Debug/netcoreapp2.0/UnityLogWrapper.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath $(pwd)/ECSJobDemos -batchmode -buildOSXUniversalPlayer build/osx_standalone.app -quit -nographics -silentcrashes -automated -logfile output.log -quit
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath ECSJobDemos -batchmode -buildOSXUniversalPlayer build/il2cpp/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-boids-build-il2cpp.log -quit -scene Assets/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
-      name: "mac-standalone-logs"
-      when: always
-      paths:
-        - "*.log"
-        - "*.xml"
-        - "ECSJobDemos/build/"
-      expire_in: 1 week
+    name: "artifacts-macos-boids"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "ECSJobDemos/build/"
+    expire_in: 1 week
 
-test:macOS:
+mac:boids:mono:run:
+  stage: run
+  tags:
+    - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/mono/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-boids-run-mono.log -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-macos-boids"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+  dependencies:
+    - mac:boids:mono:build
+
+mac:boids:il2cpp:run:
+  stage: run
+  tags:
+    - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/il2cpp/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-boids-run-il2cpp.log -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-macos-boids"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+  dependencies:
+    - mac:boids:il2cpp:build
+
+mac:test:
   stage: test
   tags:
     - macOS
   script:
-    - dotnet ~/unity-log-wrapper/bin/Debug/netcoreapp2.0/UnityLogWrapper.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath $(pwd)/ECSJobDemos -batchmode -nographics -silentcrashes -automated -logfile output.log -runtests -testresults results.xml
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath $(pwd)/ECSJobDemos -batchmode -nographics -silentcrashes -automated -logfile output-macos-test.log -runtests -testresults results.xml
   artifacts:
-    name: "mac-test-logs"
+    name: "artifacts-macos-test"
     when: always
     paths:
       - "*.log"
       - "*.xml"
     expire_in: 1 week
 
-build:windows:
+win:boids:mono:build:
   stage: build
   tags:
     - windows
   script:
-    - dotnet C:/unity-log-wrapper/bin/Debug/netcoreapp2.0/UnityLogWrapper.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -nographics -silentcrashes -automated -logfile output.log -quit
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-boids-build-mono.log -quit -scene Assets/BoidExample.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
-      name: "windows-build-logs"
-      when: always
-      paths:
-        - "*.log"
-        - "*.xml"
-      expire_in: 1 week
+    name: "artifacts-win-boids"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "ECSJobDemos/build/"
+    expire_in: 1 week
 
-standalone:windows:
-  stage: standalone
+win:boids:il2cpp:build:
+  stage: build
   tags:
     - windows
   script:
-    - dotnet C:/unity-log-wrapper/bin/Debug/netcoreapp2.0/UnityLogWrapper.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -buildWindows64Player build/windows-standalone.exe -nographics -silentcrashes -automated -logfile output.log -quit
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-boids-build-il2cpp.log -quit -scene Assets/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
-      name: "windows-standalone-logs"
-      when: always
-      paths:
-        - "*.log"
-        - "*.xml"
-        - "ECSJobDemos/build/"
-      expire_in: 1 week
+    name: "artifacts-win-boids"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "ECSJobDemos/build/"
+    expire_in: 1 week
 
-test:windows:
+win:boids:mono:run:
+  stage: run
+  tags:
+    - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/mono/windows-standalone.exe -logfile output-win-boids-run-mono.log -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-win-boids"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+  dependencies:
+    - win:boids:mono:build
+
+win:boids:il2cpp:run:
+  stage: run
+  tags:
+    - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/il2cpp/windows-standalone.exe -logfile output-win-boids-run-il2cpp.log -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-win-boids"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+  dependencies:
+    - win:boids:il2cpp:build
+
+win:test:
   stage: test
   tags:
     - windows
   script:
-    - dotnet C:/unity-log-wrapper/bin/Debug/netcoreapp2.0/UnityLogWrapper.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -nographics -silentcrashes -automated -logfile output.log -runtests -testresults results.xml
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -nographics -silentcrashes -automated -logfile output-win-test.log -runtests -testresults results.xml
   artifacts:
-    name: "windows-test-logs"
+    name: "artifacts-win-test"
     when: always
     paths:
       - "*.log"

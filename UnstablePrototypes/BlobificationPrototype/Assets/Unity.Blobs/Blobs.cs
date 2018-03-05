@@ -2,8 +2,8 @@
 using System.Threading;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using UnityEngine;
 using UnityEngine.Assertions;
+
 
 unsafe public struct BlobAllocator : IDisposable
 {
@@ -36,11 +36,11 @@ unsafe public struct BlobAllocator : IDisposable
 #endif
     }
 
-    public void* ConstructRoot<T> () where T : struct
+    public ref T ConstructRoot<T> () where T : struct
 	{
 	    byte* returnPtr = m_Ptr;
 		m_Ptr += UnsafeUtility.SizeOf<T> ();
-		return returnPtr;
+	    return ref UnsafeUtilityEx.AsRef<T>(returnPtr);
 	}
 
 	int Allocate (long size, void* ptrAddr)
@@ -158,28 +158,27 @@ unsafe public struct BlobAssetReference<T> where T : struct
             m_Ptr = null;
         }
     }
+    
+    public ref T Value
+    {
+        get
+        {
+            return ref UnsafeUtilityEx.AsRef<T>(m_Ptr);
+        }
+    }
 }
 
 unsafe public struct BlobPtr<T> where T : struct
 {
 	internal int	m_OffsetPtr;
 
-	public T Value
+	public ref T Value
 	{
 		get
 		{
 		    fixed (int* thisPtr = &m_OffsetPtr)
 		    {
-		        T val;
-		        UnsafeUtility.CopyPtrToStructure((byte*)thisPtr + m_OffsetPtr, out val);
-		        return val;
-		    }
-		}
-		set
-		{
-		    fixed (int* thisPtr = &m_OffsetPtr)
-		    {
-		        UnsafeUtility.CopyStructureToPtr(ref value, (byte*)thisPtr + m_OffsetPtr);
+		        return ref UnsafeUtilityEx.AsRef<T>((byte*) thisPtr + m_OffsetPtr);
 		    }
 		}
 	}
@@ -208,7 +207,7 @@ unsafe public struct BlobArray<T> where T : struct
         }
     }
 
-    public T this [int index]
+    public ref T this [int index]
 	{
 		get
 		{
@@ -219,19 +218,7 @@ unsafe public struct BlobArray<T> where T : struct
 
 		    fixed (int* thisPtr = &m_OffsetPtr)
 		    {
-		        return UnsafeUtility.ReadArrayElement<T>((byte*)thisPtr + m_OffsetPtr, index);
-		    }
-		}
-		set
-		{
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-		    if ((uint)index >= (uint)m_Length)
-				throw new System.IndexOutOfRangeException ();
-#endif
-
-		    fixed (int* thisPtr = &m_OffsetPtr)
-		    {
-		        UnsafeUtility.WriteArrayElement<T>((byte*)thisPtr + m_OffsetPtr, index, value);
+		        return ref UnsafeUtilityEx.ArrayElementAsRef<T>((byte*)thisPtr + m_OffsetPtr, index);
 		    }
 		}
 	}

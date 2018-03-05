@@ -46,3 +46,4 @@ StressTest/obj
 .DS_Store
 
 .vs/
+build/*

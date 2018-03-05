@@ -1,41 +1,63 @@
 ﻿using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 
 namespace TwoStickPureExample
 {
+    public class RemoveDeadBarrier : BarrierSystem
+    {
+    }
+
     /// <summary>
     /// This system deletes entities that have a Health component with a value less than or equal to zero.
     /// </summary>
-    public class RemoveDeadSystem : ComponentSystem
+    public class RemoveDeadSystem : JobComponentSystem
     {
-        private struct Data
+        struct Data
         {
-            public int Length;
             [ReadOnly] public EntityArray Entity;
             [ReadOnly] public ComponentDataArray<Health> Health;
         }
 
-        [Inject] private Data m_Data;
-
-        private struct PlayerCheck
+        struct PlayerCheck
         {
-            public int Length;
             [ReadOnly] public ComponentDataArray<PlayerInput> PlayerInput;
         }
 
+        [Inject] private Data m_Data;
         [Inject] private PlayerCheck m_PlayerCheck;
+        [Inject] private RemoveDeadBarrier m_RemoveDeadBarrier;
 
-        protected override void OnUpdate()
+        //[ComputeJobOptimization]
+        // TODO: Burst seems to miscompile this job, leading to anything from crashes to memory corruption
+        struct RemoveReadJob : IJob
         {
-            bool playerDead = m_PlayerCheck.Length == 0;
+            public bool playerDead;
+            [ReadOnly] public EntityArray Entity;
+            [ReadOnly] public ComponentDataArray<Health> Health;
+            public EntityCommandBuffer Commands;
 
-            for (int i = 0; i < m_Data.Length; ++i)
+            public void Execute()
             {
-                if (m_Data.Health[i].Value <= 0.0f || playerDead)
+                for (int i = 0; i < Entity.Length; ++i)
                 {
-                    PostUpdateCommands.DestroyEntity(m_Data.Entity[i]);
+                    if (Health[i].Value <= 0.0f || playerDead)
+                    {
+                        Commands.DestroyEntity(Entity[i]);
+                    }
                 }
             }
+        }
+
+        protected override JobHandle OnUpdate(JobHandle inputDeps)
+        {
+            return new RemoveReadJob
+            {
+                playerDead = m_PlayerCheck.PlayerInput.Length == 0,
+                Entity = m_Data.Entity,
+                Health = m_Data.Health,
+                Commands = m_RemoveDeadBarrier.CreateCommandBuffer(),
+            }.Schedule(inputDeps);
         }
     }
 

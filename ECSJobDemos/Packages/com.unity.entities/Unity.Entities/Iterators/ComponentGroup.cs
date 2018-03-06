@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Unity.Assertions;
 using Unity.Jobs;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -10,74 +11,32 @@ namespace Unity.Entities
     {
         readonly EntityGroupData*             m_GroupData;
         readonly EntityDataManager*           m_EntityDataManager;
-        readonly int*                         m_FilteredSharedComponents;
-
-        internal MatchingArchetypes* FirstMatchingArchetype => m_GroupData->FirstMatchingArchetype;
-        internal MatchingArchetypes* LastMatchingArchetype => m_GroupData->LastMatchingArchetype;
-
+        ComponentGroupFilter                  m_Filter;                          
+        
         internal ComponentGroupData(EntityGroupData* groupData, EntityDataManager* entityDataManager)
         {
             m_GroupData = groupData;
             m_EntityDataManager = entityDataManager;
-            m_FilteredSharedComponents = null;
+            m_Filter = default(ComponentGroupFilter);
         }
-
-        internal ComponentGroupData(ComponentGroupData parentGroupData, int* filteredSharedComponents )
+        
+        public void SetFilter(ArchetypeManager typeManager, ComponentGroupFilter filter)
         {
-            m_GroupData = parentGroupData.m_GroupData;
-            m_EntityDataManager = parentGroupData.m_EntityDataManager;
-            m_FilteredSharedComponents = filteredSharedComponents;
+            Assert.IsTrue(filter.FilterCount <= 2 && filter.FilterCount >= 0);
+            
+            ResetFilter(typeManager);
+            m_Filter = filter;
         }
-
-        internal ComponentGroupData GetVariation<SharedComponent1>(ArchetypeManager typeManager,SharedComponent1 sharedComponent1)
-            where SharedComponent1 : struct, ISharedComponentData
+        
+        internal void ResetFilter(ArchetypeManager typeManager)
         {
-            var componentIndex1 = GetIndexInComponentGroup(TypeManager.GetTypeIndex<SharedComponent1>());
-            const int filteredCount = 1;
+            var filteredCount = m_Filter.FilterCount;
 
-            var filtered = (int*)UnsafeUtility.Malloc((filteredCount * 2 + 1) * sizeof(int), sizeof(int), Allocator.Temp);
-
-            filtered[0] = filteredCount;
-            filtered[1] = componentIndex1;
-            filtered[2] = typeManager.GetSharedComponentDataManager().InsertSharedComponent(sharedComponent1);
-
-            return new ComponentGroupData(this, filtered);
-        }
-
-        internal ComponentGroupData GetVariation<SharedComponent1,SharedComponent2>(ArchetypeManager typeManager,SharedComponent1 sharedComponent1, SharedComponent2 sharedComponent2)
-            where SharedComponent1 : struct, ISharedComponentData
-            where SharedComponent2 : struct, ISharedComponentData
-        {
-            var componentIndex1 = GetIndexInComponentGroup(TypeManager.GetTypeIndex<SharedComponent1>());
-            var componentIndex2 = GetIndexInComponentGroup(TypeManager.GetTypeIndex<SharedComponent2>());
-            const int filteredCount = 2;
-
-            var filtered = (int*)UnsafeUtility.Malloc((filteredCount * 2 + 1) * sizeof(int), sizeof(int), Allocator.Temp);
-
-            filtered[0] = filteredCount;
-            filtered[1] = componentIndex1;
-            filtered[2] = typeManager.GetSharedComponentDataManager().InsertSharedComponent(sharedComponent1);
-            filtered[3] = componentIndex2;
-            filtered[4] = typeManager.GetSharedComponentDataManager().InsertSharedComponent(sharedComponent2);
-
-            return new ComponentGroupData(this, filtered);
-        }
-
-        internal void RemoveFiterReferences(ArchetypeManager typeManager)
-        {
-            if (m_FilteredSharedComponents == null)
-                return;
-
-            var filteredCount = m_FilteredSharedComponents[0];
-            var filtered = m_FilteredSharedComponents + 1;
-
-            for(var i=0; i<filteredCount; ++i)
+            fixed (int* sharedComponentIndexPtr = m_Filter.SharedComponentIndex)
             {
-                var sharedComponentIndex = filtered[i * 2 + 1];
-                typeManager.GetSharedComponentDataManager().RemoveReference(sharedComponentIndex);
+                for (var i=0; i<filteredCount; ++i)
+                    typeManager.GetSharedComponentDataManager().RemoveReference(sharedComponentIndexPtr[i]);
             }
-
-            UnsafeUtility.Free(m_FilteredSharedComponents, Allocator.Temp);
         }
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -89,40 +48,17 @@ namespace Unity.Entities
         }
 #endif
 
-        public bool IsEmpty
+        public bool IsEmptyIgnoreFilter
         {
             get
             {
-                if (m_FilteredSharedComponents == null)
+                for (var match = m_GroupData->FirstMatchingArchetype; match != null; match = match->Next)
                 {
-                    for (var match = m_GroupData->FirstMatchingArchetype; match != null; match = match->Next)
-                    {
-                        if (match->Archetype->EntityCount > 0)
-                            return false;
-                    }
-
-                    return true;
+                    if (match->Archetype->EntityCount > 0)
+                        return false;
                 }
-                else
-                {
-                    for (var match = m_GroupData->FirstMatchingArchetype; match != null; match = match->Next)
-                    {
-                        if (match->Archetype->EntityCount <= 0)
-                            continue;
 
-                        var archeType = match->Archetype;
-                        for (var c = (Chunk*) archeType->ChunkList.Begin; c != archeType->ChunkList.End; c = (Chunk*) c->ChunkListNode.Next)
-                        {
-                            if (!c->MatchesFilter(match, m_FilteredSharedComponents))
-                                continue;
-
-                            if (c->Count > 0)
-                                return false;
-                        }
-                    }
-
-                    return true;
-                }
+                return true;
             }
         }
 
@@ -132,7 +68,7 @@ namespace Unity.Entities
             var length = 0;
             MatchingArchetypes* first = null;
             Chunk* firstNonEmptyChunk = null;
-            if (m_FilteredSharedComponents == null)
+            if (!m_Filter.HasFilter)
             {
                 for (var match = m_GroupData->FirstMatchingArchetype; match != null; match = match->Next)
                 {
@@ -156,7 +92,7 @@ namespace Unity.Entities
                     var archeType = match->Archetype;
                     for (var c = (Chunk*)archeType->ChunkList.Begin; c != archeType->ChunkList.End; c = (Chunk*)c->ChunkListNode.Next)
                     {
-                        if (!c->MatchesFilter(match, m_FilteredSharedComponents))
+                        if (!c->MatchesFilter(match, ref m_Filter))
                             continue;
 
                         if (c->Count <= 0)
@@ -175,8 +111,8 @@ namespace Unity.Entities
             outLength = length;
 
             outIterator = first == null
-                ? new ComponentChunkIterator(null, 0, null, null)
-                : new ComponentChunkIterator(first, length, firstNonEmptyChunk, m_FilteredSharedComponents);
+                ? new ComponentChunkIterator(null, 0, null, default(ComponentGroupFilter))
+                : new ComponentChunkIterator(first, length, firstNonEmptyChunk, m_Filter);
         }
 
         internal int GetIndexInComponentGroup(int componentType)
@@ -279,7 +215,7 @@ namespace Unity.Entities
             while (true)
             {
                 var archetype = matchingArchetype->Archetype;
-                if ((m_FilteredSharedComponents == null) && (archetype != entityArchetype))
+                if (!m_Filter.HasFilter && archetype != entityArchetype)
                 {
                     entityStartIndex += archetype->EntityCount;
                 }
@@ -290,13 +226,11 @@ namespace Unity.Entities
                         if (c->Count <= 0)
                             continue;
 
-                        if ((m_FilteredSharedComponents != null) && (!c->MatchesFilter(matchingArchetype, m_FilteredSharedComponents)))
+                        if (m_Filter.HasFilter && !c->MatchesFilter(matchingArchetype, ref m_Filter))
                             continue;
 
                         if (c == entityChunk)
-                        {
                             return entityStartIndex + entityChunkIndex;
-                        }
 
                         entityStartIndex += c->Count;
                     }
@@ -311,7 +245,7 @@ namespace Unity.Entities
             }
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-            throw new IndexOutOfRangeException($"Entity {entity.Index} is out of range of ComponentGroup.");
+            throw new IndexOutOfRangeException($"Entity {entity} is out of range of ComponentGroup.");
 #else
             return -1;
 #endif
@@ -322,8 +256,8 @@ namespace Unity.Entities
     {
         readonly ComponentJobSafetyManager    m_SafetyManager;
         readonly ArchetypeManager             m_TypeManager;
-        readonly ComponentGroupData           m_ComponentGroupData;
         readonly EntityDataManager*           m_EntityDataManager;
+        ComponentGroupData                    m_ComponentGroupData;
 
         // TODO: this is temporary, used to cache some state to avoid recomputing the TransformAccessArray. We need to improve this.
         internal IDisposable m_CachedState;
@@ -341,14 +275,6 @@ namespace Unity.Entities
             m_EntityDataManager = entityDataManager;
         }
 
-        internal ComponentGroup(ComponentGroup parentComponentGroup, ComponentGroupData componentGroupData)
-        {
-            m_ComponentGroupData = componentGroupData;
-            m_SafetyManager = parentComponentGroup.m_SafetyManager;
-            m_TypeManager = parentComponentGroup.m_TypeManager;
-            m_EntityDataManager = parentComponentGroup.m_EntityDataManager;
-        }
-
         public void Dispose()
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -356,23 +282,25 @@ namespace Unity.Entities
                 throw new System.ArgumentException(DisallowDisposing);
 #endif
 
-            if(m_CachedState != null)
+            if (m_CachedState != null)
                 m_CachedState.Dispose();
 
-            m_ComponentGroupData.RemoveFiterReferences(m_TypeManager);
+            m_ComponentGroupData.ResetFilter(m_TypeManager);
         }
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         internal AtomicSafetyHandle GetSafetyHandle(int indexInComponentGroup) => m_ComponentGroupData.GetSafetyHandle(m_SafetyManager, indexInComponentGroup);
 #endif
 
-        public bool IsEmpty => m_ComponentGroupData.IsEmpty;
+        public bool IsEmptyIgnoreFilter => m_ComponentGroupData.IsEmptyIgnoreFilter;
 
         internal void GetComponentChunkIterator(out int length, out ComponentChunkIterator iterator) =>
             m_ComponentGroupData.GetComponentChunkIterator(out length, out iterator);
 
-        internal int GetIndexInComponentGroup(int componentType) =>
-            m_ComponentGroupData.GetIndexInComponentGroup(componentType);
+        internal int GetIndexInComponentGroup(int componentType)
+        {
+            return m_ComponentGroupData.GetIndexInComponentGroup(componentType);
+        }
 
         internal void GetIndexFromEntity(out IndexFromEntity output)
         {
@@ -494,27 +422,42 @@ namespace Unity.Entities
         internal bool CompareComponents(ComponentType* componentTypes, int count) =>
             m_ComponentGroupData.CompareComponents(componentTypes,count);
 
+        //@TODO: This should really be just ComponentType[] ...
         public Type[] Types => m_ComponentGroupData.Types;
 
         internal ArchetypeManager ArchetypeManager => m_TypeManager;
 
-        public ComponentGroup GetVariation<SharedComponent1>(SharedComponent1 sharedComponent1)
-            where SharedComponent1 : struct, ISharedComponentData
+        public void ResetFilter()
         {
-            var componentGroupData =
-                m_ComponentGroupData.GetVariation(m_TypeManager, sharedComponent1);
-            return new ComponentGroup(this,componentGroupData);
+            m_ComponentGroupData.ResetFilter(m_TypeManager);
         }
 
-        public ComponentGroup GetVariation<SharedComponent1, SharedComponent2>(SharedComponent1 sharedComponent1, SharedComponent2 sharedComponent2)
+        public void SetFilter<SharedComponent1>(SharedComponent1 sharedComponent1)
+            where SharedComponent1 : struct, ISharedComponentData
+        {
+            ComponentGroupFilter filter;
+            filter.FilterCount = 1;
+            filter.IndexInComponentGroup[0] = GetIndexInComponentGroup(TypeManager.GetTypeIndex<SharedComponent1>());
+            filter.SharedComponentIndex[0] = m_TypeManager.GetSharedComponentDataManager().InsertSharedComponent(sharedComponent1);
+
+            m_ComponentGroupData.SetFilter(m_TypeManager, filter);
+        }
+
+        internal void SetFilter<SharedComponent1,SharedComponent2>(SharedComponent1 sharedComponent1, SharedComponent2 sharedComponent2)
             where SharedComponent1 : struct, ISharedComponentData
             where SharedComponent2 : struct, ISharedComponentData
         {
-            var componentGroupData =
-                m_ComponentGroupData.GetVariation(m_TypeManager, sharedComponent1,sharedComponent2);
-            return new ComponentGroup(this,componentGroupData);
-        }
+            ComponentGroupFilter filter;
+            filter.FilterCount = 2;
+            filter.IndexInComponentGroup[0] = GetIndexInComponentGroup(TypeManager.GetTypeIndex<SharedComponent1>());
+            filter.SharedComponentIndex[0] = m_TypeManager.GetSharedComponentDataManager().InsertSharedComponent(sharedComponent1);
 
+            filter.IndexInComponentGroup[1] = GetIndexInComponentGroup(TypeManager.GetTypeIndex<SharedComponent2>());
+            filter.SharedComponentIndex[1] = m_TypeManager.GetSharedComponentDataManager().InsertSharedComponent(sharedComponent2);
+            
+            m_ComponentGroupData.SetFilter(m_TypeManager, filter);
+        }
+        
         public void CompleteDependency() => m_ComponentGroupData.CompleteDependency(m_SafetyManager);
         public JobHandle GetDependency() => m_ComponentGroupData.GetDependency(m_SafetyManager);
         public void AddDependency(JobHandle job) => m_ComponentGroupData.AddDependency(m_SafetyManager, job);

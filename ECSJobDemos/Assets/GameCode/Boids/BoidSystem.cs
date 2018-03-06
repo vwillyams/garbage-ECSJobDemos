@@ -13,7 +13,7 @@ namespace UnityEngine.ECS.Boids
 {
     public class BoidSystem : JobComponentSystem
     {
-        private ComponentGroup m_MainGroup;
+        private ComponentGroup m_BoidGroup;
         private ComponentGroup m_TargetGroup;
         private ComponentGroup m_ObstacleGroup;
         private List<Boid> m_UniqueTypes = new List<Boid>(10);
@@ -309,11 +309,10 @@ namespace UnityEngine.ECS.Boids
             for (int typeIndex = 1; typeIndex < m_UniqueTypes.Count; typeIndex++)
             {
                 var settings = m_UniqueTypes[typeIndex];
-                var variation = m_MainGroup.GetVariation(settings);
-                var positions = variation.GetComponentDataArray<Position>();
-                var headings = variation.GetComponentDataArray<Heading>();
-                var transformMatrices = variation.GetComponentDataArray<TransformMatrix>();
-                variation.Dispose();
+                m_BoidGroup.SetFilter(settings);
+                var positions = m_BoidGroup.GetComponentDataArray<Position>();
+                var headings = m_BoidGroup.GetComponentDataArray<Heading>();
+                var transformMatrices = m_BoidGroup.GetComponentDataArray<TransformMatrix>();
 
                 var cacheIndex = typeIndex - 1;
                 var boidCount = positions.Length;
@@ -455,13 +454,13 @@ namespace UnityEngine.ECS.Boids
                 inputDeps = disposeJobHandle;
             }
             m_UniqueTypes.Clear();
-
+            
             return inputDeps;
         }
 
         protected override void OnCreateManager(int capacity)
         {
-            m_MainGroup = GetComponentGroup(
+            m_BoidGroup = GetComponentGroup(
                 ComponentType.ReadOnly(typeof(Boid)),
                 typeof(Position),
                 typeof(TransformMatrix),

@@ -122,19 +122,23 @@ namespace Unity.Entities
             return kChunkSize - numSharedComponents * sizeof(int);
         }
 
-        public bool MatchesFilter(MatchingArchetypes* match, int* filteredSharedComponents)
+        public bool MatchesFilter(MatchingArchetypes* match, ref ComponentGroupFilter filter)
         {
             var sharedComponentsInChunk = SharedComponentValueArray;
-            var filteredCount = filteredSharedComponents[0];
-            var filtered = filteredSharedComponents + 1;
-            for(var i=0; i<filteredCount; ++i)
+            var filteredCount = filter.FilterCount;
+            Assert.IsTrue(filteredCount > 0);
+
+            fixed (int* indexInComponentGroupPtr = filter.IndexInComponentGroup, sharedComponentIndexPtr = filter.SharedComponentIndex)
             {
-                var componetIndexInComponentGroup = filtered[i * 2];
-                var sharedComponentIndex = filtered[i * 2 + 1];
-                var componentIndexInArcheType = match->TypeIndexInArchetypeArray[componetIndexInComponentGroup];
-                var componentIndexInChunk = match->Archetype->SharedComponentOffset[componentIndexInArcheType];
-                if (sharedComponentsInChunk[componentIndexInChunk] != sharedComponentIndex)
-                    return false;
+                for(var i=0; i<filteredCount; ++i)
+                {
+                    var indexInComponentGroup = indexInComponentGroupPtr[i];
+                    var sharedComponentIndex = sharedComponentIndexPtr[i];
+                    var componentIndexInArcheType = match->TypeIndexInArchetypeArray[indexInComponentGroup];
+                    var componentIndexInChunk = match->Archetype->SharedComponentOffset[componentIndexInArcheType];
+                    if (sharedComponentsInChunk[componentIndexInChunk] != sharedComponentIndex)
+                        return false;
+                }
             }
 
             return true;

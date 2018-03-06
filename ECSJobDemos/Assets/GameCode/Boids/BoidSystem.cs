@@ -77,6 +77,7 @@ namespace UnityEngine.ECS.Boids
         {
             [ReadOnly] public NativeArray<PositionHash> positionHashes;
             [ReadOnly] public NativeArray<float3> headings;
+            public NativeArray<int> cellCount;
             public NativeArray<int> cellIndices;
             public NativeArray<float> neighborCount;
             public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
@@ -173,6 +174,8 @@ namespace UnityEngine.ECS.Boids
                         neighborCount[cellIndex] += 1.0f;
                     }
                 }
+
+                cellCount[0] = nextCellIndex;
             }
         }
 
@@ -180,6 +183,29 @@ namespace UnityEngine.ECS.Boids
         {
             public float3 heading;
             public bool1  avoidObstacle;
+        }
+
+        [ComputeJobOptimization]
+        struct DivideAlignment : IJobParallelFor
+        {
+            [ReadOnly] public NativeArray<float> neighborCount;
+            [ReadOnly] public NativeArray<int> cellCount;
+            public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
+
+            public void Execute(int index)
+            {
+                if (index >= cellCount[0])
+                {
+                    return;
+                }
+                var alignment = cellAlignmentSeparation[index].alignment;
+                var separation = cellAlignmentSeparation[index].separation;
+                cellAlignmentSeparation[index] = new AlignmentSeparation
+                {
+                    alignment = alignment / neighborCount[index],
+                    separation = separation
+                };
+            }
         }
         
         [ComputeJobOptimization]
@@ -270,8 +296,7 @@ namespace UnityEngine.ECS.Boids
                 var targetHeading        = targetObstacle[index].heading;
                 var avoidObstacle        = targetObstacle[index].avoidObstacle;
                 
-                var alignmentSteering    = cellAlignment/count;
-                var alignmentResult      = alignmentWeight * math_experimental.normalizeSafe(alignmentSteering-forward);
+                var alignmentResult      = alignmentWeight * math_experimental.normalizeSafe(cellAlignment-forward);
                 var separationResult     = separationWeight * math_experimental.normalizeSafe((position * count) + cellSeparation);
                 var normalHeading        = math_experimental.normalizeSafe(alignmentResult + separationResult + targetHeading);
                 var targetForward        = math.select(normalHeading, targetHeading, avoidObstacle);
@@ -294,6 +319,7 @@ namespace UnityEngine.ECS.Boids
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> obstaclePositions;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<CellHashIndex> hashCellBuckets;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> copyHeadings;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> cellCount;
             
             public void Execute()
             {
@@ -331,6 +357,7 @@ namespace UnityEngine.ECS.Boids
 
                 var cacheIndex = typeIndex - 1;
                 var boidCount = positions.Length;
+                var cellCount = new NativeArray<int>(1, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
                 var positionHashes = new NativeArray<PositionHash>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
                 var copyHeadings = new NativeArray<float3>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
                 var targetPositions = new NativeArray<float3>(targetSourcePositions.Length, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
@@ -394,10 +421,20 @@ namespace UnityEngine.ECS.Boids
                     headings = copyHeadings,
                     hashCellBuckets = hashCellBuckets,
                     hashCellBucketBufferUsedCount = 0,
-                    hashCellBucketCount = hashCellBucketCount
+                    hashCellBucketCount = hashCellBucketCount,
+                    cellCount = cellCount
                 };
                 var cellsJobHandle = cellsJob.Schedule(cellsBarrierJobHandle);
-                var disposeBarrierJobHandle = cellsJobHandle;
+
+                var divideAlignmentJob = new DivideAlignment
+                {
+                    cellAlignmentSeparation = cellAlignmentSeparation,
+                    neighborCount = neighborCount,
+                    cellCount = cellCount
+                };
+                var divideAlignmentJobHandle = divideAlignmentJob.Schedule(boidCount, 64, cellsJobHandle);
+
+                var disposeBarrierJobHandle = divideAlignmentJobHandle;
 
                 if (prevCells != null)
                 {
@@ -461,7 +498,8 @@ namespace UnityEngine.ECS.Boids
                     targetPositions = targetPositions,
                     obstaclePositions = obstaclePositions,
                     hashCellBuckets = hashCellBuckets,
-                    copyHeadings = copyHeadings
+                    copyHeadings = copyHeadings,
+                    cellCount = cellCount
                 };
                 var disposeJobHandle = disposeJob.Schedule(disposeBarrierJobHandle);
 

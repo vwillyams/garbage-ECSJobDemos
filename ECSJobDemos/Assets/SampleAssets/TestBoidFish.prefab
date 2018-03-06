@@ -92,7 +92,7 @@ MonoBehaviour:
     alignmentWeight: 1
     targetWeight: 2
     obstacleAversionDistance: 20
-    speed: 27
+    speed: 22
 --- !u!114 &114569172725802478
 MonoBehaviour:
   m_ObjectHideFlags: 1

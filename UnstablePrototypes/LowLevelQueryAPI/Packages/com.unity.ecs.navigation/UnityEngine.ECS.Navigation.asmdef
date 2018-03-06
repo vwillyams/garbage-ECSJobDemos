@@ -1,7 +1,7 @@
 {
     "name": "UnityEngine.ECS.Navigation",
     "references": [
-        "Unity.Core",
+        "Unity.Entities",
         "Unity.Collections",
         "Unity.Mathematics"
     ],

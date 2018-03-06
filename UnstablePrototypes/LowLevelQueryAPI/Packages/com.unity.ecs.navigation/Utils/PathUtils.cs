@@ -28,7 +28,7 @@ public class PathUtils
 
     // Retrace portals between corners register if type of polygon changes
     public static int RetracePortals(NavMeshQuery query, int startIndex, int endIndex
-        , NativeSlice<PolygonID> path, int n, Vector3 termPos
+        , NativeSlice<PolygonId> path, int n, Vector3 termPos
         , ref NativeArray<NavMeshLocation> straightPath
         , ref NativeArray<StraightPathFlags> straightPathFlags
         , int maxStraightPath)
@@ -77,11 +77,11 @@ public class PathUtils
         , int maxStraightPath
     )
     {
-        return FindStraightPath(query, path.start.position, path.end.position, new NativeSlice<PolygonID>(path.polygons), path.size, ref straightPath, ref straightPathFlags, ref vertexSide, ref straightPathCount, maxStraightPath);
+        return FindStraightPath(query, path.start.position, path.end.position, new NativeSlice<PolygonId>(path.polygons), path.size, ref straightPath, ref straightPathFlags, ref vertexSide, ref straightPathCount, maxStraightPath);
     }
 
     public static PathQueryStatus FindStraightPath(NavMeshQuery query, Vector3 startPos, Vector3 endPos
-        , NativeSlice<PolygonID> path, int pathSize
+        , NativeSlice<PolygonId> path, int pathSize
         , ref NativeArray<NavMeshLocation> straightPath
         , ref NativeArray<StraightPathFlags> straightPathFlags
         , ref NativeArray<float> vertexSide
@@ -139,7 +139,7 @@ public class PathUtils
                     }
 
 #if DEBUG_CROWDSYSTEM_ASSERTS
-                    //- TODO make PolygonID.valid to be ThreadSafe
+                    //- TODO make PolygonId.valid to be ThreadSafe
                     Assert.IsTrue(path[i - 1].valid);
                     //- Assert.IsTrue(path[i].valid);
                     Assert.IsTrue(path[i - 1].polygon != 0);

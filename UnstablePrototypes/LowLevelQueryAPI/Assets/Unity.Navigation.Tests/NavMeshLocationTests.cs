@@ -101,7 +101,7 @@ namespace Unity.Navigation.Tests
             Assert.AreNotEqual(location.polygon, neighbour.polygon);
             Assert.Throws<ArgumentException>(() => { var outsidePosition = m_NavMeshQuery.CreateLocation(new Vector3(738.0f, 619.5f, 354.0f), location.polygon); });
             Assert.Throws<ArgumentException>(() => { var neighbouringPolygon = m_NavMeshQuery.CreateLocation(location.position, neighbour.polygon); });
-            Assert.Throws<ArgumentException>(() => { var nullPolygon = m_NavMeshQuery.CreateLocation(location.position, new PolygonID()); });
+            Assert.Throws<ArgumentException>(() => { var nullPolygon = m_NavMeshQuery.CreateLocation(location.position, new PolygonId()); });
             Assert.Throws<ArgumentException>(() => { var slightlyOff = m_NavMeshQuery.CreateLocation(location.position + new Vector3(0, 0.01f, 0), location.polygon); });
             Assert.DoesNotThrow(() => { var samePosAndPoly = m_NavMeshQuery.CreateLocation(location.position, location.polygon); });
             Assert.DoesNotThrow(() => { var posInTheSamePoly = m_NavMeshQuery.CreateLocation(location.position + new Vector3(0.3f, 0, 0), location.polygon); });

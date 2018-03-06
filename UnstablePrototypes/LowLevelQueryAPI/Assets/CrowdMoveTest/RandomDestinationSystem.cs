@@ -2,7 +2,7 @@
 using UnityEngine;
 using Unity.Collections;
 using Unity.Jobs;
-using Unity.ECS;
+using Unity.Entities;
 using UnityEngine.Experimental.AI;
 
 [UpdateAfter(typeof(CrowdSystem))]

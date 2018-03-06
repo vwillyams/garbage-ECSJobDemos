@@ -27,11 +27,11 @@
 
 ## Further information
 
-*Unite Austin 2017 - Writing high performance C# scripts*
-[![Unite Austin 2017 - Writing high performance C# scripts](http://img.youtube.com/vi/tGmnZdY5Y-E/0.jpg)](http://www.youtube.com/watch?v=tGmnZdY5Y-E)
-
 *Unite Austin 2017 keynote - Performance demo ft. Nordeus*
 [![Unite Austin 2017 keynote - Performance demo ft. Nordeus](http://img.youtube.com/vi/0969LalB7vw/0.jpg)](http://www.youtube.com/watch?v=0969LalB7vw)
+
+*Unite Austin 2017 - Writing high performance C# scripts*
+[![Unite Austin 2017 - Writing high performance C# scripts](http://img.youtube.com/vi/tGmnZdY5Y-E/0.jpg)](http://www.youtube.com/watch?v=tGmnZdY5Y-E)
 
 ---
 

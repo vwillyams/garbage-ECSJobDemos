@@ -32,13 +32,13 @@ Select __Create Empty__ GameObject in the Scene and name it "RotatingCubeSpawner
 
 Add these components to RotatingCubeSpawner:
 
-1. [__UnityEngine.ECS.Spawners/SpawnRandomCircleComponent__](/ECSJobDemos/Assets/ECS/Spawners/SpawnRandomCircleComponent.cs)
-2. [__UnityEngine.ECS.Transform/TransformPositionComponent__](ECSJobDemos/Packages/com.unity.entities/Unity.Transforms/PositionComponent.cs)
-3. [__UnityEngine.ECS.Transform/CopyInitialTransformPositionFromGameObjectComponent__](ECSJobDemos/Packages/com.unity.entities/Unity.Transforms.Hybrid/CopyInitialTransformFromGameObjectComponent.cs)
+1. [__UnityEngine.ECS.SpawnerShim/SpawnRandomCircleComponent__](../../ECSJobDemos/Assets/GameCode/SpawnerShim/SpawnRandomCircleComponent.cs)
+2. [__Unity.Transforms/PositionComponent__](../../ECSJobDemos/Packages/com.unity.entities/Unity.Transforms/PositionComponent.cs)
+3. [__Unity.Transforms/CopyInitialTransformFromGameObjectComponent__](../../ECSJobDemos/Packages/com.unity.entities/Unity.Transforms.Hybrid/CopyInitialTransformFromGameObjectComponent.cs)
 
 Set the properties of __SpawnRandomCircleComponent__ to:
 
-1. __Prefab__: [*Assets/SampleAssets/TestRotatingCube.prefab*](/ECSJobDemos/Assets/SampleAssets/TestRotatingCube.prefab) 
+1. __Prefab__: [*Assets/SampleAssets/TestRotatingCube.prefab*](../../ECSJobDemos/Assets/SampleAssets/TestRotatingCube.prefab) 
 This is a prefab container which contains the components for the each Entity that will be spawned. 
 2. __Radius__: 25. 
 Spawn entities 25m from the center of the circle.
@@ -59,13 +59,13 @@ Select __Create Empty__ GameObject in the scene and name it "TestResetRotationSp
 
 Add these components to TestResetRotationSphere:
 
-1. [__UnityEngine.ECS.Transform/TransformPositionComponent__](ECSJobDemos/Packages/com.unity.entities/Unity.Transforms/PositionComponent.cs)
-2. [__UnityEngine.ECS.Transform/CopyInitialTransformPositionFromGameObjectComponent__](ECSJobDemos/Packages/com.unity.entities/Unity.Transforms.Hybrid/CopyInitialTransformFromGameObjectComponent.cs)
-3. [__UnityEngine.ECS.Transform/TransformMatrixComponent__](/ECSJobDemos/Packages/com.unity.transforms/Runtime/TransformMatrixComponent.cs)
-4. [__UnityEngine.ECS.Rendering/InstanceRendererComponent__](ECSJobDemos/Packages/com.unity.entities/Unity.Rendering.Hybrid/MeshInstanceRendererComponent.cs)
-5. [__UnityEngine.ECS.SimpleMovement/MoveSpeedComponent__](/ECSJobDemos/Assets/GameCode/SimpleMovement/MoveSpeedComponent.cs)
-6. [__UnityEngine.ECS.SimpleMovement/MoveAlongCircleComponent__](/ECSJobDemos/Assets/GameCode/SimpleMovement/MoveAlongCircleComponent.cs)
-7. [__UnityEngine.ECS.SimpleRotation/RotationSpeedResetSphereComponent__](/ECSJobDemos/Assets/GameCode/SimpleRotation/RotationSpeedResetSphereComponent.cs)
+1. [__Unity.Transforms/PositionComponent__](../../ECSJobDemos/Packages/com.unity.entities/Unity.Transforms/PositionComponent.cs)
+2. [__Unity.Transforms/CopyInitialTransformFromGameObjectComponent__](../../ECSJobDemos/Packages/com.unity.entities/Unity.Transforms.Hybrid/CopyInitialTransformFromGameObjectComponent.cs)
+3. [__Unity.Transforms/TransformMatrixComponent__](../../ECSJobDemos/Packages/com.unity.entities/Unity.Transforms/TransformMatrixComponent.cs)
+4. [__Unity.Rendering/MeshInstanceRendererComponent__](../../ECSJobDemos/Packages/com.unity.entities/Unity.Rendering.Hybrid/MeshInstanceRendererComponent.cs)
+5. [__UnityEngine.ECS.SimpleMovement/MoveSpeedComponent__](../../ECSJobDemos/Assets/GameCode/SimpleMovement/MoveSpeedComponent.cs)
+6. [__UnityEngine.ECS.SimpleMovement/MoveAlongCircleComponent__](../../ECSJobDemos/Assets/GameCode/SimpleMovement/MoveAlongCircleComponent.cs)
+7. [__UnityEngine.ECS.SimpleRotation/RotationSpeedResetSphereComponent__](../../ECSJobDemos/Assets/GameCode/SimpleRotation/RotationSpeedResetSphereComponent.cs)
 
 Like the RotatingCubeSpawner, the TransformPositionComponent specifies that the Entity that is created from the TestResetRotationSphere GameObject has a position in ECS and the CopyInitialTransformPositionFromGameObjectComponent specifies that **only** the initial value for TransformPositionComponent in ECS will be copied from the GameObject's Transform. 
 

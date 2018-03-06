@@ -110,8 +110,8 @@ A __World__ owns both an EntityManager and a set of __ComponentSystems__. You ca
 
 By default we create a single World when entering Play Mode and populate it with all available ComponentSystems in the project, but you can disable the default World creation and replace it with your own code via a global define.
 
-* [Default World creation code](https://github.com/Unity-Technologies/ECSJobDemos/blob/master/ECSJobDemos/UnityPackageManager/com.unity.ecs/Unity.ECS/Injection/DefaultWorldInitialization.cs)
-* [Automatic bootstrap entry point](https://github.com/Unity-Technologies/ECSJobDemos/blob/master/ECSJobDemos/UnityPackageManager/com.unity.ecs/Unity.ECS/Injection/AutomaticWorldBootstrap.cs) 
+* [Default World creation code](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities.Hybrid/Injection/DefaultWorldInitialization.cs)
+* [Automatic bootstrap entry point](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities.Hybrid/Injection/AutomaticWorldBootstrap.cs) 
 
 > Note: We are currently working on multiplayer demos, that will show how to work in a setup with separate simulation & presentation Worlds. This is a work in progress, so right now have no clear guidelines and are likely missing features in ECS to enable it. 
 
@@ -194,7 +194,7 @@ The great thing about ISharedComponentData is that there is literally zero memor
 
 We use ISharedComponentData to group all entities using the same InstanceRenderer data together and then efficiently extract all matrices for rendering. The resulting code is simple & efficient because the data is laid out exactly as it is accessed.
 
-* [InstanceRendererSystem.cs](https://github.com/Unity-Technologies/ECSJobDemos/blob/master/ECSJobDemos/Assets/ECS/InstanceRenderer/InstanceRendererSystem.cs)
+* [MeshInstanceRendererSystem.cs](../../ECSJobDemos/Packages/com.unity.entities/Unity.Rendering.Hybrid/MeshInstanceRendererSystem.cs)
 
 ### Some important notes about SharedComponentData:
 

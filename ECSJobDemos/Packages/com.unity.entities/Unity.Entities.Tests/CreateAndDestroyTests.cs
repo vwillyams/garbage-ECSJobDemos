@@ -212,23 +212,6 @@ namespace UnityEngine.ECS.Tests
 
 			m_Manager.AddComponentData<EcsTestData>(entity, new EcsTestData());
 			Assert.AreEqual(0, subtractiveArch.GetComponentDataArray<EcsTestData2>().Length);
-
-			m_Manager.DestroyEntity(entity);
 		}
 	}
-/*
-	public class RefReturnsTests
-	{
-		[Test]
-		public void TestRefReturns()
-		{
-			IntPtr memory = UnsafeUtility.Malloc(1000, 4, Allocator.Persistent);
-
-			var value = UnsafeUtility.RefArrayElementWithStride<float>(memory, 0, 4);
-			value = 5;
-
-			Assert.AreEqual(5, UnsafeUtility.ReadArrayElementWithStride<float>(memory, 0, 4));
-		}
-	}
-*/
 }

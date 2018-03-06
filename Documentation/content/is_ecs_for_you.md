@@ -8,7 +8,7 @@ You've heard about the massive performance boosts you can get from using ECS and
 
 ## You want to try ECS in your new game
 
-You've heard that ECS not only improves performance, but helps you write cleaner, clearer and more maintainable code. You'd like to see how it works for you in practice.
+You've heard that ECS not only improves performance, but helps you write cleaner, clearer, and more maintainable code. You'd like to see how it works for you in practice.
 This is a fun scenario, because you get to write straightforward code from the beginning. There are a few things to keep in mind:
 
 ### You will probably want to use hybrid ECS at first

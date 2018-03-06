@@ -4,7 +4,7 @@ On the lowest level of the job system, jobs are scheduled by calling one of the 
 
 These APIs use unsafe code and have to be crafted carefully, since they can easily introduce unwanted race conditions. If you add your own job types, we strongly recommend to aim for full test coverage.
 
-As an example we have a custom job type __[IJobParallelForBatch](https://github.com/Unity-Technologies/ECSJobDemos/blob/master/ECSJobDemos/UnityPackageManager/com.unity.jobs/Unity.Jobs/IJobParallelForBatch.cs)__.
+As an example we have a custom job type __[IJobParallelForBatch](../../ECSJobDemos/Packages/com.unity.jobs/Unity.Jobs/IJobParallelForBatch.cs)__.
  
 It works like __IJobParallelFor__, but instead of calling a single execute function per index it calls one execute function per batch being executed. This is useful if you need to do something on more than one item at a time, but still want to do it in parallel. A common scenario for this job type is if you need to create a temporary array and you want to avoid creating each item in the array one at a time. By using IJobParallelFor you can instead create one temporary array per batch.
 
@@ -339,8 +339,8 @@ Writing the NativeCounter this way significantly reduces the overhead of having 
 
 The NativeCounter is not complete, the only thing left is to add tests for it to make sure it is correct and that it does not break in the future. When writing tests you should try to cover as many unusual scenarios as possible. It is also a good idea to add some kind of stress test using jobs to detect race conditions, even if it is unlikely to find all of them. The NativeCounter API is very small so the number of tests required is not huge.
 
-* Both versions of the counter examples above are available at: [https://github.com/Unity-Technologies/ECSJobDemos/tree/master/ECSJobDemos/Assets/NativeCounterDemo](https://github.com/Unity-Technologies/ECSJobDemos/tree/master/ECSJobDemos/Assets/NativeCounterDemo).
-* The tests for them can be found at: [https://github.com/Unity-Technologies/ECSJobDemos/blob/master/ECSJobDemos/Assets/NativeCounterDemo/Editor/NativeCounterTests.cs](https://github.com/Unity-Technologies/ECSJobDemos/blob/master/ECSJobDemos/Assets/NativeCounterDemo/Editor/NativeCounterTests.cs).
+* Both versions of the counter examples above are available at: [/ECSJobDemos/Assets/NativeCounterDemo](../../ECSJobDemos/Assets/NativeCounterDemo).
+* The tests for them can be found at: [/ECSJobDemos/Assets/NativeCounterDemo/Editor/NativeCounterTests.cs](../../ECSJobDemos/Assets/NativeCounterDemo/Editor/NativeCounterTests.cs).
 
 ## Available attributes
 

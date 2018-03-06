@@ -135,7 +135,7 @@ namespace Unity.Navigation.Tests
             Assert.That(status, Is.EqualTo(PathQueryStatus.Success));
             Assert.That(pathSize, Is.EqualTo(expectedPathSize), failMsg);
 
-            var path = new NativeArray<PolygonID>(pathSize, Allocator.Temp);
+            var path = new NativeArray<PolygonId>(pathSize, Allocator.Temp);
             var pathResultSize = m_NavMeshQuery.GetPathResult(path);
             Assert.That(pathResultSize, Is.EqualTo(pathSize));
 

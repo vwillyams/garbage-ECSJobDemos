@@ -32,9 +32,9 @@ Select __Create Empty__ GameObject in the Scene and name it "RotatingCubeSpawner
 
 Add these components to RotatingCubeSpawner:
 
-1. [__UnityEngine.ECS.Spawners/SpawnRandomCircleComponent__](../../ECSJobDemos/Assets/GameCode/SpawnerShim/SpawnRandomCircleComponent.cs)
-2. [__UnityEngine.ECS.Transform/TransformPositionComponent__](../../ECSJobDemos/Packages/com.unity.entities/Unity.Transforms/PositionComponent.cs)
-3. [__UnityEngine.ECS.Transform/CopyInitialTransformPositionFromGameObjectComponent__](../../ECSJobDemos/Packages/com.unity.entities/Unity.Transforms.Hybrid/CopyInitialTransformFromGameObjectComponent.cs)
+1. [__UnityEngine.ECS.SpawnerShim/SpawnRandomCircleComponent__](../../ECSJobDemos/Assets/GameCode/SpawnerShim/SpawnRandomCircleComponent.cs)
+2. [__Unity.Transforms/PositionComponent__](../../ECSJobDemos/Packages/com.unity.entities/Unity.Transforms/PositionComponent.cs)
+3. [__Unity.Transforms/CopyInitialTransformFromGameObjectComponent__](../../ECSJobDemos/Packages/com.unity.entities/Unity.Transforms.Hybrid/CopyInitialTransformFromGameObjectComponent.cs)
 
 Set the properties of __SpawnRandomCircleComponent__ to:
 
@@ -59,10 +59,10 @@ Select __Create Empty__ GameObject in the scene and name it "TestResetRotationSp
 
 Add these components to TestResetRotationSphere:
 
-1. [__UnityEngine.ECS.Transform/TransformPositionComponent__](../../ECSJobDemos/Packages/com.unity.entities/Unity.Transforms/PositionComponent.cs)
-2. [__UnityEngine.ECS.Transform/CopyInitialTransformPositionFromGameObjectComponent__](../../ECSJobDemos/Packages/com.unity.entities/Unity.Transforms.Hybrid/CopyInitialTransformFromGameObjectComponent.cs)
-3. [__UnityEngine.ECS.Transform/TransformMatrixComponent__](../../ECSJobDemos/Packages/com.unity.entities/Unity.Transforms/TransformMatrixComponent.cs)
-4. [__UnityEngine.ECS.Rendering/InstanceRendererComponent__](../../ECSJobDemos/Packages/com.unity.entities/Unity.Rendering.Hybrid/MeshInstanceRendererComponent.cs)
+1. [__Unity.Transforms/PositionComponent__](../../ECSJobDemos/Packages/com.unity.entities/Unity.Transforms/PositionComponent.cs)
+2. [__Unity.Transforms/CopyInitialTransformFromGameObjectComponent__](../../ECSJobDemos/Packages/com.unity.entities/Unity.Transforms.Hybrid/CopyInitialTransformFromGameObjectComponent.cs)
+3. [__Unity.Transforms/TransformMatrixComponent__](../../ECSJobDemos/Packages/com.unity.entities/Unity.Transforms/TransformMatrixComponent.cs)
+4. [__Unity.Rendering/MeshInstanceRendererComponent__](../../ECSJobDemos/Packages/com.unity.entities/Unity.Rendering.Hybrid/MeshInstanceRendererComponent.cs)
 5. [__UnityEngine.ECS.SimpleMovement/MoveSpeedComponent__](../../ECSJobDemos/Assets/GameCode/SimpleMovement/MoveSpeedComponent.cs)
 6. [__UnityEngine.ECS.SimpleMovement/MoveAlongCircleComponent__](../../ECSJobDemos/Assets/GameCode/SimpleMovement/MoveAlongCircleComponent.cs)
 7. [__UnityEngine.ECS.SimpleRotation/RotationSpeedResetSphereComponent__](../../ECSJobDemos/Assets/GameCode/SimpleRotation/RotationSpeedResetSphereComponent.cs)

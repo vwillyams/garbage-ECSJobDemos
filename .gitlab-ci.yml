@@ -18,7 +18,7 @@ mac:boids:mono:build:
   tags:
     - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath ECSJobDemos -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -ignoreCleanedLogFile -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath ECSJobDemos -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macos-boids"
     when: always
@@ -37,7 +37,7 @@ mac:boids:il2cpp:build:
   tags:
     - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath ECSJobDemos -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -ignoreCleanedLogFile -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath ECSJobDemos -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macos-boids"
     when: always
@@ -97,7 +97,7 @@ mac:chains:mono:build:
   tags:
     - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath ECSJobDemos -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -ignoreCleanedLogFile -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath ECSJobDemos -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macos-chains"
     when: always
@@ -116,7 +116,7 @@ mac:chains:il2cpp:build:
   tags:
     - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath ECSJobDemos -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -ignoreCleanedLogFile -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath ECSJobDemos -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macos-chains"
     when: always
@@ -176,7 +176,7 @@ mac:hierarchy:mono:build:
   tags:
     - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath ECSJobDemos -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -ignoreCleanedLogFile -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath ECSJobDemos -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macos-hierarchy"
     when: always
@@ -195,7 +195,7 @@ mac:hierarchy:il2cpp:build:
   tags:
     - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath ECSJobDemos -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -ignoreCleanedLogFile -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath ECSJobDemos -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macos-hierarchy"
     when: always
@@ -255,7 +255,7 @@ mac:rotation:mono:build:
   tags:
     - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath ECSJobDemos -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -ignoreCleanedLogFile -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath ECSJobDemos -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macos-rotation"
     when: always
@@ -274,7 +274,7 @@ mac:rotation:il2cpp:build:
   tags:
     - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath ECSJobDemos -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -ignoreCleanedLogFile -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath ECSJobDemos -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macos-rotation"
     when: always
@@ -349,7 +349,7 @@ win:boids:mono:build:
   tags:
     - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -ignoreCleanedLogFile -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-win-boids"
     when: always
@@ -368,7 +368,7 @@ win:boids:il2cpp:build:
   tags:
     - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -ignoreCleanedLogFile -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-win-boids"
     when: always
@@ -428,7 +428,7 @@ win:chains:mono:build:
   tags:
     - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -ignoreCleanedLogFile -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-win-chains"
     when: always
@@ -447,7 +447,7 @@ win:chains:il2cpp:build:
   tags:
     - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -ignoreCleanedLogFile -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-win-chains"
     when: always
@@ -507,7 +507,7 @@ win:hierarchy:mono:build:
   tags:
     - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -ignoreCleanedLogFile -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-win-hierarchy"
     when: always
@@ -526,7 +526,7 @@ win:hierarchy:il2cpp:build:
   tags:
     - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -ignoreCleanedLogFile -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-win-hierarchy"
     when: always
@@ -586,7 +586,7 @@ win:rotation:mono:build:
   tags:
     - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -ignoreCleanedLogFile -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-win-rotation"
     when: always
@@ -605,7 +605,7 @@ win:rotation:il2cpp:build:
   tags:
     - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -ignoreCleanedLogFile -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath ECSJobDemos -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-win-rotation"
     when: always

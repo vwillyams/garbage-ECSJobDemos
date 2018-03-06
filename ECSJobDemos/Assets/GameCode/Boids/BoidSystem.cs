@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices.WindowsRuntime;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Mathematics.Experimental;
 using UnityEngine.ECS.SimpleRotation;
 using Unity.Transforms;
-using UnityEngine.ECS.SimpleMovement;
 using UnityEngine.ECS.Utilities;
 
 namespace UnityEngine.ECS.Boids
@@ -25,7 +22,7 @@ namespace UnityEngine.ECS.Boids
         struct PrevCells
         {
             public int boidCount;
-            public NativeArray<int> neighborCount;
+            public NativeArray<float> neighborCount;
             public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
             public NativeArray<int> cellIndices;
         }
@@ -81,7 +78,7 @@ namespace UnityEngine.ECS.Boids
             [ReadOnly] public NativeArray<PositionHash> positionHashes;
             [ReadOnly] public NativeArray<float3> headings;
             public NativeArray<int> cellIndices;
-            public NativeArray<int> neighborCount;
+            public NativeArray<float> neighborCount;
             public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
             public NativeArray<CellHashIndex> hashCellBuckets;
             public int hashCellBucketCount;
@@ -157,7 +154,7 @@ namespace UnityEngine.ECS.Boids
                             alignment = headings[i]
                         };
                         cellIndices[i] = cellIndex;
-                        neighborCount[cellIndex] = 1;
+                        neighborCount[cellIndex] = 1.0f;
                         nextCellIndex++;
                     }
                     else
@@ -173,7 +170,7 @@ namespace UnityEngine.ECS.Boids
                             alignment = alignment + otherAlignment
                         };
                         cellIndices[i] = cellIndex;
-                        neighborCount[cellIndex]++;
+                        neighborCount[cellIndex] += 1.0f;
                     }
                 }
             }
@@ -181,9 +178,8 @@ namespace UnityEngine.ECS.Boids
 
         struct TargetObstacle
         {
-            public float3 target;
-            public float3 obstacle;
-            public float avoidObstacle;
+            public float3 heading;
+            public bool1  avoidObstacle;
         }
         
         [ComputeJobOptimization]
@@ -226,48 +222,65 @@ namespace UnityEngine.ECS.Boids
                 var obstacleSteering = (position - nearestObstaclePosition);
                 var avoidObstacleHeading = (nearestObstaclePosition + math_experimental.normalizeSafe(obstacleSteering) * settings.obstacleAversionDistance)-position;
                 var targetHeading = settings.targetWeight * math_experimental.normalizeSafe(nearestTargetPosition - position);
-
-                targetObstacle[index] = new TargetObstacle
+                var nearestObstacleDistanceFromRadius = nearestObstacleDistance - settings.obstacleAversionDistance;
+                if (nearestObstacleDistanceFromRadius < 0)
                 {
-                    avoidObstacle = nearestObstacleDistance - settings.obstacleAversionDistance,
-                    obstacle = avoidObstacleHeading,
-                    target = targetHeading
-                };
+                    targetObstacle[index] = new TargetObstacle
+                    {
+                        avoidObstacle = true,
+                        heading = avoidObstacleHeading
+                    };
+                }
+                else
+                {
+                    targetObstacle[index] = new TargetObstacle
+                    {
+                        avoidObstacle = false,
+                        heading = targetHeading
+                    };
+                }
+                    
             }
         }
 
         [ComputeJobOptimization]
         struct Steer : IJobParallelFor
         {
-            [ReadOnly] public NativeArray<int> cellIndices;
+            [ReadOnly] public NativeArray<int>                 cellIndices;
             [ReadOnly] public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
-            [ReadOnly] public NativeArray<int> neighborCount;
-            [ReadOnly] public Boid settings;
-            [ReadOnly] public NativeArray<TargetObstacle> targetObstacle;
-            public float dt;
-            public ComponentDataArray<Position> positions;
-            public ComponentDataArray<Heading> headings;
-            public ComponentDataArray<TransformMatrix> transformMatrices;
+            [ReadOnly] public NativeArray<float>               neighborCount;
+            [ReadOnly] public Boid                             settings;
+            [ReadOnly] public NativeArray<TargetObstacle>      targetObstacle;
+            public float3                                      dt;
+            public float3                                      alignmentWeight;
+            public float3                                      separationWeight;
+            public float3                                      speed;
+            public ComponentDataArray<Position>                positions;
+            public ComponentDataArray<Heading>                 headings;
+            public ComponentDataArray<TransformMatrix>         transformMatrices;
 
             public void Execute(int index)
             {
-                var forward = headings[index].Value;
-                var position = positions[index].Value;
-                var cellIndex = cellIndices[index];
-                var count = neighborCount[cellIndex];
-                var alignmentSteering = cellAlignmentSeparation[cellIndex].alignment/count;
-                var alignmentResult = settings.alignmentWeight * math_experimental.normalizeSafe(alignmentSteering-forward);
-                var separationSteering = cellAlignmentSeparation[cellIndex].separation;
-                var separationResult = settings.separationWeight * math_experimental.normalizeSafe((position * count) + separationSteering);
-                var normalHeading = math_experimental.normalizeSafe(alignmentResult + separationResult + targetObstacle[index].target);
-                var targetForward = math.select(normalHeading,targetObstacle[index].obstacle,targetObstacle[index].avoidObstacle < 0);
-                var speed = settings.speed;
-                var nextHeading = math_experimental.normalizeSafe(forward + dt*(targetForward-forward));
-                var nextPosition = position + (nextHeading * speed * dt);
-                var rottrans = math.lookRotationToMatrix(nextPosition, nextHeading, math.up());
+                var forward              = headings[index].Value;
+                var position             = positions[index].Value;
+                var cellIndex            = cellIndices[index];
+                var count                = neighborCount[cellIndex];
+                var cellAlignment        = cellAlignmentSeparation[cellIndex].alignment;
+                var cellSeparation       = cellAlignmentSeparation[cellIndex].separation;
+                var targetHeading        = targetObstacle[index].heading;
+                var avoidObstacle        = targetObstacle[index].avoidObstacle;
                 
-                headings[index] = new Heading {Value = nextHeading};
-                positions[index] = new Position {Value = nextPosition};
+                var alignmentSteering    = cellAlignment/count;
+                var alignmentResult      = alignmentWeight * math_experimental.normalizeSafe(alignmentSteering-forward);
+                var separationResult     = separationWeight * math_experimental.normalizeSafe((position * count) + cellSeparation);
+                var normalHeading        = math_experimental.normalizeSafe(alignmentResult + separationResult + targetHeading);
+                var targetForward        = math.select(normalHeading, targetHeading, avoidObstacle);
+                var nextHeading          = math_experimental.normalizeSafe(forward + dt*(targetForward-forward));
+                var nextPosition         = position + (nextHeading * speed * dt);
+                var rottrans             = math.lookRotationToMatrix(nextPosition, nextHeading, math.up());
+                
+                headings[index]          = new Heading {Value = nextHeading};
+                positions[index]         = new Position {Value = nextPosition};
                 transformMatrices[index] = new TransformMatrix { Value = rottrans };
             }
         }
@@ -291,7 +304,7 @@ namespace UnityEngine.ECS.Boids
         struct DisposePrevCells : IJob
         {
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> cellIndices;
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> neighborCount;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float> neighborCount;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
             
             public void Execute()
@@ -326,7 +339,7 @@ namespace UnityEngine.ECS.Boids
                 var hashCellBucketCount =  math.ceil_pow2(boidCount*2);
                 var hashCellBuckets = new NativeArray<CellHashIndex>(hashCellBucketCount+boidCount, Allocator.TempJob);
                 
-                var neighborCount = new NativeArray<int>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
+                var neighborCount = new NativeArray<float>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
                 var cellAlignmentSeparation = new NativeArray<AlignmentSeparation>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
                 var cellIndices = new NativeArray<int>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
 
@@ -421,7 +434,10 @@ namespace UnityEngine.ECS.Boids
                         neighborCount = prevCells.Value.neighborCount,
                         targetObstacle = targetObstacle,
                         settings = settings,
-                        dt = Time.deltaTime,
+                        dt = new float3(Time.deltaTime,Time.deltaTime,Time.deltaTime),
+                        alignmentWeight = new float3(settings.alignmentWeight,settings.alignmentWeight,settings.alignmentWeight),
+                        separationWeight = new float3(settings.separationWeight,settings.separationWeight,settings.separationWeight),
+                        speed = new float3(settings.speed,settings.speed,settings.speed),
                         positions = positions,
                         headings = headings,
                         transformMatrices = transformMatrices

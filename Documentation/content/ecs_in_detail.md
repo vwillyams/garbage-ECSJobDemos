@@ -200,44 +200,79 @@ We use ISharedComponentData to group all entities using the same InstanceRendere
 
 * Entities with the same SharedComponentData are grouped together in the same chunks. The index to the SharedComponentData is stored once per chunk, not per Entity. As a result SharedComponentData have zero memory overhead on a per Entity basis. 
 * Using ComponentGroup we can iterate over all Entities with the same type.
-* Additionally we can use __ComponentGroup.GetVariation()__ to iterate specifically over Entities that have a specific SharedComponentData value. Due to the data layout this iteration has low overhead.
+* Additionally we can use __ComponentGroup.SetFilter()__ to iterate specifically over Entities that have a specific SharedComponentData value. Due to the data layout this iteration has low overhead.
 * Using __EntityManager.GetAllUniqueSharedComponents__ we can retrieve all unique SharedComponentData that is added to any alive Entities.
 * SharedComponentData are automatically [reference counted](https://en.wikipedia.org/wiki/Reference_counting).
-* SharedComponentData should change rarely. Changing a SharedComponentData involves using [memcpy](https://msdn.microsoft.com/en-us/library/aa246468(v=vs.60).aspx) on the all ComponentData for that Entity into a different chunk.
+* SharedComponentData should change rarely. Changing a SharedComponentData involves using [memcpy](https://msdn.microsoft.com/en-us/library/aa246468(v=vs.60).aspx) to copy all ComponentData for that Entity into a different chunk.
 
 ## ComponentSystem
 
 ## JobComponentSystem
 
-# Iterating entities
+## Iterating entities
 
 Iterating over all Entities that have a matching set of components, is at the center of the ECS architecture.
 
-## ComponentDataArray
-
-## ComponentArray
-
-## EntityArray
 
 ## Injection
 
 Injection allows your system to declare its dependencies, while those dependencies are then automatically injected into the injected variables before OnCreateManager, OnDestroyManager and OnUpdate.
 
+
+#### Component Group Injection
+
+Component Group injection automatically creates a ComponentGroup based on the required Component types.
+
+This lets you iterate over all the entities matching those required Component types.
+Each index refers to the same Entity on all arrays.
+
 ```cs
-class EnemyShootSystem : JobComponentSystem
+class MySystem : ComponentSystem
 {
-    public struct Shots
+    public struct Group
     {
-        [ReadOnly] 
-        public ComponentDataArray<Position2D> Position;
-        public ComponentDataArray<EnemyShootState> ShootState;
+        // ComponentDataArray lets us access IComponentData 
+        [ReadOnly]
+        public ComponentDataArray<Position> Position;
+        
+        // ComponentArray lets us access any of the existing class Component                
+        public ComponentArray<Rigidbody> Rigidbodies;
+
+        // Sometimes it is necessary to not only access the components
+        // but also the Entity ID.
+        public EntityArray Entities;
+
+        // The GameObject Array lets us retrieve the game object.
+        // It also constrains the group to only contain GameObject based entities.                  
+        public GameObjectArray GameObjects;
+
+        // Excludes entities that contain a MeshCollider from the group
+        public SubtractiveComponent<MeshCollider> MeshColliders;
+        
+        // The Length can be injected for convenience as well 
         public int Length;
     }
-    [Inject] private Shots m_Shots;
+    [Inject] private Group m_Group;
+
+
+    protected override void OnUpdate()
+    {
+        // Iterate over all entities matching the declared ComponentGroup required types
+        for (int i = 0; i != m_Group.Length; i++)
+        {
+            m_Group.Rigidbodies[i].position = m_Group.Position[i].Value;
+
+            Entity entity = m_Group.Entities[i];
+            GameObject go = m_Group.GameObjects[i];
+        }
+    }
 }
 ```
 
-This automatically creates a component group with Position2D and EnemyShootState required. And injects the ComponentDataArrays and Length values. So that you can now iterate over all entities that have those two components efficiently.
+#### ComponentDataFromEntity injection
+
+ComponentDataFromEntity<> can also be injected, this lets you get / set the component data by entity from a job. 
+
 
 ```cs
 class PositionSystem : JobComponentSystem
@@ -246,8 +281,7 @@ class PositionSystem : JobComponentSystem
 }
 ```
 
-ComponentDataFromEntity can also be injected, this lets you lookup the position value for a given entity. 
-
+#### Injecting other systems
 
 ```cs
 class PositionSystem : JobComponentSystem
@@ -260,13 +294,54 @@ Lastly you can also inject a reference to another system. This will populate the
 
 ## ComponentGroup
 
-ComponentGroup is the class on top of which all iteration logic is based.
+The ComponentGroup is foundation class on top of which all iteration methods are built (Injection, foreach, IJobProcessComponetnData etc)
 
-Essentially a ComponentGroup is constructed with a set of required components, subtractive components, or specific SharedComponentData values. 
+Essentially a ComponentGroup is constructed with a set of required components, subtractive components. 
 
-The ComponentGroup has APIs to extract individual arrays. All these arrays are guaranteed to be in sync (same length, index of each array refers to the same Entity).
+The ComponentGroup lets you extract individual arrays. All these arrays are guaranteed to be in sync (same length and the index of each array refers to the same Entity).
 
-We do not recommend to use ComponentGroup directly. The injection pattern is a simpler way of doing the same thing.
+Generally speaking GetComponentGroup is used rarely, since ComponentGroup Injection and IJobProcessComponetnData is simpler and more expressive.
+
+However the ComponentGroup API can be used for more advanced use cases like filtering a Component Group based on specific SharedComponent values.
+
+```cs
+struct SharedGrouping : ISharedComponentData
+{
+    public int Group;
+}
+
+class PositionToRigidbodySystem : ComponentSystem
+{
+    ComponentGroup m_Group;
+
+    protected override void OnCreateManager(int capacity)
+    {
+        // GetComponentGroup should always be cached from OnCreateManager, never from OnUpdate
+        // - ComponentGroup allocates GC memory
+        // - Relatively expensive to create
+        // - Component type dependencies of systems need to be declared during OnCreateManager,
+        //   in order to allow automatic ordering of systems
+        m_Group = GetComponentGroup(typeof(Position), typeof(Rigidbody), typeof(SharedGrouping));
+    }
+
+    protected override void OnUpdate()
+    {
+        // Only iterate over entities that have the SharedGrouping data set to 1
+        // (This could for example be used as a form of gamecode LOD)
+        m_Group.SetFilter(new SharedGrouping { Group = 1 });
+        
+        var positions = m_Group.GetComponentDataArray<Position>();
+        var rigidbodies = m_Group.GetComponentArray<Rigidbody>();
+
+        for (int i = 0; i != positions.Length; i++)
+            rigidbodies[i].position = positions[i].Value;
+            
+        // NOTE: GetAllUniqueSharedComponentDatas can be used to find all unique shared components 
+        //       that are added to entities. 
+        // EntityManager.GetAllUniqueSharedComponentDatas(List<T> shared);
+    }
+}
+```
 
 ## ComponentDataFromEntity
 

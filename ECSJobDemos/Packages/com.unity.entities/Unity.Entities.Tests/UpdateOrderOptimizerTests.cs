@@ -4,7 +4,7 @@ using Unity.Entities;
 using UnityEngine.TestTools;
 using UnityEngine.Experimental.LowLevel;
 
-namespace UnityEngine.ECS.Tests
+namespace Unity.Entities.Tests
 {
     public class UpdateOrderOptimizerTests : ECSTestsFixture
 	{

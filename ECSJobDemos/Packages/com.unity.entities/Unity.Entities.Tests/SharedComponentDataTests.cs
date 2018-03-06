@@ -3,7 +3,7 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using Unity.Entities;
 
-namespace UnityEngine.ECS.Tests
+namespace Unity.Entities.Tests
 {
     struct SharedData1 : ISharedComponentData
     {

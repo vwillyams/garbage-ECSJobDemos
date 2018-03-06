@@ -3,7 +3,7 @@ using Unity.Collections;
 using System;
 using Unity.Entities;
 
-namespace UnityEngine.ECS.Tests
+namespace Unity.Entities.Tests
 {
 	public class FixedArrayTests : ECSTestsFixture
 	{

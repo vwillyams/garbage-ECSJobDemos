@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using NUnit.Framework;
 using Unity.Entities;
-using UnityEngine.ECS.Tests;
+using Unity.Entities.Tests;
 using UnityEditor.IMGUI.Controls;
 
 namespace UnityEditor.ECS

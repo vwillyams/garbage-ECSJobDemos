@@ -5,7 +5,7 @@ using Unity.Entities;
 using Unity.Jobs;
 using System.Collections.Generic;
 
-namespace UnityEngine.ECS.Tests
+namespace Unity.Entities.Tests
 {
     public class EntityCommandBufferTests : ECSTestsFixture
     {

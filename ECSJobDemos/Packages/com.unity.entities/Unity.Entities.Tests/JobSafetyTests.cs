@@ -3,7 +3,7 @@ using Unity.Jobs;
 using Unity.Entities;
 using UnityEngine.TestTools;
 
-namespace UnityEngine.ECS.Tests
+namespace Unity.Entities.Tests
 {
     public class JobSafetyTests : ECSTestsFixture
 	{

@@ -47,7 +47,7 @@ Spawn 100 entities.
 
 The PositionComponent specifies that the entity that is created from the RotatingCubeSpawner GameObject has a position in the ECS. That position is used as the center of the circle for spawning. (Required)
 
-The CopyInitialTransformPositionFromGameObjectComponent specifies that **only** the initial value for PositionComponent in ECS will be copied from the GameObject's Transform. 
+The CopyInitialTransformFromGameObjectComponent specifies that **only** the initial value for PositionComponent in ECS will be copied from the GameObject's Transform. 
 
 ## Move sphere about same circle and reset rotations when intersecting cubes
 
@@ -67,11 +67,11 @@ Add these components to TestResetRotationSphere:
 6. [__UnityEngine.ECS.SimpleMovement/MoveAlongCircleComponent__](../../ECSJobDemos/Assets/GameCode/SimpleMovement/MoveAlongCircleComponent.cs)
 7. [__UnityEngine.ECS.SimpleRotation/RotationSpeedResetSphereComponent__](../../ECSJobDemos/Assets/GameCode/SimpleRotation/RotationSpeedResetSphereComponent.cs)
 
-Like the RotatingCubeSpawner, the PositionComponent specifies that the Entity that is created from the TestResetRotationSphere GameObject has a position in ECS and the CopyInitialTransformPositionFromGameObjectComponent specifies that **only** the initial value for PositionComponent in ECS will be copied from the GameObject's Transform. 
+Like the RotatingCubeSpawner, the PositionComponent specifies that the Entity that is created from the TestResetRotationSphere GameObject has a position in ECS and the CopyInitialTransformFromGameObjectComponent specifies that **only** the initial value for PositionComponent in ECS will be copied from the GameObject's Transform. 
 
 The TransformMatrixComponent specifies that a 4x4 matrix should be stored. That matrix is updated automatically based on changes to the PositionComponent.
 
-Set the properties of the InstanceRendererComponent:
+Set the properties of the MeshInstanceRendererComponent:
 
 1. __Mesh__: Sphere
 2. __Material__: InstanceMat

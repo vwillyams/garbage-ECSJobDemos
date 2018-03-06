@@ -14,7 +14,7 @@ namespace Unity.Entities
             ComponentType* componentTypes = stackalloc ComponentType[count];
 
             for (var t = 0; t != count; ++t)
-                componentTypes[t] = components[t].GetComponentType(entityManager);
+                componentTypes[t] = components[t].GetComponentType();
 
             var srcEntity = entityManager.CreateEntity(entityManager.CreateArchetype(componentTypes, count));
             for (var t = 0; t != count; ++t)

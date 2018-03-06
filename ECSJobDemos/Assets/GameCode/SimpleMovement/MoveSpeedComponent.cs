@@ -4,7 +4,7 @@ using Unity.Entities;
 namespace UnityEngine.ECS.SimpleMovement
 {
     /// <summary>
-    /// Store float speed. This component requests that if another component is moving the TransformPositionComponent
+    /// Store float speed. This component requests that if another component is moving the PositionComponent
     /// it should respect this value and move the position at the constant speed specified.
     /// </summary>
     [Serializable]

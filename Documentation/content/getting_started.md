@@ -191,7 +191,8 @@ class BoidToInstanceRendererTransform_IJobProcessComponentData : JobComponentSys
         }
     }
 
-    // We derive from JobComponentSystem, as a result ECS hands us the required dependencies for our jobs.
+    // We derive from JobComponentSystem, as a result the system proviides us 
+    // the required dependencies for our jobs automatically.
     //
     // IJobProcessComponentData declares that it will read BoidData and write to TransformMatrix.
     //

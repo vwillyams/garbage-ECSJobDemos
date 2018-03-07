@@ -117,7 +117,7 @@ You simply move the contents of your MonoBehaviour.Update into a __ComponentSyst
 - No [SIMD](https://en.wikipedia.org/wiki/SIMD)
 
 
-So using ComponentSystem, GameObject and MonoBehaviour is a great first step to writing ECS code. It gives you some quick performance improvements, but it does not tap the full range of performance benefits available.
+So using ComponentSystem, GameObject and MonoBehaviour is a great first step to writing ECS code. It gives you some quick performance improvements, but it does not tap into the full range of performance benefits available.
 
 ## Pure ECS: Full-on performance - IComponentData & Jobs
 

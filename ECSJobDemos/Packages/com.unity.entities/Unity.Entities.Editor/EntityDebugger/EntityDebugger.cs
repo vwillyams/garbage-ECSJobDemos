@@ -157,8 +157,8 @@ namespace UnityEditor.ECS
         {
             selectionProxy = ScriptableObject.CreateInstance<EntitySelectionProxy>();
             selectionProxy.hideFlags = HideFlags.HideAndDontSave;
-            CreateSystemListView();
             CreateEntityListView();
+            CreateSystemListView();
             CreateComponentGroupListView();
             EditorApplication.playModeStateChanged += OnPlayModeStateChange;
         }

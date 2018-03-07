@@ -109,7 +109,7 @@ namespace UnityEditor.ECS
         }
 
         public static SystemListView CreateList([CanBeNull] World world, [NotNull] List<TreeViewState> states, [NotNull] List<string> stateNames,
-            ISystemSelectionWindow window)
+            [CanBeNull] ISystemSelectionWindow window)
         {
             var state = GetStateForWorld(world, states, stateNames);
             var header = new MultiColumnHeader(GetHeaderState());
@@ -122,55 +122,50 @@ namespace UnityEditor.ECS
             this.world = world;
             columnIndexForTreeFoldouts = 1;
             Reload();
-            SetManagers();
-        }
-        
-        void SetManagers()
-        {
-            if (world == null)
-                return;
-            
-            Dictionary<Type, ScriptBehaviourUpdateOrder.ScriptBehaviourGroup> allGroups;
-            Dictionary<Type, ScriptBehaviourUpdateOrder.DependantBehavior> dependencies;
-            ScriptBehaviourUpdateOrder.CollectGroups(world.BehaviourManagers, out allGroups, out dependencies);
-            
-            managersByGroup.Clear();
-            managersByID.Clear();
-            floatingManagers.Clear();
-            recordersByManager.Clear();
-            
-            foreach (var manager in world.BehaviourManagers)
-            {
-                var hasGroup = false;
-                foreach (var attributeData in manager.GetType().GetCustomAttributesData())
-                {
-                    if (attributeData.AttributeType == typeof(UpdateInGroupAttribute))
-                    {
-                        var groupType = (Type) attributeData.ConstructorArguments[0].Value;
-                        if (!managersByGroup.ContainsKey(groupType))
-                            managersByGroup[groupType] = new List<ScriptBehaviourManager>{manager};
-                        else
-                            managersByGroup[groupType].Add(manager);
-                        hasGroup = true;
-                        break;
-                    }
-                }
-
-                if (!hasGroup)
-                {
-                    floatingManagers.Add(manager);
-                }
-            }
-            foreach (var managerSet in managersByGroup.Values)
-            {
-                managerSet.Sort((x, y) => string.CompareOrdinal(x.GetType().Name, y.GetType().Name));
-            }
-            Reload();
             SelectionChanged(GetSelection());
         }
 
         protected override TreeViewItem BuildRoot()
         {
+            managersByGroup.Clear();
+            managersByID.Clear();
+            floatingManagers.Clear();
+            recordersByManager.Clear();
+
+            if (world != null)
+            {
+                Dictionary<Type, ScriptBehaviourUpdateOrder.ScriptBehaviourGroup> allGroups;
+                Dictionary<Type, ScriptBehaviourUpdateOrder.DependantBehavior> dependencies;
+                ScriptBehaviourUpdateOrder.CollectGroups(world.BehaviourManagers, out allGroups, out dependencies);
+            
+                foreach (var manager in world.BehaviourManagers)
+                {
+                    var hasGroup = false;
+                    foreach (var attributeData in manager.GetType().GetCustomAttributesData())
+                    {
+                        if (attributeData.AttributeType == typeof(UpdateInGroupAttribute))
+                        {
+                            var groupType = (Type) attributeData.ConstructorArguments[0].Value;
+                            if (!managersByGroup.ContainsKey(groupType))
+                                managersByGroup[groupType] = new List<ScriptBehaviourManager>{manager};
+                            else
+                                managersByGroup[groupType].Add(manager);
+                            hasGroup = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasGroup)
+                    {
+                        floatingManagers.Add(manager);
+                    }
+                }
+                foreach (var managerSet in managersByGroup.Values)
+                {
+                    managerSet.Sort((x, y) => string.CompareOrdinal(x.GetType().Name, y.GetType().Name));
+                }
+            }
+            
             var currentID = 0;
             var root  = new TreeViewItem { id = currentID++, depth = -1, displayName = "Root" };
             if (managersByGroup.Count == 0 && floatingManagers.Count == 0)
@@ -240,6 +235,8 @@ namespace UnityEditor.ECS
 
         protected override void SelectionChanged(IList<int> selectedIds)
         {
+            if (window == null)
+                return;
             if (selectedIds.Count > 0 && managersByID.ContainsKey(selectedIds[0]))
             {
                 window.SystemSelection = managersByID[selectedIds[0]];

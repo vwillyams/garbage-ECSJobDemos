@@ -26,7 +26,7 @@ If each job is self contained this is all you need. However in more complex syst
 
 To make this easier, jobs support [dependencies](http://tutorials.jenkov.com/ood/understanding-dependencies.html). If Job A is scheduled with a dependency on Job B the system will guarantee that Job B has completed before Job A starts executing.
 
-An important aspect of the Unity job system, and one of the reasons it is a custom API and not one of the existing thread models from C# is that the job system integrates with what the Unity engine uses internally. This means that user written code and the engine will share worker threads to avoid creating more threads than CPU cores - which would cause contention for CPU resources.
+An important aspect of the C# job system, and one of the reasons it is a custom API and not one of the existing thread models from C#, is that the job system integrates with what the Unity engine uses internally. This means that user written code and the engine will share worker threads to avoid creating more threads than CPU cores - which would cause contention for CPU resources.
 
 ## Race conditions & safety system
 

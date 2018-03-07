@@ -78,7 +78,7 @@ namespace Unity.Entities.Editor
                 }
                 else
                 {
-                    SelectedComponentGroup.CompleteDependency();
+                    window.WorldSelection.GetExistingManager<EntityManager>().CompleteAllJobs();
                     var entityArray = SelectedComponentGroup.GetEntityArray();
                     for (var i = 0; i < entityArray.Length; ++i)
                         root.AddChild(CreateEntityItem(entityArray[i]));

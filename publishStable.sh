@@ -28,8 +28,8 @@ isPackageChanged()
 	if [[ $? -eq 0 ]]
 	then
 		echo "Analyzing differences..." >&2
-		diff $1$2 node_modules/$2 -x .git -x package*.json -qr
-		numChanges=`diff $1$2 node_modules/$2 -x .git -x package*.json -x .DS_Store -qr | wc -l | tr -d ' '`
+		diff $1$2 node_modules/$2 -x .git -x package*.json -x .DS_Store -x node_modules -qr
+		numChanges=`diff $1$2 node_modules/$2 -x .git -x package*.json -x .DS_Store -x node_modules -qr | wc -l | tr -d ' '`
 		rm -r node_modules
 		
 		#in some cases, npm creates an etc folder. It it's created i will delete it.
@@ -163,7 +163,7 @@ CreateCloneRepo()
 RemoveThisScriptForCommit()
 {
 	git add .
-	git reset "`basename $BASH_SOURCE`"
+	git reset -- "`basename $BASH_SOURCE`"
 }
 
 main()
@@ -202,12 +202,11 @@ main()
 	scatterManifest > /dev/null 2>&1 
 
 	RemoveThisScriptForCommit
-
 	if [[ $releaseNumber -ne 1 ]]
 	then
 		git commit -m "Release $releaseNumber" 
 	else
-		git commit --amend -m "Release $releaseNumber" 
+		git commit --amend --reset-author -m "Release $releaseNumber" 
 	fi
 	git push -f stable master
 	git remote remove stable

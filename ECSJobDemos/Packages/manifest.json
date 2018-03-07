@@ -1,12 +1,12 @@
 {
 	"dependencies": {
-		"com.unity.burst": "0.1.29"
+		"com.unity.burst": "0.1.31",
+		"com.unity.mathematics":"0.0.7"
 	},
 	"testables": [
         "com.unity.collections",
         "com.unity.entities",
-        "com.unity.jobs",
-        "com.unity.mathematics"
+        "com.unity.jobs"
 	],
 	"registry": "https://staging-packages.unity.com"
 }

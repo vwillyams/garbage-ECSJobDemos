@@ -150,7 +150,6 @@ public struct TransformMatrix : IComponentData
 ```cs
 // Uses GetEntities<Group> to foreach iterate over all entities
 // and produce a matrix from the BoidData state. Running all on the main thread.
-[DisableAutoCreation]
 class BoidToInstanceRendererTransform_GetEntities : ComponentSystem
 {
     unsafe struct Group
@@ -176,29 +175,17 @@ class BoidToInstanceRendererTransform_GetEntities : ComponentSystem
 ```cs
 // Using IJobProcessComponentData to iterate over all entities matching the required component types.
 // Processing of entities happens in parallel. The main thread only schedules jobs.
-[DisableAutoCreation]
 class BoidToInstanceRendererTransform_IJobProcessComponentData : JobComponentSystem
 {
-    struct Group
-    {
-        [ReadOnly]
-        public ComponentDataArray<BoidData>        Boids;
-        public ComponentDataArray<TransformMatrix> RendererTransforms;
-    }
-
-    // [Inject] creates a ComponentGroup, setting up the two ComponentDataArrays so
-    // that we can iterate over all entities containing both BoidData & TransformMatrix.    
-    [Inject] 
-    Group m_Group;
-
     // Instead of IJobParallelFor, we use IJobProcessComponentData
     // It is more efficient than IJobParallelFor and more convenient
     // * ComponentDataArray has one early out branch per index lookup
-    // * IJobProcessComponentData innerloop does a straight BoidData* array iteration, with zero checks. 
-    [ComputeJobOptimization]
+    // * IJobProcessComponentData innerloop itself does straight linear iteration 
+    //   over two tightly packed arrays of BoidData and TransformMatrix,
+    //   resulting in essentially zero overhead iteration compared to working with straight arrays or unsafe pointers.
     struct TransformJob : IJobProcessComponentData<BoidData, TransformMatrix>
     {
-        public void Execute(ref BoidData boid, ref TransformMatrix transformMatrix)
+        public void Execute([ReadOnly]ref BoidData boid, ref TransformMatrix transformMatrix)
         {
             transformMatrix.matrix = matrix_math_util.LookRotationToMatrix(boid.position, boid.forward, new float3(0, 1, 0));
         }
@@ -206,18 +193,18 @@ class BoidToInstanceRendererTransform_IJobProcessComponentData : JobComponentSys
 
     // We derive from JobComponentSystem, as a result ECS hands us the required dependencies for our jobs.
     //
-    // This is possible because we declare using the Group struct, which components we read & write from.
-    // Also declares what data is being read & written to in this ComponentSystem by declaring it in the Group struct.
+    // IJobProcessComponentData declares that it will read BoidData and write to TransformMatrix.
+    //
     // Because it is declared the JobComponentSystem can give us a Job dependency, which contains all previously scheduled
     // jobs that write to any BoidData or RendererTransforms.
-    // We also have to return the dependency so any job we schedule will get registered against the types for the next System that might run
+    // We also have to return the dependency so that any job we schedule 
+    // will get registered against the types for the next System that might run.
     // This approach means:
     // * No waiting on main thread, just scheduling jobs with dependencies (Jobs only start when dependencies have completed)
     // * Dependencies are figured out automatically for us, so we can write modular multithreaded code
     protected override JobHandle OnUpdate(JobHandle inputDeps)
     {
-        var job = new TransformJob();
-        return job.Schedule(m_Group.Boids, m_Group.RendererTransforms, 16, inputDeps);
+        return new TransformJob().Schedule(this, m_Group.RendererTransforms, 16, inputDeps);
     }
 }
 ```

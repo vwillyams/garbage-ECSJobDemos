@@ -146,7 +146,7 @@ namespace Unity.Navigation.Tests
 
             int iterations;
             int pathSize;
-            var path = new NativeArray<PolygonID>(100, Allocator.Persistent);
+            var path = new NativeArray<PolygonId>(100, Allocator.Persistent);
 
             Assert.Throws<InvalidOperationException>(() => { queryWithoutBuffer.BeginFindPath(startLocation, endLocation); });
             Assert.Throws<InvalidOperationException>(() => { queryWithoutBuffer.UpdateFindPath(100, out iterations); });
@@ -166,7 +166,7 @@ namespace Unity.Navigation.Tests
 
             var iterations = 0;
             var pathSize = 0;
-            var path = new NativeArray<PolygonID>(100, Allocator.Persistent);
+            var path = new NativeArray<PolygonId>(100, Allocator.Persistent);
 
             Assert.DoesNotThrow(() => { pathQuery.BeginFindPath(startLocation, endLocation); });
             Assert.DoesNotThrow(() => { pathQuery.UpdateFindPath(100, out iterations); });

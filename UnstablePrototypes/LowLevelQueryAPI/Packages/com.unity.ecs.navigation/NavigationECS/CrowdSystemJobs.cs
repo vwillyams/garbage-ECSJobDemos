@@ -4,7 +4,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.AI;
-using Unity.ECS;
+using Unity.Entities;
 using UnityEngine.Experimental.AI;
 
 public partial class CrowdSystem
@@ -185,7 +185,7 @@ public partial class CrowdSystem
         public ComponentDataArray<CrowdAgent> agents;
 
         public ComponentDataArray<CrowdAgentNavigator> agentNavigators;
-        public FixedArrayArray<PolygonID> paths;
+        public FixedArrayArray<PolygonId> paths;
 
         public void Execute(int index)
         {
@@ -247,7 +247,7 @@ public partial class CrowdSystem
         [ReadOnly]
         public NavMeshQuery query;
         [ReadOnly]
-        public FixedArrayArray<PolygonID> paths;
+        public FixedArrayArray<PolygonId> paths;
 
         public ComponentDataArray<CrowdAgentNavigator> agentNavigators;
         public ComponentDataArray<CrowdAgent> agents;
@@ -367,7 +367,7 @@ public partial class CrowdSystem
     public struct ApplyQueryResultsJob : IJob
     {
         public PathQueryQueueEcs queryQueue;
-        public FixedArrayArray<PolygonID> paths;
+        public FixedArrayArray<PolygonId> paths;
         public ComponentDataArray<CrowdAgentNavigator> agentNavigators;
 
         public void Execute()

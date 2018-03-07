@@ -13,6 +13,7 @@ namespace Unity.Transforms
         [Inject] ComponentDataFromEntity<Rotation> m_Rotations;
         [Inject] ComponentDataFromEntity<TransformMatrix> m_TransformMatrices;
 
+
         struct RootTransGroup
         {
             [ReadOnly] public SubtractiveComponent<TransformExternal> transfromExternal;

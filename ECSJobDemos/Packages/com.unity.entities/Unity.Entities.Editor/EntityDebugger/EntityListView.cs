@@ -8,7 +8,7 @@ using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Analytics;
 
-namespace UnityEditor.ECS
+namespace Unity.Entities.Editor
 {
     public interface IEntitySelectionWindow : IWorldSelectionWindow
     {

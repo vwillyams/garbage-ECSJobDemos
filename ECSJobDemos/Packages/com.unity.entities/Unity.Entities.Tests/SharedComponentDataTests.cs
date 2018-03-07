@@ -3,7 +3,7 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using Unity.Entities;
 
-namespace UnityEngine.ECS.Tests
+namespace Unity.Entities.Tests
 {
     struct SharedData1 : ISharedComponentData
     {
@@ -33,13 +33,16 @@ namespace UnityEngine.ECS.Tests
             var group1 = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(SharedData1));
             var group2 = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(SharedData2));
             var group12 = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(SharedData2), typeof(SharedData1));
-
+            
+            var group1_filter_0 = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(SharedData1));
+            group1_filter_0.SetFilter(new SharedData1(0));
+            var group1_filter_20 = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(SharedData1));
+            group1_filter_20.SetFilter(new SharedData1(20));
+            
             Assert.AreEqual(0, group1.CalculateLength());
             Assert.AreEqual(0, group2.CalculateLength());
             Assert.AreEqual(0, group12.CalculateLength());
 
-            var group1_filter_0 = group1.GetVariation(new SharedData1(0));
-            var group1_filter_20 = group1.GetVariation(new SharedData1(20));
             Assert.AreEqual(0, group1_filter_0.CalculateLength());
             Assert.AreEqual(0, group1_filter_20.CalculateLength());
 
@@ -66,7 +69,6 @@ namespace UnityEngine.ECS.Tests
             Assert.AreEqual(2, group1_filter_20.CalculateLength());
             Assert.AreEqual(117, group1_filter_20.GetComponentDataArray<EcsTestData>()[0].value);
             Assert.AreEqual(243, group1_filter_20.GetComponentDataArray<EcsTestData>()[1].value);
-
 
             group1.Dispose();
             group2.Dispose();
@@ -95,8 +97,8 @@ namespace UnityEngine.ECS.Tests
             for (int sharedValue = 0; sharedValue < 8; ++sharedValue)
             {
                 bool[] foundEntities = new bool[entitiesPerValue];
-                var filteredGroup = group.GetVariation(new SharedData1(sharedValue));
-                var componentArray = filteredGroup.GetComponentDataArray<EcsTestData>();
+                group.SetFilter(new SharedData1(sharedValue));
+                var componentArray = group.GetComponentDataArray<EcsTestData>();
                 Assert.AreEqual(entitiesPerValue, componentArray.Length);
                 for (int i = 0; i < entitiesPerValue; ++i)
                 {
@@ -105,7 +107,6 @@ namespace UnityEngine.ECS.Tests
                     Assert.IsFalse(foundEntities[index/8]);
                     foundEntities[index/8] = true;
                 }
-                filteredGroup.Dispose();
             }
 
             group.Dispose();

@@ -4,7 +4,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Experimental.AI;
-using Unity.ECS;
+using Unity.Entities;
 
 public partial class CrowdSystem : JobComponentSystem
 {
@@ -20,7 +20,7 @@ public partial class CrowdSystem : JobComponentSystem
     {
         public ComponentDataArray<CrowdAgent> agents;
         public ComponentDataArray<CrowdAgentNavigator> agentNavigators;
-        public FixedArrayArray<PolygonID> paths;
+        public FixedArrayArray<PolygonId> paths;
     }
 
     [Inject]

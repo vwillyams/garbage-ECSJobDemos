@@ -5,10 +5,10 @@ using Unity.Entities.Properties;
 using UnityEngine;
 using UnityEditor;
 
-namespace UnityEditor.ECS
+namespace Unity.Entities.Editor
 {
     [CustomEditor(typeof(EntitySelectionProxy))]
-    public class EntitySelectionProxyEditor : Editor
+    public class EntitySelectionProxyEditor : UnityEditor.Editor
     {
         private EntityIMGUIVisitor visitor;
         

@@ -3,7 +3,7 @@ using Unity.Entities;
 using Unity.Entities.Properties;
 using UnityEngine;
 
-namespace UnityEditor.ECS
+namespace Unity.Entities.Editor
 {
     public class EntitySelectionProxy : ScriptableObject
     {

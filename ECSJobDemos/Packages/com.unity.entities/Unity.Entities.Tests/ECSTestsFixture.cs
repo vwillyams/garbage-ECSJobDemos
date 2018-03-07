@@ -2,7 +2,7 @@ using NUnit.Framework;
 using Unity.Entities;
 using Unity.Jobs;
 
-namespace UnityEngine.ECS.Tests
+namespace Unity.Entities.Tests
 {
     [DisableAutoCreation]
     public class EmptySystem : JobComponentSystem

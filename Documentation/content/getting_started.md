@@ -127,9 +127,7 @@ The C# job system TODO LINK does not support managed class types; only structs a
 
 The EntityManager makes hard guarantees about [linear memory layout](https://en.wikipedia.org/wiki/Flat_memory_model) of the component data. This is an important part of the great performance you can achieve with C# jobs using IComponentData.
 
-ECS provides a wide variety of ways of iterating over the relevant entities and components. ([Here is a list of them all](https://github.com/Unity-Technologies/ECSJobDemos/blob/master/ECSJobDemos/Assets/ECS/BoidsECS/BoidToInstanceRendererTransform.cs).)
-
-From that we have selected a simple foreach style iteration example and a optimal jobified code example.
+We have selected below a simple foreach style iteration example and a optimal jobified code example.
 
 In this fish boid simulation we represent the boids' simulation state as BoidData. The renderer however needs a matrix to render the instances, the sample code shows how you can express this data transformation using ECS.
 

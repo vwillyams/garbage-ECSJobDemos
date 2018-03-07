@@ -2,7 +2,7 @@
 
 namespace Unity.Entities
 {
-    public struct SubtractiveComponent<T> where T : struct, IComponentData
+    public struct SubtractiveComponent<T>
     {}
 
     public struct ComponentType

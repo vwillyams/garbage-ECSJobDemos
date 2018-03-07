@@ -1,8 +1,10 @@
 ﻿using System;
 using NUnit.Framework;
 using Unity.Entities;
+using UnityEngine;
+using Object = UnityEngine.Object;
 
-namespace UnityEngine.ECS.Tests
+namespace Unity.Entities.Tests
 {
     //@TODO: Test for prevent adding Wrapper component to type system...
 

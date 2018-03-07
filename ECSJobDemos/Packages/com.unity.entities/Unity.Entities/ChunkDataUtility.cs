@@ -1,5 +1,8 @@
-﻿using Unity.Assertions;
+﻿using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
+using Unity.Assertions;
 using Unity.Collections.LowLevel.Unsafe;
+using UnityEngine;
 
 namespace Unity.Entities
 {
@@ -157,7 +160,12 @@ namespace Unity.Entities
                 if (srcArch->Types[srcI] < dstArch->Types[dstI])
                     ++srcI;
                 else if (srcArch->Types[srcI] > dstArch->Types[dstI])
+                {
+                    // Clear components in the destination that aren't copied
+                    var dst = dstChunk->Buffer + dstArch->Offsets[dstI] + dstIndex * dstArch->SizeOfs[dstI];
+                    UnsafeUtility.MemClear(dst, dstArch->SizeOfs[dstI]);
                     ++dstI;
+                }
                 else
                 {
                     var src = srcChunk->Buffer + srcArch->Offsets[srcI] + srcIndex * srcArch->SizeOfs[srcI];
@@ -167,6 +175,30 @@ namespace Unity.Entities
                     ++dstI;
                 }
             }
+
+            // Clear remaining components in the destination that aren't copied
+            for(; dstI < dstArch->TypesCount; ++dstI)
+            {
+                var dst = dstChunk->Buffer + dstArch->Offsets[dstI] + dstIndex * dstArch->SizeOfs[dstI];
+                UnsafeUtility.MemClear(dst, dstArch->SizeOfs[dstI]);
+            }
+        }
+
+        public static void PoisonUnusedChunkData(Chunk* chunk, byte value)
+        {
+            var arch = chunk->Archetype;
+            int bufferSize = Chunk.GetChunkBufferSize(arch->NumSharedComponents);
+            byte* buffer = chunk->Buffer;
+            int count = chunk->Count;
+
+            for (int i = 0; i<arch->TypesCount-1; ++i)
+            {
+                int startOffset = arch->Offsets[i] + count * arch->SizeOfs[i];
+                int endOffset = arch->Offsets[i + 1];
+                UnsafeUtilityEx.MemSet(buffer + startOffset, value, endOffset - startOffset);
+            }
+            int lastStartOffset = arch->Offsets[arch->TypesCount-1] + count * arch->SizeOfs[arch->TypesCount-1];
+            UnsafeUtilityEx.MemSet(buffer + lastStartOffset, value, bufferSize - lastStartOffset);
         }
 
         public static void CopyManagedObjects(ArchetypeManager typeMan, Chunk* srcChunk, int srcStartIndex, Chunk* dstChunk, int dstStartIndex, int count)

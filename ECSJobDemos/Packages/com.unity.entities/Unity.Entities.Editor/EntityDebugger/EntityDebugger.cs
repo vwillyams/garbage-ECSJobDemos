@@ -4,10 +4,11 @@ using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using Unity.Entities;
 using Unity.Entities.Properties;
+using UnityEditor;
 using UnityEngine;
 using UnityEditor.IMGUI.Controls;
 
-namespace UnityEditor.ECS
+namespace Unity.Entities.Editor
 {
     public class EntityDebugger : EditorWindow, ISystemSelectionWindow, IEntitySelectionWindow, IComponentGroupSelectionWindow {
         private const float kSystemListWidth = 350f;
@@ -272,7 +273,7 @@ namespace UnityEditor.ECS
         void EntityList()
         {
             var showingAllEntities = !(SystemSelection is ComponentSystemBase);
-            var componentGroupHasEntities = ComponentGroupSelection != null && !ComponentGroupSelection.IsEmpty;
+            var componentGroupHasEntities = ComponentGroupSelection != null && !ComponentGroupSelection.IsEmptyIgnoreFilter;
             var somethingToShow = showingAllEntities || componentGroupHasEntities;
             if (!somethingToShow)
                 return;

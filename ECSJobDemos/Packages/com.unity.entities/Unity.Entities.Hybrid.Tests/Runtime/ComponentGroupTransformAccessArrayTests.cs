@@ -1,8 +1,9 @@
 ﻿using NUnit.Framework;
 using Unity.Entities;
+using UnityEngine;
 using UnityEngine.Jobs;
 
-namespace UnityEngine.ECS.Tests
+namespace Unity.Entities.Tests
 {
     public class ComponentGroupTransformAccessArrayTests : ECSTestsFixture
 	{

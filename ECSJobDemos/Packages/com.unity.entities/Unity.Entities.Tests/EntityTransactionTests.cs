@@ -4,8 +4,10 @@ using NUnit.Framework;
 using Unity.Jobs;
 using Unity.Collections;
 using Unity.Entities;
+using UnityEngine;
+using UnityEngine.TestTools;
 
-namespace UnityEngine.ECS.Tests
+namespace Unity.Entities.Tests
 {
     public class EntityTransactionTests : ECSTestsFixture
     {
@@ -86,7 +88,7 @@ namespace UnityEngine.ECS.Tests
             /*var jobHandle =*/ job.Schedule(m_Manager.ExclusiveEntityTransactionDependency);
 
             // Commit transaction expects an error not exception otherwise errors might occurr after a system has completed...
-            TestTools.LogAssert.Expect(LogType.Error, new Regex("ExclusiveEntityTransaction job has not been registered"));
+            LogAssert.Expect(LogType.Error, new Regex("ExclusiveEntityTransaction job has not been registered"));
             m_Manager.EndExclusiveEntityTransaction();
         }
 

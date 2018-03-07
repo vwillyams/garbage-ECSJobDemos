@@ -7,7 +7,7 @@ using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
-namespace UnityEditor.ECS
+namespace Unity.Entities.Editor
 {
     public interface IComponentGroupSelectionWindow : IWorldSelectionWindow
     {

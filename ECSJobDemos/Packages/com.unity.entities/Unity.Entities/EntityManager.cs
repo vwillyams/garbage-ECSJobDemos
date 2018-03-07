@@ -64,7 +64,9 @@ namespace Unity.Entities
         internal ArchetypeManager ArchetypeManager => m_ArchetypeManager;
 
         internal List<ComponentDataWrapperBase>    m_CachedComponentList;
-        
+
+        EntityManagerDebug m_Debug;
+
         protected override void OnBeforeCreateManagerInternal(World world, int capacity) { }
         protected override void OnBeforeDestroyManagerInternal() { }
         protected override void OnAfterDestroyManagerInternal() { }
@@ -74,7 +76,7 @@ namespace Unity.Entities
             TypeManager.Initialize();
 
             m_CachedComponentList = new List<ComponentDataWrapperBase>();
-            
+
             m_Entities = (EntityDataManager*)UnsafeUtility.Malloc(sizeof(EntityDataManager), 64, Allocator.Persistent);
             m_Entities->OnCreate(capacity);
 
@@ -435,7 +437,7 @@ namespace Unity.Entities
             
             var entityGroup = CreateComponentGroup();
             var groupArray = entityGroup.GetEntityArray();
-            
+
             var array = new NativeArray<Entity>(groupArray.Length, allocator);
             groupArray.CopyTo(array);
             return array;
@@ -444,7 +446,7 @@ namespace Unity.Entities
         unsafe public NativeArray<ComponentType> GetComponentTypes(Entity entity, Allocator allocator = Allocator.Temp)
         {
             m_Entities->AssertEntitiesExist(&entity, 1);
-            
+
             Archetype* archetype = m_Entities->GetArchetype(entity);
 
             var components = new NativeArray<ComponentType>(archetype->TypesCount - 1, allocator);
@@ -454,7 +456,7 @@ namespace Unity.Entities
 
             return components;
         }
-        
+
         public int GetComponentCount(Entity entity)
         {
             m_Entities->AssertEntitiesExist(&entity, 1);
@@ -484,7 +486,7 @@ namespace Unity.Entities
             byte* ptr = m_Entities->GetComponentDataWithType (entity, typeIndex);
             UnsafeUtility.MemCpy(ptr, data, size);
         }
-        
+
         internal void* GetComponentDataRaw(Entity entity, int typeIndex)
         {
             m_Entities->AssertEntityHasComponent(entity, typeIndex);
@@ -494,7 +496,7 @@ namespace Unity.Entities
             byte* ptr = m_Entities->GetComponentDataWithType (entity, typeIndex);
             return ptr;
         }
-        
+
         internal object GetComponentBoxed(Entity entity, ComponentType componentType)
         {
             var ptr = GetComponentDataRaw(entity, componentType.TypeIndex);
@@ -506,12 +508,12 @@ namespace Unity.Entities
             byte* boxedPtr = (byte*)UnsafeUtility.PinGCObjectAndGetAddress(boxed, out gcHandle);
             //@TODO: harcoded object class sizeof hack
             UnsafeUtility.MemCpy(boxedPtr + 16, ptr, UnsafeUtility.SizeOf(type));
-            
+
             UnsafeUtility.ReleaseGCObject(gcHandle);
 
             return boxed;
         }
-        
+
         internal void SetComponentBoxed(Entity entity, ComponentType componentType, object boxedObject)
         {
             var type = TypeManager.GetType(componentType.TypeIndex);
@@ -520,10 +522,10 @@ namespace Unity.Entities
             byte* boxedPtr = (byte*)UnsafeUtility.PinGCObjectAndGetAddress(boxedObject, out gcHandle);
             //@TODO: harcoded object class sizeof hack
             SetComponentDataRaw(entity, componentType.TypeIndex, boxedPtr + 16, UnsafeUtility.SizeOf(type));
-            
+
             UnsafeUtility.ReleaseGCObject(gcHandle);
         }
-        
+
         public int GetComponentOrderVersion<T>()
         {
             return m_Entities->GetComponentTypeOrderVersion(TypeManager.GetTypeIndex<T>());
@@ -613,6 +615,27 @@ namespace Unity.Entities
                 }
             }
             return assignableTypes;
+        }
+
+        internal EntityManagerDebug Debug => m_Debug ?? (m_Debug = new EntityManagerDebug(this));
+
+        internal class EntityManagerDebug
+        {
+            private EntityManager m_EntityManager;
+
+            public EntityManagerDebug(EntityManager entityManager)
+            {
+                m_EntityManager = entityManager;
+            }
+
+            public void PoisonUnusedDataInAllChunks(EntityArchetype archetype, byte value)
+            {
+                for (var c = archetype.Archetype->ChunkList.Begin; c != archetype.Archetype->ChunkList.End; c = c->Next)
+                {
+                    ChunkDataUtility.PoisonUnusedChunkData((Chunk*)c, value);
+                }
+            }
+
         }
     }
 }

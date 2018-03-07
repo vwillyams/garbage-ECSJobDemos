@@ -1,8 +1,22 @@
-﻿using Unity.Assertions;
+﻿using System.Runtime.InteropServices;
+using Unity.Assertions;
 using Unity.Collections.LowLevel.Unsafe;
 
 namespace Unity.Entities
 {
+    [StructLayout(LayoutKind.Sequential)]
+    unsafe struct ComponentGroupFilter
+    {
+        public int FilterCount;
+        public fixed int IndexInComponentGroup[2];
+        public fixed int SharedComponentIndex[2];
+
+        public bool HasFilter
+        {
+            get { return FilterCount != 0; }
+        }
+    }
+
     unsafe struct ComponentChunkCache
     {
         [NativeDisableUnsafePtrRestriction]
@@ -24,10 +38,7 @@ namespace Unity.Entities
         Chunk*                                  m_CurrentChunk;
         int                                     m_CurrentChunkIndex;
 
-
-        [NativeDisableUnsafePtrRestriction]
-        // The first element is the amount of filtered components
-        readonly int*                                    m_FilteredSharedComponents;
+        ComponentGroupFilter                    m_Filter;        
 
         internal int GetSharedComponentFromCurrentChunk(int sharedComponentIndex)
         {
@@ -61,12 +72,12 @@ namespace Unity.Entities
                     c = (Chunk*)m->Archetype->ChunkList.Begin;
                     e = (Chunk*)m->Archetype->ChunkList.End;
                 }
-            } while (!(c->MatchesFilter(m, m_FilteredSharedComponents) && (c->Capacity > 0)));
+            } while (!(c->MatchesFilter(m, ref m_Filter) && (c->Capacity > 0)));
             m_CurrentMatchingArchetype = m;
             m_CurrentChunk = c;
         }
 
-        public ComponentChunkIterator(MatchingArchetypes* match, int length, Chunk* firstChunk, int* filteredSharedComponents)
+        public ComponentChunkIterator(MatchingArchetypes* match, int length, Chunk* firstChunk, ComponentGroupFilter filter)
         {
             m_FirstMatchingArchetype = match;
             m_CurrentMatchingArchetype = match;
@@ -74,7 +85,7 @@ namespace Unity.Entities
             m_CurrentArchetypeIndex = 0;
             m_CurrentChunk = firstChunk;
             m_CurrentChunkIndex = 0;
-            m_FilteredSharedComponents = filteredSharedComponents;
+            m_Filter = filter;
         }
 
         public object GetManagedObject(ArchetypeManager typeMan, int typeIndexInArchetype, int cachedBeginIndex, int index)
@@ -99,7 +110,7 @@ namespace Unity.Entities
         {
             Assert.IsTrue(-1 != IndexInComponentGroup);
 
-            if (m_FilteredSharedComponents == null)
+            if (!m_Filter.HasFilter)
             {
                 if (index < m_CurrentArchetypeIndex)
                 {
@@ -142,7 +153,7 @@ namespace Unity.Entities
 
                     m_CurrentChunk = (Chunk*) m_CurrentMatchingArchetype->Archetype->ChunkList.Begin;
                     m_CurrentChunkIndex = 0;
-                    if (!(m_CurrentChunk->MatchesFilter(m_CurrentMatchingArchetype, m_FilteredSharedComponents) &&
+                    if (!(m_CurrentChunk->MatchesFilter(m_CurrentMatchingArchetype, ref m_Filter) &&
                           (m_CurrentChunk->Count > 0)))
                     {
                         MoveToNextMatchingChunk();

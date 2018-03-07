@@ -1,6 +1,6 @@
 ﻿using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.ECS.Tests;
+using Unity.Entities.Tests;
 
 namespace Unity.Entities.Tests
 {

@@ -1,5 +1,5 @@
 using Unity.Mathematics;
-using Unity.ECS;
+using Unity.Entities;
 using UnityEngine.Experimental.AI;
 
 public struct CrowdAgentNavigator : IComponentData

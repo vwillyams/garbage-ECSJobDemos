@@ -1,8 +1,9 @@
 using System;
 using UnityEngine;
 using Unity.Properties;
+using UnityEditor;
 
-namespace UnityEditor.ECS
+namespace Unity.Entities.Editor
 {
 
     public class EntityIMGUIVisitor : IPropertyVisitor, IBuiltInPropertyVisitor

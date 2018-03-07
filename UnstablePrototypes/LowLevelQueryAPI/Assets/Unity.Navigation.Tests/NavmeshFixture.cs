@@ -55,7 +55,7 @@ namespace Unity.Navigation.Tests
             int pathSize;
             Assert.AreEqual(PathQueryStatus.Success, pathQuery.EndFindPath(out pathSize));
 
-            var res = new NativeArray<PolygonID>(pathSize, Allocator.Persistent);
+            var res = new NativeArray<PolygonId>(pathSize, Allocator.Persistent);
             Assert.AreEqual(pathSize, pathQuery.GetPathResult(res));
             Assert.AreEqual(2, pathSize);
 

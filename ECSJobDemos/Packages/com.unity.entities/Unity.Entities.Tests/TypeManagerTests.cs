@@ -1,7 +1,7 @@
 using NUnit.Framework;
 using Unity.Entities;
 
-namespace UnityEngine.ECS.Tests
+namespace Unity.Entities.Tests
 {
     public class TypeManagerTests : ECSTestsFixture
 	{

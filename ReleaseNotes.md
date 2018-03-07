@@ -1,4 +1,10 @@
-# Next Release
+# 0.0.4
+
+* ComponentGroup.GetVariant replaced by ComponentGroup.SetFilter. The ComponentGroup is reused and simply chnages the filter on this ComponentGroup. 
+	- Reduces GC allocations, since only one ComponentGroup will ever be created.
+	- Fixes bug where shared component data indices would go out of sync when used on a job.
+
+# 0.0.3
 
 ## Changes
 

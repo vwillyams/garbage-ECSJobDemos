@@ -125,6 +125,20 @@ namespace Unity.Entities.Editor
             SelectionChanged(GetSelection());
         }
 
+        static int CompareSystem(ScriptBehaviourManager x, ScriptBehaviourManager y)
+        {
+            var xIsEntityManager = x is EntityManager;
+            var yIsEntityManager = y is EntityManager;
+            if (xIsEntityManager == yIsEntityManager)
+            {
+                return string.CompareOrdinal(x.GetType().Name, y.GetType().Name);
+            }
+            else
+            {
+                return xIsEntityManager ? -1 : 1;
+            }
+        }
+
         protected override TreeViewItem BuildRoot()
         {
             managersByGroup.Clear();
@@ -162,9 +176,10 @@ namespace Unity.Entities.Editor
                 }
                 foreach (var managerSet in managersByGroup.Values)
                 {
-                    managerSet.Sort((x, y) => string.CompareOrdinal(x.GetType().Name, y.GetType().Name));
+                    managerSet.Sort(CompareSystem);
                 }
             }
+            floatingManagers.Sort(CompareSystem);
             
             var currentID = 0;
             var root  = new TreeViewItem { id = currentID++, depth = -1, displayName = "Root" };

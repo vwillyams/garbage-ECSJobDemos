@@ -21,11 +21,13 @@ namespace Unity.Entities.Editor
 
         public bool BeginContainer<TContainer, TValue>(ref TContainer container, SubtreeContext<TValue> context) where TContainer : IPropertyContainer
         {
+            EditorGUI.indentLevel++;
             return true;
         }
 
         public void EndContainer<TContainer, TValue>(ref TContainer container, SubtreeContext<TValue> context) where TContainer : IPropertyContainer
         {
+            EditorGUI.indentLevel--;
         }
 
         public bool BeginList<TContainer, TValue>(ref TContainer container, ListContext<TValue> context) where TContainer : IPropertyContainer
@@ -111,7 +113,14 @@ namespace Unity.Entities.Editor
 
         public void Visit<TContainer>(ref TContainer container, VisitContext<string> context) where TContainer : IPropertyContainer
         {
-            DoField(ref container, context, (label, val) => EditorGUILayout.TextField(label, val));
+            var property = context.Property;
+
+            if (property == null)
+            {
+                return;
+            }
+
+            GUILayout.Label(context.Value, EditorStyles.boldLabel);
         }
         #endregion
 

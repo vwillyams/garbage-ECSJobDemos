@@ -1,12 +1,16 @@
 using System;
 using UnityEngine;
 using Unity.Properties;
+using Unity.Mathematics;
 using UnityEditor;
 
 namespace Unity.Entities.Editor
 {
 
-    public class EntityIMGUIVisitor : IPropertyVisitor, IBuiltInPropertyVisitor
+    public class EntityIMGUIVisitor : IPropertyVisitor
+        , IBuiltInPropertyVisitor
+        , IPropertyVisitor<Unity.Mathematics.quaternion>
+
     {
 
         public void Visit<TContainer, TValue>(ref TContainer container, VisitContext<TValue> context) where TContainer : IPropertyContainer
@@ -36,7 +40,12 @@ namespace Unity.Entities.Editor
         public void EndList<TContainer, TValue>(ref TContainer container, ListContext<TValue> context) where TContainer : IPropertyContainer
         {
         }
-        
+        public void Visit<TContainer>(ref TContainer container, VisitContext<Unity.Mathematics.quaternion> context) where TContainer : IPropertyContainer
+        {
+            var property = context.Value;
+            GUILayout.Label(property.value.ToString());
+        }
+
         #region IBuiltInPropertyVisitor
         public void Visit<TContainer>(ref TContainer container, VisitContext<sbyte> context) where TContainer : IPropertyContainer
         {

@@ -205,7 +205,7 @@ class BoidToInstanceRendererTransform_IJobProcessComponentData : JobComponentSys
     // * Dependencies are figured out automatically for us, so we can write modular multithreaded code
     protected override JobHandle OnUpdate(JobHandle inputDeps)
     {
-        return new TransformJob().Schedule(this, m_Group.RendererTransforms, 16, inputDeps);
+        return new TransformJob().Schedule(this, 16, inputDeps);
     }
 }
 ```

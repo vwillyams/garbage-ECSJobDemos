@@ -55,7 +55,7 @@ public class ECSIteratePerformance : MonoBehaviour
             return inputDeps;
         }
 
-        public ComponentGroup GetComponentGroup(params ComponentType[] componentTypes)
+        public new ComponentGroup GetComponentGroup(params ComponentType[] componentTypes)
         {
             return base.GetComponentGroup(componentTypes);
         }

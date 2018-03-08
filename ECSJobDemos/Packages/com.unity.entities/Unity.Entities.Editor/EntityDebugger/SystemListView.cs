@@ -3,7 +3,6 @@ using UnityEditor.IMGUI.Controls;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using JetBrains.Annotations;
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -108,8 +107,7 @@ namespace Unity.Entities.Editor
             return stateForCurrentWorld;
         }
 
-        public static SystemListView CreateList([CanBeNull] World world, [NotNull] List<TreeViewState> states, [NotNull] List<string> stateNames,
-            [CanBeNull] ISystemSelectionWindow window)
+        public static SystemListView CreateList(World world, List<TreeViewState> states, List<string> stateNames, ISystemSelectionWindow window)
         {
             var state = GetStateForWorld(world, states, stateNames);
             var header = new MultiColumnHeader(GetHeaderState());

@@ -2,7 +2,6 @@
 using UnityEditor.IMGUI.Controls;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
@@ -52,7 +51,7 @@ namespace Unity.Entities.Editor
             return stateForCurrentSystem;
         }
 
-        public static ComponentGroupListView CreateList([CanBeNull] ComponentSystemBase system, [NotNull] List<TreeViewState> states, [NotNull] List<string> stateNames,
+        public static ComponentGroupListView CreateList(ComponentSystemBase system, List<TreeViewState> states, List<string> stateNames,
             IComponentGroupSelectionWindow window)
         {
             var state = GetStateForSystem(system, states, stateNames);

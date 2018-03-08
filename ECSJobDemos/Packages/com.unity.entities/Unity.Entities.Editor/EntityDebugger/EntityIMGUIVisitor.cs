@@ -120,23 +120,6 @@ namespace Unity.Entities.Editor
         {
             var property = context.Property;
 
-            // Well, we must be in a list. This is a bit hackish and should be refactored properly
-//            if (null == property && context.Index >= 0 && null != CurrentListProperty)
-//            {
-//                var list = (IListProperty<TContainer, TValue>)CurrentListProperty;
-//                var label = ConstructLabel(CurrentListProperty);
-//                label.text = context.Index.ToString();
-//
-//                EditorGUILayout.BeginHorizontal();
-//                list.SetValueAtIndex(container, context.Index, onGUI(label, list.GetValueAtIndex(container, context.Index)));
-//                if (GUILayout.Button("x", GUILayout.Width(16.0f), GUILayout.Height(16.0f)))
-//                {
-//                    list.RemoveAt(container, context.Index);
-//                }
-//                EditorGUILayout.EndHorizontal();
-//                return true;
-//            }
-
             if (property == null)
             {
                 return;

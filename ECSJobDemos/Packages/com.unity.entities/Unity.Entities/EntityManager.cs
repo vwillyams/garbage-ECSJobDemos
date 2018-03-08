@@ -621,11 +621,9 @@ namespace Unity.Entities
 
         internal class EntityManagerDebug
         {
-            private EntityManager m_EntityManager;
 
             public EntityManagerDebug(EntityManager entityManager)
             {
-                m_EntityManager = entityManager;
             }
 
             public void PoisonUnusedDataInAllChunks(EntityArchetype archetype, byte value)

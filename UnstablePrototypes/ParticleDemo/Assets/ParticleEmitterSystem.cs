@@ -1,3 +1,5 @@
+using System;
+using System.Net;
 using Unity;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -5,13 +7,11 @@ using UnityEngine;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Jobs;
+using Random = UnityEngine.Random;
 
 [UpdateBefore(typeof(ParticleUpdateSystemGroup))]
 public class ParticleEmitterSystem : JobComponentSystem
 {
-    [Inject]
-    EntityManager m_EntityManager;
-
     struct ParticleEmitters
     {
         public int Length;
@@ -23,30 +23,33 @@ public class ParticleEmitterSystem : JobComponentSystem
         public ComponentDataArray<RotationComponentData> rotation;
         //[ReadOnly]
         //public ComponentDataArray<VelocityComponentData> velocity;
-        public SubtractiveComponent<ParticleComponentData> ignoreParticle;
     }
 
-    struct ParticleIntialize
+    // EntityCommandBuffer.SetComponent is not comaptible with burst yet
+    //[ComputeJobOptimization]
+    struct ParticleSpawnJob : IJob
     {
-        public int Length;
         [ReadOnly]
-        public ComponentDataArray<ParticleEmitterComponentData> emitter;
-
-        public ComponentDataArray<ParticleComponentData> particle;
-        public ComponentDataArray<PositionComponentData> position;
-        public ComponentDataArray<RotationComponentData> rotation;
-        public ComponentDataArray<ParticleVelocityComponentData> velocity;
-        public ComponentDataArray<ParticleAgeComponentData> age;
-    }
-
-    [ComputeJobOptimization]
-    struct ParticleIntializeJob : IJobParallelFor
-    {
-        public ParticleIntialize components;
+        public ComponentDataArray<ParticleEmitterComponentData> emitters;
+        [ReadOnly]
+        public ComponentDataArray<PositionComponentData> positions;
+        [ReadOnly]
+        public ComponentDataArray<RotationComponentData> rotations;
         [ReadOnly]
         public NativeArray<float> randomData;
         public int randomBase;
         public int curRandom;
+
+        public float deltaTime;
+        public EntityArchetype m_ColorSizeParticleArchetype;
+        public EntityArchetype m_ColorParticleArchetype;
+        public EntityArchetype m_SizeParticleArchetype;
+        public EntityArchetype m_ParticleArchetype;
+
+        public EntityCommandBuffer CommandBuffer;
+
+        public int begin;
+        public int end;
 
         float RandomRange(float minVal, float maxVal)
         {
@@ -54,26 +57,63 @@ public class ParticleEmitterSystem : JobComponentSystem
             curRandom = (curRandom+1)%randomData.Length;
             return rnd * (maxVal - minVal) + minVal;
         }
-        public void Execute(int i)
+        public void Execute()
         {
-            // Already initialize
-            // FIXME: could go away if the emitter component was removed
-            if (components.age[i].maxAge > 0)
-                return;
-            curRandom = randomBase + i;
-            //float2 spawnOffset = RotationComponentData.rotate(spawners[em].emitter.spawnOffset, spawners[em].rotation);
-            float particleRot = components.rotation[i].angle + RandomRange(-components.emitter[i].angleSpread, components.emitter[i].angleSpread);
-            float particleVelocity = components.emitter[i].velocityBase + RandomRange(0, components.emitter[i].velocityRandom);
-            float2 particleDir = new float2(0, particleVelocity);
-            particleDir = RotationComponentData.rotate(particleDir, particleRot);
-            particleDir += components.velocity[i].velocity;
+            for (int i = begin; i < end; ++i)
+            {
+                if (emitters[i].active == 0)
+                    return;
 
-            components.particle[i] = new ParticleComponentData(components.emitter[i].startLength, components.emitter[i].startWidth, components.emitter[i].startColor);
-            components.age[i] = new ParticleAgeComponentData(components.emitter[i].particleLifetime);
-            components.velocity[i] = new ParticleVelocityComponentData(particleDir);
-            components.position[i] = new PositionComponentData(components.position[i].x + RandomRange(-components.emitter[i].spawnSpread, components.emitter[i].spawnSpread),
-                components.position[i].y + RandomRange(-components.emitter[i].spawnSpread, components.emitter[i].spawnSpread));
-            components.rotation[i] = new RotationComponentData(particleRot);
+                int particles = (int) (deltaTime * emitters[i].particlesPerSecond + 0.5f);
+                if (particles == 0)
+                    return;
+                float2 spawnOffset = RotationComponentData.rotate(emitters[i].spawnOffset, rotations[i].angle);
+
+                bool colorTrans = math.any(emitters[i].startColor != emitters[i].endColor);
+                bool sizeTrans = emitters[i].startLength != emitters[i].endLength ||
+                                 emitters[i].startWidth != emitters[i].endWidth;
+                EntityArchetype particleArchetype;
+                if (colorTrans && sizeTrans)
+                    particleArchetype = m_ColorSizeParticleArchetype;
+                else if (colorTrans)
+                    particleArchetype = m_ColorParticleArchetype;
+                else if (sizeTrans)
+                    particleArchetype = m_SizeParticleArchetype;
+                else
+                    particleArchetype = m_ParticleArchetype;
+
+                curRandom = randomBase + i;
+                for (int part = 0; part < particles; ++part)
+                {
+                    CommandBuffer.CreateEntity(particleArchetype);
+                    if (colorTrans)
+                        CommandBuffer.SetComponent(new ParticleColorTransitionComponentData(emitters[i].startColor,
+                            emitters[i].endColor));
+                    if (sizeTrans)
+                        CommandBuffer.SetComponent(new ParticleSizeTransitionComponentData(emitters[i].startLength,
+                            emitters[i].endLength, emitters[i].startWidth,
+                            emitters[i].endWidth));
+                    //float2 spawnOffset = RotationComponentData.rotate(spawners[em].emitter.spawnOffset, spawners[em].rotation);
+                    float particleRot = rotations[i].angle + RandomRange(-emitters[i].angleSpread,
+                                            emitters[i].angleSpread);
+                    float particleVelocity = emitters[i].velocityBase +
+                                             RandomRange(0, emitters[i].velocityRandom);
+                    float2 particleDir = new float2(0, particleVelocity);
+                    particleDir = RotationComponentData.rotate(particleDir, particleRot);
+                    //particleDir += velocities[i].velocity;
+
+                    CommandBuffer.SetComponent(new ParticleComponentData(emitters[i].startLength,
+                        emitters[i].startWidth, emitters[i].startColor));
+                    CommandBuffer.SetComponent(new ParticleAgeComponentData(emitters[i].particleLifetime));
+                    CommandBuffer.SetComponent(new ParticleVelocityComponentData(particleDir));
+                    CommandBuffer.SetComponent(new PositionComponentData(
+                        positions[i].x + spawnOffset.x + RandomRange(-emitters[i].spawnSpread,
+                            emitters[i].spawnSpread),
+                        positions[i].y + spawnOffset.y + RandomRange(-emitters[i].spawnSpread,
+                            emitters[i].spawnSpread)));
+                    CommandBuffer.SetComponent(new RotationComponentData(particleRot));
+                }
+            }
         }
 
     }
@@ -81,16 +121,7 @@ public class ParticleEmitterSystem : JobComponentSystem
     [Inject]
     ParticleEmitters emitters;
 
-    [Inject]
-    ParticleIntialize initializers;
-
-    struct ParticleSpawner
-    {
-        public ParticleEmitterComponentData emitter;
-        public float2 position;
-        public float rotation;
-        public float2 velocity;
-    }
+    [Inject] private EndFrameBarrier m_EndFrameBarrier;
 
     EntityArchetype m_ColorSizeParticleArchetype;
     EntityArchetype m_ColorParticleArchetype;
@@ -98,19 +129,19 @@ public class ParticleEmitterSystem : JobComponentSystem
     EntityArchetype m_ParticleArchetype;
     override protected void OnCreateManager(int capacity)
     {
-        m_ColorSizeParticleArchetype = m_EntityManager.CreateArchetype(typeof(ParticleEmitterComponentData), typeof(ParticleComponentData),
+        m_ColorSizeParticleArchetype = EntityManager.CreateArchetype(typeof(ParticleComponentData),
             typeof(ParticleAgeComponentData), typeof(ParticleVelocityComponentData),
             typeof(PositionComponentData), typeof(RotationComponentData),
             typeof(ParticleColorTransitionComponentData), typeof(ParticleSizeTransitionComponentData));
-        m_ColorParticleArchetype = m_EntityManager.CreateArchetype(typeof(ParticleEmitterComponentData), typeof(ParticleComponentData),
+        m_ColorParticleArchetype = EntityManager.CreateArchetype(typeof(ParticleComponentData),
             typeof(ParticleAgeComponentData), typeof(ParticleVelocityComponentData),
             typeof(PositionComponentData), typeof(RotationComponentData),
             typeof(ParticleColorTransitionComponentData));
-        m_SizeParticleArchetype = m_EntityManager.CreateArchetype(typeof(ParticleEmitterComponentData), typeof(ParticleComponentData),
+        m_SizeParticleArchetype = EntityManager.CreateArchetype(typeof(ParticleComponentData),
             typeof(ParticleAgeComponentData), typeof(ParticleVelocityComponentData),
             typeof(PositionComponentData), typeof(RotationComponentData),
             typeof(ParticleSizeTransitionComponentData));
-        m_ParticleArchetype = m_EntityManager.CreateArchetype(typeof(ParticleEmitterComponentData), typeof(ParticleComponentData),
+        m_ParticleArchetype = EntityManager.CreateArchetype(typeof(ParticleComponentData),
             typeof(ParticleAgeComponentData), typeof(ParticleVelocityComponentData),
             typeof(PositionComponentData), typeof(RotationComponentData));
 
@@ -128,73 +159,34 @@ public class ParticleEmitterSystem : JobComponentSystem
     }
     override protected JobHandle OnUpdate(JobHandle inputDep)
     {
-        inputDep.Complete();
-        // FIXME: should really batch remove the ParticleEmitterComponent from everything in the initializers list here since they have already been initialized
-        NativeList<ParticleSpawner> spawners = new NativeList<ParticleSpawner>(emitters.Length, Allocator.Temp);
-        NativeList<Entity> particleEntities = new NativeList<Entity>(1024, Allocator.Temp);
-        for (int em = 0; em < emitters.Length; ++em)
+        int numJobs = Math.Min(emitters.Length, 16);
+        int itemsPerJob = (emitters.Length + numJobs - 1) / numJobs;
+        NativeArray<JobHandle> handles = new NativeArray<JobHandle>(numJobs, Allocator.Temp);
+        for (int i = 0; i < numJobs; ++i)
         {
-            if (emitters.emitter[em].active != 0)
+            var spawnJob = new ParticleSpawnJob
             {
-                var spawner = new ParticleSpawner();
-                spawner.emitter = emitters.emitter[em];
-                spawner.position = new float2(emitters.position[em].x, emitters.position[em].y);
-                spawner.rotation = emitters.rotation[em].angle;
-                spawner.velocity = new float2(0, 0);//new float2(emitters.velocity[em].dx, emitters.velocity[em].dy);
-                spawners.Add(spawner);
-            }
+                emitters = emitters.emitter,
+                positions = emitters.position,
+                rotations = emitters.rotation,
+                randomData = randomData,
+                randomBase = randomDataBase,
+                curRandom = 0,
+                deltaTime = Time.deltaTime,
+                m_ColorSizeParticleArchetype = m_ColorSizeParticleArchetype,
+                m_ColorParticleArchetype = m_ColorParticleArchetype,
+                m_SizeParticleArchetype = m_SizeParticleArchetype,
+                m_ParticleArchetype = m_ParticleArchetype,
+                CommandBuffer = m_EndFrameBarrier.CreateCommandBuffer(),
+                begin = i*itemsPerJob,
+                end = Math.Min((i+1)*itemsPerJob, emitters.Length)
+            };
+            randomDataBase = (randomDataBase + emitters.Length) % randomData.Length;
+            handles[i] = spawnJob.Schedule(inputDep);
         }
-        for (int em = 0; em < spawners.Length; ++em)
-        {
-            int particles = (int)(Time.deltaTime * spawners[em].emitter.particlesPerSecond + 0.5f);
-            if (particles == 0)
-                continue;
-            float2 spawnOffset = RotationComponentData.rotate(spawners[em].emitter.spawnOffset, spawners[em].rotation);
 
-            bool colorTrans = math.any(spawners[em].emitter.startColor != spawners[em].emitter.endColor);
-            bool sizeTrans = spawners[em].emitter.startLength != spawners[em].emitter.endLength || spawners[em].emitter.startWidth != spawners[em].emitter.endWidth;
-            EntityArchetype particleArchetype;
-            if (colorTrans && sizeTrans)
-                particleArchetype = m_ColorSizeParticleArchetype;
-            else if (colorTrans)
-                particleArchetype = m_ColorParticleArchetype;
-            else if (sizeTrans)
-                particleArchetype = m_SizeParticleArchetype;
-            else
-                particleArchetype = m_ParticleArchetype;
-            // Create the first particle, then instantiate the rest based on its value
-            var particle = m_EntityManager.CreateEntity(particleArchetype);
-            m_EntityManager.SetComponentData(particle, spawners[em].emitter);
-            // Set initial data
-            m_EntityManager.SetComponentData(particle, new ParticleVelocityComponentData(spawners[em].velocity));
-            m_EntityManager.SetComponentData(particle, new PositionComponentData(spawners[em].position.x + spawnOffset.x, spawners[em].position.y + spawnOffset.y));
-            m_EntityManager.SetComponentData(particle, new RotationComponentData(spawners[em].rotation));
-            if (colorTrans)
-                m_EntityManager.SetComponentData(particle,
-                    new ParticleColorTransitionComponentData(spawners[em].emitter.startColor, spawners[em].emitter.endColor));
-            if (sizeTrans)
-                m_EntityManager.SetComponentData(particle,
-                    new ParticleSizeTransitionComponentData(spawners[em].emitter.startLength,
-                    spawners[em].emitter.endLength, spawners[em].emitter.startWidth, spawners[em].emitter.endWidth));
-            if (particles > 1)
-            {
-                particleEntities.ResizeUninitialized(particles-1);
-                NativeArray<Entity> temp = particleEntities;
-                m_EntityManager.Instantiate(particle, temp);
-            }
-        }
-        spawners.Dispose();
-        particleEntities.Dispose();
-        UpdateInjectedComponentGroups();
-        if (initializers.Length > 0)
-        {
-            var job = new ParticleIntializeJob();
-            job.components = initializers;
-            job.randomData = randomData;
-            job.randomBase = randomDataBase;
-            randomDataBase = (randomDataBase + initializers.Length) % randomData.Length;
-            return job.Schedule(initializers.Length, 8);
-        }
-        return new JobHandle();
+        JobHandle jh = JobHandle.CombineDependencies(handles);
+        handles.Dispose();
+        return jh;
     }
 }

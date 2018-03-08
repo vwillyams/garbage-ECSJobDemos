@@ -47,7 +47,7 @@ public class DemoSystem : ComponentSystem
         while (activeEmitters.Length < 128)
         {
             var em = new ActiveEmitter();
-            em.timeToLive = 0.5f;//Random.Range(0.5f, 2.0f);
+            em.timeToLive = Random.Range(0.5f, 2.0f);
             em.entity = EntityManager.Instantiate(explosionPrefab);
             var pos = new PositionComponentData(Random.Range(0, Screen.width), Random.Range(0, Screen.height));
             EntityManager.AddComponentData(em.entity, pos);

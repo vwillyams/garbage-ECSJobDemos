@@ -1,3 +1,4 @@
+using System;
 using Unity;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -79,9 +80,6 @@ public class ParticleRenderSystem : JobComponentSystem
 [UpdateInGroup(typeof(ParticleUpdateSystemGroup))]
 public class ParticleAgeSystem : JobComponentSystem
 {
-    [Inject]
-    EntityManager m_EntityManager;
-
     struct Particles
     {
         public int Length;
@@ -92,12 +90,10 @@ public class ParticleAgeSystem : JobComponentSystem
     [Inject]
     Particles particles;
 
-    // Burst crashes when using NativeQueue
-    //[ComputeJobOptimization]
+    [ComputeJobOptimization]
     struct ParticleAgeJob : IJobParallelFor
     {
         public float deltaTime;
-        public NativeQueue<Entity>.Concurrent toDelete;
 
         [ReadOnly]
         public EntityArray entities;
@@ -109,36 +105,83 @@ public class ParticleAgeSystem : JobComponentSystem
             if (age.age >= age.maxAge)
             {
                 age.age = age.maxAge;
-                toDelete.Enqueue(entities[i]);
             }
             ages[i] = age;
         }
     }
-    NativeQueue<Entity> toDelete;
 
-    override protected void OnCreateManager(int capacity)
-    {
-        toDelete = new NativeQueue<Entity>(Allocator.Persistent);
-    }
-    override protected void OnDestroyManager()
-    {
-        toDelete.Dispose();
-    }
     override protected JobHandle OnUpdate(JobHandle inputDep)
     {
-        Entity ent;
-        while (toDelete.TryDequeue(out ent))
-        {
-            m_EntityManager.DestroyEntity(ent);
-        }
-        UpdateInjectedComponentGroups();
-
         var job = new ParticleAgeJob();
-        job.toDelete = toDelete;
         job.deltaTime = Time.deltaTime;
         job.ages = particles.age;
         job.entities = particles.entities;
         return job.Schedule(particles.Length, 8, inputDep);
+    }
+}
+[UpdateAfter(typeof(ParticleAgeSystem))]
+[UpdateInGroup(typeof(ParticleUpdateSystemGroup))]
+public class ParticleKillSystem : JobComponentSystem
+{
+    struct Particles
+    {
+        public int Length;
+        [ReadOnly]
+        public ComponentDataArray<ParticleAgeComponentData> age;
+        public EntityArray entities;
+    }
+
+    [Inject]
+    Particles particles;
+    [Inject] private EndFrameBarrier m_EndFrameBarrier;
+
+    // CommandBuffer is not compatible with burst
+    //[ComputeJobOptimization]
+    struct ParticleKillJob : IJob
+    {
+        public EntityCommandBuffer CommandBuffer;
+
+        [ReadOnly]
+        public EntityArray entities;
+        [ReadOnly]
+        public ComponentDataArray<ParticleAgeComponentData> ages;
+
+        public int begin;
+        public int end;
+        public void Execute()
+        {
+            for (int i = begin; i < end; ++i)
+            {
+                var age = ages[i];
+                if (age.age >= age.maxAge)
+                {
+                    CommandBuffer.DestroyEntity(entities[i]);
+                }
+
+            }
+        }
+    }
+    override protected JobHandle OnUpdate(JobHandle inputDep)
+    {
+        int numJobs = Math.Min(particles.Length, 16);
+        int itemsPerJob = (particles.Length + numJobs - 1) / numJobs;
+        NativeArray<JobHandle> handles = new NativeArray<JobHandle>(numJobs, Allocator.Temp);
+        for (int i = 0; i < numJobs; ++i)
+        {
+            var killJob = new ParticleKillJob
+            {
+                CommandBuffer = m_EndFrameBarrier.CreateCommandBuffer(),
+                entities = particles.entities,
+                ages = particles.age,
+                begin = i*itemsPerJob,
+                end = Math.Min((i+1)*itemsPerJob, particles.Length)
+            };
+            handles[i] = killJob.Schedule(inputDep);
+        }
+
+        JobHandle jh = JobHandle.CombineDependencies(handles);
+        handles.Dispose();
+        return jh;
     }
 }
 

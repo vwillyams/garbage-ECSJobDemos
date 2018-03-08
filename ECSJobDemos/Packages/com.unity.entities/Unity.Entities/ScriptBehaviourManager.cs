@@ -26,7 +26,7 @@ namespace Unity.Entities
                 OnCreateManager(capacity);
 #if UNITY_EDITOR
                 var type = this.GetType();
-                sampler = CustomSampler.Create($"{world.Name} {GetType().FullName}");
+                sampler = CustomSampler.Create($"{world.Name} {type.FullName}");
 #endif
             }
             catch

@@ -468,7 +468,7 @@ win:chains:mono:run:
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -timeout 120 -timeoutIgnore
   artifacts:
-    name: "artifacts-win-boids"
+    name: "artifacts-win-chains"
     when: always
     paths:
       - "*.log"
@@ -488,7 +488,7 @@ win:chains:il2cpp:run:
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -timeout 120 -timeoutIgnore
   artifacts:
-    name: "artifacts-win-boids"
+    name: "artifacts-win-chains"
     when: always
     paths:
       - "*.log"

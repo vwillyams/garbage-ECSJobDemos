@@ -1,3 +1,6 @@
+#TODO: increment the minor/major version???
+#      maybe a file with a list of pack
+
 readonly DemosPath="ECSJobDemos/"
 readonly DemoPackagesPath="ECSJobDemos/Packages/"
 readonly DevRepo="https://github.com/Unity-Technologies/ECSJobDemos.git"
@@ -172,6 +175,7 @@ main()
 	rootClone=`CreateCloneRepo`
 	cd $rootClone
 	git remote add stable $RemoteURL
+	git remote remove origin
 	releaseNumber=`squashCommits`
 	packagesFolder=`getPackagesFolder`
 	packages=`getListOfPackages $packagesFolder`
@@ -208,8 +212,7 @@ main()
 	else
 		git commit --amend --reset-author -m "Release $releaseNumber" 
 	fi
-	git push -f stable master
-	git remote remove stable
+	git push stable master
 	cd $rootDir
 	rm -rf "../tmp"
 }

@@ -1,14 +1,18 @@
 #TODO: increment the minor/major version???
 #      maybe a file with a list of pack
+readonly srcBranch="master"
+readonly dstBranch="master"
+readonly srcRepoName="ECSJobDemos"
+readonly packagesPath="ECSJobDemos/Packages/"
+readonly srcRepo="https://github.com/Unity-Technologies/$srcRepoName.git"
+readonly dstRepo="git@gitlab.internal.unity3d.com:core/EntityComponentSystemSamples.git"
 
-readonly DemosPath="ECSJobDemos/"
-readonly DemoPackagesPath="ECSJobDemos/Packages/"
-readonly DevRepo="https://github.com/Unity-Technologies/ECSJobDemos.git"
-readonly RemoteURL="https://github.com/Unity-Technologies/EntityComponentSystemSamples.git"
+readonly npmStagingRepo="https://api.bintray.com/npm/unity/unity-staging"
+readonly npmLocalRepo="http://localhost:4873"
 
 getPackagesFolder()
 {
-	echo "`dirname $(find . -name manifest.json | grep $DemoPackagesPath)`/"
+	echo "`dirname $(find . -name manifest.json | grep $packagesPath)`/"
 }
 
 #Get the list of packages contained in a folder.
@@ -120,26 +124,30 @@ modifyManifest()
 
 scatterManifest()
 {
-	for i in `find . -name "manifest.json" | grep -v $DemoPackagesPath`
+	for i in `find . -name "manifest.json" | grep -v $packagesPath`
 	do
-		cp "$DemoPackagesPath/./manifest.json" "`dirname $i`"
+		cp "$packagesPath/./manifest.json" "`dirname $i`"
 		git add . > /dev/null 2>&1
 	done
 }
 
 squashCommits()
 {
-	git fetch stable master > /dev/null 2>&1
+	git fetch stable $dstBranch > /dev/null 2>&1
 	if [[ $? -ne 0 ]]
 	then
 		echo "The stable repo is empty. Creating the first commit..." >&2
 		git reset $(git rev-list --max-parents=0 HEAD) > /dev/null 2>&1
 		releaseNumber=1
 	else
-		git reset stable/master > /dev/null 2>&1
+		git reset stable/$dstBranch > /dev/null 2>&1
 		releaseMessage=$(git log --oneline --pretty=format:%s -1)
-		releaseNumber=`echo $releaseMessage | cut -d' ' -f2 | awk '{print $1}'`
-		((releaseNumber++))
+		releaseNumber=`echo $releaseMessage | cut -d' ' -f2 | awk '{print $1}' 2> /dev/null`
+		((releaseNumber++)) 2> /dev/null
+		if [[ $? -ne 0 ]]
+		then
+			releaseNumber=1
+		fi
 	fi
 
 	git add . > /dev/null 2>&1
@@ -153,12 +161,12 @@ CreateCloneRepo()
 		mkdir "../tmp"
 		cd "../tmp"
 		echo "Cloning repository..." >&2
-		git clone $DevRepo
-		cd $DemosPath
-		echo "Checking out master..." >&2
-		git checkout master > /dev/null 2>&1
+		git clone $srcRepo
+		cd $srcRepoName
+		echo "Checking out $srcBranch..." >&2
+		git checkout $srcBranch > /dev/null 2>&1
 	else
-		cd "../tmp/$DemosPath"
+		cd "../tmp/$srcRepoName"
 	fi
 	echo `pwd`
 }
@@ -174,7 +182,7 @@ main()
 	rootDir=`pwd`
 	rootClone=`CreateCloneRepo`
 	cd $rootClone
-	git remote add stable $RemoteURL
+	git remote add stable $dstRepo
 	git remote remove origin
 	releaseNumber=`squashCommits`
 	packagesFolder=`getPackagesFolder`
@@ -212,11 +220,32 @@ main()
 	else
 		git commit --amend --reset-author -m "Release $releaseNumber" 
 	fi
-	git push stable master
+	git push stable $dstBranch
 	cd $rootDir
 	rm -rf "../tmp"
 }
 
+while [[ $# > 0 ]]
+do
+	key="$1"
+	case $key in
+		--internal-release)
+			isInternal=1
+			shift
+			;;
+	esac
+done
+
+#if [[ $isInternal ]] 
+#then
+#	cp ~/.npmrc ~/.npmrcStaging
+#	mv ~/.npmrcLocal ~/.npmrc
+#fi
+
 main
 
-
+#if [[ $isInternal ]]
+#then
+#	cp ~/.npmrc ~/.npmrcLocal
+#	mv ~/.npmrcStaging ~/.npmrc
+#fi

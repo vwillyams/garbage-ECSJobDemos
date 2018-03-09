@@ -9,9 +9,9 @@ namespace UnityEngine.ECS.SimpleRotation
     {
         struct RandomInitialHeadingGroup
         {
-            public ComponentDataArray<Heading> Headings;
             [ReadOnly] public ComponentDataArray<RandomInitialHeading> RandomInitialHeadiings;
-            public EntityArray Entities;
+            [ReadOnly] public EntityArray Entities;
+            public ComponentDataArray<Heading> Headings;
             public int Length;
         }
 

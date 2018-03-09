@@ -76,7 +76,7 @@ namespace UnityEngine.ECS.Boids
         struct Cells : IJob
         {
             [ReadOnly] public NativeArray<PositionHash> positionHashes;
-            [ReadOnly] public NativeArray<float3> headings;
+            [ReadOnly] public NativeArray<Heading> headings;
             public NativeArray<int> cellCount;
             public NativeArray<int> cellIndices;
             public NativeArray<float> neighborCount;
@@ -152,7 +152,7 @@ namespace UnityEngine.ECS.Boids
                         cellAlignmentSeparation[cellIndex] = new AlignmentSeparation
                         {
                             separation = -position,
-                            alignment = headings[i]
+                            alignment = headings[i].Value
                         };
                         cellIndices[i] = cellIndex;
                         neighborCount[cellIndex] = 1.0f;
@@ -163,7 +163,7 @@ namespace UnityEngine.ECS.Boids
                         var separation = cellAlignmentSeparation[cellIndex].separation;
                         var alignment = cellAlignmentSeparation[cellIndex].alignment;
                         var otherSeparation = -position;
-                        var otherAlignment = headings[i];
+                        var otherAlignment = headings[i].Value;
 
                         cellAlignmentSeparation[cellIndex] = new AlignmentSeparation
                         {
@@ -208,8 +208,8 @@ namespace UnityEngine.ECS.Boids
             [ReadOnly] public NativeArray<int>                 cellIndices;
             [ReadOnly] public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
             [ReadOnly] public NativeArray<float>               neighborCount;
-            [ReadOnly] public NativeArray<float3>              targetPositions;
-            [ReadOnly] public NativeArray<float3>              obstaclePositions;
+            [ReadOnly] public NativeArray<Position>            targetPositions;
+            [ReadOnly] public NativeArray<Position>            obstaclePositions;
             [ReadOnly] public Boid                             settings;
             public float3                                      dt;
             public float3                                      alignmentWeight;
@@ -219,13 +219,13 @@ namespace UnityEngine.ECS.Boids
             public ComponentDataArray<Heading>                 headings;
             public ComponentDataArray<TransformMatrix>         transformMatrices;
             
-            void NearestPosition(NativeArray<float3> targets, float3 position, out float3 nearestPosition, out float nearestDistance )
+            void NearestPosition(NativeArray<Position> targets, float3 position, out float3 nearestPosition, out float nearestDistance )
             {
-                nearestPosition = targets[0];
+                nearestPosition = targets[0].Value;
                 nearestDistance = math.lengthSquared(position-nearestPosition);
                 for (int i = 1; i < targets.Length; i++)
                 {
-                    var targetPosition = targets[i];
+                    var targetPosition = targets[i].Value;
                     var distance = math.lengthSquared(position-targetPosition);
                     var nearest = distance < nearestDistance;
 
@@ -252,15 +252,15 @@ namespace UnityEngine.ECS.Boids
                 float nearestTargetDistance;
                 NearestPosition(targetPositions,position,out nearestTargetPosition,out nearestTargetDistance);
                 
-                var obstacleSteering = (position - nearestObstaclePosition);
-                var avoidObstacleHeading = (nearestObstaclePosition + math_experimental.normalizeSafe(obstacleSteering) * settings.obstacleAversionDistance)-position;
-                var targetHeading = settings.targetWeight * math_experimental.normalizeSafe(nearestTargetPosition - position);
+                var obstacleSteering                  = (position - nearestObstaclePosition);
+                var avoidObstacleHeading              = (nearestObstaclePosition + math_experimental.normalizeSafe(obstacleSteering) * settings.obstacleAversionDistance)-position;
+                var targetHeading                     = settings.targetWeight * math_experimental.normalizeSafe(nearestTargetPosition - position);
                 var nearestObstacleDistanceFromRadius = nearestObstacleDistance - settings.obstacleAversionDistance;
                 
                 var alignmentResult      = alignmentWeight * math_experimental.normalizeSafe(cellAlignment-forward);
                 var separationResult     = separationWeight * math_experimental.normalizeSafe((position * count) + cellSeparation);
                 var normalHeading        = math_experimental.normalizeSafe(alignmentResult + separationResult + targetHeading);
-                var targetForward = math.select(normalHeading, avoidObstacleHeading, nearestObstacleDistanceFromRadius < 0);
+                var targetForward        = math.select(normalHeading, avoidObstacleHeading, nearestObstacleDistanceFromRadius < 0);
                 var nextHeading          = math_experimental.normalizeSafe(forward + dt*(targetForward-forward));
                 var nextPosition         = position + (nextHeading * speed * dt);
                 var rottrans             = math.lookRotationToMatrix(nextPosition, nextHeading, math.up());
@@ -275,10 +275,10 @@ namespace UnityEngine.ECS.Boids
         struct Dispose : IJob
         {
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<PositionHash> positionHashes;
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> targetPositions;
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> obstaclePositions;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<Position> targetPositions;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<Position> obstaclePositions;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<CellHashIndex> hashCellBuckets;
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> copyHeadings;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<Heading> copyHeadings;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<int> cellCount;
             
             public void Execute()
@@ -318,9 +318,9 @@ namespace UnityEngine.ECS.Boids
                 var boidCount = positions.Length;
                 var cellCount = new NativeArray<int>(1, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
                 var positionHashes = new NativeArray<PositionHash>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
-                var copyHeadings = new NativeArray<float3>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
-                var targetPositions = new NativeArray<float3>(targetSourcePositions.Length, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
-                var obstaclePositions = new NativeArray<float3>(obstacleSourcePositions.Length, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
+                var copyHeadings = new NativeArray<Heading>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
+                var targetPositions = new NativeArray<Position>(targetSourcePositions.Length, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
+                var obstaclePositions = new NativeArray<Position>(obstacleSourcePositions.Length, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
                 var hashCellBucketCount =  math.ceil_pow2(boidCount*2);
                 var hashCellBuckets = new NativeArray<CellHashIndex>(hashCellBucketCount+boidCount, Allocator.TempJob);
                 
@@ -361,7 +361,7 @@ namespace UnityEngine.ECS.Boids
                 };
                 var hashPositionsJobHandle = hashPositionsJob.Schedule(boidCount, 64, inputDeps);
 
-                var copyHeadingsJob = new CopyComponentData<Heading, float3>
+                var copyHeadingsJob = new CopyComponentData<Heading>
                 {
                     source = headings,
                     results = copyHeadings
@@ -396,14 +396,14 @@ namespace UnityEngine.ECS.Boids
 
                 if (prevCells != null)
                 {
-                    var targetPositionsJob = new CopyComponentData<Position, float3>
+                    var targetPositionsJob = new CopyComponentData<Position>
                     {
                         source = targetSourcePositions,
                         results = targetPositions
                     };
                     var targetPositionsJobHandle = targetPositionsJob.Schedule(targetSourcePositions.Length,4,cellsBarrierJobHandle);
                 
-                    var obstaclePositionsJob = new CopyComponentData<Position, float3>
+                    var obstaclePositionsJob = new CopyComponentData<Position>
                     {
                         source = obstacleSourcePositions,
                         results = obstaclePositions

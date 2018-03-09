@@ -1,4 +1,21 @@
-# Next Release
+# 0.0.4
+
+## New Features
+* New Entity Debugger replaces EntityWindow and SystemWindow
+	- Lists Systems, allowing you to browse the Entities in each of their ComponentGroups
+	- Systems that are not running due to empty ComponentGroups will appear greyed out
+	- Systems can be enabled and disabled temporarily for testing purposes
+	- System main thread time is shown. Job time is not currently exposed (the Profiler is a more robust tool for this)
+	- Selecting an Entity will show it in the inspector. This support is rudimentary, but will improve soon.
+
+## Changes
+* ComponentGroup.GetVariant replaced by ComponentGroup.SetFilter. The ComponentGroup is reused and simply chnages the filter on this ComponentGroup. 
+	- Reduces GC allocations, since only one ComponentGroup will ever be created.
+	- Fixes bug where shared component data indices would go out of sync when used on a job.
+* EntityArray used in jobs must be marked [ReadOnly] now.
+
+
+# 0.0.3
 
 ## Changes
 
@@ -7,6 +24,7 @@
 
 * Can now create entities/components from jobs and merge them into
   the world later via command buffers from injected `BarrierSystem`s
+* `DeferredEntityChangeSystem` replaced by `EndFrameBarrier` (Note: This removes support for concurrent add/remove components. You'll need to change to IJob to add/remove components.)
   
 * `NativeArraySharedValues<T>` for creating index tables of shared/unique values in a NativeArray.
 * `NearestTargetPositionSystem<TNearestTarget,TTarget>` demonstrates how to use generics in JobComponentSystem

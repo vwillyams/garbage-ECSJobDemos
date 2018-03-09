@@ -3,6 +3,11 @@ using Unity.Entities;
 
 namespace UnityEngine.ECS.SimpleRotation
 {
+    /// <summary>
+    /// This component specifies that if any other TransformPositionComponent is within the sphere defined by the
+    /// TransformPositionComponent on this Entity and the specified radius, the TransformRotationComponent on that
+    /// Entity should be set to speed, if it exists.
+    /// </summary>
     [Serializable]
     public struct RotationSpeedResetSphere : IComponentData
     {

@@ -54,6 +54,11 @@ public class ECSIteratePerformance : MonoBehaviour
         {
             return inputDeps;
         }
+
+        public new ComponentGroup GetComponentGroup(params ComponentType[] componentTypes)
+        {
+            return base.GetComponentGroup(componentTypes);
+        }
     }
 
     unsafe struct EntityIter
@@ -97,28 +102,6 @@ public class ECSIteratePerformance : MonoBehaviour
 				for (int i = 0; i < src.Length; ++i)
 					dst[i] = new Component4BytesDst(src[i].value);
 			}
-		}
-	}
-
-    [ComputeJobOptimization(CompileSynchronously = true)]
-	struct Iterate_ProcessEntities : IJobProcessEntities<EntityIter>
-	{
-		unsafe public void Execute(EntityIter entity)
-		{
-			entity.dst->value = entity.src->value;
-		}
-	}
-
-	//@TODO: Burst can't do this yet
-	//[ComputeJobOptimization]
-	struct Iterate_ForEachEntities : IJob
-	{
-		public ComponentGroupArray<EntityIter> entities;
-
-		unsafe public void Execute()
-		{
-			foreach (var entity in entities)
-				entity.dst->value = entity.src->value;
 		}
 	}
 
@@ -308,20 +291,6 @@ public class ECSIteratePerformance : MonoBehaviour
 		var componentProcessDataJob = new Iterate_ProcessComponentData();
 		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
 			componentProcessDataJob.Run(dummySystem);
-
-		var entityArrayCache = new ComponentGroupArrayStaticCache(typeof(EntityIter), entityManager);
-		var entityArray = new ComponentGroupArray<EntityIter>(entityArrayCache);
-
-		var componentProcessEntities = new Iterate_ProcessEntities();
-		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
-			componentProcessEntities.Run(entityArray);
-
-		var componentForEachEntities = new Iterate_ForEachEntities();
-		componentForEachEntities.entities = entityArray;
-		for (int iter = 0; iter != PerformanceTestConfiguration.Iterations; iter++)
-			componentForEachEntities.Run();
-
-		entityArrayCache.Dispose();
 
 	    setupSampler.Begin ();
 		entityManager.DestroyEntity (instances);

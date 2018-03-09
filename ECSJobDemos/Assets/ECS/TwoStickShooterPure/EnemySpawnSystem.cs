@@ -17,9 +17,8 @@ namespace TwoStickPureExample
 
         [Inject] State m_State;
 
-        public static void SetupComponentData(EntityManager mgr)
+        public static void SetupComponentData(EntityManager entityManager)
         {
-            var entityManager = World.Active.GetOrCreateManager<EntityManager>();
             var arch = entityManager.CreateArchetype(typeof(EnemySpawnCooldown), typeof(EnemySpawnSystemState));
             var stateEntity = entityManager.CreateEntity(arch);
             var oldState = Random.state;
@@ -63,20 +62,19 @@ namespace TwoStickPureExample
             float2 spawnPosition = ComputeSpawnLocation();
             state.SpawnedEnemyCount++;
 
+            PostUpdateCommands.CreateEntity(TwoStickBootstrap.BasicEnemyArchetype);
+            PostUpdateCommands.SetComponent(new Position2D { Value = spawnPosition });
+            PostUpdateCommands.SetComponent(new Heading2D { Value = new float2(0.0f, -1.0f) });
+            PostUpdateCommands.SetComponent(default(Enemy));
+            PostUpdateCommands.SetComponent(new Health { Value = TwoStickBootstrap.Settings.enemyInitialHealth });
+            PostUpdateCommands.SetComponent(new EnemyShootState { Cooldown = 0.5f });
+            PostUpdateCommands.SetComponent(new MoveSpeed { speed = TwoStickBootstrap.Settings.enemySpeed });
+            PostUpdateCommands.AddSharedComponent(TwoStickBootstrap.EnemyLook);
+
             state.RandomState = Random.state;
 
             m_State.S[0] = state;
             Random.state = oldState;
-
-            // Need to do this after we're done accessing our injected arrays.
-            Entity e = EntityManager.CreateEntity(TwoStickBootstrap.BasicEnemyArchetype);
-            EntityManager.SetComponentData(e, new Position2D { Value = spawnPosition });
-            EntityManager.SetComponentData(e, new Heading2D { Value = new float2(0.0f, -1.0f) });
-            EntityManager.SetComponentData(e, default(Enemy));
-            EntityManager.SetComponentData(e, new Health { Value = TwoStickBootstrap.Settings.enemyInitialHealth });
-            EntityManager.SetComponentData(e, new EnemyShootState { Cooldown = 0.5f });
-            EntityManager.SetComponentData(e, new MoveSpeed { speed = TwoStickBootstrap.Settings.enemySpeed });
-            EntityManager.AddSharedComponentData(e, TwoStickBootstrap.EnemyLook);
         }
 
         float ComputeCooldown()

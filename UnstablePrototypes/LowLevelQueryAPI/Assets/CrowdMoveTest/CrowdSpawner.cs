@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using Unity.ECS;
+using Unity.Entities;
 using UnityEngine.Experimental.AI;
 
 public class CrowdSpawner : MonoBehaviour
@@ -32,7 +32,7 @@ public class CrowdSpawner : MonoBehaviour
                 destinationReached = true
             };
             entityManager.SetComponentData(entity, agentNavigator);
-            entityManager.AddComponent(entity, ComponentType.FixedArray(typeof(PolygonID), k_MaxPathSize));
+            entityManager.AddComponent(entity, ComponentType.FixedArray(typeof(PolygonId), k_MaxPathSize));
         }
         totalAgentCount += newAgents;
         newAgents = 0;

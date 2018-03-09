@@ -21,16 +21,13 @@ GameObject:
   - component: {fileID: 4069661776806122}
   - component: {fileID: 114569172725802478}
   - component: {fileID: 114846138717908042}
-  - component: {fileID: 114658980217686166}
   - component: {fileID: 114640073232692476}
   - component: {fileID: 114080190520665040}
-  - component: {fileID: 114098415011594710}
   - component: {fileID: 114878148870236606}
   - component: {fileID: 114017445485928864}
   - component: {fileID: 114577371648038814}
-  - component: {fileID: 114441362472732218}
-  - component: {fileID: 114153346486449396}
   - component: {fileID: 114151331784951154}
+  - component: {fileID: 114673166554240934}
   m_Layer: 0
   m_Name: TestBoidFish
   m_TagString: Untagged
@@ -78,17 +75,6 @@ MonoBehaviour:
     material: {fileID: 2100000, guid: a775bbb190ee2594d99a10542e99e940, type: 2}
     castShadows: 0
     receiveShadows: 0
---- !u!114 &114098415011594710
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1501737747371270}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 86ca4290c6b3473e913676ba4860db32, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &114151331784951154
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -106,28 +92,7 @@ MonoBehaviour:
     alignmentWeight: 1
     targetWeight: 2
     obstacleAversionDistance: 20
---- !u!114 &114153346486449396
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1501737747371270}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1fa20c9110def4908879410bc9e38929, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &114441362472732218
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1501737747371270}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 148c12af3c0294f78a282321bc35cf75, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+    speed: 22
 --- !u!114 &114569172725802478
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -161,7 +126,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2caacf465eeae43f39a6a13e442d1dc0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &114658980217686166
+--- !u!114 &114673166554240934
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -169,7 +134,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1501737747371270}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2327f3002fc94f2b91d287c740439550, type: 3}
+  m_Script: {fileID: 11500000, guid: fb56bf9135bb2ed488dc1bece56f6fa6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &114846138717908042

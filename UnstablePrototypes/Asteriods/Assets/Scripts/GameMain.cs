@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using UnityEngine;
 using Unity.Entities;
-using Unity.Entities.Hybrid;
 
 public class WorldBootstrap
 {
@@ -30,7 +29,7 @@ public class WorldBootstrap
             {
                 serverWorld.Dispose();
                 ServerSettings.Instance().networkServer.Dispose();
-                World.UpdatePlayerLoop();
+                ScriptBehaviourUpdateOrder.UpdatePlayerLoop();
             }
             else
             {
@@ -47,7 +46,7 @@ public class WorldBootstrap
             ServerSettings.Create(serverWorld);
             WorldCreator.FindAndCreateWorldFromNamespace(serverWorld, "Asteriods.Server");
             World.Active = null;
-            World.UpdatePlayerLoop(serverWorld);
+            ScriptBehaviourUpdateOrder.UpdatePlayerLoop(serverWorld);
         }
     }
 
@@ -63,7 +62,7 @@ public class WorldBootstrap
             {
                 clientWorld.Dispose();
                 ClientSettings.Instance().networkClient.Dispose();
-                World.UpdatePlayerLoop();
+                ScriptBehaviourUpdateOrder.UpdatePlayerLoop();
             }
             else
             {
@@ -79,7 +78,7 @@ public class WorldBootstrap
             ClientSettings.Create(clientWorld);
             WorldCreator.FindAndCreateWorldFromNamespace(clientWorld, "Asteriods.Client");
             World.Active = null;
-            World.UpdatePlayerLoop(clientWorld);
+            ScriptBehaviourUpdateOrder.UpdatePlayerLoop(clientWorld);
         }
     }
 
@@ -98,7 +97,7 @@ public class WorldBootstrap
                 clientWorld.Dispose();
                 ClientSettings.Instance().networkClient.Dispose();
                 ServerSettings.Instance().networkServer.Dispose();
-                World.UpdatePlayerLoop();
+                ScriptBehaviourUpdateOrder.UpdatePlayerLoop();
             }
             else
             {
@@ -121,7 +120,7 @@ public class WorldBootstrap
 
             World.Active = null;
 
-            World.UpdatePlayerLoop(serverWorld, clientWorld);
+            ScriptBehaviourUpdateOrder.UpdatePlayerLoop(serverWorld, clientWorld);
         }
     }
 

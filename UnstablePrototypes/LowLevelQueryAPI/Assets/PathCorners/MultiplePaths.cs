@@ -221,7 +221,7 @@ public class MultiplePaths : MonoBehaviour
             if (m_PathRequestHandles[i].valid /*|| !m_TargetLocations[i].valid*/ /* || m_Paths[i].size > 1*/)
                 continue;
 
-            // TODO Query for new paths only when the start/end polygonID changes ?
+            // TODO Query for new paths only when the start/end polygonId changes ?
 
             var oIdx = Math.Min(i, m_OriginLocations.Length - 1);
             if (m_Paths[i].size == 0 || !m_OriginLocations[oIdx].Equals(m_Paths[i].start) || !m_TargetLocations[i].Equals(m_Paths[i].end))

@@ -8,7 +8,7 @@ using UnityEngine.Experimental.AI;
 public struct PolygonPath
 {
     public PathQueryQueue.Handle handle;
-    public NativeArray<PolygonID> polygons;
+    public NativeArray<PolygonId> polygons;
     public NavMeshLocation start;
     public NavMeshLocation end;
     public int size;
@@ -139,7 +139,7 @@ public class PathQueryQueue
                     status = m_Query.EndFindPath(out npath);
 
                     var res = m_Current;
-                    res.polygons = new NativeArray<PolygonID>(npath, Allocator.Persistent);
+                    res.polygons = new NativeArray<PolygonId>(npath, Allocator.Persistent);
                     res.size = m_Query.GetPathResult(res.polygons);
 
                     m_Results.Add(res);

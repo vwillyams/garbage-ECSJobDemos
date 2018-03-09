@@ -1,7 +1,7 @@
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
-using Unity.ECS;
+using Unity.Entities;
 using UnityEngine.Experimental.AI;
 
 public struct PathQueryQueueEcs
@@ -38,7 +38,7 @@ public struct PathQueryQueueEcs
 
     NavMeshQuery m_Query;
     NativeArray<RequestEcs> m_Requests;
-    NativeArray<PolygonID> m_ResultNodes;
+    NativeArray<PolygonId> m_ResultNodes;
     NativeArray<PathInfo> m_ResultRanges;
     NativeArray<int> m_AgentIndices;
     NativeArray<float> m_Costs;
@@ -49,7 +49,7 @@ public struct PathQueryQueueEcs
         var world = NavMeshWorld.GetDefaultWorld();
         m_Query = new NavMeshQuery(world, Allocator.Persistent, nodePoolSize);
         m_Requests = new NativeArray<RequestEcs>(maxRequestCount, Allocator.Persistent);
-        m_ResultNodes = new NativeArray<PolygonID>(2 * nodePoolSize, Allocator.Persistent);
+        m_ResultNodes = new NativeArray<PolygonId>(2 * nodePoolSize, Allocator.Persistent);
         m_ResultRanges = new NativeArray<PathInfo>(maxRequestCount + 1, Allocator.Persistent);
         m_AgentIndices = new NativeArray<int>(maxRequestCount + 1, Allocator.Persistent);
         m_Costs = new NativeArray<float>(32, Allocator.Persistent);
@@ -129,14 +129,14 @@ public struct PathQueryQueueEcs
         return m_State[0].resultPathsCount;
     }
 
-    public void CopyResultsTo(ref FixedArrayArray<PolygonID> agentPaths, ref ComponentDataArray<CrowdAgentNavigator> agentNavigators)
+    public void CopyResultsTo(ref FixedArrayArray<PolygonId> agentPaths, ref ComponentDataArray<CrowdAgentNavigator> agentNavigators)
     {
         var state = m_State[0];
         for (var i = 0; i < state.resultPathsCount; i++)
         {
             var index = m_AgentIndices[i];
             var resultPathInfo = m_ResultRanges[i];
-            var resultNodes = new NativeSlice<PolygonID>(m_ResultNodes, resultPathInfo.begin, resultPathInfo.size);
+            var resultNodes = new NativeSlice<PolygonId>(m_ResultNodes, resultPathInfo.begin, resultPathInfo.size);
             var agentPathBuffer = agentPaths[index];
 
             // TODO Mark the path as Invalid when the buffer is not large enough to fit the entire path.
@@ -282,7 +282,7 @@ public struct PathQueryQueueEcs
                     {
                         // TODO: Maybe add a method to get beforehand the number of result nodes and check if it will fit in the remaining space in m_ResultNodes [#adriant]
 
-                        var resPolygons = new NativeArray<PolygonID>(npath, Allocator.Temp);
+                        var resPolygons = new NativeArray<PolygonId>(npath, Allocator.Temp);
                         var pathInfo = state.currentPathRequest;
                         pathInfo.size = m_Query.GetPathResult(resPolygons);
                         if (pathInfo.size > 0)

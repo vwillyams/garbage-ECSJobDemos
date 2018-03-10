@@ -413,7 +413,7 @@ namespace Unity.Transforms
             NativeArray<float4x4>? rotTransTransformRootMatrices = null;
             if (m_RootRotTransTransformGroup.Length > 0)
             {
-                rotTransTransformRootMatrices = new NativeArray<float4x4>(m_RootRotTransTransformGroup.Length, Allocator.TempJob);
+                rotTransTransformRootMatrices = new NativeArray<float4x4>(m_RootRotTransTransformGroup.Length, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
                 var updateRotTransTransformRootsJob = new UpdateRotTransTransformRoots
                 {
                     rotations = m_RootRotTransTransformGroup.rotations,
@@ -428,7 +428,7 @@ namespace Unity.Transforms
             NativeArray<float4x4>? rotTransNoTransformRootMatrices = null;
             if (m_RootRotTransNoTransformGroup.Length > 0)
             {
-                rotTransNoTransformRootMatrices = new NativeArray<float4x4>(m_RootRotTransNoTransformGroup.Length, Allocator.TempJob);
+                rotTransNoTransformRootMatrices = new NativeArray<float4x4>(m_RootRotTransNoTransformGroup.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
                 var updateRotTransNoTransformRootsJob = new UpdateRotTransNoTransformRoots
                 {
                     rotations = m_RootRotTransNoTransformGroup.rotations,
@@ -442,7 +442,7 @@ namespace Unity.Transforms
             NativeArray<float4x4>? rotTransformRootMatrices = null;
             if (m_RootRotTransformGroup.Length > 0)
             {
-                rotTransformRootMatrices = new NativeArray<float4x4>(m_RootRotTransformGroup.Length, Allocator.TempJob);
+                rotTransformRootMatrices = new NativeArray<float4x4>(m_RootRotTransformGroup.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
                 var updateRotTransformRootsJob = new UpdateRotTransformRoots
                 {
                     rotations = m_RootRotTransformGroup.rotations,
@@ -456,7 +456,7 @@ namespace Unity.Transforms
             NativeArray<float4x4>? rotNoTransformRootMatrices = null;
             if (m_RootRotNoTransformGroup.Length > 0)
             {
-                rotNoTransformRootMatrices = new NativeArray<float4x4>(m_RootRotNoTransformGroup.Length, Allocator.TempJob);
+                rotNoTransformRootMatrices = new NativeArray<float4x4>(m_RootRotNoTransformGroup.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
                 var updateRotNoTransformRootsJob = new UpdateRotNoTransformRoots
                 {
                     rotations = m_RootRotNoTransformGroup.rotations,
@@ -469,7 +469,7 @@ namespace Unity.Transforms
             NativeArray<float4x4>? transTransformRootMatrices = null;
             if (m_RootTransTransformGroup.Length > 0)
             {
-                transTransformRootMatrices = new NativeArray<float4x4>(m_RootTransTransformGroup.Length, Allocator.TempJob);
+                transTransformRootMatrices = new NativeArray<float4x4>(m_RootTransTransformGroup.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
                 var updateTransTransformRootsJob = new UpdateTransTransformRoots
                 {
                     positions = m_RootTransTransformGroup.positions,
@@ -483,7 +483,7 @@ namespace Unity.Transforms
             NativeArray<float4x4>? transNoTransformRootMatrices = null;
             if (m_RootTransNoTransformGroup.Length > 0)
             {
-                transNoTransformRootMatrices = new NativeArray<float4x4>(m_RootTransNoTransformGroup.Length, Allocator.TempJob);
+                transNoTransformRootMatrices = new NativeArray<float4x4>(m_RootTransNoTransformGroup.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
                 var updateTransNoTransformRootsJob = new UpdateTransNoTransformRoots
                 {
                     positions = m_RootTransNoTransformGroup.positions,
@@ -503,7 +503,7 @@ namespace Unity.Transforms
             NativeArray<Entity>? rotTransTransformRoots;
             if (m_RootRotTransTransformGroup.Length > 0)
             {
-                rotTransTransformRoots = new NativeArray<Entity>(m_RootRotTransTransformGroup.Length, Allocator.TempJob);
+                rotTransTransformRoots = new NativeArray<Entity>(m_RootRotTransTransformGroup.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
                 var copyRotTransTransformRootsJob = new CopyEntities
                 {
                     source = m_RootRotTransTransformGroup.entities,
@@ -516,7 +516,7 @@ namespace Unity.Transforms
             NativeArray<Entity>? rotTransNoTransformRoots;
             if (m_RootRotTransNoTransformGroup.Length > 0)
             {
-                rotTransNoTransformRoots = new NativeArray<Entity>(m_RootRotTransNoTransformGroup.Length, Allocator.TempJob);
+                rotTransNoTransformRoots = new NativeArray<Entity>(m_RootRotTransNoTransformGroup.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
                 var copyRotTransNoTransformRootsJob = new CopyEntities
                 {
                     source = m_RootRotTransNoTransformGroup.entities,
@@ -529,7 +529,7 @@ namespace Unity.Transforms
             NativeArray<Entity>? rotTransformRoots;
             if (m_RootRotTransformGroup.Length > 0)
             {
-                rotTransformRoots = new NativeArray<Entity>(m_RootRotTransformGroup.Length, Allocator.TempJob);
+                rotTransformRoots = new NativeArray<Entity>(m_RootRotTransformGroup.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
                 var copyRotTransformRootsJob = new CopyEntities
                 {
                     source = m_RootRotTransformGroup.entities,
@@ -542,7 +542,7 @@ namespace Unity.Transforms
             NativeArray<Entity>? rotNoTransformRoots;
             if (m_RootRotNoTransformGroup.Length > 0)
             {
-                rotNoTransformRoots = new NativeArray<Entity>(m_RootRotNoTransformGroup.Length, Allocator.TempJob);
+                rotNoTransformRoots = new NativeArray<Entity>(m_RootRotNoTransformGroup.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
                 var copyRotNoTransformRootsJob = new CopyEntities
                 {
                     source = m_RootRotNoTransformGroup.entities,
@@ -555,7 +555,7 @@ namespace Unity.Transforms
             NativeArray<Entity>? transTransformRoots;
             if (m_RootTransTransformGroup.Length > 0)
             {
-                transTransformRoots = new NativeArray<Entity>(m_RootTransTransformGroup.Length, Allocator.TempJob);
+                transTransformRoots = new NativeArray<Entity>(m_RootTransTransformGroup.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
                 var copyTransTransformRootsJob = new CopyEntities
                 {
                     source = m_RootTransTransformGroup.entities,
@@ -568,7 +568,7 @@ namespace Unity.Transforms
             NativeArray<Entity>? transNoTransformRoots;
             if (m_RootTransNoTransformGroup.Length > 0)
             {
-                transNoTransformRoots = new NativeArray<Entity>(m_RootTransNoTransformGroup.Length, Allocator.TempJob);
+                transNoTransformRoots = new NativeArray<Entity>(m_RootTransNoTransformGroup.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
                 var copyTransNoTransformRootsJob = new CopyEntities
                 {
                     source = m_RootTransNoTransformGroup.entities,

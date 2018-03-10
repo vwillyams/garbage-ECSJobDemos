@@ -20,4 +20,16 @@ namespace Unity.Entities
             results[index] = source[index];
         }
     }
+    
+    [ComputeJobOptimization]
+    public struct CopyEntities : IJobParallelFor
+    {
+        [ReadOnly] public EntityArray source;
+        public NativeArray<Entity> results;
+
+        public void Execute(int index)
+        {
+            results[index] = source[index];
+        }
+    }
 }

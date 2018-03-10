@@ -115,6 +115,20 @@ namespace Unity.Transforms
                 transforms[index] = new TransformMatrix {Value = matrix};
             }
         }
+        
+        [ComputeJobOptimization]
+        struct UpdateRotTransTransformNoHierarchyRoots : IJobParallelFor
+        {
+            [ReadOnly] public ComponentDataArray<Rotation> rotations;
+            [ReadOnly] public ComponentDataArray<Position> positions;
+            public ComponentDataArray<TransformMatrix> transforms;
+
+            public void Execute(int index)
+            {
+                float4x4 matrix = math.rottrans(rotations[index].Value, positions[index].Value);
+                transforms[index] = new TransformMatrix {Value = matrix};
+            }
+        }
 
         [ComputeJobOptimization]
         struct UpdateRotTransNoTransformRoots : IJobParallelFor
@@ -141,6 +155,19 @@ namespace Unity.Transforms
             {
                 float4x4 matrix = math.rottrans(rotations[index].Value, new float3());
                 matrices[index] = matrix;
+                transforms[index] = new TransformMatrix {Value = matrix};
+            }
+        }
+        
+        [ComputeJobOptimization]
+        struct UpdateRotTransformNoHierarchyRoots : IJobParallelFor
+        {
+            [ReadOnly] public ComponentDataArray<Rotation> rotations;
+            public ComponentDataArray<TransformMatrix> transforms;
+
+            public void Execute(int index)
+            {
+                float4x4 matrix = math.rottrans(rotations[index].Value, new float3());
                 transforms[index] = new TransformMatrix {Value = matrix};
             }
         }
@@ -172,6 +199,19 @@ namespace Unity.Transforms
                 transforms[index] = new TransformMatrix {Value = matrix};
             }
         }
+        
+        [ComputeJobOptimization]
+        struct UpdateTransTransformNoHierarchyRoots : IJobParallelFor
+        {
+            [ReadOnly] public ComponentDataArray<Position> positions;
+            public ComponentDataArray<TransformMatrix> transforms;
+
+            public void Execute(int index)
+            {
+                float4x4 matrix = math.translate(positions[index].Value);
+                transforms[index] = new TransformMatrix {Value = matrix};
+            }
+        }
 
         [ComputeJobOptimization]
         struct UpdateTransNoTransformRoots : IJobParallelFor
@@ -199,16 +239,6 @@ namespace Unity.Transforms
             }
         }
 
-        [ComputeJobOptimization]
-        struct DisposeMatrices : IJob
-        {
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float4x4> rootMatrices;
-            
-            public void Execute()
-            {
-            }
-        }
-        
         [ComputeJobOptimization]
         struct UpdateSubHierarchy : IJob
         {
@@ -315,12 +345,55 @@ namespace Unity.Transforms
                 return inputDeps;
             }
             
-            //
-            // Update Roots
-            //
-
             var updateRootsDeps = inputDeps;
-            var updateRootsBarrierJobHandle = new JobHandle();
+            JobHandle? updateRootsBarrierJobHandle = null;
+            
+            //
+            // Update Roots (No Hierachies)
+            //
+            
+            if (m_ParentGroup.Length == 0)
+            {
+                if (m_RootRotTransTransformGroup.Length > 0)
+                {
+                    var updateRotTransTransformRootsJob = new UpdateRotTransTransformNoHierarchyRoots
+                    {
+                        rotations = m_RootRotTransTransformGroup.rotations,
+                        positions = m_RootRotTransTransformGroup.positions,
+                        transforms = m_RootRotTransTransformGroup.transforms
+                    };
+                    var updateRotTransTransformRootsJobHandle = updateRotTransTransformRootsJob.Schedule(m_RootRotTransTransformGroup.Length, 64, updateRootsDeps);
+                    updateRootsBarrierJobHandle = (updateRootsBarrierJobHandle == null)?updateRootsBarrierJobHandle.Value: JobHandle.CombineDependencies(updateRootsBarrierJobHandle.Value, updateRotTransTransformRootsJobHandle);
+                }
+                
+                if (m_RootRotTransformGroup.Length > 0)
+                {
+                    var updateRotTransformRootsJob = new UpdateRotTransformNoHierarchyRoots
+                    {
+                        rotations = m_RootRotTransformGroup.rotations,
+                        transforms = m_RootRotTransformGroup.transforms
+                    };
+                    var updateRotTransformRootsJobHandle = updateRotTransformRootsJob.Schedule(m_RootRotTransformGroup.Length, 64, updateRootsDeps);
+                    updateRootsBarrierJobHandle = (updateRootsBarrierJobHandle == null)?updateRootsBarrierJobHandle.Value: JobHandle.CombineDependencies(updateRootsBarrierJobHandle.Value, updateRotTransformRootsJobHandle);
+                }
+                
+                if (m_RootTransTransformGroup.Length > 0)
+                {
+                    var updateTransTransformRootsJob = new UpdateTransTransformNoHierarchyRoots
+                    {
+                        positions = m_RootTransTransformGroup.positions,
+                        transforms = m_RootTransTransformGroup.transforms
+                    };
+                    var updateTransTransformRootsJobHandle = updateTransTransformRootsJob.Schedule(m_RootTransTransformGroup.Length, 64, updateRootsDeps);
+                    updateRootsBarrierJobHandle = (updateRootsBarrierJobHandle == null)?updateRootsBarrierJobHandle.Value: JobHandle.CombineDependencies(updateRootsBarrierJobHandle.Value, updateTransTransformRootsJobHandle);
+                }
+
+                return (updateRootsBarrierJobHandle == null) ? updateRootsDeps : updateRootsBarrierJobHandle.Value;
+            }
+
+            //
+            // Update Roots (Hierarchies exist)
+            //
 
             if (m_ParentGroup.Length > 0)
             {
@@ -349,7 +422,7 @@ namespace Unity.Transforms
                     transforms = m_RootRotTransTransformGroup.transforms
                 };
                 var updateRotTransTransformRootsJobHandle = updateRotTransTransformRootsJob.Schedule(m_RootRotTransTransformGroup.Length, 64, updateRootsDeps);
-                updateRootsBarrierJobHandle = JobHandle.CombineDependencies(updateRootsBarrierJobHandle, updateRotTransTransformRootsJobHandle);
+                updateRootsBarrierJobHandle = JobHandle.CombineDependencies(updateRootsBarrierJobHandle.Value, updateRotTransTransformRootsJobHandle);
             }
             
             NativeArray<float4x4>? rotTransNoTransformRootMatrices = null;
@@ -363,7 +436,7 @@ namespace Unity.Transforms
                     matrices = rotTransNoTransformRootMatrices.Value
                 };
                 var updateRotTransNoTransformRootsJobHandle = updateRotTransNoTransformRootsJob.Schedule(m_RootRotTransNoTransformGroup.Length, 64, updateRootsDeps);
-                updateRootsBarrierJobHandle = JobHandle.CombineDependencies(updateRootsBarrierJobHandle, updateRotTransNoTransformRootsJobHandle);
+                updateRootsBarrierJobHandle = JobHandle.CombineDependencies(updateRootsBarrierJobHandle.Value, updateRotTransNoTransformRootsJobHandle);
             }
             
             NativeArray<float4x4>? rotTransformRootMatrices = null;
@@ -377,7 +450,7 @@ namespace Unity.Transforms
                     transforms = m_RootRotTransformGroup.transforms
                 };
                 var updateRotTransformRootsJobHandle = updateRotTransformRootsJob.Schedule(m_RootRotTransformGroup.Length, 64, updateRootsDeps);
-                updateRootsBarrierJobHandle = JobHandle.CombineDependencies(updateRootsBarrierJobHandle, updateRotTransformRootsJobHandle);
+                updateRootsBarrierJobHandle = JobHandle.CombineDependencies(updateRootsBarrierJobHandle.Value, updateRotTransformRootsJobHandle);
             }
             
             NativeArray<float4x4>? rotNoTransformRootMatrices = null;
@@ -390,7 +463,7 @@ namespace Unity.Transforms
                     matrices = rotNoTransformRootMatrices.Value
                 };
                 var updateRotNoTransformRootsJobHandle = updateRotNoTransformRootsJob.Schedule(m_RootRotNoTransformGroup.Length, 64, updateRootsDeps);
-                updateRootsBarrierJobHandle = JobHandle.CombineDependencies(updateRootsBarrierJobHandle, updateRotNoTransformRootsJobHandle);
+                updateRootsBarrierJobHandle = JobHandle.CombineDependencies(updateRootsBarrierJobHandle.Value, updateRotNoTransformRootsJobHandle);
             }
             
             NativeArray<float4x4>? transTransformRootMatrices = null;
@@ -404,7 +477,7 @@ namespace Unity.Transforms
                     transforms = m_RootTransTransformGroup.transforms
                 };
                 var updateTransTransformRootsJobHandle = updateTransTransformRootsJob.Schedule(m_RootTransTransformGroup.Length, 64, updateRootsDeps);
-                updateRootsBarrierJobHandle = JobHandle.CombineDependencies(updateRootsBarrierJobHandle, updateTransTransformRootsJobHandle);
+                updateRootsBarrierJobHandle = JobHandle.CombineDependencies(updateRootsBarrierJobHandle.Value, updateTransTransformRootsJobHandle);
             }
             
             NativeArray<float4x4>? transNoTransformRootMatrices = null;
@@ -417,86 +490,14 @@ namespace Unity.Transforms
                     matrices = transNoTransformRootMatrices.Value
                 };
                 var updateTransNoTransformRootsJobHandle = updateTransNoTransformRootsJob.Schedule(m_RootTransNoTransformGroup.Length, 64, updateRootsDeps);
-                updateRootsBarrierJobHandle = JobHandle.CombineDependencies(updateRootsBarrierJobHandle, updateTransNoTransformRootsJobHandle);
-            }
-
-            if (m_ParentGroup.Length == 0)
-            {
-                // 
-                // Dispose matrices if there are no hierarchies. #todo Don't allocate them in that case 
-                //
-                
-                var disposeMatricesDeps = updateRootsBarrierJobHandle;
-                var disposeMatricesBarrierJobHandle = new JobHandle();
-
-                if (m_RootRotTransTransformGroup.Length > 0)
-                {
-                    var disposeRotTransTransformMatricesJob = new DisposeMatrices
-                    {
-                        rootMatrices = rotTransTransformRootMatrices.Value
-                    };
-                    var disposeRotTransTransformMatricesJobHandle = disposeRotTransTransformMatricesJob.Schedule(disposeMatricesDeps);
-                    disposeMatricesBarrierJobHandle = JobHandle.CombineDependencies(disposeMatricesBarrierJobHandle, disposeRotTransTransformMatricesJobHandle);
-                }
-                
-                if (m_RootRotTransNoTransformGroup.Length > 0)
-                {
-                    var disposeRotTransNoTransformMatricesJob = new DisposeMatrices
-                    {
-                        rootMatrices = rotTransNoTransformRootMatrices.Value
-                    };
-                    var disposeRotTransNoTransformMatricesJobHandle = disposeRotTransNoTransformMatricesJob.Schedule(disposeMatricesDeps);
-                    disposeMatricesBarrierJobHandle = JobHandle.CombineDependencies(disposeMatricesBarrierJobHandle, disposeRotTransNoTransformMatricesJobHandle);
-                }
-                
-                if (m_RootRotTransformGroup.Length > 0)
-                {
-                    var disposeRotTransformMatricesJob = new DisposeMatrices
-                    {
-                        rootMatrices = rotTransformRootMatrices.Value
-                    };
-                    var disposeRotTransformMatricesJobHandle = disposeRotTransformMatricesJob.Schedule(disposeMatricesDeps);
-                    disposeMatricesBarrierJobHandle = JobHandle.CombineDependencies(disposeMatricesBarrierJobHandle, disposeRotTransformMatricesJobHandle);
-                }
-                
-                if (m_RootRotNoTransformGroup.Length > 0)
-                {
-                    var disposeRotNoTransformMatricesJob = new DisposeMatrices
-                    {
-                        rootMatrices = rotNoTransformRootMatrices.Value
-                    };
-                    var disposeRotNoTransformMatricesJobHandle = disposeRotNoTransformMatricesJob.Schedule(disposeMatricesDeps);
-                    disposeMatricesBarrierJobHandle = JobHandle.CombineDependencies(disposeMatricesBarrierJobHandle, disposeRotNoTransformMatricesJobHandle);
-                }
-                
-                if (m_RootTransTransformGroup.Length > 0)
-                {
-                    var disposeTransTransformMatricesJob = new DisposeMatrices
-                    {
-                        rootMatrices = transTransformRootMatrices.Value
-                    };
-                    var disposeTransTransformMatricesJobHandle = disposeTransTransformMatricesJob.Schedule(disposeMatricesDeps);
-                    disposeMatricesBarrierJobHandle = JobHandle.CombineDependencies(disposeMatricesBarrierJobHandle, disposeTransTransformMatricesJobHandle);
-                }
-                
-                if (m_RootTransNoTransformGroup.Length > 0)
-                {
-                    var disposeTransNoTransformMatricesJob = new DisposeMatrices
-                    {
-                        rootMatrices = transNoTransformRootMatrices.Value
-                    };
-                    var disposeTransNoTransformMatricesJobHandle = disposeTransNoTransformMatricesJob.Schedule(disposeMatricesDeps);
-                    disposeMatricesBarrierJobHandle = JobHandle.CombineDependencies(disposeMatricesBarrierJobHandle, disposeTransNoTransformMatricesJobHandle);
-                }
-
-                return disposeMatricesBarrierJobHandle;
+                updateRootsBarrierJobHandle = JobHandle.CombineDependencies(updateRootsBarrierJobHandle.Value, updateTransNoTransformRootsJobHandle);
             }
             
             //
             // Copy Root Entities for Sub Hierarchy Transform
             //
 
-            var copyRootEntitiesDeps = updateRootsBarrierJobHandle;
+            var copyRootEntitiesDeps = updateRootsBarrierJobHandle.Value;
             var copyRootEntitiesBarrierJobHandle = new JobHandle();
 
             NativeArray<Entity>? rotTransTransformRoots;

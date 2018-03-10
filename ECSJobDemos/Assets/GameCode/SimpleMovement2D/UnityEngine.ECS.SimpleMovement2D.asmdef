@@ -2,6 +2,7 @@
     "name": "UnityEngine.ECS.SimpleMovement2D",
     "references": [
         "Unity.Entities",
+        "Unity.Entities.Hybrid",
         "Unity.Transforms2D",
         "UnityEngine.ECS.SimpleMovement",
         "Unity.Collections",

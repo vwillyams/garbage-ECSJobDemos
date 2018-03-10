@@ -2,6 +2,7 @@
     "name": "UnityEngine.ECS.Boids",
     "references": [
         "Unity.Entities",
+        "Unity.Entities.Hybrid",
         "UnityEngine.ECS.SimpleBounds",
         "UnityEngine.ECS.SimpleMovement",
         "UnityEngine.ECS.SimpleRotation",

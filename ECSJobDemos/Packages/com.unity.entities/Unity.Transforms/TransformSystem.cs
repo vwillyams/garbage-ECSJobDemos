@@ -363,7 +363,7 @@ namespace Unity.Transforms
                         transforms = m_RootRotTransTransformGroup.transforms
                     };
                     var updateRotTransTransformRootsJobHandle = updateRotTransTransformRootsJob.Schedule(m_RootRotTransTransformGroup.Length, 64, updateRootsDeps);
-                    updateRootsBarrierJobHandle = (updateRootsBarrierJobHandle == null)?updateRootsBarrierJobHandle.Value: JobHandle.CombineDependencies(updateRootsBarrierJobHandle.Value, updateRotTransTransformRootsJobHandle);
+                    updateRootsBarrierJobHandle = (updateRootsBarrierJobHandle == null)?updateRotTransTransformRootsJobHandle: JobHandle.CombineDependencies(updateRootsBarrierJobHandle.Value, updateRotTransTransformRootsJobHandle);
                 }
                 
                 if (m_RootRotTransformGroup.Length > 0)
@@ -374,7 +374,7 @@ namespace Unity.Transforms
                         transforms = m_RootRotTransformGroup.transforms
                     };
                     var updateRotTransformRootsJobHandle = updateRotTransformRootsJob.Schedule(m_RootRotTransformGroup.Length, 64, updateRootsDeps);
-                    updateRootsBarrierJobHandle = (updateRootsBarrierJobHandle == null)?updateRootsBarrierJobHandle.Value: JobHandle.CombineDependencies(updateRootsBarrierJobHandle.Value, updateRotTransformRootsJobHandle);
+                    updateRootsBarrierJobHandle = (updateRootsBarrierJobHandle == null)?updateRotTransformRootsJobHandle: JobHandle.CombineDependencies(updateRootsBarrierJobHandle.Value, updateRotTransformRootsJobHandle);
                 }
                 
                 if (m_RootTransTransformGroup.Length > 0)
@@ -385,7 +385,7 @@ namespace Unity.Transforms
                         transforms = m_RootTransTransformGroup.transforms
                     };
                     var updateTransTransformRootsJobHandle = updateTransTransformRootsJob.Schedule(m_RootTransTransformGroup.Length, 64, updateRootsDeps);
-                    updateRootsBarrierJobHandle = (updateRootsBarrierJobHandle == null)?updateRootsBarrierJobHandle.Value: JobHandle.CombineDependencies(updateRootsBarrierJobHandle.Value, updateTransTransformRootsJobHandle);
+                    updateRootsBarrierJobHandle = (updateRootsBarrierJobHandle == null)?updateTransTransformRootsJobHandle: JobHandle.CombineDependencies(updateRootsBarrierJobHandle.Value, updateTransTransformRootsJobHandle);
                 }
 
                 return (updateRootsBarrierJobHandle == null) ? updateRootsDeps : updateRootsBarrierJobHandle.Value;

@@ -2,10 +2,10 @@
 
 ## If you are interested in contributing, here are some ground rules:
 
-* Read and follow the following principles 
-  ../content/ecs_principles_and_vision.md
+* Entity Component System is based on some [principles](Documentation/content/ecs_principles_and_vision.md). Read and apply them to your contributions  
 * Follow naming & style conventions in the project
 * Everything must have test coverage. (PRs with insufficient test coverage will be rejected)
 * Contributing to the Entity Component System requires submitting under the UCL License (https://unity3d.com/legal/licenses/Unity_Companion_License)
+* Changes must be mergable against master (NOT stable)
 
-## Simply make a Pull request in github against this repo
+## Once you have a change ready following these ground rules. Simply make a pull request in Github

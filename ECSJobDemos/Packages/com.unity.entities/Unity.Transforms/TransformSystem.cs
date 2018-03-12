@@ -240,7 +240,7 @@ namespace Unity.Transforms
         }
 
         [ComputeJobOptimization]
-        struct UpdateSubHierarchy : IJob
+        struct UpdateSubHierarchy : IJobParallelFor
         {
             [ReadOnly] public NativeMultiHashMap<Entity, Entity> hierarchy;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<Entity> roots;
@@ -248,9 +248,9 @@ namespace Unity.Transforms
             [ReadOnly] public ComponentDataFromEntity<LocalRotation> localRotations;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float4x4> rootMatrices;
 
-            public ComponentDataFromEntity<Position> positions;
-            public ComponentDataFromEntity<Rotation> rotations;
-            public ComponentDataFromEntity<TransformMatrix> transformMatrices;
+            [NativeDisableParallelForRestriction] public ComponentDataFromEntity<Position> positions;
+            [NativeDisableParallelForRestriction] public ComponentDataFromEntity<Rotation> rotations;
+            [NativeDisableParallelForRestriction] public ComponentDataFromEntity<TransformMatrix> transformMatrices;
 
             void TransformTree(Entity entity,float4x4 parentMatrix)
             {
@@ -304,20 +304,17 @@ namespace Unity.Transforms
                 }
             }
 
-            public void Execute()
+            public void Execute(int i)
             {
-                for (int i = 0; i < roots.Length; i++)
+                Entity entity = roots[i];
+                float4x4 matrix = rootMatrices[i];
+                Entity child;
+                NativeMultiHashMapIterator<Entity> iterator;
+                bool found = hierarchy.TryGetFirstValue(entity, out child, out iterator);
+                while (found)
                 {
-                    Entity entity = roots[i];
-                    float4x4 matrix = rootMatrices[i];
-                    Entity child;
-                    NativeMultiHashMapIterator<Entity> iterator;
-                    bool found = hierarchy.TryGetFirstValue(entity, out child, out iterator);
-                    while (found)
-                    {
-                        TransformTree(child,matrix);
-                        found = hierarchy.TryGetNextValue(out child, ref iterator);
-                    }
+                    TransformTree(child,matrix);
+                    found = hierarchy.TryGetNextValue(out child, ref iterator);
                 }
             }
         }
@@ -332,7 +329,7 @@ namespace Unity.Transforms
                 hierarchy.Clear();
             }
         }
-
+        
         NativeMultiHashMap<Entity, Entity> m_Hierarchy;
 
         protected override JobHandle OnUpdate(JobHandle inputDeps)
@@ -398,15 +395,20 @@ namespace Unity.Transforms
             if (m_ParentGroup.Length > 0)
             {
                 m_Hierarchy.Capacity = math.max(m_ParentGroup.Length + rootCount,m_Hierarchy.Capacity);
-                m_Hierarchy.Clear();
-                
+
+                var clearHierarchyJob = new ClearHierarchy
+                {
+                    hierarchy = m_Hierarchy
+                };
+                var clearHierarchyJobHandle = clearHierarchyJob.Schedule(updateRootsDeps);
+
                 var buildHierarchyJob = new BuildHierarchy
                 {
                     hierarchy = m_Hierarchy,
                     transformParents = m_ParentGroup.transformParents,
                     entities = m_ParentGroup.entities
                 };
-                var buildHierarchyJobHandle = buildHierarchyJob.Schedule(m_ParentGroup.Length, 64, updateRootsDeps);
+                var buildHierarchyJobHandle = buildHierarchyJob.Schedule(m_ParentGroup.Length, 64, clearHierarchyJobHandle);
                 updateRootsBarrierJobHandle = buildHierarchyJobHandle;
             }
 
@@ -598,7 +600,7 @@ namespace Unity.Transforms
                     rotations = m_Rotations,
                     transformMatrices = m_TransformMatrices
                 };
-                var updateRotTransTransformHierarchyJobHandle = updateRotTransTransformHierarchyJob.Schedule(updateSubHierarchyDeps);
+                var updateRotTransTransformHierarchyJobHandle = updateRotTransTransformHierarchyJob.Schedule(rotTransTransformRoots.Value.Length,64,updateSubHierarchyDeps);
                 updateSubHierarchyBarrierJobHandle = JobHandle.CombineDependencies(updateSubHierarchyBarrierJobHandle,updateRotTransTransformHierarchyJobHandle);
             }
             
@@ -615,7 +617,7 @@ namespace Unity.Transforms
                     rotations = m_Rotations,
                     transformMatrices = m_TransformMatrices
                 };
-                var updateRotTransNoTransformHierarchyJobHandle = updateRotTransNoTransformHierarchyJob.Schedule(updateSubHierarchyDeps);
+                var updateRotTransNoTransformHierarchyJobHandle = updateRotTransNoTransformHierarchyJob.Schedule(rotTransNoTransformRoots.Value.Length,64,updateSubHierarchyDeps);
                 updateSubHierarchyBarrierJobHandle = JobHandle.CombineDependencies(updateSubHierarchyBarrierJobHandle,updateRotTransNoTransformHierarchyJobHandle);
             }
             
@@ -632,7 +634,7 @@ namespace Unity.Transforms
                     rotations = m_Rotations,
                     transformMatrices = m_TransformMatrices
                 };
-                var updateRotTransformHierarchyJobHandle = updateRotTransformHierarchyJob.Schedule(updateSubHierarchyDeps);
+                var updateRotTransformHierarchyJobHandle = updateRotTransformHierarchyJob.Schedule(rotTransformRoots.Value.Length,1,updateSubHierarchyDeps);
                 updateSubHierarchyBarrierJobHandle = JobHandle.CombineDependencies(updateSubHierarchyBarrierJobHandle,updateRotTransformHierarchyJobHandle);
             }
             
@@ -649,7 +651,7 @@ namespace Unity.Transforms
                     rotations = m_Rotations,
                     transformMatrices = m_TransformMatrices
                 };
-                var updateRotNoTransformHierarchyJobHandle = updateRotNoTransformHierarchyJob.Schedule(updateSubHierarchyDeps);
+                var updateRotNoTransformHierarchyJobHandle = updateRotNoTransformHierarchyJob.Schedule(rotNoTransformRoots.Value.Length,1,updateSubHierarchyDeps);
                 updateSubHierarchyBarrierJobHandle = JobHandle.CombineDependencies(updateSubHierarchyBarrierJobHandle,updateRotNoTransformHierarchyJobHandle);
             }
             
@@ -666,7 +668,7 @@ namespace Unity.Transforms
                     rotations = m_Rotations,
                     transformMatrices = m_TransformMatrices
                 };
-                var updateTransTransformHierarchyJobHandle = updateTransTransformHierarchyJob.Schedule(updateSubHierarchyDeps);
+                var updateTransTransformHierarchyJobHandle = updateTransTransformHierarchyJob.Schedule(transTransformRoots.Value.Length,1,updateSubHierarchyDeps);
                 updateSubHierarchyBarrierJobHandle = JobHandle.CombineDependencies(updateSubHierarchyBarrierJobHandle,updateTransTransformHierarchyJobHandle);
             }
             
@@ -683,7 +685,7 @@ namespace Unity.Transforms
                     rotations = m_Rotations,
                     transformMatrices = m_TransformMatrices
                 };
-                var updateTransNoTransformHierarchyJobHandle = updateTransNoTransformHierarchyJob.Schedule(updateSubHierarchyDeps);
+                var updateTransNoTransformHierarchyJobHandle = updateTransNoTransformHierarchyJob.Schedule(transNoTransformRoots.Value.Length,1,updateSubHierarchyDeps);
                 updateSubHierarchyBarrierJobHandle = JobHandle.CombineDependencies(updateSubHierarchyBarrierJobHandle,updateTransNoTransformHierarchyJobHandle);
             }
 

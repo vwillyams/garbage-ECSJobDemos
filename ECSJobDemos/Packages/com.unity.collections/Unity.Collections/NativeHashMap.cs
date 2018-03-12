@@ -605,9 +605,7 @@ namespace Unity.Collections
 			{
 				NativeHashMap<TKey, TValue>.Concurrent concurrent;
 				#if ENABLE_UNITY_COLLECTIONS_CHECKS
-				AtomicSafetyHandle.CheckWriteAndThrow(hashMap.m_Safety);
 				concurrent.m_Safety = hashMap.m_Safety;
-				AtomicSafetyHandle.UseSecondaryVersion(ref concurrent.m_Safety);
 				#endif
 				concurrent.m_ThreadIndex = 0;
 
@@ -797,9 +795,7 @@ namespace Unity.Collections
 			{
 				NativeMultiHashMap<TKey, TValue>.Concurrent concurrent;
 				#if ENABLE_UNITY_COLLECTIONS_CHECKS
-				AtomicSafetyHandle.CheckWriteAndThrow(multiHashMap.m_Safety);
 				concurrent.m_Safety = multiHashMap.m_Safety;
-				AtomicSafetyHandle.UseSecondaryVersion(ref concurrent.m_Safety);
 				#endif
 				concurrent.m_ThreadIndex = 0;
 

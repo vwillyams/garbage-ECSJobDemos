@@ -8,7 +8,7 @@ using Unity.Entities;
 //       this makes the error messages significantly less useful...
 //       So need to redo all tests accordingly
 
-namespace UnityEngine.ECS.Tests
+namespace Unity.Entities.Tests
 {
     public class SafetyTests : ECSTestsFixture
 	{

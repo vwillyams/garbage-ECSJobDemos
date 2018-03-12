@@ -1,9 +1,10 @@
 ﻿using NUnit.Framework;
 using Unity.Jobs;
 using Unity.Entities;
+using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace UnityEngine.ECS.Tests
+namespace Unity.Entities.Tests
 {
     public class JobSafetyTests : ECSTestsFixture
 	{
@@ -26,8 +27,8 @@ namespace UnityEngine.ECS.Tests
             }
         }
 
-		
-		
+
+
         [Test]
         public void ComponentAccessAfterScheduledJobThrows()
         {
@@ -40,7 +41,7 @@ namespace UnityEngine.ECS.Tests
             Assert.AreEqual(42, job.data[0].value);
 
             var fence = job.Schedule();
-            
+
             Assert.Throws<System.InvalidOperationException>(() =>
             {
                 var f = job.data[0].value;
@@ -129,7 +130,7 @@ namespace UnityEngine.ECS.Tests
 
             jobHandle.Complete();
         }
-	    
+
 	    [Test]
 	    [Ignore("Should work, need to write test")]
 	    public void TwoJobsAccessingEntityArrayCanRunInParallel()

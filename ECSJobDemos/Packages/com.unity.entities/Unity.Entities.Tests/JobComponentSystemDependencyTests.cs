@@ -3,7 +3,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 
-namespace UnityEngine.ECS.Tests
+namespace Unity.Entities.Tests
 {
     public class JobComponentSystemDependencyTests : ECSTestsFixture
     {

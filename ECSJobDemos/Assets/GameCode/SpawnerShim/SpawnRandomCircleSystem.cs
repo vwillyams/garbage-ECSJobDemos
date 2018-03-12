@@ -10,86 +10,35 @@ namespace ECS.Spawners
 {
     public class SpawnRandomCircleSystem : ComponentSystem
     {
-        struct SpawnRandomCircleInstance
+        struct Group
         {
-            public int spawnerIndex;
-            public Entity sourceEntity;
-            public float3 position;
-            public float radius;
+            [ReadOnly]
+            public SharedComponentDataArray<SpawnRandomCircle> Spawner;
+            public ComponentDataArray<Position>                Position;
+            public EntityArray                                 Entity;
+            public int                                         Length;
         }
 
-        ComponentGroup m_MainGroup;
+        [Inject] Group m_Group;
 
-        protected override void OnCreateManager(int capacity)
-        {
-            m_MainGroup = GetComponentGroup(typeof(SpawnRandomCircle),typeof(Position));
-        }
 
         protected override void OnUpdate()
         {
-            var uniqueTypes = new List<SpawnRandomCircle>(10);
-
-            EntityManager.GetAllUniqueSharedComponentDatas(uniqueTypes);
-
-            int spawnInstanceCount = 0;
-            for (int sharedIndex = 0; sharedIndex != uniqueTypes.Count; sharedIndex++)
+            while (m_Group.Length != 0)
             {
-                var spawner = uniqueTypes[sharedIndex];
-                var group = m_MainGroup.GetVariation(spawner);
-                var entities = group.GetEntityArray();
-                spawnInstanceCount += entities.Length;
-                group.Dispose();
-            }
-
-            if (spawnInstanceCount == 0)
-            {
-                return;
-            }
-
-            var spawnInstances = new NativeArray<SpawnRandomCircleInstance>(spawnInstanceCount, Allocator.Temp);
-            {
-                int spawnIndex = 0;
-                for (int sharedIndex = 0; sharedIndex != uniqueTypes.Count; sharedIndex++)
-                {
-                    var spawner = uniqueTypes[sharedIndex];
-                    var group = m_MainGroup.GetVariation(spawner);
-                    var entities = group.GetEntityArray();
-                    var positions = group.GetComponentDataArray<Position>();
-
-                    for (int entityIndex = 0; entityIndex < entities.Length; entityIndex++)
-                    {
-                        var spawnInstance = new SpawnRandomCircleInstance();
-
-                        spawnInstance.sourceEntity = entities[entityIndex];
-                        spawnInstance.spawnerIndex = sharedIndex;
-                        spawnInstance.position = positions[entityIndex].Value;
-
-                        spawnInstances[spawnIndex] = spawnInstance;
-                        spawnIndex++;
-                    }
-
-                    group.Dispose();
-                }
-            }
-
-            for (int spawnIndex = 0; spawnIndex < spawnInstances.Length; spawnIndex++)
-            {
-                int spawnerIndex = spawnInstances[spawnIndex].spawnerIndex;
-                var spawner = uniqueTypes[spawnerIndex];
-                int count = spawner.count;
-                var entities = new NativeArray<Entity>(count,Allocator.Temp);
-                var positions = new NativeArray<float3>(count,Allocator.Temp);
-                var prefab = spawner.prefab;
-                float radius = spawner.radius;
-                float3 center = spawnInstances[spawnIndex].position;
-                var sourceEntity = spawnInstances[spawnIndex].sourceEntity;
-
-                EntityManager.Instantiate(prefab, entities);
+                var spawner = m_Group.Spawner[0];
+                var sourceEntity = m_Group.Entity[0];
+                var center = m_Group.Position[0].Value;
+                
+                var entities = new NativeArray<Entity>(spawner.count, Allocator.Temp);
+                EntityManager.Instantiate(spawner.prefab, entities);
+                
+                var positions = new NativeArray<float3>(spawner.count, Allocator.Temp);
 
                 if (spawner.spawnLocal)
                 {
-                    GeneratePoints.RandomPointsOnCircle(new float3(),radius, ref positions);
-                    for (int i = 0; i < count; i++)
+                    GeneratePoints.RandomPointsOnCircle(new float3(), spawner.radius, ref positions);
+                    for (int i = 0; i < spawner.count; i++)
                     {
                         var position = new LocalPosition
                         {
@@ -101,8 +50,8 @@ namespace ECS.Spawners
                 }
                 else
                 {
-                    GeneratePoints.RandomPointsOnCircle(center,radius,ref positions);
-                    for (int i = 0; i < count; i++)
+                    GeneratePoints.RandomPointsOnCircle(center, spawner.radius, ref positions);
+                    for (int i = 0; i < spawner.count; i++)
                     {
                         var position = new Position
                         {
@@ -112,12 +61,15 @@ namespace ECS.Spawners
                     }
                 }
 
-                EntityManager.RemoveComponent<SpawnRandomCircle>(sourceEntity);
-
                 entities.Dispose();
                 positions.Dispose();
+                
+                EntityManager.RemoveComponent<SpawnRandomCircle>(sourceEntity);
+
+                // Instantiate & AddComponent & RemoveComponent calls invalidate the injected groups,
+                // so before we get to the next spawner we have to reinject them  
+                UpdateInjectedComponentGroups();
             }
-            spawnInstances.Dispose();
         }
     }
 }

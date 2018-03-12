@@ -1,0 +1,6 @@
+Assets/Plugins*
+Library
+Temp
+obj
+.editorconfig
+.vscode

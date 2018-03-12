@@ -4,7 +4,7 @@ using NUnit.Framework;
 using Unity.Collections;
 using Unity.Entities;
 
-namespace UnityEngine.ECS.Tests
+namespace Unity.Entities.Tests
 {
     public class ComponentOrderVersionTests : ECSTestsFixture
     {
@@ -36,15 +36,15 @@ namespace UnityEngine.ECS.Tests
         void ActionEvenOdd(Action<int, ComponentGroup> even, Action<int, ComponentGroup> odd)
         {
             var uniqueTypes = new List<SharedData1>(10);
-            var maingroup = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(SharedData1));
-            maingroup.CompleteDependency();
+            var group = m_Manager.CreateComponentGroup(typeof(EcsTestData), typeof(SharedData1));
+            group.CompleteDependency();
 
             m_Manager.GetAllUniqueSharedComponentDatas(uniqueTypes);
 
             for (int sharedIndex = 0; sharedIndex != uniqueTypes.Count; sharedIndex++)
             {
                 var sharedData = uniqueTypes[sharedIndex];
-                var group = maingroup.GetVariation(sharedData);
+                group.SetFilter(sharedData);
                 var version = m_Manager.GetSharedComponentOrderVersion(sharedData);
 
                 if (sharedData.value == evenTestValue)
@@ -56,11 +56,9 @@ namespace UnityEngine.ECS.Tests
                 {
                     odd(version, group);
                 }
-
-                group.Dispose();
             }
 
-            maingroup.Dispose();
+            group.Dispose();
         }
 
         [Test]

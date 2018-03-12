@@ -44,6 +44,8 @@ StressTest/obj
 *.app
 *.VC.*
 .DS_Store
+*~
+*.swp
 
 .vs/
 build/*

@@ -1,8 +1,9 @@
 ﻿using NUnit.Framework;
 using Unity.Entities;
+using UnityEngine;
 using UnityEngine.Jobs;
 
-namespace UnityEngine.ECS.Tests
+namespace Unity.Entities.Tests
 {
     public class ComponentGroupTransformAccessArrayTests : ECSTestsFixture
 	{
@@ -182,7 +183,7 @@ namespace UnityEngine.ECS.Tests
 	        {
 	        }
 
-	        public void UpdateInjectedComponentGroups()
+	        public new void UpdateInjectedComponentGroups()
 	        {
 	            base.UpdateInjectedComponentGroups();
 	        }
@@ -230,7 +231,7 @@ namespace UnityEngine.ECS.Tests
 	        {
 	        }
 
-	        public void UpdateInjectedComponentGroups()
+	        public new void UpdateInjectedComponentGroups()
 	        {
 	            base.UpdateInjectedComponentGroups();
 	        }

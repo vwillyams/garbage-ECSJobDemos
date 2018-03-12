@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace UnityEngine.ECS.Tests
+namespace Unity.Entities.Tests
 {
 	public struct EcsTestData : IComponentData
 	{

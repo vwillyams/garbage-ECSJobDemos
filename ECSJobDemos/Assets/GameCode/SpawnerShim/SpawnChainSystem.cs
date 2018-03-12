@@ -27,17 +27,15 @@ namespace ECS.Spawners
         protected override void OnUpdate()
         {
             var uniqueTypes = new List<SpawnChain>(10);
-
             EntityManager.GetAllUniqueSharedComponentDatas(uniqueTypes);
 
             int spawnInstanceCount = 0;
             for (int sharedIndex = 0; sharedIndex != uniqueTypes.Count; sharedIndex++)
             {
                 var spawner = uniqueTypes[sharedIndex];
-                var group = m_MainGroup.GetVariation(spawner);
-                var entities = group.GetEntityArray();
+                m_MainGroup.SetFilter(spawner);
+                var entities = m_MainGroup.GetEntityArray();
                 spawnInstanceCount += entities.Length;
-                group.Dispose();
             }
 
             if (spawnInstanceCount == 0)
@@ -49,9 +47,9 @@ namespace ECS.Spawners
                 for (int sharedIndex = 0; sharedIndex != uniqueTypes.Count; sharedIndex++)
                 {
                     var spawner = uniqueTypes[sharedIndex];
-                    var group = m_MainGroup.GetVariation(spawner);
-                    var entities = group.GetEntityArray();
-                    var positions = group.GetComponentDataArray<Position>();
+                    m_MainGroup.SetFilter(spawner);
+                    var entities = m_MainGroup.GetEntityArray();
+                    var positions = m_MainGroup.GetComponentDataArray<Position>();
 
                     for (int entityIndex = 0; entityIndex < entities.Length; entityIndex++)
                     {
@@ -64,8 +62,6 @@ namespace ECS.Spawners
                         spawnInstances[spawnIndex] = spawnInstance;
                         spawnIndex++;
                     }
-
-                    group.Dispose();
                 }
             }
 

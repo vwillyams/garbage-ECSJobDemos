@@ -32,7 +32,7 @@ namespace Unity.Entities
 
         public ComponentGroup[] 			ComponentGroups => m_ComponentGroups;
 
-        protected bool ShouldRunSystem()
+        public bool ShouldRunSystem()
         {
             if (m_AlwaysUpdateSystem)
                 return true;
@@ -46,7 +46,7 @@ namespace Unity.Entities
             // (There’s no way to know what they key value is without other markup)
             for (int i = 0;i != length;i++)
             {
-                if (!m_ComponentGroups[i].IsEmpty)
+                if (!m_ComponentGroups[i].IsEmptyIgnoreFilter)
                     return true;
             }
 

@@ -16,8 +16,9 @@ namespace Unity.Rendering
 	public class MeshInstanceRendererSystem : ComponentSystem
 	{
         // Instance renderer takes only batches of 1023
-        Matrix4x4[]             m_MatricesArray = new Matrix4x4[1023];
-	    List<MeshInstanceRenderer> m_CacheduniqueRendererTypes = new List<MeshInstanceRenderer>(10);
+        Matrix4x4[]                 m_MatricesArray = new Matrix4x4[1023];
+	    List<MeshInstanceRenderer>  m_CacheduniqueRendererTypes = new List<MeshInstanceRenderer>(10);
+	    ComponentGroup              m_InstanceRendererGroup;
 
 	    // This is the ugly bit, necessary until Graphics.DrawMeshInstanced supports NativeArrays pulling the data in from a job.
         public unsafe static void CopyMatrices(ComponentDataArray<TransformMatrix> transforms, int beginIndex, int length, Matrix4x4[] outMatrices)
@@ -37,11 +38,14 @@ namespace Unity.Rendering
             }
         }
 
-        protected override void OnUpdate()
-		{
-            // We want to find all MeshInstanceRenderer & TransformMatrix combinations and render them
-		    var maingroup = GetComponentGroup(typeof(MeshInstanceRenderer), typeof(TransformMatrix));
+	    protected override void OnCreateManager(int capacity)
+	    {
+	        // We want to find all MeshInstanceRenderer & TransformMatrix combinations and render them
+	        m_InstanceRendererGroup = GetComponentGroup(typeof(MeshInstanceRenderer), typeof(TransformMatrix));
+	    }
 
+	    protected override void OnUpdate()
+		{
 		    // We want to iterate over all unique MeshInstanceRenderer shared component data,
 		    // that are attached to any entities in the world
             EntityManager.GetAllUniqueSharedComponentDatas(m_CacheduniqueRendererTypes);
@@ -52,8 +56,8 @@ namespace Unity.Rendering
                 // SharedComponentData gurantees that all those entities are packed togehter in a chunk with linear memory layout.
                 // As a result the copy of the matrices out is internally done via memcpy.
                 var renderer = m_CacheduniqueRendererTypes[i];
-                var group = maingroup.GetVariation(renderer);
-                var transforms = group.GetComponentDataArray<TransformMatrix>();
+                m_InstanceRendererGroup.SetFilter(renderer);
+                var transforms = m_InstanceRendererGroup.GetComponentDataArray<TransformMatrix>();
 
                 // Graphics.DrawMeshInstanced has a set of limitations that are not optimal for working with ECS.
                 // Specifically:
@@ -73,8 +77,6 @@ namespace Unity.Rendering
 
                     beginIndex += length;
                 }
-
-                group.Dispose();
             }
 		    
 		    m_CacheduniqueRendererTypes.Clear();

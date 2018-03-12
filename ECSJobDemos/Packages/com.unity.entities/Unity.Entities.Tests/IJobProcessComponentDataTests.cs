@@ -1,10 +1,9 @@
 ﻿using System;
-using Microsoft.Msagl.Core.Layout;
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Entities;
 
-namespace UnityEngine.ECS.Tests
+namespace Unity.Entities.Tests
 {
     public class IJobProcessComponentDataTests :ECSTestsFixture
     {

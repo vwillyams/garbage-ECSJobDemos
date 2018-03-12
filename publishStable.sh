@@ -1,11 +1,13 @@
 #TODO: increment the minor/major version???
 #      maybe a file with a list of pack
-readonly srcBranch="master"
+readonly srcBranch="stable"
 readonly dstBranch="master"
 readonly srcRepoName="ECSJobDemos"
 readonly packagesPath="ECSJobDemos/Packages/"
 readonly srcRepo="https://github.com/Unity-Technologies/$srcRepoName.git"
-readonly dstRepo="git@gitlab.internal.unity3d.com:core/EntityComponentSystemSamples.git"
+readonly dstRepo="https://github.com/Unity-Technologies/EntityComponentSystemSamples.git"
+#readonly dstRepo="git@gitlab.internal.unity3d.com:core/EntityComponentSystemSamples.git"
+#readonly dstRepo="git@gitlab.internal.unity3d.com:fabrizio/ECS.git"
 
 readonly npmStagingRepo="https://api.bintray.com/npm/unity/unity-staging"
 readonly npmLocalRepo="http://localhost:4873"
@@ -38,7 +40,7 @@ isPackageChanged()
 		diff $1$2 node_modules/$2 -x .git -x package*.json -x .DS_Store -x node_modules -qr
 		numChanges=`diff $1$2 node_modules/$2 -x .git -x package*.json -x .DS_Store -x node_modules -qr | wc -l | tr -d ' '`
 		rm -r node_modules
-		
+
 		#in some cases, npm creates an etc folder. It it's created i will delete it.
 		if [[ -d etc ]]
 		then
@@ -60,7 +62,7 @@ getPackageCurrentVersion()
 {
 	local packageVersion
 	packageVersion=`npm view $2 version 2> /dev/null`
-	if [[ $? -eq 0 ]] 
+	if [[ $? -eq 0 ]]
 	then
 		echo "Version Found: $packageVersion" >&2
 		cd $1$2
@@ -138,6 +140,7 @@ squashCommits()
 	then
 		echo "The stable repo is empty. Creating the first commit..." >&2
 		git reset $(git rev-list --max-parents=0 HEAD) > /dev/null 2>&1
+        git checkout -b $dstBranch > /dev/null 2>&1
 		releaseNumber=1
 	else
 		git reset stable/$dstBranch > /dev/null 2>&1
@@ -175,6 +178,7 @@ RemoveThisScriptForCommit()
 {
 	git add .
 	git reset -- "`basename $BASH_SOURCE`"
+    git reset -- .gitlab-ci.yml
 }
 
 main()
@@ -187,7 +191,7 @@ main()
 	releaseNumber=`squashCommits`
 	packagesFolder=`getPackagesFolder`
 	packages=`getListOfPackages $packagesFolder`
-	
+
 	for package in ${packages[@]}
 	do
 		echo "Package Found: $package"
@@ -211,14 +215,14 @@ main()
 		git add .
 	done
 
-	scatterManifest > /dev/null 2>&1 
+	scatterManifest > /dev/null 2>&1
 
 	RemoveThisScriptForCommit
 	if [[ $releaseNumber -ne 1 ]]
 	then
-		git commit -m "Release $releaseNumber" 
+		git commit -m "Release $releaseNumber"
 	else
-		git commit --amend --reset-author -m "Release $releaseNumber" 
+		git commit --amend --reset-author -m "Release $releaseNumber"
 	fi
 	git push stable $dstBranch
 	cd $rootDir
@@ -236,16 +240,16 @@ do
 	esac
 done
 
-#if [[ $isInternal ]] 
-#then
-#	cp ~/.npmrc ~/.npmrcStaging
-#	mv ~/.npmrcLocal ~/.npmrc
-#fi
+if [[ $isInternal ]]
+then
+	cp ~/.npmrc ~/.npmrcStaging
+	mv ~/.npmrcLocal ~/.npmrc
+fi
 
 main
 
-#if [[ $isInternal ]]
-#then
-#	cp ~/.npmrc ~/.npmrcLocal
-#	mv ~/.npmrcStaging ~/.npmrc
-#fi
+if [[ $isInternal ]]
+then
+	cp ~/.npmrc ~/.npmrcLocal
+	mv ~/.npmrcStaging ~/.npmrc
+fi

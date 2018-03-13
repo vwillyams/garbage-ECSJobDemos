@@ -5,6 +5,7 @@ using Unity.Mathematics;
 
 namespace Unity.Transforms
 {
+    [UnityEngine.ExecuteInEditMode]
     public class TransformSystem : JobComponentSystem
     {
         [Inject] [ReadOnly] ComponentDataFromEntity<LocalPosition> m_LocalPositions;

@@ -110,7 +110,7 @@ namespace UnityEngine.ECS.Boids
                 }
             }
             
-            void AddHashIdex(int hash, int hashBucketIndex, int value)
+            void AddHashIndex(int hash, int hashBucketIndex, int value)
             {
                 var first = hashCellBuckets[hashBucketIndex];
                 if (first.Hash == 0)
@@ -148,7 +148,7 @@ namespace UnityEngine.ECS.Boids
                     int cellIndex;
                     if (!TryGetHashIndex(hash, hashBucketIndex, out cellIndex))
                     {
-                        AddHashIdex(hash, hashBucketIndex, nextCellIndex);
+                        AddHashIndex(hash, hashBucketIndex, nextCellIndex);
                         cellIndex = nextCellIndex;
                         cellAlignmentSeparation[cellIndex] = new AlignmentSeparation
                         {

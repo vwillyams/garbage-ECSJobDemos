@@ -147,16 +147,18 @@ def squash_commits():
         if ".git" in d:
             continue
         print "Deleting {0}".format(d)
-        removed.append(d)
         if os.path.isdir(d):
             shutil.rmtree(d)
         else:
             os.remove(d)
+            removed.append(d)
 
     for d in removed:
-        git_cmd("checkout master -- {0}".format(d), False)
+        git_cmd("rm {0}".format(d), False)
 
-    git_cmd("add .")
+    git_cmd("checkout master -- .", False)
+
+    git_cmd("add -A")
     git_cmd("commit -m \"Current squash\" --allow-empty", False)
     pass
 
@@ -249,7 +251,7 @@ def main():
         add_destination_repo()
         # print "Removing $srcRepo from remote of repo"
         # git_cmd("remote remove origin", False)
-        release_number = squash_commits()
+        squash_commits()
         packages_folder = get_packages_folder()
         packages = get_list_of_packages(packages_folder)
 
@@ -278,13 +280,6 @@ def main():
         scatter_manifest()
 
         remove_this_script_from_commit()
-        if release_number != 1:
-            print "Committing changes with release number {0}".format(release_number)
-            git_cmd("commit -m \"Release {0}\"".format(release_number), True)
-        else:
-            print "Amending first commit with release number {0}".format(release_number)
-            git_cmd("commit --amend --reset -author -m \"Release {0}\"".format(release_number), True)
-            pass
 
         should_push = create_commit()
         if should_push:

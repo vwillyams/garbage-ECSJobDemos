@@ -11,6 +11,7 @@ using UnityEngine.ECS.Utilities;
 
 namespace UnityEngine.ECS.Boids
 {
+    [UpdateBefore(typeof(TransformSystem))]
     public class BoidSystem : JobComponentSystem
     {
         private ComponentGroup m_BoidGroup;
@@ -192,6 +193,7 @@ namespace UnityEngine.ECS.Boids
                 {
                     return;
                 }
+                
                 var alignment = cellAlignmentSeparation[index].alignment;
                 var separation = cellAlignmentSeparation[index].separation;
                 cellAlignmentSeparation[index] = new AlignmentSeparation

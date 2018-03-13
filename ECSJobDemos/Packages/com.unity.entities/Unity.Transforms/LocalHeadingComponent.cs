@@ -2,7 +2,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 
-namespace UnityEngine.ECS.SimpleRotation
+namespace Unity.Transforms
 {
     [Serializable]
     public struct LocalHeading : IComponentData

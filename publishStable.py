@@ -131,8 +131,8 @@ def git_cmd(cmd, is_destructive=True):
     if is_destructive and dry_run:
         print "  Skipping: {0}".format(formatted_cmd)
         return None
-    print cmd
-    return ""
+    print "Running: {0}".format(formatted_cmd)
+    return subprocess.check_output(formatted_cmd, shell=True, stderr=subprocess.STDOUT)
 
 
 def npm_cmd(cmd, registry, is_destructive=True):
@@ -207,8 +207,9 @@ def main():
         os.chdir(root_dir)
         # TODO restore has been modified during a dry run
         if dry_run:
-            git_cmd("reset --hard HEAD")
-            git_cmd("git clean -f -d")
+            print "Doing git reset & clean"
+            git_cmd("reset --hard HEAD", False)
+            git_cmd("clean -f -d", False)
         pass
 
 

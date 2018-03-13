@@ -29,7 +29,7 @@ namespace Unity.Entities.Properties
             PropertyBag result;
             if (s_PropertyBagCache.TryGetValue(componentType, out result))
             {
-//                return result;
+                return result;
             }
 
             var properties = new List<IProperty> { ComponentIdProperty };

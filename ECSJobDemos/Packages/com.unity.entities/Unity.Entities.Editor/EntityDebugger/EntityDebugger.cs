@@ -252,13 +252,12 @@ namespace Unity.Entities.Editor
                 var type = SystemSelection.GetType();
                 AlignHeader(() => GUILayout.Label(type.Namespace, EditorStyles.label));
                 GUILayout.Label(type.Name, EditorStyles.boldLabel);
-                if (SystemSelection is ComponentSystemBase)
+                GUILayout.FlexibleSpace();
+                var system = SystemSelection as ComponentSystemBase;
+                if (system != null)
                 {
-                    GUILayout.FlexibleSpace();
-
-                    var system = (ComponentSystemBase) SystemSelection;
                     var running = system.Enabled && system.ShouldRunSystem();
-                    AlignHeader(() => GUILayout.Label($"running: {running}"));
+                    AlignHeader(() => GUILayout.Label($"running: {(running ? "yes" : "no")}"));
                 }
             }
             GUILayout.EndHorizontal();

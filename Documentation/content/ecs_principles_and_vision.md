@@ -55,7 +55,7 @@ You should always get the same results with the same inputs, no matter what devi
 
 To do this we will leverage our Burst compiler to produce exact floating point math between different platforms. Imagine a linux server & iOS device running the same floating point math code. This is useful for many scenarios particularly for connected games, but also debugging, replay etc. 
 
-> Note: Floating point math discrepancies is a problem that Unity decided to tackle head on. This issue has been known about for some time, but so far there has not been a need great enough to encourage people to solve it. For some insight into this problem, including some of the workarounds needed to avoid solving the problem, consider reading [Floating-Point Determinism by Bruce Dawson](https://randomascii.wordpress.com/2013/07/16/floating-point-determinism/).
+> Note: Floating point math discrepancies is a problem that Unity decided to tackle head on. This issue has been known about for some time, but so far there has not been a need great enough to encourage people to solve it. For some insight into this problem, including some of the workarounds needed to avoid solving it, consider reading [Floating-Point Determinism by Bruce Dawson](https://randomascii.wordpress.com/2013/07/16/floating-point-determinism/).
 
 ## Sandbox
 

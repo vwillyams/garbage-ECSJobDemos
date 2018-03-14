@@ -27,6 +27,8 @@
 
 ## Further information
 
+* [*MCV 2018 - Exclusive: Unity takes a principled step into triple-A performance at GDC*](https://www.mcvuk.com/development/exclusive-unity-takes-a-principled-step-into-triple-a-performance-at-gdc)
+
 *Unite Austin 2017 keynote - Performance demo ft. Nordeus*
 [![Unite Austin 2017 keynote - Performance demo ft. Nordeus](http://img.youtube.com/vi/0969LalB7vw/0.jpg)](http://www.youtube.com/watch?v=0969LalB7vw)
 

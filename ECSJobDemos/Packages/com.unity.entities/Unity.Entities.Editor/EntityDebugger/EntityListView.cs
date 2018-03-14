@@ -109,9 +109,10 @@ namespace Unity.Entities.Editor
         {
             if (window == null)
                 return;
-            if (selectedIds.Count > 0 && entitiesById.ContainsKey(selectedIds[0]))
+            if (selectedIds.Count > 0)
             {
-                window.EntitySelection = entitiesById[selectedIds[0]];
+                if (entitiesById.ContainsKey(selectedIds[0]))
+                    window.EntitySelection = entitiesById[selectedIds[0]];
             }
             else
             {

@@ -63,9 +63,11 @@ namespace Unity.Entities.Editor
             get { return selectionProxy.Entity; }
             set
             {
-                if (value != Entity.Null)
+                
+                var entityManager = WorldSelection?.GetExistingManager<EntityManager>();
+                if (value != Entity.Null && entityManager != null)
                 {
-                    selectionProxy.SetEntity(WorldSelection.GetExistingManager<EntityManager>(), value);
+                    selectionProxy.SetEntity(entityManager, value);
                     Selection.activeObject = selectionProxy;
                 }
                 else if (Selection.activeObject == selectionProxy)

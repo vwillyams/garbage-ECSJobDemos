@@ -260,7 +260,24 @@ namespace Unity.Entities.Editor
 
         public void UpdateIfNecessary()
         {
-            if (window.WorldSelection != null && managersByID.Count != window.WorldSelection.BehaviourManagers.Count())
+            if (window.WorldSelection == null)
+                return;
+            var currentManagers = window.WorldSelection.BehaviourManagers;
+            var managerCount = 0;
+            var needUpdate = false;
+            foreach (var manager in currentManagers)
+            {
+                ++managerCount;
+                if (!managersByID.Values.Contains(manager))
+                {
+                    needUpdate = true;
+                    break;
+                }
+            }
+
+            if (managersByID.Count != managerCount)
+                needUpdate = true;
+            if (needUpdate)
                 Reload();
         }
     }

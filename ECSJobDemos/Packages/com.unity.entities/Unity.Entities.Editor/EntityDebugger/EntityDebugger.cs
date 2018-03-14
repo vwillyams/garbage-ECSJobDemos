@@ -135,7 +135,7 @@ namespace Unity.Entities.Editor
 
         private void CreateSystemListView()
         {
-            systemListView = SystemListView.CreateList(WorldSelection, systemListStates, systemListStateNames, this);
+            systemListView = SystemListView.CreateList(systemListStates, systemListStateNames, this);
         }
 
         private void CreateComponentGroupListView()

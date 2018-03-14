@@ -119,6 +119,7 @@ def publish_new_package(package_path, version):
     try:
 
         os.chdir(package_path)
+        # TODO: Remove --allow-same-version
         npm_cmd("--no-git-tag-version version {0} --allow-same-version".format(version), None, False).strip()
         print "Packing as version {0}".format(version)
         package_archive = npm_cmd("pack .", None, False).strip()

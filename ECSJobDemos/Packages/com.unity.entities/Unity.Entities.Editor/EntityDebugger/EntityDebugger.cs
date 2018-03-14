@@ -221,6 +221,8 @@ namespace Unity.Entities.Editor
             var rect = GUIHelpers.GetExpandingRect();
             if (World.AllWorlds.Count != 0)
             {
+                if (repainted)
+                    systemListView.UpdateIfNecessary();
                 systemListView.OnGUI(rect);
             }
             else

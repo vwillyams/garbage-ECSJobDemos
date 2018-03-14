@@ -132,7 +132,7 @@ namespace Unity.Entities.Editor
             }
         }
 
-        protected TreeViewItem CreateManagerItem(int id, ScriptBehaviourManager manager)
+        private TreeViewItem CreateManagerItem(int id, ScriptBehaviourManager manager)
         {
             managersByID.Add(id, manager);
             var recorder = Recorder.Get($"{window.WorldSelection.Name} {manager.GetType().FullName}");
@@ -258,5 +258,10 @@ namespace Unity.Entities.Editor
             SelectionChanged(GetSelection());
         }
 
+        public void UpdateIfNecessary()
+        {
+            if (window.WorldSelection != null && managersByID.Count != window.WorldSelection.BehaviourManagers.Count())
+                Reload();
+        }
     }
 }

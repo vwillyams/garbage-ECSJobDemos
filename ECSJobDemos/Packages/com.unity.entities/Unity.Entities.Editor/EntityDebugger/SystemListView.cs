@@ -119,7 +119,6 @@ namespace Unity.Entities.Editor
             this.world = world;
             columnIndexForTreeFoldouts = 1;
             Reload();
-            SelectionChanged(GetSelection());
         }
 
         static int CompareSystem(ScriptBehaviourManager x, ScriptBehaviourManager y)
@@ -262,6 +261,11 @@ namespace Unity.Entities.Editor
         protected override bool CanMultiSelect(TreeViewItem item)
         {
             return false;
+        }
+
+        public void TouchSelection()
+        {
+            SelectionChanged(GetSelection());
         }
 
     }

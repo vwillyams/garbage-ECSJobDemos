@@ -39,6 +39,7 @@ namespace Unity.Entities.Editor
             {
                 systemSelection = value;
                 CreateComponentGroupListView();
+                componentGroupListView.TouchSelection();
             }
         }
 
@@ -51,6 +52,7 @@ namespace Unity.Entities.Editor
             {
                 componentGroupSelection = value;
                 entityListView.SelectedComponentGroup = value;
+                entityListView.TouchSelection();
             }
         }
 
@@ -106,7 +108,9 @@ namespace Unity.Entities.Editor
         {
             get
             {
-                return worldSelection;
+                if (worldSelection != null && worldSelection.IsCreated)
+                    return worldSelection;
+                return null;
             }
             set
             {
@@ -118,6 +122,7 @@ namespace Unity.Entities.Editor
                     
                     CreateSystemListView();
                     systemListView.multiColumnHeader.ResizeToFit();
+                    systemListView.TouchSelection();
                 }
             }
         }
@@ -156,9 +161,10 @@ namespace Unity.Entities.Editor
         {
             selectionProxy = ScriptableObject.CreateInstance<EntitySelectionProxy>();
             selectionProxy.hideFlags = HideFlags.HideAndDontSave;
-            CreateEntityListView();
             CreateSystemListView();
             CreateComponentGroupListView();
+            CreateEntityListView();
+            systemListView.TouchSelection();
             EditorApplication.playModeStateChanged += OnPlayModeStateChange;
         }
 

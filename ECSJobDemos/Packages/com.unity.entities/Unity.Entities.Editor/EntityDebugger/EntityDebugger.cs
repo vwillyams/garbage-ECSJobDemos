@@ -63,7 +63,6 @@ namespace Unity.Entities.Editor
             get { return selectionProxy.Entity; }
             set
             {
-                
                 var entityManager = WorldSelection?.GetExistingManager<EntityManager>();
                 if (value != Entity.Null && entityManager != null)
                 {
@@ -291,6 +290,14 @@ namespace Unity.Entities.Editor
             GUILayout.Space(6f);
             header();
             GUILayout.EndVertical();
+        }
+
+        private void OnSelectionChange()
+        {
+            if (Selection.activeObject != selectionProxy)
+            {
+                entityListView.SelectNothing();
+            }
         }
 
         private bool repainted = false;

@@ -10,7 +10,9 @@ namespace TwoStickHybridExample
         public struct Data
         {
             public int Length;
-            public ComponentArray<Transform2D> Transform;
+            public GameObjectArray GameObject;
+            public ComponentArray<Position2D> Position;
+            public ComponentArray<Heading2D> Heading;
             public ComponentArray<PlayerInput> Input;
         }
 
@@ -24,31 +26,32 @@ namespace TwoStickHybridExample
             var settings = TwoStickBootstrap.Settings;
 
             float dt = Time.deltaTime;
-            var firingPlayers = new List<Transform2D>();
+            var firingPlayers = new List<GameObject>();
             for (int index = 0; index < m_Data.Length; ++index)
             {
-                Transform2D xform = m_Data.Transform[index];
+                var position = m_Data.Position[index];
+                var heading = m_Data.Heading[index];
 
                 var playerInput = m_Data.Input[index];
 
-                xform.Position += dt * playerInput.Move * settings.playerMoveSpeed;
+                position.Value += dt * playerInput.Move * settings.playerMoveSpeed;
 
                 if (playerInput.Fire)
                 {
-                    xform.Heading = math.normalize(playerInput.Shoot);
+                    heading.Value = math.normalize(playerInput.Shoot);
                     playerInput.FireCooldown = settings.playerFireCoolDown;
 
-                    firingPlayers.Add(xform);
+                    firingPlayers.Add(m_Data.GameObject[index]);
                 }
             }
 
-            foreach (var xform in firingPlayers)
+            foreach (var player in firingPlayers)
             {
                 var newShotData = new ShotSpawnData()
                 {
-                    Position = xform.Position,
-                    Heading = xform.Heading,
-                    Faction = xform.GetComponent<Faction>()
+                    Position = player.GetComponent<Position2D>().Value,
+                    Heading = player.GetComponent<Heading2D>().Value,
+                    Faction = player.GetComponent<Faction>()
                 };
 
                 ShotSpawnSystem.SpawnShot(newShotData);

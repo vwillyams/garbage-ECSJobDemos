@@ -1,17 +1,19 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
+using UnityEngine.ECS.SimpleMovement2D;
 
 namespace TwoStickHybridExample
 {
-    public class RemoveDeadSystem : ComponentSystem
+    [UpdateAfter(typeof(ShotSpawnSystem))]
+    [UpdateAfter(typeof(MoveForward2DSystem))]
+    public class ShotDestroySystem : ComponentSystem
     {
-        public struct Entities
+        struct Data
         {
-            public int Length;
-            public GameObjectArray gameObjects;
-            public ComponentArray<Health> healths;
+            public Shot Shot;
         }
 
         struct PlayerCheck
@@ -21,18 +23,20 @@ namespace TwoStickHybridExample
         }
 
         [Inject] private PlayerCheck m_PlayerCheck;
-        [Inject] private Entities entities;
 
         protected override void OnUpdate()
         {
             var playerDead = m_PlayerCheck.Length == 0;
-            var toDestroy = new List<GameObject>();
-            for (var i = 0; i < entities.Length; ++i)
-            {
+            float dt = Time.deltaTime;
 
-                if (entities.healths[i].Value <= 0 || playerDead)
+            var toDestroy = new List<GameObject>();
+            foreach (var entity in GetEntities<Data>())
+            {
+                var s = entity.Shot;
+                s.TimeToLive -= dt;
+                if (s.TimeToLive <= 0.0f || playerDead)
                 {
-                    toDestroy.Add(entities.gameObjects[i]);
+                    toDestroy.Add(s.gameObject);
                 }
             }
 

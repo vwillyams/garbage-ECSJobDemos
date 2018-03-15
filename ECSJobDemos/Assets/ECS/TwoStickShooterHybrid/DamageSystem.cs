@@ -1,6 +1,7 @@
 ﻿using System;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms2D;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,7 +15,7 @@ namespace TwoStickHybridExample
             public int Length;
             public ComponentArray<Health> Health;
             public ComponentArray<Faction> Faction;
-            public ComponentArray<Transform2D> Transform2D;
+            public ComponentArray<Position2D> Position;
         }
 
         [Inject] ReceiverData m_Receivers;
@@ -23,7 +24,7 @@ namespace TwoStickHybridExample
         {
             public int Length;
             public ComponentArray<Shot> Shot;
-            public ComponentArray<Transform2D> Transform2D;
+            public ComponentArray<Position2D> Position;
             public ComponentArray<Faction> Faction;
         }
         [Inject] ShotData m_Shots;
@@ -41,14 +42,14 @@ namespace TwoStickHybridExample
                 float collisionRadius = GetCollisionRadius(settings, m_Receivers.Faction[pi].Value);
                 float collisionRadiusSquared = collisionRadius * collisionRadius;
 
-                float2 receiverPos = m_Receivers.Transform2D[pi].Position;
+                float2 receiverPos = m_Receivers.Position[pi].Value;
                 Faction.Type receiverFaction = m_Receivers.Faction[pi].Value;
 
                 for (int si = 0; si < m_Shots.Length; ++si)
                 {
                     if (m_Shots.Faction[si].Value != receiverFaction)
                     {
-                        float2 shotPos = m_Shots.Transform2D[si].Position;
+                        float2 shotPos = m_Shots.Position[si].Value;
                         float2 delta = shotPos - receiverPos;
                         float distSquared = math.dot(delta, delta);
                         if (distSquared <= collisionRadiusSquared)
@@ -73,45 +74,6 @@ namespace TwoStickHybridExample
             // This simply picks the collision radius based on whether the receiver is the player or not.
             // In a real game, this would be much more sophisticated, perhaps with a CollisionRadius component.
             return faction == Faction.Type.Player ? settings.playerCollisionRadius : settings.enemyCollisionRadius;
-        }
-    }
-
-    public class UpdatePlayerHUD : ComponentSystem
-    {
-        public struct PlayerData
-        {
-            public int Length;
-            public EntityArray Entity;
-            public ComponentArray<PlayerInput> Input;
-            public ComponentArray<Health> Health;
-        }
-
-        [Inject] PlayerData m_Players;
-
-        private int m_CachedValue = Int32.MinValue;
-
-        protected override void OnUpdate()
-        {
-            int displayedHealth = 0;
-
-            if (m_Players.Length > 0)
-            {
-                displayedHealth = (int)m_Players.Health[0].Value;
-            }
-
-            if (m_CachedValue != displayedHealth)
-            {
-                Text t = GameObject.Find("HealthText")?.GetComponent<Text>();
-                if (t != null)
-                {
-                    if (displayedHealth > 0)
-                        t.text = $"HEALTH: {displayedHealth}";
-                    else
-                        t.text = "GAME OVER";
-                }
-
-                m_CachedValue = displayedHealth;
-            }
         }
     }
 }

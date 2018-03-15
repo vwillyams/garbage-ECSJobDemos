@@ -5,31 +5,59 @@ namespace TwoStickClassicExample
 {
     public class UpdatePlayerHUD : MonoBehaviour
     {
-        private float m_CachedValue;
+        private float m_CachedHealth;
+
+        public Button NewGameButton;
+        public Text HealthText;
+
+        private void Start()
+        {
+            NewGameButton.onClick.AddListener(TwoStickBootstrap.NewGame);
+        }
 
         private void Update()
         {
-            int displayedHealth = 0;
-
             var player = FindObjectOfType<Player>();
+            if (player != null)
+            {
+                UpdateAlive(player);
+            }
+            else
+            {
+                UpdateDead();
+            }
+        }
+
+        private void UpdateDead()
+        {
+            if (HealthText != null)
+            {
+                HealthText.gameObject.SetActive(false);
+            }
+            if (NewGameButton != null)
+            {
+                NewGameButton.gameObject.SetActive(true);
+            }
+        }
+
+        private void UpdateAlive(Player player)
+        {
+            HealthText.gameObject.SetActive(true);
+            NewGameButton.gameObject.SetActive(false);
             
+            var displayedHealth = 0;
             if (player != null)
             {
                 displayedHealth = (int) player.GetComponent<Health>().Value;
             }
 
-            if (m_CachedValue != displayedHealth)
+            if (m_CachedHealth != displayedHealth)
             {
-                Text t = GetComponent<Text>();
-                if (t != null)
-                {
-                    if (displayedHealth > 0)
-                        t.text = $"HEALTH: {displayedHealth}";
-                    else
-                        t.text = "GAME OVER";
-                }
-
-                m_CachedValue = displayedHealth;
+                if (displayedHealth > 0)
+                    HealthText.text = $"HEALTH: {displayedHealth}";
+                else
+                    HealthText.text = "GAME OVER";
+                m_CachedHealth = displayedHealth;
             }
         }
     }

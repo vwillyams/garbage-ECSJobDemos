@@ -8,14 +8,19 @@ namespace TwoStickClassicExample
     {
         private void Update()
         {
+
+            var player = FindObjectOfType<Player>();
+            if (!player)
+            {
+                Destroy(gameObject);
+                return;
+            }
             // Movement
             var settings = TwoStickBootstrap.Settings;
-            var speed = settings.enemySpeed;
             var minY = settings.playfield.yMin;
             var maxY = settings.playfield.yMax;
 
             var xform = GetComponent<Transform2D>();
-            xform.Position.y -= speed;
 
             if (xform.Position.y > maxY || xform.Position.y < minY)
             {
@@ -23,10 +28,6 @@ namespace TwoStickClassicExample
             }
             
             // Shooting
-
-            var player = FindObjectOfType<Player>();
-            if (!player)
-                return;
             var playerPos = player.GetComponent<Transform2D>().Position;
 
             var state = GetComponent<EnemyShootState>();

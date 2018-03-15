@@ -24,6 +24,7 @@ GameObject:
   - component: {fileID: 114659731520911246}
   - component: {fileID: 114690813196801422}
   - component: {fileID: 33803616345066654}
+  - component: {fileID: 114947139896687742}
   m_Layer: 0
   m_Name: EnemyShot
   m_TagString: Untagged
@@ -114,7 +115,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df28f8bb71dcc463cbc8fd237150476a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Speed: 1
   TimeToLive: 2
   Energy: 5
 --- !u!114 &114767484582729738
@@ -129,3 +129,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Value: 0
+--- !u!114 &114947139896687742
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1440049258192928}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9cde5dd9cdd634bf684568ba59e2a462, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Speed: 42

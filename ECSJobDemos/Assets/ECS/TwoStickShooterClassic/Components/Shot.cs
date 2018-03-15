@@ -6,7 +6,6 @@ namespace TwoStickClassicExample
 
     public class Shot : MonoBehaviour
     {
-        public float Speed;
         public float TimeToLive;
         public float Energy;
 
@@ -15,12 +14,16 @@ namespace TwoStickClassicExample
             // Move
 
             var transform2D = GetComponent<Transform2D>();
-            transform2D.Position += transform2D.Heading * Speed;
             
             // Collision
             var settings = TwoStickBootstrap.Settings;
 
             var receivers = FindObjectsOfType(typeof(Health));
+            if (receivers.Length == 0)
+            {
+                Destroy(gameObject);
+                return;
+            }
 
             var faction = GetComponent<Faction>().Value;
             

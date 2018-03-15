@@ -13,9 +13,10 @@ namespace TwoStickClassicExample
         {
             var settingsGO = GameObject.Find("Settings");
             Settings = settingsGO?.GetComponent<TwoStickExampleSettings>();
-            if (!Settings)
-                return;
+        }
 
+        public static void NewGame()
+        {
             var player = Object.Instantiate(Settings.PlayerPrefab);
             player.Position = new float2(0, 0);
             player.Heading = new float2(0, 1);

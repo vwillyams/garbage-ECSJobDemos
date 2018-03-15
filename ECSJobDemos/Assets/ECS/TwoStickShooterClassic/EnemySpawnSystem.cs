@@ -60,7 +60,7 @@ namespace TwoStickClassicExample
             float x = x0 + (x1 - x0) * r;
 
             xform.Position = new float2(x, settings.playfield.yMax);
-            xform.Heading = new float2(0, 1);
+            xform.Heading = new float2(0, -1);
         }
     }
 

@@ -840,7 +840,7 @@ namespace Unity.Collections
             where TJob : struct, IJobNativeMultiHashMapMergedSharedKeyIndices
             where TKey : struct, IEquatable<TKey>
         {
-            struct JobMultiHashMap
+            internal struct JobMultiHashMap
             {
                 [ReadOnly] public NativeMultiHashMap<TKey,int> HashMap;
                 public TJob JobData;

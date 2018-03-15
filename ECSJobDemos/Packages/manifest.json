@@ -1,6 +1,5 @@
 {
-	"dependencies": 
-	{
+	"dependencies": {
 	},
 	"testables": [
         "com.unity.collections",

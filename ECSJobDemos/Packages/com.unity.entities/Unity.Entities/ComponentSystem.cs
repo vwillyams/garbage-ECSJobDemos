@@ -241,8 +241,15 @@ namespace Unity.Entities
             if (ShouldRunSystem())
             {
                 BeforeOnUpdate();
-                OnUpdate();
-                AfterOnUpdate();
+
+                try
+                {
+                    OnUpdate();
+                }
+                finally
+                {
+                    AfterOnUpdate();
+                }
             }
         }
 
@@ -278,7 +285,7 @@ namespace Unity.Entities
             return GetDependency();
         }
 
-        unsafe void AfterOnUpdate(JobHandle outputJob)
+        unsafe void AfterOnUpdate(JobHandle outputJob, bool throwException)
         {
             JobHandle.ScheduleBatchedJobs();
 
@@ -307,25 +314,26 @@ namespace Unity.Entities
             //@TODO: It is not ideal that we call m_SafetyManager.GetDependency,
             //       it can result in JobHandle.CombineDependencies calls.
             //       Which seems like debug code might have side-effects
-            
-            try
-            {
-                for (var index = 0; index < m_JobDependencyForReadingManagersLength; index++)
-                {
-                    var type = m_JobDependencyForReadingManagersPtr[index];
-                    CheckJobDependencies(type);
-                }
 
-                for (var index = 0; index < m_JobDependencyForWritingManagersLength; index++)
-                {
-                    var type = m_JobDependencyForWritingManagersPtr[index];
-                    CheckJobDependencies(type);
-                }
+            string dependencyError = null;
+            for (var index = 0; index < m_JobDependencyForReadingManagersLength && dependencyError == null; index++)
+            {
+                var type = m_JobDependencyForReadingManagersPtr[index];
+                dependencyError = CheckJobDependencies(type); 
             }
-            catch (InvalidOperationException)
+
+            for (var index = 0; index < m_JobDependencyForWritingManagersLength && dependencyError == null; index++)
+            {
+                var type = m_JobDependencyForWritingManagersPtr[index];
+                dependencyError = CheckJobDependencies(type);
+            }
+
+            if (dependencyError != null)
             {
                 EmergencySyncAllJobs();
-                throw;
+                
+                if (throwException)
+                    throw new System.InvalidOperationException(dependencyError);
             }
 #endif
         }
@@ -335,8 +343,18 @@ namespace Unity.Entities
             if (ShouldRunSystem())
             {
                 var inputJob = BeforeOnUpdate();
-                var outputJob = OnUpdate(inputJob);
-                AfterOnUpdate(outputJob);
+                JobHandle outputJob = new JobHandle();
+                try
+                {
+                    outputJob = OnUpdate(inputJob);
+                }
+                catch
+                {
+                    AfterOnUpdate(outputJob, false);
+                    throw;
+                }
+                
+                AfterOnUpdate(outputJob, true);
             }
         }
 
@@ -371,7 +389,7 @@ namespace Unity.Entities
         }
         
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-        unsafe void CheckJobDependencies(int type)
+        unsafe string CheckJobDependencies(int type)
         {
             var h = m_SafetyManager.GetSafetyHandle(type, true);
 
@@ -382,11 +400,13 @@ namespace Unity.Entities
             for (var i = 0; i < readerCount; ++i)
             {
                 if (!m_SafetyManager.HasReaderOrWriterDependency(type, readers[i]))
-                    throw new InvalidOperationException($"The system {GetType()} reads {TypeManager.GetType(type)} via {AtomicSafetyHandle.GetReaderName(h, i)} but that type was not returned as a job dependency. To ensure correct behavior of other systems, the job or a dependency of it must be returned from the OnUpdate method.");
+                    return $"The system {GetType()} reads {TypeManager.GetType(type)} via {AtomicSafetyHandle.GetReaderName(h, i)} but that type was not returned as a job dependency. To ensure correct behavior of other systems, the job or a dependency of it must be returned from the OnUpdate method.";
             }
 
             if (!m_SafetyManager.HasReaderOrWriterDependency(type, AtomicSafetyHandle.GetWriter(h)))
-                throw new InvalidOperationException($"The system {GetType()} writes {TypeManager.GetType(type)} via {AtomicSafetyHandle.GetWriterName(h)} but that was not returned as a job dependency. To ensure correct behavior of other systems, the job or a dependency of it must be returned from the OnUpdate method.");
+                return $"The system {GetType()} writes {TypeManager.GetType(type)} via {AtomicSafetyHandle.GetWriterName(h)} but that was not returned as a job dependency. To ensure correct behavior of other systems, the job or a dependency of it must be returned from the OnUpdate method.";
+
+            return null;
         }
 
         unsafe void EmergencySyncAllJobs()

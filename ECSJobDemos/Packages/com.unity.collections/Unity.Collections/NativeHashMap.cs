@@ -590,7 +590,6 @@ namespace Unity.Collections
 
         [NativeContainer]
         [NativeContainerIsAtomicWriteOnly]
-        [NativeContainerNeedsThreadIndex]
         unsafe public struct Concurrent
         {
             [NativeDisableUnsafePtrRestriction]
@@ -600,6 +599,7 @@ namespace Unity.Collections
             AtomicSafetyHandle m_Safety;
 #endif
 
+            [NativeSetThreadIndex]
             int m_ThreadIndex;
 
             unsafe public static implicit operator NativeHashMap<TKey, TValue>.Concurrent (NativeHashMap<TKey, TValue> hashMap)
@@ -638,6 +638,7 @@ namespace Unity.Collections
         }
     }
 
+    
     [StructLayout (LayoutKind.Sequential)]
     [NativeContainer]
     unsafe public struct NativeMultiHashMap<TKey, TValue>
@@ -780,7 +781,6 @@ namespace Unity.Collections
 
         [NativeContainer]
         [NativeContainerIsAtomicWriteOnly]
-        [NativeContainerNeedsThreadIndex]
         unsafe public struct Concurrent
         {
             [NativeDisableUnsafePtrRestriction]
@@ -790,6 +790,7 @@ namespace Unity.Collections
             AtomicSafetyHandle m_Safety;
 #endif
 
+            [NativeSetThreadIndex]
             int m_ThreadIndex;
 
             unsafe public static implicit operator NativeMultiHashMap<TKey, TValue>.Concurrent (NativeMultiHashMap<TKey, TValue> multiHashMap)

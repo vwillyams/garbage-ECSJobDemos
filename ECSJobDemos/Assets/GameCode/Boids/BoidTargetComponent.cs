@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace UnityEngine.ECS.Boids
+namespace Samples.Boids
 {
 	public struct BoidTarget : IComponentData { }
 

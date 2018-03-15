@@ -1,30 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Mathematics.Experimental;
 using Unity.Transforms;
+using UnityEngine;
 using UnityEngine.ECS.Utilities;
 
-namespace UnityEngine.ECS.Boids
+namespace Samples.Boids
 {
     [UpdateBefore(typeof(TransformSystem))]
     public class BoidSystem : JobComponentSystem
     {
-        private ComponentGroup m_BoidGroup;
-        private ComponentGroup m_TargetGroup;
-        private ComponentGroup m_ObstacleGroup;
-        private List<Boid> m_UniqueTypes = new List<Boid>(10);
+        private ComponentGroup  m_BoidGroup;
+        private ComponentGroup  m_TargetGroup;
+        private ComponentGroup  m_ObstacleGroup;
+        private List<Boid>      m_UniqueTypes = new List<Boid>(10);
         private List<PrevCells> m_PrevCells = new List<PrevCells>();
 
         struct PrevCells
         {
-            public int boidCount;
+            public int                          boidCount;
             public NativeMultiHashMap<int, int> hashMap;
-            public NativeArray<Cell> cells;
-            public NativeArray<int> cellIndices;
+            public NativeArray<Cell>            cells;
+            public NativeArray<int>             cellIndices;
         }
 
         struct Cell
@@ -63,7 +63,7 @@ namespace UnityEngine.ECS.Boids
             // Anything with the same firstIndex is gauranteed to be running on the same thread, 
             // so there is not ParallelFor concurrency issue.
             [NativeDisableParallelForRestriction] public NativeArray<Cell> cells;
-            [NativeDisableParallelForRestriction] public NativeArray<int> cellIndices;
+            [NativeDisableParallelForRestriction] public NativeArray<int>  cellIndices;
 
             public void Execute(int firstIndex, int index)
             {
@@ -72,8 +72,8 @@ namespace UnityEngine.ECS.Boids
                 {
                     cells[firstIndex] = new Cell
                     {
-                        count = cells[firstIndex].count + 1.0f,
-                        alignment = cells[firstIndex].alignment + cells[index].alignment,
+                        count      = cells[firstIndex].count + 1.0f,
+                        alignment  = cells[firstIndex].alignment + cells[index].alignment,
                         separation = cells[firstIndex].separation + cells[index].separation
                     };
                 }
@@ -83,18 +83,18 @@ namespace UnityEngine.ECS.Boids
         [ComputeJobOptimization]
         struct Steer : IJobParallelFor
         {
-            [ReadOnly] public NativeArray<int>                 cellIndices;
-            [ReadOnly] public NativeArray<Cell> cells;
-            [ReadOnly] public NativeArray<Position>            targetPositions;
-            [ReadOnly] public NativeArray<Position>            obstaclePositions;
-            [ReadOnly] public Boid                             settings;
-            public float3                                      dt;
-            public float3                                      alignmentWeight;
-            public float3                                      separationWeight;
-            public float3                                      speed;
-            public ComponentDataArray<Position>                positions;
-            public ComponentDataArray<Heading>                 headings;
-            public ComponentDataArray<TransformMatrix>         transformMatrices;
+            [ReadOnly] public NativeArray<int>         cellIndices;
+            [ReadOnly] public NativeArray<Cell>        cells;
+            [ReadOnly] public NativeArray<Position>    targetPositions;
+            [ReadOnly] public NativeArray<Position>    obstaclePositions;
+            [ReadOnly] public Boid                     settings;
+            public float3                              dt;
+            public float3                              alignmentWeight;
+            public float3                              separationWeight;
+            public float3                              speed;
+            public ComponentDataArray<Position>        positions;
+            public ComponentDataArray<Heading>         headings;
+            public ComponentDataArray<TransformMatrix> transformMatrices;
             
             void NearestPosition(NativeArray<Position> targets, float3 position, out float3 nearestPosition, out float nearestDistance )
             {
@@ -148,12 +148,10 @@ namespace UnityEngine.ECS.Boids
             }
         }
 
-        [ComputeJobOptimization]
         struct Dispose : IJob
         {
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<Position> targetPositions;
             [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<Position> obstaclePositions;
-            
             public void Execute()
             {
             }

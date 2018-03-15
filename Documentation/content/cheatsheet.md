@@ -25,7 +25,7 @@ Here is a quick reference of the common classes, interfaces, structs, and attrib
 
 ## ECS related
 
-| Namespace     | Name          | Type  | 
+| Namespace     | Name          | Type  |
 | :-------------: |:-------------:| :-----:| 
 | Unity.Collections | [NativeHashMap](../../ECSJobDemos/Packages/com.unity.collections/Unity.Collections/NativeHashMap.cs) | Unsafe Struct |
 | Unity.Collections | [NativeList](../../ECSJobDemos/Packages/com.unity.collections/Unity.Collections/NativeList.cs) | Unsafe Struct |
@@ -33,17 +33,17 @@ Here is a quick reference of the common classes, interfaces, structs, and attrib
 | Unity.Entities | [ComponentDataArray](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/Iterators/ComponentDataArray.cs) | Unsafe Struct |
 | Unity.Entities | [ComponentDataFromEntity](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/Iterators/ComponentDataFromEntity.cs) | Unsafe Struct |
 | Unity.Entities | [ComponentGroup](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/Iterators/ComponentGroup.cs) | Unsafe Class |
-| Unity.Entities | [ComponentSystem](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/ComponentSystem.cs)  | Abstract Class |
+| Unity.Entities | [ComponentSystem](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/ComponentSystem.cs) - [ECS Docs](./getting_started.md#what-is-ecs?)  | Abstract Class |
 | Unity.Entities | [ComponentType](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/Types/ComponentType.cs)  | Struct |
 | Unity.Entities | [Entity](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/EntityManager.cs)  | Struct |
 | Unity.Entities | [EntityArchetype](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/EntityManager.cs)  | Unsafe Struct |
 | Unity.Entities | [EntityCommandBuffer](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/EntityCommandBuffer.cs)  | Unsafe Struct |
 | Unity.Entities | [EntityManager](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/EntityManager.cs)  | Unsafe Class |
 | Unity.Entities | [ExclusiveEntityTransaction](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/ExclusiveEntityTransaction.cs)  | Unsafe Struct |
-| Unity.Entities | [GameObjectEntity](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/GameObjectEntity.cs)  | Class |
-| Unity.Entities | [IComponentData](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/IComponentData.cs) | Interface |
+| Unity.Entities | [GameObjectEntity](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities.Hybrid/GameObjectEntity.cs)  | Class |
+| Unity.Entities | [IComponentData](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/IComponentData.cs) - [ECS Docs](./ecs_in_detail.md#icomponentdata) | Interface |
 | Unity.Entities | [IJobProcessComponentData](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/IJobProcessComponentData.cs) | Interface |
-| Unity.Entities | [ISharedComponentData](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/IComponentData.cs) | Interface |
+| Unity.Entities | [ISharedComponentData](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/IComponentData.cs) - [ECS Docs](./ecs_in_detail.md#shared-componentdata) | Interface |
 | Unity.Entities | [JobComponentSystem](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/ComponentSystem.cs)  | Abstract Class |
 | Unity.Entities | [World](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/Injection/World.cs) | Class |
 | Unity.Jobs | [IJobParallelForBatch](../../ECSJobDemos/Packages/com.unity.jobs/Unity.Jobs/IJobParallelForBatch.cs)  | Interface |

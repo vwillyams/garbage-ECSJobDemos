@@ -15,7 +15,7 @@ https://youtu.be/tGmnZdY5Y-E
 
 > Note: In Unity 2018.1 the new Project window is a little different because it offers you more than just 2D and 3D options.
 
-* Once the project is created then navigate in the Editor menu to: __Edit__ > __Project Settings__ > __Player__ > __Other Settings__ Then set __Scripting Runtime Version__ to: __4.x equivalent__. 
+* Once the project is created then navigate in the Editor menu to: __Edit__ > __Project Settings__ > __Player__ > __Other Settings__ then set __Scripting Runtime Version__ to: __4.x equivalent__. 
 * Go to your project location in your computer's file manager.
 * Open the file _<project-name>/Packages/manifest.json_ in any text editor.
 * Copy and paste the following package manifest into it, replacing the default contents:
@@ -38,6 +38,10 @@ https://youtu.be/tGmnZdY5Y-E
 ```
 
 * Save the file and return to Unity and it should start loading the packages for you automatically.
+
+### Additional settings
+
+* To use and create unsafe code go to the Editor menu: __Edit__ > __Project Settings__ > __Player__ > __Other Settings__ then check _Allow 'unsafe' Code_.
 
 ## Unity build 
 

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Xml.Serialization;
-using JetBrains.Annotations;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Properties;
 using Unity.Entities;
@@ -230,7 +229,6 @@ namespace Unity.Entities.Properties
             return _propertyBagCache[t];
         }
 
-        [CanBeNull]
         public IProperty VisitType(ITypedMemberDescriptor d)
         {
             Type memberType = d.GetMemberType();
@@ -248,18 +246,15 @@ namespace Unity.Entities.Properties
                     var propertyType = typeof(PrimitiveProperty<>).MakeGenericType(memberType);
                     return (IProperty)Activator.CreateInstance(propertyType, d);
                 }
-                else
+
+                if (memberType.IsPrimitive)
                 {
-                    if (memberType.IsPrimitive)
-                    {
-                        throw new NotSupportedException($"Primitive field type {memberType} is not supported");
-                    }
+                    throw new NotSupportedException($"Primitive field type {memberType} is not supported");
                 }
             }
 
             return new NestedProxyProperty(d) { PropertyBag = Parse(memberType) };
         }
-
 
         private class TypeIdProperty : StructProperty<StructProxy, string>
         {

@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Jobs;
 
-namespace RotatorSamples
+namespace Samples.Common
 {
 
 	class RotatorManager : ComponentSystem

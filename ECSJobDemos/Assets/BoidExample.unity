@@ -1842,6 +1842,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 168b0e3756704251859c57ee75912ca1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_SerializedData:
+    Value:
+      x: 0
+      y: 0
+      z: 0
 --- !u!114 &614494514
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3364,6 +3369,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 168b0e3756704251859c57ee75912ca1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_SerializedData:
+    Value:
+      x: 0
+      y: 0
+      z: 0
 --- !u!114 &1132870172
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4122,6 +4132,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 168b0e3756704251859c57ee75912ca1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_SerializedData:
+    Value:
+      x: 0
+      y: 0
+      z: 0
 --- !u!114 &1359442722
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5364,6 +5379,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 168b0e3756704251859c57ee75912ca1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_SerializedData:
+    Value:
+      x: 0
+      y: 0
+      z: 0
 --- !u!114 &1963936526
 MonoBehaviour:
   m_ObjectHideFlags: 0

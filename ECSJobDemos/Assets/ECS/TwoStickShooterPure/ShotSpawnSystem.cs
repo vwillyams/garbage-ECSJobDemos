@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using Unity.Collections;
 using Unity.Entities;
-using UnityEngine.ECS.SimpleMovement;
+using Samples.Common;
 using Unity.Transforms;
 
 namespace TwoStickPureExample

@@ -4,7 +4,7 @@ using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-namespace RotatorSamples
+namespace Samples.Common
 {
 
 	class RotatorManagerMainThread : ComponentSystem

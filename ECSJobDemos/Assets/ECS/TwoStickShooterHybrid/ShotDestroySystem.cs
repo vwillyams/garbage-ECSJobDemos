@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
-using UnityEngine.ECS.SimpleMovement2D;
+using Samples.Common;
 
 namespace TwoStickHybridExample
 {

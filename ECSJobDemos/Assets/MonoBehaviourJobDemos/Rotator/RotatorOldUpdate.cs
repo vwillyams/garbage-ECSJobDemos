@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace RotatorSamples
+namespace Samples.Common
 {
 	public class RotatorOldUpdate : MonoBehaviour
 	{

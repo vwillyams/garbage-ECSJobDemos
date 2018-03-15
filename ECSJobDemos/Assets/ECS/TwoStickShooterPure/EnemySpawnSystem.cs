@@ -2,7 +2,7 @@
 using Unity.Mathematics;
 using Unity.Transforms2D;
 using UnityEngine;
-using UnityEngine.ECS.SimpleMovement;
+using Samples.Common;
 
 namespace TwoStickPureExample
 {

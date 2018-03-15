@@ -2,7 +2,7 @@
 using Unity.Mathematics;
 using UnityEngine;
 using Unity.Rendering;
-using UnityEngine.ECS.SimpleMovement;
+using Samples.Common;
 using Unity.Transforms;
 using Unity.Transforms2D;
 

@@ -26,6 +26,8 @@ namespace Unity.Entities.Editor
 
         private readonly ISystemSelectionWindow window;
 
+        private int systemVersion;
+
         private static GUIStyle RightAlignedLabel
         {
             get
@@ -148,8 +150,10 @@ namespace Unity.Entities.Editor
             floatingManagers.Clear();
             recordersByManager.Clear();
 
+            systemVersion = -1;
             if (window.WorldSelection != null)
             {
+                systemVersion = window.WorldSelection.Version;
                 Dictionary<Type, ScriptBehaviourUpdateOrder.ScriptBehaviourGroup> allGroups;
                 Dictionary<Type, ScriptBehaviourUpdateOrder.DependantBehavior> dependencies;
                 ScriptBehaviourUpdateOrder.CollectGroups(window.WorldSelection.BehaviourManagers, out allGroups, out dependencies);
@@ -191,7 +195,6 @@ namespace Unity.Entities.Editor
             }
             else
             {
-
                 foreach (var manager in floatingManagers)
                     root.AddChild(CreateManagerItem(currentID++, manager));
                 
@@ -262,22 +265,7 @@ namespace Unity.Entities.Editor
         {
             if (window.WorldSelection == null)
                 return;
-            var currentManagers = window.WorldSelection.BehaviourManagers;
-            var managerCount = 0;
-            var needUpdate = false;
-            foreach (var manager in currentManagers)
-            {
-                ++managerCount;
-                if (!managersByID.Values.Contains(manager))
-                {
-                    needUpdate = true;
-                    break;
-                }
-            }
-
-            if (managersByID.Count != managerCount)
-                needUpdate = true;
-            if (needUpdate)
+            if (window.WorldSelection.Version != systemVersion)
                 Reload();
         }
     }

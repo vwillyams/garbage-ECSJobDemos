@@ -21,6 +21,9 @@ namespace Unity.Entities
 
         public string Name { get; }
 
+        public int Version => m_Version;
+        private int m_Version = 0;
+
         public static World Active { get; set; }
 
         public static ReadOnlyCollection<World> AllWorlds => new ReadOnlyCollection<World>(allWorlds);
@@ -141,6 +144,7 @@ namespace Unity.Entities
 		        throw;
 		    }
 
+		    ++m_Version;
 			return manager;
 		}
 
@@ -182,7 +186,7 @@ namespace Unity.Entities
 		{
 			if (!m_BehaviourManagers.Remove(manager))
 				throw new ArgumentException($"manager does not exist in the world");
-
+		    ++m_Version;
 
 			var type = manager.GetType();
 			while (type != typeof(ScriptBehaviourManager))

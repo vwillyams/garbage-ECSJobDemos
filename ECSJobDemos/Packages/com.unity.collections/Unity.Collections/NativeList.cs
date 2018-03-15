@@ -25,7 +25,7 @@ namespace Unity.Collections
 	[NativeContainer]
 	[DebuggerDisplay("Length = {Length}")]
 	[DebuggerTypeProxy(typeof(NativeListDebugView < >))]
-	unsafe public struct NativeList<T> where T : struct
+	unsafe public struct NativeList<T> : IDisposable where T : struct
 	{
 		[NativeDisableUnsafePtrRestriction]
 		internal NativeListData*        m_ListData;

@@ -1,7 +1,6 @@
 {
-	"dependencies": {
-		"com.unity.burst": "0.1.31",
-		"com.unity.mathematics":"0.0.7"
+	"dependencies": 
+	{
 	},
 	"testables": [
         "com.unity.collections",

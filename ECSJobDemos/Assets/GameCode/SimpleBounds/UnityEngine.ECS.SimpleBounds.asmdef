@@ -1,7 +1,8 @@
 {
     "name": "UnityEngine.ECS.SimpleBounds",
     "references": [
-        "Unity.Entities"
+        "Unity.Entities",
+        "Unity.Entities.Hybrid"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],

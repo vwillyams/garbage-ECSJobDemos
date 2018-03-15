@@ -242,7 +242,7 @@ counter.Dispose();
 The NativeCounter from the previous section is a working implementation of a counter, but all jobs in the ParallelFor will access the same atomic to increment the value. This is not optimal as it means the same cache line is used by all threads.
 The way this is generally solved in NativeContainers is to have a local cache per worker thread, which is stored on its own cache line.
 
-The __[NativeContainerNeedsThreadIndex]__ attribute can inject a worker thread index into the container, the index is guaranteed to be unique while accessing the NativeContainer from the ParallelFor jobs.
+The __[NativeSetThreadIndex]__ attribute can inject a worker thread index, the index is guaranteed to be unique while accessing the NativeContainer from the ParallelFor jobs.
 
 In order to make such an optimization here we need to change a few things. The first thing we need to change is the data layout. For performance reasons we need one full cache line per worker thread, rather than a single int to avoid [false sharing](https://en.wikipedia.org/wiki/False_sharing). 
 
@@ -296,7 +296,6 @@ The final change is the inner Concurrent struct that needs to get the worker ind
 [NativeContainer]
 [NativeContainerIsAtomicWriteOnly]
 // Let the job system know that it should inject the current worker index into this container
-[NativeContainerNeedsThreadIndex]
 unsafe public struct Concurrent
 {
     [NativeDisableUnsafePtrRestriction]
@@ -307,6 +306,7 @@ unsafe public struct Concurrent
 #endif
 
     // The current worker thread index; it must use this exact name since it is injected
+    [NativeSetThreadIndex]
     int m_ThreadIndex;
 
     public static implicit operator NativeCacheCounter.Concurrent (NativeCacheCounter cnt)
@@ -349,7 +349,7 @@ The NativeCounter uses many attributes, but there are a few more available for o
 * [NativeContainerSupportsMinMaxWriteRestriction](https://docs.unity3d.com/2018.1/Documentation/ScriptReference/Unity.Collections.LowLevel.Unsafe.NativeContainerSupportsMinMaxWriteRestrictionAttribute.html) - signals that the NativeContainer can restrict its writable ranges to be between a min and max index. This is used when passing the container to an IJobParallelFor to make sure that the job does not write to indices it is not supposed to process. In order to use this the NativeContainer must have the members int __m_Length__, int __m_MinIndex__ and int __m_MaxIndex__ in that order with no other members between them. The container must also throw an exception for writes outside the min/max range.
 * [NativeContainerIsAtomicWriteOnly](https://docs.unity3d.com/2018.1/Documentation/ScriptReference/Unity.Collections.LowLevel.Unsafe.NativeContainerIsAtomicWriteOnlyAttribute.html) - signals that the NativeContainer uses atomic writes and no reads. By adding this is is possible to pass the NativeContainer to an IJobParallelFor as writable without restrictions on which indices can be written to.
 * [NativeContainerSupportsDeallocateOnJobCompletion](https://docs.unity3d.com/2018.1/Documentation/ScriptReference/Unity.Collections.LowLevel.Unsafe.NativeContainerSupportsDeallocateOnJobCompletionAttribute.html) - makes the NativeContainer usable with [DeallocateOnJobCompletion](https://docs.unity3d.com/2018.1/Documentation/ScriptReference/Unity.Collections.DeallocateOnJobCompletionAttribute.html). In order to use this the NativeContainer must have a single allocation in __m_Buffer__, an allocator label in __m_AllocatorLabel__ and a dispose sentinel in __m_DisposeSentinel__.
-* [NativeContainerNeedsThreadIndex](https://docs.unity3d.com/2018.1/Documentation/ScriptReference/Unity.Collections.LowLevel.Unsafe.NativeContainerNeedsThreadIndexAttribute.html) - signals that the NativeContainer needs to know the thread index it is executing on. When using this attribute the NativeContainer must have an __int m_ThreadIndex__ member that is set to the correct thread index when executing on a job.
+* [NativeSetThreadIndex](https://docs.unity3d.com/2018.1/Documentation/ScriptReference/Unity.Collections.LowLevel.Unsafe.NativeSetThreadIndexAttribute.html) - Patches an int with the thread index of the job.
 
 In addition to these attributes on the native container struct itself there are a few attributes which can be used on members of the native container.
 * [NativeDisableUnsafePtrRestriction](https://docs.unity3d.com/2018.1/Documentation/ScriptReference/Unity.Collections.LowLevel.Unsafe.NativeDisableUnsafePtrRestrictionAttribute.html) - allows the NativeContainer to be passed to a job even though it contains a pointer, which is usually not allowed.

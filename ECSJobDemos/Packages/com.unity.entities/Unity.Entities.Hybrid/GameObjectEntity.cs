@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using UnityEditor;
+using UnityEngine;
 using RequireComponent = UnityEngine.RequireComponent;
 using SerializeField = UnityEngine.SerializeField;
 using MonoBehaviour = UnityEngine.MonoBehaviour;
@@ -14,6 +16,21 @@ namespace Unity.Entities
     {
         internal abstract ComponentType GetComponentType();
         internal abstract void UpdateComponentData(EntityManager manager, Entity entity);
+
+        void OnValidate()
+        {
+            var gameObjectEntity = GetComponent<GameObjectEntity>();
+            if (gameObjectEntity == null)
+                return;
+            if (gameObjectEntity.EntityManager == null)
+                return;
+            if (!gameObjectEntity.EntityManager.Exists(gameObjectEntity.Entity))
+                return;
+            if (!gameObjectEntity.EntityManager.HasComponent(gameObjectEntity.Entity, GetComponentType()))
+                return;
+
+            UpdateComponentData(gameObjectEntity.EntityManager, gameObjectEntity.Entity);
+        }
     }
 
     //@TODO: This should be fully implemented in C++ for efficiency
@@ -77,9 +94,10 @@ namespace Unity.Entities
     }
 
     [DisallowMultipleComponent]
+    [ExecuteInEditMode]
     public class GameObjectEntity : MonoBehaviour
     {
-        EntityManager m_EntityManager;
+        public EntityManager EntityManager { get; private set; }
 
         public Entity Entity { get; private set; }
 
@@ -156,16 +174,48 @@ namespace Unity.Entities
 
         public void OnEnable()
         {
-            m_EntityManager = World.Active.GetOrCreateManager<EntityManager>();
-            Entity = AddToEntityManager(m_EntityManager, gameObject);
+            #if UNITY_EDITOR
+            if (World.Active == null)
+            {
+                // * OnDisable (Serialize monobehaviours in temporary backup)
+                // * unload domain
+                // * load new domain
+                // * OnEnable (Deserialize monobehaviours in temporary backup)
+                // * mark entered playmode / load scene
+                // * OnDisable / OnDestroy
+                // * OnEnable (Loading object from scene...)
+                if (EditorApplication.isPlayingOrWillChangePlaymode)
+                {
+                    // We are just gonna ignore this enter playmode reload.
+                    // Can't see a situation where it would be useful to create something inbetween.
+                    // But we really need to solve this at the root. The execution order is kind if crazy.
+                    if (!EditorApplication.isPlaying)
+                        return;
+                    
+                    Debug.LogError("Loading GameObjectEntity in Playmode but there is no active World");
+                    return;
+                }
+                else
+                {
+#if UNITY_DISABLE_AUTOMATIC_SYSTEM_BOOTSTRAP
+                    return;
+#else
+                    DefaultWorldInitialization.Initialize("Editor World", true);
+#endif
+                }
+            }
+            #endif
+
+            EntityManager = World.Active.GetOrCreateManager<EntityManager>();
+            Entity = AddToEntityManager(EntityManager, gameObject);
         }
 
         public void OnDisable()
         {
-            if (m_EntityManager != null && m_EntityManager.IsCreated && m_EntityManager.Exists(Entity))
-                m_EntityManager.DestroyEntity(Entity);
+            if (EntityManager != null && EntityManager.IsCreated && EntityManager.Exists(Entity))
+                EntityManager.DestroyEntity(Entity);
 
-            m_EntityManager = null;
+            EntityManager = null;
             Entity = new Entity();
         }
     }

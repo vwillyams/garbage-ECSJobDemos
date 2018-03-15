@@ -2,6 +2,7 @@
     "name": "UnityEngine.ECS.SimpleRotation",
     "references": [
         "Unity.Entities",
+        "Unity.Entities.Hybrid",
         "Unity.Transforms",
         "UnityEngine.ECS.SimpleBounds",
         "Unity.Collections",

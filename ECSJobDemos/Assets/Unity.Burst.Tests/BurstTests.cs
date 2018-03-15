@@ -190,8 +190,7 @@ public class BurstTests
 	}
 
 	[Test]
-	[Ignore("Bug that is being looked at by Burst devs")]
-	public unsafe void PointerCondtional()
+	public unsafe void PointerConditionalDoesntCrash()
 	{
 	    ConditionalTestStruct dummy;
         dummy.a = (void*) 0x1122334455667788;

@@ -4,7 +4,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace UnityEngine.ECS.SimpleRotation
+namespace Unity.Transforms
 {
     public class HeadingSystem : JobComponentSystem
     {

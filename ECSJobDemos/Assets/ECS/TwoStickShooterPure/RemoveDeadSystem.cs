@@ -28,8 +28,7 @@ namespace TwoStickPureExample
         [Inject] private PlayerCheck m_PlayerCheck;
         [Inject] private RemoveDeadBarrier m_RemoveDeadBarrier;
 
-        //[ComputeJobOptimization]
-        // TODO: Burst seems to miscompile this job, leading to anything from crashes to memory corruption
+        [ComputeJobOptimization]
         struct RemoveReadJob : IJob
         {
             public bool playerDead;

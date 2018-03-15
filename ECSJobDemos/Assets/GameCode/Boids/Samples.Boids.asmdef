@@ -1,7 +1,8 @@
 {
-    "name": "UnityEngine.ECS.Boids",
+    "name": "Samples.Boids",
     "references": [
         "Unity.Entities",
+        "Unity.Entities.Hybrid",
         "UnityEngine.ECS.SimpleBounds",
         "UnityEngine.ECS.SimpleMovement",
         "UnityEngine.ECS.SimpleRotation",

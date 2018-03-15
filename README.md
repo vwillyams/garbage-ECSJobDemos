@@ -58,7 +58,7 @@ Project folder for basic ECS dev & tests
 * Boid demo using ECS
 * InstanceRenderer using Entities
 * Culling demo
-* NativeList, Nativehashmap and tests
+* NativeList, NativeHashMap and tests (See [ECS cheat sheet](./Documentation/content/cheatsheet.md) for more information.)
 
 ## AI navigation & batched raycasts
 

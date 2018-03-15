@@ -21,8 +21,8 @@ namespace Unity.Entities
 
         public string Name { get; }
 
-        public int Version => m_Version;
-        private int m_Version = 0;
+        public int Version { get { return m_Version; } }
+        int m_Version = 0;
 
         public static World Active { get; set; }
 

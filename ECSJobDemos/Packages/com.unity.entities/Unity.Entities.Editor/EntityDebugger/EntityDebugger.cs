@@ -268,6 +268,9 @@ namespace Unity.Entities.Editor
             if (SystemSelection is ComponentSystemBase)
             {
                 GUILayout.BeginVertical(Box, GUILayout.Height(componentGroupListView.Height + 4f));
+
+                if (repainted)
+                    componentGroupListView.UpdateIfNecessary();
                 componentGroupListView.OnGUI(GUIHelpers.GetExpandingRect());
                 GUILayout.EndVertical();
             }
@@ -281,7 +284,7 @@ namespace Unity.Entities.Editor
             if (!somethingToShow)
                 return;
             if (repainted)
-                entityListView.RefreshData();
+                entityListView.UpdateIfNecessary();
             entityListView.OnGUI(GUIHelpers.GetExpandingRect());
         }
 

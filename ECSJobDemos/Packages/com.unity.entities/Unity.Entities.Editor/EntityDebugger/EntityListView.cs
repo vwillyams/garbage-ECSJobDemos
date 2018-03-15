@@ -36,6 +36,7 @@ namespace Unity.Entities.Editor
             }
         }
         private ComponentGroup selectedComponentGroup;
+        int                    cachedComponentGroupVersion;
 
         IEntitySelectionWindow window;
 
@@ -45,10 +46,13 @@ namespace Unity.Entities.Editor
             SelectedComponentGroup = componentGroup;
             Reload();
         }
-        
-        public void RefreshData()
+
+        public void UpdateIfNecessary()
         {
-            Reload();
+            if (selectedComponentGroup == null)
+                Reload();
+            if (selectedComponentGroup != null && cachedComponentGroupVersion != selectedComponentGroup.GetCombinedComponentOrderVersion())
+                Reload();
         }
 
         private TreeViewItem CreateEntityItem(Entity entity)
@@ -89,6 +93,10 @@ namespace Unity.Entities.Editor
                 }
                 SetupDepthsFromParentsAndChildren(root);
             }
+            
+            if (selectedComponentGroup != null)
+                cachedComponentGroupVersion = selectedComponentGroup.GetCombinedComponentOrderVersion();
+            
             return root;
         }
 

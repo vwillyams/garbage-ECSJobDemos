@@ -155,6 +155,22 @@ namespace Unity.Jobs.Tests
     }
 
     [ComputeJobOptimization]
+    public struct AliasTest7 : IJob
+    {
+        [ReadOnly] public NativeArray<float> a;
+        [ReadOnly] public NativeArray<float> b;
+        public NativeArray<float> result;
+
+        public void Execute()
+        {
+            for (int i = 0; i < 8; ++i)
+            {
+                result[i] = a[i] + b[i];
+            }
+        }
+    }
+
+    [ComputeJobOptimization]
     public struct PartialWrite : IJob
     {
         [ReadOnly]

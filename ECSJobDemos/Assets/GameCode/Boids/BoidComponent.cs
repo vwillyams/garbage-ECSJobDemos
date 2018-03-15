@@ -1,7 +1,7 @@
 ﻿using System;
 using Unity.Entities;
 
-namespace UnityEngine.ECS.Boids
+namespace Samples.Boids
 {
     [Serializable]
     public struct Boid : ISharedComponentData

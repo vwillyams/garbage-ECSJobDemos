@@ -1,7 +1,7 @@
 variables:
-  UNITY_EXECUTABLE_PATH_MAC: "/Applications/Unity-d72c02f07cbd/Unity.app/Contents/MacOS/Unity"
+  UNITY_EXECUTABLE_PATH_MAC: "/Applications/Unity-bb977278560e/Unity.app/Contents/MacOS/Unity"
   UNITY_EXECUTABLE_PATH_LINUX: "/home/builduser/buildslave/unity/build/build/LinuxEditor/Unity"
-  UNITY_EXECUTABLE_PATH_WINDOWS: "C:/Program Files/Unity-d72c02f07cbd/Editor/Unity.exe"
+  UNITY_EXECUTABLE_PATH_WINDOWS: "C:/Program Files/Unity-bb977278560e/Editor/Unity.exe"
 
 stages:
   - test
@@ -56,7 +56,7 @@ mac:boids:mono:run:
   tags:
     - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macos-boids"
     when: always
@@ -76,7 +76,7 @@ mac:boids:il2cpp:run:
   tags:
     - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macos-boids"
     when: always
@@ -135,7 +135,7 @@ mac:chains:mono:run:
   tags:
     - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macos-chains"
     when: always
@@ -155,7 +155,7 @@ mac:chains:il2cpp:run:
   tags:
     - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macos-chains"
     when: always
@@ -214,7 +214,7 @@ mac:hierarchy:mono:run:
   tags:
     - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macos-hierarchy"
     when: always
@@ -234,7 +234,7 @@ mac:hierarchy:il2cpp:run:
   tags:
     - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macos-hierarchy"
     when: always
@@ -293,7 +293,7 @@ mac:rotation:mono:run:
   tags:
     - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macos-rotation"
     when: always
@@ -313,7 +313,7 @@ mac:rotation:il2cpp:run:
   tags:
     - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macos-rotation"
     when: always
@@ -387,7 +387,7 @@ win:boids:mono:run:
   tags:
     - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-win-boids"
     when: always
@@ -407,7 +407,7 @@ win:boids:il2cpp:run:
   tags:
     - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-win-boids"
     when: always
@@ -466,7 +466,7 @@ win:chains:mono:run:
   tags:
     - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-win-chains"
     when: always
@@ -486,7 +486,7 @@ win:chains:il2cpp:run:
   tags:
     - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-win-chains"
     when: always
@@ -545,7 +545,7 @@ win:hierarchy:mono:run:
   tags:
     - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-win-hierarchy"
     when: always
@@ -565,7 +565,7 @@ win:hierarchy:il2cpp:run:
   tags:
     - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-win-hierarchy"
     when: always
@@ -624,7 +624,7 @@ win:rotation:mono:run:
   tags:
     - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-win-rotation"
     when: always
@@ -644,7 +644,7 @@ win:rotation:il2cpp:run:
   tags:
     - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable ECSJobDemos/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-win-rotation"
     when: always

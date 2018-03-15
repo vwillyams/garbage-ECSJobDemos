@@ -1,7 +1,7 @@
 ﻿using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Jobs;
+using Unity.Transforms;
 
 namespace UnityEngine.ECS.SimpleRotation
 {

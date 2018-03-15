@@ -234,7 +234,6 @@ unsafe public struct NativePerThreadCounter
     [NativeContainer]
     [NativeContainerIsAtomicWriteOnly]
     // Let the JobSystem know that it should inject the current worker index into this container
-    [NativeContainerNeedsThreadIndex]
     unsafe public struct Concurrent
     {
         [NativeDisableUnsafePtrRestriction]
@@ -245,6 +244,7 @@ unsafe public struct NativePerThreadCounter
     #endif
 
         // The current worker thread index, it must use this exact name since it is injected
+        [NativeSetThreadIndex]
         int m_ThreadIndex;
 
         public static implicit operator Concurrent (NativePerThreadCounter cnt)

@@ -35,6 +35,7 @@ namespace Samples.Boids
             public float3 obstaclePosition;
             public float  obstacleDistance;
             public float3 targetPosition;
+            public float  targetDistance;
         }
 
         [ComputeJobOptimization]
@@ -63,12 +64,10 @@ namespace Samples.Boids
         [ComputeJobOptimization]
         struct MergeCells : IJobNativeMultiHashMapMergedSharedKeyIndices
         {
-            // Anything with the same firstIndex is gauranteed to be running on the same thread, 
-            // so there is not ParallelFor concurrency issue.
-            [NativeDisableParallelForRestriction] public NativeArray<Cell>                       cells;
-            [NativeDisableParallelForRestriction] public NativeArray<int>                        cellIndices;
-            [NativeDisableParallelForRestriction] [ReadOnly] public ComponentDataArray<Position> targetPositions;
-            [NativeDisableParallelForRestriction] [ReadOnly] public ComponentDataArray<Position> obstaclePositions;
+            public NativeArray<Cell>                       cells;
+            public NativeArray<int>                        cellIndices;
+            [ReadOnly] public ComponentDataArray<Position> targetPositions;
+            [ReadOnly] public ComponentDataArray<Position> obstaclePositions;
             
             void NearestPosition(ComponentDataArray<Position> targets, float3 position, out float3 nearestPosition, out float nearestDistance )
             {
@@ -97,18 +96,8 @@ namespace Samples.Boids
                 {
                     var position = cells[firstIndex].separation / -cells[firstIndex].count;
                     
-                    float3 nearestObstaclePosition;
-                    float   nearestObstacleDistance;
-                    NearestPosition(obstaclePositions,position,out nearestObstaclePosition,out nearestObstacleDistance);
-
-                    cell.obstacleDistance = nearestObstacleDistance;
-                    cell.obstaclePosition = nearestObstaclePosition;
-                
-                    float3 nearestTargetPosition;
-                    float  nearestTargetDistance;
-                    NearestPosition(targetPositions,position,out nearestTargetPosition,out nearestTargetDistance);
-                    
-                    cell.targetPosition = nearestTargetPosition;
+                    NearestPosition(obstaclePositions,position,out cell.obstaclePosition,out cell.obstacleDistance);
+                    NearestPosition(targetPositions,position,out cell.targetPosition,out cell.targetDistance);
                 }
                 else
                 {
@@ -144,7 +133,7 @@ namespace Samples.Boids
                 var nearestObstaclePosition           = cells[cellIndex].obstaclePosition;
                 var nearestTargetPosition             = cells[cellIndex].targetPosition;
                 
-                var obstacleSteering                  = (position - nearestObstaclePosition);
+                var obstacleSteering                  = position - nearestObstaclePosition;
                 var avoidObstacleHeading              = (nearestObstaclePosition + math_experimental.normalizeSafe(obstacleSteering) * settings.obstacleAversionDistance)-position;
                 var targetHeading                     = settings.targetWeight * math_experimental.normalizeSafe(nearestTargetPosition - position);
                 var nearestObstacleDistanceFromRadius = nearestObstacleDistance - settings.obstacleAversionDistance;
@@ -175,15 +164,16 @@ namespace Samples.Boids
             {
                 var settings = m_UniqueTypes[typeIndex];
                 m_BoidGroup.SetFilter(settings);
-                var positions = m_BoidGroup.GetComponentDataArray<Position>();
-                var headings = m_BoidGroup.GetComponentDataArray<Heading>();
+                
+                var positions         = m_BoidGroup.GetComponentDataArray<Position>();
+                var headings          = m_BoidGroup.GetComponentDataArray<Heading>();
                 var transformMatrices = m_BoidGroup.GetComponentDataArray<TransformMatrix>();
 
-                var cacheIndex = typeIndex - 1;
-                var boidCount = positions.Length;
-                var cells = new NativeArray<Cell>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
+                var cacheIndex  = typeIndex - 1;
+                var boidCount   = positions.Length;
+                var cells       = new NativeArray<Cell>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
                 var cellIndices = new NativeArray<int>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
-                var hashMap = new NativeMultiHashMap<int,int>(boidCount,Allocator.TempJob);
+                var hashMap     = new NativeMultiHashMap<int,int>(boidCount,Allocator.TempJob);
 
                 var nextCells = new PrevCells
                 {

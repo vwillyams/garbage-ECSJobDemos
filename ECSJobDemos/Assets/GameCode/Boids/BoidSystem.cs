@@ -23,32 +23,15 @@ namespace UnityEngine.ECS.Boids
         {
             public int boidCount;
             public NativeMultiHashMap<int, int> hashMap;
-            public NativeArray<float> neighborCount;
-            public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
+            public NativeArray<Cell> cells;
             public NativeArray<int> cellIndices;
         }
 
-        struct AlignmentSeparation
+        struct Cell
         {
             public float3 alignment;
             public float3 separation;
-        }
-
-        struct PositionHash : IEquatable<PositionHash>
-        {
-            public float3 Position;
-            public int    Hash;
-
-            public PositionHash(float3 position, int hash)
-            {
-                Position = position;
-                Hash = hash;
-            }
-
-            public bool Equals(PositionHash other)
-            {
-                return Hash == other.Hash;
-            }
+            public float  count;
         }
 
         [ComputeJobOptimization]
@@ -57,8 +40,7 @@ namespace UnityEngine.ECS.Boids
             [ReadOnly] public ComponentDataArray<Position> positions;
             [ReadOnly] public ComponentDataArray<Heading>  headings;
             public NativeMultiHashMap<int, int>.Concurrent hashMap;
-            public NativeArray<float>                      neighborCount;
-            public NativeArray<AlignmentSeparation>        cellAlignmentSeparation;
+            public NativeArray<Cell>                       cells;
             public float                                   cellRadius;
 
             public void Execute(int index)
@@ -66,9 +48,9 @@ namespace UnityEngine.ECS.Boids
                 var position = positions[index].Value;
                 var hash = GridHash.Hash(position, cellRadius);
                 hashMap.Add(hash, index);
-                neighborCount[index] = 1;
-                cellAlignmentSeparation[index] = new AlignmentSeparation
+                cells[index] = new Cell
                 {
+                    count = 1,
                     alignment = headings[index].Value,
                     separation = -position
                 };
@@ -76,12 +58,11 @@ namespace UnityEngine.ECS.Boids
         }
 
         [ComputeJobOptimization]
-        struct Cells : IJobNativeMultiHashMapMergedSharedKeyIndices
+        struct MergeCells : IJobNativeMultiHashMapMergedSharedKeyIndices
         {
             // Anything with the same firstIndex is gauranteed to be running on the same thread, 
             // so there is not ParallelFor concurrency issue.
-            [NativeDisableParallelForRestriction] public NativeArray<float> neighborCount;
-            [NativeDisableParallelForRestriction] public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
+            [NativeDisableParallelForRestriction] public NativeArray<Cell> cells;
             [NativeDisableParallelForRestriction] public NativeArray<int> cellIndices;
 
             public void Execute(int firstIndex, int index)
@@ -89,11 +70,11 @@ namespace UnityEngine.ECS.Boids
                 cellIndices[index] = firstIndex;
                 if (firstIndex != index)
                 {
-                    neighborCount[firstIndex] += 1.0f;
-                    cellAlignmentSeparation[firstIndex] = new AlignmentSeparation
+                    cells[firstIndex] = new Cell
                     {
-                        alignment = cellAlignmentSeparation[firstIndex].alignment + cellAlignmentSeparation[index].alignment,
-                        separation = cellAlignmentSeparation[firstIndex].separation + cellAlignmentSeparation[index].separation
+                        count = cells[firstIndex].count + 1.0f,
+                        alignment = cells[firstIndex].alignment + cells[index].alignment,
+                        separation = cells[firstIndex].separation + cells[index].separation
                     };
                 }
             }
@@ -103,8 +84,7 @@ namespace UnityEngine.ECS.Boids
         struct Steer : IJobParallelFor
         {
             [ReadOnly] public NativeArray<int>                 cellIndices;
-            [ReadOnly] public NativeArray<AlignmentSeparation> cellAlignmentSeparation;
-            [ReadOnly] public NativeArray<float>               neighborCount;
+            [ReadOnly] public NativeArray<Cell> cells;
             [ReadOnly] public NativeArray<Position>            targetPositions;
             [ReadOnly] public NativeArray<Position>            obstaclePositions;
             [ReadOnly] public Boid                             settings;
@@ -137,9 +117,9 @@ namespace UnityEngine.ECS.Boids
                 var forward              = headings[index].Value;
                 var position             = positions[index].Value;
                 var cellIndex            = cellIndices[index];
-                var count                = neighborCount[cellIndex];
-                var cellAlignment        = cellAlignmentSeparation[cellIndex].alignment;
-                var cellSeparation       = cellAlignmentSeparation[cellIndex].separation;
+                var count                = cells[cellIndex].count;
+                var cellAlignment        = cells[cellIndex].alignment;
+                var cellSeparation       = cells[cellIndex].separation;
                 
                 float3 nearestObstaclePosition;
                 float nearestObstacleDistance;
@@ -199,16 +179,14 @@ namespace UnityEngine.ECS.Boids
                 var boidCount = positions.Length;
                 var targetPositions = new NativeArray<Position>(targetSourcePositions.Length, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
                 var obstaclePositions = new NativeArray<Position>(obstacleSourcePositions.Length, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
-                var neighborCount = new NativeArray<float>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
-                var cellAlignmentSeparation = new NativeArray<AlignmentSeparation>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
+                var cells = new NativeArray<Cell>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
                 var cellIndices = new NativeArray<int>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
                 var hashMap = new NativeMultiHashMap<int,int>(boidCount,Allocator.TempJob);
 
                 var nextCells = new PrevCells
                 {
                     boidCount = boidCount,
-                    neighborCount = neighborCount,
-                    cellAlignmentSeparation = cellAlignmentSeparation,
+                    cells = cells,
                     cellIndices = cellIndices,
                     hashMap = hashMap
                 };
@@ -219,8 +197,7 @@ namespace UnityEngine.ECS.Boids
                 }
                 else
                 {
-                    m_PrevCells[cacheIndex].cellAlignmentSeparation.Dispose();
-                    m_PrevCells[cacheIndex].neighborCount.Dispose();
+                    m_PrevCells[cacheIndex].cells.Dispose();
                     m_PrevCells[cacheIndex].cellIndices.Dispose();
                     m_PrevCells[cacheIndex].hashMap.Dispose();
                 }
@@ -231,16 +208,14 @@ namespace UnityEngine.ECS.Boids
                     positions = positions,
                     headings = headings,
                     hashMap = hashMap,
-                    neighborCount = neighborCount,
-                    cellAlignmentSeparation = cellAlignmentSeparation,
+                    cells = cells,
                     cellRadius = settings.cellRadius
                 };
                 var hashPositionsJobHandle = hashPositionsJob.Schedule(boidCount, 64, inputDeps);
 
-                var cellsJob = new Cells
+                var cellsJob = new MergeCells
                 {
-                    neighborCount = neighborCount,
-                    cellAlignmentSeparation = cellAlignmentSeparation,
+                    cells = cells,
                     cellIndices = cellIndices,
                 };
                 var cellsJobHandle = cellsJob.Schedule(hashMap,64,hashPositionsJobHandle);
@@ -264,8 +239,7 @@ namespace UnityEngine.ECS.Boids
                 var steerJob = new Steer
                 {
                     cellIndices = nextCells.cellIndices,
-                    cellAlignmentSeparation = nextCells.cellAlignmentSeparation,
-                    neighborCount = nextCells.neighborCount,
+                    cells = nextCells.cells,
                     targetPositions = targetPositions,
                     obstaclePositions = obstaclePositions,
                     settings = settings,
@@ -312,8 +286,7 @@ namespace UnityEngine.ECS.Boids
         {
             for (int i = 0; i < m_PrevCells.Count; i++)
             {
-                m_PrevCells[i].cellAlignmentSeparation.Dispose();
-                m_PrevCells[i].neighborCount.Dispose();
+                m_PrevCells[i].cells.Dispose();
                 m_PrevCells[i].cellIndices.Dispose();
                 m_PrevCells[i].hashMap.Dispose();
             }

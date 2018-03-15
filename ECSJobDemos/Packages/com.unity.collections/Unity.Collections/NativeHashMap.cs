@@ -28,7 +28,7 @@ namespace Unity.Collections
         public int				bucketCapacityMask; // = bucket capacity - 1
         // Add padding between fields to ensure they are on separate cache-lines
         private fixed byte 		padding1[60];
-        public fixed int firstFreeTLS[JobsUtility.MaxJobThreadCount * IntsPerCacheLine];
+        public fixed int        firstFreeTLS[JobsUtility.MaxJobThreadCount * IntsPerCacheLine];
         public int				allocatedIndexLength;
 
         // 64 is the cache line size on x86, arm usually has 32 - so it is possible to save some memory there
@@ -47,8 +47,7 @@ namespace Unity.Collections
             return capacity * 2;
         }
 
-
-        public unsafe static void AllocateHashMap<TKey, TValue>(int length, int bucketLength, Allocator label, out NativeHashMapData* outBuf)
+        public static void AllocateHashMap<TKey, TValue>(int length, int bucketLength, Allocator label, out NativeHashMapData* outBuf)
             where TKey : struct
             where TValue : struct
         {
@@ -76,7 +75,8 @@ namespace Unity.Collections
 
             outBuf = data;
         }
-        public unsafe static void ReallocateHashMap<TKey, TValue>(NativeHashMapData* data, int newCapacity, int newBucketCapacity, Allocator label)
+        
+        public static void ReallocateHashMap<TKey, TValue>(NativeHashMapData* data, int newCapacity, int newBucketCapacity, Allocator label)
             where TKey : struct
             where TValue : struct
         {
@@ -86,7 +86,7 @@ namespace Unity.Collections
                 return;
 
             if (data->capacity > newCapacity)
-                throw new System.Exception("Shrinking a hash map is not supported");
+                throw new Exception("Shrinking a hash map is not supported");
 
             int keyOffset, nextOffset, bucketOffset;
             int totalSize = CalculateDataSize<TKey, TValue>(newCapacity, newBucketCapacity, out keyOffset, out nextOffset, out bucketOffset);
@@ -130,7 +130,7 @@ namespace Unity.Collections
             data->capacity = newCapacity;
             data->bucketCapacityMask = newBucketCapacity - 1;
         }
-        public unsafe static void DeallocateHashMap(NativeHashMapData* data, Allocator allocation)
+        public static void DeallocateHashMap(NativeHashMapData* data, Allocator allocation)
         {
             UnsafeUtility.Free (data->values, allocation);
             data->values = null;
@@ -139,7 +139,7 @@ namespace Unity.Collections
             data->buckets = null;
             UnsafeUtility.Free (data, allocation);
         }
-        static private int CalculateDataSize<TKey, TValue>(int length, int bucketLength, out int keyOffset, out int nextOffset, out int bucketOffset)
+        private static int CalculateDataSize<TKey, TValue>(int length, int bucketLength, out int keyOffset, out int nextOffset, out int bucketOffset)
             where TKey : struct
             where TValue : struct
         {
@@ -163,10 +163,10 @@ namespace Unity.Collections
 
     [StructLayout (LayoutKind.Sequential)]
     internal struct NativeHashMapBase<TKey, TValue>
-        where TKey : struct, System.IEquatable<TKey>
+        where TKey : struct, IEquatable<TKey>
         where TValue : struct
     {
-        static unsafe public void Clear(NativeHashMapData* data)
+        public static unsafe void Clear(NativeHashMapData* data)
         {
             int* buckets = (int*)data->buckets;
             for (int i = 0; i <= data->bucketCapacityMask; ++i)
@@ -179,7 +179,7 @@ namespace Unity.Collections
             data->allocatedIndexLength = 0;
         }
 
-        static unsafe private int AllocEntry(NativeHashMapData* data, int threadIndex)
+        private static unsafe int AllocEntry(NativeHashMapData* data, int threadIndex)
         {
             int idx;
             int* nextPtrs = (int*)data->next;
@@ -231,14 +231,15 @@ namespace Unity.Collections
                             }
                         }
                     }
-                    throw new System.InvalidOperationException("HashMap is full");
+                    throw new InvalidOperationException("HashMap is full");
                 }
             }
             while (Interlocked.CompareExchange(ref data->firstFreeTLS[threadIndex * NativeHashMapData.IntsPerCacheLine], nextPtrs[idx], idx) != idx);
             nextPtrs[idx] = -1;
             return idx;
         }
-        static unsafe public bool TryAddAtomic(NativeHashMapData* data, TKey key, TValue item, int threadIndex)
+        
+        public static unsafe bool TryAddAtomic(NativeHashMapData* data, TKey key, TValue item, int threadIndex)
         {
             TValue tempItem;
             NativeMultiHashMapIterator<TKey> tempIt;
@@ -277,7 +278,7 @@ namespace Unity.Collections
             return true;
         }
 
-        static unsafe public bool TryAddAtomicMulti(NativeHashMapData* data, TKey key, TValue item, int threadIndex)
+        public static unsafe void AddAtomicMulti(NativeHashMapData* data, TKey key, TValue item, int threadIndex)
         {
             // Allocate an entry from the free list
             int idx = AllocEntry(data, threadIndex);
@@ -298,12 +299,9 @@ namespace Unity.Collections
                 nextPtrs[idx] = nextPtr;
             }
             while (Interlocked.CompareExchange(ref buckets[bucket], idx, nextPtr) != nextPtr);
-
-
-            return true;
         }
 
-        static unsafe public bool TryAdd(NativeHashMapData* data, TKey key, TValue item, bool isMultiHashMap, Allocator allocation)
+        public static unsafe bool TryAdd(NativeHashMapData* data, TKey key, TValue item, bool isMultiHashMap, Allocator allocation)
         {
             TValue tempItem;
             NativeMultiHashMapIterator<TKey> tempIt;
@@ -342,7 +340,7 @@ namespace Unity.Collections
                 idx = data->allocatedIndexLength++;
 
             if (idx < 0 || idx >= data->capacity)
-                throw new System.InvalidOperationException("Internal HashMap error");
+                throw new InvalidOperationException("Internal HashMap error");
 
             // Write the new value to the entry
             UnsafeUtility.WriteArrayElement (data->keys, idx, key);
@@ -359,7 +357,7 @@ namespace Unity.Collections
             return true;
         }
 
-        static unsafe public void Remove(NativeHashMapData* data, TKey key, bool isMultiHashMap)
+        public static unsafe void Remove(NativeHashMapData* data, TKey key, bool isMultiHashMap)
         {
             // First find the slot based on the hash
             int* buckets = (int*)data->buckets;
@@ -393,7 +391,8 @@ namespace Unity.Collections
                 }
             }
         }
-        static unsafe public void Remove(NativeHashMapData* data, NativeMultiHashMapIterator<TKey> it)
+        
+        public static unsafe void Remove(NativeHashMapData* data, NativeMultiHashMapIterator<TKey> it)
         {
             // First find the slot based on the hash
             int* buckets = (int*)data->buckets;
@@ -418,7 +417,7 @@ namespace Unity.Collections
             data->firstFreeTLS[0] = it.EntryIndex;
         }
 
-        static unsafe public bool TryGetFirstValueAtomic(NativeHashMapData* data, TKey key, out TValue item, out NativeMultiHashMapIterator<TKey> it)
+        public static unsafe bool TryGetFirstValueAtomic(NativeHashMapData* data, TKey key, out TValue item, out NativeMultiHashMapIterator<TKey> it)
         {
             it.key = key;
             if (data->allocatedIndexLength <= 0)
@@ -434,7 +433,7 @@ namespace Unity.Collections
             return TryGetNextValueAtomic(data, out item, ref it);
         }
 
-        static unsafe public bool TryGetNextValueAtomic(NativeHashMapData* data, out TValue item, ref NativeMultiHashMapIterator<TKey> it)
+        public static unsafe bool TryGetNextValueAtomic(NativeHashMapData* data, out TValue item, ref NativeMultiHashMapIterator<TKey> it)
         {
             int entryIdx = it.NextEntryIndex;
             it.NextEntryIndex = -1;
@@ -458,7 +457,7 @@ namespace Unity.Collections
             return true;
         }
 
-        static unsafe public bool SetValue(NativeHashMapData* data, ref NativeMultiHashMapIterator<TKey> it, ref TValue item)
+        public static unsafe bool SetValue(NativeHashMapData* data, ref NativeMultiHashMapIterator<TKey> it, ref TValue item)
         {
             int entryIdx = it.EntryIndex;
             if (entryIdx < 0 || entryIdx >= data->capacity)
@@ -473,7 +472,7 @@ namespace Unity.Collections
     [StructLayout (LayoutKind.Sequential)]
     [NativeContainer]
     public unsafe struct NativeHashMap<TKey, TValue>
-        where TKey : struct, System.IEquatable<TKey>
+        where TKey : struct, IEquatable<TKey>
         where TValue : struct
     {
         [NativeDisableUnsafePtrRestriction]
@@ -487,7 +486,7 @@ namespace Unity.Collections
 
         Allocator 				m_AllocatorLabel;
 
-        public unsafe NativeHashMap(int capacity, Allocator label)
+        public NativeHashMap(int capacity, Allocator label)
         {
             m_AllocatorLabel = label;
             // Bucket size if bigger to reduce collisions
@@ -500,7 +499,7 @@ namespace Unity.Collections
             Clear();
         }
 
-        unsafe public int Length
+        public int Length
         {
             get
             {
@@ -508,7 +507,7 @@ namespace Unity.Collections
                 AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 #endif
 
-                NativeHashMapData* data = (NativeHashMapData*)m_Buffer;
+                NativeHashMapData* data = m_Buffer;
                 int* nextPtrs = (int*)data->next;
                 int freeListSize = 0;
                 for (int tls = 0; tls < JobsUtility.MaxJobThreadCount; ++tls)
@@ -517,7 +516,8 @@ namespace Unity.Collections
                 return Math.Min(data->capacity, data->allocatedIndexLength) - freeListSize;
             }
         }
-        unsafe public int Capacity
+        
+        public int Capacity
         {
             get
             {
@@ -525,7 +525,7 @@ namespace Unity.Collections
                 AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 #endif
 
-                NativeHashMapData* data = (NativeHashMapData*)m_Buffer;
+                NativeHashMapData* data = m_Buffer;
                 return data->capacity;
             }
             set
@@ -534,12 +534,12 @@ namespace Unity.Collections
                 AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
 
-                NativeHashMapData* data = (NativeHashMapData*)m_Buffer;
+                NativeHashMapData* data = m_Buffer;
                 NativeHashMapData.ReallocateHashMap<TKey, TValue>(data, value, NativeHashMapData.GetBucketSize(value), m_AllocatorLabel);
             }
         }
 
-        unsafe public void Clear()
+        public void Clear()
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
@@ -547,7 +547,7 @@ namespace Unity.Collections
             NativeHashMapBase<TKey, TValue>.Clear((NativeHashMapData*)m_Buffer);
         }
 
-        unsafe public bool TryAdd(TKey key, TValue item)
+        public bool TryAdd(TKey key, TValue item)
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
@@ -555,7 +555,7 @@ namespace Unity.Collections
             return NativeHashMapBase<TKey, TValue>.TryAdd((NativeHashMapData*)m_Buffer, key, item, false, m_AllocatorLabel);
         }
 
-        unsafe public void Remove(TKey key)
+        public void Remove(TKey key)
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
@@ -563,7 +563,7 @@ namespace Unity.Collections
             NativeHashMapBase<TKey, TValue>.Remove((NativeHashMapData*)m_Buffer, key, false);
         }
 
-        unsafe public bool TryGetValue(TKey key, out TValue item)
+        public bool TryGetValue(TKey key, out TValue item)
         {
             NativeMultiHashMapIterator<TKey> tempIt;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -590,7 +590,7 @@ namespace Unity.Collections
 
         [NativeContainer]
         [NativeContainerIsAtomicWriteOnly]
-        unsafe public struct Concurrent
+        public struct Concurrent
         {
             [NativeDisableUnsafePtrRestriction]
             NativeHashMapData* 	m_Buffer;
@@ -602,9 +602,9 @@ namespace Unity.Collections
             [NativeSetThreadIndex]
             int m_ThreadIndex;
 
-            unsafe public static implicit operator NativeHashMap<TKey, TValue>.Concurrent (NativeHashMap<TKey, TValue> hashMap)
+            public static implicit operator Concurrent (NativeHashMap<TKey, TValue> hashMap)
             {
-                NativeHashMap<TKey, TValue>.Concurrent concurrent;
+                Concurrent concurrent;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 concurrent.m_Safety = hashMap.m_Safety;
 #endif
@@ -614,7 +614,7 @@ namespace Unity.Collections
                 return concurrent;
             }
 
-            unsafe public int Capacity
+            public int Capacity
             {
                 get
                 {
@@ -622,18 +622,18 @@ namespace Unity.Collections
                     AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 #endif
 
-                    NativeHashMapData* data = (NativeHashMapData*)m_Buffer;
+                    NativeHashMapData* data = m_Buffer;
                     return data->capacity;
                 }
             }
 
 
-            unsafe public bool TryAdd(TKey key, TValue item)
+            public bool TryAdd(TKey key, TValue item)
             {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
-                return NativeHashMapBase<TKey, TValue>.TryAddAtomic((NativeHashMapData*)m_Buffer, key, item, m_ThreadIndex);
+                return NativeHashMapBase<TKey, TValue>.TryAddAtomic(m_Buffer, key, item, m_ThreadIndex);
             }
         }
     }
@@ -641,8 +641,8 @@ namespace Unity.Collections
     
     [StructLayout (LayoutKind.Sequential)]
     [NativeContainer]
-    unsafe public struct NativeMultiHashMap<TKey, TValue>
-        where TKey : struct, System.IEquatable<TKey>
+    public unsafe struct NativeMultiHashMap<TKey, TValue>
+        where TKey : struct, IEquatable<TKey>
         where TValue : struct
     {
         [NativeDisableUnsafePtrRestriction]
@@ -669,7 +669,7 @@ namespace Unity.Collections
             Clear();
         }
 
-        unsafe public int Length
+        public int Length
         {
             get
             {
@@ -677,7 +677,7 @@ namespace Unity.Collections
                 AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 #endif
 
-                NativeHashMapData* data = (NativeHashMapData*)m_Buffer;
+                NativeHashMapData* data = m_Buffer;
                 int* nextPtrs = (int*)data->next;
                 int freeListSize = 0;
                 for (int tls = 0; tls < JobsUtility.MaxJobThreadCount; ++tls)
@@ -686,7 +686,8 @@ namespace Unity.Collections
                 return Math.Min(data->capacity, data->allocatedIndexLength) - freeListSize;
             }
         }
-        unsafe public int Capacity
+        
+        public int Capacity
         {
             get
             {
@@ -694,7 +695,7 @@ namespace Unity.Collections
                 AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 #endif
 
-                NativeHashMapData* data = (NativeHashMapData*)m_Buffer;
+                NativeHashMapData* data = m_Buffer;
                 return data->capacity;
             }
             set
@@ -703,64 +704,65 @@ namespace Unity.Collections
                 AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
 
-                NativeHashMapData* data = (NativeHashMapData*)m_Buffer;
+                NativeHashMapData* data = m_Buffer;
                 NativeHashMapData.ReallocateHashMap<TKey, TValue>(data, value, NativeHashMapData.GetBucketSize(value), m_AllocatorLabel);
             }
         }
 
-        unsafe public void Clear()
+        public void Clear()
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
-            NativeHashMapBase<TKey, TValue>.Clear((NativeHashMapData*)m_Buffer);
+            NativeHashMapBase<TKey, TValue>.Clear(m_Buffer);
         }
 
-        unsafe public void Add(TKey key, TValue item)
+        public void Add(TKey key, TValue item)
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
-            NativeHashMapBase<TKey, TValue>.TryAdd((NativeHashMapData*)m_Buffer, key, item, true, m_AllocatorLabel);
+            NativeHashMapBase<TKey, TValue>.TryAdd(m_Buffer, key, item, true, m_AllocatorLabel);
         }
 
-        unsafe public void Remove(TKey key)
+        public void Remove(TKey key)
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
-            NativeHashMapBase<TKey, TValue>.Remove((NativeHashMapData*)m_Buffer, key, true);
+            NativeHashMapBase<TKey, TValue>.Remove(m_Buffer, key, true);
         }
-        unsafe public void Remove(NativeMultiHashMapIterator<TKey> it)
+        
+        public void Remove(NativeMultiHashMapIterator<TKey> it)
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
-            NativeHashMapBase<TKey, TValue>.Remove((NativeHashMapData*)m_Buffer, it);
+            NativeHashMapBase<TKey, TValue>.Remove(m_Buffer, it);
         }
 
-        unsafe public bool TryGetFirstValue(TKey key, out TValue item, out NativeMultiHashMapIterator<TKey> it)
+        public bool TryGetFirstValue(TKey key, out TValue item, out NativeMultiHashMapIterator<TKey> it)
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 #endif
-            return NativeHashMapBase<TKey, TValue>.TryGetFirstValueAtomic((NativeHashMapData*)m_Buffer, key, out item, out it);
+            return NativeHashMapBase<TKey, TValue>.TryGetFirstValueAtomic(m_Buffer, key, out item, out it);
         }
 
-        unsafe public bool TryGetNextValue(out TValue item, ref NativeMultiHashMapIterator<TKey> it)
+        public bool TryGetNextValue(out TValue item, ref NativeMultiHashMapIterator<TKey> it)
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
 #endif
-            return NativeHashMapBase<TKey, TValue>.TryGetNextValueAtomic((NativeHashMapData*)m_Buffer, out item, ref it);
+            return NativeHashMapBase<TKey, TValue>.TryGetNextValueAtomic(m_Buffer, out item, ref it);
         }
 
-        unsafe public bool SetValue(TValue item, NativeMultiHashMapIterator<TKey> it)
+        public bool SetValue(TValue item, NativeMultiHashMapIterator<TKey> it)
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
-            return NativeHashMapBase<TKey, TValue>.SetValue((NativeHashMapData*)m_Buffer, ref it, ref item);
+            return NativeHashMapBase<TKey, TValue>.SetValue(m_Buffer, ref it, ref item);
         }
 
 
@@ -769,7 +771,7 @@ namespace Unity.Collections
             get { return m_Buffer != null; }
         }
 
-        unsafe public void Dispose()
+        public void Dispose()
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             DisposeSentinel.Dispose(m_Safety, ref m_DisposeSentinel);
@@ -781,10 +783,10 @@ namespace Unity.Collections
 
         [NativeContainer]
         [NativeContainerIsAtomicWriteOnly]
-        unsafe public struct Concurrent
+        public struct Concurrent
         {
             [NativeDisableUnsafePtrRestriction]
-            internal NativeHashMapData* 	m_Buffer;
+            NativeHashMapData* 	m_Buffer;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             AtomicSafetyHandle m_Safety;
@@ -793,7 +795,7 @@ namespace Unity.Collections
             [NativeSetThreadIndex]
             int m_ThreadIndex;
 
-            unsafe public static implicit operator NativeMultiHashMap<TKey, TValue>.Concurrent (NativeMultiHashMap<TKey, TValue> multiHashMap)
+            public static implicit operator NativeMultiHashMap<TKey, TValue>.Concurrent (NativeMultiHashMap<TKey, TValue> multiHashMap)
             {
                 NativeMultiHashMap<TKey, TValue>.Concurrent concurrent;
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -805,7 +807,7 @@ namespace Unity.Collections
                 return concurrent;
             }
 
-            unsafe public int Capacity
+            public int Capacity
             {
                 get
                 {
@@ -818,12 +820,12 @@ namespace Unity.Collections
                 }
             }
 
-            unsafe public void Add(TKey key, TValue item)
+            public void Add(TKey key, TValue item)
             {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
                 AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
-                NativeHashMapBase<TKey, TValue>.TryAddAtomicMulti((NativeHashMapData*)m_Buffer, key, item, m_ThreadIndex);
+                NativeHashMapBase<TKey, TValue>.AddAtomicMulti((NativeHashMapData*)m_Buffer, key, item, m_ThreadIndex);
             }
         }
     }
@@ -837,7 +839,7 @@ namespace Unity.Collections
     {
         public struct NativeMultiHashMapUniqueHashJobStruct<TJob,TKey>
             where TJob : struct, IJobNativeMultiHashMapMergedSharedKeyIndices
-            where TKey : struct, System.IEquatable<TKey>
+            where TKey : struct, IEquatable<TKey>
         {
             public struct JobMultiHashMap
             {
@@ -845,7 +847,7 @@ namespace Unity.Collections
                 public TJob JobData;
             }
 
-            static public IntPtr jobReflectionData;
+            public static IntPtr jobReflectionData;
 
             public static IntPtr Initialize()
             {
@@ -854,8 +856,8 @@ namespace Unity.Collections
                 return jobReflectionData;
             }
 
-            public delegate void ExecuteJobFunction(ref JobMultiHashMap fullData, System.IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
-            public unsafe static void Execute(ref JobMultiHashMap fullData, System.IntPtr additionalPtr, System.IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
+            public delegate void ExecuteJobFunction(ref JobMultiHashMap fullData, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex);
+            public unsafe static void Execute(ref JobMultiHashMap fullData, IntPtr additionalPtr, IntPtr bufferRangePatchData, ref JobRanges ranges, int jobIndex)
             {
                 while (true)
                 {
@@ -880,13 +882,12 @@ namespace Unity.Collections
                         int entryIndex = buckets[i];
                         while (entryIndex != -1)
                         {
-                            TKey   key = UnsafeUtility.ReadArrayElement<TKey>(keys, entryIndex);
+                            TKey   key   = UnsafeUtility.ReadArrayElement<TKey>(keys, entryIndex);
+                            int    value = UnsafeUtility.ReadArrayElement<int>(values, entryIndex);
                             int    firstValue;
                             NativeMultiHashMapIterator<TKey> it;
-
-                            fullData.HashMap.TryGetFirstValue(key, out firstValue, out it);
                             
-                            int value = UnsafeUtility.ReadArrayElement<int>(values, entryIndex);
+                            fullData.HashMap.TryGetFirstValue(key, out firstValue, out it);
                             fullData.JobData.Execute(firstValue, value);
                             
                             entryIndex = nextPtrs[entryIndex];
@@ -896,9 +897,9 @@ namespace Unity.Collections
             }
         }
 
-        unsafe static public JobHandle Schedule<TJob,TKey>(this TJob jobData, NativeMultiHashMap<TKey,int> hashMap, int minIndicesPerJobCount, JobHandle dependsOn = new JobHandle())
+        unsafe public static JobHandle Schedule<TJob,TKey>(this TJob jobData, NativeMultiHashMap<TKey,int> hashMap, int minIndicesPerJobCount, JobHandle dependsOn = new JobHandle())
             where TJob : struct, IJobNativeMultiHashMapMergedSharedKeyIndices
-            where TKey : struct, System.IEquatable<TKey>
+            where TKey : struct, IEquatable<TKey>
         {
             var fullData = new NativeMultiHashMapUniqueHashJobStruct<TJob, TKey>.JobMultiHashMap
             {

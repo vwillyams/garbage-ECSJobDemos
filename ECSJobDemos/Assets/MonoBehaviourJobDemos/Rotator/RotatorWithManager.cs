@@ -24,7 +24,7 @@ namespace RotatorSamples
 		{
 			Assert.AreEqual(0, m_Speeds.Length);
 			m_Transforms.Dispose();
-			m_Speeds.Dispose();		
+			m_Speeds.Dispose();
 		}
 
 		protected override void OnUpdate()
@@ -43,7 +43,7 @@ namespace RotatorSamples
 			m_Job.Complete();
 			m_Speeds.Add(speed);
 			m_Transforms.Add(transform);
-			return m_Transforms.Length - 1;
+			return m_Transforms.length - 1;
 		}
 
 		public void SetSpeed(int index, float speed)
@@ -55,7 +55,7 @@ namespace RotatorSamples
 		public void Remove(RotatorWithManager rotator)
 		{
 			m_Job.Complete();
-			var lastRotator = m_Transforms[m_Transforms.Length - 1].GetComponent<RotatorWithManager> ();
+			var lastRotator = m_Transforms[m_Transforms.length - 1].GetComponent<RotatorWithManager> ();
 			lastRotator.m_Index = rotator.m_Index;
 
 			m_Speeds.RemoveAtSwapBack (rotator.m_Index);

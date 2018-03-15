@@ -43,8 +43,8 @@ https://youtu.be/tGmnZdY5Y-E
 
 > Note: This is compatible with the "stable" branch of ECSJobDemos. The ECSJobDemo is no longer required to create a new ECS project as the required packages are all published now.
 
-https://beta.unity3d.com/download/d72c02f07cbd/download.html
-unity source code revision: d72c02f07cbd branch: 2018.1/scripting/jobsystem/playground
+https://beta.unity3d.com/download/bb977278560e/download.html
+unity source code revision: bb977278560e branch: 2018.1/scripting/jobsystem/playground
 
 ## Active development against master
 

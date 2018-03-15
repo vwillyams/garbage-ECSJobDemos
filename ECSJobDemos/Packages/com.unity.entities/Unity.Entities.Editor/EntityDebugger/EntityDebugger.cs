@@ -1,9 +1,5 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Runtime.InteropServices;
-using Unity.Entities;
-using Unity.Entities.Properties;
 using UnityEditor;
 using UnityEngine;
 using UnityEditor.IMGUI.Controls;
@@ -43,6 +39,7 @@ namespace Unity.Entities.Editor
             {
                 systemSelection = value;
                 CreateComponentGroupListView();
+                componentGroupListView.TouchSelection();
             }
         }
 
@@ -55,6 +52,7 @@ namespace Unity.Entities.Editor
             {
                 componentGroupSelection = value;
                 entityListView.SelectedComponentGroup = value;
+                entityListView.TouchSelection();
             }
         }
 
@@ -65,9 +63,10 @@ namespace Unity.Entities.Editor
             get { return selectionProxy.Entity; }
             set
             {
-                if (value != Entity.Null)
+                var entityManager = WorldSelection?.GetExistingManager<EntityManager>();
+                if (value != Entity.Null && entityManager != null)
                 {
-                    selectionProxy.SetEntity(WorldSelection.GetExistingManager<EntityManager>(), value);
+                    selectionProxy.SetEntity(entityManager, value);
                     Selection.activeObject = selectionProxy;
                 }
                 else if (Selection.activeObject == selectionProxy)
@@ -108,7 +107,12 @@ namespace Unity.Entities.Editor
         
         public World WorldSelection
         {
-            get { return worldSelection; }
+            get
+            {
+                if (worldSelection != null && worldSelection.IsCreated)
+                    return worldSelection;
+                return null;
+            }
             set
             {
                 if (worldSelection != value)
@@ -116,7 +120,10 @@ namespace Unity.Entities.Editor
                     worldSelection = value;
                     if (worldSelection != null)
                         lastSelectedWorldName = worldSelection.Name;
+                    
                     CreateSystemListView();
+                    systemListView.multiColumnHeader.ResizeToFit();
+                    systemListView.TouchSelection();
                 }
             }
         }
@@ -128,7 +135,7 @@ namespace Unity.Entities.Editor
 
         private void CreateSystemListView()
         {
-            systemListView = SystemListView.CreateList(WorldSelection, systemListStates, systemListStateNames, this);
+            systemListView = SystemListView.CreateList(systemListStates, systemListStateNames, this);
         }
 
         private void CreateComponentGroupListView()
@@ -149,18 +156,16 @@ namespace Unity.Entities.Editor
             }
         }
 
-        private bool worldsExist;
-
         private readonly string[] noWorldsName = new[] {"No worlds"};
-        private bool worldsAppeared;
 
         void OnEnable()
         {
             selectionProxy = ScriptableObject.CreateInstance<EntitySelectionProxy>();
             selectionProxy.hideFlags = HideFlags.HideAndDontSave;
-            CreateEntityListView();
             CreateSystemListView();
             CreateComponentGroupListView();
+            CreateEntityListView();
+            systemListView.TouchSelection();
             EditorApplication.playModeStateChanged += OnPlayModeStateChange;
         }
 
@@ -182,7 +187,7 @@ namespace Unity.Entities.Editor
         
         void Update() 
         { 
-            if (EditorApplication.isPlaying && Time.time > lastUpdate + 0.5f) 
+            if (Time.realtimeSinceStartup > lastUpdate + 0.5f) 
             { 
                 Repaint(); 
             } 
@@ -190,7 +195,7 @@ namespace Unity.Entities.Editor
 
         void WorldPopup()
         {
-            if (!worldsExist)
+            if (World.AllWorlds.Count == 0)
             {
                 var guiEnabled = GUI.enabled;
                 GUI.enabled = false;
@@ -199,7 +204,7 @@ namespace Unity.Entities.Editor
             }
             else
             {
-                if (worldsAppeared && WorldSelection == null)
+                if (WorldSelection == null || !WorldSelection.IsCreated)
                 {
                     SelectWorldByName(lastSelectedWorldName);
                     if (WorldSelection == null)
@@ -214,10 +219,10 @@ namespace Unity.Entities.Editor
         void SystemList()
         {
             var rect = GUIHelpers.GetExpandingRect();
-            if (worldsExist)
+            if (World.AllWorlds.Count != 0)
             {
-                if (worldsAppeared)
-                    systemListView.multiColumnHeader.ResizeToFit();
+                if (repainted)
+                    systemListView.UpdateIfNecessary();
                 systemListView.OnGUI(rect);
             }
             else
@@ -228,7 +233,6 @@ namespace Unity.Entities.Editor
 
         void SystemHeader()
         {
-
             GUILayout.BeginHorizontal();
             GUILayout.Label("Systems", EditorStyles.boldLabel);
             GUILayout.FlexibleSpace();
@@ -248,13 +252,12 @@ namespace Unity.Entities.Editor
                 var type = SystemSelection.GetType();
                 AlignHeader(() => GUILayout.Label(type.Namespace, EditorStyles.label));
                 GUILayout.Label(type.Name, EditorStyles.boldLabel);
-                if (SystemSelection is ComponentSystemBase)
+                GUILayout.FlexibleSpace();
+                var system = SystemSelection as ComponentSystemBase;
+                if (system != null)
                 {
-                    GUILayout.FlexibleSpace();
-
-                    var system = (ComponentSystemBase) SystemSelection;
                     var running = system.Enabled && system.ShouldRunSystem();
-                    AlignHeader(() => GUILayout.Label($"running: {running}"));
+                    AlignHeader(() => GUILayout.Label($"running: {(running ? "yes" : "no")}"));
                 }
             }
             GUILayout.EndHorizontal();
@@ -277,7 +280,7 @@ namespace Unity.Entities.Editor
             var somethingToShow = showingAllEntities || componentGroupHasEntities;
             if (!somethingToShow)
                 return;
-            if (repainted && EditorApplication.isPlaying)
+            if (repainted)
                 entityListView.RefreshData();
             entityListView.OnGUI(GUIHelpers.GetExpandingRect());
         }
@@ -288,6 +291,14 @@ namespace Unity.Entities.Editor
             GUILayout.Space(6f);
             header();
             GUILayout.EndVertical();
+        }
+
+        private void OnSelectionChange()
+        {
+            if (Selection.activeObject != selectionProxy)
+            {
+                entityListView.SelectNothing();
+            }
         }
 
         private bool repainted = false;
@@ -303,10 +314,6 @@ namespace Unity.Entities.Editor
                 }
             }
 
-            var worldsExisted = worldsExist;
-            worldsExist = World.AllWorlds.Count > 0;
-            worldsAppeared = !worldsExisted && worldsExist;
-            
             GUILayout.BeginHorizontal();
             
             GUILayout.BeginVertical(GUILayout.Width(kSystemListWidth)); // begin System List
@@ -320,18 +327,15 @@ namespace Unity.Entities.Editor
             
             GUILayout.BeginVertical(GUILayout.Width(position.width - kSystemListWidth)); // begin Entity List
 
-            if (EditorApplication.isPlaying)
-            {
-                EntityHeader();
-                ComponentGroupList();
-                EntityList();
-            }
+            EntityHeader();
+            ComponentGroupList();
+            EntityList();
             
             GUILayout.EndVertical(); // end Component List
             
             GUILayout.EndHorizontal();
 
-            lastUpdate = EditorApplication.isPlaying ? 0f : Time.time;
+            lastUpdate = Time.realtimeSinceStartup;
 
             repainted = Event.current.type == EventType.Repaint;
         }

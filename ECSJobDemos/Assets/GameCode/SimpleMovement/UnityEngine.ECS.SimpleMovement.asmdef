@@ -2,6 +2,7 @@
     "name": "UnityEngine.ECS.SimpleMovement",
     "references": [
         "Unity.Entities",
+        "Unity.Entities.Hybrid",
         "Unity.Transforms",
         "Unity.Collections",
         "Unity.Burst",

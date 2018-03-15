@@ -1,7 +1,7 @@
 variables:
-  UNITY_EXECUTABLE_PATH_MAC: "/Applications/Unity-d53f0398f9ca/Unity.app/Contents/MacOS/Unity"
+  UNITY_EXECUTABLE_PATH_MAC: "/Applications/Unity-bb977278560e/Unity.app/Contents/MacOS/Unity"
   UNITY_EXECUTABLE_PATH_LINUX: "/home/builduser/buildslave/unity/build/build/LinuxEditor/Unity"
-  UNITY_EXECUTABLE_PATH_WINDOWS: "C:/Program Files/Unity-d53f0398f9ca/Editor/Unity.exe"
+  UNITY_EXECUTABLE_PATH_WINDOWS: "C:/Program Files/Unity-bb977278560e/Editor/Unity.exe"
 
 stages:
   - test

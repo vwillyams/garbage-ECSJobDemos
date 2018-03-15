@@ -35,6 +35,7 @@ Here is a quick reference of the common classes, interfaces, structs, and attrib
 | Unity.Entities | [ComponentGroup](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/Iterators/ComponentGroup.cs) | Unsafe Class |
 | Unity.Entities | [ComponentSystem](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/ComponentSystem.cs)  | Abstract Class |
 | Unity.Entities | [ComponentType](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/Types/ComponentType.cs)  | Struct |
+| Unity.Entities | [Entity](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/EntityManager.cs)  | Struct |
 | Unity.Entities | [EntityArchetype](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/EntityManager.cs)  | Unsafe Struct |
 | Unity.Entities | [EntityCommandBuffer](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/EntityCommandBuffer.cs)  | Unsafe Struct |
 | Unity.Entities | [EntityManager](../../ECSJobDemos/Packages/com.unity.entities/Unity.Entities/EntityManager.cs)  | Unsafe Class |

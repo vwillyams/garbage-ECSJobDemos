@@ -11,7 +11,7 @@ using Samples.Common;
 
 namespace Samples.Boids
 {
-    [UpdateBefore(typeof(TransformSystem))]
+    [UpdateBefore(typeof(TransformInputBarrier))]
     public class BoidSystem : JobComponentSystem
     {
         private ComponentGroup  m_BoidGroup;
@@ -129,10 +129,9 @@ namespace Samples.Boids
             [ReadOnly] public NativeArray<float>           cellObstacleDistance;
             [ReadOnly] public NativeArray<int>             cellTargetPistionIndex;
             [ReadOnly] public NativeArray<int>             cellCount;
+            [ReadOnly] public ComponentDataArray<Position> positions;
             public float                                   dt;
-            public ComponentDataArray<Position>            positions;
             public ComponentDataArray<Heading>             headings;
-            public ComponentDataArray<TransformMatrix>     transformMatrices;
             
             public void Execute(int index)
             {
@@ -157,12 +156,8 @@ namespace Samples.Boids
                 var normalHeading                     = math_experimental.normalizeSafe(alignmentResult + separationResult + targetHeading);
                 var targetForward                     = math.select(normalHeading, avoidObstacleHeading, nearestObstacleDistanceFromRadius < 0);
                 var nextHeading                       = math_experimental.normalizeSafe(forward + dt*(targetForward-forward));
-                var nextPosition                      = position + (nextHeading * settings.speed * dt);
-                var rottrans                          = math.lookRotationToMatrix(nextPosition, nextHeading, math.up());
                 
                 headings[index]                       = new Heading {Value = nextHeading};
-                positions[index]                      = new Position {Value = nextPosition};
-                transformMatrices[index]              = new TransformMatrix { Value = rottrans };
             }
         }
 
@@ -179,10 +174,8 @@ namespace Samples.Boids
                 var settings = m_UniqueTypes[typeIndex];
                 m_BoidGroup.SetFilter(settings);
                 
-                var positions         = m_BoidGroup.GetComponentDataArray<Position>();
-                var headings          = m_BoidGroup.GetComponentDataArray<Heading>();
-                var transformMatrices = m_BoidGroup.GetComponentDataArray<TransformMatrix>();
-
+                var positions                 = m_BoidGroup.GetComponentDataArray<Position>();
+                var headings                  = m_BoidGroup.GetComponentDataArray<Heading>();
                 var cacheIndex                = typeIndex - 1;
                 var boidCount                 = positions.Length;
                 var cellIndices               = new NativeArray<int>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
@@ -286,7 +279,6 @@ namespace Samples.Boids
                     dt                        = Time.deltaTime,
                     positions                 = positions,
                     headings                  = headings,
-                    transformMatrices         = transformMatrices
                 };
                 var steerJobHandle = steerJob.Schedule(boidCount, 64, mergeCellsJobHandle);
                     
@@ -301,8 +293,7 @@ namespace Samples.Boids
         {
             m_BoidGroup = GetComponentGroup(
                 ComponentType.ReadOnly(typeof(Boid)),
-                typeof(Position),
-                typeof(TransformMatrix),
+                ComponentType.ReadOnly(typeof(Position)),
                 typeof(Heading));
             m_TargetGroup = GetComponentGroup(    
                 ComponentType.ReadOnly(typeof(BoidTarget)),

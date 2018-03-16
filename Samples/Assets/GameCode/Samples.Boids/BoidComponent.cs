@@ -11,7 +11,6 @@ namespace Samples.Boids
         public float alignmentWeight;
         public float targetWeight;
         public float obstacleAversionDistance;
-        public float speed;
     }
 
     public class BoidComponent : SharedComponentDataWrapper<Boid> { }

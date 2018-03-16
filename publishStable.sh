@@ -1,13 +1,13 @@
 #TODO: increment the minor/major version???
 #      maybe a file with a list of pack
-readonly srcBranch="stable"
+readonly srcBranch="master"
 readonly dstBranch="master"
 readonly srcRepoName="ECSJobDemos"
 readonly packagesPath="ECSJobDemos/Packages/"
 readonly srcRepo="https://github.com/Unity-Technologies/$srcRepoName.git"
-readonly dstRepo="https://github.com/Unity-Technologies/EntityComponentSystemSamples.git"
+#readonly dstRepo="https://github.com/Unity-Technologies/EntityComponentSystemSamples.git"
 #readonly dstRepo="git@gitlab.internal.unity3d.com:core/EntityComponentSystemSamples.git"
-#readonly dstRepo="git@gitlab.internal.unity3d.com:fabrizio/ECS.git"
+readonly dstRepo="git@gitlab.internal.unity3d.com:fabrizio/ECS.git"
 
 readonly npmStagingRepo="https://api.bintray.com/npm/unity/unity-staging"
 readonly npmLocalRepo="http://localhost:4873"
@@ -178,7 +178,8 @@ RemoveThisScriptForCommit()
 {
 	git add .
 	git reset -- "`basename $BASH_SOURCE`"
-    git reset -- .gitlab-ci.yml
+	git reset -- .gitlab-ci.yml
+	git rm --cached -r UnstablePrototypes
 }
 
 main()

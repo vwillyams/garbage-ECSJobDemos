@@ -497,35 +497,14 @@ namespace Unity.Entities
             return ptr;
         }
 
-        internal object GetComponentBoxed(Entity entity, ComponentType componentType)
+        internal object GetSharedComponentData(Entity entity, int typeIndex)
         {
-            var ptr = GetComponentDataRaw(entity, componentType.TypeIndex);
+            m_Entities->AssertEntityHasComponent(entity, typeIndex);
 
-            var type = TypeManager.GetType(componentType.TypeIndex);
-            var boxed = Activator.CreateInstance(type);
-
-            ulong gcHandle;
-            byte* boxedPtr = (byte*)UnsafeUtility.PinGCObjectAndGetAddress(boxed, out gcHandle);
-            //@TODO: harcoded object class sizeof hack
-            UnsafeUtility.MemCpy(boxedPtr + 16, ptr, UnsafeUtility.SizeOf(type));
-
-            UnsafeUtility.ReleaseGCObject(gcHandle);
-
-            return boxed;
+            var sharedComponentIndex = m_Entities->GetSharedComponentDataIndex(entity, typeIndex);
+            return m_SharedComponentManager.GetSharedComponentDataBoxed(sharedComponentIndex);
         }
-
-        internal void SetComponentBoxed(Entity entity, ComponentType componentType, object boxedObject)
-        {
-            var type = TypeManager.GetType(componentType.TypeIndex);
-
-            ulong gcHandle;
-            byte* boxedPtr = (byte*)UnsafeUtility.PinGCObjectAndGetAddress(boxedObject, out gcHandle);
-            //@TODO: harcoded object class sizeof hack
-            SetComponentDataRaw(entity, componentType.TypeIndex, boxedPtr + 16, UnsafeUtility.SizeOf(type));
-
-            UnsafeUtility.ReleaseGCObject(gcHandle);
-        }
-
+        
         public int GetComponentOrderVersion<T>()
         {
             return m_Entities->GetComponentTypeOrderVersion(TypeManager.GetTypeIndex<T>());

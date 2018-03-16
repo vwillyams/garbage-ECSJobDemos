@@ -151,6 +151,14 @@ namespace Unity.Entities
             return (T) m_SharedComponentData[index];
         }
 
+        public object GetSharedComponentDataBoxed(int index)
+        {
+            if (index == 0)
+                return Activator.CreateInstance(TypeManager.GetType(m_SharedComponentType[index]));
+
+            return m_SharedComponentData[index];
+        }
+        
         public void AddReference(int index)
         {
             if (index != 0)

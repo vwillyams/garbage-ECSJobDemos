@@ -79,9 +79,11 @@ getPackageCurrentVersion()
 	echo $packageVersion
 }
 
+# $1 packages folder
+# $2 package
 publishNewPackage()
 {
-	cd $packagesFolder$package
+	cd $1$2
 	local packageVersion=`npm version patch | cut -d'v' -f2 2> /dev/null`
 	echo "New Version $packageVersion" >&2
 	packageArchive=`npm pack .`
@@ -192,8 +194,8 @@ processPackage()
 	isPackageChanged $1 $2
 	if [[ $? -eq 1 ]]
 	then
-		echo "The package repository is not clean. A new version of $1 will be published"
-		packageVersion=`publishNewPackage`
+		echo "The package repository is not clean. A new version of $2 will be published"
+		packageVersion=`publishNewPackage $1 $2`
 	else
 		echo "No change detected in the repo. The version $packageVersion will be used in the project"
 	fi
@@ -201,7 +203,7 @@ processPackage()
 	cd $1
 	rm -r $2
 
-	modifyJSON $package $packageVersion $3  
+	modifyJSON $2 $packageVersion $3  
 
 	cd $rootClone
 
@@ -228,7 +230,7 @@ main()
 	done
 
 	#Handle com.unity.entities (not so much) differently...It just needs to be the last package to be processed....
-	if [[ -d $mainPackage ]]
+	if [[ -d $packagesFolder$mainPackage ]]
 	then
 		processPackage $packagesFolder $mainPackage manifest.json
 	fi

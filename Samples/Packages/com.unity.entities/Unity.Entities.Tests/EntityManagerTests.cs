@@ -34,9 +34,11 @@ namespace Unity.Entities.Tests
         public void IncreaseEntityCapacity()
         {
             var archetype = m_Manager.CreateArchetype(typeof(EcsTestData));
+            var version = m_Manager.Version;
             var count = 1024;
             var array = new NativeArray<Entity>(count, Allocator.Temp);
             m_Manager.CreateEntity (archetype, array);
+            Assert.AreNotEqual(version, m_Manager.Version);
             for (int i = 0; i < count; i++)
             {
                 Assert.AreEqual(i, array[i].Index);

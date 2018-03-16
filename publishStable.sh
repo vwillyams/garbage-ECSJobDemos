@@ -4,10 +4,12 @@ readonly srcBranch="master"
 readonly dstBranch="master"
 readonly srcRepoName="ECSJobDemos"
 readonly packagesPath="Samples/Packages/"
-readonly srcRepo="https://github.com/Unity-Technologies/$srcRepoName.git"
+
+readonly srcRepo="git@gitlab.internal.unity3d.com:fabrizio/ECSJobDemos.git"
+#readonly srcRepo="https://github.com/Unity-Technologies/$srcRepoName.git"
 #readonly dstRepo="https://github.com/Unity-Technologies/EntityComponentSystemSamples.git"
-readonly dstRepo="git@gitlab.internal.unity3d.com:core/EntityComponentSystemSamples.git"
-#readonly dstRepo="git@gitlab.internal.unity3d.com:fabrizio/ECS.git"
+#readonly dstRepo="git@gitlab.internal.unity3d.com:core/EntityComponentSystemSamples.git"
+readonly dstRepo="git@gitlab.internal.unity3d.com:fabrizio/ECS.git"
 
 readonly mainPackage="com.unity.entities"
 
@@ -210,6 +212,16 @@ processPackage()
 	git add .
 }
 
+createLocalBranch()
+{
+	# if the branch name doesn't exist locally, create it
+	git branch | grep $dstBranch$ > /dev/null 2>&1
+	if [[ $? -ne 0 ]]
+	then
+		git checkout -b $dstBranch
+	fi
+}
+
 main()
 {
 	rootDir=`pwd`
@@ -217,8 +229,12 @@ main()
 	cd $rootClone
 	git remote add stableRepo $dstRepo
 	git remote remove origin
+
+	createLocalBranch
+
 	releaseNumber=`squashCommits`
 	packagesFolder=`getPackagesFolder`
+
 	packages=`getListOfPackages $packagesFolder`
 
 	for package in ${packages[@]}
@@ -246,7 +262,7 @@ main()
 	fi
 	git push stableRepo $dstBranch
 	cd $rootDir
-	rm -rf "../tmp"
+	#rm -rf "../tmp"
 }
 
 main

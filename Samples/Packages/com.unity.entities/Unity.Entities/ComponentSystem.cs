@@ -290,7 +290,6 @@ namespace Unity.Entities
             JobHandle.ScheduleBatchedJobs();
 
             AddDependencyInternal(outputJob);
-            m_PreviousFrameDependency = outputJob;
 
             // Notify all injected barrier systems that they will need to sync on any jobs we spawned.
             // This is conservative currently - the barriers will sync on too much if we use more than one.
@@ -432,7 +431,7 @@ namespace Unity.Entities
 
         unsafe void AddDependencyInternal(JobHandle dependency)
         {
-            m_SafetyManager.AddDependency(m_JobDependencyForReadingManagersPtr, m_JobDependencyForReadingManagersLength, m_JobDependencyForWritingManagersPtr, m_JobDependencyForWritingManagersLength, dependency);
+            m_PreviousFrameDependency = m_SafetyManager.AddDependency(m_JobDependencyForReadingManagersPtr, m_JobDependencyForReadingManagersLength, m_JobDependencyForWritingManagersPtr, m_JobDependencyForWritingManagersLength, dependency);
         }
     }
 

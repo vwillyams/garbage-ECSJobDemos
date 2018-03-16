@@ -141,7 +141,7 @@ namespace Unity.Entities.Editor
 
         public void UpdateIfNecessary()
         {
-            var expectedGroupCount = SelectedSystem != null ? SelectedSystem.ComponentGroups.Length : 0; 
+            var expectedGroupCount = SelectedSystem?.ComponentGroups.Length ?? 0; 
             if (expectedGroupCount != componentGroupsById.Count)
                 Reload();
         }

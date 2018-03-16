@@ -20,14 +20,14 @@ GameObject:
   m_Component:
   - component: {fileID: 4069661776806122}
   - component: {fileID: 114569172725802478}
-  - component: {fileID: 114846138717908042}
-  - component: {fileID: 114640073232692476}
   - component: {fileID: 114080190520665040}
   - component: {fileID: 114878148870236606}
+  - component: {fileID: 114071165412582634}
+  - component: {fileID: 114846138717908042}
   - component: {fileID: 114017445485928864}
   - component: {fileID: 114577371648038814}
   - component: {fileID: 114151331784951154}
-  - component: {fileID: 114320054058388756}
+  - component: {fileID: 114640073232692476}
   m_Layer: 0
   m_Name: TestBoidFish
   m_TagString: Untagged
@@ -64,6 +64,17 @@ MonoBehaviour:
       x: 0
       y: 0
       z: 0
+--- !u!114 &114071165412582634
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1501737747371270}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86ca4290c6b3473e913676ba4860db32, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &114080190520665040
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -97,18 +108,6 @@ MonoBehaviour:
     alignmentWeight: 1
     targetWeight: 2
     obstacleAversionDistance: 20
-    speed: 22
---- !u!114 &114320054058388756
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1501737747371270}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fb56bf9135bb2ed488dc1bece56f6fa6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &114569172725802478
 MonoBehaviour:
   m_ObjectHideFlags: 1

@@ -185,12 +185,18 @@ namespace Unity.Entities.Editor
         
         private float lastUpdate;
         
-        void Update() 
-        { 
+        void Update()
+        {
+            systemListView.UpdateTimings();
+            
+            systemListView.UpdateIfNecessary();
+            componentGroupListView.UpdateIfNecessary();
+            entityListView.UpdateIfNecessary();
+            
             if (Time.realtimeSinceStartup > lastUpdate + 0.5f) 
             { 
                 Repaint(); 
-            } 
+            }
         } 
 
         void WorldPopup()
@@ -221,8 +227,6 @@ namespace Unity.Entities.Editor
             var rect = GUIHelpers.GetExpandingRect();
             if (World.AllWorlds.Count != 0)
             {
-                if (repainted)
-                    systemListView.UpdateIfNecessary();
                 systemListView.OnGUI(rect);
             }
             else
@@ -242,6 +246,8 @@ namespace Unity.Entities.Editor
 
         void EntityHeader()
         {
+            if (WorldSelection == null)
+                return;
             GUILayout.BeginHorizontal();
             if (SystemSelection == null)
             {
@@ -269,8 +275,6 @@ namespace Unity.Entities.Editor
             {
                 GUILayout.BeginVertical(Box, GUILayout.Height(componentGroupListView.Height + 4f));
 
-                if (repainted)
-                    componentGroupListView.UpdateIfNecessary();
                 componentGroupListView.OnGUI(GUIHelpers.GetExpandingRect());
                 GUILayout.EndVertical();
             }
@@ -281,10 +285,8 @@ namespace Unity.Entities.Editor
             var showingAllEntities = !(SystemSelection is ComponentSystemBase);
             var componentGroupHasEntities = ComponentGroupSelection != null && !ComponentGroupSelection.IsEmptyIgnoreFilter;
             var somethingToShow = showingAllEntities || componentGroupHasEntities;
-            if (!somethingToShow)
+            if (WorldSelection == null || !somethingToShow)
                 return;
-            if (repainted)
-                entityListView.UpdateIfNecessary();
             entityListView.OnGUI(GUIHelpers.GetExpandingRect());
         }
 
@@ -303,8 +305,6 @@ namespace Unity.Entities.Editor
                 entityListView.SelectNothing();
             }
         }
-
-        private bool repainted = false;
 
         void OnGUI()
         {
@@ -339,8 +339,6 @@ namespace Unity.Entities.Editor
             GUILayout.EndHorizontal();
 
             lastUpdate = Time.realtimeSinceStartup;
-
-            repainted = Event.current.type == EventType.Repaint;
         }
     }
 }

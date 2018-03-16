@@ -24,14 +24,13 @@ namespace Unity.Entities
         EntityData*   m_Entities;
         int           m_EntitiesCapacity;
         int           m_EntitiesFreeIndex;
-
-        internal int  m_Version;
         
         int*          m_ComponentTypeOrderVersion;
 
+        public int Version => GetComponentTypeOrderVersion(TypeManager.GetTypeIndex<Entity>());
+
         public void OnCreate(int capacity)
         {
-            m_Version = 0;
             m_EntitiesCapacity = capacity;
             m_Entities =
                 (EntityData*) UnsafeUtility.Malloc(m_EntitiesCapacity * sizeof(EntityData), 64, Allocator.Persistent);
@@ -695,7 +694,6 @@ namespace Unity.Entities
             {
                 var typeIndex = archetype->Types[t].TypeIndex;
                 m_ComponentTypeOrderVersion[typeIndex]++;
-                ++m_Version;
             }
         }
 

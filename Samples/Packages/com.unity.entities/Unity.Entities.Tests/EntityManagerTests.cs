@@ -50,11 +50,15 @@ namespace Unity.Entities.Tests
         public void FoundComponentInterface()
         {
             var archetype = m_Manager.CreateArchetype(typeof(EcsTestData),typeof(EcsFooTest));
+            var version = m_Manager.Version;
             var count = 1024;
             var array = new NativeArray<Entity>(count, Allocator.Temp);
             m_Manager.CreateEntity (archetype, array);
+            Assert.AreNotEqual(version, m_Manager.Version);
 
+            version = m_Manager.Version;
             var fooTypes = m_Manager.GetAssignableComponentTypes(typeof(IEcsFooInterface));
+            Assert.AreEqual(version, m_Manager.Version);
             Assert.AreEqual(1,fooTypes.Count);
             Assert.AreEqual(typeof(EcsFooTest),fooTypes[0]);
 

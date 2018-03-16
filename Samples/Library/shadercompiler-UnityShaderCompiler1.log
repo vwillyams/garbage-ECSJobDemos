@@ -1,0 +1,15 @@
+Base path: /Users/macton/Unity/unity/build/MacEditor/Unity.app/Contents
+Cmd: initializeCompiler
+Cmd: compileComputeKernel
+  api=14 insize=1435 outsize=7161 ok=1
+Cmd: compileComputeKernel
+  api=14 insize=3273 outsize=6249 ok=1
+Cmd: compileComputeKernel
+  api=14 insize=2285 outsize=6969 ok=1
+Cmd: translateComputeKernel
+  api=14 insize=6969 outsize=3105 ok=1
+Cmd: initializeCompiler
+Cmd: initializeCompiler
+Cmd: initializeCompiler
+
+Quitting shader compiler process

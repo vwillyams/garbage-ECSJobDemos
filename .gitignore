@@ -1,12 +1,12 @@
-*/Library/*
-*/Temp/*
-*/obj/*
+**/Library/
+**/Temp/
+**/obj/
 
-*/.vscode
-*/.vs
-*/.editorconfig
+**/.vscode
+**/.vs
+**/.editorconfig
 
-*/Assets/Plugins/*
+**/Assets/Plugins/*
 
 *.idea
 *.csproj
@@ -21,3 +21,4 @@
 
 .vs/
 build/*
+TwoStickShooter/Pure/Library/AnnotationManager

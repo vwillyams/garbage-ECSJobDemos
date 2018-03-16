@@ -36,7 +36,7 @@ namespace Unity.Entities.Editor
             }
         }
         private ComponentGroup selectedComponentGroup;
-        int                    cachedComponentGroupVersion;
+        int                    cachedVersion;
 
         IEntitySelectionWindow window;
 
@@ -50,8 +50,11 @@ namespace Unity.Entities.Editor
         public void UpdateIfNecessary()
         {
             if (selectedComponentGroup == null)
-                Reload();
-            if (selectedComponentGroup != null && cachedComponentGroupVersion != selectedComponentGroup.GetCombinedComponentOrderVersion())
+            {
+                if (window.WorldSelection.GetExistingManager<EntityManager>().Version != cachedVersion)
+                    Reload();
+            }
+            else if (selectedComponentGroup.GetCombinedComponentOrderVersion() != cachedVersion)
                 Reload();
         }
 
@@ -74,10 +77,12 @@ namespace Unity.Entities.Editor
             {
                 if (SelectedComponentGroup == null)
                 {
-                    var array = window.WorldSelection.GetExistingManager<EntityManager>().GetAllEntities(Allocator.Temp);
+                    var entityManager = window.WorldSelection.GetExistingManager<EntityManager>();
+                    var array = entityManager.GetAllEntities(Allocator.Temp);
                     for (var i = 0; i < array.Length; ++i)
                         root.AddChild(CreateEntityItem(array[i]));
                     array.Dispose();
+                    cachedVersion = entityManager.Version;
                 }
                 else
                 {
@@ -85,6 +90,7 @@ namespace Unity.Entities.Editor
                     var entityArray = SelectedComponentGroup.GetEntityArray();
                     for (var i = 0; i < entityArray.Length; ++i)
                         root.AddChild(CreateEntityItem(entityArray[i]));
+                    cachedVersion = SelectedComponentGroup.GetCombinedComponentOrderVersion();
                 }
 
                 if (entitiesById.Count == 0)
@@ -93,9 +99,6 @@ namespace Unity.Entities.Editor
                 }
                 SetupDepthsFromParentsAndChildren(root);
             }
-            
-            if (selectedComponentGroup != null)
-                cachedComponentGroupVersion = selectedComponentGroup.GetCombinedComponentOrderVersion();
             
             return root;
         }

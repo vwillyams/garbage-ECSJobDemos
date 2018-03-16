@@ -190,7 +190,7 @@ namespace Unity.Entities.Editor
             if (Time.realtimeSinceStartup > lastUpdate + 0.5f) 
             { 
                 Repaint(); 
-            } 
+            }
         } 
 
         void WorldPopup()

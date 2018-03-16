@@ -34,11 +34,9 @@ namespace Unity.Entities.Tests
         public void IncreaseEntityCapacity()
         {
             var archetype = m_Manager.CreateArchetype(typeof(EcsTestData));
-            var version = m_Manager.Version;
             var count = 1024;
             var array = new NativeArray<Entity>(count, Allocator.Temp);
             m_Manager.CreateEntity (archetype, array);
-            Assert.AreNotEqual(version, m_Manager.Version);
             for (int i = 0; i < count; i++)
             {
                 Assert.AreEqual(i, array[i].Index);
@@ -50,15 +48,11 @@ namespace Unity.Entities.Tests
         public void FoundComponentInterface()
         {
             var archetype = m_Manager.CreateArchetype(typeof(EcsTestData),typeof(EcsFooTest));
-            var version = m_Manager.Version;
             var count = 1024;
             var array = new NativeArray<Entity>(count, Allocator.Temp);
             m_Manager.CreateEntity (archetype, array);
-            Assert.AreNotEqual(version, m_Manager.Version);
 
-            version = m_Manager.Version;
             var fooTypes = m_Manager.GetAssignableComponentTypes(typeof(IEcsFooInterface));
-            Assert.AreEqual(version, m_Manager.Version);
             Assert.AreEqual(1,fooTypes.Count);
             Assert.AreEqual(typeof(EcsFooTest),fooTypes[0]);
 
@@ -66,6 +60,27 @@ namespace Unity.Entities.Tests
             Assert.AreEqual(0,barTypes.Count);
 
             array.Dispose();
+        }
+
+        [Test]
+        public void VersionIsConsistent()
+        {
+            Assert.AreEqual(0, m_Manager.Version);
+            
+            var entity = m_Manager.CreateEntity(typeof(EcsTestData));
+            Assert.AreEqual(1, m_Manager.Version);
+            
+            m_Manager.AddComponentData(entity, new EcsTestData2(0));
+            Assert.AreEqual(2, m_Manager.Version);
+            
+            m_Manager.SetComponentData(entity, new EcsTestData2(5));
+            Assert.AreEqual(2, m_Manager.Version); // Shouldn't change when just setting data
+            
+            m_Manager.RemoveComponent<EcsTestData2>(entity);
+            Assert.AreEqual(3, m_Manager.Version);
+            
+            m_Manager.DestroyEntity(entity);
+            Assert.AreEqual(4, m_Manager.Version);
         }
     }
 }

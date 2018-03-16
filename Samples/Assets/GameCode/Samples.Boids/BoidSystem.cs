@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
@@ -24,6 +25,8 @@ namespace Samples.Boids
         {
             public NativeMultiHashMap<int, int> hashMap;
             public NativeArray<int>             cellIndices;
+            public NativeArray<Position>        copyTargetPositions;
+            public NativeArray<Position>        copyObstaclePositions;
             public NativeArray<float3>          cellAlignment;
             public NativeArray<float3>          cellSeparation;
             public NativeArray<int>             cellObstaclePositionIndex;
@@ -59,17 +62,17 @@ namespace Samples.Boids
         [ComputeJobOptimization]
         struct MergeCells : IJobNativeMultiHashMapMergedSharedKeyIndices
         {
-            public NativeArray<int>                        cellIndices;
-            public NativeArray<float3>                     cellAlignment;
-            public NativeArray<float3>                     cellSeparation;
-            public NativeArray<int>                        cellObstaclePositionIndex;
-            public NativeArray<float>                      cellObstacleDistance;
-            public NativeArray<int>                        cellTargetPistionIndex;
-            public NativeArray<int>                        cellCount;
-            [ReadOnly] public ComponentDataArray<Position> targetPositions;
-            [ReadOnly] public ComponentDataArray<Position> obstaclePositions;
+            public NativeArray<int>                 cellIndices;
+            public NativeArray<float3>              cellAlignment;
+            public NativeArray<float3>              cellSeparation;
+            public NativeArray<int>                 cellObstaclePositionIndex;
+            public NativeArray<float>               cellObstacleDistance;
+            public NativeArray<int>                 cellTargetPistionIndex;
+            public NativeArray<int>                 cellCount;
+            [ReadOnly] public NativeArray<Position> targetPositions;
+            [ReadOnly] public NativeArray<Position> obstaclePositions;
             
-            void NearestPosition(ComponentDataArray<Position> targets, float3 position, out int nearestPositionIndex, out float nearestDistance )
+            void NearestPosition(NativeArray<Position> targets, float3 position, out int nearestPositionIndex, out float nearestDistance )
             {
                 nearestPositionIndex = 0;
                 nearestDistance      = math.lengthSquared(position-targets[0].Value);
@@ -118,8 +121,8 @@ namespace Samples.Boids
         {
             [ReadOnly] public NativeArray<int>             cellIndices;
             [ReadOnly] public Boid                         settings;
-            [ReadOnly] public ComponentDataArray<Position> targetPositions;
-            [ReadOnly] public ComponentDataArray<Position> obstaclePositions;
+            [ReadOnly] public NativeArray<Position>        targetPositions;
+            [ReadOnly] public NativeArray<Position>        obstaclePositions;
             [ReadOnly] public NativeArray<float3>          cellAlignment;
             [ReadOnly] public NativeArray<float3>          cellSeparation;
             [ReadOnly] public NativeArray<int>             cellObstaclePositionIndex;
@@ -184,6 +187,8 @@ namespace Samples.Boids
                 var boidCount                 = positions.Length;
                 var cellIndices               = new NativeArray<int>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
                 var hashMap                   = new NativeMultiHashMap<int,int>(boidCount,Allocator.TempJob);
+                var copyTargetPositions       = new NativeArray<Position>(targetPositions.Length, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
+                var copyObstaclePositions     = new NativeArray<Position>(obstaclePositions.Length, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
                 var cellAlignment             = new NativeArray<float3>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
                 var cellSeparation            = new NativeArray<float3>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
                 var cellObstacleDistance      = new NativeArray<float>(boidCount, Allocator.TempJob,NativeArrayOptions.UninitializedMemory);
@@ -195,6 +200,8 @@ namespace Samples.Boids
                 {
                     cellIndices               = cellIndices,
                     hashMap                   = hashMap,
+                    copyObstaclePositions     = copyObstaclePositions,
+                    copyTargetPositions       = copyTargetPositions,
                     cellAlignment             = cellAlignment,
                     cellSeparation            = cellSeparation,
                     cellObstacleDistance      = cellObstacleDistance,
@@ -209,13 +216,15 @@ namespace Samples.Boids
                 }
                 else
                 {
-                    m_PrevCells[cacheIndex].cellIndices.Dispose();
                     m_PrevCells[cacheIndex].hashMap.Dispose();
+                    m_PrevCells[cacheIndex].cellIndices.Dispose();
+                    m_PrevCells[cacheIndex].cellObstaclePositionIndex.Dispose();
+                    m_PrevCells[cacheIndex].cellTargetPistionIndex.Dispose();
+                    m_PrevCells[cacheIndex].copyTargetPositions.Dispose();
+                    m_PrevCells[cacheIndex].copyObstaclePositions.Dispose();
                     m_PrevCells[cacheIndex].cellAlignment.Dispose();
                     m_PrevCells[cacheIndex].cellSeparation.Dispose();
                     m_PrevCells[cacheIndex].cellObstacleDistance.Dispose();
-                    m_PrevCells[cacheIndex].cellObstaclePositionIndex.Dispose();
-                    m_PrevCells[cacheIndex].cellTargetPistionIndex.Dispose();
                     m_PrevCells[cacheIndex].cellCount.Dispose();
                 }
                 m_PrevCells[cacheIndex] = nextCells;
@@ -232,6 +241,22 @@ namespace Samples.Boids
                 };
                 var hashPositionsJobHandle = hashPositionsJob.Schedule(boidCount, 64, inputDeps);
 
+                var copyTargetPositionsJob = new CopyComponentData<Position>
+                {
+                    source  = targetPositions,
+                    results = copyTargetPositions
+                };
+                var copyTargetPositionsJobHandle = copyTargetPositionsJob.Schedule(targetPositions.Length, 2, inputDeps);
+                
+                var copyObstaclePositionsJob = new CopyComponentData<Position>
+                {
+                    source  = obstaclePositions,
+                    results = copyObstaclePositions
+                };
+                var copyObstaclePositionsJobHandle = copyObstaclePositionsJob.Schedule(obstaclePositions.Length, 2, inputDeps);
+
+                var mergeCellsBarrierJobHandle = JobHandle.CombineDependencies(hashPositionsJobHandle, copyTargetPositionsJobHandle, copyObstaclePositionsJobHandle);
+
                 var mergeCellsJob = new MergeCells
                 {
                     cellIndices               = cellIndices,
@@ -241,10 +266,10 @@ namespace Samples.Boids
                     cellObstaclePositionIndex = cellObstaclePositionIndex,
                     cellTargetPistionIndex    = cellTargetPositionIndex,
                     cellCount                 = cellCount,
-                    targetPositions           = targetPositions,
-                    obstaclePositions         = obstaclePositions
+                    targetPositions           = copyTargetPositions,
+                    obstaclePositions         = copyObstaclePositions
                 };
-                var mergeCellsJobHandle = mergeCellsJob.Schedule(hashMap,64,hashPositionsJobHandle);
+                var mergeCellsJobHandle = mergeCellsJob.Schedule(hashMap,64,mergeCellsBarrierJobHandle);
 
                 var steerJob = new Steer
                 {
@@ -256,8 +281,8 @@ namespace Samples.Boids
                     cellObstaclePositionIndex = cellObstaclePositionIndex,
                     cellTargetPistionIndex    = cellTargetPositionIndex,
                     cellCount                 = cellCount,
-                    targetPositions           = targetPositions,
-                    obstaclePositions         = obstaclePositions,
+                    targetPositions           = copyTargetPositions,
+                    obstaclePositions         = copyObstaclePositions,
                     dt                        = Time.deltaTime,
                     positions                 = positions,
                     headings                  = headings,
@@ -291,8 +316,10 @@ namespace Samples.Boids
         {
             for (int i = 0; i < m_PrevCells.Count; i++)
             {
-                m_PrevCells[i].cellIndices.Dispose();
                 m_PrevCells[i].hashMap.Dispose();
+                m_PrevCells[i].cellIndices.Dispose();
+                m_PrevCells[i].copyTargetPositions.Dispose();
+                m_PrevCells[i].copyObstaclePositions.Dispose();
                 m_PrevCells[i].cellAlignment.Dispose();
                 m_PrevCells[i].cellSeparation.Dispose();
                 m_PrevCells[i].cellObstacleDistance.Dispose();

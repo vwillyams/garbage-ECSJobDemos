@@ -872,14 +872,15 @@ namespace Unity.Collections
                     
                     for (int i = begin; i < end; i++)
                     {
-                        int entryIndex = buckets[i];
+                        int   entryIndex = buckets[i];
+                        
                         while (entryIndex != -1)
                         {
                             var key   = UnsafeUtility.ReadArrayElement<TKey>(keys, entryIndex);
                             var value = UnsafeUtility.ReadArrayElement<int>(values, entryIndex);
                             int firstValue;
+
                             NativeMultiHashMapIterator<TKey> it;
-                            
                             fullData.HashMap.TryGetFirstValue(key, out firstValue, out it);
                             
 #if ENABLE_UNITY_COLLECTIONS_CHECKS

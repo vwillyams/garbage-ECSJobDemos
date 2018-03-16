@@ -43,7 +43,7 @@ namespace Unity.Entities.Properties
         {
             return Info.FieldType.IsPrimitive;
         }
-
+        
         public int GetOffset()
         {
             return UnsafeUtility.GetFieldOffset(Info);
@@ -80,25 +80,8 @@ namespace Unity.Entities.Properties
 
         public int GetOffset()
         {
-            if (Info.DeclaringType == null)
-            {
-                // oops
-                return -1;
-            }
-            // TODO this is only a temporary fix for now
-            var field = Info.DeclaringType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance)
-                .Where(f => f.Name.Contains(Info.Name));
-
-            int offset = -1;
-            try
-            {
-                // @TODO fix that
-                offset = UnsafeUtility.GetFieldOffset(field.First());
-            }
-            catch (Exception)
-            {}
-
-            return offset;
+            // TODO(WIP) This is broken for now obviously ... 
+            return 0;
         }
     }
 
@@ -125,6 +108,10 @@ namespace Unity.Entities.Properties
             }
             foreach (var field in _t.GetFields())
             {
+                if (field.IsStatic)
+                {
+                    continue;
+                }
                 if (field.FieldType.IsValueType != d.HasFlag(Specifier.ValueType))
                 {
                     continue;
@@ -159,9 +146,10 @@ namespace Unity.Entities.Properties
 
         public IEnumerable<ITypedMemberDescriptor> Get(Specifier d)
         {
+            yield break;
             if (_t == null)
             {
-                yield return null;
+                yield break;
             }
             foreach (var p in _t.GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
@@ -191,20 +179,36 @@ namespace Unity.Entities.Properties
     {
         public HashSet<Type> PrimitiveTypes { get; set; }
 
+        private class TypeTreeParsingContext
+        {
+            public int Offset { get; set; } = 0;
+        }
+
         public PropertyBag Parse(Type t)
+        {
+            return DoParse(t, new TypeTreeParsingContext());
+        }
+
+        private PropertyBag DoParse(Type t, TypeTreeParsingContext context)
         {
             if (_propertyBagCache.ContainsKey(t))
             {
                 return _propertyBagCache[t];
             }
 
-            List<IProperty> properties = new List<IProperty> { ComponentIdProperty };
+            Dictionary<string, IProperty> properties = new Dictionary<string, IProperty>()
+            {
+                { ComponentIdProperty.Name, ComponentIdProperty }
+            };
 
             foreach (var member in new TypeFieldIterator(t).Get(
                 TypeFieldIterator.Specifier.Public | TypeFieldIterator.Specifier.ValueType))
             {
-                IProperty property = VisitType(member);
-                properties.Add(property);
+                IProperty property = VisitType(member, new TypeTreeParsingContext() { Offset = context.Offset + member.GetOffset() });
+                if (!properties.ContainsKey(property.Name))
+                {
+                    properties[property.Name] = property;
+                }
             }
 
             foreach (var member in new TypePropertyIterator(t).Get(
@@ -212,24 +216,27 @@ namespace Unity.Entities.Properties
             {
                 try
                 {
-                    IProperty property = VisitType(member);
+                    IProperty property = VisitType(member, new TypeTreeParsingContext() { Offset = context.Offset });
 
-                    // Unknown types: GameObjects, etc
+                    // TODO Unknown types: GameObjects, etc
                     if (property != null)
                     {
-                        properties.Add(property);
+                        if (!properties.ContainsKey(property.Name))
+                        {
+                            properties[property.Name] = property;
+                        }
                     }
                 }
                 catch (Exception)
                 { }
             }
 
-            _propertyBagCache[t] = new PropertyBag(properties);
+            _propertyBagCache[t] = new PropertyBag(properties.Values.ToList());
 
             return _propertyBagCache[t];
         }
 
-        public IProperty VisitType(ITypedMemberDescriptor d)
+        private IProperty VisitType(ITypedMemberDescriptor d, TypeTreeParsingContext context)
         {
             Type memberType = d.GetMemberType();
             if (!typeof(IComponentData).IsAssignableFrom(memberType))

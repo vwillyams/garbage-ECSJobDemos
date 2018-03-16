@@ -91,7 +91,7 @@ mac:boids:il2cpp:run:
 mac:chains:mono:build:
   variables:
     SCRIPTING_BACKEND: "mono"
-    SCENE: "Assets/Scenes/ChainExampleunity"
+    SCENE: "Assets/Scenes/ChainExample.unity"
     SAMPLE_NAME: "chains"
   stage: build
   tags:
@@ -110,7 +110,7 @@ mac:chains:mono:build:
 mac:chains:il2cpp:build:
   variables:
     SCRIPTING_BACKEND: "il2cpp"
-    SCENE: "Assets/Scenes/ChainExampleunity"
+    SCENE: "Assets/Scenes/ChainExample.unity"
     SAMPLE_NAME: "chains"
   stage: build
   tags:
@@ -422,7 +422,7 @@ win:boids:il2cpp:run:
 win:chains:mono:build:
   variables:
     SCRIPTING_BACKEND: "mono"
-    SCENE: "Assets/Scenes/ChainExampleunity"
+    SCENE: "Assets/Scenes/ChainExample.unity"
     SAMPLE_NAME: "boids"
   stage: build
   tags:
@@ -441,7 +441,7 @@ win:chains:mono:build:
 win:chains:il2cpp:build:
   variables:
     SCRIPTING_BACKEND: "il2cpp"
-    SCENE: "Assets/Scenes/ChainExampleunity"
+    SCENE: "Assets/Scenes/ChainExample.unity"
     SAMPLE_NAME: "boids"
   stage: build
   tags:

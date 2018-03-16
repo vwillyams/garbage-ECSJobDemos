@@ -3,14 +3,16 @@
 readonly srcBranch="master"
 readonly dstBranch="master"
 readonly srcRepoName="ECSJobDemos"
-readonly packagesPath="ECSJobDemos/Packages/"
+
+readonly packagesPath="Samples/Packages/"
+
 readonly srcRepo="https://github.com/Unity-Technologies/$srcRepoName.git"
+
 #readonly dstRepo="https://github.com/Unity-Technologies/EntityComponentSystemSamples.git"
 #readonly dstRepo="git@gitlab.internal.unity3d.com:core/EntityComponentSystemSamples.git"
 readonly dstRepo="git@gitlab.internal.unity3d.com:fabrizio/ECS.git"
 
-readonly npmStagingRepo="https://api.bintray.com/npm/unity/unity-staging"
-readonly npmLocalRepo="http://localhost:4873"
+readonly mainPackage="com.unity.entities"
 
 getPackagesFolder()
 {
@@ -87,13 +89,13 @@ publishNewPackage()
 	echo "New Version $packageVersion" >&2
 	packageArchive=`npm pack .`
 	echo "Publishing $packageArchive" >&2
-	npm publish $packageArchive > /dev/null 2>&1
+	#npm publish $packageArchive > /dev/null 2>&1
 	rm $packageArchive
 	cd $rootClone
 	echo $packageVersion
 }
 
-modifyManifest()
+modifyJSON()
 {
 	# Check if the manifest already contains a declaration of the current package
 	grep "$1\"[ \t]*:" manifest.json > /dev/null 2>&1
@@ -102,9 +104,9 @@ modifyManifest()
 		#if the package is already declared, change the version declared with the new one.
 		if [[ $OSTYPE == *darwin* ]]
 		then
-			sed -i '' -e 's/\"'"$1"'\"[ \t]*:[ \t]*\"[0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}\"/\"'"$1"'\":\"'"$2"'\"/' manifest.json
+			sed -i '' -e 's/\"'"$1"'\"[ \t]*:[ \t]*\"[0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}\"/\"'"$1"'\":\"'"$2"'\"/' $3
 		else
-			sed -i -e 's/\"'"$1"'\"[ \t]*:[ \t]*\"[0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}\"/\"'"$1"'\":\"'"$2"'\"/' manifest.json
+			sed -i -e 's/\"'"$1"'\"[ \t]*:[ \t]*\"[0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}\"/\"'"$1"'\":\"'"$2"'\"/' $3
 		fi
 	else
 		#if there are packages already declared, we need to append a comma after the version number
@@ -117,9 +119,9 @@ modifyManifest()
 
 		if [[ $OSTYPE == *darwin* ]]
 		then
-			sed -i '' -e 's/\"dependencies\"[ \t]*:[ \t]*{/\"dependencies\":{\'$'\n\t\t\"'"$1"'\":\"'"$2"'\"'"$lineTerminator"'/' manifest.json
+			sed -i '' -e 's/\"dependencies\"[ \t]*:[ \t]*{/\"dependencies\":{\'$'\n\t\t\"'"$1"'\":\"'"$2"'\"'"$lineTerminator"'/' $3
 		else
-			sed -i -e 's/\"dependencies\"[ \t]*:[ \t]*{/\"dependencies\":{\'$'\n\t\t\"'"$1"'\":\"'"$2"'\"'"$lineTerminator"'/' manifest.json
+			sed -i -e 's/\"dependencies\"[ \t]*:[ \t]*{/\"dependencies\":{\'$'\n\t\t\"'"$1"'\":\"'"$2"'\"'"$lineTerminator"'/' $3
 		fi
 	fi
 }
@@ -195,26 +197,52 @@ main()
 
 	for package in ${packages[@]}
 	do
-		echo "Package Found: $package"
-		local packageVersion=`getPackageCurrentVersion $packagesFolder $package`
-
-		isPackageChanged $packagesFolder $package
-		if [[ $? -eq 1 ]]
+		if [[ $package != $mainPackage ]]
 		then
-			echo "The package repository is not clean. A new version of $package will be published"
-			packageVersion=`publishNewPackage`
-		else
-			echo "No change detected in the repo. The version $packageVersion will be used in the project"
+			echo "Package Found: $package"
+			local packageVersion=`getPackageCurrentVersion $packagesFolder $package`
+
+			isPackageChanged $packagesFolder $package
+			if [[ $? -eq 1 ]]
+			then
+				echo "The package repository is not clean. A new version of $package will be published"
+				packageVersion=`publishNewPackage`
+			else
+				echo "No change detected in the repo. The version $packageVersion will be used in the project"
+			fi
+
+			cd $packagesFolder
+			rm -r $package
+			pwd
+			modifyJSON $package $packageVersion "$packagesFolder/com.unity.entities/package.json"  
+
+			cd $rootClone
+
+			git add .
 		fi
-
-		cd $packagesFolder
-		rm -r $package
-
-		modifyManifest $package $packageVersion
-
-		cd $rootClone
-		git add .
 	done
+
+	#Handle com.unity.entities (not so much) differently.....find a nicer way to ensure entities is the last package processed....
+
+	package="com.unity.entities"
+	echo "Package Found: $package"
+	local packageVersion=`getPackageCurrentVersion $packagesFolder $package`
+
+	isPackageChanged $packagesFolder $package
+	if [[ $? -eq 1 ]]
+	then
+		echo "The package repository is not clean. A new version of $package will be published"
+		packageVersion=`publishNewPackage`
+	else
+		echo "No change detected in the repo. The version $packageVersion will be used in the project"
+	fi
+
+	cd $packagesFolder
+	#rm -r $package
+	cd $rootClone
+	modifyJSON $package $packageVersion manifest.json
+
+	git add .
 
 	scatterManifest > /dev/null 2>&1
 
@@ -225,9 +253,9 @@ main()
 	else
 		git commit --amend --reset-author -m "Release $releaseNumber"
 	fi
-	git push stable $dstBranch
+	#git push stable $dstBranch
 	cd $rootDir
-	rm -rf "../tmp"
+	#rm -rf "../tmp"
 }
 
 while [[ $# > 0 ]]

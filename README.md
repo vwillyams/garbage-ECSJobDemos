@@ -7,6 +7,7 @@ https://youtu.be/tGmnZdY5Y-E
 
 # unity build (compatible with "stable" branch)
 https://unity3d.com/jobsystem
+https://beta.unity3d.com/download/ed1bf90b40e6/public_download.html
 
 # active development against master
 unity source code branch: 2018.1/scripting/jobsystem/playground

@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/ECS/TwoStickShooterClassic/TwoStickClassic.unity
+- path: Assets/Scenes/BoidExample.unity
   isLoaded: 1
   isActive: 1

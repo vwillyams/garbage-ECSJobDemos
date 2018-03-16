@@ -185,8 +185,9 @@ namespace Unity.Entities.Editor
         
         private float lastUpdate;
         
-        void Update() 
-        { 
+        void Update()
+        {
+            systemListView.UpdateTimings();
             if (Time.realtimeSinceStartup > lastUpdate + 0.5f) 
             { 
                 Repaint(); 

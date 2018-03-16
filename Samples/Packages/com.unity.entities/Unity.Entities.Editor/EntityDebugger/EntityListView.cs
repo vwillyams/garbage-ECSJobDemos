@@ -49,6 +49,8 @@ namespace Unity.Entities.Editor
 
         public void UpdateIfNecessary()
         {
+            if (window.WorldSelection == null)
+                return;
             if (selectedComponentGroup == null)
             {
                 if (window.WorldSelection.GetExistingManager<EntityManager>().Version != cachedVersion)
@@ -72,6 +74,7 @@ namespace Unity.Entities.Editor
             if (window?.WorldSelection == null)
             {
                 root.AddChild(new TreeViewItem { id = managerId, displayName = "No world selected"});
+                cachedVersion = -1;
             }
             else
             {
@@ -95,7 +98,7 @@ namespace Unity.Entities.Editor
 
                 if (entitiesById.Count == 0)
                 {
-                    root.AddChild(new TreeViewItem { id = managerId, displayName = "ComponentGroup is empty"});
+                    root.AddChild(new TreeViewItem { id = managerId, displayName = "No Entities"});
                 }
                 SetupDepthsFromParentsAndChildren(root);
             }

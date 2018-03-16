@@ -246,6 +246,8 @@ namespace Unity.Entities.Editor
 
         void EntityHeader()
         {
+            if (WorldSelection == null)
+                return;
             GUILayout.BeginHorizontal();
             if (SystemSelection == null)
             {

@@ -37,7 +37,7 @@ namespace Unity.Entities
             if (m_AlwaysUpdateSystem)
                 return true;
 
-            int length = m_ComponentGroups.Length;
+            var length = m_ComponentGroups?.Length ?? 0;
 
             if (length == 0)
                 return true;

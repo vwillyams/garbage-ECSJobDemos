@@ -68,6 +68,7 @@ namespace Unity.Entities.Tests
             world.DestroyManager(manager);
             Assert.AreNotEqual(version, world.Version);
             
+            world.Dispose();
         }
     }
 }

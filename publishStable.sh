@@ -5,8 +5,8 @@ readonly dstBranch="master"
 readonly srcRepoName="ECSJobDemos"
 readonly packagesPath="Samples/Packages/"
 
-readonly srcRepo="git@gitlab.internal.unity3d.com:fabrizio/ECSJobDemos.git"
-#readonly srcRepo="https://github.com/Unity-Technologies/$srcRepoName.git"
+#readonly srcRepo="git@gitlab.internal.unity3d.com:fabrizio/ECSJobDemos.git"
+readonly srcRepo="https://github.com/Unity-Technologies/$srcRepoName.git"
 #readonly dstRepo="https://github.com/Unity-Technologies/EntityComponentSystemSamples.git"
 #readonly dstRepo="git@gitlab.internal.unity3d.com:core/EntityComponentSystemSamples.git"
 readonly dstRepo="git@gitlab.internal.unity3d.com:fabrizio/ECS.git"
@@ -205,7 +205,7 @@ processPackage()
 	cd $1
 	rm -r $2
 
-	modifyJSON $2 $packageVersion $3  
+	modifyJSON $2 $packageVersion $3
 
 	cd $rootClone
 
@@ -254,6 +254,11 @@ main()
 	scatterManifest > /dev/null 2>&1
 
 	RemoveThisScriptForCommit
+
+    rm README.md
+    cp ~/README.md .
+    git add README.md
+
 	if [[ $releaseNumber -ne 1 ]]
 	then
 		git commit -m "Release $releaseNumber"
@@ -262,7 +267,7 @@ main()
 	fi
 	git push stableRepo $dstBranch
 	cd $rootDir
-	#rm -rf "../tmp"
+	rm -rf "../tmp"
 }
 
 main

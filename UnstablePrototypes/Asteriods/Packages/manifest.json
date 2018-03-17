@@ -2,9 +2,7 @@
     "dependencies": {
         "com.unity.collections":    "file:../../../ECSJobDemos/Packages/com.unity.collections",
         "com.unity.entities":       "file:../../../ECSJobDemos/Packages/com.unity.entities",
-        "com.unity.jobs":           "file:../../../ECSJobDemos/Packages/com.unity.jobs",
-        "com.unity.mathematics":    "0.0.7",
-        "com.unity.burst":          "0.1.31"
+        "com.unity.jobs":           "file:../../../ECSJobDemos/Packages/com.unity.jobs"
     },
     "registry": "https://staging-packages.unity.com"
 }

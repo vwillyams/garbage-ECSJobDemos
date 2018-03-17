@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "com.unity.entities": "file:../../../Samples/Packages/com.unity.entities",
+    "com.unity.jobs": "file:../../../Samples/Packages/com.unity.jobs",
+    "com.unity.collections": "file:../../../Samples/Packages/com.unity.collections"
+  },
+  "testables": [
+        "com.unity.collections",
+        "com.unity.entities",
+        "com.unity.jobs",
+        "com.unity.mathematics"
+  ],
+  "registry": "https://staging-packages.unity.com"
+}

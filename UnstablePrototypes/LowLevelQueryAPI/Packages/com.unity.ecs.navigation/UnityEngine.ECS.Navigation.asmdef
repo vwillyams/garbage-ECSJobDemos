@@ -2,6 +2,7 @@
     "name": "UnityEngine.ECS.Navigation",
     "references": [
         "Unity.Entities",
+        "Unity.Entities.Hybrid",
         "Unity.Collections",
         "Unity.Mathematics"
     ],

@@ -36,26 +36,51 @@ namespace Samples.Boids
         }
 
         [ComputeJobOptimization]
+        struct InitialCellAlignment : IJobParallelFor
+        {
+            [ReadOnly] public ComponentDataArray<Heading>  headings;
+            public NativeArray<float3>                     cellAlignment;
+
+            public void Execute(int index)
+            {
+                cellAlignment[index]  = headings[index].Value;
+            }
+        }
+        
+        [ComputeJobOptimization]
+        struct InitialCellSeparation : IJobParallelFor
+        {
+            [ReadOnly] public ComponentDataArray<Position> positions;
+            public NativeArray<float3>                     cellSeparation;
+
+            public void Execute(int index)
+            {
+                cellSeparation[index] = -positions[index].Value;
+            }
+        }
+        
+        [ComputeJobOptimization]
+        struct InitialCellCount : IJobParallelFor
+        {
+            public NativeArray<int> cellCount;
+
+            public void Execute(int index)
+            {
+                cellCount[index] = 1;
+            }
+        }
+
+        [ComputeJobOptimization]
         struct HashPositions : IJobParallelFor
         {
             [ReadOnly] public ComponentDataArray<Position> positions;
-            [ReadOnly] public ComponentDataArray<Heading>  headings;
             public NativeMultiHashMap<int, int>.Concurrent hashMap;
-            public NativeArray<int>                        cellCount;
-            public NativeArray<float3>                     cellAlignment;
-            public NativeArray<float3>                     cellSeparation;
             public float                                   cellRadius;
 
             public void Execute(int index)
             {
-                var position = positions[index].Value;
-                var hash     = GridHash.Hash(position, cellRadius);
-                
+                var hash = GridHash.Hash(positions[index].Value, cellRadius);
                 hashMap.Add(hash, index);
-                
-                cellCount[index]      = 1;
-                cellAlignment[index]  = headings[index].Value;
-                cellSeparation[index] = -position;
             }
         }
 
@@ -225,14 +250,32 @@ namespace Samples.Boids
                 var hashPositionsJob = new HashPositions
                 {
                     positions      = positions,
-                    headings       = headings,
                     hashMap        = hashMap,
-                    cellCount      = cellCount,
-                    cellAlignment  = cellAlignment,
-                    cellSeparation = cellSeparation,
                     cellRadius     = settings.cellRadius
                 };
                 var hashPositionsJobHandle = hashPositionsJob.Schedule(boidCount, 64, inputDeps);
+
+                var initialCellAlignmentJob = new InitialCellAlignment
+                {
+                    headings      = headings,
+                    cellAlignment = cellAlignment
+                };
+                var initialCellAlignmentJobHandle = initialCellAlignmentJob.Schedule(boidCount, 64, inputDeps);
+                
+                var initialCellSeparationJob = new InitialCellSeparation
+                {
+                    positions      = positions,
+                    cellSeparation = cellSeparation
+                };
+                var initialCellSeparationJobHandle = initialCellSeparationJob.Schedule(boidCount, 64, inputDeps);
+                
+                var initialCellCountJob = new InitialCellCount
+                {
+                    cellCount = cellCount
+                };
+                var initialCellCountJobHandle = initialCellCountJob.Schedule(boidCount, 64, inputDeps);
+
+                var initialCellBarrierJobHandle = JobHandle.CombineDependencies(initialCellAlignmentJobHandle, initialCellSeparationJobHandle, initialCellCountJobHandle);
 
                 var copyTargetPositionsJob = new CopyComponentData<Position>
                 {
@@ -248,7 +291,9 @@ namespace Samples.Boids
                 };
                 var copyObstaclePositionsJobHandle = copyObstaclePositionsJob.Schedule(obstaclePositions.Length, 2, inputDeps);
 
-                var mergeCellsBarrierJobHandle = JobHandle.CombineDependencies(hashPositionsJobHandle, copyTargetPositionsJobHandle, copyObstaclePositionsJobHandle);
+                var copyTargetObstacleBarrierJobHandle = JobHandle.CombineDependencies(copyTargetPositionsJobHandle, copyObstaclePositionsJobHandle);
+
+                var mergeCellsBarrierJobHandle = JobHandle.CombineDependencies(hashPositionsJobHandle, initialCellBarrierJobHandle, copyTargetObstacleBarrierJobHandle);
 
                 var mergeCellsJob = new MergeCells
                 {

@@ -78,32 +78,31 @@ namespace Samples.Boids
                 }
                 nearestDistance = math.sqrt(nearestDistance);
             }
-            
-            public void Execute(int cellIndex, int index)
+
+            public void ExecuteFirst(int index)
             {
-                if (cellIndex == index)
-                {
-                    var position = cellSeparation[cellIndex].Value / cellCount[cellIndex];
+                var position = cellSeparation[index].Value / cellCount[index];
 
-                    int   obstaclePositionIndex;
-                    float obstacleDistance;
-                    NearestPosition(obstaclePositions, position, out obstaclePositionIndex, out obstacleDistance);
-                    cellObstaclePositionIndex[cellIndex] = obstaclePositionIndex;
-                    cellObstacleDistance[cellIndex]      = obstacleDistance;
+                int obstaclePositionIndex;
+                float obstacleDistance;
+                NearestPosition(obstaclePositions, position, out obstaclePositionIndex, out obstacleDistance);
+                cellObstaclePositionIndex[index] = obstaclePositionIndex;
+                cellObstacleDistance[index]      = obstacleDistance;
 
-                    int   targetPositionIndex;
-                    float targetDistance;
-                    NearestPosition(targetPositions, position, out targetPositionIndex, out targetDistance);
-                    cellTargetPistionIndex[cellIndex] = targetPositionIndex;
-                }
-                else
-                {
-                    cellCount[cellIndex]      += 1;
-                    cellAlignment[cellIndex]   = new Heading { Value = cellAlignment[cellIndex].Value + cellAlignment[index].Value };
-                    cellSeparation[cellIndex]  = new Position { Value = cellSeparation[cellIndex].Value + cellSeparation[index].Value };
-                }
+                int targetPositionIndex;
+                float targetDistance;
+                NearestPosition(targetPositions, position, out targetPositionIndex, out targetDistance);
+                cellTargetPistionIndex[index] = targetPositionIndex;
                 
-                cellIndices[index] = cellIndex;
+                cellIndices[index] = index;
+            }
+
+            public void ExecuteNext(int cellIndex, int index)
+            {
+                cellCount[cellIndex]      += 1;
+                cellAlignment[cellIndex]  = new Heading { Value = cellAlignment[cellIndex].Value + cellAlignment[index].Value };
+                cellSeparation[cellIndex] = new Position { Value = cellSeparation[cellIndex].Value + cellSeparation[index].Value };
+                cellIndices[index]        = cellIndex;
             }
         }
 

@@ -1,4 +1,6 @@
-# ECS principles and vision
+# Entity Component System principles and vision
+
+The Entity Component System is built on a set of principles. These principles provide a good context for what we are trying to achieve. Some of the principles are clearly reflected in the code. Others are simply goals that we set for ourselves.
 
 ## Performance by default
 
@@ -8,10 +10,11 @@ We measure ourselves against the performance that can be achieved in C++ with ha
 
 We are using a combination of compiler technology (Burst), containers (Unity.Collections), data layout of components (ECS) to make it easy to write efficient code by default.
 
-* Multicore - TODO
-* SIMD - TODO
-* Data layout & iteration - TODO
-* Instantiation speed - TODO
+* Data layout & iteration - The Entity Component System gurantees linear data layout when iterating entities in chunks by default. This is a critical part of the performance gains provided by the Entity Component System.
+* The C# job system lets you write multithreaded code in a simple way. It also safe. The C# Job Debugger detects any race conditions.
+* Burst is our compiler specifically for C# jobs. C# job code follows certain patterns that we can use to produce more efficient machine code. Code is compiled & optimized for each target platforms taking advantage of SIMD instructions.
+
+An example of this is the performance of Instantiation. Comparing to the theoretical limit, of instantiating 100.000 entities with 320 bytes of a memcpy takes 9ms. Instantiating those entities via the Entity Component System takes 10ms. So we are very close to the theoretical lmit.
 
 At Unite Austin we showcased a demo with 100.000 individual units in a massive battle simulation running at 60 FPS. All game code was running multicore.
 [See ECS performance demo [Video]](https://www.youtube.com/watch?v=0969LalB7vw)
@@ -45,7 +48,8 @@ We are focused on providing best of class network engine support for hosted game
 * FPS - Simulation on the server
 * RTS - Deterministic lock step simulation
 * Arcade games - GGPO
-TODO: More detail / Links (maybe a game type example of what you would use each network architecture for)
+
+> Note: To set expectations right, we are not yet shipping any networking code on top of Entity Component System. It is work in progress.
 
 ## Determinism
 

@@ -888,7 +888,7 @@ namespace Unity.Collections
                             {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 
-                                JobsUtility.PatchBufferMinMaxRanges(bufferRangePatchData, UnsafeUtility.AddressOf(ref fullData), value, i);
+                                JobsUtility.PatchBufferMinMaxRanges(bufferRangePatchData, UnsafeUtility.AddressOf(ref fullData), value, 1);
 #endif
                                 fullData.JobData.ExecuteFirst(value);
                             }

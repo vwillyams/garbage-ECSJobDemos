@@ -6,7 +6,7 @@ When making games with __GameObject__/__MonoBehaviour__, it is easy to write cod
 
 ## Entity-component-system to the rescue
 
-[ECS](https://en.wikipedia.org/wiki/Entity%E2%80%93component%E2%80%93system) is a way of writing code that focuses on the actual problems you are solving: the data and behavior that make up your game.
+An [Entity-component-system](https://en.wikipedia.org/wiki/Entity%E2%80%93component%E2%80%93system) (ECS) is a way of writing code that focuses on the actual problems you are solving: the data and behavior that make up your game.
 
 In addition to being a better way of approaching game programming for design reasons, using ECS puts you in an ideal position to leverage Unity's job system and Burst compiler, letting you take full advantage of today's multicore processors.
 

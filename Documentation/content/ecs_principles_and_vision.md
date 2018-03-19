@@ -55,11 +55,11 @@ We are focused on providing best of class network engine support for hosted game
 
 Our build pipeline must be [deterministic](https://en.wikipedia.org/wiki/Deterministic_algorithm). Users can choose if all simulation code should run deterministically.
 
-This is important for networking, replay features and even advanced debugging tools.
+You should always get the same results with the same inputs, no matter what device is being used. This is important for networking, replay features and even advanced debugging tools.
 
-We will leverage our Burst compiler to produce exact floating point math between different platforms. Imagine a linux server & iOS device running the same floating point math code. This is useful for many scenarios particularly for connected games, but also debugging, replay etc.
+To do this we will leverage our Burst compiler to produce exact floating point math between different platforms. Imagine a linux server & iOS device running the same floating point math code. This is useful for many scenarios particularly for connected games, but also debugging, replay etc. 
 
-TODO - link/explain the floating math problem a little before the burst compiler solved it (so those who are unaware of the fp math issue get the point.) Is this a good reference I'm not sure: https://hal.archives-ouvertes.fr/file/index/docid/281429/filename/floating-point-article.pdf
+> Note: Floating point math discrepancies is a problem that Unity decided to tackle head on. This issue has been known about for some time, but so far there has not been a need great enough to encourage people to solve it. For some insight into this problem, including some of the workarounds needed to avoid solving it, consider reading [Floating-Point Determinism by Bruce Dawson](https://randomascii.wordpress.com/2013/07/16/floating-point-determinism/).
 
 ## Sandbox
 

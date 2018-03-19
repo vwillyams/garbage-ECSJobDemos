@@ -1,6 +1,6 @@
 # Is ECS for you?
 
-If you're considering Unity's ECS, you probably fall into one of two camps:
+If you're considering Unity's entity-component-system (ECS), you probably fall into one of two camps:
 
 ## You already have a game, but it's slow
 

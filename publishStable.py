@@ -14,11 +14,12 @@ import json
 # best_view_registry = None
 # publish_registry = "http://10.45.32.202:3389"
 args = argparse.Namespace()
+source_branch = ""
 
 
 def get_packages_folder():
     # type: () -> str
-    path = "ECSJobDemos/Packages/"
+    path = args.packages_path
     if os.path.isfile(path + "manifest.json"):
         return os.path.abspath(path)
     raise Exception("Unable to find {0}".format(path))
@@ -162,9 +163,10 @@ def modify_manifest(name, version):
 		fi
 	fi
     """
-    with open('data.json', 'r') as f:
-        data = json.load(f)
-    content = json.load()
+    content = None
+    with open("{0}/manifest.json".format(args.packages_path), 'r') as f:
+        content = json.load(f)
+
     pass
 
 
@@ -190,7 +192,7 @@ def squash_commits():
     for d in removed:
         git_cmd("rm {0}".format(d))
 
-    git_cmd("checkout master -- .")
+    git_cmd("checkout {0} -- .".format(source_branch))
 
     git_cmd("add -A")
     git_cmd("commit -m \"Current squash\" --allow-empty")
@@ -259,7 +261,7 @@ def add_destination_repo():
 
     # Lets just always remove it so we stay clean
     if "publishing" in local_branches:
-        git_cmd("checkout origin/master")
+        git_cmd("checkout {0}".format(source_branch))
         git_cmd("branch -D publishing")
 
     if "refs/heads/{0}".format(args.target_branch) in branches:
@@ -270,6 +272,8 @@ def add_destination_repo():
 
 def main():
     root_dir = os.getcwd()
+    repo_dir = args.source_repo
+    os.chdir(repo_dir)
     # Just a nice sanity check so we refuse to run if this script has modifications in the repo we are running from.
     # While changing this script you will need to setup another local repo to run it against.
     output = git_cmd("ls-files -m")
@@ -279,13 +283,14 @@ def main():
         print "Please use a secondary repo locally while testing this out."
         sys.exit(-1)
     try:
-        print "Will now start creating packages for publish from INSERT_COMMIT_OR_BRANCH_HERE to {0}:{1}" \
-            .format(args.target_repo, args.target_branch)
+        source_branch = git_cmd("rev-parse --abbrev-ref HEAD")
+        print "Will now start creating packages for publish from {0} to {1}:{2}" \
+            .format(source_branch, args.target_repo, args.target_branch)
         root_clone = os.getcwd()
         add_destination_repo()
 
         squash_commits()
-        packages_folder = get_packages_folder()
+        packages_folder = args.packages_path
         packages = get_list_of_packages(packages_folder)
 
         for package_path in packages:
@@ -298,8 +303,8 @@ def main():
                     print "The package {0} has been changed but --dry-run has been set so it will not get published" \
                         .format(package_name)
                 else:
-                    print "The package repository is not clean. A new version of {0} will be published".format(
-                        package_name)
+                    print "The package has been modified since latest published version. A new version of {0} will be " \
+                          "published".format(package_name)
                 new_package_version = increase_version(current_package_version, False, False, True)
 
                 if not args.dry_run:
@@ -339,10 +344,11 @@ def main():
         os.chdir(root_dir)
         # TODO restore has been modified during a dry run
 
+        if os.path.isdir("node_modules"):
+            shutil.rmtree("node_modules")
+
         if os.path.isdir("etc"):
             shutil.rmtree("etc")
-
-        pass
 
 
 if __name__ == "__main__":
@@ -360,8 +366,6 @@ if __name__ == "__main__":
     parser.add_argument('--source-repo', default='.', help="The path to the local repo the script should get the "
                                                            "necessary data from and will do temporary modifications "
                                                            "on. Defaults to current working directory if not set")
-    parser.add_argument('--source-revision', help="The local revision to use from the source repo to apply the "
-                                                  "changes from. If not supplied the current revision will be used")
     parser.add_argument('--target-repo', required=True, help="Path to local or remote repo that will be the target of "
                                                              "the flattened history push at the end. This repo will "
                                                              "get added as a new remote to the repo called 'target'")
@@ -370,8 +374,11 @@ if __name__ == "__main__":
                                                                "the source revision since last push to the target "
                                                                "branch will get added as a new commit and pushed in "
                                                                "the end.")
-    parser.add_argument('--packages-path', required=True)
+    parser.add_argument('--packages-path', required=True, help="Path to where the packages that the tool should "
+                                                               "publish exists. It should be a folder where there "
+                                                               "exists a manifest.json")
     parser.add_argument('--dry-run', help="If set the tool will do everything except publishing the new packages and "
                                           "pushing the new commit to the target repo", action='store_true')
     args = parser.parse_args()
+
     main()

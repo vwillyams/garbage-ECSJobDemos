@@ -276,13 +276,13 @@ public class ProceduralSpawnSystem : JobComponentSystem
         var chunkScene = new ProceduralChunkScene();
         chunkScene.Position = position;
 
-        Profiler.BeginSample("DestroyChunk.CreateComponentGroup");
-        var group = m_AllChunksGroup.GetVariation(chunkScene);
+        Profiler.BeginSample("DestroyChunk.SetFilter");
+        m_AllChunksGroup.SetFilter(chunkScene);
         Profiler.EndSample();
 
         //@TODO: This is highly inconvenient...
         Profiler.BeginSample("DestroyChunk.GetEntities");
-        var entityGroupArray = group.GetEntityArray();
+        var entityGroupArray = m_AllChunksGroup.GetEntityArray();
         var entityArray = new NativeArray<Entity>(entityGroupArray.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
         entityGroupArray.CopyTo(entityArray);
         Profiler.EndSample();
@@ -293,8 +293,6 @@ public class ProceduralSpawnSystem : JobComponentSystem
         Profiler.EndSample();
 
         entityArray.Dispose();
-
-        group.Dispose();
 
         //@TODO: Need value based search function...
         m_CreatedChunks.RemoveAtSwapBack(m_CreatedChunks.IndexOf(position));

@@ -1,40 +1,13 @@
+**/Library/
+**/Temp/
+**/obj/
 
-ECSJobDemos/Assets/Plugins*
-ECSJobDemos/Library
-ECSJobDemos/Temp
-ECSJobDemos/obj
+**/.vscode
+**/.vs
+**/.editorconfig
 
-
-UnstablePrototypes/BlobificationPrototype/Library
-UnstablePrototypes/BlobificationPrototype/Temp
-UnstablePrototypes/BlobificationPrototype/obj
-
-UnstablePrototypes/LowLevelQueryAPI/Assets/Plugins*
-UnstablePrototypes/LowLevelQueryAPI/Library
-UnstablePrototypes/LowLevelQueryAPI/Temp
-UnstablePrototypes/LowLevelQueryAPI/obj
-UnstablePrototypes/LowLevelQueryAPI/.editorconfig
-
-UnstablePrototypes/Asteriods/.vscode
-UnstablePrototypes/Asteriods/Assets/Plugins*
-UnstablePrototypes/Asteriods/Library
-UnstablePrototypes/Asteriods/Temp
-UnstablePrototypes/Asteriods/StandardBuild
-UnstablePrototypes/Asteriods/obj
-UnstablePrototypes/Asteriods/.editorconfig
-
-UnstablePrototypes/GalacticConquest/.vscode
-UnstablePrototypes/GalacticConquest/.vs
-UnstablePrototypes/GalacticConquest/Assets/Plugins*
-UnstablePrototypes/GalacticConquest/Library
-UnstablePrototypes/GalacticConquest/Temp
-UnstablePrototypes/GalacticConquest/obj
-UnstablePrototypes/GalacticConquest/.editorconfig
-
-StressTest/Assets/Plugins*
-StressTest/Library
-StressTest/Temp
-StressTest/obj
+**/Assets/Plugins/*
+**/Assets/Plugins.meta
 
 *.idea
 *.csproj
@@ -44,6 +17,9 @@ StressTest/obj
 *.app
 *.VC.*
 .DS_Store
+*~
+*.swp
 
 .vs/
 build/*
+TwoStickShooter/Pure/Library/AnnotationManager

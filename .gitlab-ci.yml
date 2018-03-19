@@ -1,0 +1,717 @@
+variables:
+  UNITY_EXECUTABLE_PATH_MAC: "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity"
+  UNITY_EXECUTABLE_PATH_LINUX: "/home/builduser/buildslave/unity/build/build/LinuxEditor/Unity"
+  UNITY_EXECUTABLE_PATH_WINDOWS: "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe"
+
+stages:
+  - test
+  - build
+  - run
+
+# Mac Boids
+mac:boids:mono:build:
+  variables:
+    SCRIPTING_BACKEND: "mono"
+    SCENE: "Assets/Scenes/BoidExample.unity"
+    SAMPLE_NAME: "boids"
+  stage: build
+  tags:
+    - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath Samples -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-macos-boids"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "Samples/build/"
+    expire_in: 1 week
+
+mac:boids:il2cpp:build:
+  variables:
+    SCRIPTING_BACKEND: "il2cpp"
+    SCENE: "Assets/Scenes/BoidExample.unity"
+    SAMPLE_NAME: "boids"
+  stage: build
+  tags:
+    - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath Samples -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-macos-boids"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "Samples/build/"
+    expire_in: 1 week
+
+mac:boids:mono:run:
+  variables:
+    SCRIPTING_BACKEND: "mono"
+    SAMPLE_NAME: "boids"
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+    - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-macos-boids"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+  dependencies:
+    - mac:boids:mono:build
+
+mac:boids:il2cpp:run:
+  variables:
+    SCRIPTING_BACKEND: "il2cpp"
+    SAMPLE_NAME: "boids"
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+    - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-macos-boids"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+  dependencies:
+    - mac:boids:il2cpp:build
+
+# Mac Chains
+mac:chains:mono:build:
+  variables:
+    SCRIPTING_BACKEND: "mono"
+    SCENE: "Assets/Scenes/ChainExample.unity"
+    SAMPLE_NAME: "chains"
+  stage: build
+  tags:
+    - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath Samples -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-macos-chains"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "Samples/build/"
+    expire_in: 1 week
+
+mac:chains:il2cpp:build:
+  variables:
+    SCRIPTING_BACKEND: "il2cpp"
+    SCENE: "Assets/Scenes/ChainExample.unity"
+    SAMPLE_NAME: "chains"
+  stage: build
+  tags:
+    - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath Samples -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-macos-chains"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "Samples/build/"
+    expire_in: 1 week
+
+mac:chains:mono:run:
+  variables:
+    SCRIPTING_BACKEND: "mono"
+    SAMPLE_NAME: "chains"
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+    - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-macos-chains"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+  dependencies:
+    - mac:chains:mono:build
+
+mac:chains:il2cpp:run:
+  variables:
+    SCRIPTING_BACKEND: "il2cpp"
+    SAMPLE_NAME: "chains"
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+    - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-macos-chains"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+  dependencies:
+    - mac:chains:il2cpp:build
+
+# Mac Hierarchy
+mac:hierarchy:mono:build:
+  variables:
+    SCRIPTING_BACKEND: "mono"
+    SCENE: "Assets/Scenes/HierarchyExample.unity"
+    SAMPLE_NAME: "hierarchy"
+  stage: build
+  tags:
+    - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath Samples -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-macos-hierarchy"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "Samples/build/"
+    expire_in: 1 week
+
+mac:hierarchy:il2cpp:build:
+  variables:
+    SCRIPTING_BACKEND: "il2cpp"
+    SCENE: "Assets/Scenes/HierarchyExample.unity"
+    SAMPLE_NAME: "hierarchy"
+  stage: build
+  tags:
+    - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath Samples -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-macos-hierarchy"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "Samples/build/"
+    expire_in: 1 week
+
+mac:hierarchy:mono:run:
+  variables:
+    SCRIPTING_BACKEND: "mono"
+    SAMPLE_NAME: "hierarchy"
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+    - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-macos-hierarchy"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+  dependencies:
+    - mac:hierarchy:mono:build
+
+mac:hierarchy:il2cpp:run:
+  variables:
+    SCRIPTING_BACKEND: "il2cpp"
+    SAMPLE_NAME: "hierarchy"
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+    - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-macos-hierarchy"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+  dependencies:
+    - mac:hierarchy:il2cpp:build
+
+# Mac Rotation
+mac:rotation:mono:build:
+  variables:
+    SCRIPTING_BACKEND: "mono"
+    SCENE: "Assets/Scenes/RotationExample.unity"
+    SAMPLE_NAME: "rotation"
+  stage: build
+  tags:
+    - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath Samples -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-macos-rotation"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "Samples/build/"
+    expire_in: 1 week
+
+mac:rotation:il2cpp:build:
+  variables:
+    SCRIPTING_BACKEND: "il2cpp"
+    SCENE: "Assets/Scenes/RotationExample.unity"
+    SAMPLE_NAME: "rotation"
+  stage: build
+  tags:
+    - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath Samples -batchmode -buildOSXUniversalPlayer build/${SCRIPTING_BACKEND}/macos-standalone.app -nographics -silentcrashes -automated -logfile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-build-${SCRIPTING_BACKEND}-cleaned.log -quit -scene $SCENE -scriptingBackend $SCRIPTING_BACKEND -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-macos-rotation"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "Samples/build/"
+    expire_in: 1 week
+
+mac:rotation:mono:run:
+  variables:
+    SCRIPTING_BACKEND: "mono"
+    SAMPLE_NAME: "rotation"
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+    - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-macos-rotation"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+  dependencies:
+    - mac:rotation:mono:build
+
+mac:rotation:il2cpp:run:
+  variables:
+    SCRIPTING_BACKEND: "il2cpp"
+    SAMPLE_NAME: "rotation"
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+    - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/${SCRIPTING_BACKEND}/macos-standalone.app/Contents/MacOS/macos-standalone -logfile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}.log -cleanedLogFile output-macos-${SAMPLE_NAME}-run-${SCRIPTING_BACKEND}-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-macos-rotation"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+  dependencies:
+    - mac:rotation:il2cpp:build
+
+# Mac test
+mac:test:
+  stage: test
+  tags:
+    - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable $UNITY_EXECUTABLE_PATH_MAC -projectpath $(pwd)/Samples -batchmode -nographics -silentcrashes -automated -logfile output-macos-test.log -runtests -testresults results.xml
+  artifacts:
+    name: "artifacts-macos-test"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+
+# Windows boids
+win:boids:mono:build:
+  variables:
+    SCRIPTING_BACKEND: "mono"
+    SCENE: "Assets/Scenes/BoidExample.unity"
+    SAMPLE_NAME: "boids"
+  stage: build
+  tags:
+    - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath Samples -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-win-boids"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "Samples/build/"
+    expire_in: 1 week
+
+win:boids:il2cpp:build:
+  variables:
+    SCRIPTING_BACKEND: "il2cpp"
+    SCENE: "Assets/Scenes/BoidExample.unity"
+    SAMPLE_NAME: "boids"
+  stage: build
+  tags:
+    - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath Samples -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-win-boids"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "Samples/build/"
+    expire_in: 1 week
+
+win:boids:mono:run:
+  variables:
+    SCRIPTING_BACKEND: "mono"
+    SAMPLE_NAME: "boids"
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+    - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-win-boids"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+  dependencies:
+    - win:boids:mono:build
+
+win:boids:il2cpp:run:
+  variables:
+      SCRIPTING_BACKEND: "il2cpp"
+      SAMPLE_NAME: "boids"
+      GIT_STRATEGY: none
+  stage: run
+  tags:
+    - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-win-boids"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+  dependencies:
+    - win:boids:il2cpp:build
+
+# Windows chains
+win:chains:mono:build:
+  variables:
+    SCRIPTING_BACKEND: "mono"
+    SCENE: "Assets/Scenes/ChainExample.unity"
+    SAMPLE_NAME: "boids"
+  stage: build
+  tags:
+    - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath Samples -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-win-chains"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "Samples/build/"
+    expire_in: 1 week
+
+win:chains:il2cpp:build:
+  variables:
+    SCRIPTING_BACKEND: "il2cpp"
+    SCENE: "Assets/Scenes/ChainExample.unity"
+    SAMPLE_NAME: "boids"
+  stage: build
+  tags:
+    - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath Samples -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-win-chains"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "Samples/build/"
+    expire_in: 1 week
+
+win:chains:mono:run:
+  variables:
+    SCRIPTING_BACKEND: "mono"
+    SAMPLE_NAME: "chains"
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+    - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-win-chains"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+  dependencies:
+    - win:chains:mono:build
+
+win:chains:il2cpp:run:
+  variables:
+      SCRIPTING_BACKEND: "il2cpp"
+      SAMPLE_NAME: "chains"
+      GIT_STRATEGY: none
+  stage: run
+  tags:
+    - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-win-chains"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+  dependencies:
+    - win:chains:il2cpp:build
+
+# Windows hierarchy
+win:hierarchy:mono:build:
+  variables:
+    SCRIPTING_BACKEND: "mono"
+    SCENE: "Assets/Scenes/HierarchyExample.unity"
+    SAMPLE_NAME: "hierarchy"
+  stage: build
+  tags:
+    - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath Samples -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-win-hierarchy"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "Samples/build/"
+    expire_in: 1 week
+
+win:hierarchy:il2cpp:build:
+  variables:
+    SCRIPTING_BACKEND: "il2cpp"
+    SCENE: "Assets/Scenes/HierarchyExample.unity"
+    SAMPLE_NAME: "hierarchy"
+  stage: build
+  tags:
+    - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath Samples -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-win-hierarchy"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "Samples/build/"
+    expire_in: 1 week
+
+win:hierarchy:mono:run:
+  variables:
+    SCRIPTING_BACKEND: "mono"
+    SAMPLE_NAME: "hierarchy"
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+    - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-win-hierarchy"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+  dependencies:
+    - win:hierarchy:mono:build
+
+win:hierarchy:il2cpp:run:
+  variables:
+      SCRIPTING_BACKEND: "il2cpp"
+      SAMPLE_NAME: "hierarchy"
+      GIT_STRATEGY: none
+  stage: run
+  tags:
+    - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-win-hierarchy"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+  dependencies:
+    - win:hierarchy:il2cpp:build
+
+# Windows rotation
+win:rotation:mono:build:
+  variables:
+    SCRIPTING_BACKEND: "mono"
+    SCENE: "Assets/Scenes/RotationExample.unity"
+    SAMPLE_NAME: "rotation"
+  stage: build
+  tags:
+    - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath Samples -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-win-rotation"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "Samples/build/"
+    expire_in: 1 week
+
+win:rotation:il2cpp:build:
+  variables:
+    SCRIPTING_BACKEND: "il2cpp"
+    SCENE: "Assets/Scenes/RotationExample.unity"
+    SAMPLE_NAME: "rotation"
+  stage: build
+  tags:
+    - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath Samples -batchmode -buildWindows64Player build/%SCRIPTING_BACKEND%/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-build-%SCRIPTING_BACKEND%-cleaned.log -quit -scene %SCENE% -scriptingBackend %SCRIPTING_BACKEND% -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-win-rotation"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "Samples/build/"
+    expire_in: 1 week
+
+win:rotation:mono:run:
+  variables:
+    SCRIPTING_BACKEND: "mono"
+    SAMPLE_NAME: "rotation"
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+    - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-win-rotation"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+  dependencies:
+    - win:rotation:mono:build
+
+win:rotation:il2cpp:run:
+  variables:
+      SCRIPTING_BACKEND: "il2cpp"
+      SAMPLE_NAME: "rotation"
+      GIT_STRATEGY: none
+  stage: run
+  tags:
+    - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/%SCRIPTING_BACKEND%/windows-standalone.exe -logfile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%.log -cleanedLogFile output-win-%SAMPLE_NAME%-run-%SCRIPTING_BACKEND%-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-win-rotation"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+  dependencies:
+    - win:rotation:il2cpp:build
+
+# Windows test
+win:test:
+  stage: test
+  tags:
+    - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "%UNITY_EXECUTABLE_PATH_WINDOWS%" -projectpath Samples -batchmode -nographics -silentcrashes -automated -logfile output-win-test.log -runtests -testresults results.xml
+  artifacts:
+    name: "artifacts-win-test"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
+
+#build:linux:
+#  stage: build
+#  allow_failure: true
+#  tags:
+#    - linux
+#  script:
+#    - dotnet ~/unity-log-wrapper/bin/Debug/netcoreapp2.0/UnityLogWrapper.dll -unityexecutable $UNITY_EXECUTABLE_PATH_LINUX -projectpath $(pwd)/Samples -batchmode -nographics -silentcrashes -automated -logfile output.log -quit
+#  artifacts:
+#      name: "linux-build-logs"
+#      when: always
+#      paths:
+#        - "*.log"
+#        - "*.xml"
+#      expire_in: 1 week
+
+#standalone:linux:
+#  stage: standalone
+#  allow_failure: true
+#  tags:
+#    - linux
+#  script:
+#    - dotnet ~/unity-log-wrapper/bin/Debug/netcoreapp2.0/UnityLogWrapper.dll -unityexecutable $UNITY_EXECUTABLE_PATH_LINUX -projectpath $(pwd)/Samples -batchmode -buildLinuxUniversalPlayer build/linux-standalone -silentcrashes -automated -logfile output.log -quit
+#  artifacts:
+#      name: "linux-standalone-logs"
+#      when: always
+#      paths:
+#        - "*.log"
+#        - "*.xml"
+#        - "Samples/build/"
+#      expire_in: 1 week
+
+#test:linux:
+#  stage: test
+#  allow_failure: true
+#  tags:
+#    - linux
+#  script:
+#    - dotnet ~/unity-log-wrapper/bin/Debug/netcoreapp2.0/UnityLogWrapper.dll -unityexecutable $UNITY_EXECUTABLE_PATH_LINUX -projectpath $(pwd)/Samples -batchmode -nographics -silentcrashes -automated -logfile output.log -runtests -testresults results.xml
+#  artifacts:
+#    name: "linux-test-logs"
+#    when: always
+#    paths:
+#      - "*.log"
+#      - "*.xml"
+#    expire_in: 1 week

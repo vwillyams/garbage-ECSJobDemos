@@ -1,0 +1,9 @@
+{
+	"dependencies": {
+    "com.unity.entities": "file:../../../Samples/Packages/com.unity.entities",
+    "com.unity.jobs": "file:../../../Samples/Packages/com.unity.jobs",
+    "com.unity.collections": "file:../../../Samples/Packages/com.unity.collections"
+	},
+	"registry": "https://staging-packages.unity.com"
+}
+

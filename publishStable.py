@@ -29,11 +29,31 @@ def get_list_of_packages(folder):
     return packages
 
 
+def compare_package_files(local_path, installed_path, current_version):
+    with open("{0}/package.json".format(local_path), 'r') as f:
+        local_package = json.load(f)
+    with open("{0}/package.json".format(installed_path), 'r') as f:
+        installed_package = json.load(f)
+
+    local_package["version"] = current_version
+
+    for key, value in local_package.iteritems():
+        if key not in installed_package:
+            return False
+        if value != installed_package[key]:
+            return False
+
+    return True
+
+
 def _get_all_files(path):
-    return [os.path.relpath(os.path.join(dp, f), path) for dp, dn, fn in os.walk(os.path.expanduser(path)) for f in fn]
+    files = [os.path.relpath(os.path.join(dp, f), path) for dp, dn, fn in os.walk(os.path.expanduser(path)) for f in fn]
+    # TODO: This never matches when diffing later because we never write back the json updates to our repo
+    files.remove("package.json")
+    return files
 
 
-def is_package_changed(package_folder, package_name):
+def is_package_changed(package_folder, package_name, current_version):
     # type: (str) -> bool
     print "Installing {0} from {1} to see if we have changed anything".format(package_name, best_view_registry)
     npm_cmd("install --no-package-lock --prefix . {0}".format(package_name), best_view_registry)
@@ -52,8 +72,12 @@ def is_package_changed(package_folder, package_name):
     match, mismatch, errors = filecmp.cmpfiles(package_folder, installed_path, repo_files)
 
     if len(mismatch) == 0 and len(errors) == 0:
-        print "Nothing has changed"
-        return False
+        if compare_package_files(package_folder, "node_modules/{0}".format(package_name), current_version):
+            print "Nothing has changed"
+            return False
+        else:
+            print "{0}/package.json and node_modules/{1}/package.json are not the same".format(package_folder, package_name)
+            return True
     print "  The following files have changed compared to the currently published package:"
     for m in mismatch:
         print "    {0}".format(m)
@@ -77,6 +101,19 @@ def increase_version(version, major, minor, patch):
     return new_version
 
 
+def _get_version_in_registry(package_name, registry):
+    try:
+        version = npm_cmd("view {0} version".format(package_name), registry)
+
+    # Hack for sinopia which returns 404 when a package doesn't exist, whereas no other registry does
+    except subprocess.CalledProcessError as e:
+        if "is not in the npm registry" in e.output:
+            version = ""
+        else:
+            raise e
+    return version
+
+
 def get_package_version(package_name, ):
     # type: (str) -> str
 
@@ -86,15 +123,7 @@ def get_package_version(package_name, ):
 
     highest_version_trimmed = highest_version.split('.')
     for registry in args.view_registries:
-        try:
-            version = npm_cmd("view {0} version".format(package_name), registry)
-
-        # Hack for sinopia which returns 404 when a package doesn't exist, whereas no other registry does
-        except subprocess.CalledProcessError as e:
-            if "is not in the npm registry" in e.output:
-                version = ""
-            else:
-                raise e
+        version = _get_version_in_registry(package_name, registry)
         if not version:
             # Package didn't exist in the registry
             continue
@@ -117,8 +146,6 @@ def publish_new_package(package_name, version):
     try:
 
         os.chdir("{0}/{1}".format(args.packages_path, package_name))
-        # TODO: Remove --allow-same-version
-        npm_cmd("--no-git-tag-version version {0} --allow-same-version".format(version), None).strip()
         print "Packing as version {0}".format(version)
         package_archive = npm_cmd("pack .", None).strip()
         print "Publishing {0} to {1}".format(package_archive, args.publish_registry)
@@ -178,7 +205,18 @@ def _modify_package_file_dependencies(package_name, version):
             json.dump(package_file, outfile, indent=4)
 
 
-def modify_json_dependencies(package_name, version):
+def _modify_package_version(package_name, version):
+    previous_cwd = os.getcwd()
+    try:
+        os.chdir("{0}/{1}".format(args.packages_path, package_name))
+        npm_cmd("--no-git-tag-version version {0}".format(version), None).strip()
+    finally:
+        os.chdir(previous_cwd)
+
+
+def modify_json(package_name, version):
+    if package_name in modified_packages:
+        _modify_package_version(package_name, version)
     _modify_manifest(package_name, version)
     _modify_package_file_dependencies(package_name, version)
 
@@ -285,7 +323,7 @@ def add_destination_repo():
 
 def process_package(package_path, package_name, root_clone):
     current_package_version = get_package_version(package_name)
-    changed = is_package_changed(package_path, package_name)
+    changed = is_package_changed(package_path, package_name, current_package_version)
     if changed is True:
         if args.dry_run:
             print "The package {0} has been changed but --dry-run has been set so it will not get published" \
@@ -300,6 +338,11 @@ def process_package(package_path, package_name, root_clone):
         print "No change detected in the repo. The current version of {0} ({1}) will be used in the project" \
             .format(package_name, current_package_version)
         local_packages[package_name] = current_package_version
+        published_version = _get_version_in_registry(package_name, args.publish_registry)
+        if published_version != current_package_version:
+            print "The version of this package does not exist on the publish registry, so will publish anyway with " \
+                  "the current version "
+            modified_packages[package_name] = current_package_version
 
     os.chdir(root_clone)
     print ''.ljust(80, '#')
@@ -308,7 +351,7 @@ def process_package(package_path, package_name, root_clone):
 def publish_modified_packages():
     # we update all the manifest and package json files first before we publish so everything has the right version
     for package_name, version in local_packages.iteritems():
-        modify_json_dependencies(package_name, version)
+        modify_json(package_name, version)
 
     for package_name, version in modified_packages.iteritems():
         if not args.dry_run:
@@ -358,7 +401,8 @@ def main():
         publish_modified_packages()
         git_cmd("add {0}".format(args.packages_path))
 
-        shutil.rmtree("node_modules")
+        # TODO: Removed for debugging
+        #shutil.rmtree("node_modules")
         scatter_manifest()
 
         remove_this_script_from_commit()
@@ -379,11 +423,12 @@ def main():
         raise
     finally:
         print "Running cleanup"
-        git_cmd("checkout {0}".format(source_branch))
+        # TODO: WHy doesn't this checkout work but works when run manually?
+        # git_cmd("checkout {0}".format(source_branch))
         os.chdir(root_dir)
 
-        if os.path.isdir("node_modules"):
-            shutil.rmtree("node_modules")
+        #if os.path.isdir("node_modules"):
+        #    shutil.rmtree("node_modules")
 
         if os.path.isdir("etc"):
             shutil.rmtree("etc")

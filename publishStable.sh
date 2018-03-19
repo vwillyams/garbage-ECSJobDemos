@@ -1,16 +1,17 @@
 #TODO: increment the minor/major version???
 #      maybe a file with a list of pack
-readonly srcBranch="stable"
+readonly srcBranch="master"
 readonly dstBranch="master"
 readonly srcRepoName="ECSJobDemos"
-readonly packagesPath="ECSJobDemos/Packages/"
-readonly srcRepo="https://github.com/Unity-Technologies/$srcRepoName.git"
-readonly dstRepo="https://github.com/Unity-Technologies/EntityComponentSystemSamples.git"
-#readonly dstRepo="git@gitlab.internal.unity3d.com:core/EntityComponentSystemSamples.git"
-#readonly dstRepo="git@gitlab.internal.unity3d.com:fabrizio/ECS.git"
+readonly packagesPath="Samples/Packages/"
 
-readonly npmStagingRepo="https://api.bintray.com/npm/unity/unity-staging"
-readonly npmLocalRepo="http://localhost:4873"
+#readonly srcRepo="git@gitlab.internal.unity3d.com:fabrizio/ECSJobDemos.git"
+readonly srcRepo="https://github.com/Unity-Technologies/$srcRepoName.git"
+#readonly dstRepo="https://github.com/Unity-Technologies/EntityComponentSystemSamples.git"
+#readonly dstRepo="git@gitlab.internal.unity3d.com:core/EntityComponentSystemSamples.git"
+readonly dstRepo="git@gitlab.internal.unity3d.com:fabrizio/ECS.git"
+
+readonly mainPackage="com.unity.entities"
 
 getPackagesFolder()
 {
@@ -80,9 +81,11 @@ getPackageCurrentVersion()
 	echo $packageVersion
 }
 
+# $1 packages folder
+# $2 package
 publishNewPackage()
 {
-	cd $packagesFolder$package
+	cd $1$2
 	local packageVersion=`npm version patch | cut -d'v' -f2 2> /dev/null`
 	echo "New Version $packageVersion" >&2
 	packageArchive=`npm pack .`
@@ -93,22 +96,22 @@ publishNewPackage()
 	echo $packageVersion
 }
 
-modifyManifest()
+modifyJSON()
 {
 	# Check if the manifest already contains a declaration of the current package
-	grep "$1\"[ \t]*:" manifest.json > /dev/null 2>&1
+	grep "$1\"[ \t]*:" $3 > /dev/null 2>&1
 	if [[ $? -eq 0 ]]
 	then
 		#if the package is already declared, change the version declared with the new one.
 		if [[ $OSTYPE == *darwin* ]]
 		then
-			sed -i '' -e 's/\"'"$1"'\"[ \t]*:[ \t]*\"[0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}\"/\"'"$1"'\":\"'"$2"'\"/' manifest.json
+			sed -i '' -e 's/\"'"$1"'\"[ \t]*:[ \t]*\"[0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}\"/\"'"$1"'\":\"'"$2"'\"/' $3
 		else
-			sed -i -e 's/\"'"$1"'\"[ \t]*:[ \t]*\"[0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}\"/\"'"$1"'\":\"'"$2"'\"/' manifest.json
+			sed -i -e 's/\"'"$1"'\"[ \t]*:[ \t]*\"[0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}\"/\"'"$1"'\":\"'"$2"'\"/' $3
 		fi
 	else
 		#if there are packages already declared, we need to append a comma after the version number
-		numPackages=`grep ':[   ]*\"[0-9]' manifest.json | wc -l | awk '{print $1}'`
+		numPackages=`grep ':[   ]*\"[0-9]' $3 | wc -l | awk '{print $1}'`
 		lineTerminator=""
 		if [[ $numPackages > 0 ]]
 		then
@@ -117,9 +120,9 @@ modifyManifest()
 
 		if [[ $OSTYPE == *darwin* ]]
 		then
-			sed -i '' -e 's/\"dependencies\"[ \t]*:[ \t]*{/\"dependencies\":{\'$'\n\t\t\"'"$1"'\":\"'"$2"'\"'"$lineTerminator"'/' manifest.json
+			sed -i '' -e 's/\"dependencies\"[ \t]*:[ \t]*{/\"dependencies\":{\'$'\n\t\t\"'"$1"'\":\"'"$2"'\"'"$lineTerminator"'/' $3
 		else
-			sed -i -e 's/\"dependencies\"[ \t]*:[ \t]*{/\"dependencies\":{\'$'\n\t\t\"'"$1"'\":\"'"$2"'\"'"$lineTerminator"'/' manifest.json
+			sed -i -e 's/\"dependencies\"[ \t]*:[ \t]*{/\"dependencies\":{\'$'\n\t\t\"'"$1"'\":\"'"$2"'\"'"$lineTerminator"'/' $3
 		fi
 	fi
 }
@@ -135,15 +138,15 @@ scatterManifest()
 
 squashCommits()
 {
-	git fetch stable $dstBranch > /dev/null 2>&1
+	git fetch stableRepo $dstBranch > /dev/null 2>&1
 	if [[ $? -ne 0 ]]
 	then
 		echo "The stable repo is empty. Creating the first commit..." >&2
 		git reset $(git rev-list --max-parents=0 HEAD) > /dev/null 2>&1
-        git checkout -b $dstBranch > /dev/null 2>&1
+		git checkout -b $dstBranch > /dev/null 2>&1
 		releaseNumber=1
 	else
-		git reset stable/$dstBranch > /dev/null 2>&1
+		git reset stableRepo/$dstBranch > /dev/null 2>&1
 		releaseMessage=$(git log --oneline --pretty=format:%s -1)
 		releaseNumber=`echo $releaseMessage | cut -d' ' -f2 | awk '{print $1}' 2> /dev/null`
 		((releaseNumber++)) 2> /dev/null
@@ -178,7 +181,45 @@ RemoveThisScriptForCommit()
 {
 	git add .
 	git reset -- "`basename $BASH_SOURCE`"
-    git reset -- .gitlab-ci.yml
+	git reset -- .gitlab-ci.yml
+	git rm --cached -r UnstablePrototypes
+}
+
+# $1 packages folder
+# $2 package to process
+# $3 json depender
+processPackage()
+{
+	echo "Package Found: $2"
+	local packageVersion=`getPackageCurrentVersion $1 $2`
+
+	isPackageChanged $1 $2
+	if [[ $? -eq 1 ]]
+	then
+		echo "The package repository is not clean. A new version of $2 will be published"
+		packageVersion=`publishNewPackage $1 $2`
+	else
+		echo "No change detected in the repo. The version $packageVersion will be used in the project"
+	fi
+
+	cd $1
+	rm -r $2
+
+	modifyJSON $2 $packageVersion $3
+
+	cd $rootClone
+
+	git add .
+}
+
+createLocalBranch()
+{
+	# if the branch name doesn't exist locally, create it
+	git branch | grep $dstBranch$ > /dev/null 2>&1
+	if [[ $? -ne 0 ]]
+	then
+		git checkout -b $dstBranch
+	fi
 }
 
 main()
@@ -186,70 +227,47 @@ main()
 	rootDir=`pwd`
 	rootClone=`CreateCloneRepo`
 	cd $rootClone
-	git remote add stable $dstRepo
+	git remote add stableRepo $dstRepo
 	git remote remove origin
+
+	createLocalBranch
+
 	releaseNumber=`squashCommits`
 	packagesFolder=`getPackagesFolder`
+
 	packages=`getListOfPackages $packagesFolder`
 
 	for package in ${packages[@]}
 	do
-		echo "Package Found: $package"
-		local packageVersion=`getPackageCurrentVersion $packagesFolder $package`
-
-		isPackageChanged $packagesFolder $package
-		if [[ $? -eq 1 ]]
+		if [[ $package != $mainPackage ]]
 		then
-			echo "The package repository is not clean. A new version of $package will be published"
-			packageVersion=`publishNewPackage`
-		else
-			echo "No change detected in the repo. The version $packageVersion will be used in the project"
+			processPackage $packagesFolder $package "$mainPackage/package.json"
 		fi
-
-		cd $packagesFolder
-		rm -r $package
-
-		modifyManifest $package $packageVersion
-
-		cd $rootClone
-		git add .
 	done
+
+	#Handle com.unity.entities (not so much) differently...It just needs to be the last package to be processed....
+	if [[ -d $packagesFolder$mainPackage ]]
+	then
+		processPackage $packagesFolder $mainPackage manifest.json
+	fi
 
 	scatterManifest > /dev/null 2>&1
 
 	RemoveThisScriptForCommit
+
+    rm README.md
+    cp ~/README.md .
+    git add README.md
+
 	if [[ $releaseNumber -ne 1 ]]
 	then
 		git commit -m "Release $releaseNumber"
 	else
 		git commit --amend --reset-author -m "Release $releaseNumber"
 	fi
-	git push stable $dstBranch
+	git push stableRepo $dstBranch
 	cd $rootDir
 	rm -rf "../tmp"
 }
 
-while [[ $# > 0 ]]
-do
-	key="$1"
-	case $key in
-		--internal-release)
-			isInternal=1
-			shift
-			;;
-	esac
-done
-
-if [[ $isInternal ]]
-then
-	cp ~/.npmrc ~/.npmrcStaging
-	mv ~/.npmrcLocal ~/.npmrc
-fi
-
 main
-
-if [[ $isInternal ]]
-then
-	cp ~/.npmrc ~/.npmrcLocal
-	mv ~/.npmrcStaging ~/.npmrc
-fi

@@ -7,14 +7,10 @@ import sys
 import argparse
 import json
 
-# dry_run = True
-# dest_repo = "D:/playground/ghost"
-# dest_branch = "master"
-# view_registries = ["https://packages.unity.com", "https://staging-packages.unity.com", "http://10.45.32.202:3389"]
-# best_view_registry = None
-# publish_registry = "http://10.45.32.202:3389"
 args = argparse.Namespace()
 source_branch = ""
+local_packages = {}
+modified_packages = {}
 
 
 def get_packages_folder():
@@ -115,12 +111,12 @@ def get_package_version(package_name, ):
     return highest_version
 
 
-def publish_new_package(package_path, version):
+def publish_new_package(package_name, version):
     # type: (str, str) -> None
     previous_cwd = os.getcwd()
     try:
 
-        os.chdir(package_path)
+        os.chdir("{0}/{1}".format(args.packages_path, package_name))
         # TODO: Remove --allow-same-version
         npm_cmd("--no-git-tag-version version {0} --allow-same-version".format(version), None).strip()
         print "Packing as version {0}".format(version)
@@ -133,41 +129,58 @@ def publish_new_package(package_path, version):
     pass
 
 
-def modify_manifest(name, version):
-    """
-    	# Check if the manifest already contains a declaration of the current package
-	grep "$1\"[ \t]*:" manifest.json > /dev/null 2>&1
-	if [[ $? -eq 0 ]]
-	then
-		#if the package is already declared, change the version declared with the new one.
-		if [[ $OSTYPE == *darwin* ]]
-		then
-			sed -i '' -e 's/\"'"$1"'\"[ \t]*:[ \t]*\"[0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}\"/\"'"$1"'\":\"'"$2"'\"/' manifest.json
-		else
-			sed -i -e 's/\"'"$1"'\"[ \t]*:[ \t]*\"[0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}\"/\"'"$1"'\":\"'"$2"'\"/' manifest.json
-		fi
-	else
-		#if there are packages already declared, we need to append a comma after the version number
-		numPackages=`grep ':[   ]*\"[0-9]' manifest.json | wc -l | awk '{print $1}'`
-		lineTerminator=""
-		if [[ $numPackages > 0 ]]
-		then
-			lineTerminator=","
-		fi
-
-		if [[ $OSTYPE == *darwin* ]]
-		then
-			sed -i '' -e 's/\"dependencies\"[ \t]*:[ \t]*{/\"dependencies\":{\'$'\n\t\t\"'"$1"'\":\"'"$2"'\"'"$lineTerminator"'/' manifest.json
-		else
-			sed -i -e 's/\"dependencies\"[ \t]*:[ \t]*{/\"dependencies\":{\'$'\n\t\t\"'"$1"'\":\"'"$2"'\"'"$lineTerminator"'/' manifest.json
-		fi
-	fi
-    """
-    content = None
+def _modify_manifest(package_name, version):
     with open("{0}/manifest.json".format(args.packages_path), 'r') as f:
-        content = json.load(f)
+        manifest = json.load(f)
 
-    pass
+    dependencies = {}
+    if "dependencies" in manifest:
+        dependencies = manifest["dependencies"]
+    modified = False
+    for key, value in dependencies.iteritems():
+        if key != package_name:
+            continue
+        modified = True
+        manifest["dependencies"][package_name] = version
+
+    if not modified and args.add_packages_to_manifest and package_name in args.add_packages_to_manifest:
+        print "Adding {0} to the manifest.json".format(package_name)
+        manifest["dependencies"][package_name] = version
+        modified = True
+
+    if modified:
+        with open("{0}/manifest.json".format(args.packages_path), 'w') as outfile:
+            json.dump(manifest, outfile, indent=4)
+
+
+def _modify_package_file_dependencies(package_name, version):
+    """
+    We check all modified packages and see if the current package has a dependency to it. If so then we update the
+    version
+    """
+    with open("{0}/{1}/package.json".format(args.packages_path, package_name), 'r') as f:
+        package_file = json.load(f)
+    modified = False
+    dependencies = {}
+    if "dependencies" in package_file:
+        dependencies = package_file["dependencies"]
+
+    # if we have added the --add-package-as-dependency-to-package we see if we need to add these dependencies here
+    manual_dependencies = [dep.replace("{0}:".format(package_name), "") for dep in args.add_package_as_dependency_to_package if dep.startswith("{0}:".format(package_name))]
+
+    for modified_package_name, modified_version in local_packages.iteritems():
+        if modified_package_name in dependencies or modified_package_name in manual_dependencies:
+            package_file["dependencies"][modified_package_name] = modified_version
+            modified = True
+
+    if modified:
+        with open("{0}/{1}/package.json".format(args.packages_path, package_name), 'w') as outfile:
+            json.dump(package_file, outfile, indent=4)
+
+
+def modify_json_dependencies(package_name, version):
+    _modify_manifest(package_name, version)
+    _modify_package_file_dependencies(package_name, version)
 
 
 def scatter_manifest():
@@ -270,7 +283,41 @@ def add_destination_repo():
         git_cmd("checkout --orphan publishing")
 
 
+def process_package(package_path, package_name, root_clone):
+    current_package_version = get_package_version(package_name)
+    changed = is_package_changed(package_path, package_name)
+    if changed is True:
+        if args.dry_run:
+            print "The package {0} has been changed but --dry-run has been set so it will not get published" \
+                .format(package_name)
+        else:
+            print "The package has been modified since latest published version. A new version of {0} will be " \
+                  "published".format(package_name)
+        new_package_version = increase_version(current_package_version, False, False, True)
+        local_packages[package_name] = new_package_version
+        modified_packages[package_name] = new_package_version
+    else:
+        print "No change detected in the repo. The current version of {0} ({1}) will be used in the project" \
+            .format(package_name, current_package_version)
+        local_packages[package_name] = current_package_version
+
+    os.chdir(root_clone)
+    print ''.ljust(80, '#')
+
+
+def publish_modified_packages():
+    # we update all the manifest and package json files first before we publish so everything has the right version
+    for package_name, version in local_packages.iteritems():
+        modify_json_dependencies(package_name, version)
+
+    for package_name, version in modified_packages.iteritems():
+        if not args.dry_run:
+            publish_new_package(package_name, version)
+            shutil.rmtree("./{0}/{1}".format(args.packages_path, package_name))
+
+
 def main():
+    global source_branch
     root_dir = os.getcwd()
     repo_dir = args.source_repo
     os.chdir(repo_dir)
@@ -283,7 +330,7 @@ def main():
         print "Please use a secondary repo locally while testing this out."
         sys.exit(-1)
     try:
-        source_branch = git_cmd("rev-parse --abbrev-ref HEAD")
+        source_branch = "master"
         print "Will now start creating packages for publish from {0} to {1}:{2}" \
             .format(source_branch, args.target_repo, args.target_branch)
         root_clone = os.getcwd()
@@ -292,34 +339,24 @@ def main():
         squash_commits()
         packages_folder = args.packages_path
         packages = get_list_of_packages(packages_folder)
+        late_process_packages = []
 
         for package_path in packages:
             package_name = os.path.basename(os.path.normpath(package_path))
             print "### Package Found: {0} in {1}".format(package_name, package_path).ljust(80, '#')
-            current_package_version = get_package_version(package_name)
-            changed = is_package_changed(package_path, package_name)
-            if changed is True:
-                if args.dry_run:
-                    print "The package {0} has been changed but --dry-run has been set so it will not get published" \
-                        .format(package_name)
-                else:
-                    print "The package has been modified since latest published version. A new version of {0} will be " \
-                          "published".format(package_name)
-                new_package_version = increase_version(current_package_version, False, False, True)
+            if args.add_packages_to_manifest is not None and package_name in args.add_packages_to_manifest:
+                print "Skipping for now since it is to be added to the manifest at the end"
+                late_process_packages.append(package_path)
+                continue
+            process_package(package_path, package_name, root_clone)
 
-                if not args.dry_run:
-                    publish_new_package(package_path, new_package_version)
+        for package_path in late_process_packages:
+            package_name = os.path.basename(os.path.normpath(package_path))
+            print "### Package Found to add to manifest: {0} in {1}".format(package_name, package_path).ljust(80, '#')
+            process_package(package_path, package_name, root_clone)
 
-                modify_manifest(package_path, new_package_version)
-            else:
-                print "No change detected in the repo. The current version of {0} ({1}) will be used in the project" \
-                    .format(package_name, current_package_version)
-
-            shutil.rmtree(package_path)
-
-            os.chdir(root_clone)
-            git_cmd("add {0}".format(package_path))
-            print ''.ljust(80, '#')
+        publish_modified_packages()
+        git_cmd("add {0}".format(args.packages_path))
 
         shutil.rmtree("node_modules")
         scatter_manifest()
@@ -341,14 +378,17 @@ def main():
         print e.output
         raise
     finally:
+        print "Running cleanup"
+        git_cmd("checkout {0}".format(source_branch))
         os.chdir(root_dir)
-        # TODO restore has been modified during a dry run
 
         if os.path.isdir("node_modules"):
             shutil.rmtree("node_modules")
 
         if os.path.isdir("etc"):
             shutil.rmtree("etc")
+
+
 
 
 if __name__ == "__main__":
@@ -377,8 +417,24 @@ if __name__ == "__main__":
     parser.add_argument('--packages-path', required=True, help="Path to where the packages that the tool should "
                                                                "publish exists. It should be a folder where there "
                                                                "exists a manifest.json")
+    parser.add_argument('--add-packages-to-manifest', help="If any of the packages aren't currently in the manifest "
+                                                           "but should be added as part of this process, then supply "
+                                                           "their names here and they will be added as well as the "
+                                                           "version", action='append')
+    parser.add_argument('--add-package-as-dependency-to-package', help="If you want to specify that one of the "
+                                                                       "packages found should be registered as a "
+                                                                       "dependency to another one of the local "
+                                                                       "packages then specify this here in the format "
+                                                                       "package_with_dependency:dependency. For "
+                                                                       "example com.unity.entities:com.unity.jobs",
+                        action='append')
     parser.add_argument('--dry-run', help="If set the tool will do everything except publishing the new packages and "
                                           "pushing the new commit to the target repo", action='store_true')
     args = parser.parse_args()
+
+    #os.chdir(args.source_repo)
+    #global local_packages
+    #local_packages = {"com.unity.collections": "2.0.0", "com.unity.jobs": "3.0.0"}
+    #modify_json_dependencies("com.unity.entities", "1.0.0")
 
     main()

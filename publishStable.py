@@ -30,6 +30,7 @@ def get_list_of_packages(folder):
 
 
 def compare_package_files(local_path, installed_path, current_version):
+    print "  Comparing package files locally with published:"
     with open("{0}/package.json".format(local_path), 'r') as f:
         local_package = json.load(f)
     with open("{0}/package.json".format(installed_path), 'r') as f:
@@ -39,10 +40,15 @@ def compare_package_files(local_path, installed_path, current_version):
 
     for key, value in local_package.iteritems():
         if key not in installed_package:
+            print "    {0} is missing from the published file".format(key)
             return False
         if value != installed_package[key]:
+            print "    {0} is differing between packages:".format(key)
+            print "      Local: {0}".format(value)
+            print "      Published: {0}".format(installed_package[key])
             return False
 
+    print "    Looks the same"
     return True
 
 
@@ -311,14 +317,14 @@ def add_destination_repo():
     local_branches = git_cmd("branch")
 
     # Lets just always remove it so we stay clean
-    if "publishing" in local_branches:
+    if "publishStable-temp" in local_branches:
         git_cmd("checkout {0}".format(source_branch))
-        git_cmd("branch -D publishing")
+        git_cmd("branch -D publishStable-temp")
 
     if "refs/heads/{0}".format(args.target_branch) in branches:
-        git_cmd("checkout -b publishing --track target/{0}".format(args.target_branch))
+        git_cmd("checkout -b publishStable-temp --track target/{0}".format(args.target_branch))
     else:
-        git_cmd("checkout --orphan publishing")
+        git_cmd("checkout --orphan publishStable-temp")
 
 
 def process_package(package_path, package_name, root_clone):
@@ -414,8 +420,8 @@ def main():
                 print "Would have pushed to remote target/{0} now if --dry-run wasn't set. So skipping this." \
                     .format(args.target_branch)
             else:
-                print "Pushing squashed branch publishing to remote target/{0}".format(args.target_repo)
-                git_cmd("push target publishing:{0}".format(args.target_branch))
+                print "Pushing squashed branch publishStable-temp to remote target/{0}".format(args.target_repo)
+                git_cmd("push target publishStable-temp:{0}".format(args.target_branch))
         os.chdir(root_dir)
     except subprocess.CalledProcessError as e:
         print e

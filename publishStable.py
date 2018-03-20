@@ -266,6 +266,7 @@ def create_commit():
         git_cmd("commit -m \"Release 1\" --amend")
         return True
 
+    # TODO: Look at log history and pick the first one that starts with "Release %d"
     previous_release = git_cmd("log target/{0} -1 --pretty=%B".format(args.target_branch)).split(" ")
     next_release = "Release {0}".format(int(previous_release[1]) + 1)
 
@@ -440,8 +441,6 @@ def main():
             shutil.rmtree("etc")
 
 
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="A tool which finds all internal packages in a Unity project, "
                                                  "publishes them and updates the repo to use them from the upm repo "
@@ -482,10 +481,5 @@ if __name__ == "__main__":
     parser.add_argument('--dry-run', help="If set the tool will do everything except publishing the new packages and "
                                           "pushing the new commit to the target repo", action='store_true')
     args = parser.parse_args()
-
-    #os.chdir(args.source_repo)
-    #global local_packages
-    #local_packages = {"com.unity.collections": "2.0.0", "com.unity.jobs": "3.0.0"}
-    #modify_json_dependencies("com.unity.entities", "1.0.0")
 
     main()

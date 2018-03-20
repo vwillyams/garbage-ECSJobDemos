@@ -17,7 +17,7 @@ namespace Unity.Entities.Editor
             var targetProxy = (EntitySelectionProxy) target;
             if (!targetProxy.Exists)
                 return;
-            targetProxy.Container.PropertyBag.VisitStruct(ref targetProxy.Container, visitor);
+            targetProxy.Container.PropertyBag.Visit(ref targetProxy.Container, visitor);
         }
 
         public override bool RequiresConstantRepaint()

@@ -109,7 +109,7 @@ def increase_version(version, major, minor, patch):
 
 def _get_version_in_registry(package_name, registry):
     try:
-        version = npm_cmd("view {0} version".format(package_name), registry)
+        version = npm_cmd("view {0} version".format(package_name), registry).strip()
 
     # Hack for sinopia which returns 404 when a package doesn't exist, whereas no other registry does
     except subprocess.CalledProcessError as e:

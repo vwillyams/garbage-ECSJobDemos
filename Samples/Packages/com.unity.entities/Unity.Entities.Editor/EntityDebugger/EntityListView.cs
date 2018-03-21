@@ -154,5 +154,14 @@ namespace Unity.Entities.Editor
         {
             SelectionChanged(GetSelection());
         }
+
+        public void FrameSelection()
+        {
+            var selection = GetSelection();
+            if (selection.Count > 0)
+            {
+                FrameItem(selection[0]);
+            }
+        }
     }
 }

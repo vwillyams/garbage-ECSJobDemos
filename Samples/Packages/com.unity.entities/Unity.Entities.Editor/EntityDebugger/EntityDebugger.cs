@@ -63,10 +63,9 @@ namespace Unity.Entities.Editor
             get { return selectionProxy.Entity; }
             set
             {
-                var entityManager = WorldSelection?.GetExistingManager<EntityManager>();
-                if (value != Entity.Null && entityManager != null)
+                if (WorldSelection != null && value != Entity.Null)
                 {
-                    selectionProxy.SetEntity(entityManager, value);
+                    selectionProxy.SetEntity(WorldSelection, value);
                     Selection.activeObject = selectionProxy;
                 }
                 else if (Selection.activeObject == selectionProxy)
@@ -75,6 +74,20 @@ namespace Unity.Entities.Editor
                 }
             }
         }
+
+        public static void FocusSelectionInSystem(ComponentSystemBase system, ComponentGroup componentGroup)
+        {
+            if (Instance == null)
+                return;
+            Instance.WorldSelection = Instance.selectionProxy.World;
+            Instance.SystemSelection = system;
+            Instance.ComponentGroupSelection = componentGroup;
+            Instance.EntitySelection = Instance.selectionProxy.Entity;
+            Instance.systemListView.TouchSelection();
+            Instance.entityListView.FrameSelection();
+        }
+
+        public static EntityDebugger Instance { get; set; }
 
         private EntitySelectionProxy selectionProxy;
         
@@ -160,6 +173,7 @@ namespace Unity.Entities.Editor
 
         void OnEnable()
         {
+            Instance = this;
             selectionProxy = ScriptableObject.CreateInstance<EntitySelectionProxy>();
             selectionProxy.hideFlags = HideFlags.HideAndDontSave;
             CreateSystemListView();
@@ -171,6 +185,8 @@ namespace Unity.Entities.Editor
 
         private void OnDisable()
         {
+            if (Instance == this)
+                Instance = null;
             if (selectionProxy)
                 DestroyImmediate(selectionProxy);
             

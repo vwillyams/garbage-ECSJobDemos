@@ -115,6 +115,22 @@ By default we create a single World when entering Play Mode and populate it with
 
 > Note: We are currently working on multiplayer demos, that will show how to work in a setup with separate simulation & presentation Worlds. This is a work in progress, so right now have no clear guidelines and are likely missing features in ECS to enable it. 
 
+## System update order
+
+In ECS all systems are updated on the main thread. The order in which the are updated is based on a set of constraints and an optimization pass which tries to order the system in a way so that the time between scheduling a job and waiting for it is as long as possible.
+The attributes to specify update order of systems are ```[UpdateBefore(typeof(OtherSystem))]``` and ```[UpdateAfter(typeof(OtherSystem))]```. In addition to update before or after other ECS systems it is possible to update before or after different phases of the Unity PlayerLoop by using typeof([UnityEngine.Experimental.PlayerLoop.FixedUpdate](https://docs.unity3d.com/2018.1/Documentation/ScriptReference/Experimental.PlayerLoop.FixedUpdate.html)) or one of the other phases in the same namespace.
+
+The UpdateInGroup attribute will put the system in a group and the same __UpdateBefore__ and __UpdateAfter__ attributes can be specified on a group or with a group as the target of the before/after dependency.
+
+To use __UpdateInGroup__ you need to create and empty class and pass the type of that to the __UpdateInGroup__ attribute
+```cs
+public class UpdateGroup
+{}
+
+[UpdateInGroup(typeof(UpdateGroup))]
+class MySystem : ComponentSystem
+```
+
 ## Automatic job dependency management (JobComponentSystem)
 
 Managing dependencies is hard. This is why in __JobComponentSystem__ we are doing it automatically for you. The rules are simple: jobs from different systems can read from IComponentData of the same type in parallel. If one of the jobs is writing to the data then they can't run in parallel and will be scheduled with a dependency between the jobs.

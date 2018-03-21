@@ -264,6 +264,7 @@ def scatter_manifest():
             if fnmatch(p, "**/Packages/manifest.json") and os.path.normpath(args.packages_path) not in p:
                 print "Replacing manifest in {0} with {1}".format(p, shared_manifest)
                 shutil.copy(shared_manifest, p)
+                git_cmd("add {0}".format(p))
     pass
 
 
@@ -317,8 +318,19 @@ def create_commit():
         return True
 
     # TODO: Look at log history and pick the first one that starts with "Release %d"
-    previous_release = git_cmd("log target/{0} -1 --pretty=%B".format(args.target_branch)).split(" ")
-    next_release = "Release {0}".format(int(previous_release[1]) + 1)
+    previous_releases = git_cmd("log target/{0} --pretty=%B".format(args.target_branch)).strip().split('\n')
+    next_release = ""
+    for previous_release in previous_releases:
+        if not previous_release.startswith("Release "):
+            continue
+        split = previous_release.split(" ")
+        if len(split) != 2:
+            continue
+        if not split[1].isdigit():
+            continue
+
+        next_release = "Release {0}".format(int(split[1]) + 1)
+        break
 
     git_cmd("commit -m \"{0}\" --amend --allow-empty".format(next_release))
 
@@ -415,7 +427,7 @@ def main():
     root_dir = os.getcwd()
     repo_dir = args.source_repo
     os.chdir(repo_dir)
-    
+
     # Just a nice sanity check so we refuse to run if this script has modifications in the repo we are running from.
     # While changing this script you will need to setup another local repo to run it against.
     output = git_cmd("ls-files -m")
@@ -470,7 +482,7 @@ def main():
         git_cmd("add {0}".format(args.packages_path))
 
         # TODO: Removed for debugging
-        #shutil.rmtree("node_modules")
+        shutil.rmtree("node_modules")
         scatter_manifest()
 
         should_push = create_commit()
@@ -493,8 +505,8 @@ def main():
         # git_cmd("checkout {0}".format(source_branch))
         os.chdir(root_dir)
 
-        #if os.path.isdir("node_modules"):
-        #    shutil.rmtree("node_modules")
+        if os.path.isdir("node_modules"):
+            shutil.rmtree("node_modules")
 
         if os.path.isdir("etc"):
             shutil.rmtree("etc")

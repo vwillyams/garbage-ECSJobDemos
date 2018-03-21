@@ -56,6 +56,7 @@ def _get_all_files(path):
     files = [os.path.relpath(os.path.join(dp, f), path) for dp, dn, fn in os.walk(os.path.expanduser(path)) for f in fn]
     # TODO: This never matches when diffing later because we never write back the json updates to our repo
     files.remove("package.json")
+    files = [f for f in files if "node_modules" not in f]
     return files
 
 
@@ -231,6 +232,17 @@ def scatter_manifest():
     pass
 
 
+def strip_unwanted():
+    for path in args.strip_from_commit:
+        for p in glob.glob(path):
+            if os.path.isdir(p):
+                print "Tried to remove folder {0}".format(p)
+                shutil.rmtree(p)
+            elif os.path.isfile(p):
+                print "Tried to remove file {0}".format(p)
+                os.remove(p)
+
+
 def squash_commits():
     # We don't actually squash it since we just want whatever is in the source branch right now and add that as a new
     # commit to the target branch. So we delete everything in our publishing branch and then checkout everything
@@ -251,7 +263,10 @@ def squash_commits():
 
     git_cmd("checkout {0} -- .".format(source_branch))
 
+    strip_unwanted()
+
     git_cmd("add -A")
+
     git_cmd("commit -m \"Current squash\" --allow-empty")
     pass
 
@@ -278,10 +293,6 @@ def create_commit():
         print "Nothing has changed at all. Won't push commit"
         return False
     return True
-
-
-def remove_this_script_from_commit():
-    pass
 
 
 def git_cmd(cmd):
@@ -412,8 +423,6 @@ def main():
         #shutil.rmtree("node_modules")
         scatter_manifest()
 
-        remove_this_script_from_commit()
-
         should_push = create_commit()
 
         if should_push:
@@ -480,6 +489,7 @@ if __name__ == "__main__":
                         action='append')
     parser.add_argument('--dry-run', help="If set the tool will do everything except publishing the new packages and "
                                           "pushing the new commit to the target repo", action='store_true')
+    parser.add_argument('--strip-from-commit', action='append', help="Files or folders that should be removed from the squashed commit. for example --strip-from-commit publishStable.*")
     args = parser.parse_args()
 
     main()

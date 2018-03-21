@@ -498,20 +498,21 @@ def main():
             else:
                 print "Pushing squashed branch publishStable-temp to remote target/{0}".format(args.target_repo)
                 git_cmd("push target publishStable-temp:{0}".format(args.target_branch))
-        os.chdir(root_dir)
     except subprocess.CalledProcessError as e:
         print e
         print e.output
         raise
     finally:
         print "Running cleanup"
-        os.chdir(root_dir)
+        os.chdir(repo_dir)
 
         if os.path.isdir("node_modules"):
             shutil.rmtree("node_modules")
 
         if os.path.isdir("etc"):
             shutil.rmtree("etc")
+
+        os.chdir(root_dir)
 
 
 if __name__ == "__main__":

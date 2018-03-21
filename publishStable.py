@@ -43,6 +43,23 @@ def compare_package_files(local_path, installed_path, current_version):
             print "    {0} is missing from the published file".format(key)
             return False
         if value != installed_package[key]:
+            # If we are using --add-package-as-dependency-to-package then the dependencies will differ
+            # so we do an exception here and check that the ones we are missing are the ones we have flagged
+            # and the version we can find on the registry is the same
+            if key == "dependencies":
+                should_fail = False
+                for nested_key, nested_value in installed_package[key].iteritems():
+                    if nested_key in value and nested_value == value[nested_key]:
+                        continue
+                    if nested_key not in value and \
+                            any(nested_key in d for d in args.add_package_as_dependency_to_package) and \
+                            nested_key in local_packages and \
+                            nested_value == local_packages[nested_key]:
+                        continue
+                    should_fail = True
+                if not should_fail:
+                    continue
+
             print "    {0} is differing between packages:".format(key)
             print "      Local: {0}".format(value)
             print "      Published: {0}".format(installed_package[key])
@@ -121,7 +138,11 @@ def _get_version_in_registry(package_name, registry):
     return version
 
 
-def get_package_version(package_name, ):
+def is_local_package(package_name):
+    return os.path.isdir("{0}/{1}".format(args.packages_path, package_name))
+
+
+def get_package_version(package_name):
     # type: (str) -> str
 
     global best_view_registry
@@ -180,6 +201,10 @@ def _modify_manifest(package_name, version):
     if not modified and args.add_packages_to_manifest and package_name in args.add_packages_to_manifest:
         print "Adding {0} to the manifest.json".format(package_name)
         manifest["dependencies"][package_name] = version
+        modified = True
+
+    if 'registry' not in manifest or (manifest['registry'] != args.publish_registry):
+        manifest['registry'] = args.publish_registry
         modified = True
 
     if modified:
@@ -352,6 +377,7 @@ def process_package(package_path, package_name, root_clone):
         new_package_version = increase_version(current_package_version, False, False, True)
         local_packages[package_name] = new_package_version
         modified_packages[package_name] = new_package_version
+        modify_json(package_name, new_package_version)
     else:
         print "No change detected in the repo. The current version of {0} ({1}) will be used in the project" \
             .format(package_name, current_package_version)
@@ -361,16 +387,13 @@ def process_package(package_path, package_name, root_clone):
             print "The version of this package does not exist on the publish registry, so will publish anyway with " \
                   "the current version "
             modified_packages[package_name] = current_package_version
+        modify_json(package_name, current_package_version)
 
     os.chdir(root_clone)
     print ''.ljust(80, '#')
 
 
 def publish_modified_packages():
-    # we update all the manifest and package json files first before we publish so everything has the right version
-    for package_name, version in local_packages.iteritems():
-        modify_json(package_name, version)
-
     for package_name, version in modified_packages.iteritems():
         if not args.dry_run:
             publish_new_package(package_name, version)
@@ -405,10 +428,26 @@ def main():
         for package_path in packages:
             package_name = os.path.basename(os.path.normpath(package_path))
             print "### Package Found: {0} in {1}".format(package_name, package_path).ljust(80, '#')
-            if args.add_packages_to_manifest is not None and package_name in args.add_packages_to_manifest:
+
+            if package_path not in late_process_packages and args.add_packages_to_manifest is not None and package_name in args.add_packages_to_manifest:
                 print "Skipping for now since it is to be added to the manifest at the end"
                 late_process_packages.append(package_path)
                 continue
+            else:
+                local_dependencies = [d for d in args.add_package_as_dependency_to_package if
+                                      "{0}:".format(package_name) in d]
+                should_defer = False
+                for dep in [l.split(":")[1] for l in local_dependencies]:
+                    if dep not in local_packages:
+                        print "This package has extra dependencies that haven't been processed yet so we add this " \
+                              "package to late processing. The dependency is: {0}".format(
+                            dep)
+                        late_process_packages.append(package_path)
+                        should_defer = True
+                        break
+                if should_defer:
+                    continue
+
             process_package(package_path, package_name, root_clone)
 
         for package_path in late_process_packages:

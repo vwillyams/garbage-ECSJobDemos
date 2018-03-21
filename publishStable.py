@@ -442,7 +442,7 @@ def main():
         print "Please use a secondary repo locally while testing this out."
         sys.exit(-1)
     try:
-        source_branch = "master"
+        source_branch = git_cmd("rev-parse --abbrev-ref HEAD").strip()
         print "Will now start creating packages for publish from {0} to {1}:{2}" \
             .format(source_branch, args.target_repo, args.target_branch)
         root_clone = os.getcwd()
@@ -511,6 +511,8 @@ def main():
 
         if os.path.isdir("etc"):
             shutil.rmtree("etc")
+
+        git_cmd("checkout {0}".format(source_branch))
 
         os.chdir(root_dir)
 

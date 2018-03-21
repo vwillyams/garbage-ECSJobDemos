@@ -6,6 +6,7 @@ import shutil
 import sys
 import argparse
 import json
+from fnmatch import fnmatch
 
 args = argparse.Namespace()
 source_branch = ""
@@ -254,6 +255,15 @@ def modify_json(package_name, version):
 
 
 def scatter_manifest():
+    # Since we might have multiple unity projects in the same repo that should have the same manifest, we find them
+    # all and update them
+    shared_manifest = os.path.normpath(os.path.join(args.packages_path, "manifest.json"))
+    for root, dir, f in os.walk('.'):
+        for path in f:
+            p = os.path.join(root, path)
+            if fnmatch(p, "**/Packages/manifest.json") and os.path.normpath(args.packages_path) not in p:
+                print "Replacing manifest in {0} with {1}".format(p, shared_manifest)
+                shutil.copy(shared_manifest, p)
     pass
 
 
@@ -405,6 +415,7 @@ def main():
     root_dir = os.getcwd()
     repo_dir = args.source_repo
     os.chdir(repo_dir)
+    
     # Just a nice sanity check so we refuse to run if this script has modifications in the repo we are running from.
     # While changing this script you will need to setup another local repo to run it against.
     output = git_cmd("ls-files -m")

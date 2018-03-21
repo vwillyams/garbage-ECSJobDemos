@@ -72,7 +72,6 @@ def compare_package_files(local_path, installed_path, current_version):
 
 def _get_all_files(path):
     files = [os.path.relpath(os.path.join(dp, f), path) for dp, dn, fn in os.walk(os.path.expanduser(path)) for f in fn]
-    # TODO: This never matches when diffing later because we never write back the json updates to our repo
     files.remove("package.json")
     files = [f for f in files if "node_modules" not in f]
     return files
@@ -101,7 +100,8 @@ def is_package_changed(package_folder, package_name, current_version):
             print "Nothing has changed"
             return False
         else:
-            print "{0}/package.json and node_modules/{1}/package.json are not the same".format(package_folder, package_name)
+            print "{0}/package.json and node_modules/{1}/package.json are not the same".format(package_folder,
+                                                                                               package_name)
             return True
     print "  The following files have changed compared to the currently published package:"
     for m in mismatch:
@@ -213,7 +213,7 @@ def _modify_manifest(package_name, version):
             json.dump(manifest, outfile, indent=4)
 
 
-def _modify_package_file_dependencies(package_name, version):
+def _modify_package_file_dependencies(package_name):
     """
     We check all modified packages and see if the current package has a dependency to it. If so then we update the
     version
@@ -226,7 +226,9 @@ def _modify_package_file_dependencies(package_name, version):
         dependencies = package_file["dependencies"]
 
     # if we have added the --add-package-as-dependency-to-package we see if we need to add these dependencies here
-    manual_dependencies = [dep.replace("{0}:".format(package_name), "") for dep in args.add_package_as_dependency_to_package if dep.startswith("{0}:".format(package_name))]
+    manual_dependencies = [dep.replace("{0}:".format(package_name), "")
+                           for dep in args.add_package_as_dependency_to_package
+                           if dep.startswith("{0}:".format(package_name))]
 
     for modified_package_name, modified_version in local_packages.iteritems():
         if modified_package_name in dependencies or modified_package_name in manual_dependencies:
@@ -251,14 +253,14 @@ def modify_json(package_name, version):
     if package_name in modified_packages:
         _modify_package_version(package_name, version)
     _modify_manifest(package_name, version)
-    _modify_package_file_dependencies(package_name, version)
+    _modify_package_file_dependencies(package_name)
 
 
 def scatter_manifest():
     # Since we might have multiple unity projects in the same repo that should have the same manifest, we find them
     # all and update them
     shared_manifest = os.path.normpath(os.path.join(args.packages_path, "manifest.json"))
-    for root, dir, f in os.walk('.'):
+    for root, d, f in os.walk('.'):
         for path in f:
             p = os.path.join(root, path)
             if fnmatch(p, "**/Packages/manifest.json") and os.path.normpath(args.packages_path) not in p:
@@ -317,7 +319,6 @@ def create_commit():
         git_cmd("commit -m \"Release 1\" --amend")
         return True
 
-    # TODO: Look at log history and pick the first one that starts with "Release %d"
     previous_releases = git_cmd("log target/{0} --pretty=%B".format(args.target_branch)).strip().split('\n')
     next_release = ""
     for previous_release in previous_releases:
@@ -396,6 +397,10 @@ def process_package(package_path, package_name, root_clone):
         else:
             print "The package has been modified since latest published version. A new version of {0} will be " \
                   "published".format(package_name)
+        if args.only_publish_existing_packages:
+            print "--only-publish-existing-packages is set but we found modification for {0} that we wanted to push. " \
+                  "Failing run "
+            raise Exception("Tried to publish modified packages when --only-publish-existing-packages was set")
         new_package_version = increase_version(current_package_version, False, False, True)
         local_packages[package_name] = new_package_version
         modified_packages[package_name] = new_package_version
@@ -452,7 +457,8 @@ def main():
             package_name = os.path.basename(os.path.normpath(package_path))
             print "### Package Found: {0} in {1}".format(package_name, package_path).ljust(80, '#')
 
-            if package_path not in late_process_packages and args.add_packages_to_manifest is not None and package_name in args.add_packages_to_manifest:
+            if package_path not in late_process_packages and args.add_packages_to_manifest is not None\
+                    and package_name in args.add_packages_to_manifest:
                 print "Skipping for now since it is to be added to the manifest at the end"
                 late_process_packages.append(package_path)
                 continue
@@ -463,8 +469,7 @@ def main():
                 for dep in [l.split(":")[1] for l in local_dependencies]:
                     if dep not in local_packages:
                         print "This package has extra dependencies that haven't been processed yet so we add this " \
-                              "package to late processing. The dependency is: {0}".format(
-                            dep)
+                              "package to late processing. The dependency is: {0}".format(dep)
                         late_process_packages.append(package_path)
                         should_defer = True
                         break
@@ -481,7 +486,6 @@ def main():
         publish_modified_packages()
         git_cmd("add {0}".format(args.packages_path))
 
-        # TODO: Removed for debugging
         shutil.rmtree("node_modules")
         scatter_manifest()
 
@@ -501,8 +505,6 @@ def main():
         raise
     finally:
         print "Running cleanup"
-        # TODO: WHy doesn't this checkout work but works when run manually?
-        # git_cmd("checkout {0}".format(source_branch))
         os.chdir(root_dir)
 
         if os.path.isdir("node_modules"):
@@ -551,7 +553,15 @@ if __name__ == "__main__":
                         action='append')
     parser.add_argument('--dry-run', help="If set the tool will do everything except publishing the new packages and "
                                           "pushing the new commit to the target repo", action='store_true')
-    parser.add_argument('--strip-from-commit', action='append', help="Files or folders that should be removed from the squashed commit. for example --strip-from-commit publishStable.*")
+    parser.add_argument('--strip-from-commit', action='append', help="Files or folders that should be removed from "
+                                                                     "the squashed commit. for example "
+                                                                     "--strip-from-commit publishStable.*")
+    parser.add_argument('--only-publish-existing-packages',
+                        action='store_true', help="If we just want to remodify the manifest files and push along one "
+                                                  "squashed repo to another then we probably don't want to allow "
+                                                  "creating new packages. So if this flag is set it will abort the "
+                                                  "run if it tries to push new packages, instead of just repushing "
+                                                  "the same ones")
     args = parser.parse_args()
 
     main()

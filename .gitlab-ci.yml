@@ -11,7 +11,7 @@ windows:test:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe -projectpath $(pwd)/Samples -batchmode -nographics -silentcrashes -automated -logfile output-windows-test.log -runtests -testresults results.xml
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe -projectpath Samples -batchmode -nographics -silentcrashes -automated -logfile output-windows-test.log -runtests -testresults results.xml
   artifacts:
     name: "artifacts-windows-test"
     when: always
@@ -339,7 +339,7 @@ macOS:test:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable /Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity -projectpath $(pwd)/Samples -batchmode -nographics -silentcrashes -automated -logfile output-macOS-test.log -runtests -testresults results.xml
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable /Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity -projectpath Samples -batchmode -nographics -silentcrashes -automated -logfile output-macOS-test.log -runtests -testresults results.xml
   artifacts:
     name: "artifacts-macOS-test"
     when: always

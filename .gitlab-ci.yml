@@ -96,6 +96,60 @@ windows:build:rotation:mono:
     - windows:test
 
 
+windows:build:twostickshooter-classic:mono:
+  stage: build
+  tags:
+  - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-mono.log -cleanedLogFile output-windows-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-windows-twostickshooter-classic"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Classic/build"
+    expire_in: 1 week
+  dependencies:
+    - windows:test
+
+
+windows:build:twostickshooter-hybrid:mono:
+  stage: build
+  tags:
+  - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-windows-twostickshooter-hybrid"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Hybrid/build"
+    expire_in: 1 week
+  dependencies:
+    - windows:test
+
+
+windows:build:twostickshooter-pure:mono:
+  stage: build
+  tags:
+  - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-mono.log -cleanedLogFile output-windows-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-windows-twostickshooter-pure"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Pure/build"
+    expire_in: 1 week
+  dependencies:
+    - windows:test
+
+
 windows:build:boids:il2cpp:
   stage: build
   tags:
@@ -163,6 +217,60 @@ windows:build:rotation:il2cpp:
       - "*.log"
       - "*.xml"
       - "Samples/build"
+    expire_in: 1 week
+  dependencies:
+    - windows:test
+
+
+windows:build:twostickshooter-classic:il2cpp:
+  stage: build
+  tags:
+  - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-windows-twostickshooter-classic"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Classic/build"
+    expire_in: 1 week
+  dependencies:
+    - windows:test
+
+
+windows:build:twostickshooter-hybrid:il2cpp:
+  stage: build
+  tags:
+  - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-windows-twostickshooter-hybrid"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Hybrid/build"
+    expire_in: 1 week
+  dependencies:
+    - windows:test
+
+
+windows:build:twostickshooter-pure:il2cpp:
+  stage: build
+  tags:
+  - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-windows-twostickshooter-pure"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
     - windows:test
@@ -251,6 +359,66 @@ windows:run:rotation:mono:
     - windows:build:rotation:mono
 
 
+windows:run:twostickshooter-classic:mono:
+  variables:
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+  - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-mono.log -cleanedLogFile output-windows-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-windows-twostickshooter-classic"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Classic/build"
+    expire_in: 1 week
+  dependencies:
+    - windows:build:twostickshooter-classic:mono
+
+
+windows:run:twostickshooter-hybrid:mono:
+  variables:
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+  - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-windows-twostickshooter-hybrid"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Hybrid/build"
+    expire_in: 1 week
+  dependencies:
+    - windows:build:twostickshooter-hybrid:mono
+
+
+windows:run:twostickshooter-pure:mono:
+  variables:
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+  - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-mono.log -cleanedLogFile output-windows-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-windows-twostickshooter-pure"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Pure/build"
+    expire_in: 1 week
+  dependencies:
+    - windows:build:twostickshooter-pure:mono
+
+
 windows:run:boids:il2cpp:
   variables:
     GIT_STRATEGY: none
@@ -329,6 +497,66 @@ windows:run:rotation:il2cpp:
     expire_in: 1 week
   dependencies:
     - windows:build:rotation:il2cpp
+
+
+windows:run:twostickshooter-classic:il2cpp:
+  variables:
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+  - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-windows-twostickshooter-classic"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Classic/build"
+    expire_in: 1 week
+  dependencies:
+    - windows:build:twostickshooter-classic:il2cpp
+
+
+windows:run:twostickshooter-hybrid:il2cpp:
+  variables:
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+  - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-windows-twostickshooter-hybrid"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Hybrid/build"
+    expire_in: 1 week
+  dependencies:
+    - windows:build:twostickshooter-hybrid:il2cpp
+
+
+windows:run:twostickshooter-pure:il2cpp:
+  variables:
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+  - windows
+  script:
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-windows-twostickshooter-pure"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Pure/build"
+    expire_in: 1 week
+  dependencies:
+    - windows:build:twostickshooter-pure:il2cpp
 
 
 ################################################################################
@@ -424,6 +652,60 @@ macOS:build:rotation:mono:
     - macOS:test
 
 
+macOS:build:twostickshooter-classic:mono:
+  stage: build
+  tags:
+  - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-macOS-twostickshooter-classic"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Classic/build"
+    expire_in: 1 week
+  dependencies:
+    - macOS:test
+
+
+macOS:build:twostickshooter-hybrid:mono:
+  stage: build
+  tags:
+  - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-macOS-twostickshooter-hybrid"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Hybrid/build"
+    expire_in: 1 week
+  dependencies:
+    - macOS:test
+
+
+macOS:build:twostickshooter-pure:mono:
+  stage: build
+  tags:
+  - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-macOS-twostickshooter-pure"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Pure/build"
+    expire_in: 1 week
+  dependencies:
+    - macOS:test
+
+
 macOS:build:boids:il2cpp:
   stage: build
   tags:
@@ -491,6 +773,60 @@ macOS:build:rotation:il2cpp:
       - "*.log"
       - "*.xml"
       - "Samples/build"
+    expire_in: 1 week
+  dependencies:
+    - macOS:test
+
+
+macOS:build:twostickshooter-classic:il2cpp:
+  stage: build
+  tags:
+  - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-macOS-twostickshooter-classic"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Classic/build"
+    expire_in: 1 week
+  dependencies:
+    - macOS:test
+
+
+macOS:build:twostickshooter-hybrid:il2cpp:
+  stage: build
+  tags:
+  - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-macOS-twostickshooter-hybrid"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Hybrid/build"
+    expire_in: 1 week
+  dependencies:
+    - macOS:test
+
+
+macOS:build:twostickshooter-pure:il2cpp:
+  stage: build
+  tags:
+  - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  artifacts:
+    name: "artifacts-macOS-twostickshooter-pure"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
     - macOS:test
@@ -579,6 +915,66 @@ macOS:run:rotation:mono:
     - macOS:build:rotation:mono
 
 
+macOS:run:twostickshooter-classic:mono:
+  variables:
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+  - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-macOS-twostickshooter-classic"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Classic/build"
+    expire_in: 1 week
+  dependencies:
+    - macOS:build:twostickshooter-classic:mono
+
+
+macOS:run:twostickshooter-hybrid:mono:
+  variables:
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+  - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-macOS-twostickshooter-hybrid"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Hybrid/build"
+    expire_in: 1 week
+  dependencies:
+    - macOS:build:twostickshooter-hybrid:mono
+
+
+macOS:run:twostickshooter-pure:mono:
+  variables:
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+  - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-macOS-twostickshooter-pure"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Pure/build"
+    expire_in: 1 week
+  dependencies:
+    - macOS:build:twostickshooter-pure:mono
+
+
 macOS:run:boids:il2cpp:
   variables:
     GIT_STRATEGY: none
@@ -657,5 +1053,65 @@ macOS:run:rotation:il2cpp:
     expire_in: 1 week
   dependencies:
     - macOS:build:rotation:il2cpp
+
+
+macOS:run:twostickshooter-classic:il2cpp:
+  variables:
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+  - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-macOS-twostickshooter-classic"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Classic/build"
+    expire_in: 1 week
+  dependencies:
+    - macOS:build:twostickshooter-classic:il2cpp
+
+
+macOS:run:twostickshooter-hybrid:il2cpp:
+  variables:
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+  - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-macOS-twostickshooter-hybrid"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Hybrid/build"
+    expire_in: 1 week
+  dependencies:
+    - macOS:build:twostickshooter-hybrid:il2cpp
+
+
+macOS:run:twostickshooter-pure:il2cpp:
+  variables:
+    GIT_STRATEGY: none
+  stage: run
+  tags:
+  - macOS
+  script:
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+  artifacts:
+    name: "artifacts-macOS-twostickshooter-pure"
+    when: always
+    paths:
+      - "*.log"
+      - "*.xml"
+      - "TwoStickShooter/Pure/build"
+    expire_in: 1 week
+  dependencies:
+    - macOS:build:twostickshooter-pure:il2cpp
 
 

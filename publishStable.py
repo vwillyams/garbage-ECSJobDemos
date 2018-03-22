@@ -93,7 +93,7 @@ def is_package_changed(package_folder, package_name, current_version):
         print "  The number of files don't match. {0} mismatching files".format(len(mismatching_files))
         return True
 
-    match, mismatch, errors = filecmp.cmpfiles(package_folder, installed_path, repo_files)
+    match, mismatch, errors = cmp_directories_ignore_line_endings(package_folder, installed_path, repo_files)
 
     if len(mismatch) == 0 and len(errors) == 0:
         if compare_package_files(package_folder, "node_modules/{0}".format(package_name), current_version):
@@ -108,6 +108,40 @@ def is_package_changed(package_folder, package_name, current_version):
         print "    {0}".format(m)
     return True
     pass
+
+
+def cmp_directories_ignore_line_endings(first, second, common_files):
+    match = []
+    mismatch = []
+    errors = []
+
+    for common in common_files:
+        first_path = os.path.join(first, common)
+        second_path = os.path.join(second, common)
+        if not os.path.exists(first_path):
+            mismatch.append(common)
+            continue
+        if not os.path.exists(second_path):
+            mismatch.append(common)
+            continue
+
+        if not cmp_files(first_path, second_path):
+            mismatch.append(common)
+            continue
+        match.append(common)
+
+    return match, mismatch, errors
+
+
+def cmp_files(f1, f2):
+    line1 = line2 = ' '
+    with open(f1, 'r') as f1, open(f2, 'r') as f2:
+        while line1 != '' and line2 != '':
+            line1 = f1.readline().rstrip("\n\r")
+            line2 = f2.readline().rstrip("\n\r")
+            if line1 != line2:
+                return False
+    return True
 
 
 def increase_version(version, major, minor, patch):
@@ -271,6 +305,8 @@ def scatter_manifest():
 
 
 def strip_unwanted():
+    if not args.strip_from_commit:
+        return
     for path in args.strip_from_commit:
         for p in glob.glob(path):
             if os.path.isdir(p):
@@ -399,7 +435,7 @@ def process_package(package_path, package_name, root_clone):
                   "published".format(package_name)
         if args.only_publish_existing_packages:
             print "--only-publish-existing-packages is set but we found modification for {0} that we wanted to push. " \
-                  "Failing run "
+                  "Failing run ".format(package_name)
             raise Exception("Tried to publish modified packages when --only-publish-existing-packages was set")
         new_package_version = increase_version(current_package_version, False, False, True)
         local_packages[package_name] = new_package_version
@@ -502,19 +538,20 @@ def main():
         print e
         print e.output
         raise
-    finally:
-        print "Running cleanup"
-        os.chdir(repo_dir)
 
-        if os.path.isdir("node_modules"):
-            shutil.rmtree("node_modules")
+    # We don't use finally here so that it is easier to investigate a failure with stuff not being cleaned up
+    print "Running cleanup"
+    os.chdir(repo_dir)
 
-        if os.path.isdir("etc"):
-            shutil.rmtree("etc")
+    if os.path.isdir("node_modules"):
+        shutil.rmtree("node_modules")
 
-        git_cmd("checkout {0}".format(source_branch))
+    if os.path.isdir("etc"):
+        shutil.rmtree("etc")
 
-        os.chdir(root_dir)
+    git_cmd("checkout {0}".format(source_branch))
+
+    os.chdir(root_dir)
 
 
 if __name__ == "__main__":

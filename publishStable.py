@@ -317,6 +317,24 @@ def strip_unwanted():
                 os.remove(p)
 
 
+def sanity_check_files():
+    hidden_paths = []
+    for root, d, f in os.walk('.'):
+        for path in f:
+            p = os.path.join(root, path)
+            if path.startswith("."):
+                if args.whitelist_hidden_paths and path in args.whitelist_hidden_paths:
+                    continue
+                hidden_paths.append(p)
+
+    if len(hidden_paths) > 0:
+        print "There are hidden paths in the repo that aren't white listed. Failing run. Please use " \
+              "--whitelist-hidden-paths if you want these paths in:"
+        for p in hidden_paths:
+            print "  {0}".format(p)
+        raise Exception("Unwanted file found in repo")
+
+
 def squash_commits():
     # We don't actually squash it since we just want whatever is in the source branch right now and add that as a new
     # commit to the target branch. So we delete everything in our publishing branch and then checkout everything
@@ -338,6 +356,8 @@ def squash_commits():
     git_cmd("checkout {0} -- .".format(source_branch))
 
     strip_unwanted()
+
+    sanity_check_files()
 
     git_cmd("add -A")
 
@@ -534,24 +554,27 @@ def main():
             else:
                 print "Pushing squashed branch publishStable-temp to remote target/{0}".format(args.target_repo)
                 git_cmd("push target publishStable-temp:{0}".format(args.target_branch))
+        else:
+            print "Marking as failed, since we didn't push a commit"
+            sys.exit(-1)
     except subprocess.CalledProcessError as e:
         print e
         print e.output
         raise
 
-    # We don't use finally here so that it is easier to investigate a failure with stuff not being cleaned up
-    print "Running cleanup"
-    os.chdir(repo_dir)
+    finally:
+        print "Running cleanup"
+        os.chdir(repo_dir)
 
-    if os.path.isdir("node_modules"):
-        shutil.rmtree("node_modules")
+        if os.path.isdir("node_modules"):
+            shutil.rmtree("node_modules")
 
-    if os.path.isdir("etc"):
-        shutil.rmtree("etc")
+        if os.path.isdir("etc"):
+            shutil.rmtree("etc")
 
-    git_cmd("checkout {0}".format(source_branch))
+        git_cmd("checkout {0}".format(source_branch))
 
-    os.chdir(root_dir)
+        os.chdir(root_dir)
 
 
 if __name__ == "__main__":
@@ -602,6 +625,10 @@ if __name__ == "__main__":
                                                   "creating new packages. So if this flag is set it will abort the "
                                                   "run if it tries to push new packages, instead of just repushing "
                                                   "the same ones")
+    parser.add_argument('--whitelist-hidden-paths', action='append', help="The script aborts if it finds paths "
+                                                                          "starting with a . in the repo. If you want"
+                                                                          " these in you need to whitelist these "
+                                                                          "files or folders")
     args = parser.parse_args()
 
     main()

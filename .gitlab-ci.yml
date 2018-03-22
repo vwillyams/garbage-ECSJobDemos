@@ -178,7 +178,7 @@ windows:run:boids:mono:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-boids-run-mono.log -cleanedLogFile output-windows-boids-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-boids-run-mono.log -cleanedLogFile output-windows-boids-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-boids"
     when: always
@@ -198,7 +198,7 @@ windows:run:chains:mono:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-chains-run-mono.log -cleanedLogFile output-windows-chains-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-chains-run-mono.log -cleanedLogFile output-windows-chains-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-chains"
     when: always
@@ -218,7 +218,7 @@ windows:run:hierarchy:mono:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-hierarchy-run-mono.log -cleanedLogFile output-windows-hierarchy-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-hierarchy-run-mono.log -cleanedLogFile output-windows-hierarchy-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-hierarchy"
     when: always
@@ -238,7 +238,7 @@ windows:run:rotation:mono:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-rotation-run-mono.log -cleanedLogFile output-windows-rotation-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-rotation-run-mono.log -cleanedLogFile output-windows-rotation-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-rotation"
     when: always
@@ -258,7 +258,7 @@ windows:run:boids:il2cpp:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-boids-run-il2cpp.log -cleanedLogFile output-windows-boids-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-boids-run-il2cpp.log -cleanedLogFile output-windows-boids-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-boids"
     when: always
@@ -278,7 +278,7 @@ windows:run:chains:il2cpp:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-chains-run-il2cpp.log -cleanedLogFile output-windows-chains-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-chains-run-il2cpp.log -cleanedLogFile output-windows-chains-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-chains"
     when: always
@@ -298,7 +298,7 @@ windows:run:hierarchy:il2cpp:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-hierarchy-run-il2cpp.log -cleanedLogFile output-windows-hierarchy-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-hierarchy-run-il2cpp.log -cleanedLogFile output-windows-hierarchy-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-hierarchy"
     when: always
@@ -318,7 +318,7 @@ windows:run:rotation:il2cpp:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-rotation-run-il2cpp.log -cleanedLogFile output-windows-rotation-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-rotation-run-il2cpp.log -cleanedLogFile output-windows-rotation-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-rotation"
     when: always
@@ -506,7 +506,7 @@ macOS:run:boids:mono:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-boids-run-mono.log -cleanedLogFile output-macOS-boids-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-boids-run-mono.log -cleanedLogFile output-macOS-boids-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-boids"
     when: always
@@ -526,7 +526,7 @@ macOS:run:chains:mono:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-chains-run-mono.log -cleanedLogFile output-macOS-chains-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-chains-run-mono.log -cleanedLogFile output-macOS-chains-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-chains"
     when: always
@@ -546,7 +546,7 @@ macOS:run:hierarchy:mono:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-hierarchy-run-mono.log -cleanedLogFile output-macOS-hierarchy-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-hierarchy-run-mono.log -cleanedLogFile output-macOS-hierarchy-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-hierarchy"
     when: always
@@ -566,7 +566,7 @@ macOS:run:rotation:mono:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-rotation-run-mono.log -cleanedLogFile output-macOS-rotation-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-rotation-run-mono.log -cleanedLogFile output-macOS-rotation-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-rotation"
     when: always
@@ -586,7 +586,7 @@ macOS:run:boids:il2cpp:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-boids-run-il2cpp.log -cleanedLogFile output-macOS-boids-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-boids-run-il2cpp.log -cleanedLogFile output-macOS-boids-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-boids"
     when: always
@@ -606,7 +606,7 @@ macOS:run:chains:il2cpp:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-chains-run-il2cpp.log -cleanedLogFile output-macOS-chains-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-chains-run-il2cpp.log -cleanedLogFile output-macOS-chains-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-chains"
     when: always
@@ -626,7 +626,7 @@ macOS:run:hierarchy:il2cpp:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-hierarchy-run-il2cpp.log -cleanedLogFile output-macOS-hierarchy-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-hierarchy-run-il2cpp.log -cleanedLogFile output-macOS-hierarchy-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-hierarchy"
     when: always
@@ -646,7 +646,7 @@ macOS:run:rotation:il2cpp:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-rotation-run-il2cpp.log -cleanedLogFile output-macOS-rotation-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-rotation-run-il2cpp.log -cleanedLogFile output-macOS-rotation-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-rotation"
     when: always

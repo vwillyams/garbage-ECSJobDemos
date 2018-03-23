@@ -21,6 +21,8 @@ However we need to introduce a new way of thinking and coding to take full advan
 MonoBehaviours contain both the data and the behaviour. This component will simply rotate the __Transform__ component every frame.
 
 ```C#
+using UnityEngine;
+
 class Rotator : MonoBehaviour
 {
     // The data - editable in the inspector
@@ -44,6 +46,9 @@ In the new model the component only contains the data.
 The __ComponentSystem__ contains the behavior. One ComponentSystem is responsible for updating all GameObjects with a matching set of components (that is defined within a struct).
 
 ```C#
+using Unity.Entities;
+using UnityEngine;
+
 class Rotator : MonoBehaviour
 {
     // The data - editable in the inspector
@@ -56,11 +61,11 @@ class RotatorSystem : ComponentSystem
     {
         // Define what components are required for this 
         // ComponentSystem to handle them.
-        Transform Transform;
-        Rotator   Rotator;
+        public Transform Transform;
+        public Rotator   Rotator;
     }
     
-    override protected OnUpdate()
+    override protected void OnUpdate()
     {
         // We can immediately see a first optimization.
         // We know delta time is the same between all rotators,
@@ -74,7 +79,7 @@ class RotatorSystem : ComponentSystem
         // (as defined above in Group struct).
         foreach (var e in GetEntities<Group>())
         {
-            e.Transform.rotation *= Quaternion.AxisAngle(e.Rotator.Speed * deltaTime, Vector3.up);
+            e.Transform.rotation *= Quaternion.AngleAxis(e.Rotator.Speed * deltaTime, Vector3.up);
         }
     }
 }
@@ -128,6 +133,9 @@ The C# job system does not support managed class types; only structs and __Nativ
 The EntityManager makes hard guarantees about [linear memory layout](https://en.wikipedia.org/wiki/Flat_memory_model) of the component data. This is an important part of the great performance you can achieve with C# jobs using IComponentData.
 
 ```cs
+using System;
+using Unity.Entities;
+
 // The rotation speed component simply stores the Speed value
 [Serializable]
 public struct RotationSpeed : IComponentData
@@ -141,6 +149,13 @@ public class RotationSpeedComponent : ComponentDataWrapper<RotationSpeed> { }
 ```
 
 ```cs
+using Unity.Collections;
+using Unity.Entities;
+using Unity.Jobs;
+using Unity.Mathematics;
+using Unity.Transforms;
+using UnityEngine;
+
 // Using IJobProcessComponentData to iterate over all entities matching the required component types.
 // Processing of entities happens in parallel. The main thread only schedules jobs.
 public class RotationSpeedSystem : JobComponentSystem

@@ -11,6 +11,7 @@ windows:test:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath Samples -batchmode -nographics -silentcrashes -automated -logfile output-windows-test.log -runtests -testresults results.xml
   artifacts:
     name: "artifacts-windows-test"
@@ -29,6 +30,7 @@ windows:build:boids:mono:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-boids-build-mono.log -cleanedLogFile output-windows-boids-build-mono-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-boids"
@@ -47,6 +49,7 @@ windows:build:chains:mono:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-chains-build-mono.log -cleanedLogFile output-windows-chains-build-mono-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-chains"
@@ -65,6 +68,7 @@ windows:build:hierarchy:mono:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-hierarchy-build-mono.log -cleanedLogFile output-windows-hierarchy-build-mono-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-hierarchy"
@@ -83,6 +87,7 @@ windows:build:rotation:mono:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-rotation-build-mono.log -cleanedLogFile output-windows-rotation-build-mono-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-rotation"
@@ -101,6 +106,7 @@ windows:build:twostickshooter-classic:mono:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-mono.log -cleanedLogFile output-windows-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
@@ -119,6 +125,7 @@ windows:build:twostickshooter-hybrid:mono:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
@@ -137,6 +144,7 @@ windows:build:twostickshooter-pure:mono:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-mono.log -cleanedLogFile output-windows-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
@@ -155,6 +163,7 @@ windows:build:boids:il2cpp:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-boids-build-il2cpp.log -cleanedLogFile output-windows-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-boids"
@@ -173,6 +182,7 @@ windows:build:chains:il2cpp:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-chains-build-il2cpp.log -cleanedLogFile output-windows-chains-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-chains"
@@ -191,6 +201,7 @@ windows:build:hierarchy:il2cpp:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-hierarchy-build-il2cpp.log -cleanedLogFile output-windows-hierarchy-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-hierarchy"
@@ -209,6 +220,7 @@ windows:build:rotation:il2cpp:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-rotation-build-il2cpp.log -cleanedLogFile output-windows-rotation-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-rotation"
@@ -227,6 +239,7 @@ windows:build:twostickshooter-classic:il2cpp:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
@@ -245,6 +258,7 @@ windows:build:twostickshooter-hybrid:il2cpp:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
@@ -263,6 +277,7 @@ windows:build:twostickshooter-pure:il2cpp:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
@@ -286,6 +301,7 @@ windows:run:boids:mono:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-boids-run-mono.log -cleanedLogFile output-windows-boids-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-boids"
@@ -306,6 +322,7 @@ windows:run:chains:mono:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-chains-run-mono.log -cleanedLogFile output-windows-chains-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-chains"
@@ -326,6 +343,7 @@ windows:run:hierarchy:mono:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-hierarchy-run-mono.log -cleanedLogFile output-windows-hierarchy-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-hierarchy"
@@ -346,6 +364,7 @@ windows:run:rotation:mono:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-rotation-run-mono.log -cleanedLogFile output-windows-rotation-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-rotation"
@@ -366,6 +385,7 @@ windows:run:twostickshooter-classic:mono:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-mono.log -cleanedLogFile output-windows-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
@@ -386,6 +406,7 @@ windows:run:twostickshooter-hybrid:mono:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
@@ -406,6 +427,7 @@ windows:run:twostickshooter-pure:mono:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-mono.log -cleanedLogFile output-windows-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
@@ -426,6 +448,7 @@ windows:run:boids:il2cpp:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-boids-run-il2cpp.log -cleanedLogFile output-windows-boids-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-boids"
@@ -446,6 +469,7 @@ windows:run:chains:il2cpp:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-chains-run-il2cpp.log -cleanedLogFile output-windows-chains-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-chains"
@@ -466,6 +490,7 @@ windows:run:hierarchy:il2cpp:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-hierarchy-run-il2cpp.log -cleanedLogFile output-windows-hierarchy-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-hierarchy"
@@ -486,6 +511,7 @@ windows:run:rotation:il2cpp:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-rotation-run-il2cpp.log -cleanedLogFile output-windows-rotation-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-rotation"
@@ -506,6 +532,7 @@ windows:run:twostickshooter-classic:il2cpp:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
@@ -526,6 +553,7 @@ windows:run:twostickshooter-hybrid:il2cpp:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
@@ -546,6 +574,7 @@ windows:run:twostickshooter-pure:il2cpp:
   tags:
   - windows
   script:
+    - git clean -fdx .
     - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
@@ -567,6 +596,7 @@ macOS:test:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -nographics -silentcrashes -automated -logfile output-macOS-test.log -runtests -testresults results.xml
   artifacts:
     name: "artifacts-macOS-test"
@@ -585,6 +615,7 @@ macOS:build:boids:mono:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-boids-build-mono.log -cleanedLogFile output-macOS-boids-build-mono-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-boids"
@@ -603,6 +634,7 @@ macOS:build:chains:mono:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-chains-build-mono.log -cleanedLogFile output-macOS-chains-build-mono-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-chains"
@@ -621,6 +653,7 @@ macOS:build:hierarchy:mono:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-hierarchy-build-mono.log -cleanedLogFile output-macOS-hierarchy-build-mono-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-hierarchy"
@@ -639,6 +672,7 @@ macOS:build:rotation:mono:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-rotation-build-mono.log -cleanedLogFile output-macOS-rotation-build-mono-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-rotation"
@@ -657,6 +691,7 @@ macOS:build:twostickshooter-classic:mono:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
@@ -675,6 +710,7 @@ macOS:build:twostickshooter-hybrid:mono:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
@@ -693,6 +729,7 @@ macOS:build:twostickshooter-pure:mono:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
@@ -711,6 +748,7 @@ macOS:build:boids:il2cpp:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-boids-build-il2cpp.log -cleanedLogFile output-macOS-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-boids"
@@ -729,6 +767,7 @@ macOS:build:chains:il2cpp:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-chains-build-il2cpp.log -cleanedLogFile output-macOS-chains-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-chains"
@@ -747,6 +786,7 @@ macOS:build:hierarchy:il2cpp:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-hierarchy-build-il2cpp.log -cleanedLogFile output-macOS-hierarchy-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-hierarchy"
@@ -765,6 +805,7 @@ macOS:build:rotation:il2cpp:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-rotation-build-il2cpp.log -cleanedLogFile output-macOS-rotation-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-rotation"
@@ -783,6 +824,7 @@ macOS:build:twostickshooter-classic:il2cpp:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
@@ -801,6 +843,7 @@ macOS:build:twostickshooter-hybrid:il2cpp:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
@@ -819,6 +862,7 @@ macOS:build:twostickshooter-pure:il2cpp:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
@@ -842,6 +886,7 @@ macOS:run:boids:mono:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-boids-run-mono.log -cleanedLogFile output-macOS-boids-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-boids"
@@ -862,6 +907,7 @@ macOS:run:chains:mono:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-chains-run-mono.log -cleanedLogFile output-macOS-chains-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-chains"
@@ -882,6 +928,7 @@ macOS:run:hierarchy:mono:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-hierarchy-run-mono.log -cleanedLogFile output-macOS-hierarchy-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-hierarchy"
@@ -902,6 +949,7 @@ macOS:run:rotation:mono:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-rotation-run-mono.log -cleanedLogFile output-macOS-rotation-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-rotation"
@@ -922,6 +970,7 @@ macOS:run:twostickshooter-classic:mono:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
@@ -942,6 +991,7 @@ macOS:run:twostickshooter-hybrid:mono:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
@@ -962,6 +1012,7 @@ macOS:run:twostickshooter-pure:mono:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
@@ -982,6 +1033,7 @@ macOS:run:boids:il2cpp:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-boids-run-il2cpp.log -cleanedLogFile output-macOS-boids-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-boids"
@@ -1002,6 +1054,7 @@ macOS:run:chains:il2cpp:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-chains-run-il2cpp.log -cleanedLogFile output-macOS-chains-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-chains"
@@ -1022,6 +1075,7 @@ macOS:run:hierarchy:il2cpp:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-hierarchy-run-il2cpp.log -cleanedLogFile output-macOS-hierarchy-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-hierarchy"
@@ -1042,6 +1096,7 @@ macOS:run:rotation:il2cpp:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-rotation-run-il2cpp.log -cleanedLogFile output-macOS-rotation-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-rotation"
@@ -1062,6 +1117,7 @@ macOS:run:twostickshooter-classic:il2cpp:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
@@ -1082,6 +1138,7 @@ macOS:run:twostickshooter-hybrid:il2cpp:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
@@ -1102,6 +1159,7 @@ macOS:run:twostickshooter-pure:il2cpp:
   tags:
   - macOS
   script:
+    - git clean -fdx .
     - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"

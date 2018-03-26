@@ -50,10 +50,11 @@ This is a set of projects that demonstrates different approaches with the MonoBe
 * Open the file _<project-name>/Packages/manifest.json_ in any text editor.
 * Copy and paste the following package manifest into it, replacing the default contents:
 
-```{
-"dependencies":{
-	"com.unity.entities":"0.0.11"
-},
+```
+{
+	"dependencies":{
+		"com.unity.entities":"0.0.11"
+	},
 	"registry": "https://staging-packages.unity.com"
 }
 ```

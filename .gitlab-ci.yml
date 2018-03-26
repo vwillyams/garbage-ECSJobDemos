@@ -7,8 +7,6 @@ stages:
 # windows test
 ################################################################################
 windows:test:
-  variables:
-    GIT_STRATEGY: fetch
   stage: test
   tags:
   - windows
@@ -27,8 +25,6 @@ windows:test:
 # windows build
 ################################################################################
 windows:build:boids:mono:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - windows
@@ -47,8 +43,6 @@ windows:build:boids:mono:
 
 
 windows:build:chains:mono:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - windows
@@ -67,8 +61,6 @@ windows:build:chains:mono:
 
 
 windows:build:hierarchy:mono:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - windows
@@ -87,8 +79,6 @@ windows:build:hierarchy:mono:
 
 
 windows:build:rotation:mono:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - windows
@@ -107,8 +97,6 @@ windows:build:rotation:mono:
 
 
 windows:build:twostickshooter-classic:mono:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - windows
@@ -127,8 +115,6 @@ windows:build:twostickshooter-classic:mono:
 
 
 windows:build:twostickshooter-hybrid:mono:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - windows
@@ -147,8 +133,6 @@ windows:build:twostickshooter-hybrid:mono:
 
 
 windows:build:twostickshooter-pure:mono:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - windows
@@ -167,8 +151,6 @@ windows:build:twostickshooter-pure:mono:
 
 
 windows:build:boids:il2cpp:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - windows
@@ -187,8 +169,6 @@ windows:build:boids:il2cpp:
 
 
 windows:build:chains:il2cpp:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - windows
@@ -207,8 +187,6 @@ windows:build:chains:il2cpp:
 
 
 windows:build:hierarchy:il2cpp:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - windows
@@ -227,8 +205,6 @@ windows:build:hierarchy:il2cpp:
 
 
 windows:build:rotation:il2cpp:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - windows
@@ -247,8 +223,6 @@ windows:build:rotation:il2cpp:
 
 
 windows:build:twostickshooter-classic:il2cpp:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - windows
@@ -267,8 +241,6 @@ windows:build:twostickshooter-classic:il2cpp:
 
 
 windows:build:twostickshooter-hybrid:il2cpp:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - windows
@@ -287,8 +259,6 @@ windows:build:twostickshooter-hybrid:il2cpp:
 
 
 windows:build:twostickshooter-pure:il2cpp:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - windows
@@ -593,8 +563,6 @@ windows:run:twostickshooter-pure:il2cpp:
 # macOS test
 ################################################################################
 macOS:test:
-  variables:
-    GIT_STRATEGY: fetch
   stage: test
   tags:
   - macOS
@@ -613,8 +581,6 @@ macOS:test:
 # macOS build
 ################################################################################
 macOS:build:boids:mono:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - macOS
@@ -633,8 +599,6 @@ macOS:build:boids:mono:
 
 
 macOS:build:chains:mono:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - macOS
@@ -653,8 +617,6 @@ macOS:build:chains:mono:
 
 
 macOS:build:hierarchy:mono:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - macOS
@@ -673,8 +635,6 @@ macOS:build:hierarchy:mono:
 
 
 macOS:build:rotation:mono:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - macOS
@@ -693,8 +653,6 @@ macOS:build:rotation:mono:
 
 
 macOS:build:twostickshooter-classic:mono:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - macOS
@@ -713,8 +671,6 @@ macOS:build:twostickshooter-classic:mono:
 
 
 macOS:build:twostickshooter-hybrid:mono:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - macOS
@@ -733,8 +689,6 @@ macOS:build:twostickshooter-hybrid:mono:
 
 
 macOS:build:twostickshooter-pure:mono:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - macOS
@@ -753,8 +707,6 @@ macOS:build:twostickshooter-pure:mono:
 
 
 macOS:build:boids:il2cpp:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - macOS
@@ -773,8 +725,6 @@ macOS:build:boids:il2cpp:
 
 
 macOS:build:chains:il2cpp:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - macOS
@@ -793,8 +743,6 @@ macOS:build:chains:il2cpp:
 
 
 macOS:build:hierarchy:il2cpp:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - macOS
@@ -813,8 +761,6 @@ macOS:build:hierarchy:il2cpp:
 
 
 macOS:build:rotation:il2cpp:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - macOS
@@ -833,8 +779,6 @@ macOS:build:rotation:il2cpp:
 
 
 macOS:build:twostickshooter-classic:il2cpp:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - macOS
@@ -853,8 +797,6 @@ macOS:build:twostickshooter-classic:il2cpp:
 
 
 macOS:build:twostickshooter-hybrid:il2cpp:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - macOS
@@ -873,8 +815,6 @@ macOS:build:twostickshooter-hybrid:il2cpp:
 
 
 macOS:build:twostickshooter-pure:il2cpp:
-  variables:
-    GIT_STRATEGY: fetch
   stage: build
   tags:
   - macOS

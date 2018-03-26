@@ -6,6 +6,9 @@ import shutil
 import sys
 import argparse
 import json
+import tarfile
+import tempfile
+import urllib
 from fnmatch import fnmatch
 
 args = argparse.Namespace()
@@ -79,12 +82,26 @@ def _get_all_files(path):
 
 def is_package_changed(package_folder, package_name, current_version):
     # type: (str) -> bool
-    print "Installing {0} from {1} to see if we have changed anything".format(package_name, best_view_registry)
-    npm_cmd("install --no-package-lock --prefix . {0}".format(package_name), best_view_registry)
-    installed_path = os.path.abspath(os.path.join("node_modules", package_name))
-    print "Comparing files between {0} and {1}".format(installed_path, package_folder)
+    print "Downloading {0} from {1} to see if we have changed anything".format(package_name, best_view_registry)
+    tar_url = npm_cmd("view {0} dist.tarball".format(package_name), best_view_registry).strip()
+    download_path = tempfile.gettempdir()
+    print "  Getting tarball from {0} and saving to {1}".format(tar_url, download_path)
+    file_path = os.path.join(download_path, "{0}.{1}.tar.gz".format(package_name, current_version))
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    urllib.urlretrieve(tar_url, file_path)
+    print "  Extracting tarball"
+    download_path = os.path.join(download_path, "{0}.{1}".format(package_name, current_version))
+    if os.path.exists(download_path):
+        shutil.rmtree(download_path)
+    tar = tarfile.open(file_path, "r:gz")
+    tar.extractall(download_path)
+    tar.close()
+    # installed_path = os.path.abspath(os.path.join("node_modules", package_name))
+    download_path = os.path.join(download_path, "package")
+    print "Comparing files between {0} and {1}".format(download_path, package_folder)
 
-    package_files = _get_all_files(installed_path)
+    package_files = _get_all_files(download_path)
     repo_files = _get_all_files(os.path.abspath(package_folder))
 
     mismatching_files = list(set(package_files).symmetric_difference(set(repo_files)))
@@ -93,15 +110,15 @@ def is_package_changed(package_folder, package_name, current_version):
         print "  The number of files don't match. {0} mismatching files".format(len(mismatching_files))
         return True
 
-    match, mismatch, errors = cmp_directories_ignore_line_endings(package_folder, installed_path, repo_files)
+    match, mismatch, errors = cmp_directories_ignore_line_endings(package_folder, download_path, repo_files)
 
     if len(mismatch) == 0 and len(errors) == 0:
-        if compare_package_files(package_folder, "node_modules/{0}".format(package_name), current_version):
+        if compare_package_files(package_folder, download_path, current_version):
             print "Nothing has changed"
             return False
         else:
-            print "{0}/package.json and node_modules/{1}/package.json are not the same".format(package_folder,
-                                                                                               package_name)
+            print "{0}/package.json and {1}/package.json are not the same".format(package_folder,
+                                                                                  download_path)
             return True
     print "  The following files have changed compared to the currently published package:"
     for m in mismatch:
@@ -533,7 +550,7 @@ def main():
             package_name = os.path.basename(os.path.normpath(package_path))
             print "### Package Found: {0} in {1}".format(package_name, package_path).ljust(80, '#')
 
-            if package_path not in late_process_packages and args.add_packages_to_manifest is not None\
+            if package_path not in late_process_packages and args.add_packages_to_manifest is not None \
                     and package_name in args.add_packages_to_manifest:
                 print "Skipping for now since it is to be added to the manifest at the end"
                 late_process_packages.append(package_path)
@@ -563,7 +580,6 @@ def main():
         remove_package_folders()
         git_cmd("add {0}".format(args.packages_path))
 
-        shutil.rmtree("node_modules")
         scatter_manifest()
 
         should_push = create_commit()

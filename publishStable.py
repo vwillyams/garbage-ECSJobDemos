@@ -494,7 +494,13 @@ def publish_modified_packages():
     for package_name, version in modified_packages.iteritems():
         if not args.dry_run:
             publish_new_package(package_name, version)
-            shutil.rmtree("./{0}/{1}".format(args.packages_path, package_name))
+
+
+def remove_package_folders():
+    if args.dry_run:
+        return
+    for package_name, version in local_packages.iteritems():
+        shutil.rmtree("./{0}/{1}".format(args.packages_path, package_name))
 
 
 def main():
@@ -554,6 +560,7 @@ def main():
             process_package(package_path, package_name, root_clone)
 
         publish_modified_packages()
+        remove_package_folders()
         git_cmd("add {0}".format(args.packages_path))
 
         shutil.rmtree("node_modules")

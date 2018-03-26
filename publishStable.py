@@ -320,6 +320,12 @@ def strip_unwanted():
 def sanity_check_files():
     hidden_paths = []
     for root, d, f in os.walk('.'):
+        for path in d:
+            p = os.path.join(root, path)
+            if path.startswith(".") and ".git" != path:
+                if args.whitelist_hidden_paths and path in args.whitelist_hidden_paths:
+                    continue
+                hidden_paths.append(p)
         for path in f:
             p = os.path.join(root, path)
             if path.startswith("."):

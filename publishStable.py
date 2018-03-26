@@ -42,10 +42,14 @@ def compare_package_files(local_path, installed_path, current_version):
 
     local_package["version"] = current_version
 
+    key_diff = set(local_package.keys()) - set(installed_package.keys())
+    if len(key_diff) > 0:
+        print "    The one package.json files do not have the same keys. The keys missing is:"
+        for key in key_diff:
+            print "      {0}".format(key)
+        return False
+
     for key, value in local_package.iteritems():
-        if key not in installed_package:
-            print "    {0} is missing from the published file".format(key)
-            return False
         if value != installed_package[key]:
             # If we are using --add-package-as-dependency-to-package then the dependencies will differ
             # so we do an exception here and check that the ones we are missing are the ones we have flagged

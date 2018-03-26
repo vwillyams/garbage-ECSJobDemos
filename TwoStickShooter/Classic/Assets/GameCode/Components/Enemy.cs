@@ -6,6 +6,8 @@ namespace TwoStickClassicExample
 
     public class Enemy : MonoBehaviour
     {
+        float Cooldown;
+        
         private void Update()
         {
 
@@ -30,13 +32,11 @@ namespace TwoStickClassicExample
             // Shooting
             var playerPos = player.GetComponent<Transform2D>().Position;
 
-            var state = GetComponent<EnemyShootState>();
-
-            state.Cooldown -= Time.deltaTime;
+            Cooldown -= Time.deltaTime;
             
-            if (state.Cooldown <= 0.0)
+            if (Cooldown <= 0.0)
             {
-                state.Cooldown = TwoStickBootstrap.Settings.enemyShootRate;
+                Cooldown = TwoStickBootstrap.Settings.enemyShootRate;
                 var position = GetComponent<Transform2D>().Position;
 
                 ShotSpawnData spawn = new ShotSpawnData()

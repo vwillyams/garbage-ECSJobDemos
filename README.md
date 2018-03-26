@@ -39,7 +39,7 @@ This is a set of projects that demonstrates different approaches with the MonoBe
 
 > Note: If you want to have multiple versions of Unity on one machine then you need to follow [these instructions](https://docs.unity3d.com/462/Documentation/Manual/InstallingMultipleVersionsofUnity.html). The manual page is a bit old, in terms of which versions of Unity it describes, but the instructions are otherwise correct.
 
-* Make sure you have installed the required beta version of Unity (See the Unity 2018.1 beta download link in [Unity build section](#unity-build)).
+* Make sure you have installed the required beta version of [Unity](#what-is-in-the-build).
 * Open the 2018.1.b version of Unity on your computer.
 * Create a new Unity project and name it whatever you like. 
 

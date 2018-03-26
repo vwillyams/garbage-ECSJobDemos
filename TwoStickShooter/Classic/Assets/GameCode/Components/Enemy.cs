@@ -9,7 +9,7 @@ namespace TwoStickClassicExample
         private void Update()
         {
 
-            var player = FindObjectOfType<Player>();
+            var player = Player.Current;
             if (!player)
             {
                 Destroy(gameObject);

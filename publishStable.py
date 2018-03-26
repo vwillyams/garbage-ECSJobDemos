@@ -425,9 +425,17 @@ def npm_cmd(cmd, registry):
 
 def add_destination_repo():
     print "Adding {0} as remote 'target' to repo".format(args.target_repo)
-    remotes = git_cmd("remote")
-    if "target" not in remotes:
+    remote = git_cmd("remote")
+
+    if "target" in remote:
+        remote_url = git_cmd("config --get remote.target.url").strip()
+        if remote_url != args.target_repo:
+            git_cmd("remote rm target")
+            remote = ""
+
+    if "target" not in remote:
         git_cmd("remote add target {0}".format(args.target_repo))
+
     git_cmd("fetch target")
     branches = git_cmd("ls-remote --heads target")
     local_branches = git_cmd("branch")
@@ -552,7 +560,7 @@ def main():
                 print "Would have pushed to remote target/{0} now if --dry-run wasn't set. So skipping this." \
                     .format(args.target_branch)
             else:
-                print "Pushing squashed branch publishStable-temp to remote target/{0}".format(args.target_repo)
+                print "Pushing squashed branch publishStable-temp to remote target/{0}".format(args.target_branch)
                 git_cmd("push target publishStable-temp:{0}".format(args.target_branch))
         else:
             print "Marking as failed, since we didn't push a commit"

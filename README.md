@@ -63,4 +63,4 @@ This is a set of projects that demonstrates different approaches with the MonoBe
 ## Documentation
 Looking for information on how to get started or have specific questions? Visit our ECS & Job system documentation 
 
-[Go to documentation](https://github.com/Unity-Technologies/EntityComponentSystemSamples/blob/master/Documentation/index.md)
+[Go to documentation](Documentation/index.md)

@@ -13,6 +13,8 @@ namespace Unity.Entities.Editor
     public class EntitySelectionProxyEditor : UnityEditor.Editor
     {
         private EntityIMGUIVisitor visitor;
+
+        [SerializeField] private bool showSystems;
         
         void OnEnable()
         {
@@ -28,33 +30,37 @@ namespace Unity.Entities.Editor
             targetProxy.Container.PropertyBag.VisitStruct(ref container, visitor);
 
             GUI.enabled = true;
-            using (var entityComponentTypes = targetProxy.Manager.GetComponentTypes(targetProxy.Entity, Allocator.Temp))
+            showSystems = EditorGUILayout.Foldout(showSystems, "Used by Systems");
+            if (showSystems)
             {
-                var componentGroupList = new List<ComponentGroup>();
-                foreach (var manager in targetProxy.World.BehaviourManagers)
+                using (var entityComponentTypes = targetProxy.Manager.GetComponentTypes(targetProxy.Entity, Allocator.Temp))
                 {
-                    componentGroupList.Clear();
-                    var system = manager as ComponentSystemBase;
-                    if (system == null) continue;
-                    foreach (var componentGroup in system.ComponentGroups)
+                    var componentGroupList = new List<ComponentGroup>();
+                    foreach (var manager in targetProxy.World.BehaviourManagers)
                     {
-                        if (Match(componentGroup, entityComponentTypes))
-                            componentGroupList.Add(componentGroup);
-                    }
-
-                    if (componentGroupList.Count > 0)
-                    {
-                        GUILayout.Label(manager.GetType().ToString());
-                        ++EditorGUI.indentLevel;
-                        foreach (var componentGroup in componentGroupList)
+                        componentGroupList.Clear();
+                        var system = manager as ComponentSystemBase;
+                        if (system == null) continue;
+                        foreach (var componentGroup in system.ComponentGroups)
                         {
-                            if (GUILayout.Button(string.Join<Type>(", ", componentGroup.Types)))
-                            {
-                                EntityDebugger.FocusSelectionInSystem(system, componentGroup);
-                            }
+                            if (Match(componentGroup, entityComponentTypes))
+                                componentGroupList.Add(componentGroup);
                         }
-
-                        --EditorGUI.indentLevel;
+    
+                        if (componentGroupList.Count > 0)
+                        {
+                            GUILayout.Label(manager.GetType().ToString());
+                            ++EditorGUI.indentLevel;
+                            foreach (var componentGroup in componentGroupList)
+                            {
+                                if (GUILayout.Button(string.Join(", ", from x in componentGroup.Types.Skip(1) select x.Name)))
+                                {
+                                    EntityDebugger.FocusSelectionInSystem(system, componentGroup);
+                                }
+                            }
+    
+                            --EditorGUI.indentLevel;
+                        }
                     }
                 }
             }

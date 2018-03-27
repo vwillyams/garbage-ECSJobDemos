@@ -84,18 +84,24 @@ def _get_all_files(path):
     return files
 
 
-def is_package_changed(package_folder, package_name, current_version):
-    # type: (str) -> bool
+def download_package_tarball(package_name, current_version):
     print "Downloading {0} from {1} to see if we have changed anything".format(package_name, best_view_registry)
-    tar_url = npm_cmd("view {0} dist.tarball".format(package_name), best_view_registry).strip()
+    tar_url = npm_cmd("view {0}@{1} dist.tarball".format(package_name, current_version), best_view_registry).strip()
     download_path = tempfile.gettempdir()
     print "  Getting tarball from {0} and saving to {1}".format(tar_url, download_path)
     file_path = os.path.join(download_path, "{0}.{1}.tar.gz".format(package_name, current_version))
     if os.path.exists(file_path):
         os.remove(file_path)
     urllib.urlretrieve(tar_url, file_path)
+    return file_path
+
+
+def is_package_changed(package_folder, package_name, current_version):
+    # type: (str) -> bool
+
+    file_path = download_package_tarball(package_name, current_version)
     print "  Extracting tarball"
-    download_path = os.path.join(download_path, "{0}.{1}".format(package_name, current_version))
+    download_path = os.path.join(os.path.dirname(file_path), "{0}.{1}".format(package_name, current_version))
     if os.path.exists(download_path):
         shutil.rmtree(download_path)
     tar = tarfile.open(file_path, "r:gz")

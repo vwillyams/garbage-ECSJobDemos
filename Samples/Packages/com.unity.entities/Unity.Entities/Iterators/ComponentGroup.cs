@@ -186,6 +186,21 @@ namespace Unity.Entities
                 return types.ToArray();
             }
         }
+
+        public Type[] SubtractiveTypes
+        {
+            get
+            {
+                var types = new List<Type> ();
+                for (var i = 0; i < m_GroupData->RequiredComponentsCount; ++i)
+                {
+                    if (m_GroupData->RequiredComponents[i].AccessModeType == ComponentType.AccessMode.Subtractive)
+                        types.Add(TypeManager.GetType(m_GroupData->RequiredComponents[i].TypeIndex));
+                }
+
+                return types.ToArray();
+            }
+        }
         
         public int GetCombinedComponentOrderVersion()
         {
@@ -436,6 +451,7 @@ namespace Unity.Entities
 
         //@TODO: This should really be just ComponentType[] ...
         public Type[] Types => m_ComponentGroupData.Types;
+        public Type[] SubtractiveTypes => m_ComponentGroupData.SubtractiveTypes;
 
         internal ArchetypeManager ArchetypeManager => m_TypeManager;
 

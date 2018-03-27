@@ -28,7 +28,7 @@ namespace Unity.Entities.Editor
             targetProxy.Container.PropertyBag.VisitStruct(ref container, visitor);
 
             GUI.enabled = true;
-            using (var types = targetProxy.Manager.GetComponentTypes(targetProxy.Entity, Allocator.Temp))
+            using (var entityComponentTypes = targetProxy.Manager.GetComponentTypes(targetProxy.Entity, Allocator.Temp))
             {
                 var componentGroupList = new List<ComponentGroup>();
                 foreach (var manager in targetProxy.World.BehaviourManagers)
@@ -38,7 +38,7 @@ namespace Unity.Entities.Editor
                     if (system == null) continue;
                     foreach (var componentGroup in system.ComponentGroups)
                     {
-                        if (Match(componentGroup, types))
+                        if (Match(componentGroup, entityComponentTypes))
                             componentGroupList.Add(componentGroup);
                     }
 
@@ -62,12 +62,24 @@ namespace Unity.Entities.Editor
             
         }
 
-        private static bool Match(ComponentGroup group, NativeArray<ComponentType> types)
+        private static bool Match(ComponentGroup group, NativeArray<ComponentType> entityComponentTypes)
         {
+            foreach (var subtractiveGroupType in group.SubtractiveTypes)
+            {
+                foreach (var type in entityComponentTypes)
+                {
+                    var managedType = type.GetManagedType();
+                    if (subtractiveGroupType == managedType)
+                    {
+                        return false;
+                    }
+                }
+            }
+            
             foreach (var groupType in group.Types.Skip(1))
             {
                 var found = false;
-                foreach (var type in types)
+                foreach (var type in entityComponentTypes)
                 {
                     var managedType = type.GetManagedType();
                     if (groupType == managedType)

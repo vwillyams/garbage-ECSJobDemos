@@ -10,7 +10,7 @@ namespace Unity.Entities.Editor
 {
     public interface IComponentGroupSelectionWindow : IWorldSelectionWindow
     {
-        void SetComponentGroupSelection(ComponentGroup group);
+        void SetComponentGroupSelection(ComponentGroup group, bool updateList, bool propagate);
     }
     
     public class ComponentGroupListView : TreeView {
@@ -121,11 +121,11 @@ namespace Unity.Entities.Editor
                 return;
             if (selectedIds.Count > 0 && componentGroupsById.ContainsKey(selectedIds[0]))
             {
-                window.SetComponentGroupSelection(componentGroupsById[selectedIds[0]]);
+                window.SetComponentGroupSelection(componentGroupsById[selectedIds[0]], false, true);
             }
             else
             {
-                window.SetComponentGroupSelection(null);
+                window.SetComponentGroupSelection(null, false, true);
             }
         }
 
@@ -134,9 +134,22 @@ namespace Unity.Entities.Editor
             return false;
         }
 
+        public void SetComponentGroupSelection(ComponentGroup group)
+        {
+            foreach (var pair in componentGroupsById)
+            {
+                if (pair.Value == group)
+                {
+                    SetSelection(new List<int> {pair.Key});
+                    return;
+                }
+            }
+            SetSelection(new List<int>());
+        }
+
         public void TouchSelection()
         {
-            SelectionChanged(GetSelection());
+            SetSelection(GetSelection(), TreeViewSelectionOptions.FireSelectionChanged);
         }
 
         public void UpdateIfNecessary()

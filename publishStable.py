@@ -242,7 +242,8 @@ def get_package_version(package_name):
             continue
         trimmed_version = version.strip().split('+')[0].split('.')
         for i in range(0, 3):
-            if int(trimmed_version[i]) > int(highest_version_trimmed[i]):
+            if int(trimmed_version[i]) > int(highest_version_trimmed[i]) or \
+                    int(trimmed_version[i]) == int(highest_version_trimmed[i] and registry == args.publish_registry):
                 highest_version = version.strip()
                 highest_version_trimmed = trimmed_version
                 new_registry = registry
@@ -277,7 +278,21 @@ def publish_new_package(package_name, version):
     pass
 
 
-def _modify_manifest(package_name, version):
+def _modify_manifest_registry():
+    modified = False
+    with open("{0}/manifest.json".format(args.packages_path), 'r') as f:
+        manifest = json.load(f)
+
+    if 'registry' not in manifest or (manifest['registry'] != args.publish_registry):
+        manifest['registry'] = args.publish_registry
+        modified = True
+
+    if modified:
+        with open("{0}/manifest.json".format(args.packages_path), 'w') as outfile:
+            json.dump(manifest, outfile, indent=4)
+
+
+def _modify_manifest_for_package(package_name, version):
     with open("{0}/manifest.json".format(args.packages_path), 'r') as f:
         manifest = json.load(f)
 
@@ -294,10 +309,6 @@ def _modify_manifest(package_name, version):
     if not modified and args.add_packages_to_manifest and package_name in args.add_packages_to_manifest:
         print "Adding {0} to the manifest.json".format(package_name)
         manifest["dependencies"][package_name] = version
-        modified = True
-
-    if 'registry' not in manifest or (manifest['registry'] != args.publish_registry):
-        manifest['registry'] = args.publish_registry
         modified = True
 
     if modified:
@@ -344,7 +355,8 @@ def _modify_package_version(package_name, version):
 def modify_json(package_name, version):
     if package_name in modified_packages:
         _modify_package_version(package_name, version)
-    _modify_manifest(package_name, version)
+    _modify_manifest_registry()
+    _modify_manifest_for_package(package_name, version)
     _modify_package_file_dependencies(package_name)
 
 
@@ -700,8 +712,9 @@ def main():
                     print "Publishing {0}".format(tar_path)
                     npm_cmd("publish {0}".format(tar_path), args.publish_registry)
 
+            _modify_manifest_registry()
             for key, value in dependencies.iteritems():
-                _modify_manifest(key, value)
+                _modify_manifest_for_package(key, value)
 
         else:
             raise Exception("No package folders found, and --only-publish-existing-packages has not been set. This "

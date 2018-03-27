@@ -364,9 +364,15 @@ var position = m_LocalPositions[myEntity];
 
 ## ExclusiveEntityTransaction
 
-EntityTransaction is an API to create & destroy entities from a job. The purpose is to enable procedural generation scenarios where construction of massive scale instantiation must happen on jobs. This API is very much a work in progress.
+EntityTransaction is an API to create & destroy entities from a job. The purpose is to enable procedural generation scenarios where instantiation on big scale must happen on jobs. As the name implies it is exclusive to any other access to the EntityManager.
+
+ExclusiveEntityTransaction should be used on manually created world that acts as a staging area to construct & setup entities.
+After the job has completed you can end the EntityTransaction and use ```EntityManager.MoveEntitiesFrom(EntityManager srcEntities);``` to move the entities to an active world.
+
 
 ## EntityCommandBuffer
+
+
 
 ## GameObjectEntity
 

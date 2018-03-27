@@ -13,7 +13,7 @@ namespace Unity.Collections
     /// </summary>
 	unsafe struct NativeListData
 	{
-		public void*                            list;
+		public void*                            buffer;
 		public int								length;
 		public int								capacity;
 	}
@@ -27,7 +27,7 @@ namespace Unity.Collections
     public unsafe struct NativeListImpl<T, TMemManager, TSentinel>
         where TSentinel : struct, INativeBufferSentinel
 #else
-	public unsafe struct NativeListImpl<T, TAllocator>
+	public unsafe struct NativeListImpl<T, TMemManager>
 #endif
         where T : struct
         where TMemManager : struct, INativeBufferMemoryManager
@@ -35,14 +35,14 @@ namespace Unity.Collections
         public TMemManager m_MemoryAllocator;
 
 	    [NativeDisableUnsafePtrRestriction]
-	    NativeListData* m_Data;
+	    NativeListData* m_ListData;
 
 	    internal NativeListData* GetListData()
 	    {
-	        return m_Data;
+	        return m_ListData;
 	    }
 
-	    public void* RawBuffer => m_Data;
+	    public void* RawBuffer => m_ListData;
 
 	    public TMemManager Allocator => m_MemoryAllocator;
 
@@ -55,21 +55,21 @@ namespace Unity.Collections
 			get
 			{
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-                if ((uint)index >= (uint)m_Data->length)
-                    throw new IndexOutOfRangeException($"Index {index} is out of range in NativeList of '{m_Data->length}' Length.");
+                if ((uint)index >= (uint)m_ListData->length)
+                    throw new IndexOutOfRangeException($"Index {index} is out of range in NativeList of '{m_ListData->length}' Length.");
 #endif
 
-                return UnsafeUtility.ReadArrayElement<T>(m_Data->list, index);
+                return UnsafeUtility.ReadArrayElement<T>(m_ListData->buffer, index);
 			}
 
 			set
 			{
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-			    if ((uint)index >= (uint)m_Data->length)
-                    throw new IndexOutOfRangeException($"Index {index} is out of range in NativeList of '{m_Data->length}' Length.");
+			    if ((uint)index >= (uint)m_ListData->length)
+                    throw new IndexOutOfRangeException($"Index {index} is out of range in NativeList of '{m_ListData->length}' Length.");
 #endif
 
-                UnsafeUtility.WriteArrayElement(m_Data->list, index, value);
+                UnsafeUtility.WriteArrayElement(m_ListData->buffer, index, value);
 			}
 		}
 
@@ -77,7 +77,7 @@ namespace Unity.Collections
 		{
 			get
 			{
-				return m_Data->length;
+				return m_ListData->length;
 			}
 		}
 
@@ -85,26 +85,26 @@ namespace Unity.Collections
 		{
 			get
 			{
-			    if( m_Data == null )
+			    if( m_ListData == null )
 			        throw new NullReferenceException();
-				return m_Data->capacity;
+				return m_ListData->capacity;
 			}
 
 			set
 			{
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-			    if (value < m_Data->length)
+			    if (value < m_ListData->length)
 			        throw new ArgumentException("Capacity must be larger than the length of the NativeList.");
 #endif
 
-				if (m_Data->capacity == value)
+				if (m_ListData->capacity == value)
 					return;
 
 				void* newData = UnsafeUtility.Malloc (value * UnsafeUtility.SizeOf<T>(), UnsafeUtility.AlignOf<T>(), m_MemoryAllocator.Label);
-				UnsafeUtility.MemCpy (newData, m_Data->list, m_Data->length * UnsafeUtility.SizeOf<T>());
-				UnsafeUtility.Free (m_Data->list, m_MemoryAllocator.Label);
-			    m_Data->list = newData;
-			    m_Data->capacity = value;
+				UnsafeUtility.MemCpy (newData, m_ListData->buffer, m_ListData->length * UnsafeUtility.SizeOf<T>());
+				UnsafeUtility.Free (m_ListData->buffer, m_MemoryAllocator.Label);
+			    m_ListData->buffer = newData;
+			    m_ListData->capacity = value;
 			}
 		}
 
@@ -116,7 +116,7 @@ namespace Unity.Collections
 		{
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 		    this.sentinel = sentinel;
-		    m_Data = null;
+		    m_ListData = null;
 
 		    if (!UnsafeUtility.IsBlittable<T>())
 		    {
@@ -125,59 +125,59 @@ namespace Unity.Collections
 		    }
 #endif
 		    m_MemoryAllocator = default(TMemManager);
-		    m_Data = (NativeListData*)m_MemoryAllocator.Init<NativeListData>( allocatorLabel );
+		    m_ListData = (NativeListData*)m_MemoryAllocator.Init<NativeListData>( allocatorLabel );
 
 			var elementSize = UnsafeUtility.SizeOf<T> ();
 
             //@TODO: Find out why this is needed?
             capacity = Math.Max(1, capacity);
-		    m_Data->list = UnsafeUtility.Malloc (capacity * elementSize, UnsafeUtility.AlignOf<T>(), allocatorLabel);
+		    m_ListData->buffer = UnsafeUtility.Malloc (capacity * elementSize, UnsafeUtility.AlignOf<T>(), allocatorLabel);
 
-		    m_Data->length = 0;
-		    m_Data->capacity = capacity;
+		    m_ListData->length = 0;
+		    m_ListData->capacity = capacity;
 		}
 
 		public void Add(T element)
 		{
-			if (m_Data->length >= m_Data->capacity)
-				Capacity = m_Data->length + m_Data->capacity * 2;
+			if (m_ListData->length >= m_ListData->capacity)
+				Capacity = m_ListData->length + m_ListData->capacity * 2;
 
-		    this[m_Data->length++] = element;
+		    this[m_ListData->length++] = element;
 		}
 
         //@TODO: Test for AddRange
         public void AddRange(NativeArray<T> elements)
         {
-            if (m_Data->length + elements.Length > m_Data->capacity)
-                Capacity = m_Data->length + elements.Length * 2;
+            if (m_ListData->length + elements.Length > m_ListData->capacity)
+                Capacity = m_ListData->length + elements.Length * 2;
 
             var sizeOf = UnsafeUtility.SizeOf<T> ();
-            UnsafeUtility.MemCpy((byte*)m_Data->list + m_Data->length * sizeOf, elements.GetUnsafePtr(), sizeOf * elements.Length);
+            UnsafeUtility.MemCpy((byte*)m_ListData->buffer + m_ListData->length * sizeOf, elements.GetUnsafePtr(), sizeOf * elements.Length);
 
-            m_Data->length += elements.Length;
+            m_ListData->length += elements.Length;
         }
 
 		public void RemoveAtSwapBack(int index)
 		{
-		    var newLength = m_Data->length - 1;
+		    var newLength = m_ListData->length - 1;
 			this[index] = this[newLength];
-		    m_Data->length = newLength;
+		    m_ListData->length = newLength;
 		}
 
-		public bool IsNull => m_Data == null;
+		public bool IsNull => m_ListData == null;
 
 	    public void Dispose()
 		{
-		    if (m_Data != null)
+		    if (m_ListData != null)
 		    {
 		        sentinel.Dispose();
 
-		        UnsafeUtility.Free (m_Data->list, m_MemoryAllocator.Label);
+		        UnsafeUtility.Free (m_ListData->buffer, m_MemoryAllocator.Label);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
-		        m_Data->list = (void*)0xDEADF00D;
+		        m_ListData->buffer = (void*)0xDEADF00D;
 #endif
-		        m_MemoryAllocator.Dispose( m_Data );
-                m_Data = null;
+		        m_MemoryAllocator.Dispose( m_ListData );
+                m_ListData = null;
 		    }
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             else
@@ -195,13 +195,13 @@ namespace Unity.Collections
         /// </summary>
 		public NativeArray<T> ToNativeArray()
 		{
-		    return NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T> (m_Data->list, m_Data->length, Collections.Allocator.Invalid);
+		    return NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T> (m_ListData->buffer, m_ListData->length, Collections.Allocator.Invalid);
 		}
 
 		public void ResizeUninitialized(int length)
 		{
 		    Capacity = math.max(length, Capacity);
-			m_Data->length = length;
+			m_ListData->length = length;
 		}
 
 	    public NativeListImpl<T, TMemManager, TSentinel> Clone()
@@ -209,10 +209,10 @@ namespace Unity.Collections
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 	        var clone = new NativeListImpl<T, TMemManager, TSentinel>( Capacity, m_MemoryAllocator.Label, sentinel);
 #else
-	        var clone = new NativeListImpl<T, TAllocator>(Capacity, m_NativeBuffer.m_AllocatorLabel);
+	        var clone = new NativeListImpl<T, TMemManager>(Capacity, m_NativeBuffer.m_AllocatorLabel);
 #endif
-            UnsafeUtility.MemCpy(clone.m_Data->list, m_Data->list, m_Data->length * UnsafeUtility.SizeOf<T>());
-	        clone.m_Data->length = m_Data->length;
+            UnsafeUtility.MemCpy(clone.m_ListData->buffer, m_ListData->buffer, m_ListData->length * UnsafeUtility.SizeOf<T>());
+	        clone.m_ListData->length = m_ListData->length;
 
 	        return clone;
 	    }
@@ -220,7 +220,7 @@ namespace Unity.Collections
 	    public NativeArray<T> CopyToNativeArray(Allocator label)
 	    {
 	        var buffer = UnsafeUtility.Malloc( UnsafeUtility.SizeOf<T>(), UnsafeUtility.AlignOf<T>(), label);
-	        UnsafeUtility.MemCpy( buffer, m_Data->list, Length * UnsafeUtility.SizeOf<T>());
+	        UnsafeUtility.MemCpy( buffer, m_ListData->buffer, Length * UnsafeUtility.SizeOf<T>());
 	        var copy = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T> (buffer, Length, label);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 	        NativeArrayUnsafeUtility.SetAtomicSafetyHandle( ref copy, AtomicSafetyHandle.Create());

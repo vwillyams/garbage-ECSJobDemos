@@ -11,7 +11,7 @@ namespace Unity.Collections
 	[NativeContainer]
 	[DebuggerDisplay("Length = {Length}")]
 	[DebuggerTypeProxy(typeof(NativeListDebugView < >))]
-	public struct NativeList<T>
+	public struct NativeList<T> : IDisposable
         where T : struct
 	{
 	    internal NativeListImpl<T, DefaultMemoryManager, NativeBufferSentinel> m_Impl;
@@ -30,7 +30,7 @@ namespace Unity.Collections
 	        m_Impl = new NativeListImpl<T, DefaultMemoryManager, NativeBufferSentinel>(capacity, i_label, guardian);
 	        m_Safety = AtomicSafetyHandle.Create();
 #else
-	        m_Impl = new NativeListImpl<T, DefaultMemoryManager, NativeBufferGuardian>(capacity, i_label);
+	        m_Impl = new NativeListImpl<T, DefaultMemoryManager, NativeBufferSentinel>(capacity, i_label);
 #endif
 	    }
 
@@ -149,6 +149,28 @@ namespace Unity.Collections
 	        return array;
 	    }
 
+	    public unsafe NativeArray<T> ToDeferredJobArray()
+	    {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+	        AtomicSafetyHandle.CheckExistsAndThrow(m_Safety);
+	        AtomicSafetyHandle arraySafety = m_Safety;
+	        AtomicSafetyHandle.UseSecondaryVersion(ref arraySafety);
+#endif
+
+	        byte* buffer = (byte*)m_Impl.GetListData()->buffer;
+	        // We use the first bit of the pointer to infer that the array is in list mode
+	        // Thus the job scheduling code will need to patch it.
+	        buffer += 1;
+	        var array = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T> (buffer, 0, Allocator.Invalid);
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+	        NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref array, arraySafety);
+#endif
+
+	        return array;
+	    }
+
+
 		public T[] ToArray()
 		{
 		    NativeArray<T> nativeArray = this;
@@ -195,7 +217,19 @@ namespace Unity.Collections.LowLevel.Unsafe
             AtomicSafetyHandle.CheckWriteAndThrow(nativeList.m_Safety);
 #endif
             var data = nativeList.m_Impl.GetListData();
-            return data->list;
+            return data->buffer;
+        }
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+        public static AtomicSafetyHandle GetAtomicSafetyHandle<T>(ref NativeList<T> nativeList) where T : struct
+        {
+            return nativeList.m_Safety;
+        }
+#endif	    
+
+        public static unsafe void* GetInternalListDataPtrUnchecked<T>(ref NativeList<T> nativeList) where T : struct
+        {
+            return nativeList.m_Impl.GetListData();
         }
     }
 }

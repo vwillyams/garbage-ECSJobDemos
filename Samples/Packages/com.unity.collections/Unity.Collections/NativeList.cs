@@ -157,7 +157,7 @@ namespace Unity.Collections
 	        AtomicSafetyHandle.UseSecondaryVersion(ref arraySafety);
 #endif
 
-	        byte* buffer = (byte*)m_Impl.GetListData()->buffer;
+	        byte* buffer = (byte*)m_Impl.GetListData();
 	        // We use the first bit of the pointer to infer that the array is in list mode
 	        // Thus the job scheduling code will need to patch it.
 	        buffer += 1;

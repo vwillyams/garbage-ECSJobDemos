@@ -48,16 +48,7 @@ This is a set of projects that demonstrates different approaches with the MonoBe
 * Once the project is created then navigate in the Editor menu to: __Edit__ > __Project Settings__ > __Player__ > __Other Settings__ then set __Scripting Runtime Version__ to: __4.x equivalent__. 
 * Go to your project location in your computer's file manager.
 * Open the file _<project-name>/Packages/manifest.json_ in any text editor.
-* Copy and paste the following package manifest into it, replacing the default contents:
-
-```
-{
-	"dependencies":{
-		"com.unity.entities":"0.0.11"
-	},
-	"registry": "https://staging-packages.unity.com"
-}
-```
+* Copy and paste the [package manifest](Samples/Packages/manifest.json) into Packages/manifest.json file of your project.
 
 [Further sample projects on the C# Job System can be found here](https://github.com/stella3d/job-system-cookbook)
 

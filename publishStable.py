@@ -1,4 +1,3 @@
-import filecmp
 import glob
 import os
 import subprocess
@@ -8,13 +7,14 @@ import argparse
 import json
 import tarfile
 import tempfile
-import urllib
+import urllib2
 from fnmatch import fnmatch
 
 args = argparse.Namespace()
 source_branch = ""
 local_packages = {}
 modified_packages = {}
+best_view_registry = None
 
 
 def get_packages_folder():
@@ -92,7 +92,13 @@ def download_package_tarball(package_name, current_version):
     file_path = os.path.join(download_path, "{0}.{1}.tar.gz".format(package_name, current_version))
     if os.path.exists(file_path):
         os.remove(file_path)
-    urllib.urlretrieve(tar_url, file_path)
+    try:
+        response = urllib2.urlopen(tar_url)
+        with open(file_path, 'wb') as f:
+            f.write(response.read())
+    except:
+        print "  Got exception while downloading {0}".format(tar_url)
+        raise
     return file_path
 
 
@@ -210,7 +216,10 @@ def get_package_version(package_name):
     global best_view_registry
     print "Getting current published package version for {0}".format(package_name)
     highest_version = "0.0.0"
-
+    view_registry_locked = False
+    new_registry = None
+    if best_view_registry is not None:
+        view_registry_locked = True
     highest_version_trimmed = highest_version.split('.')
     for registry in args.view_registries:
         version = _get_version_in_registry(package_name, registry)
@@ -222,9 +231,17 @@ def get_package_version(package_name):
             if int(trimmed_version[i]) > int(highest_version_trimmed[i]):
                 highest_version = version.strip()
                 highest_version_trimmed = trimmed_version
-                best_view_registry = registry
+                new_registry = registry
 
-    print "{0} was selected as the best registry to ready from since it had the highest package version for {1} ({2})" \
+    if view_registry_locked and new_registry != best_view_registry:
+        raise Exception("A previous package already selected {0} as the best view registry, but now {1} "
+                        "wanted to select {2} as the best one since a higher version of that package was "
+                        "found there ({3}). This needs to be investigated because this shouldn't "
+                        "happen".format(best_view_registry, package_name, new_registry, highest_version))
+
+    best_view_registry = new_registry
+
+    print "{0} was selected as the best registry to read from since it had the highest package version for {1} ({2})" \
         .format(best_view_registry, package_name, highest_version)
 
     return highest_version
@@ -530,6 +547,37 @@ def remove_package_folders():
         shutil.rmtree("./{0}/{1}".format(args.packages_path, package_name))
 
 
+def get_version_from_manifest(package_name):
+    with open("{0}/manifest.json".format(args.packages_path), 'r') as f:
+        manifest = json.load(f)
+
+    if package_name not in manifest["dependencies"]:
+        raise Exception(
+            "Tried to parse {0} from the manifest.json, but it could not be found. Failing run".format(package_name))
+
+    return manifest["dependencies"][package_name]
+
+
+def get_registry_from_manifest():
+    with open("{0}/manifest.json".format(args.packages_path), 'r') as f:
+        manifest = json.load(f)
+
+    return manifest["registry"]
+
+
+def get_filtered_dependencies_from_view_registry(package_name, package_version):
+    dependencies = {}
+    result_string = npm_cmd("view {0}@{1} dependencies".format(package_name, package_version),
+                            best_view_registry).strip().replace("'", '"')
+    j = json.loads(result_string)
+    tracked_dependencies = [n.split(":")[1] for n in args.add_package_as_dependency_to_package]
+    for key, value in j.iteritems():
+        if key not in tracked_dependencies:
+            continue
+        dependencies[key] = value
+    return dependencies
+
+
 def main():
     global source_branch
     root_dir = os.getcwd()
@@ -554,42 +602,98 @@ def main():
         squash_commits()
         packages_folder = args.packages_path
         packages = get_list_of_packages(packages_folder)
-        late_process_packages = []
+        if len(packages) > 0:
+            late_process_packages = []
 
-        for package_path in packages:
-            package_name = os.path.basename(os.path.normpath(package_path))
-            print "### Package Found: {0} in {1}".format(package_name, package_path).ljust(80, '#')
+            for package_path in packages:
+                package_name = os.path.basename(os.path.normpath(package_path))
+                print "### Package Found: {0} in {1}".format(package_name, package_path).ljust(80, '#')
 
-            if package_path not in late_process_packages and args.add_packages_to_manifest is not None \
-                    and package_name in args.add_packages_to_manifest:
-                print "Skipping for now since it is to be added to the manifest at the end"
-                late_process_packages.append(package_path)
-                continue
-            else:
-                local_dependencies = [d for d in args.add_package_as_dependency_to_package if
-                                      "{0}:".format(package_name) in d]
-                should_defer = False
-                for dep in [l.split(":")[1] for l in local_dependencies]:
-                    if dep not in local_packages:
-                        print "This package has extra dependencies that haven't been processed yet so we add this " \
-                              "package to late processing. The dependency is: {0}".format(dep)
-                        late_process_packages.append(package_path)
-                        should_defer = True
-                        break
-                if should_defer:
+                if package_path not in late_process_packages and args.add_packages_to_manifest is not None \
+                        and package_name in args.add_packages_to_manifest:
+                    print "Skipping for now since it is to be added to the manifest at the end"
+                    late_process_packages.append(package_path)
                     continue
+                else:
+                    local_dependencies = [d for d in args.add_package_as_dependency_to_package if
+                                          "{0}:".format(package_name) in d]
+                    should_defer = False
+                    for dep in [l.split(":")[1] for l in local_dependencies]:
+                        if dep not in local_packages:
+                            print "This package has extra dependencies that haven't been processed yet so we add this " \
+                                  "package to late processing. The dependency is: {0}".format(dep)
+                            late_process_packages.append(package_path)
+                            should_defer = True
+                            break
+                    if should_defer:
+                        continue
 
-            process_package(package_path, package_name, root_clone)
+                process_package(package_path, package_name, root_clone)
 
-        for package_path in late_process_packages:
-            package_name = os.path.basename(os.path.normpath(package_path))
-            print "### Package Found to add to manifest: {0} in {1}".format(package_name, package_path).ljust(80, '#')
-            process_package(package_path, package_name, root_clone)
+            for package_path in late_process_packages:
+                package_name = os.path.basename(os.path.normpath(package_path))
+                print "### Package Found to add to manifest: {0} in {1}".format(package_name, package_path).ljust(80,
+                                                                                                                  '#')
+                process_package(package_path, package_name, root_clone)
 
-        publish_modified_packages()
-        remove_package_folders()
+            publish_modified_packages()
+            remove_package_folders()
+
+        elif args.only_publish_existing_packages:
+            print "No packages found in {0}. Will look at --add-package-as-dependency-to-package and " \
+                  "--add-packages-to-manifest ".format(args.packages_path)
+            if args.view_registries is not None:
+                raise Exception("When only republishing packages the --view-registries will be what is already in the "
+                                "manifest.json file. Remove all --view-registries and try again")
+            if not args.add_package_as_dependency_to_package or not args.add_packages_to_manifest:
+                raise Exception("No packages were found in the packages path and no additional packages have been "
+                                "specified in the command line as dependencies. This run has failed.")
+            global best_view_registry
+            best_view_registry = get_registry_from_manifest()
+            print "View registry from manifest is {0}".format(best_view_registry)
+            dependencies = {}
+            for p in args.add_packages_to_manifest:
+                dependencies[p] = get_version_from_manifest(p)
+                dependencies.update(get_filtered_dependencies_from_view_registry(p, dependencies[p]))
+            if args.add_package_as_dependency_to_package:
+                for p in args.add_package_as_dependency_to_package:
+                    p_split = p.split(":")
+                    if p_split[0] not in dependencies:
+                        raise Exception(
+                            "{0} was expected but is missing from the dependencies parsed from the registry".format(
+                                p_split[0]))
+                    if p_split[1] not in dependencies:
+                        raise Exception(
+                            "{0} was expected but is missing from the dependencies parsed from the registry".format(
+                                p_split[1]))
+
+            print "Checking if the correct packages exist in the target registry."
+            for name in dependencies.keys():
+                version = dependencies[name]
+                registry_version = _get_version_in_registry(name, args.publish_registry)
+                if registry_version == version:
+                    dependencies.pop(name)
+                    continue
+                print "  {0}@{1} is missing in the target registry (the latest one available is '{2}'. Will publish it.".format(
+                    name, version, registry_version)
+
+            if len(dependencies) == 0:
+                print "It looks like all packages already exist on the publish_registry. So we don't need to republish anything"
+            else:
+                print "The following packages are missing from the publish registry. Will republish them now"
+                for key, value in dependencies.iteritems():
+                    tar_path = download_package_tarball(key, value)
+                    print "Publishing {0}".format(tar_path)
+                    npm_cmd("publish {0}".format(tar_path), args.publish_registry)
+
+            for key, value in dependencies.iteritems():
+                _modify_manifest(key, value)
+
+        else:
+            raise Exception("No package folders found, and --only-publish-existing-packages has not been set. This "
+                            "run has failed.")
+
         git_cmd("add {0}".format(args.packages_path))
-
         scatter_manifest()
 
         should_push = create_commit()
@@ -632,7 +736,7 @@ if __name__ == "__main__":
     parser.add_argument('--view-registries', action='append', help="upm registries that the tool will look for "
                                                                    "existing versions of the packages it will publish. "
                                                                    "This is so it will properly increment "
-                                                                   "the version number", required=True)
+                                                                   "the version number")
     parser.add_argument('--publish-registry', help="The upm registry that should be used for publishing the packages "
                                                    "to when done, this requires that a valid access token exists in "
                                                    "the .npmrc for the registry.", required=True)

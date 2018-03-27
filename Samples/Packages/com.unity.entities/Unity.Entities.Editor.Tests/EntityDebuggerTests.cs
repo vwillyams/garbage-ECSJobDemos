@@ -12,10 +12,26 @@ namespace Unity.Entities.Editor
 
         class FakeWindow : IEntitySelectionWindow, IWorldSelectionWindow, IComponentGroupSelectionWindow, ISystemSelectionWindow
         {
-            public Entity EntitySelection { get; set; }
+            public Entity EntitySelection { get; private set; }
+
+            public void SetEntitySelection(Entity s)
+            {
+                EntitySelection = s;
+            }
+
             public World WorldSelection { get; set; }
-            public ComponentGroup ComponentGroupSelection { get; set; }
-            public ScriptBehaviourManager SystemSelection { get; set; }
+            public ComponentGroup ComponentGroupSelection { get; private set; }
+
+            public void SetComponentGroupSelection(ComponentGroup group)
+            {
+                ComponentGroupSelection = group;
+            }
+            public ScriptBehaviourManager SystemSelection { get; private set; }
+
+            public void SetSystemSelection(ScriptBehaviourManager system)
+            {
+                SystemSelection = system;
+            }
         }
         
         [Test]

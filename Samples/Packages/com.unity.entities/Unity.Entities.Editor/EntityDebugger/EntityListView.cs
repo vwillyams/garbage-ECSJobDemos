@@ -12,7 +12,7 @@ namespace Unity.Entities.Editor
 {
     public interface IEntitySelectionWindow : IWorldSelectionWindow
     {
-        Entity EntitySelection { set; }
+        void SetEntitySelection(Entity selection);
     }
 
     public interface IWorldSelectionWindow
@@ -126,11 +126,11 @@ namespace Unity.Entities.Editor
             if (selectedIds.Count > 0)
             {
                 if (entitiesById.ContainsKey(selectedIds[0]))
-                    window.EntitySelection = entitiesById[selectedIds[0]];
+                    window.SetEntitySelection(entitiesById[selectedIds[0]]);
             }
             else
             {
-                window.EntitySelection = Entity.Null;
+                window.SetEntitySelection(Entity.Null);
             }
         }
 

@@ -10,7 +10,7 @@ namespace Unity.Entities.Editor
 {
     public interface IComponentGroupSelectionWindow : IWorldSelectionWindow
     {
-        ComponentGroup ComponentGroupSelection { set; }
+        void SetComponentGroupSelection(ComponentGroup group);
     }
     
     public class ComponentGroupListView : TreeView {
@@ -121,11 +121,11 @@ namespace Unity.Entities.Editor
                 return;
             if (selectedIds.Count > 0 && componentGroupsById.ContainsKey(selectedIds[0]))
             {
-                window.ComponentGroupSelection = componentGroupsById[selectedIds[0]];
+                window.SetComponentGroupSelection(componentGroupsById[selectedIds[0]]);
             }
             else
             {
-                window.ComponentGroupSelection = null;
+                window.SetComponentGroupSelection(null);
             }
         }
 

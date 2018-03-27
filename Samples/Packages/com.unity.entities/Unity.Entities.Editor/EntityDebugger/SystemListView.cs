@@ -11,7 +11,7 @@ namespace Unity.Entities.Editor
 {
     public interface ISystemSelectionWindow : IWorldSelectionWindow
     {
-        ScriptBehaviourManager SystemSelection { set; }
+        void SetSystemSelection(ScriptBehaviourManager manager);
     }
     
     public class SystemListView : TreeView
@@ -272,11 +272,11 @@ namespace Unity.Entities.Editor
         {
             if (selectedIds.Count > 0 && managersByID.ContainsKey(selectedIds[0]))
             {
-                window.SystemSelection = managersByID[selectedIds[0]];
+                window.SetSystemSelection(managersByID[selectedIds[0]]);
             }
             else
             {
-                window.SystemSelection = null;
+                window.SetSystemSelection(null);
             }
         }
 

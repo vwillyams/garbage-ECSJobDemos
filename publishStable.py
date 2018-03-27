@@ -10,6 +10,8 @@ import tempfile
 import urllib2
 from fnmatch import fnmatch
 
+import time
+
 args = argparse.Namespace()
 source_branch = ""
 local_packages = {}
@@ -92,13 +94,25 @@ def download_package_tarball(package_name, current_version):
     file_path = os.path.join(download_path, "{0}.{1}.tar.gz".format(package_name, current_version))
     if os.path.exists(file_path):
         os.remove(file_path)
-    try:
-        response = urllib2.urlopen(tar_url)
-        with open(file_path, 'wb') as f:
-            f.write(response.read())
-    except:
-        print "  Got exception while downloading {0}".format(tar_url)
-        raise
+
+    max_retries = 10
+    attempt = 0
+    retry_delay = 0.1
+    while attempt < max_retries:
+        attempt += 1
+        try:
+            response = urllib2.urlopen(tar_url)
+            with open(file_path, 'wb') as f:
+                f.write(response.read())
+            break  # Everything is fine so we can skip the retry
+        except:
+            if attempt < max_retries:
+                print "  Got exception while downloading {0}. Retrying in {0}sec. (Attempt {1}/{2}".format(tar_url, retry_delay, attempt, max_retries)
+                time.sleep(retry_delay)
+                retry_delay = retry_delay * 2
+            else:
+                print "  Reached maximum retries"
+                raise
     return file_path
 
 

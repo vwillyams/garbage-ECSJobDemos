@@ -250,11 +250,12 @@ def get_package_version(package_name):
             highest_version_trimmed = trimmed_version
             new_registry = registry
 
-    if view_registry_locked and new_registry != best_view_registry:
-        raise Exception("A previous package already selected {0} as the best view registry, but now {1} "
-                        "wanted to select {2} as the best one since a higher version of that package was "
-                        "found there ({3}). This needs to be investigated because this shouldn't "
-                        "happen".format(best_view_registry, package_name, new_registry, highest_version))
+    # TODO: Do we need something like this? Is there any other way to validate so nothing goes wrong here
+    #  if view_registry_locked and new_registry != best_view_registry:
+    #    raise Exception("A previous package already selected {0} as the best view registry, but now {1} "
+    #                    "wanted to select {2} as the best one since a higher version of that package was "
+    #                    "found there ({3}). This needs to be investigated because this shouldn't "
+    #                    "happen".format(best_view_registry, package_name, new_registry, highest_version))
 
     best_view_registry = new_registry
 

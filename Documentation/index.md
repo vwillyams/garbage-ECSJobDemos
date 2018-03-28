@@ -24,6 +24,10 @@
 
 * [RotationExample.unity](content/rotation_example.md): Loop to change component if Entity position is inside a moving sphere.
 
+## Community
+
+* [Performance by Default](http://unity3d.com/performance-by-default)
+
 ## Further information
 
 ![Unity at GDC 2018](https://blogs.unity3d.com/wp-content/uploads/2018/03/Unity-GDC-Google-Desktop-Profile-Cover.jpg)

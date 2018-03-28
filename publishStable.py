@@ -242,11 +242,13 @@ def get_package_version(package_name):
             continue
         trimmed_version = version.strip().split('+')[0].split('.')
         for i in range(0, 3):
-            if int(trimmed_version[i]) > int(highest_version_trimmed[i]) or \
-                    int(trimmed_version[i]) == int(highest_version_trimmed[i] and registry == args.publish_registry):
-                highest_version = version.strip()
-                highest_version_trimmed = trimmed_version
-                new_registry = registry
+            if int(trimmed_version[i]) < int(highest_version_trimmed[i]):
+                continue
+            if int(trimmed_version[i]) == int(highest_version_trimmed[i]) and registry != args.publish_registry:
+                continue
+            highest_version = version.strip()
+            highest_version_trimmed = trimmed_version
+            new_registry = registry
 
     if view_registry_locked and new_registry != best_view_registry:
         raise Exception("A previous package already selected {0} as the best view registry, but now {1} "

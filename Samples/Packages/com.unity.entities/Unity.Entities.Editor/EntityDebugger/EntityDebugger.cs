@@ -21,9 +21,12 @@ namespace Unity.Entities.Editor
             {
                 if (box == null)
                 {
-                    box = new GUIStyle(GUI.skin.box);
-                    box.margin = new RectOffset();
-                    box.padding = new RectOffset(1, 1, 1, 1);
+                    box = new GUIStyle(GUI.skin.box)
+                    {
+                        margin = new RectOffset(),
+                        padding = new RectOffset(1, 0, 1, 0),
+                        overflow = new RectOffset(0, 1, 0, 1)
+                    };
                 }
 
                 return box;
@@ -315,7 +318,9 @@ namespace Unity.Entities.Editor
             var somethingToShow = showingAllEntities || componentGroupHasEntities;
             if (WorldSelection == null || !somethingToShow)
                 return;
+            GUILayout.BeginVertical(Box);
             entityListView.OnGUI(GUIHelpers.GetExpandingRect());
+            GUILayout.EndVertical();
         }
 
         void AlignHeader(System.Action header)
@@ -347,22 +352,22 @@ namespace Unity.Entities.Editor
 
             GUILayout.BeginHorizontal();
             
-            GUILayout.BeginVertical(GUILayout.Width(kSystemListWidth)); // begin System List
+            GUILayout.BeginVertical(GUILayout.Width(kSystemListWidth)); // begin System side
             SystemHeader();
             
-            GUILayout.BeginVertical();
+            GUILayout.BeginVertical(Box);
             SystemList();
             GUILayout.EndVertical();
             
-            GUILayout.EndVertical(); // end System List
+            GUILayout.EndVertical(); // end System side
             
-            GUILayout.BeginVertical(GUILayout.Width(position.width - kSystemListWidth)); // begin Entity List
+            GUILayout.BeginVertical(GUILayout.Width(position.width - kSystemListWidth)); // begin Entity side
 
             EntityHeader();
             ComponentGroupList();
             EntityList();
             
-            GUILayout.EndVertical(); // end Component List
+            GUILayout.EndVertical(); // end Entity side
             
             GUILayout.EndHorizontal();
 

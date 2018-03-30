@@ -15,6 +15,7 @@ namespace Unity.Transforms
         {
             [ReadOnly] public ComponentDataFromEntity<Position> positions;
             [ReadOnly] public ComponentDataFromEntity<Rotation> rotations;
+            [ReadOnly]
             public EntityArray entities;
 
             public void Execute(int index, TransformAccess transform)

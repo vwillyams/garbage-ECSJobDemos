@@ -229,6 +229,7 @@ namespace Samples.Dungeon
         struct BoardGroupData
         {
             public ComponentDataArray<Board> Boards;
+            public ComponentDataArray<Position> Positions;
             public EntityArray Entities;
             public int Length;
         }
@@ -247,16 +248,19 @@ namespace Samples.Dungeon
             
             // Copy data from ComponentGroups 
             var boards = new NativeArray<Board>(BoardGroup.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            var boardPositions = new NativeArray<Position>(BoardGroup.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             var boardEntities = new NativeArray<Entity>(BoardGroup.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             for (int i = 0; i < BoardGroup.Length; i++)
             {
                 boards[i] = BoardGroup.Boards[i];
+                boardPositions[i] = BoardGroup.Positions[i];
                 boardEntities[i] = BoardGroup.Entities[i];
             }
             
             for (int i = 0; i < BoardGroup.Length; i++)
             {
                 var board = boards[i];
+                var boardPosition = boardPositions[i];
                 var boardEntity = boardEntities[i];
                 var roomCount = board.NumRooms.Random;
                 if (roomCount < 1)
@@ -272,10 +276,9 @@ namespace Samples.Dungeon
                 SetTilesValuesForRooms(rooms, tiles, board.GridCount.x);
                 SetTilesValuesForCorridors(corridors, tiles, board.GridCount.x);
 
-                InstantiateTiles(board, tiles, board.GridCount.x, boardEntity);
-                InstantiateOuterWalls(board, boardEntity);
+                InstantiateTiles(board, tiles, board.GridCount.x, boardPosition);
+                InstantiateOuterWalls(board, boardPosition);
                 EntityManager.RemoveComponent<Board>(boardEntity);
-                
                 
                 tiles.Dispose();
                 rooms.Dispose();
@@ -283,6 +286,7 @@ namespace Samples.Dungeon
             }
             
             boards.Dispose();
+            boardPositions.Dispose();
             boardEntities.Dispose();
         }
 
@@ -299,7 +303,7 @@ namespace Samples.Dungeon
                 ComponentType.ReadOnly(typeof(WallTile)));
         }
 
-        void InstantiateOuterWalls(Board board, Entity boardEntity)
+        void InstantiateOuterWalls(Board board, Position boardPosition)
         {
             // The outer walls are one unit left, right, up and down from the board.
             float halfWidth   = (board.GridStep.x * board.GridCount.x) * 0.5f;
@@ -335,18 +339,18 @@ namespace Samples.Dungeon
             
 
                 // Instantiate both vertical walls (one on each side).
-                InstantiateVerticalOuterWall(leftEdgeX, bottomEdgeY, topEdgeY, board.GridStep.y, tileEntities, boardEntity);
-                InstantiateVerticalOuterWall(rightEdgeX, bottomEdgeY, topEdgeY, board.GridStep.y, tileEntities, boardEntity);
+                InstantiateVerticalOuterWall(leftEdgeX, bottomEdgeY, topEdgeY, board.GridStep.y, tileEntities, boardPosition);
+                InstantiateVerticalOuterWall(rightEdgeX, bottomEdgeY, topEdgeY, board.GridStep.y, tileEntities, boardPosition);
 
                 // Instantiate both horizontal walls, these are one in left and right from the outer walls.
-                InstantiateHorizontalOuterWall(leftEdgeX + board.GridStep.x, rightEdgeX - board.GridStep.x, bottomEdgeY, board.GridStep.x, tileEntities, boardEntity);
-                InstantiateHorizontalOuterWall(leftEdgeX + board.GridStep.x, rightEdgeX - board.GridStep.x, topEdgeY, board.GridStep.x, tileEntities, boardEntity);
+                InstantiateHorizontalOuterWall(leftEdgeX + board.GridStep.x, rightEdgeX - board.GridStep.x, bottomEdgeY, board.GridStep.x, tileEntities, boardPosition);
+                InstantiateHorizontalOuterWall(leftEdgeX + board.GridStep.x, rightEdgeX - board.GridStep.x, topEdgeY, board.GridStep.x, tileEntities, boardPosition);
             
                 tileEntities.Dispose();
             }
         }
         
-        void InstantiateVerticalOuterWall (float xCoord, float startingY, float endingY, float gridStep, NativeArray<Entity> tileEntities, Entity boardEntity)
+        void InstantiateVerticalOuterWall (float xCoord, float startingY, float endingY, float gridStep, NativeArray<Entity> tileEntities, Position boardPosition)
         {
             // Start the loop at the starting value for Y.
             float currentY = startingY;
@@ -355,13 +359,13 @@ namespace Samples.Dungeon
             while (currentY <= endingY)
             {
                 // ... instantiate an outer wall tile at the x coordinate and the current y coordinate.
-                InstantiateFromArray(tileEntities, xCoord, currentY, boardEntity);
+                InstantiateFromArray(tileEntities, xCoord, currentY, boardPosition);
 
                 currentY += gridStep;
             }
         }
         
-        void InstantiateHorizontalOuterWall (float startingX, float endingX, float yCoord, float gridStep, NativeArray<Entity> tileEntities, Entity boardEntity)
+        void InstantiateHorizontalOuterWall (float startingX, float endingX, float yCoord, float gridStep, NativeArray<Entity> tileEntities, Position boardPosition)
         {
             // Start the loop at the starting value for X.
             float currentX = startingX;
@@ -370,7 +374,7 @@ namespace Samples.Dungeon
             while (currentX <= endingX)
             {
                 // ... instantiate an outer wall tile at the y coordinate and the current x coordinate.
-                InstantiateFromArray(tileEntities, currentX, yCoord, boardEntity);
+                InstantiateFromArray(tileEntities, currentX, yCoord, boardPosition);
 
                 currentX += gridStep;
             }
@@ -465,7 +469,7 @@ namespace Samples.Dungeon
             }
         }
         
-        void InstantiateTiles(Board board, NativeArray<TileType> tiles, int tilesStride, Entity parent)
+        void InstantiateTiles(Board board, NativeArray<TileType> tiles, int tilesStride, Position parent)
         {
             // The outer walls are one unit left, right, up and down from the board.
             float halfWidth   = (board.GridStep.x * board.GridCount.x) * 0.5f;
@@ -527,25 +531,22 @@ namespace Samples.Dungeon
             wallTileEntities.Dispose();
         }
         
-        void InstantiateFromArray (NativeArray<Entity> prefabs, float xCoord, float yCoord, Entity parent)
+        void InstantiateFromArray (NativeArray<Entity> prefabs, float xCoord, float yCoord, Position parentPosition)
         {
             // Create a random index for the array.
             int randomIndex = Random.Range(0, prefabs.Length);
 
             var entity = EntityManager.Instantiate(prefabs[randomIndex]);
-            var position = new LocalPosition
+            var position = new Position
             {
-                Value = new float3(xCoord, 0.0f, yCoord)
+                Value = new float3
+                {
+                    x = parentPosition.Value.x + xCoord,
+                    y = parentPosition.Value.y,
+                    z = parentPosition.Value.z + yCoord
+                }
             };
             EntityManager.SetComponentData(entity, position);
-
-            var transformParent = new TransformParent
-            {
-                Value = parent
-            };
-            EntityManager.SetComponentData(entity, transformParent);
         } 
     }
-    
-    
 }

@@ -347,12 +347,11 @@ GameObject:
   m_Component:
   - component: {fileID: 772595772}
   - component: {fileID: 772595771}
-  - component: {fileID: 772595770}
   - component: {fileID: 772595769}
-  - component: {fileID: 772595768}
   - component: {fileID: 772595767}
   - component: {fileID: 772595766}
   - component: {fileID: 772595765}
+  - component: {fileID: 772595768}
   m_Layer: 0
   m_Name: FloorTile1
   m_TagString: Untagged
@@ -408,9 +407,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 772595764}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 18fdf4d20b7547b58faaa473d24d9206, type: 3}
+  m_Script: {fileID: 11500000, guid: 168b0e3756704251859c57ee75912ca1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_SerializedData:
+    Value:
+      x: 0
+      y: 0
+      z: 0
 --- !u!114 &772595769
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -422,22 +426,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2caacf465eeae43f39a6a13e442d1dc0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &772595770
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 772595764}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e13a4d4e64324cc4b24fbea71211b5e0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SerializedData:
-    Value:
-      x: 0
-      y: 0
-      z: 0
 --- !u!114 &772595771
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -531,12 +519,11 @@ GameObject:
   m_Component:
   - component: {fileID: 1099344160}
   - component: {fileID: 1099344159}
-  - component: {fileID: 1099344158}
   - component: {fileID: 1099344157}
-  - component: {fileID: 1099344156}
   - component: {fileID: 1099344155}
   - component: {fileID: 1099344154}
   - component: {fileID: 1099344153}
+  - component: {fileID: 1099344156}
   m_Layer: 0
   m_Name: OuterWallTile1
   m_TagString: Untagged
@@ -592,9 +579,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 1099344152}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 18fdf4d20b7547b58faaa473d24d9206, type: 3}
+  m_Script: {fileID: 11500000, guid: 168b0e3756704251859c57ee75912ca1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_SerializedData:
+    Value:
+      x: 0
+      y: 0
+      z: 0
 --- !u!114 &1099344157
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -606,22 +598,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2caacf465eeae43f39a6a13e442d1dc0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1099344158
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1099344152}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e13a4d4e64324cc4b24fbea71211b5e0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SerializedData:
-    Value:
-      x: 0
-      y: 0
-      z: 0
 --- !u!114 &1099344159
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -736,12 +712,11 @@ GameObject:
   m_Component:
   - component: {fileID: 1806414666}
   - component: {fileID: 1806414665}
-  - component: {fileID: 1806414664}
   - component: {fileID: 1806414663}
-  - component: {fileID: 1806414662}
   - component: {fileID: 1806414661}
   - component: {fileID: 1806414659}
   - component: {fileID: 1806414660}
+  - component: {fileID: 1806414662}
   m_Layer: 0
   m_Name: WallTile1
   m_TagString: Untagged
@@ -797,9 +772,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 1806414658}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 18fdf4d20b7547b58faaa473d24d9206, type: 3}
+  m_Script: {fileID: 11500000, guid: 168b0e3756704251859c57ee75912ca1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_SerializedData:
+    Value:
+      x: 0
+      y: 0
+      z: 0
 --- !u!114 &1806414663
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -811,22 +791,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2caacf465eeae43f39a6a13e442d1dc0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1806414664
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1806414658}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e13a4d4e64324cc4b24fbea71211b5e0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SerializedData:
-    Value:
-      x: 0
-      y: 0
-      z: 0
 --- !u!114 &1806414665
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -860,12 +824,11 @@ GameObject:
   m_Component:
   - component: {fileID: 1855909181}
   - component: {fileID: 1855909188}
-  - component: {fileID: 1855909187}
   - component: {fileID: 1855909186}
-  - component: {fileID: 1855909185}
   - component: {fileID: 1855909184}
   - component: {fileID: 1855909183}
   - component: {fileID: 1855909182}
+  - component: {fileID: 1855909185}
   m_Layer: 0
   m_Name: OuterWallTile2
   m_TagString: Untagged
@@ -934,9 +897,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 1855909180}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 18fdf4d20b7547b58faaa473d24d9206, type: 3}
+  m_Script: {fileID: 11500000, guid: 168b0e3756704251859c57ee75912ca1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_SerializedData:
+    Value:
+      x: 0
+      y: 0
+      z: 0
 --- !u!114 &1855909186
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -948,22 +916,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2caacf465eeae43f39a6a13e442d1dc0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1855909187
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1855909180}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e13a4d4e64324cc4b24fbea71211b5e0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SerializedData:
-    Value:
-      x: 0
-      y: 0
-      z: 0
 --- !u!114 &1855909188
 MonoBehaviour:
   m_ObjectHideFlags: 0

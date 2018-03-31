@@ -11,9 +11,9 @@ namespace Unity.Transforms
     {
         [Inject] [ReadOnly] ComponentDataFromEntity<LocalPosition> m_LocalPositions;
         [Inject] [ReadOnly] ComponentDataFromEntity<LocalRotation> m_LocalRotations;
-        [Inject] ComponentDataFromEntity<Position> m_Positions;
-        [Inject] ComponentDataFromEntity<Rotation> m_Rotations;
-        [Inject] ComponentDataFromEntity<TransformMatrix> m_TransformMatrices;
+        [Inject] ComponentDataFromEntity<Position>                 m_Positions;
+        [Inject] ComponentDataFromEntity<Rotation>                 m_Rotations;
+        [Inject] ComponentDataFromEntity<TransformMatrix>          m_TransformMatrices;
 
         // +Rotation +Position -Heading -TransformMatrix
         struct RootRotTransNoTransformGroup
@@ -337,14 +337,14 @@ namespace Unity.Transforms
         [ComputeJobOptimization]
         struct UpdateSubHierarchy : IJobParallelFor
         {
-            [ReadOnly] public NativeMultiHashMap<Entity, Entity> hierarchy;
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<Entity> roots;
-            [ReadOnly] public ComponentDataFromEntity<LocalPosition> localPositions;
-            [ReadOnly] public ComponentDataFromEntity<LocalRotation> localRotations;
-            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float4x4> rootMatrices;
-
-            [NativeDisableParallelForRestriction] public ComponentDataFromEntity<Position> positions;
-            [NativeDisableParallelForRestriction] public ComponentDataFromEntity<Rotation> rotations;
+            [ReadOnly] public NativeMultiHashMap<Entity, Entity>                                  hierarchy;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<Entity>                     roots;
+            [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float4x4>                   rootMatrices;
+            
+            [ReadOnly] public ComponentDataFromEntity<LocalPosition>                              localPositions;
+            [ReadOnly] public ComponentDataFromEntity<LocalRotation>                              localRotations;
+            [NativeDisableParallelForRestriction] public ComponentDataFromEntity<Position>        positions;
+            [NativeDisableParallelForRestriction] public ComponentDataFromEntity<Rotation>        rotations;
             [NativeDisableParallelForRestriction] public ComponentDataFromEntity<TransformMatrix> transformMatrices;
 
             void TransformTree(Entity entity,float4x4 parentMatrix)

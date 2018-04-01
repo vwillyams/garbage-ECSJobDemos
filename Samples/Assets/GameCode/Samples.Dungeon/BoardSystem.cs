@@ -537,16 +537,11 @@ namespace Samples.Dungeon
             int randomIndex = Random.Range(0, prefabs.Length);
 
             var entity = EntityManager.Instantiate(prefabs[randomIndex]);
-            var position = new Position
+            var matrix = new TransformMatrix
             {
-                Value = new float3
-                {
-                    x = parentPosition.Value.x + xCoord,
-                    y = parentPosition.Value.y,
-                    z = parentPosition.Value.z + yCoord
-                }
+                Value = math.translate(parentPosition.Value + new float3(xCoord,0.0f,yCoord))
             };
-            EntityManager.SetComponentData(entity, position);
+            EntityManager.SetComponentData(entity, matrix);
         } 
     }
 }

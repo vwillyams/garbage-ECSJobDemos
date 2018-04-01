@@ -351,7 +351,6 @@ GameObject:
   - component: {fileID: 772595767}
   - component: {fileID: 772595766}
   - component: {fileID: 772595765}
-  - component: {fileID: 772595768}
   m_Layer: 0
   m_Name: FloorTile1
   m_TagString: Untagged
@@ -399,22 +398,6 @@ MonoBehaviour:
     material: {fileID: 2100000, guid: dac883fced751482f8e270bade47f891, type: 2}
     castShadows: 0
     receiveShadows: 0
---- !u!114 &772595768
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 772595764}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 168b0e3756704251859c57ee75912ca1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SerializedData:
-    Value:
-      x: 0
-      y: 0
-      z: 0
 --- !u!114 &772595769
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -523,7 +506,6 @@ GameObject:
   - component: {fileID: 1099344155}
   - component: {fileID: 1099344154}
   - component: {fileID: 1099344153}
-  - component: {fileID: 1099344156}
   m_Layer: 0
   m_Name: OuterWallTile1
   m_TagString: Untagged
@@ -571,22 +553,6 @@ MonoBehaviour:
     material: {fileID: 2100000, guid: e970940527c5c49748840ccc8b04a881, type: 2}
     castShadows: 0
     receiveShadows: 0
---- !u!114 &1099344156
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1099344152}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 168b0e3756704251859c57ee75912ca1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SerializedData:
-    Value:
-      x: 0
-      y: 0
-      z: 0
 --- !u!114 &1099344157
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -716,7 +682,6 @@ GameObject:
   - component: {fileID: 1806414661}
   - component: {fileID: 1806414659}
   - component: {fileID: 1806414660}
-  - component: {fileID: 1806414662}
   m_Layer: 0
   m_Name: WallTile1
   m_TagString: Untagged
@@ -764,22 +729,6 @@ MonoBehaviour:
     material: {fileID: 2100000, guid: ad42969049d004d679389f4afe451f4e, type: 2}
     castShadows: 0
     receiveShadows: 0
---- !u!114 &1806414662
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1806414658}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 168b0e3756704251859c57ee75912ca1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SerializedData:
-    Value:
-      x: 0
-      y: 0
-      z: 0
 --- !u!114 &1806414663
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -828,7 +777,6 @@ GameObject:
   - component: {fileID: 1855909184}
   - component: {fileID: 1855909183}
   - component: {fileID: 1855909182}
-  - component: {fileID: 1855909185}
   m_Layer: 0
   m_Name: OuterWallTile2
   m_TagString: Untagged
@@ -889,22 +837,6 @@ MonoBehaviour:
     material: {fileID: 2100000, guid: e0cdd8e480b124de0903a08245f96788, type: 2}
     castShadows: 0
     receiveShadows: 0
---- !u!114 &1855909185
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1855909180}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 168b0e3756704251859c57ee75912ca1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SerializedData:
-    Value:
-      x: 0
-      y: 0
-      z: 0
 --- !u!114 &1855909186
 MonoBehaviour:
   m_ObjectHideFlags: 0

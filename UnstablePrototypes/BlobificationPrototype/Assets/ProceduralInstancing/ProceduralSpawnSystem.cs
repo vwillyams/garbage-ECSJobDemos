@@ -17,7 +17,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
     public GameObject prefab;
 
     const float                        GridSize = 1.0F;
-    const float                        PlantDensity = 0.5F;
+    const float                        PlantDensity = 0.2F;
     const int                          MaxCreateChunksPerFrame = 8;
     const int                          MaxDestroyChunksPerFrame = 12;
     const bool                         Deterministic = false;
@@ -198,7 +198,8 @@ public class ProceduralSpawnSystem : JobComponentSystem
                     {
                         SpawnData spawn;
                         spawn.Position = intersection;
-                        SpawnLocations.Add(spawn);
+                        for (int i = 0;i<50;i++)
+                            SpawnLocations.Add(spawn);
                     }
                 }
             }
@@ -220,6 +221,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
         public float  MaxDistance;
         public float  GridSize;
 
+        
         public void Execute()
         {
             CalculateVisibleGridPositions(CameraPosition, MaxDistance, GridSize, visibleGridPositions);
@@ -280,21 +282,10 @@ public class ProceduralSpawnSystem : JobComponentSystem
         m_AllChunksGroup.SetFilter(chunkScene);
         Profiler.EndSample();
 
-        //@TODO: This is highly inconvenient...
-        Profiler.BeginSample("DestroyChunk.GetEntities");
-        var entityGroupArray = m_AllChunksGroup.GetEntityArray();
-        var entityArray = new NativeArray<Entity>(entityGroupArray.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-        entityGroupArray.CopyTo(entityArray);
-        Profiler.EndSample();
-
         Profiler.BeginSample("DestroyChunk.DestroyEntity");
-        if (entityArray.Length != 0)
-            EntityManager.DestroyEntity(entityArray);
+        EntityManager.DestroyEntity(m_AllChunksGroup);
         Profiler.EndSample();
 
-        entityArray.Dispose();
-
-        //@TODO: Need value based search function...
         m_CreatedChunks.RemoveAtSwapBack(m_CreatedChunks.IndexOf(position));
     }
 

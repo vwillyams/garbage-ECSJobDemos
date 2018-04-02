@@ -215,6 +215,24 @@ namespace Unity.Entities
             m_Entities->CreateEntities(m_ArchetypeManager, archetype.Archetype, entities, count);
         }
 
+        public void DestroyEntity(ComponentGroup componentGroupFilter)
+        {
+            BeforeStructuralChange();
+            
+            // @TODO: Don't copy entity array,
+            // take advantage of inherent chunk structure to do faster destruction
+            var entityGroupArray = componentGroupFilter.GetEntityArray();
+            if (entityGroupArray.Length == 0)
+                return;
+            
+            var entityArray = new NativeArray<Entity>(entityGroupArray.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            entityGroupArray.CopyTo(entityArray);
+            if (entityArray.Length != 0)
+                m_Entities->DeallocateEnties(m_ArchetypeManager, m_SharedComponentManager, (Entity*)entityArray.GetUnsafeReadOnlyPtr(), entityArray.Length);
+            
+            entityArray.Dispose();
+        }
+
         public void DestroyEntity(NativeArray<Entity> entities)
         {
             DestroyEntityInternal((Entity*)entities.GetUnsafeReadOnlyPtr(), entities.Length);

@@ -150,5 +150,14 @@ namespace Unity.Entities.Tests
             m_Manager.DestroyEntity(entity);
             Assert.IsFalse(m_Manager.Exists(entity));
         }
+	    
+	    [Test]
+	    public void CreateTooBigArchetypeThrows()
+	    {
+	        Assert.Throws<System.ArgumentException>(() =>
+	        {
+	            m_Manager.CreateArchetype(ComponentType.FixedArray(typeof(int), 10000), ComponentType.FixedArray(typeof(float), 10000)); 
+	        });
+	    }
     }
 }

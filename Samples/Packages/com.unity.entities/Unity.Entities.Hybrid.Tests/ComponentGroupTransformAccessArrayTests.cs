@@ -99,7 +99,6 @@ namespace Unity.Entities.Tests
 	        go2.GetComponent<GameObjectEntity>().OnEnable();
 	        Assert.AreEqual(1, ta.length);
 
-	        group.Dispose();
 	        // Execute in edit mode is not enabled so this has to be called manually right now
 	        go.GetComponent<GameObjectEntity>().OnDisable();
 	        go2.GetComponent<GameObjectEntity>().OnDisable();

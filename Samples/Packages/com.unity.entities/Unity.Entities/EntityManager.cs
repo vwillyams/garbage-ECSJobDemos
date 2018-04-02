@@ -146,7 +146,7 @@ namespace Unity.Entities
             return count + 1;
         }
 
-        public ComponentGroup CreateComponentGroup(ComponentType* requiredComponents, int count)
+        internal ComponentGroup CreateComponentGroup(ComponentType* requiredComponents, int count)
         {
             var typeArrayCount = PopulatedCachedTypeArray(requiredComponents, count);
             var grp = m_GroupManager.CreateEntityGroupIfCached(m_ArchetypeManager, m_Entities, m_CachedComponentTypeArray, typeArrayCount);
@@ -158,7 +158,7 @@ namespace Unity.Entities
             return m_GroupManager.CreateEntityGroup(m_ArchetypeManager, m_Entities, m_CachedComponentTypeArray, typeArrayCount);
         }
 
-        public ComponentGroup CreateComponentGroup(params ComponentType[] requiredComponents)
+        internal ComponentGroup CreateComponentGroup(params ComponentType[] requiredComponents)
         {
             fixed (ComponentType* requiredComponentsPtr = requiredComponents)
             {

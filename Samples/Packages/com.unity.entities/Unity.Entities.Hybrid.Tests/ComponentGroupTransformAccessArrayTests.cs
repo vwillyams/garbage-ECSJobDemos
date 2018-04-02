@@ -41,7 +41,6 @@ namespace Unity.Entities.Tests
 	        var group = EmptySystem.GetComponentGroup(typeof(Transform), typeof(TransformAccessArrayTestTag));
 	        var ta = group.GetTransformAccessArray();
 			Assert.AreEqual(0, ta.length);
-	        group.Dispose();
 	    }
 	    [Test]
 	    public void SingleItemTransformAccessArrayWorks()

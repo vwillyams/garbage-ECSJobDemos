@@ -1,3 +1,7 @@
+# 0.0.5
+## Changes
+* Throw ArgumentException when creating an entity with component data exceeding chunk size (64kb)
+
 # 0.0.4
 
 ## New Features

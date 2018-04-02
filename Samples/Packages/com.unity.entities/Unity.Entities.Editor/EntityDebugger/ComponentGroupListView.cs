@@ -90,7 +90,7 @@ namespace Unity.Entities.Editor
                 {
                     componentGroupsById.Add(currentId, group);
                     var types = group.Types;
-                    var groupName = string.Join(", ", (from x in types.Skip(types.Length > 1 ? 1 : 0) select x.Name).ToArray());
+                    var groupName = string.Join(", ", (from x in types.Skip(types.Length > 1 ? 1 : 0) select x.ToString()).ToArray());
 
                     var groupItem = new TreeViewItem { id = currentId++, displayName = groupName };
                     root.AddChild(groupItem);

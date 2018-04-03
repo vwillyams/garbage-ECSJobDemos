@@ -14,7 +14,7 @@ namespace Unity.Entities.Editor
     {
         private EntityIMGUIVisitor visitor;
 
-        private List<Tuple<ScriptBehaviourManager, List<ComponentGroup>>> cachedMatches = new List<Tuple<ScriptBehaviourManager, List<ComponentGroup>>>();
+        private readonly List<Tuple<ScriptBehaviourManager, List<ComponentGroup>>> cachedMatches = new List<Tuple<ScriptBehaviourManager, List<ComponentGroup>>>();
 
         [SerializeField] private bool showSystems;
         
@@ -52,7 +52,7 @@ namespace Unity.Entities.Editor
                     foreach (var componentGroup in pair.Item2)
                     {
                         GUILayout.BeginHorizontal();
-                        if (GUILayout.Button(string.Join(", ", from x in componentGroup.Types.Skip(1) select x.Name)))
+                        if (GUILayout.Button(string.Join(", ", from x in componentGroup.Types.Skip(1) select x.ToString())))
                         {
                             EntityDebugger.FocusSelectionInSystem(pair.Item1 as ComponentSystemBase, componentGroup);
                         }
@@ -96,32 +96,19 @@ namespace Unity.Entities.Editor
 
         private static bool Match(ComponentGroup group, NativeArray<ComponentType> entityComponentTypes)
         {
-            foreach (var subtractiveGroupType in group.SubtractiveTypes)
-            {
-                foreach (var type in entityComponentTypes)
-                {
-                    var managedType = type.GetManagedType();
-                    if (subtractiveGroupType == managedType)
-                    {
-                        return false;
-                    }
-                }
-            }
             
             foreach (var groupType in group.Types.Skip(1))
             {
                 var found = false;
                 foreach (var type in entityComponentTypes)
                 {
-                    var managedType = type.GetManagedType();
-                    if (groupType == managedType)
-                    {
-                        found = true;
-                        break;
-                    }
+                    if (type.TypeIndex != groupType.TypeIndex)
+                        continue;
+                    found = true;
+                    break;
                 }
 
-                if (!found)
+                if (found == (groupType.AccessModeType == ComponentType.AccessMode.Subtractive))
                     return false;
             }
 

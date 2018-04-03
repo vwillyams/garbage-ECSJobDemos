@@ -191,8 +191,9 @@ def cmp_files(f1, f2):
     return True
 
 
-def increase_version(version, major, minor, patch):
-    trimmed_version = version.strip().split('+')[0].split('.')
+def increase_version(version, major, minor, patch, preview):
+    version_split = version.strip().split('-')
+    trimmed_version = version_split[0].split('.')
     new_major = int(trimmed_version[0])
     new_minor = int(trimmed_version[1])
     new_patch = int(trimmed_version[2])
@@ -202,7 +203,16 @@ def increase_version(version, major, minor, patch):
         new_minor += 1
     if patch:
         new_patch += 1
-    new_version = "{0}.{1}.{2}".format(new_major, new_minor, new_patch)
+
+    if len(version_split) > 1 and version_split[1].startswith("preview."):
+        preview_version = int(version_split[1].split('.')[1])
+        if preview:
+            preview_version += 1
+        # TODO Needs to support all our scenarios for package version flows
+        # TODO This line is untested
+        new_version = "{0}.{1}.{2}-preview.{3}".format(new_major, new_minor, new_patch, preview_version)
+    else:
+        new_version = "{0}.{1}.{2}".format(new_major, new_minor, new_patch)
     print "New version is changed from {0} to {1}".format(version, new_version)
     return new_version
 
@@ -544,7 +554,7 @@ def process_package(package_path, package_name, root_clone):
             print "--only-publish-existing-packages is set but we found modification for {0} that we wanted to push. " \
                   "Failing run ".format(package_name)
             raise Exception("Tried to publish modified packages when --only-publish-existing-packages was set")
-        new_package_version = increase_version(current_package_version, False, False, True)
+        new_package_version = increase_version(current_package_version, False, False, False, True)
         local_packages[package_name] = new_package_version
         modified_packages[package_name] = new_package_version
         modify_json(package_name, new_package_version)

@@ -43,7 +43,7 @@ However MonoBehaviour inherits from a number of other classes; each containing t
 
 In the new model the component only contains the data.
 
-The __ComponentSystem__ contains the behavior. One ComponentSystem is responsible for updating all GameObjects with a matching set of components (that is defined within a struct).
+The __ComponentSystem__ contains the behavior. One ComponentSystem is responsible for updating all GameObjects with a matching set of components.
 
 ```C#
 using Unity.Entities;

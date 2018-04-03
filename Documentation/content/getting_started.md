@@ -99,6 +99,9 @@ ECS ships with the __GameObjectEntity__ component. On __OnEnable__, the GameObje
 
 > Thus for the time being you must add a GameObjectEntity component on each GameObject that you want to be visible / iterable from the ComponentSystem.
 
+### How does the ComponentSystem get created?
+Unity automatically creates a default world on startup and populates it with all Component Systems in the project. Thus if you have a game object with the the necessary components and a __GameObjectEntity__, the System will automatically start executing with those components.
+
 ### What does this mean for my game?
 
 It means that you can one by one, convert behavior from __MonoBehaviour.Update__ methods into ComponentSystems. You can in fact keep all your data in a MonoBehaviour, and this is in fact a very simple way of starting the transition to ECS style code.

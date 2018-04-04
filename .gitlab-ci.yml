@@ -8,10 +8,14 @@ stages:
 ################################################################################
 windows:test:
   stage: test
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath Samples -batchmode -nographics -silentcrashes -automated -logfile output-windows-test.log -runtests -testresults results.xml
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.exe" -projectpath Samples -batchmode -nographics -silentcrashes -automated -logfile output-windows-test.log -runtests -testresults results.xml
   artifacts:
     name: "artifacts-windows-test"
     when: always
@@ -26,10 +30,14 @@ windows:test:
 ################################################################################
 windows:build:boids:mono:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-boids-build-mono.log -cleanedLogFile output-windows-boids-build-mono-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-boids-build-mono.log -cleanedLogFile output-windows-boids-build-mono-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-boids"
     when: always
@@ -44,10 +52,14 @@ windows:build:boids:mono:
 
 windows:build:chains:mono:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-chains-build-mono.log -cleanedLogFile output-windows-chains-build-mono-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-chains-build-mono.log -cleanedLogFile output-windows-chains-build-mono-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-chains"
     when: always
@@ -62,10 +74,14 @@ windows:build:chains:mono:
 
 windows:build:hierarchy:mono:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-hierarchy-build-mono.log -cleanedLogFile output-windows-hierarchy-build-mono-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-hierarchy-build-mono.log -cleanedLogFile output-windows-hierarchy-build-mono-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-hierarchy"
     when: always
@@ -80,10 +96,14 @@ windows:build:hierarchy:mono:
 
 windows:build:rotation:mono:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-rotation-build-mono.log -cleanedLogFile output-windows-rotation-build-mono-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-rotation-build-mono.log -cleanedLogFile output-windows-rotation-build-mono-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-rotation"
     when: always
@@ -98,10 +118,14 @@ windows:build:rotation:mono:
 
 windows:build:twostickshooter-classic:mono:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-mono.log -cleanedLogFile output-windows-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-mono.log -cleanedLogFile output-windows-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -116,10 +140,14 @@ windows:build:twostickshooter-classic:mono:
 
 windows:build:twostickshooter-hybrid:mono:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -134,10 +162,14 @@ windows:build:twostickshooter-hybrid:mono:
 
 windows:build:twostickshooter-pure:mono:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-mono.log -cleanedLogFile output-windows-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-mono.log -cleanedLogFile output-windows-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -152,10 +184,14 @@ windows:build:twostickshooter-pure:mono:
 
 windows:build:boids:il2cpp:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-boids-build-il2cpp.log -cleanedLogFile output-windows-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-boids-build-il2cpp.log -cleanedLogFile output-windows-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-boids"
     when: always
@@ -170,10 +206,14 @@ windows:build:boids:il2cpp:
 
 windows:build:chains:il2cpp:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-chains-build-il2cpp.log -cleanedLogFile output-windows-chains-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-chains-build-il2cpp.log -cleanedLogFile output-windows-chains-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-chains"
     when: always
@@ -188,10 +228,14 @@ windows:build:chains:il2cpp:
 
 windows:build:hierarchy:il2cpp:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-hierarchy-build-il2cpp.log -cleanedLogFile output-windows-hierarchy-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-hierarchy-build-il2cpp.log -cleanedLogFile output-windows-hierarchy-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-hierarchy"
     when: always
@@ -206,10 +250,14 @@ windows:build:hierarchy:il2cpp:
 
 windows:build:rotation:il2cpp:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-rotation-build-il2cpp.log -cleanedLogFile output-windows-rotation-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-rotation-build-il2cpp.log -cleanedLogFile output-windows-rotation-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-rotation"
     when: always
@@ -224,10 +272,14 @@ windows:build:rotation:il2cpp:
 
 windows:build:twostickshooter-classic:il2cpp:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -242,10 +294,14 @@ windows:build:twostickshooter-classic:il2cpp:
 
 windows:build:twostickshooter-hybrid:il2cpp:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -260,10 +316,14 @@ windows:build:twostickshooter-hybrid:il2cpp:
 
 windows:build:twostickshooter-pure:il2cpp:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "C:/Program Files/Unity-ed1bf90b40e6/Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -564,10 +624,14 @@ windows:run:twostickshooter-pure:il2cpp:
 ################################################################################
 macOS:test:
   stage: test
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -nographics -silentcrashes -automated -logfile output-macOS-test.log -runtests -testresults results.xml
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -nographics -silentcrashes -automated -logfile output-macOS-test.log -runtests -testresults results.xml
   artifacts:
     name: "artifacts-macOS-test"
     when: always
@@ -582,10 +646,14 @@ macOS:test:
 ################################################################################
 macOS:build:boids:mono:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-boids-build-mono.log -cleanedLogFile output-macOS-boids-build-mono-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-boids-build-mono.log -cleanedLogFile output-macOS-boids-build-mono-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-boids"
     when: always
@@ -600,10 +668,14 @@ macOS:build:boids:mono:
 
 macOS:build:chains:mono:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-chains-build-mono.log -cleanedLogFile output-macOS-chains-build-mono-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-chains-build-mono.log -cleanedLogFile output-macOS-chains-build-mono-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-chains"
     when: always
@@ -618,10 +690,14 @@ macOS:build:chains:mono:
 
 macOS:build:hierarchy:mono:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-hierarchy-build-mono.log -cleanedLogFile output-macOS-hierarchy-build-mono-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-hierarchy-build-mono.log -cleanedLogFile output-macOS-hierarchy-build-mono-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-hierarchy"
     when: always
@@ -636,10 +712,14 @@ macOS:build:hierarchy:mono:
 
 macOS:build:rotation:mono:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-rotation-build-mono.log -cleanedLogFile output-macOS-rotation-build-mono-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-rotation-build-mono.log -cleanedLogFile output-macOS-rotation-build-mono-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-rotation"
     when: always
@@ -654,10 +734,14 @@ macOS:build:rotation:mono:
 
 macOS:build:twostickshooter-classic:mono:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -672,10 +756,14 @@ macOS:build:twostickshooter-classic:mono:
 
 macOS:build:twostickshooter-hybrid:mono:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -690,10 +778,14 @@ macOS:build:twostickshooter-hybrid:mono:
 
 macOS:build:twostickshooter-pure:mono:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -708,10 +800,14 @@ macOS:build:twostickshooter-pure:mono:
 
 macOS:build:boids:il2cpp:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-boids-build-il2cpp.log -cleanedLogFile output-macOS-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-boids-build-il2cpp.log -cleanedLogFile output-macOS-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-boids"
     when: always
@@ -726,10 +822,14 @@ macOS:build:boids:il2cpp:
 
 macOS:build:chains:il2cpp:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-chains-build-il2cpp.log -cleanedLogFile output-macOS-chains-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-chains-build-il2cpp.log -cleanedLogFile output-macOS-chains-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-chains"
     when: always
@@ -744,10 +844,14 @@ macOS:build:chains:il2cpp:
 
 macOS:build:hierarchy:il2cpp:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-hierarchy-build-il2cpp.log -cleanedLogFile output-macOS-hierarchy-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-hierarchy-build-il2cpp.log -cleanedLogFile output-macOS-hierarchy-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-hierarchy"
     when: always
@@ -762,10 +866,14 @@ macOS:build:hierarchy:il2cpp:
 
 macOS:build:rotation:il2cpp:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-rotation-build-il2cpp.log -cleanedLogFile output-macOS-rotation-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-rotation-build-il2cpp.log -cleanedLogFile output-macOS-rotation-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-rotation"
     when: always
@@ -780,10 +888,14 @@ macOS:build:rotation:il2cpp:
 
 macOS:build:twostickshooter-classic:il2cpp:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -798,10 +910,14 @@ macOS:build:twostickshooter-classic:il2cpp:
 
 macOS:build:twostickshooter-hybrid:il2cpp:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -816,10 +932,14 @@ macOS:build:twostickshooter-hybrid:il2cpp:
 
 macOS:build:twostickshooter-pure:il2cpp:
   stage: build
+  before_script:
+  - python Tools/CI/beforescript.py
+  after_script:
+  - python Tools/CI/afterscript.py
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "/Applications/Unity-ed1bf90b40e6/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable "Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always

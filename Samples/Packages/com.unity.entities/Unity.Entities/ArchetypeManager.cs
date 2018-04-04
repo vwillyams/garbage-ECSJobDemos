@@ -125,7 +125,7 @@ namespace Unity.Entities
         public bool MatchesFilter(MatchingArchetypes* match, ref ComponentGroupFilter filter)
         {
             var sharedComponentsInChunk = SharedComponentValueArray;
-            var filteredCount = filter.FilterCount;
+            var filteredCount = filter.SharedComponentFilterCount;
             Assert.IsTrue(filteredCount > 0);
 
             fixed (int* indexInComponentGroupPtr = filter.IndexInComponentGroup, sharedComponentIndexPtr = filter.SharedComponentIndex)

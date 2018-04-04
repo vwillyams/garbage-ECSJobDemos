@@ -7,13 +7,13 @@ namespace Unity.Entities
     [StructLayout(LayoutKind.Sequential)]
     unsafe struct ComponentGroupFilter
     {
-        public int FilterCount;
+        public int       SharedComponentFilterCount;
         public fixed int IndexInComponentGroup[2];
         public fixed int SharedComponentIndex[2];
-
+        
         public bool HasFilter
         {
-            get { return FilterCount != 0; }
+            get { return SharedComponentFilterCount != 0; }
         }
     }
 
@@ -48,6 +48,88 @@ namespace Unity.Entities
             return m_CurrentChunk->SharedComponentValueArray[sharedComponentOffset];
         }
 
+        public ComponentChunkIterator(MatchingArchetypes* match, Chunk* firstChunk, ref ComponentGroupFilter filter)
+        {
+            m_FirstMatchingArchetype = match;
+            m_CurrentMatchingArchetype = match;
+            IndexInComponentGroup = -1;
+            m_CurrentArchetypeIndex = 0;
+            m_CurrentChunk = firstChunk;
+            m_CurrentChunkIndex = 0;
+            m_Filter = filter;
+        }
+        
+        public object GetManagedObject(ArchetypeManager typeMan, int typeIndexInArchetype, int cachedBeginIndex, int index)
+        {
+            return typeMan.GetManagedObject(m_CurrentChunk, typeIndexInArchetype, index - cachedBeginIndex);
+        }
+
+        public object GetManagedObject(ArchetypeManager typeMan, int cachedBeginIndex, int index)
+        {
+            return typeMan.GetManagedObject(m_CurrentChunk, m_CurrentMatchingArchetype->TypeIndexInArchetypeArray[IndexInComponentGroup], index - cachedBeginIndex);
+        }
+
+        public object[] GetManagedObjectRange(ArchetypeManager typeMan, int cachedBeginIndex, int index, out int rangeStart, out int rangeLength)
+        {
+            var objs = typeMan.GetManagedObjectRange(m_CurrentChunk, m_CurrentMatchingArchetype->TypeIndexInArchetypeArray[IndexInComponentGroup], out rangeStart, out rangeLength);
+            rangeStart += index - cachedBeginIndex;
+            rangeLength -= index - cachedBeginIndex;
+            return objs;
+        }
+        
+        public static void CalculateInitialChunkIterator(MatchingArchetypes* firstMatchingArchetype, ref ComponentGroupFilter filter, 
+            out MatchingArchetypes* outFirstArchetype, out Chunk* outFirstChunk, out int outLength)
+        {
+            // Update the archetype segments
+            var length = 0;
+            MatchingArchetypes* first = null;
+            Chunk* firstNonEmptyChunk = null;
+            if (!filter.HasFilter)
+            {
+                for (var match = firstMatchingArchetype; match != null; match = match->Next)
+                {
+                    if (match->Archetype->EntityCount > 0)
+                    {
+                        length += match->Archetype->EntityCount;
+                        if (first == null)
+                            first = match;
+                    }
+                }
+                if (first != null)
+                    firstNonEmptyChunk = (Chunk*)first->Archetype->ChunkList.Begin;
+            }
+            else
+            {
+                for (var match = firstMatchingArchetype; match != null; match = match->Next)
+                {
+                    if (match->Archetype->EntityCount <= 0)
+                        continue;
+
+                    var archeType = match->Archetype;
+                    for (var c = (Chunk*)archeType->ChunkList.Begin; c != archeType->ChunkList.End; c = (Chunk*)c->ChunkListNode.Next)
+                    {
+                        if (!c->MatchesFilter(match, ref filter))
+                            continue;
+
+                        if (c->Count <= 0)
+                            continue;
+
+                        length += c->Count;
+                        if (first != null)
+                            continue;
+
+                        first = match;
+                        firstNonEmptyChunk = c;
+                    }
+                }
+            }
+
+            outLength = length;
+            outFirstChunk = firstNonEmptyChunk;
+            outFirstArchetype = first;
+        }
+
+        
         void MoveToNextMatchingChunk()
         {
             var m = m_CurrentMatchingArchetype;
@@ -76,36 +158,7 @@ namespace Unity.Entities
             m_CurrentMatchingArchetype = m;
             m_CurrentChunk = c;
         }
-
-        public ComponentChunkIterator(MatchingArchetypes* match, int length, Chunk* firstChunk, ComponentGroupFilter filter)
-        {
-            m_FirstMatchingArchetype = match;
-            m_CurrentMatchingArchetype = match;
-            IndexInComponentGroup = -1;
-            m_CurrentArchetypeIndex = 0;
-            m_CurrentChunk = firstChunk;
-            m_CurrentChunkIndex = 0;
-            m_Filter = filter;
-        }
-
-        public object GetManagedObject(ArchetypeManager typeMan, int typeIndexInArchetype, int cachedBeginIndex, int index)
-        {
-            return typeMan.GetManagedObject(m_CurrentChunk, typeIndexInArchetype, index - cachedBeginIndex);
-        }
-
-        public object GetManagedObject(ArchetypeManager typeMan, int cachedBeginIndex, int index)
-        {
-            return typeMan.GetManagedObject(m_CurrentChunk, m_CurrentMatchingArchetype->TypeIndexInArchetypeArray[IndexInComponentGroup], index - cachedBeginIndex);
-        }
-
-        public object[] GetManagedObjectRange(ArchetypeManager typeMan, int cachedBeginIndex, int index, out int rangeStart, out int rangeLength)
-        {
-            var objs = typeMan.GetManagedObjectRange(m_CurrentChunk, m_CurrentMatchingArchetype->TypeIndexInArchetypeArray[IndexInComponentGroup], out rangeStart, out rangeLength);
-            rangeStart += index - cachedBeginIndex;
-            rangeLength -= index - cachedBeginIndex;
-            return objs;
-        }
-
+        
         public void UpdateCache(int index, out ComponentChunkCache cache)
         {
             Assert.IsTrue(-1 != IndexInComponentGroup);

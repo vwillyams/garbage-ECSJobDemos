@@ -10,6 +10,7 @@ import tempfile
 import urllib2
 from fnmatch import fnmatch
 from inspect import currentframe, getframeinfo
+from BumpVersion import BumpVersion
 import semver
 import time
 
@@ -191,34 +192,44 @@ def cmp_files(f1, f2):
                 return False
     return True
 
-def validate_version(version):
-    try:
-        version_split = semver.parse_version_info(version)
-
-        if version_split.prerelease:
+def is_preview(version_split):
+    if version_split.prerelease:
             preview_split = version_split.prerelease.split('.')
-            if len(preview_split) != 2 or not preview_split[0].startswith('preview') or not preview_split[1].isdigit():
-                raise ValueError
+            return len(preview_split) == 2 and preview_split[0].startswith('preview') and preview_split[1].isdigit()
+    return False
+
+def validate_version(version_split):
+    try:
+        if version_split.prerelease and not is_preview(version_split):
+            raise ValueError
+
     except ValueError as ve:
         frameinfo = getframeinfo(currentframe())
         print "Invalid Version Format: ", frameinfo.filename, frameinfo.lineno
         raise ve
 
-def increase_version(version, major, minor, patch, preview):
-
-    validate_version(version)
+def increase_version(version, bumpFlag):
+    version_split = semver.parse_version_info(version)
+    validate_version(version_split)
 
     new_version = version
-    if patch:
+
+    if bumpFlag == BumpVersion.RELEASE and is_preview(version_split):
+        new_version = semver.format_version(version_split.major, version_split.minor, version_split.patch)
+
+    elif bumpFlag == BumpVersion.PATCH:
         new_version = semver.bump_patch(new_version)
-        preview = True
-    if minor:
+        bumpFlag = BumpVersion.PREVIEW
+
+    elif bumpFlag == BumpVersion.MINOR:
         new_version = semver.bump_minor(new_version)
-        preview = True
-    if major:
+        bumpFlag = BumpVersion.PREVIEW
+
+    elif bumpFlag == BumpVersion.MAJOR:
         new_version = semver.bump_major(new_version)
-        preview = True
-    if preview:
+        bumpFlag = BumpVersion.PREVIEW
+
+    if bumpFlag == BumpVersion.PREVIEW:
         new_version = semver.bump_prerelease(new_version, 'preview')
 
     return new_version

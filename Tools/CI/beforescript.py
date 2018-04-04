@@ -33,7 +33,7 @@ def artifactory_search(type):
 
 
 def extract_tarball(download_path, extract_path):
-    tar = tarfile.open(download_path, "r")
+    tar = tarfile.open(download_path, "r:gz")
     tar.extractall(extract_path)
     tar.close()
 

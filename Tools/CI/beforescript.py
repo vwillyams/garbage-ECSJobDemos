@@ -45,6 +45,7 @@ def download_artifact(url, extract_path):
     print "Downloading {0} and extracting it in {1}".format(url, extract_path)
     download_path = os.path.join("temp", data['downloadUri'].split('/')[-1])
     download_url(data['downloadUri'], download_path)
+    print "Extracting {0} to {1}".format(download_path, extract_path)
     if data['downloadUri'].endswith(".zip"):
         extract_zip(download_path, extract_path)
     elif data['downloadUri'].endswith(".tar.gz"):

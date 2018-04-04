@@ -11,8 +11,8 @@ import urllib2
 from fnmatch import fnmatch
 from inspect import currentframe, getframeinfo
 from BumpVersion import BumpVersion
-import semver
 import time
+import semver
 
 args = argparse.Namespace()
 source_branch = ""
@@ -198,8 +198,9 @@ def is_preview(version_split):
             return len(preview_split) == 2 and preview_split[0].startswith('preview') and preview_split[1].isdigit()
     return False
 
-def validate_version(version_split):
+def validate_version(version):
     try:
+        version_split = semver.parse_version_info(version)
         if version_split.prerelease and not is_preview(version_split):
             raise ValueError
 
@@ -209,12 +210,12 @@ def validate_version(version_split):
         raise ve
 
 def increase_version(version, bumpFlag):
-    version_split = semver.parse_version_info(version)
-    validate_version(version_split)
+    validate_version(version)
 
     new_version = version
 
-    if bumpFlag == BumpVersion.RELEASE and is_preview(version_split):
+    if bumpFlag == BumpVersion.RELEASE:
+        version_split = semver.parse_version_info(version)
         new_version = semver.format_version(version_split.major, version_split.minor, version_split.patch)
 
     elif bumpFlag == BumpVersion.PATCH:

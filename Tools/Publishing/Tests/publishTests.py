@@ -1,8 +1,53 @@
 import unittest
+import mock
+import argparse
+import os
 from unittest import TestCase
 from BumpVersion import BumpVersion
+from publishStable import args
+from publishStable import get_packages_folder
+from publishStable import get_list_of_packages
 from publishStable import increase_version
 from publishStable import validate_version
+from publishStable import is_preview
+import semver
+
+class TestGetPackagesFolder(TestCase):
+    def test_get_packages_folder_SetfolderWithoutManifest_RaiseException(self):
+        args.packages_path = '.'
+        self.assertRaises(Exception, get_packages_folder)
+
+    def test_get_packages_folder_SetfolderWithManifest_ReturnAbsolutePath(self):
+        args.packages_path = './packageContainer/'
+        self.assertEqual(get_packages_folder(), os.path.abspath('./packageContainer/'))
+
+class TestGetListOfPackages(TestCase):
+    def test_get_list_of_packages_ProvideUnexistingFolder_ReturnEmptyList(self):
+        self.assertEqual(get_list_of_packages('./SomeNonExistingFolder'), [])
+
+    def test_get_list_of_packages_ProvideFolderWithoutPackages_ReturnEmptyList(self):
+        self.assertEqual(get_list_of_packages('.'), [])
+
+    def test_get_list_of_packages_ProvideFolderWithTwoPackages_ReturnList(self):
+        projectPath = './packageContainer'
+        expectedPackages = [projectPath + '/package1', projectPath + '/package2']
+        self.assertEqual(get_list_of_packages(projectPath), expectedPackages)
+
+class TestIsPreview(TestCase):
+    def test_is_preview_VersionIsStableRelease_ReturnFalse(self):
+        self.assertFalse(is_preview(semver.parse_version_info('1.2.3')))
+
+    def test_is_preview_VersionIsPreviewWithoutIndex_ReturnFalse(self):
+        self.assertFalse(is_preview(semver.parse_version_info('1.2.3-preview')))
+
+    def test_is_preview_VersionIsPreviewWithTypo_ReturnFalse(self):
+        self.assertFalse(is_preview(semver.parse_version_info('1.2.3-preiew.2')))
+
+    def test_is_preview_VersionIsPreviewWithoutDot_ReturnFalse(self):
+        self.assertFalse(is_preview(semver.parse_version_info('1.2.3-preview2')))
+
+    def test_is_preview_VersionIsPreview_ReturnTrue(self):
+        self.assertTrue(is_preview(semver.parse_version_info('1.2.3-preview.2')))
 
 class TestValidateVersion(TestCase):
     def test_validate_version_InvalidVersionFormatUsingAWord_RaiseValueError(self):

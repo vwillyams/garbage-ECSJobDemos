@@ -153,9 +153,9 @@ namespace Unity.Entities
             if (IsFixedArray)
                 return $"{name}[{FixedArrayLength}]";
             else if (AccessModeType == AccessMode.Subtractive)
-                return $"{name} [Subtractive]";
+                return $"{name} [S]";
             else if (AccessModeType == AccessMode.ReadOnly)
-                return $"{name} [ReadOnly]";
+                return $"{name} [RO]";
             else if (TypeIndex == 0 && FixedArrayLength == 0)
                 return "None";
             else 

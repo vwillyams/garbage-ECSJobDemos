@@ -54,7 +54,7 @@ namespace Unity.Entities.Editor
                         GUILayout.BeginHorizontal();
                         if (GUILayout.Button(string.Join(", ", from x in componentGroup.Types.Skip(1) select x.ToString())))
                         {
-                            EntityDebugger.FocusSelectionInSystem(pair.Item1 as ComponentSystemBase, componentGroup);
+                            EntityDebugger.SetAllSelections(targetProxy.World, pair.Item1 as ComponentSystemBase, componentGroup, targetProxy.Entity);
                         }
                         GUILayout.FlexibleSpace();
                         GUILayout.EndHorizontal();

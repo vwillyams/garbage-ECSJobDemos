@@ -89,14 +89,14 @@ namespace Unity.Entities.Editor
             }
         }
 
-        public static void FocusSelectionInSystem(ComponentSystemBase system, ComponentGroup componentGroup)
+        public static void SetAllSelections(World world, ComponentSystemBase system, ComponentGroup componentGroup, Entity entity)
         {
             if (Instance == null)
                 return;
-            Instance.SetWorldSelection(Instance.selectionProxy.World, false);
+            Instance.SetWorldSelection(world, false);
             Instance.SetSystemSelection(system, true, false);
             Instance.SetComponentGroupSelection(componentGroup, true, false);
-            Instance.SetEntitySelection(Instance.selectionProxy.Entity, true);
+            Instance.SetEntitySelection(entity, true);
             Instance.entityListView.FrameSelection();
         }
 

@@ -1,91 +1,95 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Remoting;
 using NUnit.Framework;
 using Unity.Entities;
 using Unity.Entities.Tests;
+using UnityEditor;
 using UnityEditor.IMGUI.Controls;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Unity.Entities.Editor
 {
     public class EntityDebuggerTests : ECSTestsFixture
     {
 
-        class FakeWindow : IEntitySelectionWindow, IWorldSelectionWindow, IComponentGroupSelectionWindow, ISystemSelectionWindow
+        private EntityDebugger m_Window;
+        private ComponentSystem m_System;
+        private ComponentGroup m_ComponentGroup;
+        private Entity m_Entity;
+        
+        class SingleGroupSystem : ComponentSystem
         {
-            public Entity EntitySelection { get; private set; }
-
-            public void SetEntitySelection(Entity s, bool updateList)
+            struct Group
             {
-                EntitySelection = s;
+                private int Length;
+                private ComponentDataArray<EcsTestData> testDatas;
             }
 
-            public World WorldSelection { get; set; }
-            public ComponentGroup ComponentGroupSelection { get; private set; }
-
-            public void SetComponentGroupSelection(ComponentGroup group, bool updateList, bool propagate)
+            [Inject] private Group entities;
+            
+            protected override void OnUpdate()
             {
-                ComponentGroupSelection = group;
-            }
-            public ScriptBehaviourManager SystemSelection { get; private set; }
-
-            public void SetSystemSelection(ScriptBehaviourManager system, bool updateList, bool propagate)
-            {
-                SystemSelection = system;
+                throw new NotImplementedException();
             }
         }
-        
-        [Test]
-        public void EntityListView_CanSetNullGroup()
-        {
 
-            var listView = new EntityListView(new TreeViewState(), null, new FakeWindow());
+        private static void CloseAllDebuggers()
+        {
+            var windows = Resources.FindObjectsOfTypeAll<EntityDebugger>();
+            foreach (var window in windows)
+                window.Close();
+        }
+
+        public override void Setup()
+        {
+            base.Setup();
+
+            CloseAllDebuggers();
             
-            Assert.DoesNotThrow( () => listView.SelectedComponentGroup = null );
+            m_Window = EditorWindow.GetWindow<EntityDebugger>();
+
+            m_System = World.Active.GetOrCreateManager<SingleGroupSystem>();
+
+            m_ComponentGroup = m_System.ComponentGroups[0];
+
+            m_Entity = m_Manager.CreateEntity(typeof(EcsTestData));
         }
-        
-        [Test]
-        public void EntityListView_CanCreateWithNullWindow()
+
+        public override void TearDown()
         {
-            EntityListView listView;
+            CloseAllDebuggers();
             
-            Assert.DoesNotThrow( () =>
-            {
-                listView = new EntityListView(new TreeViewState(), null, null);
-                listView.Reload();
-            });
+            base.TearDown();
         }
 
         [Test]
-        public void ComponentGroupListView_CanSetNullSystem()
+        public void EntityDebugger_SetAllSelections()
         {
-            var listView = new ComponentGroupListView(new TreeViewState(), EmptySystem, new FakeWindow());
-
-            Assert.DoesNotThrow(() => listView.SelectedSystem = null);
-        }
-        
-        [Test]
-        public void ComponentGroupListView_CanCreateWithNullWindow()
-        {
-            ComponentGroupListView listView;
             
-            Assert.DoesNotThrow( () =>
-            {
-                listView = new ComponentGroupListView(new TreeViewState(), null, null);
-                listView.Reload();
-            });
+            EntityDebugger.SetAllSelections(World.Active, m_System, m_ComponentGroup, m_Entity);
+            
+            Assert.AreEqual(World.Active, m_Window.WorldSelection);
+            Assert.AreEqual(m_System, m_Window.SystemSelection);
+            Assert.AreEqual(m_ComponentGroup, m_Window.ComponentGroupSelection);
+            Assert.AreEqual(m_Entity, m_Window.EntitySelection);
         }
 
         [Test]
-        public void SystemListView_CanCreateWithNullWorld()
+        public void EntityDebugger_RememberSelections()
         {
-            SystemListView listView;
-            var states = new List<TreeViewState>();
-            var stateNames = new List<string>();
-            Assert.DoesNotThrow(() =>
-            {
-                listView = SystemListView.CreateList(states, stateNames, new FakeWindow());
-                listView.Reload();
-            });
+            
+            EntityDebugger.SetAllSelections(World.Active, m_System, m_ComponentGroup, m_Entity);
+            
+            m_Window.SetWorldSelection(null, true);
+            
+            m_Window.SetWorldSelection(World.Active, true);
+            
+            Assert.AreEqual(World.Active, m_Window.WorldSelection);
+            Assert.AreEqual(m_System, m_Window.SystemSelection);
+            Assert.AreEqual(m_ComponentGroup, m_Window.ComponentGroupSelection);
+            Assert.AreEqual(m_Entity, m_Window.EntitySelection);
         }
         
     }

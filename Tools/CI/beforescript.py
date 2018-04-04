@@ -1,6 +1,6 @@
 import json
 import os
-import shutil
+import tarfile
 
 artifactory_url = "https://artifactory.eu-cph-1.unityops.net/"
 artifactory_repository = "core-automation"
@@ -29,18 +29,28 @@ def download_url(url, filename):
 
 
 def artifactory_search(type):
-    # /api/search/gavc?g=org.acme&a=artifact&v=1.0&c=sources&repos=libs-release-local
     return get_url_json("{0}/{1}".format(artifactory_url, "api/search/prop?build={1}&os={2}&type={3}&repos={0}".format(artifactory_repository, build_version, get_current_os(), type)))
+
+
+def extract_tarball(download_path, extract_path):
+    tar = tarfile.open(download_path, "r")
+    tar.extractall(extract_path)
+    tar.close()
 
 
 def download_artifact(url, extract_path):
     if not os.path.exists(extract_path):
         os.makedirs(extract_path)
     data = get_url_json(url)
-    print data
+    print "Downloading {0} and extracting it in {1}".format(url, extract_path)
     download_path = os.path.join("temp", data['downloadUri'].split('/')[-1])
     download_url(data['downloadUri'], download_path)
-    extract_zip(download_path, extract_path)
+    if data['downloadUri'].endswith(".zip"):
+        extract_zip(download_path, extract_path)
+    elif data['downloadUri'].endswith(".tar.gz"):
+        extract_tarball(download_path, extract_path)
+    else:
+        raise Exception("Wanted to extract file with unknown file ending: {0}".format(data['downloadUri']))
 
 
 def extract_zip(archive, destination):
@@ -51,22 +61,25 @@ def extract_zip(archive, destination):
 
 
 def main():
-    try:
-        if not os.path.exists("temp"):
-            os.mkdir("temp")
-        for uri in artifactory_search("editor")['results']:
-            print uri['uri']
-            download_artifact(uri['uri'], "Editor")
+    if not os.path.exists("temp"):
+        os.mkdir("temp")
 
-        current_os = get_current_os()
-        for uri in artifactory_search("standalonesupport")['results']:
-            print uri['uri']
-            if current_os == "windows":
-                download_artifact(uri['uri'], "Editor/Data/PlaybackEngines/windowsstandalonesupport")
-            elif current_os == "macOS":
-                download_artifact(uri['uri'], "Editor/Unity.app/Contents/PlaybackEngines/MacStandaloneSupport")
-    finally:
-        shutil.rmtree("temp")
+    editor_artifacts = artifactory_search("editor")['results']
+    standalone_artifacts = artifactory_search("standalonesupport")['results']
+
+    if len(editor_artifacts) != 1:
+        raise Exception("Expected to find exactly 1 editor build to use. Found: {0}".format(editor_artifacts))
+    if len(standalone_artifacts) != 1:
+        raise Exception("Expected to find exactly 1 standalonesupport build to use. Found: {0}".format(standalone_artifacts))
+
+    download_artifact(editor_artifacts[0]['uri'], "Editor")
+
+    current_os = get_current_os()
+
+    if current_os == "windows":
+        download_artifact(standalone_artifacts[0]['uri'], "Editor/Data/PlaybackEngines/windowsstandalonesupport")
+    elif current_os == "macOS":
+        download_artifact(standalone_artifacts[0]['uri'], "Editor/Unity.app/Contents/PlaybackEngines/MacStandaloneSupport")
 
 
 if __name__ == "__main__":

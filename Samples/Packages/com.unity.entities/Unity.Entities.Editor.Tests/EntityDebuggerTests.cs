@@ -21,6 +21,8 @@ namespace Unity.Entities.Editor
         
         class SingleGroupSystem : ComponentSystem
         {
+            
+#pragma warning disable 0169 // "never used" warning
             struct Group
             {
                 private int Length;
@@ -28,6 +30,7 @@ namespace Unity.Entities.Editor
             }
 
             [Inject] private Group entities;
+#pragma warning restore 0169
             
             protected override void OnUpdate()
             {

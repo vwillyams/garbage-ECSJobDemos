@@ -9,7 +9,8 @@ import tarfile
 import tempfile
 import urllib2
 from fnmatch import fnmatch
-
+from inspect import currentframe, getframeinfo
+import semver
 import time
 
 args = argparse.Namespace()
@@ -190,30 +191,36 @@ def cmp_files(f1, f2):
                 return False
     return True
 
+def validate_version(version):
+    try:
+        version_split = semver.parse_version_info(version)
+
+        if version_split.prerelease:
+            preview_split = version_split.prerelease.split('.')
+            if len(preview_split) != 2 or not preview_split[0].startswith('preview') or not preview_split[1].isdigit():
+                raise ValueError
+    except ValueError as ve:
+        frameinfo = getframeinfo(currentframe())
+        print "Invalid Version Format: ", frameinfo.filename, frameinfo.lineno
+        raise ve
 
 def increase_version(version, major, minor, patch, preview):
-    version_split = version.strip().split('-')
-    trimmed_version = version_split[0].split('.')
-    new_major = int(trimmed_version[0])
-    new_minor = int(trimmed_version[1])
-    new_patch = int(trimmed_version[2])
-    if major:
-        new_major += 1
-    if minor:
-        new_minor += 1
-    if patch:
-        new_patch += 1
 
-    if len(version_split) > 1 and version_split[1].startswith("preview."):
-        preview_version = int(version_split[1].split('.')[1])
-        if preview:
-            preview_version += 1
-        # TODO Needs to support all our scenarios for package version flows
-        # TODO This line is untested
-        new_version = "{0}.{1}.{2}-preview.{3}".format(new_major, new_minor, new_patch, preview_version)
-    else:
-        new_version = "{0}.{1}.{2}".format(new_major, new_minor, new_patch)
-    print "New version is changed from {0} to {1}".format(version, new_version)
+    validate_version(version)
+
+    new_version = version
+    if patch:
+        new_version = semver.bump_patch(new_version)
+        preview = True
+    if minor:
+        new_version = semver.bump_minor(new_version)
+        preview = True
+    if major:
+        new_version = semver.bump_major(new_version)
+        preview = True
+    if preview:
+        new_version = semver.bump_prerelease(new_version, 'preview')
+
     return new_version
 
 

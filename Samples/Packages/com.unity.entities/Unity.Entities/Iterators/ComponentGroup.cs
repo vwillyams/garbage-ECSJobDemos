@@ -37,6 +37,8 @@ namespace Unity.Entities
                 for (var i=0; i<filteredCount; ++i)
                     typeManager.GetSharedComponentDataManager().RemoveReference(sharedComponentIndexPtr[i]);
             }
+
+            m_Filter.FilterCount = 0;
         }
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -172,31 +174,13 @@ namespace Unity.Entities
             return true;
         }
 
-        public Type[] Types
+        public ComponentType[] Types
         {
             get
             {
-                var types = new List<Type> ();
+                var types = new List<ComponentType> ();
                 for (var i = 0; i < m_GroupData->RequiredComponentsCount; ++i)
-                {
-                    if (m_GroupData->RequiredComponents[i].AccessModeType != ComponentType.AccessMode.Subtractive)
-                        types.Add(TypeManager.GetType(m_GroupData->RequiredComponents[i].TypeIndex));
-                }
-
-                return types.ToArray();
-            }
-        }
-
-        public Type[] SubtractiveTypes
-        {
-            get
-            {
-                var types = new List<Type> ();
-                for (var i = 0; i < m_GroupData->RequiredComponentsCount; ++i)
-                {
-                    if (m_GroupData->RequiredComponents[i].AccessModeType == ComponentType.AccessMode.Subtractive)
-                        types.Add(TypeManager.GetType(m_GroupData->RequiredComponents[i].TypeIndex));
-                }
+                    types.Add(m_GroupData->RequiredComponents[i]);
 
                 return types.ToArray();
             }
@@ -449,9 +433,7 @@ namespace Unity.Entities
         internal bool CompareComponents(ComponentType* componentTypes, int count) =>
             m_ComponentGroupData.CompareComponents(componentTypes,count);
 
-        //@TODO: This should really be just ComponentType[] ...
-        public Type[] Types => m_ComponentGroupData.Types;
-        public Type[] SubtractiveTypes => m_ComponentGroupData.SubtractiveTypes;
+        public ComponentType[] Types => m_ComponentGroupData.Types;
 
         internal ArchetypeManager ArchetypeManager => m_TypeManager;
 

@@ -7,19 +7,21 @@ namespace Unity.Entities.Editor
 {
     public class EntitySelectionProxy : ScriptableObject
     {
-        public EntityContainer Container { get; private set; }
-        public Entity Entity { get; private set; }
-        public EntityManager Manager { get; private set; }
-        public World World { get; private set; }
+        public EntityContainer Container;
 
-        public bool Exists => Manager.Exists(Entity);
+        public Entity Entity => entity;
+        private Entity entity;
 
-        public void SetEntity(World world, Entity entity)
+        public EntityManager Manager => manager;
+        private EntityManager manager;
+
+        public bool Exists => manager.Exists(entity);
+
+        public void SetEntity(EntityManager manager, Entity entity)
         {
-            this.World = world;
-            this.Entity = entity;
-            this.Manager = world.GetExistingManager<EntityManager>();
-            this.Container = new EntityContainer(Manager, Entity);
+            this.entity = entity;
+            this.manager = manager;
+            this.Container = new EntityContainer(manager, entity);
         }
     }
 }

@@ -311,8 +311,15 @@ namespace Unity.Entities
                 bytesPerInstance += sizeOf;
             }
 
-            type->ChunkCapacity = chunkDataSize / bytesPerInstance;
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            if (bytesPerInstance > chunkDataSize)
+                throw new System.ArgumentException($"Entity archetype component data is too large. The maximum component data is {chunkDataSize} but the component data is {bytesPerInstance}");
+            
             Assert.IsTrue(Chunk.kMaximumEntitiesPerChunk >= type->ChunkCapacity);
+#endif
+                
+            type->ChunkCapacity = chunkDataSize / bytesPerInstance;
+            
             var usedBytes = 0;
             for (var i = 0; i < count; ++i)
             {

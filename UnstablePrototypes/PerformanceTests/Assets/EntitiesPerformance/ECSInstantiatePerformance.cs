@@ -94,10 +94,11 @@ public class ECSInstantiatePerformance : MonoBehaviour
 		}
 
 		var entityManager = World.Active.GetOrCreateManager<EntityManager>();
+	    var dummySystem = World.Active.GetOrCreateManager<DummyComponentSystem>();
 
 	    var archetype = entityManager.CreateArchetype(typeof(Component128Bytes), typeof(Component12Bytes), typeof(Component64Bytes), typeof(Component16Bytes), typeof(Component4Bytes), typeof(Component4BytesDst));
 	    var srcEntity = entityManager.CreateEntity(archetype );
-		var group = entityManager.CreateComponentGroup(typeof(Component4Bytes), typeof(Component4BytesDst));
+		var group = dummySystem.GetComponentGroup(typeof(Component4Bytes), typeof(Component4BytesDst));
 
 	    var instances = new NativeArray<Entity>(PerformanceTestConfiguration.InstanceCount - 1, Allocator.Temp);
 		setupSampler.End();

@@ -10,7 +10,7 @@ namespace Unity.Entities.Editor
 {
     public interface IComponentGroupSelectionWindow : IWorldSelectionWindow
     {
-        void SetComponentGroupSelection(ComponentGroup group, bool updateList, bool propagate);
+        ComponentGroup ComponentGroupSelection { set; }
     }
     
     public class ComponentGroupListView : TreeView {
@@ -90,7 +90,7 @@ namespace Unity.Entities.Editor
                 {
                     componentGroupsById.Add(currentId, group);
                     var types = group.Types;
-                    var groupName = string.Join(", ", (from x in types.Skip(types.Length > 1 ? 1 : 0) select x.Name).ToArray());
+                    var groupName = string.Join(", ", (from x in types.Skip(types.Length > 1 ? 1 : 0) select x.ToString()).ToArray());
 
                     var groupItem = new TreeViewItem { id = currentId++, displayName = groupName };
                     root.AddChild(groupItem);
@@ -121,11 +121,11 @@ namespace Unity.Entities.Editor
                 return;
             if (selectedIds.Count > 0 && componentGroupsById.ContainsKey(selectedIds[0]))
             {
-                window.SetComponentGroupSelection(componentGroupsById[selectedIds[0]], false, true);
+                window.ComponentGroupSelection = componentGroupsById[selectedIds[0]];
             }
             else
             {
-                window.SetComponentGroupSelection(null, false, true);
+                window.ComponentGroupSelection = null;
             }
         }
 
@@ -134,22 +134,9 @@ namespace Unity.Entities.Editor
             return false;
         }
 
-        public void SetComponentGroupSelection(ComponentGroup group)
-        {
-            foreach (var pair in componentGroupsById)
-            {
-                if (pair.Value == group)
-                {
-                    SetSelection(new List<int> {pair.Key});
-                    return;
-                }
-            }
-            SetSelection(new List<int>());
-        }
-
         public void TouchSelection()
         {
-            SetSelection(GetSelection(), TreeViewSelectionOptions.FireSelectionChanged);
+            SelectionChanged(GetSelection());
         }
 
         public void UpdateIfNecessary()

@@ -12,7 +12,7 @@ namespace Unity.Entities.Editor
         public EntityManager Manager { get; private set; }
         public World World { get; private set; }
 
-        public bool Exists => Manager.Exists(Entity);
+        public bool Exists => Manager != null && Manager.IsCreated && Manager.Exists(Entity);
 
         public void SetEntity(World world, Entity entity)
         {

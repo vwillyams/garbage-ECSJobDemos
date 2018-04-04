@@ -343,7 +343,7 @@ namespace Unity.Entities.Editor
         {
             if (Selection.activeObject == selectionProxy)
             {
-                if (!WorldSelection?.GetExistingManager<EntityManager>()?.Exists(selectionProxy.Entity) ?? true)
+                if (!selectionProxy.Exists)
                 {
                     Selection.activeObject = null;
                     entityListView.SelectNothing();

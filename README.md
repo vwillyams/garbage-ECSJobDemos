@@ -26,7 +26,8 @@ unity source code branch: 2018.1/scripting/jobsystem/playground
 * Open the file _<project-name>/Packages/manifest.json_ in any text editor.
 * Copy and paste the following package manifest into it, replacing the default contents:
 
-```{
+```
+{
 "dependencies":{
 "com.unity.entities":"0.0.10"
 },

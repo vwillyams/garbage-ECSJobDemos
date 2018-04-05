@@ -2,9 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Unity.Collections;
 using UnityEditor;
 using UnityEngine;
+
+[assembly:InternalsVisibleTo("Unity.Entities.Editor.Tests")]
 
 namespace Unity.Entities.Editor
 {
@@ -12,6 +15,7 @@ namespace Unity.Entities.Editor
     public class SystemInclusionList
     {
         private readonly List<Tuple<ScriptBehaviourManager, List<ComponentGroup>>> cachedMatches = new List<Tuple<ScriptBehaviourManager, List<ComponentGroup>>>();
+        private bool repainted = true;
 
         [SerializeField] private bool showSystems;
 
@@ -23,9 +27,11 @@ namespace Unity.Entities.Editor
 
             if (showSystems)
             {
-                if (cachedMatches.Count == 0)
+                if (repainted == true)
                 {
-                    CollectMatches(entityManager, entity);
+                    cachedMatches.Clear();
+                    CollectMatches(entityManager, entity, cachedMatches);
+                    repainted = false;
                 }
 
                 foreach (var pair in cachedMatches)
@@ -49,7 +55,7 @@ namespace Unity.Entities.Editor
 
                 if (Event.current.type == EventType.Repaint)
                 {
-                    cachedMatches.Clear();
+                    repainted = true;
                 }
             }
             GUILayout.EndVertical();
@@ -57,7 +63,7 @@ namespace Unity.Entities.Editor
             --EditorGUI.indentLevel;
         }
 
-        private void CollectMatches(EntityManager entityManager, Entity entity)
+        internal static void CollectMatches(EntityManager entityManager, Entity entity, List<Tuple<ScriptBehaviourManager, List<ComponentGroup>>> matchList)
         {
             using (var entityComponentTypes = entityManager.GetComponentTypes(entity, Allocator.Temp))
             {
@@ -74,7 +80,7 @@ namespace Unity.Entities.Editor
 
                     if (componentGroupList.Count > 0)
                     {
-                        cachedMatches.Add(new Tuple<ScriptBehaviourManager, List<ComponentGroup>>(manager, componentGroupList));
+                        matchList.Add(new Tuple<ScriptBehaviourManager, List<ComponentGroup>>(manager, componentGroupList));
                     }
                 }
             }

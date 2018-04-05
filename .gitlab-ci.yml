@@ -9,9 +9,9 @@ stages:
 windows:test:2018.1:
   stage: test
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py "2018.1.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py "2018.1.*&latest=true"
   tags:
   - windows
   script:
@@ -31,9 +31,9 @@ windows:test:2018.1:
 windows:build:boids:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py "2018.1.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py "2018.1.*&latest=true"
   tags:
   - windows
   script:
@@ -53,9 +53,9 @@ windows:build:boids:mono:2018.1:
 windows:build:chains:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py "2018.1.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py "2018.1.*&latest=true"
   tags:
   - windows
   script:
@@ -75,9 +75,9 @@ windows:build:chains:mono:2018.1:
 windows:build:hierarchy:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py "2018.1.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py "2018.1.*&latest=true"
   tags:
   - windows
   script:
@@ -97,9 +97,9 @@ windows:build:hierarchy:mono:2018.1:
 windows:build:rotation:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py "2018.1.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py "2018.1.*&latest=true"
   tags:
   - windows
   script:
@@ -119,9 +119,9 @@ windows:build:rotation:mono:2018.1:
 windows:build:twostickshooter-classic:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py "2018.1.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py "2018.1.*&latest=true"
   tags:
   - windows
   script:
@@ -141,9 +141,9 @@ windows:build:twostickshooter-classic:mono:2018.1:
 windows:build:twostickshooter-hybrid:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py "2018.1.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py "2018.1.*&latest=true"
   tags:
   - windows
   script:
@@ -163,9 +163,9 @@ windows:build:twostickshooter-hybrid:mono:2018.1:
 windows:build:twostickshooter-pure:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py "2018.1.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py "2018.1.*&latest=true"
   tags:
   - windows
   script:
@@ -185,9 +185,9 @@ windows:build:twostickshooter-pure:mono:2018.1:
 windows:build:boids:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py "2018.1.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py "2018.1.*&latest=true"
   tags:
   - windows
   script:
@@ -207,9 +207,9 @@ windows:build:boids:il2cpp:2018.1:
 windows:build:chains:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py "2018.1.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py "2018.1.*&latest=true"
   tags:
   - windows
   script:
@@ -229,9 +229,9 @@ windows:build:chains:il2cpp:2018.1:
 windows:build:hierarchy:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py "2018.1.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py "2018.1.*&latest=true"
   tags:
   - windows
   script:
@@ -251,9 +251,9 @@ windows:build:hierarchy:il2cpp:2018.1:
 windows:build:rotation:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py "2018.1.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py "2018.1.*&latest=true"
   tags:
   - windows
   script:
@@ -273,9 +273,9 @@ windows:build:rotation:il2cpp:2018.1:
 windows:build:twostickshooter-classic:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py "2018.1.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py "2018.1.*&latest=true"
   tags:
   - windows
   script:
@@ -295,9 +295,9 @@ windows:build:twostickshooter-classic:il2cpp:2018.1:
 windows:build:twostickshooter-hybrid:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py "2018.1.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py "2018.1.*&latest=true"
   tags:
   - windows
   script:
@@ -317,9 +317,9 @@ windows:build:twostickshooter-hybrid:il2cpp:2018.1:
 windows:build:twostickshooter-pure:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py "2018.1.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py "2018.1.*&latest=true"
   tags:
   - windows
   script:
@@ -625,9 +625,9 @@ windows:run:twostickshooter-pure:il2cpp:2018.1:
 macOS:test:2018.1:
   stage: test
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py '2018.1.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py '2018.1.*&latest=true'
   tags:
   - macOS
   script:
@@ -647,9 +647,9 @@ macOS:test:2018.1:
 macOS:build:boids:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py '2018.1.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py '2018.1.*&latest=true'
   tags:
   - macOS
   script:
@@ -669,9 +669,9 @@ macOS:build:boids:mono:2018.1:
 macOS:build:chains:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py '2018.1.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py '2018.1.*&latest=true'
   tags:
   - macOS
   script:
@@ -691,9 +691,9 @@ macOS:build:chains:mono:2018.1:
 macOS:build:hierarchy:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py '2018.1.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py '2018.1.*&latest=true'
   tags:
   - macOS
   script:
@@ -713,9 +713,9 @@ macOS:build:hierarchy:mono:2018.1:
 macOS:build:rotation:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py '2018.1.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py '2018.1.*&latest=true'
   tags:
   - macOS
   script:
@@ -735,9 +735,9 @@ macOS:build:rotation:mono:2018.1:
 macOS:build:twostickshooter-classic:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py '2018.1.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py '2018.1.*&latest=true'
   tags:
   - macOS
   script:
@@ -757,9 +757,9 @@ macOS:build:twostickshooter-classic:mono:2018.1:
 macOS:build:twostickshooter-hybrid:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py '2018.1.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py '2018.1.*&latest=true'
   tags:
   - macOS
   script:
@@ -779,9 +779,9 @@ macOS:build:twostickshooter-hybrid:mono:2018.1:
 macOS:build:twostickshooter-pure:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py '2018.1.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py '2018.1.*&latest=true'
   tags:
   - macOS
   script:
@@ -801,9 +801,9 @@ macOS:build:twostickshooter-pure:mono:2018.1:
 macOS:build:boids:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py '2018.1.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py '2018.1.*&latest=true'
   tags:
   - macOS
   script:
@@ -823,9 +823,9 @@ macOS:build:boids:il2cpp:2018.1:
 macOS:build:chains:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py '2018.1.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py '2018.1.*&latest=true'
   tags:
   - macOS
   script:
@@ -845,9 +845,9 @@ macOS:build:chains:il2cpp:2018.1:
 macOS:build:hierarchy:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py '2018.1.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py '2018.1.*&latest=true'
   tags:
   - macOS
   script:
@@ -867,9 +867,9 @@ macOS:build:hierarchy:il2cpp:2018.1:
 macOS:build:rotation:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py '2018.1.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py '2018.1.*&latest=true'
   tags:
   - macOS
   script:
@@ -889,9 +889,9 @@ macOS:build:rotation:il2cpp:2018.1:
 macOS:build:twostickshooter-classic:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py '2018.1.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py '2018.1.*&latest=true'
   tags:
   - macOS
   script:
@@ -911,9 +911,9 @@ macOS:build:twostickshooter-classic:il2cpp:2018.1:
 macOS:build:twostickshooter-hybrid:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py '2018.1.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py '2018.1.*&latest=true'
   tags:
   - macOS
   script:
@@ -933,9 +933,9 @@ macOS:build:twostickshooter-hybrid:il2cpp:2018.1:
 macOS:build:twostickshooter-pure:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.*&latest=true
+  - python Tools/CI/beforescript.py '2018.1.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.*&latest=true
+  - python Tools/CI/afterscript.py '2018.1.*&latest=true'
   tags:
   - macOS
   script:
@@ -1241,9 +1241,9 @@ macOS:run:twostickshooter-pure:il2cpp:2018.1:
 windows:test:2018.2:
   stage: test
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py "2018.2.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py "2018.2.*&latest=true"
   tags:
   - windows
   script:
@@ -1263,9 +1263,9 @@ windows:test:2018.2:
 windows:build:boids:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py "2018.2.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py "2018.2.*&latest=true"
   tags:
   - windows
   script:
@@ -1285,9 +1285,9 @@ windows:build:boids:mono:2018.2:
 windows:build:chains:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py "2018.2.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py "2018.2.*&latest=true"
   tags:
   - windows
   script:
@@ -1307,9 +1307,9 @@ windows:build:chains:mono:2018.2:
 windows:build:hierarchy:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py "2018.2.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py "2018.2.*&latest=true"
   tags:
   - windows
   script:
@@ -1329,9 +1329,9 @@ windows:build:hierarchy:mono:2018.2:
 windows:build:rotation:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py "2018.2.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py "2018.2.*&latest=true"
   tags:
   - windows
   script:
@@ -1351,9 +1351,9 @@ windows:build:rotation:mono:2018.2:
 windows:build:twostickshooter-classic:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py "2018.2.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py "2018.2.*&latest=true"
   tags:
   - windows
   script:
@@ -1373,9 +1373,9 @@ windows:build:twostickshooter-classic:mono:2018.2:
 windows:build:twostickshooter-hybrid:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py "2018.2.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py "2018.2.*&latest=true"
   tags:
   - windows
   script:
@@ -1395,9 +1395,9 @@ windows:build:twostickshooter-hybrid:mono:2018.2:
 windows:build:twostickshooter-pure:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py "2018.2.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py "2018.2.*&latest=true"
   tags:
   - windows
   script:
@@ -1417,9 +1417,9 @@ windows:build:twostickshooter-pure:mono:2018.2:
 windows:build:boids:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py "2018.2.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py "2018.2.*&latest=true"
   tags:
   - windows
   script:
@@ -1439,9 +1439,9 @@ windows:build:boids:il2cpp:2018.2:
 windows:build:chains:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py "2018.2.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py "2018.2.*&latest=true"
   tags:
   - windows
   script:
@@ -1461,9 +1461,9 @@ windows:build:chains:il2cpp:2018.2:
 windows:build:hierarchy:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py "2018.2.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py "2018.2.*&latest=true"
   tags:
   - windows
   script:
@@ -1483,9 +1483,9 @@ windows:build:hierarchy:il2cpp:2018.2:
 windows:build:rotation:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py "2018.2.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py "2018.2.*&latest=true"
   tags:
   - windows
   script:
@@ -1505,9 +1505,9 @@ windows:build:rotation:il2cpp:2018.2:
 windows:build:twostickshooter-classic:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py "2018.2.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py "2018.2.*&latest=true"
   tags:
   - windows
   script:
@@ -1527,9 +1527,9 @@ windows:build:twostickshooter-classic:il2cpp:2018.2:
 windows:build:twostickshooter-hybrid:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py "2018.2.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py "2018.2.*&latest=true"
   tags:
   - windows
   script:
@@ -1549,9 +1549,9 @@ windows:build:twostickshooter-hybrid:il2cpp:2018.2:
 windows:build:twostickshooter-pure:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py "2018.2.*&latest=true"
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py "2018.2.*&latest=true"
   tags:
   - windows
   script:
@@ -1857,9 +1857,9 @@ windows:run:twostickshooter-pure:il2cpp:2018.2:
 macOS:test:2018.2:
   stage: test
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py '2018.2.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py '2018.2.*&latest=true'
   tags:
   - macOS
   script:
@@ -1879,9 +1879,9 @@ macOS:test:2018.2:
 macOS:build:boids:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py '2018.2.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py '2018.2.*&latest=true'
   tags:
   - macOS
   script:
@@ -1901,9 +1901,9 @@ macOS:build:boids:mono:2018.2:
 macOS:build:chains:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py '2018.2.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py '2018.2.*&latest=true'
   tags:
   - macOS
   script:
@@ -1923,9 +1923,9 @@ macOS:build:chains:mono:2018.2:
 macOS:build:hierarchy:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py '2018.2.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py '2018.2.*&latest=true'
   tags:
   - macOS
   script:
@@ -1945,9 +1945,9 @@ macOS:build:hierarchy:mono:2018.2:
 macOS:build:rotation:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py '2018.2.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py '2018.2.*&latest=true'
   tags:
   - macOS
   script:
@@ -1967,9 +1967,9 @@ macOS:build:rotation:mono:2018.2:
 macOS:build:twostickshooter-classic:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py '2018.2.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py '2018.2.*&latest=true'
   tags:
   - macOS
   script:
@@ -1989,9 +1989,9 @@ macOS:build:twostickshooter-classic:mono:2018.2:
 macOS:build:twostickshooter-hybrid:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py '2018.2.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py '2018.2.*&latest=true'
   tags:
   - macOS
   script:
@@ -2011,9 +2011,9 @@ macOS:build:twostickshooter-hybrid:mono:2018.2:
 macOS:build:twostickshooter-pure:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py '2018.2.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py '2018.2.*&latest=true'
   tags:
   - macOS
   script:
@@ -2033,9 +2033,9 @@ macOS:build:twostickshooter-pure:mono:2018.2:
 macOS:build:boids:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py '2018.2.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py '2018.2.*&latest=true'
   tags:
   - macOS
   script:
@@ -2055,9 +2055,9 @@ macOS:build:boids:il2cpp:2018.2:
 macOS:build:chains:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py '2018.2.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py '2018.2.*&latest=true'
   tags:
   - macOS
   script:
@@ -2077,9 +2077,9 @@ macOS:build:chains:il2cpp:2018.2:
 macOS:build:hierarchy:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py '2018.2.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py '2018.2.*&latest=true'
   tags:
   - macOS
   script:
@@ -2099,9 +2099,9 @@ macOS:build:hierarchy:il2cpp:2018.2:
 macOS:build:rotation:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py '2018.2.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py '2018.2.*&latest=true'
   tags:
   - macOS
   script:
@@ -2121,9 +2121,9 @@ macOS:build:rotation:il2cpp:2018.2:
 macOS:build:twostickshooter-classic:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py '2018.2.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py '2018.2.*&latest=true'
   tags:
   - macOS
   script:
@@ -2143,9 +2143,9 @@ macOS:build:twostickshooter-classic:il2cpp:2018.2:
 macOS:build:twostickshooter-hybrid:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py '2018.2.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py '2018.2.*&latest=true'
   tags:
   - macOS
   script:
@@ -2165,9 +2165,9 @@ macOS:build:twostickshooter-hybrid:il2cpp:2018.2:
 macOS:build:twostickshooter-pure:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.*&latest=true
+  - python Tools/CI/beforescript.py '2018.2.*&latest=true'
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.*&latest=true
+  - python Tools/CI/afterscript.py '2018.2.*&latest=true'
   tags:
   - macOS
   script:

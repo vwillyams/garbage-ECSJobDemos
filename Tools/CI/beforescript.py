@@ -20,6 +20,7 @@ def get_current_os():
 
 
 def get_url_json(url):
+    print "  Getting json from {0}".format(url)
     import urllib2
     response = urllib2.urlopen(url)
     return json.loads(response.read())

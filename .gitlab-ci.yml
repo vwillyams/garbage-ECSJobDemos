@@ -47,7 +47,7 @@ windows:build:boids:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.1.0b13
 
 
 windows:build:chains:mono:2018.1.0b13:
@@ -69,7 +69,7 @@ windows:build:chains:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.1.0b13
 
 
 windows:build:hierarchy:mono:2018.1.0b13:
@@ -91,7 +91,7 @@ windows:build:hierarchy:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.1.0b13
 
 
 windows:build:rotation:mono:2018.1.0b13:
@@ -113,7 +113,7 @@ windows:build:rotation:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.1.0b13
 
 
 windows:build:twostickshooter-classic:mono:2018.1.0b13:
@@ -135,7 +135,7 @@ windows:build:twostickshooter-classic:mono:2018.1.0b13:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.1.0b13
 
 
 windows:build:twostickshooter-hybrid:mono:2018.1.0b13:
@@ -157,7 +157,7 @@ windows:build:twostickshooter-hybrid:mono:2018.1.0b13:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.1.0b13
 
 
 windows:build:twostickshooter-pure:mono:2018.1.0b13:
@@ -179,7 +179,7 @@ windows:build:twostickshooter-pure:mono:2018.1.0b13:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.1.0b13
 
 
 windows:build:boids:il2cpp:2018.1.0b13:
@@ -201,7 +201,7 @@ windows:build:boids:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.1.0b13
 
 
 windows:build:chains:il2cpp:2018.1.0b13:
@@ -223,7 +223,7 @@ windows:build:chains:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.1.0b13
 
 
 windows:build:hierarchy:il2cpp:2018.1.0b13:
@@ -245,7 +245,7 @@ windows:build:hierarchy:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.1.0b13
 
 
 windows:build:rotation:il2cpp:2018.1.0b13:
@@ -267,7 +267,7 @@ windows:build:rotation:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.1.0b13
 
 
 windows:build:twostickshooter-classic:il2cpp:2018.1.0b13:
@@ -289,7 +289,7 @@ windows:build:twostickshooter-classic:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.1.0b13
 
 
 windows:build:twostickshooter-hybrid:il2cpp:2018.1.0b13:
@@ -311,7 +311,7 @@ windows:build:twostickshooter-hybrid:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.1.0b13
 
 
 windows:build:twostickshooter-pure:il2cpp:2018.1.0b13:
@@ -333,7 +333,7 @@ windows:build:twostickshooter-pure:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.1.0b13
 
 
 ################################################################################
@@ -356,7 +356,7 @@ windows:run:boids:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:boids:mono
+    - windows:build:boids:mono:2018.1.0b13
 
 
 windows:run:chains:mono:2018.1.0b13:
@@ -376,7 +376,7 @@ windows:run:chains:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:chains:mono
+    - windows:build:chains:mono:2018.1.0b13
 
 
 windows:run:hierarchy:mono:2018.1.0b13:
@@ -396,7 +396,7 @@ windows:run:hierarchy:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:hierarchy:mono
+    - windows:build:hierarchy:mono:2018.1.0b13
 
 
 windows:run:rotation:mono:2018.1.0b13:
@@ -416,7 +416,7 @@ windows:run:rotation:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:rotation:mono
+    - windows:build:rotation:mono:2018.1.0b13
 
 
 windows:run:twostickshooter-classic:mono:2018.1.0b13:
@@ -436,7 +436,7 @@ windows:run:twostickshooter-classic:mono:2018.1.0b13:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-classic:mono
+    - windows:build:twostickshooter-classic:mono:2018.1.0b13
 
 
 windows:run:twostickshooter-hybrid:mono:2018.1.0b13:
@@ -456,7 +456,7 @@ windows:run:twostickshooter-hybrid:mono:2018.1.0b13:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-hybrid:mono
+    - windows:build:twostickshooter-hybrid:mono:2018.1.0b13
 
 
 windows:run:twostickshooter-pure:mono:2018.1.0b13:
@@ -476,7 +476,7 @@ windows:run:twostickshooter-pure:mono:2018.1.0b13:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-pure:mono
+    - windows:build:twostickshooter-pure:mono:2018.1.0b13
 
 
 windows:run:boids:il2cpp:2018.1.0b13:
@@ -496,7 +496,7 @@ windows:run:boids:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:boids:il2cpp
+    - windows:build:boids:il2cpp:2018.1.0b13
 
 
 windows:run:chains:il2cpp:2018.1.0b13:
@@ -516,7 +516,7 @@ windows:run:chains:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:chains:il2cpp
+    - windows:build:chains:il2cpp:2018.1.0b13
 
 
 windows:run:hierarchy:il2cpp:2018.1.0b13:
@@ -536,7 +536,7 @@ windows:run:hierarchy:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:hierarchy:il2cpp
+    - windows:build:hierarchy:il2cpp:2018.1.0b13
 
 
 windows:run:rotation:il2cpp:2018.1.0b13:
@@ -556,7 +556,7 @@ windows:run:rotation:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:rotation:il2cpp
+    - windows:build:rotation:il2cpp:2018.1.0b13
 
 
 windows:run:twostickshooter-classic:il2cpp:2018.1.0b13:
@@ -576,7 +576,7 @@ windows:run:twostickshooter-classic:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-classic:il2cpp
+    - windows:build:twostickshooter-classic:il2cpp:2018.1.0b13
 
 
 windows:run:twostickshooter-hybrid:il2cpp:2018.1.0b13:
@@ -596,7 +596,7 @@ windows:run:twostickshooter-hybrid:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-hybrid:il2cpp
+    - windows:build:twostickshooter-hybrid:il2cpp:2018.1.0b13
 
 
 windows:run:twostickshooter-pure:il2cpp:2018.1.0b13:
@@ -616,7 +616,7 @@ windows:run:twostickshooter-pure:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-pure:il2cpp
+    - windows:build:twostickshooter-pure:il2cpp:2018.1.0b13
 
 
 ################################################################################
@@ -663,7 +663,7 @@ macOS:build:boids:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.1.0b13
 
 
 macOS:build:chains:mono:2018.1.0b13:
@@ -685,7 +685,7 @@ macOS:build:chains:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.1.0b13
 
 
 macOS:build:hierarchy:mono:2018.1.0b13:
@@ -707,7 +707,7 @@ macOS:build:hierarchy:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.1.0b13
 
 
 macOS:build:rotation:mono:2018.1.0b13:
@@ -729,7 +729,7 @@ macOS:build:rotation:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.1.0b13
 
 
 macOS:build:twostickshooter-classic:mono:2018.1.0b13:
@@ -751,7 +751,7 @@ macOS:build:twostickshooter-classic:mono:2018.1.0b13:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.1.0b13
 
 
 macOS:build:twostickshooter-hybrid:mono:2018.1.0b13:
@@ -773,7 +773,7 @@ macOS:build:twostickshooter-hybrid:mono:2018.1.0b13:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.1.0b13
 
 
 macOS:build:twostickshooter-pure:mono:2018.1.0b13:
@@ -795,7 +795,7 @@ macOS:build:twostickshooter-pure:mono:2018.1.0b13:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.1.0b13
 
 
 macOS:build:boids:il2cpp:2018.1.0b13:
@@ -817,7 +817,7 @@ macOS:build:boids:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.1.0b13
 
 
 macOS:build:chains:il2cpp:2018.1.0b13:
@@ -839,7 +839,7 @@ macOS:build:chains:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.1.0b13
 
 
 macOS:build:hierarchy:il2cpp:2018.1.0b13:
@@ -861,7 +861,7 @@ macOS:build:hierarchy:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.1.0b13
 
 
 macOS:build:rotation:il2cpp:2018.1.0b13:
@@ -883,7 +883,7 @@ macOS:build:rotation:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.1.0b13
 
 
 macOS:build:twostickshooter-classic:il2cpp:2018.1.0b13:
@@ -905,7 +905,7 @@ macOS:build:twostickshooter-classic:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.1.0b13
 
 
 macOS:build:twostickshooter-hybrid:il2cpp:2018.1.0b13:
@@ -927,7 +927,7 @@ macOS:build:twostickshooter-hybrid:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.1.0b13
 
 
 macOS:build:twostickshooter-pure:il2cpp:2018.1.0b13:
@@ -949,7 +949,7 @@ macOS:build:twostickshooter-pure:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.1.0b13
 
 
 ################################################################################
@@ -972,7 +972,7 @@ macOS:run:boids:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:boids:mono
+    - macOS:build:boids:mono:2018.1.0b13
 
 
 macOS:run:chains:mono:2018.1.0b13:
@@ -992,7 +992,7 @@ macOS:run:chains:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:chains:mono
+    - macOS:build:chains:mono:2018.1.0b13
 
 
 macOS:run:hierarchy:mono:2018.1.0b13:
@@ -1012,7 +1012,7 @@ macOS:run:hierarchy:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:hierarchy:mono
+    - macOS:build:hierarchy:mono:2018.1.0b13
 
 
 macOS:run:rotation:mono:2018.1.0b13:
@@ -1032,7 +1032,7 @@ macOS:run:rotation:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:rotation:mono
+    - macOS:build:rotation:mono:2018.1.0b13
 
 
 macOS:run:twostickshooter-classic:mono:2018.1.0b13:
@@ -1052,7 +1052,7 @@ macOS:run:twostickshooter-classic:mono:2018.1.0b13:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-classic:mono
+    - macOS:build:twostickshooter-classic:mono:2018.1.0b13
 
 
 macOS:run:twostickshooter-hybrid:mono:2018.1.0b13:
@@ -1072,7 +1072,7 @@ macOS:run:twostickshooter-hybrid:mono:2018.1.0b13:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-hybrid:mono
+    - macOS:build:twostickshooter-hybrid:mono:2018.1.0b13
 
 
 macOS:run:twostickshooter-pure:mono:2018.1.0b13:
@@ -1092,7 +1092,7 @@ macOS:run:twostickshooter-pure:mono:2018.1.0b13:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-pure:mono
+    - macOS:build:twostickshooter-pure:mono:2018.1.0b13
 
 
 macOS:run:boids:il2cpp:2018.1.0b13:
@@ -1112,7 +1112,7 @@ macOS:run:boids:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:boids:il2cpp
+    - macOS:build:boids:il2cpp:2018.1.0b13
 
 
 macOS:run:chains:il2cpp:2018.1.0b13:
@@ -1132,7 +1132,7 @@ macOS:run:chains:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:chains:il2cpp
+    - macOS:build:chains:il2cpp:2018.1.0b13
 
 
 macOS:run:hierarchy:il2cpp:2018.1.0b13:
@@ -1152,7 +1152,7 @@ macOS:run:hierarchy:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:hierarchy:il2cpp
+    - macOS:build:hierarchy:il2cpp:2018.1.0b13
 
 
 macOS:run:rotation:il2cpp:2018.1.0b13:
@@ -1172,7 +1172,7 @@ macOS:run:rotation:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:rotation:il2cpp
+    - macOS:build:rotation:il2cpp:2018.1.0b13
 
 
 macOS:run:twostickshooter-classic:il2cpp:2018.1.0b13:
@@ -1192,7 +1192,7 @@ macOS:run:twostickshooter-classic:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-classic:il2cpp
+    - macOS:build:twostickshooter-classic:il2cpp:2018.1.0b13
 
 
 macOS:run:twostickshooter-hybrid:il2cpp:2018.1.0b13:
@@ -1212,7 +1212,7 @@ macOS:run:twostickshooter-hybrid:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-hybrid:il2cpp
+    - macOS:build:twostickshooter-hybrid:il2cpp:2018.1.0b13
 
 
 macOS:run:twostickshooter-pure:il2cpp:2018.1.0b13:
@@ -1232,7 +1232,7 @@ macOS:run:twostickshooter-pure:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-pure:il2cpp
+    - macOS:build:twostickshooter-pure:il2cpp:2018.1.0b13
 
 
 ################################################################################
@@ -1279,7 +1279,7 @@ windows:build:boids:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.2.0a8
 
 
 windows:build:chains:mono:2018.2.0a8:
@@ -1301,7 +1301,7 @@ windows:build:chains:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.2.0a8
 
 
 windows:build:hierarchy:mono:2018.2.0a8:
@@ -1323,7 +1323,7 @@ windows:build:hierarchy:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.2.0a8
 
 
 windows:build:rotation:mono:2018.2.0a8:
@@ -1345,7 +1345,7 @@ windows:build:rotation:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.2.0a8
 
 
 windows:build:twostickshooter-classic:mono:2018.2.0a8:
@@ -1367,7 +1367,7 @@ windows:build:twostickshooter-classic:mono:2018.2.0a8:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.2.0a8
 
 
 windows:build:twostickshooter-hybrid:mono:2018.2.0a8:
@@ -1389,7 +1389,7 @@ windows:build:twostickshooter-hybrid:mono:2018.2.0a8:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.2.0a8
 
 
 windows:build:twostickshooter-pure:mono:2018.2.0a8:
@@ -1411,7 +1411,7 @@ windows:build:twostickshooter-pure:mono:2018.2.0a8:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.2.0a8
 
 
 windows:build:boids:il2cpp:2018.2.0a8:
@@ -1433,7 +1433,7 @@ windows:build:boids:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.2.0a8
 
 
 windows:build:chains:il2cpp:2018.2.0a8:
@@ -1455,7 +1455,7 @@ windows:build:chains:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.2.0a8
 
 
 windows:build:hierarchy:il2cpp:2018.2.0a8:
@@ -1477,7 +1477,7 @@ windows:build:hierarchy:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.2.0a8
 
 
 windows:build:rotation:il2cpp:2018.2.0a8:
@@ -1499,7 +1499,7 @@ windows:build:rotation:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.2.0a8
 
 
 windows:build:twostickshooter-classic:il2cpp:2018.2.0a8:
@@ -1521,7 +1521,7 @@ windows:build:twostickshooter-classic:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.2.0a8
 
 
 windows:build:twostickshooter-hybrid:il2cpp:2018.2.0a8:
@@ -1543,7 +1543,7 @@ windows:build:twostickshooter-hybrid:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.2.0a8
 
 
 windows:build:twostickshooter-pure:il2cpp:2018.2.0a8:
@@ -1565,7 +1565,7 @@ windows:build:twostickshooter-pure:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - windows:test
+    - windows:test:2018.2.0a8
 
 
 ################################################################################
@@ -1588,7 +1588,7 @@ windows:run:boids:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:boids:mono
+    - windows:build:boids:mono:2018.2.0a8
 
 
 windows:run:chains:mono:2018.2.0a8:
@@ -1608,7 +1608,7 @@ windows:run:chains:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:chains:mono
+    - windows:build:chains:mono:2018.2.0a8
 
 
 windows:run:hierarchy:mono:2018.2.0a8:
@@ -1628,7 +1628,7 @@ windows:run:hierarchy:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:hierarchy:mono
+    - windows:build:hierarchy:mono:2018.2.0a8
 
 
 windows:run:rotation:mono:2018.2.0a8:
@@ -1648,7 +1648,7 @@ windows:run:rotation:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:rotation:mono
+    - windows:build:rotation:mono:2018.2.0a8
 
 
 windows:run:twostickshooter-classic:mono:2018.2.0a8:
@@ -1668,7 +1668,7 @@ windows:run:twostickshooter-classic:mono:2018.2.0a8:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-classic:mono
+    - windows:build:twostickshooter-classic:mono:2018.2.0a8
 
 
 windows:run:twostickshooter-hybrid:mono:2018.2.0a8:
@@ -1688,7 +1688,7 @@ windows:run:twostickshooter-hybrid:mono:2018.2.0a8:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-hybrid:mono
+    - windows:build:twostickshooter-hybrid:mono:2018.2.0a8
 
 
 windows:run:twostickshooter-pure:mono:2018.2.0a8:
@@ -1708,7 +1708,7 @@ windows:run:twostickshooter-pure:mono:2018.2.0a8:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-pure:mono
+    - windows:build:twostickshooter-pure:mono:2018.2.0a8
 
 
 windows:run:boids:il2cpp:2018.2.0a8:
@@ -1728,7 +1728,7 @@ windows:run:boids:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:boids:il2cpp
+    - windows:build:boids:il2cpp:2018.2.0a8
 
 
 windows:run:chains:il2cpp:2018.2.0a8:
@@ -1748,7 +1748,7 @@ windows:run:chains:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:chains:il2cpp
+    - windows:build:chains:il2cpp:2018.2.0a8
 
 
 windows:run:hierarchy:il2cpp:2018.2.0a8:
@@ -1768,7 +1768,7 @@ windows:run:hierarchy:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:hierarchy:il2cpp
+    - windows:build:hierarchy:il2cpp:2018.2.0a8
 
 
 windows:run:rotation:il2cpp:2018.2.0a8:
@@ -1788,7 +1788,7 @@ windows:run:rotation:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:rotation:il2cpp
+    - windows:build:rotation:il2cpp:2018.2.0a8
 
 
 windows:run:twostickshooter-classic:il2cpp:2018.2.0a8:
@@ -1808,7 +1808,7 @@ windows:run:twostickshooter-classic:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-classic:il2cpp
+    - windows:build:twostickshooter-classic:il2cpp:2018.2.0a8
 
 
 windows:run:twostickshooter-hybrid:il2cpp:2018.2.0a8:
@@ -1828,7 +1828,7 @@ windows:run:twostickshooter-hybrid:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-hybrid:il2cpp
+    - windows:build:twostickshooter-hybrid:il2cpp:2018.2.0a8
 
 
 windows:run:twostickshooter-pure:il2cpp:2018.2.0a8:
@@ -1848,7 +1848,7 @@ windows:run:twostickshooter-pure:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-pure:il2cpp
+    - windows:build:twostickshooter-pure:il2cpp:2018.2.0a8
 
 
 ################################################################################
@@ -1895,7 +1895,7 @@ macOS:build:boids:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.2.0a8
 
 
 macOS:build:chains:mono:2018.2.0a8:
@@ -1917,7 +1917,7 @@ macOS:build:chains:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.2.0a8
 
 
 macOS:build:hierarchy:mono:2018.2.0a8:
@@ -1939,7 +1939,7 @@ macOS:build:hierarchy:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.2.0a8
 
 
 macOS:build:rotation:mono:2018.2.0a8:
@@ -1961,7 +1961,7 @@ macOS:build:rotation:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.2.0a8
 
 
 macOS:build:twostickshooter-classic:mono:2018.2.0a8:
@@ -1983,7 +1983,7 @@ macOS:build:twostickshooter-classic:mono:2018.2.0a8:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.2.0a8
 
 
 macOS:build:twostickshooter-hybrid:mono:2018.2.0a8:
@@ -2005,7 +2005,7 @@ macOS:build:twostickshooter-hybrid:mono:2018.2.0a8:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.2.0a8
 
 
 macOS:build:twostickshooter-pure:mono:2018.2.0a8:
@@ -2027,7 +2027,7 @@ macOS:build:twostickshooter-pure:mono:2018.2.0a8:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.2.0a8
 
 
 macOS:build:boids:il2cpp:2018.2.0a8:
@@ -2049,7 +2049,7 @@ macOS:build:boids:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.2.0a8
 
 
 macOS:build:chains:il2cpp:2018.2.0a8:
@@ -2071,7 +2071,7 @@ macOS:build:chains:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.2.0a8
 
 
 macOS:build:hierarchy:il2cpp:2018.2.0a8:
@@ -2093,7 +2093,7 @@ macOS:build:hierarchy:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.2.0a8
 
 
 macOS:build:rotation:il2cpp:2018.2.0a8:
@@ -2115,7 +2115,7 @@ macOS:build:rotation:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.2.0a8
 
 
 macOS:build:twostickshooter-classic:il2cpp:2018.2.0a8:
@@ -2137,7 +2137,7 @@ macOS:build:twostickshooter-classic:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.2.0a8
 
 
 macOS:build:twostickshooter-hybrid:il2cpp:2018.2.0a8:
@@ -2159,7 +2159,7 @@ macOS:build:twostickshooter-hybrid:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.2.0a8
 
 
 macOS:build:twostickshooter-pure:il2cpp:2018.2.0a8:
@@ -2181,7 +2181,7 @@ macOS:build:twostickshooter-pure:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test
+    - macOS:test:2018.2.0a8
 
 
 ################################################################################
@@ -2204,7 +2204,7 @@ macOS:run:boids:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:boids:mono
+    - macOS:build:boids:mono:2018.2.0a8
 
 
 macOS:run:chains:mono:2018.2.0a8:
@@ -2224,7 +2224,7 @@ macOS:run:chains:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:chains:mono
+    - macOS:build:chains:mono:2018.2.0a8
 
 
 macOS:run:hierarchy:mono:2018.2.0a8:
@@ -2244,7 +2244,7 @@ macOS:run:hierarchy:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:hierarchy:mono
+    - macOS:build:hierarchy:mono:2018.2.0a8
 
 
 macOS:run:rotation:mono:2018.2.0a8:
@@ -2264,7 +2264,7 @@ macOS:run:rotation:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:rotation:mono
+    - macOS:build:rotation:mono:2018.2.0a8
 
 
 macOS:run:twostickshooter-classic:mono:2018.2.0a8:
@@ -2284,7 +2284,7 @@ macOS:run:twostickshooter-classic:mono:2018.2.0a8:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-classic:mono
+    - macOS:build:twostickshooter-classic:mono:2018.2.0a8
 
 
 macOS:run:twostickshooter-hybrid:mono:2018.2.0a8:
@@ -2304,7 +2304,7 @@ macOS:run:twostickshooter-hybrid:mono:2018.2.0a8:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-hybrid:mono
+    - macOS:build:twostickshooter-hybrid:mono:2018.2.0a8
 
 
 macOS:run:twostickshooter-pure:mono:2018.2.0a8:
@@ -2324,7 +2324,7 @@ macOS:run:twostickshooter-pure:mono:2018.2.0a8:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-pure:mono
+    - macOS:build:twostickshooter-pure:mono:2018.2.0a8
 
 
 macOS:run:boids:il2cpp:2018.2.0a8:
@@ -2344,7 +2344,7 @@ macOS:run:boids:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:boids:il2cpp
+    - macOS:build:boids:il2cpp:2018.2.0a8
 
 
 macOS:run:chains:il2cpp:2018.2.0a8:
@@ -2364,7 +2364,7 @@ macOS:run:chains:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:chains:il2cpp
+    - macOS:build:chains:il2cpp:2018.2.0a8
 
 
 macOS:run:hierarchy:il2cpp:2018.2.0a8:
@@ -2384,7 +2384,7 @@ macOS:run:hierarchy:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:hierarchy:il2cpp
+    - macOS:build:hierarchy:il2cpp:2018.2.0a8
 
 
 macOS:run:rotation:il2cpp:2018.2.0a8:
@@ -2404,7 +2404,7 @@ macOS:run:rotation:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:rotation:il2cpp
+    - macOS:build:rotation:il2cpp:2018.2.0a8
 
 
 macOS:run:twostickshooter-classic:il2cpp:2018.2.0a8:
@@ -2424,7 +2424,7 @@ macOS:run:twostickshooter-classic:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-classic:il2cpp
+    - macOS:build:twostickshooter-classic:il2cpp:2018.2.0a8
 
 
 macOS:run:twostickshooter-hybrid:il2cpp:2018.2.0a8:
@@ -2444,7 +2444,7 @@ macOS:run:twostickshooter-hybrid:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-hybrid:il2cpp
+    - macOS:build:twostickshooter-hybrid:il2cpp:2018.2.0a8
 
 
 macOS:run:twostickshooter-pure:il2cpp:2018.2.0a8:
@@ -2464,6 +2464,6 @@ macOS:run:twostickshooter-pure:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-pure:il2cpp
+    - macOS:build:twostickshooter-pure:il2cpp:2018.2.0a8
 
 

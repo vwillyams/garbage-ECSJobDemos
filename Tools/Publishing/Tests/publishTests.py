@@ -30,7 +30,7 @@ class TestGetListOfPackages(TestCase):
 
     def test_get_list_of_packages_ProvideFolderWithTwoPackages_ReturnList(self):
         projectPath = './packageContainer'
-        expectedPackages = [projectPath + '/package1', projectPath + '/package2']
+        expectedPackages = [os.path.join(projectPath, 'package1'), os.path.join(projectPath, 'package2')]
         self.assertEqual(get_list_of_packages(projectPath), expectedPackages)
 
 class TestIsPreview(TestCase):

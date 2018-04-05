@@ -2,9 +2,11 @@ import json
 import os
 import tarfile
 
+import sys
+
 artifactory_url = "https://artifactory.eu-cph-1.unityops.net/"
 artifactory_repository = "core-automation"
-build_version = "2018.1.0b13"
+build_version = None
 
 
 def get_current_os():
@@ -84,4 +86,5 @@ def main():
 
 
 if __name__ == "__main__":
+    build_version = sys.argv[1]
     main()

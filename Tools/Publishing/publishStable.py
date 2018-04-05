@@ -20,14 +20,12 @@ local_packages = {}
 modified_packages = {}
 best_view_registry = None
 
-
 def get_packages_folder():
     # type: () -> str
     path = args.packages_path
     if os.path.isfile(path + "manifest.json"):
         return os.path.abspath(path)
     raise Exception("Unable to find {0}".format(path))
-
 
 def get_list_of_packages(folder):
     # type: (str) -> [str]
@@ -36,45 +34,54 @@ def get_list_of_packages(folder):
         packages.append(os.path.dirname(f))
     return packages
 
+def parse_package_json(package_path):
+    with open("{0}/package.json".format(package_path), 'r') as f:
+        return json.load(f)
 
-def compare_package_files(local_path, installed_path, current_version):
-    print "  Comparing package files locally with published:"
-    with open("{0}/package.json".format(local_path), 'r') as f:
-        local_package = json.load(f)
-    with open("{0}/package.json".format(installed_path), 'r') as f:
-        installed_package = json.load(f)
-
-    local_package["version"] = current_version
-
+def compare_json_keys(local_package, installed_package):
     key_diff = set(local_package.keys()) - set(installed_package.keys())
     if len(key_diff) > 0:
         print "    The one package.json files do not have the same keys. The keys missing is:"
         for key in key_diff:
             print "      {0}".format(key)
         return False
+    return True
 
-    for key, value in local_package.iteritems():
-        if value != installed_package[key]:
+def compare_package_files(local_path, installed_path, current_version):
+    print "  Comparing package files locally with published:"
+
+    local_package = parse_package_json(local_path)
+    installed_package = parse_package_json(installed_path)
+
+    local_package["version"] = current_version
+
+    if not compare_json_keys(local_package, installed_package):
+        return False
+
+    for key_local_JSON, value_local_JSON in local_package.iteritems():
+        if value_local_JSON != installed_package[key_local_JSON]:
             # If we are using --add-package-as-dependency-to-package then the dependencies will differ
             # so we do an exception here and check that the ones we are missing are the ones we have flagged
             # and the version we can find on the registry is the same
-            if key == "dependencies":
+            if key_local_JSON == "dependencies":
                 should_fail = False
-                for nested_key, nested_value in installed_package[key].iteritems():
-                    if nested_key in value and nested_value == value[nested_key]:
-                        continue
-                    if nested_key not in value and \
-                            any(nested_key in d for d in args.add_package_as_dependency_to_package) and \
-                            nested_key in local_packages and \
-                            nested_value == local_packages[nested_key]:
-                        continue
+                set_of_local_dependencies = value_local_JSON
+                for remote_package_name, remote_package_version in installed_package["dependencies"].iteritems():
+                    if remote_package_name in set_of_local_dependencies:
+                        if remote_package_version == set_of_local_dependencies[remote_package_name]:
+                            continue
+                    else:
+                            if any(package_name in d for d in args.add_package_as_dependency_to_package) and \
+                                    package_name in local_packages and \
+                                    package_version == local_packages[package_name]:
+                                continue
                     should_fail = True
                 if not should_fail:
                     continue
 
-            print "    {0} is differing between packages:".format(key)
-            print "      Local: {0}".format(value)
-            print "      Published: {0}".format(installed_package[key])
+            print "    {0} is differing between packages:".format(key_local_JSON)
+            print "      Local: {0}".format(value_local_JSON)
+            print "      Published: {0}".format(installed_package[key_local_JSON])
             return False
 
     print "    Looks the same"

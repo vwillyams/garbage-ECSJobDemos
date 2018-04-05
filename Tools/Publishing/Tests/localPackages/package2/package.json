@@ -1,0 +1,9 @@
+{
+  "name": "package2",
+  "version": "0.0.1",
+  "unity": "2018.1",
+  "description": "Additional Package",
+  "keywords": [
+    "unity"
+  ]
+}

@@ -1,15 +1,17 @@
-import unittest
-import mock
-import argparse
 import os
 from unittest import TestCase
 from BumpVersion import BumpVersion
 from publishStable import args
+import publishStable
 from publishStable import get_packages_folder
 from publishStable import get_list_of_packages
 from publishStable import increase_version
 from publishStable import validate_version
+from publishStable import parse_package_json
+from publishStable import compare_package_files
+from publishStable import compare_json_keys
 from publishStable import is_preview
+
 import semver
 
 class TestGetPackagesFolder(TestCase):
@@ -18,8 +20,8 @@ class TestGetPackagesFolder(TestCase):
         self.assertRaises(Exception, get_packages_folder)
 
     def test_get_packages_folder_SetfolderWithManifest_ReturnAbsolutePath(self):
-        args.packages_path = './packageContainer/'
-        self.assertEqual(get_packages_folder(), os.path.abspath('./packageContainer/'))
+        args.packages_path = './localPackages/'
+        self.assertEqual(get_packages_folder(), os.path.abspath('./localPackages/'))
 
 class TestGetListOfPackages(TestCase):
     def test_get_list_of_packages_ProvideUnexistingFolder_ReturnEmptyList(self):
@@ -29,9 +31,84 @@ class TestGetListOfPackages(TestCase):
         self.assertEqual(get_list_of_packages('.'), [])
 
     def test_get_list_of_packages_ProvideFolderWithTwoPackages_ReturnList(self):
-        projectPath = './packageContainer'
+        projectPath = './localPackages'
         expectedPackages = [os.path.join(projectPath, 'package1'), os.path.join(projectPath, 'package2')]
         self.assertEqual(get_list_of_packages(projectPath), expectedPackages)
+
+class TestParsePackageJson(TestCase):
+    def test_parse_package_json_NonExistingPath_RaiseException(self):
+        self.assertRaises(Exception, parse_package_json, './this/is/an/invalid/path')
+
+    def test_parse_package_json_InvalidJSON_RaiseException(self):
+        self.assertRaises(ValueError, parse_package_json, './installedPackages/brokenPackage')
+
+    def test_parse_package_json_ValidJSON_RaiseException(self):
+        package1Reference = {u'keywords': [u'test_package', u'unity'], u'version': u'0.0.1',
+                             u'name': u'package1', u'dependencies': {u'package3': u'0.2.1'},
+                             u'description': u'package1'}
+
+        self.assertEqual(parse_package_json('./localPackages/package1'), package1Reference)
+
+class TestCompareJsonKeys(TestCase):
+    package1Reference = {u'keywords': [u'test_package', u'unity'], u'version': u'0.0.1',
+                         u'name': u'package1', u'dependencies': {u'package3': u'0.2.1'},
+                         u'description': u'package1'}
+    package1ReferenceNoDependencies = {u'keywords': [u'test_package', u'unity'], u'version': u'0.0.1',
+                         u'name': u'package1', u'description': u'package1'}
+    emptyReference = {}
+
+    number = 42
+
+    def test_compare_json_keys_InvalidLocalPackage_RaiseException(self):
+        self.assertRaises(AttributeError, compare_json_keys, self.number, self.package1Reference)
+
+    def test_compare_json_keys_InvalidInstalledPackage_RaiseException(self):
+        self.assertRaises(AttributeError, compare_json_keys, self.package1Reference,  self.number)
+
+    def test_compare_json_keys_DifferentPackageDescriptors_ReturnFalse(self):
+        self.assertFalse(compare_json_keys(self.package1Reference, self.package1ReferenceNoDependencies))
+
+    def test_compare_json_keys_EqualPackageDescriptors_ReturnTrue(self):
+        self.assertTrue(compare_json_keys(self.package1Reference, self.package1Reference))
+
+
+class TestComparePackageFiles(TestCase):
+    def test_compare_package_files_NoDifferencesInPackage_ReturnsTrue(self):
+        self.assertTrue(compare_package_files('./localPackages/package1', './installedPackages/package1Clone', '0.0.1'))
+
+    def test_compare_package_files_DifferencesInPackageJSONKeys_ReturnsFalse(self):
+        self.assertFalse(compare_package_files('./localPackages/package1', './installedPackages/package3', '0.0.1'))
+
+    def test_compare_package_files_DifferencesInPackageJSONDependencyVersions_ReturnsFalse(self):
+        self.assertFalse(compare_package_files('./localPackages/package1', './installedPackages/package1cloneWithDifferentDependencyVersion', '0.0.1'))
+
+    def test_compare_package_files_DifferencesInPackageJSONDependencyPackage_ReturnsFalse(self):
+        args.add_package_as_dependency_to_package = 'package2'
+        self.assertFalse(compare_package_files('./localPackages/package1', './installedPackages/package1cloneWithDifferentDependencyPackage', '0.0.1'))
+
+
+
+
+    def test_compare_package_files_DifferencesInPackageJSONDependencyLocalPackage_ReturnsFalse(self):
+        args.add_package_as_dependency_to_package = 'package48'
+        publishStable.local_packages = {'package48': '0.2.1'}
+        self.assertFalse(compare_package_files('./localPackages/package1', './installedPackages/package1cloneWithDifferentDependencyPackage', '0.0.1'))
+
+
+
+
+    def test_compare_package_files_DifferencesInPackageJSONName_ReturnsFalse(self):
+        self.assertFalse(compare_package_files('./localPackages/package1', './installedPackages/package1cloneWithDifferentName', '0.0.1'))
+
+    def test_compare_package_files_DifferencesInPackageJSONVersion_ReturnsFalse(self):
+        self.assertFalse(compare_package_files('./localPackages/package1', './installedPackages/package1cloneWithDifferentVersion', '0.0.1'))
+
+    def test_compare_package_files_DifferencesInPackageJSONKeywords_ReturnsFalse(self):
+        self.assertFalse(compare_package_files('./localPackages/package1', './installedPackages/package1cloneWithDifferentKeywords', '0.0.1'))
+
+    def test_compare_package_files_DifferencesInPackageJSONDescription_ReturnsFalse(self):
+        self.assertFalse(compare_package_files('./localPackages/package1', './installedPackages/package1cloneWithDifferentDescription', '0.0.1'))
+
 
 class TestIsPreview(TestCase):
     def test_is_preview_VersionIsStableRelease_ReturnFalse(self):

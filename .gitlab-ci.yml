@@ -4,14 +4,14 @@ stages:
   - run
 
 ################################################################################
-# windows test for 2018.1.0b13
+# windows test for 2018.1
 ################################################################################
-windows:test:2018.1.0b13:
+windows:test:2018.1:
   stage: test
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - windows
   script:
@@ -26,14 +26,14 @@ windows:test:2018.1.0b13:
     expire_in: 1 week
 
 ################################################################################
-# windows build for 2018.1.0b13
+# windows build for 2018.1
 ################################################################################
-windows:build:boids:mono:2018.1.0b13:
+windows:build:boids:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - windows
   script:
@@ -47,15 +47,15 @@ windows:build:boids:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.1.0b13
+    - windows:test:2018.1
 
 
-windows:build:chains:mono:2018.1.0b13:
+windows:build:chains:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - windows
   script:
@@ -69,15 +69,15 @@ windows:build:chains:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.1.0b13
+    - windows:test:2018.1
 
 
-windows:build:hierarchy:mono:2018.1.0b13:
+windows:build:hierarchy:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - windows
   script:
@@ -91,15 +91,15 @@ windows:build:hierarchy:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.1.0b13
+    - windows:test:2018.1
 
 
-windows:build:rotation:mono:2018.1.0b13:
+windows:build:rotation:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - windows
   script:
@@ -113,15 +113,15 @@ windows:build:rotation:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.1.0b13
+    - windows:test:2018.1
 
 
-windows:build:twostickshooter-classic:mono:2018.1.0b13:
+windows:build:twostickshooter-classic:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - windows
   script:
@@ -135,15 +135,15 @@ windows:build:twostickshooter-classic:mono:2018.1.0b13:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.1.0b13
+    - windows:test:2018.1
 
 
-windows:build:twostickshooter-hybrid:mono:2018.1.0b13:
+windows:build:twostickshooter-hybrid:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - windows
   script:
@@ -157,15 +157,15 @@ windows:build:twostickshooter-hybrid:mono:2018.1.0b13:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.1.0b13
+    - windows:test:2018.1
 
 
-windows:build:twostickshooter-pure:mono:2018.1.0b13:
+windows:build:twostickshooter-pure:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - windows
   script:
@@ -179,15 +179,15 @@ windows:build:twostickshooter-pure:mono:2018.1.0b13:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.1.0b13
+    - windows:test:2018.1
 
 
-windows:build:boids:il2cpp:2018.1.0b13:
+windows:build:boids:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - windows
   script:
@@ -201,15 +201,15 @@ windows:build:boids:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.1.0b13
+    - windows:test:2018.1
 
 
-windows:build:chains:il2cpp:2018.1.0b13:
+windows:build:chains:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - windows
   script:
@@ -223,15 +223,15 @@ windows:build:chains:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.1.0b13
+    - windows:test:2018.1
 
 
-windows:build:hierarchy:il2cpp:2018.1.0b13:
+windows:build:hierarchy:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - windows
   script:
@@ -245,15 +245,15 @@ windows:build:hierarchy:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.1.0b13
+    - windows:test:2018.1
 
 
-windows:build:rotation:il2cpp:2018.1.0b13:
+windows:build:rotation:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - windows
   script:
@@ -267,15 +267,15 @@ windows:build:rotation:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.1.0b13
+    - windows:test:2018.1
 
 
-windows:build:twostickshooter-classic:il2cpp:2018.1.0b13:
+windows:build:twostickshooter-classic:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - windows
   script:
@@ -289,15 +289,15 @@ windows:build:twostickshooter-classic:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.1.0b13
+    - windows:test:2018.1
 
 
-windows:build:twostickshooter-hybrid:il2cpp:2018.1.0b13:
+windows:build:twostickshooter-hybrid:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - windows
   script:
@@ -311,15 +311,15 @@ windows:build:twostickshooter-hybrid:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.1.0b13
+    - windows:test:2018.1
 
 
-windows:build:twostickshooter-pure:il2cpp:2018.1.0b13:
+windows:build:twostickshooter-pure:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - windows
   script:
@@ -333,13 +333,13 @@ windows:build:twostickshooter-pure:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.1.0b13
+    - windows:test:2018.1
 
 
 ################################################################################
-# windows run for 2018.1.0b13
+# windows run for 2018.1
 ################################################################################
-windows:run:boids:mono:2018.1.0b13:
+windows:run:boids:mono:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -356,10 +356,10 @@ windows:run:boids:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:boids:mono:2018.1.0b13
+    - windows:build:boids:mono:2018.1
 
 
-windows:run:chains:mono:2018.1.0b13:
+windows:run:chains:mono:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -376,10 +376,10 @@ windows:run:chains:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:chains:mono:2018.1.0b13
+    - windows:build:chains:mono:2018.1
 
 
-windows:run:hierarchy:mono:2018.1.0b13:
+windows:run:hierarchy:mono:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -396,10 +396,10 @@ windows:run:hierarchy:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:hierarchy:mono:2018.1.0b13
+    - windows:build:hierarchy:mono:2018.1
 
 
-windows:run:rotation:mono:2018.1.0b13:
+windows:run:rotation:mono:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -416,10 +416,10 @@ windows:run:rotation:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:rotation:mono:2018.1.0b13
+    - windows:build:rotation:mono:2018.1
 
 
-windows:run:twostickshooter-classic:mono:2018.1.0b13:
+windows:run:twostickshooter-classic:mono:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -436,10 +436,10 @@ windows:run:twostickshooter-classic:mono:2018.1.0b13:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-classic:mono:2018.1.0b13
+    - windows:build:twostickshooter-classic:mono:2018.1
 
 
-windows:run:twostickshooter-hybrid:mono:2018.1.0b13:
+windows:run:twostickshooter-hybrid:mono:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -456,10 +456,10 @@ windows:run:twostickshooter-hybrid:mono:2018.1.0b13:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-hybrid:mono:2018.1.0b13
+    - windows:build:twostickshooter-hybrid:mono:2018.1
 
 
-windows:run:twostickshooter-pure:mono:2018.1.0b13:
+windows:run:twostickshooter-pure:mono:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -476,10 +476,10 @@ windows:run:twostickshooter-pure:mono:2018.1.0b13:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-pure:mono:2018.1.0b13
+    - windows:build:twostickshooter-pure:mono:2018.1
 
 
-windows:run:boids:il2cpp:2018.1.0b13:
+windows:run:boids:il2cpp:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -496,10 +496,10 @@ windows:run:boids:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:boids:il2cpp:2018.1.0b13
+    - windows:build:boids:il2cpp:2018.1
 
 
-windows:run:chains:il2cpp:2018.1.0b13:
+windows:run:chains:il2cpp:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -516,10 +516,10 @@ windows:run:chains:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:chains:il2cpp:2018.1.0b13
+    - windows:build:chains:il2cpp:2018.1
 
 
-windows:run:hierarchy:il2cpp:2018.1.0b13:
+windows:run:hierarchy:il2cpp:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -536,10 +536,10 @@ windows:run:hierarchy:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:hierarchy:il2cpp:2018.1.0b13
+    - windows:build:hierarchy:il2cpp:2018.1
 
 
-windows:run:rotation:il2cpp:2018.1.0b13:
+windows:run:rotation:il2cpp:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -556,10 +556,10 @@ windows:run:rotation:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:rotation:il2cpp:2018.1.0b13
+    - windows:build:rotation:il2cpp:2018.1
 
 
-windows:run:twostickshooter-classic:il2cpp:2018.1.0b13:
+windows:run:twostickshooter-classic:il2cpp:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -576,10 +576,10 @@ windows:run:twostickshooter-classic:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-classic:il2cpp:2018.1.0b13
+    - windows:build:twostickshooter-classic:il2cpp:2018.1
 
 
-windows:run:twostickshooter-hybrid:il2cpp:2018.1.0b13:
+windows:run:twostickshooter-hybrid:il2cpp:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -596,10 +596,10 @@ windows:run:twostickshooter-hybrid:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-hybrid:il2cpp:2018.1.0b13
+    - windows:build:twostickshooter-hybrid:il2cpp:2018.1
 
 
-windows:run:twostickshooter-pure:il2cpp:2018.1.0b13:
+windows:run:twostickshooter-pure:il2cpp:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -616,18 +616,18 @@ windows:run:twostickshooter-pure:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-pure:il2cpp:2018.1.0b13
+    - windows:build:twostickshooter-pure:il2cpp:2018.1
 
 
 ################################################################################
-# macOS test for 2018.1.0b13
+# macOS test for 2018.1
 ################################################################################
-macOS:test:2018.1.0b13:
+macOS:test:2018.1:
   stage: test
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - macOS
   script:
@@ -642,14 +642,14 @@ macOS:test:2018.1.0b13:
     expire_in: 1 week
 
 ################################################################################
-# macOS build for 2018.1.0b13
+# macOS build for 2018.1
 ################################################################################
-macOS:build:boids:mono:2018.1.0b13:
+macOS:build:boids:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - macOS
   script:
@@ -663,15 +663,15 @@ macOS:build:boids:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.1.0b13
+    - macOS:test:2018.1
 
 
-macOS:build:chains:mono:2018.1.0b13:
+macOS:build:chains:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - macOS
   script:
@@ -685,15 +685,15 @@ macOS:build:chains:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.1.0b13
+    - macOS:test:2018.1
 
 
-macOS:build:hierarchy:mono:2018.1.0b13:
+macOS:build:hierarchy:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - macOS
   script:
@@ -707,15 +707,15 @@ macOS:build:hierarchy:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.1.0b13
+    - macOS:test:2018.1
 
 
-macOS:build:rotation:mono:2018.1.0b13:
+macOS:build:rotation:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - macOS
   script:
@@ -729,15 +729,15 @@ macOS:build:rotation:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.1.0b13
+    - macOS:test:2018.1
 
 
-macOS:build:twostickshooter-classic:mono:2018.1.0b13:
+macOS:build:twostickshooter-classic:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - macOS
   script:
@@ -751,15 +751,15 @@ macOS:build:twostickshooter-classic:mono:2018.1.0b13:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.1.0b13
+    - macOS:test:2018.1
 
 
-macOS:build:twostickshooter-hybrid:mono:2018.1.0b13:
+macOS:build:twostickshooter-hybrid:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - macOS
   script:
@@ -773,15 +773,15 @@ macOS:build:twostickshooter-hybrid:mono:2018.1.0b13:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.1.0b13
+    - macOS:test:2018.1
 
 
-macOS:build:twostickshooter-pure:mono:2018.1.0b13:
+macOS:build:twostickshooter-pure:mono:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - macOS
   script:
@@ -795,15 +795,15 @@ macOS:build:twostickshooter-pure:mono:2018.1.0b13:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.1.0b13
+    - macOS:test:2018.1
 
 
-macOS:build:boids:il2cpp:2018.1.0b13:
+macOS:build:boids:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - macOS
   script:
@@ -817,15 +817,15 @@ macOS:build:boids:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.1.0b13
+    - macOS:test:2018.1
 
 
-macOS:build:chains:il2cpp:2018.1.0b13:
+macOS:build:chains:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - macOS
   script:
@@ -839,15 +839,15 @@ macOS:build:chains:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.1.0b13
+    - macOS:test:2018.1
 
 
-macOS:build:hierarchy:il2cpp:2018.1.0b13:
+macOS:build:hierarchy:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - macOS
   script:
@@ -861,15 +861,15 @@ macOS:build:hierarchy:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.1.0b13
+    - macOS:test:2018.1
 
 
-macOS:build:rotation:il2cpp:2018.1.0b13:
+macOS:build:rotation:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - macOS
   script:
@@ -883,15 +883,15 @@ macOS:build:rotation:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.1.0b13
+    - macOS:test:2018.1
 
 
-macOS:build:twostickshooter-classic:il2cpp:2018.1.0b13:
+macOS:build:twostickshooter-classic:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - macOS
   script:
@@ -905,15 +905,15 @@ macOS:build:twostickshooter-classic:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.1.0b13
+    - macOS:test:2018.1
 
 
-macOS:build:twostickshooter-hybrid:il2cpp:2018.1.0b13:
+macOS:build:twostickshooter-hybrid:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - macOS
   script:
@@ -927,15 +927,15 @@ macOS:build:twostickshooter-hybrid:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.1.0b13
+    - macOS:test:2018.1
 
 
-macOS:build:twostickshooter-pure:il2cpp:2018.1.0b13:
+macOS:build:twostickshooter-pure:il2cpp:2018.1:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.1.0b13
+  - python Tools/CI/beforescript.py 2018.1.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.1.0b13
+  - python Tools/CI/afterscript.py 2018.1.*$latest=true
   tags:
   - macOS
   script:
@@ -949,13 +949,13 @@ macOS:build:twostickshooter-pure:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.1.0b13
+    - macOS:test:2018.1
 
 
 ################################################################################
-# macOS run for 2018.1.0b13
+# macOS run for 2018.1
 ################################################################################
-macOS:run:boids:mono:2018.1.0b13:
+macOS:run:boids:mono:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -972,10 +972,10 @@ macOS:run:boids:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:boids:mono:2018.1.0b13
+    - macOS:build:boids:mono:2018.1
 
 
-macOS:run:chains:mono:2018.1.0b13:
+macOS:run:chains:mono:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -992,10 +992,10 @@ macOS:run:chains:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:chains:mono:2018.1.0b13
+    - macOS:build:chains:mono:2018.1
 
 
-macOS:run:hierarchy:mono:2018.1.0b13:
+macOS:run:hierarchy:mono:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1012,10 +1012,10 @@ macOS:run:hierarchy:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:hierarchy:mono:2018.1.0b13
+    - macOS:build:hierarchy:mono:2018.1
 
 
-macOS:run:rotation:mono:2018.1.0b13:
+macOS:run:rotation:mono:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1032,10 +1032,10 @@ macOS:run:rotation:mono:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:rotation:mono:2018.1.0b13
+    - macOS:build:rotation:mono:2018.1
 
 
-macOS:run:twostickshooter-classic:mono:2018.1.0b13:
+macOS:run:twostickshooter-classic:mono:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1052,10 +1052,10 @@ macOS:run:twostickshooter-classic:mono:2018.1.0b13:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-classic:mono:2018.1.0b13
+    - macOS:build:twostickshooter-classic:mono:2018.1
 
 
-macOS:run:twostickshooter-hybrid:mono:2018.1.0b13:
+macOS:run:twostickshooter-hybrid:mono:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1072,10 +1072,10 @@ macOS:run:twostickshooter-hybrid:mono:2018.1.0b13:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-hybrid:mono:2018.1.0b13
+    - macOS:build:twostickshooter-hybrid:mono:2018.1
 
 
-macOS:run:twostickshooter-pure:mono:2018.1.0b13:
+macOS:run:twostickshooter-pure:mono:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1092,10 +1092,10 @@ macOS:run:twostickshooter-pure:mono:2018.1.0b13:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-pure:mono:2018.1.0b13
+    - macOS:build:twostickshooter-pure:mono:2018.1
 
 
-macOS:run:boids:il2cpp:2018.1.0b13:
+macOS:run:boids:il2cpp:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1112,10 +1112,10 @@ macOS:run:boids:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:boids:il2cpp:2018.1.0b13
+    - macOS:build:boids:il2cpp:2018.1
 
 
-macOS:run:chains:il2cpp:2018.1.0b13:
+macOS:run:chains:il2cpp:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1132,10 +1132,10 @@ macOS:run:chains:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:chains:il2cpp:2018.1.0b13
+    - macOS:build:chains:il2cpp:2018.1
 
 
-macOS:run:hierarchy:il2cpp:2018.1.0b13:
+macOS:run:hierarchy:il2cpp:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1152,10 +1152,10 @@ macOS:run:hierarchy:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:hierarchy:il2cpp:2018.1.0b13
+    - macOS:build:hierarchy:il2cpp:2018.1
 
 
-macOS:run:rotation:il2cpp:2018.1.0b13:
+macOS:run:rotation:il2cpp:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1172,10 +1172,10 @@ macOS:run:rotation:il2cpp:2018.1.0b13:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:rotation:il2cpp:2018.1.0b13
+    - macOS:build:rotation:il2cpp:2018.1
 
 
-macOS:run:twostickshooter-classic:il2cpp:2018.1.0b13:
+macOS:run:twostickshooter-classic:il2cpp:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1192,10 +1192,10 @@ macOS:run:twostickshooter-classic:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-classic:il2cpp:2018.1.0b13
+    - macOS:build:twostickshooter-classic:il2cpp:2018.1
 
 
-macOS:run:twostickshooter-hybrid:il2cpp:2018.1.0b13:
+macOS:run:twostickshooter-hybrid:il2cpp:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1212,10 +1212,10 @@ macOS:run:twostickshooter-hybrid:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-hybrid:il2cpp:2018.1.0b13
+    - macOS:build:twostickshooter-hybrid:il2cpp:2018.1
 
 
-macOS:run:twostickshooter-pure:il2cpp:2018.1.0b13:
+macOS:run:twostickshooter-pure:il2cpp:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1232,18 +1232,18 @@ macOS:run:twostickshooter-pure:il2cpp:2018.1.0b13:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-pure:il2cpp:2018.1.0b13
+    - macOS:build:twostickshooter-pure:il2cpp:2018.1
 
 
 ################################################################################
-# windows test for 2018.2.0a8
+# windows test for 2018.2
 ################################################################################
-windows:test:2018.2.0a8:
+windows:test:2018.2:
   stage: test
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - windows
   script:
@@ -1258,14 +1258,14 @@ windows:test:2018.2.0a8:
     expire_in: 1 week
 
 ################################################################################
-# windows build for 2018.2.0a8
+# windows build for 2018.2
 ################################################################################
-windows:build:boids:mono:2018.2.0a8:
+windows:build:boids:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - windows
   script:
@@ -1279,15 +1279,15 @@ windows:build:boids:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.2.0a8
+    - windows:test:2018.2
 
 
-windows:build:chains:mono:2018.2.0a8:
+windows:build:chains:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - windows
   script:
@@ -1301,15 +1301,15 @@ windows:build:chains:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.2.0a8
+    - windows:test:2018.2
 
 
-windows:build:hierarchy:mono:2018.2.0a8:
+windows:build:hierarchy:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - windows
   script:
@@ -1323,15 +1323,15 @@ windows:build:hierarchy:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.2.0a8
+    - windows:test:2018.2
 
 
-windows:build:rotation:mono:2018.2.0a8:
+windows:build:rotation:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - windows
   script:
@@ -1345,15 +1345,15 @@ windows:build:rotation:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.2.0a8
+    - windows:test:2018.2
 
 
-windows:build:twostickshooter-classic:mono:2018.2.0a8:
+windows:build:twostickshooter-classic:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - windows
   script:
@@ -1367,15 +1367,15 @@ windows:build:twostickshooter-classic:mono:2018.2.0a8:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.2.0a8
+    - windows:test:2018.2
 
 
-windows:build:twostickshooter-hybrid:mono:2018.2.0a8:
+windows:build:twostickshooter-hybrid:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - windows
   script:
@@ -1389,15 +1389,15 @@ windows:build:twostickshooter-hybrid:mono:2018.2.0a8:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.2.0a8
+    - windows:test:2018.2
 
 
-windows:build:twostickshooter-pure:mono:2018.2.0a8:
+windows:build:twostickshooter-pure:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - windows
   script:
@@ -1411,15 +1411,15 @@ windows:build:twostickshooter-pure:mono:2018.2.0a8:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.2.0a8
+    - windows:test:2018.2
 
 
-windows:build:boids:il2cpp:2018.2.0a8:
+windows:build:boids:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - windows
   script:
@@ -1433,15 +1433,15 @@ windows:build:boids:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.2.0a8
+    - windows:test:2018.2
 
 
-windows:build:chains:il2cpp:2018.2.0a8:
+windows:build:chains:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - windows
   script:
@@ -1455,15 +1455,15 @@ windows:build:chains:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.2.0a8
+    - windows:test:2018.2
 
 
-windows:build:hierarchy:il2cpp:2018.2.0a8:
+windows:build:hierarchy:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - windows
   script:
@@ -1477,15 +1477,15 @@ windows:build:hierarchy:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.2.0a8
+    - windows:test:2018.2
 
 
-windows:build:rotation:il2cpp:2018.2.0a8:
+windows:build:rotation:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - windows
   script:
@@ -1499,15 +1499,15 @@ windows:build:rotation:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.2.0a8
+    - windows:test:2018.2
 
 
-windows:build:twostickshooter-classic:il2cpp:2018.2.0a8:
+windows:build:twostickshooter-classic:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - windows
   script:
@@ -1521,15 +1521,15 @@ windows:build:twostickshooter-classic:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.2.0a8
+    - windows:test:2018.2
 
 
-windows:build:twostickshooter-hybrid:il2cpp:2018.2.0a8:
+windows:build:twostickshooter-hybrid:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - windows
   script:
@@ -1543,15 +1543,15 @@ windows:build:twostickshooter-hybrid:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.2.0a8
+    - windows:test:2018.2
 
 
-windows:build:twostickshooter-pure:il2cpp:2018.2.0a8:
+windows:build:twostickshooter-pure:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - windows
   script:
@@ -1565,13 +1565,13 @@ windows:build:twostickshooter-pure:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:2018.2.0a8
+    - windows:test:2018.2
 
 
 ################################################################################
-# windows run for 2018.2.0a8
+# windows run for 2018.2
 ################################################################################
-windows:run:boids:mono:2018.2.0a8:
+windows:run:boids:mono:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1588,10 +1588,10 @@ windows:run:boids:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:boids:mono:2018.2.0a8
+    - windows:build:boids:mono:2018.2
 
 
-windows:run:chains:mono:2018.2.0a8:
+windows:run:chains:mono:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1608,10 +1608,10 @@ windows:run:chains:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:chains:mono:2018.2.0a8
+    - windows:build:chains:mono:2018.2
 
 
-windows:run:hierarchy:mono:2018.2.0a8:
+windows:run:hierarchy:mono:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1628,10 +1628,10 @@ windows:run:hierarchy:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:hierarchy:mono:2018.2.0a8
+    - windows:build:hierarchy:mono:2018.2
 
 
-windows:run:rotation:mono:2018.2.0a8:
+windows:run:rotation:mono:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1648,10 +1648,10 @@ windows:run:rotation:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:rotation:mono:2018.2.0a8
+    - windows:build:rotation:mono:2018.2
 
 
-windows:run:twostickshooter-classic:mono:2018.2.0a8:
+windows:run:twostickshooter-classic:mono:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1668,10 +1668,10 @@ windows:run:twostickshooter-classic:mono:2018.2.0a8:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-classic:mono:2018.2.0a8
+    - windows:build:twostickshooter-classic:mono:2018.2
 
 
-windows:run:twostickshooter-hybrid:mono:2018.2.0a8:
+windows:run:twostickshooter-hybrid:mono:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1688,10 +1688,10 @@ windows:run:twostickshooter-hybrid:mono:2018.2.0a8:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-hybrid:mono:2018.2.0a8
+    - windows:build:twostickshooter-hybrid:mono:2018.2
 
 
-windows:run:twostickshooter-pure:mono:2018.2.0a8:
+windows:run:twostickshooter-pure:mono:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1708,10 +1708,10 @@ windows:run:twostickshooter-pure:mono:2018.2.0a8:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-pure:mono:2018.2.0a8
+    - windows:build:twostickshooter-pure:mono:2018.2
 
 
-windows:run:boids:il2cpp:2018.2.0a8:
+windows:run:boids:il2cpp:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1728,10 +1728,10 @@ windows:run:boids:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:boids:il2cpp:2018.2.0a8
+    - windows:build:boids:il2cpp:2018.2
 
 
-windows:run:chains:il2cpp:2018.2.0a8:
+windows:run:chains:il2cpp:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1748,10 +1748,10 @@ windows:run:chains:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:chains:il2cpp:2018.2.0a8
+    - windows:build:chains:il2cpp:2018.2
 
 
-windows:run:hierarchy:il2cpp:2018.2.0a8:
+windows:run:hierarchy:il2cpp:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1768,10 +1768,10 @@ windows:run:hierarchy:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:hierarchy:il2cpp:2018.2.0a8
+    - windows:build:hierarchy:il2cpp:2018.2
 
 
-windows:run:rotation:il2cpp:2018.2.0a8:
+windows:run:rotation:il2cpp:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1788,10 +1788,10 @@ windows:run:rotation:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:rotation:il2cpp:2018.2.0a8
+    - windows:build:rotation:il2cpp:2018.2
 
 
-windows:run:twostickshooter-classic:il2cpp:2018.2.0a8:
+windows:run:twostickshooter-classic:il2cpp:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1808,10 +1808,10 @@ windows:run:twostickshooter-classic:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-classic:il2cpp:2018.2.0a8
+    - windows:build:twostickshooter-classic:il2cpp:2018.2
 
 
-windows:run:twostickshooter-hybrid:il2cpp:2018.2.0a8:
+windows:run:twostickshooter-hybrid:il2cpp:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1828,10 +1828,10 @@ windows:run:twostickshooter-hybrid:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-hybrid:il2cpp:2018.2.0a8
+    - windows:build:twostickshooter-hybrid:il2cpp:2018.2
 
 
-windows:run:twostickshooter-pure:il2cpp:2018.2.0a8:
+windows:run:twostickshooter-pure:il2cpp:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1848,18 +1848,18 @@ windows:run:twostickshooter-pure:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-pure:il2cpp:2018.2.0a8
+    - windows:build:twostickshooter-pure:il2cpp:2018.2
 
 
 ################################################################################
-# macOS test for 2018.2.0a8
+# macOS test for 2018.2
 ################################################################################
-macOS:test:2018.2.0a8:
+macOS:test:2018.2:
   stage: test
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - macOS
   script:
@@ -1874,14 +1874,14 @@ macOS:test:2018.2.0a8:
     expire_in: 1 week
 
 ################################################################################
-# macOS build for 2018.2.0a8
+# macOS build for 2018.2
 ################################################################################
-macOS:build:boids:mono:2018.2.0a8:
+macOS:build:boids:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - macOS
   script:
@@ -1895,15 +1895,15 @@ macOS:build:boids:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.2.0a8
+    - macOS:test:2018.2
 
 
-macOS:build:chains:mono:2018.2.0a8:
+macOS:build:chains:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - macOS
   script:
@@ -1917,15 +1917,15 @@ macOS:build:chains:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.2.0a8
+    - macOS:test:2018.2
 
 
-macOS:build:hierarchy:mono:2018.2.0a8:
+macOS:build:hierarchy:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - macOS
   script:
@@ -1939,15 +1939,15 @@ macOS:build:hierarchy:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.2.0a8
+    - macOS:test:2018.2
 
 
-macOS:build:rotation:mono:2018.2.0a8:
+macOS:build:rotation:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - macOS
   script:
@@ -1961,15 +1961,15 @@ macOS:build:rotation:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.2.0a8
+    - macOS:test:2018.2
 
 
-macOS:build:twostickshooter-classic:mono:2018.2.0a8:
+macOS:build:twostickshooter-classic:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - macOS
   script:
@@ -1983,15 +1983,15 @@ macOS:build:twostickshooter-classic:mono:2018.2.0a8:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.2.0a8
+    - macOS:test:2018.2
 
 
-macOS:build:twostickshooter-hybrid:mono:2018.2.0a8:
+macOS:build:twostickshooter-hybrid:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - macOS
   script:
@@ -2005,15 +2005,15 @@ macOS:build:twostickshooter-hybrid:mono:2018.2.0a8:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.2.0a8
+    - macOS:test:2018.2
 
 
-macOS:build:twostickshooter-pure:mono:2018.2.0a8:
+macOS:build:twostickshooter-pure:mono:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - macOS
   script:
@@ -2027,15 +2027,15 @@ macOS:build:twostickshooter-pure:mono:2018.2.0a8:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.2.0a8
+    - macOS:test:2018.2
 
 
-macOS:build:boids:il2cpp:2018.2.0a8:
+macOS:build:boids:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - macOS
   script:
@@ -2049,15 +2049,15 @@ macOS:build:boids:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.2.0a8
+    - macOS:test:2018.2
 
 
-macOS:build:chains:il2cpp:2018.2.0a8:
+macOS:build:chains:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - macOS
   script:
@@ -2071,15 +2071,15 @@ macOS:build:chains:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.2.0a8
+    - macOS:test:2018.2
 
 
-macOS:build:hierarchy:il2cpp:2018.2.0a8:
+macOS:build:hierarchy:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - macOS
   script:
@@ -2093,15 +2093,15 @@ macOS:build:hierarchy:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.2.0a8
+    - macOS:test:2018.2
 
 
-macOS:build:rotation:il2cpp:2018.2.0a8:
+macOS:build:rotation:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - macOS
   script:
@@ -2115,15 +2115,15 @@ macOS:build:rotation:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.2.0a8
+    - macOS:test:2018.2
 
 
-macOS:build:twostickshooter-classic:il2cpp:2018.2.0a8:
+macOS:build:twostickshooter-classic:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - macOS
   script:
@@ -2137,15 +2137,15 @@ macOS:build:twostickshooter-classic:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.2.0a8
+    - macOS:test:2018.2
 
 
-macOS:build:twostickshooter-hybrid:il2cpp:2018.2.0a8:
+macOS:build:twostickshooter-hybrid:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - macOS
   script:
@@ -2159,15 +2159,15 @@ macOS:build:twostickshooter-hybrid:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.2.0a8
+    - macOS:test:2018.2
 
 
-macOS:build:twostickshooter-pure:il2cpp:2018.2.0a8:
+macOS:build:twostickshooter-pure:il2cpp:2018.2:
   stage: build
   before_script:
-  - python Tools/CI/beforescript.py 2018.2.0a8
+  - python Tools/CI/beforescript.py 2018.2.*$latest=true
   after_script:
-  - python Tools/CI/afterscript.py 2018.2.0a8
+  - python Tools/CI/afterscript.py 2018.2.*$latest=true
   tags:
   - macOS
   script:
@@ -2181,13 +2181,13 @@ macOS:build:twostickshooter-pure:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:2018.2.0a8
+    - macOS:test:2018.2
 
 
 ################################################################################
-# macOS run for 2018.2.0a8
+# macOS run for 2018.2
 ################################################################################
-macOS:run:boids:mono:2018.2.0a8:
+macOS:run:boids:mono:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2204,10 +2204,10 @@ macOS:run:boids:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:boids:mono:2018.2.0a8
+    - macOS:build:boids:mono:2018.2
 
 
-macOS:run:chains:mono:2018.2.0a8:
+macOS:run:chains:mono:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2224,10 +2224,10 @@ macOS:run:chains:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:chains:mono:2018.2.0a8
+    - macOS:build:chains:mono:2018.2
 
 
-macOS:run:hierarchy:mono:2018.2.0a8:
+macOS:run:hierarchy:mono:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2244,10 +2244,10 @@ macOS:run:hierarchy:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:hierarchy:mono:2018.2.0a8
+    - macOS:build:hierarchy:mono:2018.2
 
 
-macOS:run:rotation:mono:2018.2.0a8:
+macOS:run:rotation:mono:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2264,10 +2264,10 @@ macOS:run:rotation:mono:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:rotation:mono:2018.2.0a8
+    - macOS:build:rotation:mono:2018.2
 
 
-macOS:run:twostickshooter-classic:mono:2018.2.0a8:
+macOS:run:twostickshooter-classic:mono:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2284,10 +2284,10 @@ macOS:run:twostickshooter-classic:mono:2018.2.0a8:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-classic:mono:2018.2.0a8
+    - macOS:build:twostickshooter-classic:mono:2018.2
 
 
-macOS:run:twostickshooter-hybrid:mono:2018.2.0a8:
+macOS:run:twostickshooter-hybrid:mono:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2304,10 +2304,10 @@ macOS:run:twostickshooter-hybrid:mono:2018.2.0a8:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-hybrid:mono:2018.2.0a8
+    - macOS:build:twostickshooter-hybrid:mono:2018.2
 
 
-macOS:run:twostickshooter-pure:mono:2018.2.0a8:
+macOS:run:twostickshooter-pure:mono:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2324,10 +2324,10 @@ macOS:run:twostickshooter-pure:mono:2018.2.0a8:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-pure:mono:2018.2.0a8
+    - macOS:build:twostickshooter-pure:mono:2018.2
 
 
-macOS:run:boids:il2cpp:2018.2.0a8:
+macOS:run:boids:il2cpp:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2344,10 +2344,10 @@ macOS:run:boids:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:boids:il2cpp:2018.2.0a8
+    - macOS:build:boids:il2cpp:2018.2
 
 
-macOS:run:chains:il2cpp:2018.2.0a8:
+macOS:run:chains:il2cpp:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2364,10 +2364,10 @@ macOS:run:chains:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:chains:il2cpp:2018.2.0a8
+    - macOS:build:chains:il2cpp:2018.2
 
 
-macOS:run:hierarchy:il2cpp:2018.2.0a8:
+macOS:run:hierarchy:il2cpp:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2384,10 +2384,10 @@ macOS:run:hierarchy:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:hierarchy:il2cpp:2018.2.0a8
+    - macOS:build:hierarchy:il2cpp:2018.2
 
 
-macOS:run:rotation:il2cpp:2018.2.0a8:
+macOS:run:rotation:il2cpp:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2404,10 +2404,10 @@ macOS:run:rotation:il2cpp:2018.2.0a8:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:rotation:il2cpp:2018.2.0a8
+    - macOS:build:rotation:il2cpp:2018.2
 
 
-macOS:run:twostickshooter-classic:il2cpp:2018.2.0a8:
+macOS:run:twostickshooter-classic:il2cpp:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2424,10 +2424,10 @@ macOS:run:twostickshooter-classic:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-classic:il2cpp:2018.2.0a8
+    - macOS:build:twostickshooter-classic:il2cpp:2018.2
 
 
-macOS:run:twostickshooter-hybrid:il2cpp:2018.2.0a8:
+macOS:run:twostickshooter-hybrid:il2cpp:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2444,10 +2444,10 @@ macOS:run:twostickshooter-hybrid:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-hybrid:il2cpp:2018.2.0a8
+    - macOS:build:twostickshooter-hybrid:il2cpp:2018.2
 
 
-macOS:run:twostickshooter-pure:il2cpp:2018.2.0a8:
+macOS:run:twostickshooter-pure:il2cpp:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2464,6 +2464,6 @@ macOS:run:twostickshooter-pure:il2cpp:2018.2.0a8:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-pure:il2cpp:2018.2.0a8
+    - macOS:build:twostickshooter-pure:il2cpp:2018.2
 
 

@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Runtime.Remoting;
 using NUnit.Framework;
-using Unity.Entities;
 using Unity.Entities.Tests;
 using UnityEditor;
-using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using UnityEngine.TestTools;
 
 namespace Unity.Entities.Editor
 {

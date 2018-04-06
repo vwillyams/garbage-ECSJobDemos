@@ -1,12 +1,7 @@
-﻿using System;
-using UnityEditor.IMGUI.Controls;
+﻿using UnityEditor.IMGUI.Controls;
 using System.Collections.Generic;
-using System.Linq;
-using JetBrains.Annotations;
 using Unity.Collections;
-using Unity.Entities;
 using UnityEngine;
-using UnityEngine.Analytics;
 
 namespace Unity.Entities.Editor
 {

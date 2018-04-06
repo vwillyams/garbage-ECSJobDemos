@@ -1,9 +1,6 @@
-﻿using System;
-using UnityEditor.IMGUI.Controls;
+﻿using UnityEditor.IMGUI.Controls;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Collections;
-using Unity.Entities;
 using UnityEngine;
 
 namespace Unity.Entities.Editor

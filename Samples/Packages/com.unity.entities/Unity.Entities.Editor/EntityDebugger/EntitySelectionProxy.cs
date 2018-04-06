@@ -1,6 +1,4 @@
-﻿
-using Unity.Entities;
-using Unity.Entities.Properties;
+﻿using Unity.Entities.Properties;
 using UnityEngine;
 
 namespace Unity.Entities.Editor

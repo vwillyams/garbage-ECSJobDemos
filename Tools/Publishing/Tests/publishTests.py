@@ -1,10 +1,16 @@
 import os
+import mock
+import npm_mock
 from unittest import TestCase
 from BumpVersion import BumpVersion
 from publishStable import args
-import publishStable
 from publishStable import get_packages_folder
 from publishStable import get_list_of_packages
+from publishStable import _get_all_files_in_package
+from publishStable import _get_version_in_registry
+import publishStable
+import subprocess
+from publishStable import cmp_files
 from publishStable import increase_version
 from publishStable import validate_version
 from publishStable import parse_package_json
@@ -71,7 +77,6 @@ class TestCompareJsonKeys(TestCase):
     def test_compare_json_keys_EqualPackageDescriptors_ReturnTrue(self):
         self.assertTrue(compare_json_keys(self.package1Reference, self.package1Reference))
 
-
 class TestComparePackageFiles(TestCase):
     def test_compare_package_files_NoDifferencesInPackage_ReturnsTrue(self):
         self.assertTrue(compare_package_files('./localPackages/package1', './installedPackages/package1Clone', '0.0.1'))
@@ -81,21 +86,18 @@ class TestComparePackageFiles(TestCase):
 
     def test_compare_package_files_DifferencesInPackageJSONDependencyVersions_ReturnsFalse(self):
         self.assertFalse(compare_package_files('./localPackages/package1', './installedPackages/package1cloneWithDifferentDependencyVersion', '0.0.1'))
-
-    def test_compare_package_files_DifferencesInPackageJSONDependencyPackage_ReturnsFalse(self):
-        args.add_package_as_dependency_to_package = 'package2'
-        self.assertFalse(compare_package_files('./localPackages/package1', './installedPackages/package1cloneWithDifferentDependencyPackage', '0.0.1'))
-
-
-
-
-    def test_compare_package_files_DifferencesInPackageJSONDependencyLocalPackage_ReturnsFalse(self):
-        args.add_package_as_dependency_to_package = 'package48'
-        publishStable.local_packages = {'package48': '0.2.1'}
-        self.assertFalse(compare_package_files('./localPackages/package1', './installedPackages/package1cloneWithDifferentDependencyPackage', '0.0.1'))
-
-
-
+    # TODO
+    # def test_compare_package_files_DifferencesInPackageJSONDependencyPackage_ReturnsFalse(self):
+    #     args.add_package_as_dependency_to_package = 'package2'
+    #     self.assertFalse(compare_package_files('./localPackages/package1', './installedPackages/package1cloneWithDifferentDependencyPackage', '0.0.1'))
+    #
+    # def test_compare_package_files_DifferencesInPackageJSONEmptyDependency_ReturnsFalse(self):
+    #     self.assertFalse(compare_package_files('./localPackages/package1', './installedPackages/package1cloneWithEmptyDependencies', '0.0.1'))
+    #
+    # def test_compare_package_files_DifferencesInPackageJSONDependencyNewPackage_ReturnsFalse(self):
+    #     args.add_package_as_dependency_to_package = 'package48'
+    #     publishStable.local_packages = {'package48': '0.2.1'}
+    #     self.assertFalse(compare_package_files('./localPackages/package1', './installedPackages/package1cloneWithNewDependencyPackage', '0.0.1'))
 
     def test_compare_package_files_DifferencesInPackageJSONName_ReturnsFalse(self):
         self.assertFalse(compare_package_files('./localPackages/package1', './installedPackages/package1cloneWithDifferentName', '0.0.1'))
@@ -109,6 +111,43 @@ class TestComparePackageFiles(TestCase):
     def test_compare_package_files_DifferencesInPackageJSONDescription_ReturnsFalse(self):
         self.assertFalse(compare_package_files('./localPackages/package1', './installedPackages/package1cloneWithDifferentDescription', '0.0.1'))
 
+class TestGetAllFiles(TestCase):
+    def test_get_all_files_ProvideNonExistingPath_RaiseException(self):
+        self.assertRaises(ValueError, _get_all_files_in_package, './this/is/a/fake/path')
+
+    def test_get_all_files_ProvideExistingPathNotPackage_RaiseException(self):
+        self.assertRaises(ValueError, _get_all_files_in_package, '.')
+
+    def test_get_all_files_ProvideExistingPackageWithoutNodeModules_ReturnListOfFiles(self):
+        self.assertEquals(_get_all_files_in_package('./localPackages/package1'), ['testFile.txt'])
+
+    def test_get_all_files_ProvideExistingPackageWithNodeModules_ReturnListOfFiles(self):
+        self.assertEquals(_get_all_files_in_package('./installedPackages/package5'), ['testFile.txt'])
+
+class TestCmpFiles(TestCase):
+    def test_cmp_files_CompareNonExistingFiles_RaiseException(self):
+        self.assertRaises(IOError, cmp_files, 'file', 'file')
+
+    def test_cmp_files_CompareExistingSameFile_ReturnTrue(self):
+        self.assertTrue(cmp_files('./localPackages/manifest.json', './localPackages/manifest.json'))
+
+    def test_cmp_files_CompareExistingDifferentFiles_ReturnFalse(self):
+        self.assertFalse(cmp_files('./localPackages/package1/package.json', './localPackages/package2/package.json'))
+
+class TestVersionInRegistry(TestCase):
+    def setUp(self):
+        patch = mock.patch('publishStable.npm_cmd')
+        self.npm_mock = patch.start()
+        self.npm_mock.side_effect = npm_mock.npm_cmd
+
+    def tearDown(self):
+        mock.patch.stopall()
+
+    def test_mock_npm_cmd_ProvideExistingPackageInRegistry_ReturnExpectedVersion(self):
+        self.assertEquals(_get_version_in_registry('package1', 'registry'), '0.0.1')
+
+    def test_mock_npm_cmd_ProvideNonExistingPackageInExistingRegistry_RaiseException(self):
+        self.assertEquals(_get_version_in_registry('package1', 'empty_registry'), '')
 
 class TestIsPreview(TestCase):
     def test_is_preview_VersionIsStableRelease_ReturnFalse(self):

@@ -58,37 +58,35 @@ def compare_package_files(local_path, installed_path, current_version):
     if not compare_json_keys(local_package, installed_package):
         return False
 
-    for key_local_JSON, value_local_JSON in local_package.iteritems():
-        if value_local_JSON != installed_package[key_local_JSON]:
+    for key, value in local_package.iteritems():
+        if value != installed_package[key]:
             # If we are using --add-package-as-dependency-to-package then the dependencies will differ
             # so we do an exception here and check that the ones we are missing are the ones we have flagged
             # and the version we can find on the registry is the same
-            if key_local_JSON == "dependencies":
+            if key == "dependencies":
                 should_fail = False
-                set_of_local_dependencies = value_local_JSON
-                for remote_package_name, remote_package_version in installed_package["dependencies"].iteritems():
-                    if remote_package_name in set_of_local_dependencies:
-                        if remote_package_version == set_of_local_dependencies[remote_package_name]:
-                            continue
-                    else:
-                            if any(package_name in d for d in args.add_package_as_dependency_to_package) and \
-                                    package_name in local_packages and \
-                                    package_version == local_packages[package_name]:
-                                continue
+                for nested_key, nested_value in installed_package[key].iteritems():
+                    if nested_key in value and nested_value == value[nested_key]:
+                        continue
+                    if nested_key not in value and \
+                            any(nested_key in d for d in args.add_package_as_dependency_to_package) and \
+                            nested_key in local_packages and \
+                            nested_value == local_packages[nested_key]:
+                        continue
                     should_fail = True
                 if not should_fail:
                     continue
 
-            print "    {0} is differing between packages:".format(key_local_JSON)
-            print "      Local: {0}".format(value_local_JSON)
-            print "      Published: {0}".format(installed_package[key_local_JSON])
+            print "    {0} is differing between packages:".format(key)
+            print "      Local: {0}".format(value)
+            print "      Published: {0}".format(installed_package[key])
             return False
 
     print "    Looks the same"
     return True
 
 
-def _get_all_files(path):
+def _get_all_files_in_package(path):
     files = [os.path.relpath(os.path.join(dp, f), path) for dp, dn, fn in os.walk(os.path.expanduser(path)) for f in fn]
     files.remove("package.json")
     files = [f for f in files if "node_modules" not in f]
@@ -140,8 +138,8 @@ def is_package_changed(package_folder, package_name, current_version):
     download_path = os.path.join(download_path, "package")
     print "Comparing files between {0} and {1}".format(download_path, package_folder)
 
-    package_files = _get_all_files(download_path)
-    repo_files = _get_all_files(os.path.abspath(package_folder))
+    package_files = _get_all_files_in_package(download_path)
+    repo_files = _get_all_files_in_package(os.path.abspath(package_folder))
 
     mismatching_files = list(set(package_files).symmetric_difference(set(repo_files)))
 

@@ -69,21 +69,27 @@ def main():
         os.mkdir("temp")
 
     editor_artifacts = artifactory_search("editor")['results']
-    standalone_artifacts = artifactory_search("standalonesupport")['results']
+    standalone_artifacts = [artifactory_search("standalone-mono")['results'],
+                            artifactory_search("standalone-il2cpp")['results']]
 
     if len(editor_artifacts) != 1:
         raise Exception("Expected to find exactly 1 editor build to use. Found: {0}".format(editor_artifacts))
-    if len(standalone_artifacts) != 1:
-        raise Exception("Expected to find exactly 1 standalonesupport build to use. Found: {0}".format(standalone_artifacts))
+    if len(standalone_artifacts) != 2:
+        raise Exception("Expected to find exactly 2 standalonesupport build to use. Found: {0}".format(standalone_artifacts))
 
     download_artifact(editor_artifacts[0]['uri'], "Editor")
 
     current_os = get_current_os()
 
-    if current_os == "windows":
-        download_artifact(standalone_artifacts[0]['uri'], "Editor/Data/PlaybackEngines/windowsstandalonesupport")
-    elif current_os == "macOS":
-        download_artifact(standalone_artifacts[0]['uri'], "Editor/Unity.app/Contents/PlaybackEngines/MacStandaloneSupport")
+    for standalone in standalone_artifacts:
+        if len(standalone) != 1:
+            raise Exception(
+                "Expected to find exactly 1 standalonesupport build to use. Found: {0}".format(standalone))
+
+        if current_os == "windows":
+            download_artifact(standalone[0]['uri'], "Editor/Data/PlaybackEngines/windowsstandalonesupport")
+        elif current_os == "macOS":
+            download_artifact(standalone[0]['uri'], "Editor/Unity.app/Contents/PlaybackEngines/MacStandaloneSupport")
 
 
 if __name__ == "__main__":

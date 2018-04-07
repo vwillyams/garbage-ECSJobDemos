@@ -104,4 +104,30 @@ public class NativeMultiHashMapTests_InJobs : NativeMultiHashMapTestsFixture
 		writeStatus.Dispose();
 		readValues.Dispose();
 	}
+    
+    struct AddMultiIndex : IJobParallelFor
+    {
+        public NativeMultiHashMap<int, int>.Concurrent hashMap;
+
+        public void Execute(int index)
+        {
+            hashMap.Add(index, index);
+        }
+    }
+
+    [Test]
+    public void TryMultiAddScalabilityConcurrent()
+    {
+        for (int count = 0; count < 1024; count++)
+        {
+            var hashMap = new NativeMultiHashMap<int, int>(count, Allocator.TempJob);
+            var addIndexJob = new AddMultiIndex
+            {
+                hashMap = hashMap
+            };
+            var addIndexJobHandle = addIndexJob.Schedule(count, 64);
+            addIndexJobHandle.Complete();
+            hashMap.Dispose();
+        }
+    }
 }

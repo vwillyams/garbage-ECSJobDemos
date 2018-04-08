@@ -32,7 +32,14 @@ def download_url(url, filename):
 
 
 def artifactory_search(type):
-    return get_url_json("{0}/{1}".format(artifactory_url, "api/search/prop?build={1}&os={2}&type={3}&repos={0}".format(artifactory_repository, build_version, get_current_os(), type)))
+    # If the build_version contains a slash we treat it as a branch instead of as a version and will use a custom
+    # branch build instead
+    if '/' not in build_version:
+        return get_url_json("{0}/{1}".format(artifactory_url, "api/search/prop?build={1}&os={2}&type={3}&custom=False&repos={0}".format(artifactory_repository, build_version, get_current_os(), type)))
+
+    return get_url_json("{0}/{1}".format(artifactory_url,
+                                         "api/search/prop?build=&os={0}&type={1}&custom=True&branch={2}&repos={3}".format(
+                                             get_current_os(), type, build_version, artifactory_repository, )))
 
 
 def extract_tarball(download_path, extract_path):
@@ -77,7 +84,7 @@ def main():
     if len(standalone_artifacts) != 2:
         raise Exception("Expected to find exactly 2 standalonesupport build to use. Found: {0}".format(standalone_artifacts))
 
-    download_artifact(editor_artifacts[0]['uri'], "Editor")
+    download_artifact(editor_artifacts[0]['uri'], ".Editor")
 
     current_os = get_current_os()
 
@@ -87,9 +94,9 @@ def main():
                 "Expected to find exactly 1 standalonesupport build to use. Found: {0}".format(standalone))
 
         if current_os == "windows":
-            download_artifact(standalone[0]['uri'], "Editor/Data/PlaybackEngines/windowsstandalonesupport")
+            download_artifact(standalone[0]['uri'], ".Editor/Data/PlaybackEngines/windowsstandalonesupport")
         elif current_os == "macOS":
-            download_artifact(standalone[0]['uri'], "Editor/Unity.app/Contents/PlaybackEngines/MacStandaloneSupport")
+            download_artifact(standalone[0]['uri'], ".Editor/Unity.app/Contents/PlaybackEngines/MacStandaloneSupport")
 
 
 if __name__ == "__main__":

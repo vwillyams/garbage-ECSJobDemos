@@ -34,7 +34,8 @@ def download_url(url, filename):
 def artifactory_search(type):
     # If the build_version contains a slash we treat it as a branch instead of as a version and will use a custom
     # branch build instead
-    if '/' not in build_version:
+
+    if '/' not in build_version and build_version != "trunk":
         return get_url_json("{0}/{1}".format(artifactory_url, "api/search/prop?build={1}&os={2}&type={3}&custom=False&repos={0}".format(artifactory_repository, build_version, get_current_os(), type)))
 
     return get_url_json("{0}/{1}".format(artifactory_url,

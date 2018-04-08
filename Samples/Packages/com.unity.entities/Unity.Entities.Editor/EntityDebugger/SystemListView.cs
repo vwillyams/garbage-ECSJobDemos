@@ -11,7 +11,7 @@ namespace Unity.Entities.Editor
 {
     public interface ISystemSelectionWindow : IWorldSelectionWindow
     {
-        void SetSystemSelection(ScriptBehaviourManager manager, bool updateList, bool propagate);
+        ScriptBehaviourManager SystemSelection { set; }
     }
     
     public class SystemListView : TreeView
@@ -47,7 +47,7 @@ namespace Unity.Entities.Editor
         }
         private readonly Dictionary<Type, List<ScriptBehaviourManager>> managersByGroup = new Dictionary<Type, List<ScriptBehaviourManager>>();
         private readonly List<ScriptBehaviourManager> floatingManagers = new List<ScriptBehaviourManager>();
-        private readonly Dictionary<int, ScriptBehaviourManager> managersById = new Dictionary<int, ScriptBehaviourManager>();
+        private readonly Dictionary<int, ScriptBehaviourManager> managersByID = new Dictionary<int, ScriptBehaviourManager>();
         private readonly Dictionary<ScriptBehaviourManager, AverageRecorder> recordersByManager = new Dictionary<ScriptBehaviourManager, AverageRecorder>();
 
         private const float kToggleWidth = 22f;
@@ -165,7 +165,7 @@ namespace Unity.Entities.Editor
 
         private TreeViewItem CreateManagerItem(int id, ScriptBehaviourManager manager)
         {
-            managersById.Add(id, manager);
+            managersByID.Add(id, manager);
             var recorder = Recorder.Get($"{window.WorldSelection.Name} {manager.GetType().FullName}");
             recordersByManager.Add(manager, new AverageRecorder(recorder));
             recorder.enabled = true;
@@ -175,7 +175,7 @@ namespace Unity.Entities.Editor
         protected override TreeViewItem BuildRoot()
         {
             managersByGroup.Clear();
-            managersById.Clear();
+            managersByID.Clear();
             floatingManagers.Clear();
             recordersByManager.Clear();
 
@@ -247,9 +247,9 @@ namespace Unity.Entities.Editor
 
             var enabled = GUI.enabled;
             
-            if (managersById.ContainsKey(item.id))
+            if (managersByID.ContainsKey(item.id))
             {
-                var manager = managersById[item.id];
+                var manager = managersByID[item.id];
                 var toggleRect = args.GetCellRect(0);
                 toggleRect.xMin = toggleRect.xMin + 4f;
                 manager.Enabled = GUI.Toggle(toggleRect, manager.Enabled, GUIContent.none);
@@ -270,13 +270,13 @@ namespace Unity.Entities.Editor
 
         protected override void SelectionChanged(IList<int> selectedIds)
         {
-            if (selectedIds.Count > 0 && managersById.ContainsKey(selectedIds[0]))
+            if (selectedIds.Count > 0 && managersByID.ContainsKey(selectedIds[0]))
             {
-                window.SetSystemSelection(managersById[selectedIds[0]], false, true);
+                window.SystemSelection = managersByID[selectedIds[0]];
             }
             else
             {
-                window.SetSystemSelection(null, false, true);
+                window.SystemSelection = null;
             }
         }
 
@@ -287,7 +287,7 @@ namespace Unity.Entities.Editor
 
         public void TouchSelection()
         {
-            SetSelection(GetSelection(), TreeViewSelectionOptions.FireSelectionChanged);
+            SelectionChanged(GetSelection());
         }
 
         public void UpdateIfNecessary()
@@ -311,19 +311,6 @@ namespace Unity.Entities.Editor
             }
 
             lastTimedFrame = Time.frameCount;
-        }
-
-        public void SetSystemSelection(ScriptBehaviourManager manager)
-        {
-            foreach (var pair in managersById)
-            {
-                if (pair.Value == manager)
-                {
-                    SetSelection(new List<int> {pair.Key});
-                    return;
-                }
-            }
-            SetSelection(new List<int>());
         }
     }
 }

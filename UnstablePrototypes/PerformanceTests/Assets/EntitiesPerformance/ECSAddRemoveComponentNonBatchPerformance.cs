@@ -3,6 +3,7 @@ using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Profiling;
 
+
 public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
 {
     CustomSampler addSampler;
@@ -28,11 +29,12 @@ public class ECSAddRemoveComponentNonBatchPerformance : MonoBehaviour
             World.Active.SetDefaultCapacity(PerformanceTestConfiguration.InstanceCount);
         }
 
-		var entityManager = World.Active.GetOrCreateManager<EntityManager>();
+	    var entityManager = World.Active.GetOrCreateManager<EntityManager>();
+	    var dummySystem = World.Active.GetOrCreateManager<DummyComponentSystem>();
 
-		entityManager.CreateComponentGroup (typeof(Component128Bytes));
-        entityManager.CreateComponentGroup (typeof(Component12Bytes));
-        entityManager.CreateComponentGroup (typeof(Component128Bytes));
+	    dummySystem.GetComponentGroup(typeof(Component128Bytes));
+	    dummySystem.GetComponentGroup(typeof(Component12Bytes));
+	    dummySystem.GetComponentGroup(typeof(Component128Bytes));
 
         var archetype = entityManager.CreateArchetype(typeof(Component128Bytes), typeof(Component12Bytes), typeof(Component64Bytes));
         var entities = new NativeArray<Entity>(PerformanceTestConfiguration.InstanceCount, Allocator.Temp);

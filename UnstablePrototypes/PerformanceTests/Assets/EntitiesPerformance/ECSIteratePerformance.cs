@@ -45,28 +45,22 @@ struct Component128Bytes : IComponentData
     float4x4 value1;
 }
 
-public class ECSIteratePerformance : MonoBehaviour
+[DisableAutoCreation]
+class DummyComponentSystem : JobComponentSystem
 {
-    [DisableAutoCreation]
-    class DummyComponentSystem : JobComponentSystem
+    protected override JobHandle OnUpdate(JobHandle inputDeps)
     {
-        protected override JobHandle OnUpdate(JobHandle inputDeps)
-        {
-            return inputDeps;
-        }
-
-        public new ComponentGroup GetComponentGroup(params ComponentType[] componentTypes)
-        {
-            return base.GetComponentGroup(componentTypes);
-        }
+        return inputDeps;
     }
 
-    unsafe struct EntityIter
-	{
-		public Component4Bytes* 	src;
-		public Component4BytesDst* 	dst;
-	}
+    public new ComponentGroup GetComponentGroup(params ComponentType[] componentTypes)
+    {
+        return base.GetComponentGroup(componentTypes);
+    }
+}
 
+public class ECSIteratePerformance : MonoBehaviour
+{
     [ComputeJobOptimization(CompileSynchronously = true)]
 	struct Iterate_ComponentDataFromEntity : IJob
 	{

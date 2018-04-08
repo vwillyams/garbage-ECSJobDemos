@@ -12,7 +12,7 @@ namespace Unity.Entities.Editor
 {
     public interface IEntitySelectionWindow : IWorldSelectionWindow
     {
-        void SetEntitySelection(Entity selection, bool updateList);
+        Entity EntitySelection { set; }
     }
 
     public interface IWorldSelectionWindow
@@ -126,11 +126,11 @@ namespace Unity.Entities.Editor
             if (selectedIds.Count > 0)
             {
                 if (entitiesById.ContainsKey(selectedIds[0]))
-                    window.SetEntitySelection(entitiesById[selectedIds[0]], false);
+                    window.EntitySelection = entitiesById[selectedIds[0]];
             }
             else
             {
-                window.SetEntitySelection(Entity.Null, false);
+                window.EntitySelection = Entity.Null;
             }
         }
 
@@ -152,16 +152,7 @@ namespace Unity.Entities.Editor
 
         public void TouchSelection()
         {
-            SetSelection(GetSelection(), TreeViewSelectionOptions.FireSelectionChanged);
-        }
-
-        public void FrameSelection()
-        {
-            var selection = GetSelection();
-            if (selection.Count > 0)
-            {
-                FrameItem(selection[0]);
-            }
+            SelectionChanged(GetSelection());
         }
     }
 }

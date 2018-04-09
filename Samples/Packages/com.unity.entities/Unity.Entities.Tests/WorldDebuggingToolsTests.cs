@@ -16,7 +16,9 @@ namespace Unity.Entities.Tests
                 public ComponentDataArray<EcsTestData> tests;
             }
 
+#pragma warning disable 0169 // "never used" warning
             [Inject] private Entities entities;
+#pragma warning restore 0169
             
             protected override void OnUpdate()
             {
@@ -33,7 +35,9 @@ namespace Unity.Entities.Tests
                 public SubtractiveComponent<EcsTestData2> noTest2;
             }
 
+#pragma warning disable 0169 // "never used" warning
             [Inject] private Entities entities;
+#pragma warning restore 0169
             
             protected override void OnUpdate()
             {

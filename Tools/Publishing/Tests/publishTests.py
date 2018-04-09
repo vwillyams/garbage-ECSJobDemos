@@ -146,8 +146,13 @@ class TestVersionInRegistry(TestCase):
     def test_mock_npm_cmd_ProvideExistingPackageInRegistry_ReturnExpectedVersion(self):
         self.assertEquals(_get_version_in_registry('package1', 'registry'), '0.0.1')
 
-    def test_mock_npm_cmd_ProvideNonExistingPackageInExistingRegistry_RaiseException(self):
-        self.assertEquals(_get_version_in_registry('package1', 'empty_registry'), '')
+    def test_mock_npm_cmd_ProvideNonExistingPackageInExistingRegistry_RaiseExceptionAndReturnEmptyVersion(self):
+        with self.assertRaises(Exception):
+            self.assertEquals(_get_version_in_registry('package1', 'empty_registry'), '')
+
+    def test_mock_npm_cmd_ProvideNonExistingRegistry_RaiseException(self):
+        self.assertRaises(Exception, _get_version_in_registry, 'package1', 'wrong_registry')
+
 
 class TestIsPreview(TestCase):
     def test_is_preview_VersionIsStableRelease_ReturnFalse(self):

@@ -24,11 +24,23 @@
 
 * [RotationExample.unity](content/rotation_example.md): Loop to change component if Entity position is inside a moving sphere.
 
+## Community
+
+* [Performance by Default](http://unity3d.com/performance-by-default)
+
 ## Further information
 
-* [*MCV 2018 - Exclusive: Unity takes a principled step into triple-A performance at GDC*](https://www.mcvuk.com/development/exclusive-unity-takes-a-principled-step-into-triple-a-performance-at-gdc)
+![Unity at GDC 2018](https://blogs.unity3d.com/wp-content/uploads/2018/03/Unity-GDC-Google-Desktop-Profile-Cover.jpg)
 
-*Unite Austin 2017 keynote - Performance demo ft. Nordeus*
+### Unity at GDC 2018
+
+* [GDC 2018 - Evolving Unity by Joachim Ante [FULL VIDEO] ](https://www.twitch.tv/videos/241945353)
+* [GDC 2018 - Unity Job System and Entity Component System by Tim Johansson [FULL VIDEO]](https://www.twitch.tv/videos/241981630)
+* [MCV 2018 - Exclusive: Unity takes a principled step into triple-A performance at GDC](https://www.mcvuk.com/development/exclusive-unity-takes-a-principled-step-into-triple-a-performance-at-gdc)
+
+### Unity at Unite Austin 2017
+
+Unite Austin 2017 keynote - Performance demo ft. Nordeus*
 [![Unite Austin 2017 keynote - Performance demo ft. Nordeus](http://img.youtube.com/vi/0969LalB7vw/0.jpg)](http://www.youtube.com/watch?v=0969LalB7vw)
 
 *Unite Austin 2017 - Writing high performance C# scripts*

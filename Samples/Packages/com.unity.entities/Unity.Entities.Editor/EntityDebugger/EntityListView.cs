@@ -1,18 +1,13 @@
-﻿using System;
-using UnityEditor.IMGUI.Controls;
+﻿using UnityEditor.IMGUI.Controls;
 using System.Collections.Generic;
-using System.Linq;
-using JetBrains.Annotations;
 using Unity.Collections;
-using Unity.Entities;
 using UnityEngine;
-using UnityEngine.Analytics;
 
 namespace Unity.Entities.Editor
 {
     public interface IEntitySelectionWindow : IWorldSelectionWindow
     {
-        Entity EntitySelection { set; }
+        void SetEntitySelection(Entity selection, bool updateList);
     }
 
     public interface IWorldSelectionWindow
@@ -126,11 +121,11 @@ namespace Unity.Entities.Editor
             if (selectedIds.Count > 0)
             {
                 if (entitiesById.ContainsKey(selectedIds[0]))
-                    window.EntitySelection = entitiesById[selectedIds[0]];
+                    window.SetEntitySelection(entitiesById[selectedIds[0]], false);
             }
             else
             {
-                window.EntitySelection = Entity.Null;
+                window.SetEntitySelection(Entity.Null, false);
             }
         }
 
@@ -152,7 +147,16 @@ namespace Unity.Entities.Editor
 
         public void TouchSelection()
         {
-            SelectionChanged(GetSelection());
+            SetSelection(GetSelection(), TreeViewSelectionOptions.FireSelectionChanged);
+        }
+
+        public void FrameSelection()
+        {
+            var selection = GetSelection();
+            if (selection.Count > 0)
+            {
+                FrameItem(selection[0]);
+            }
         }
     }
 }

@@ -1,36 +1,30 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
 namespace Unity.Entities.Editor
 {
-    [CustomEditor(typeof(EntitySelectionProxy))]
-    public class EntitySelectionProxyEditor : UnityEditor.Editor
+    [CustomEditor(typeof(GameObjectEntity))]
+    public class GameObjectEntityEditor : UnityEditor.Editor
     {
-        private EntityIMGUIVisitor visitor;
-
         private readonly List<Tuple<ScriptBehaviourManager, List<ComponentGroup>>> cachedMatches = new List<Tuple<ScriptBehaviourManager, List<ComponentGroup>>>();
 
         [SerializeField] private SystemInclusionList inclusionList;
-        
-        void OnEnable()
+
+        private void OnEnable()
         {
-            visitor = new EntityIMGUIVisitor();
             inclusionList = new SystemInclusionList();
         }
 
         public override void OnInspectorGUI()
         {
-            var targetProxy = (EntitySelectionProxy) target;
-            if (!targetProxy.Exists)
+            var gameObjectEntity = (GameObjectEntity) target;
+            if (gameObjectEntity.EntityManager == null || !gameObjectEntity.EntityManager.IsCreated || !gameObjectEntity.EntityManager.Exists(gameObjectEntity.Entity))
                 return;
-            var container = targetProxy.Container;
-            targetProxy.Container.PropertyBag.Visit(ref container, visitor);
 
-            GUI.enabled = true;
-            
-            inclusionList.OnGUI(targetProxy.World, targetProxy.Entity);
+            inclusionList.OnGUI(World.Active, gameObjectEntity.Entity);
         }
 
         public override bool RequiresConstantRepaint()

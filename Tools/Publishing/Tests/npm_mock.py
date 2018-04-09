@@ -1,8 +1,5 @@
 import subprocess
-
-known_packages = {
-    'package1' : '0.0.1'
-}
+import json
 
 def _registry_exists(registry):
     if registry.startswith('wrong'):
@@ -16,12 +13,28 @@ def _registry_empty(registry):
 
 def _view(package_name, extra, registry):
     if not _registry_exists(registry):
-        raise subprocess.CalledProcessError
+        raise subprocess.CalledProcessError(1,'view',"doh!")
     if _registry_empty(registry):
         raise subprocess.CalledProcessError(1,'view',"{0} is not in the npm registry".format(package_name))
 
+    package_name = package_name.split('@')[0]
+    file = open('./localPackages/' + package_name + '/package.json').read()
+    fields = json.loads(file)
+
     if extra == 'version':
-        return known_packages[package_name]
+        return fields['version']
+
+    if extra =='dependencies':
+
+        str = '{ '
+        for index, dependency_name in enumerate(fields['dependencies']):
+            comma = ','
+            if(index == len(fields['dependencies']) - 1):
+                comma = ''
+            str += "'" + dependency_name + "': '" + fields['dependencies'][dependency_name] + "'" + comma + "\n"
+        str += '}'
+        return str
+
 
 
 def npm_cmd(cmd, registry):
@@ -30,6 +43,6 @@ def npm_cmd(cmd, registry):
         if instruction == 'view':
             return _view(package_name, extra, registry)
 
-    except Exception as e:
+    except subprocess.CalledProcessError as e:
         raise e
 

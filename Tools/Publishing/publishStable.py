@@ -85,13 +85,11 @@ def compare_package_files(local_path, installed_path, current_version):
     print "    Looks the same"
     return True
 
-
 def _get_all_files_in_package(path):
     files = [os.path.relpath(os.path.join(dp, f), path) for dp, dn, fn in os.walk(os.path.expanduser(path)) for f in fn]
     files.remove("package.json")
     files = [f for f in files if "node_modules" not in f]
     return files
-
 
 def download_package_tarball(package_name, current_version):
     print "Downloading {0} from {1} to see if we have changed anything".format(package_name, best_view_registry)
@@ -122,10 +120,7 @@ def download_package_tarball(package_name, current_version):
                 raise
     return file_path
 
-
-def is_package_changed(package_folder, package_name, current_version):
-    # type: (str) -> bool
-
+def get_current_package_extracted(package_name, current_version):
     file_path = download_package_tarball(package_name, current_version)
     print "  Extracting tarball"
     download_path = os.path.join(os.path.dirname(file_path), "{0}.{1}".format(package_name, current_version))
@@ -135,7 +130,12 @@ def is_package_changed(package_folder, package_name, current_version):
     tar.extractall(download_path)
     tar.close()
     # installed_path = os.path.abspath(os.path.join("node_modules", package_name))
-    download_path = os.path.join(download_path, "package")
+    return  os.path.join(download_path, "package")
+
+def is_package_changed(package_folder, package_name, current_version):
+    # type: (str) -> bool
+
+    download_path = get_current_package_extracted(current_version, package_name)
     print "Comparing files between {0} and {1}".format(download_path, package_folder)
 
     package_files = _get_all_files_in_package(download_path)
@@ -163,7 +163,6 @@ def is_package_changed(package_folder, package_name, current_version):
     return True
     pass
 
-
 def cmp_directories_ignore_line_endings(first, second, common_files):
     match = []
     mismatch = []
@@ -185,7 +184,6 @@ def cmp_directories_ignore_line_endings(first, second, common_files):
         match.append(common)
 
     return match, mismatch, errors
-
 
 def cmp_files(f1, f2):
     line1 = line2 = ' '
@@ -240,7 +238,6 @@ def increase_version(version, bumpFlag):
 
     return new_version
 
-
 def _get_version_in_registry(package_name, registry):
     try:
         version = npm_cmd("view {0} version".format(package_name), registry).strip()
@@ -253,10 +250,8 @@ def _get_version_in_registry(package_name, registry):
             raise e
     return version
 
-
 def is_local_package(package_name):
     return os.path.isdir("{0}/{1}".format(args.packages_path, package_name))
-
 
 def get_package_version(package_name):
     # type: (str) -> str
@@ -791,8 +786,7 @@ def main():
 
         os.chdir(root_dir)
 
-
-if __name__ == "__main__":
+def parseArgumentList(argList):
     parser = argparse.ArgumentParser(description="A tool which finds all internal packages in a Unity project, "
                                                  "publishes them and updates the repo to use them from the upm repo "
                                                  "it gets uploaded to instead and then pushes that to some other repo "
@@ -844,6 +838,8 @@ if __name__ == "__main__":
                                                                           "starting with a . in the repo. If you want"
                                                                           " these in you need to whitelist these "
                                                                           "files or folders")
-    args = parser.parse_args()
+    return parser.parse_args(argList)
 
+if __name__ == "__main__":
+    args = parseArgumentList(args)
     main()

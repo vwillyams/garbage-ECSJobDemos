@@ -8,8 +8,8 @@ from publishStable import get_packages_folder
 from publishStable import get_list_of_packages
 from publishStable import _get_all_files_in_package
 from publishStable import _get_version_in_registry
-import publishStable
-import subprocess
+from publishStable import download_package_tarball
+from publishStable import is_package_changed
 from publishStable import cmp_files
 from publishStable import increase_version
 from publishStable import validate_version
@@ -17,7 +17,12 @@ from publishStable import parse_package_json
 from publishStable import compare_package_files
 from publishStable import compare_json_keys
 from publishStable import is_preview
+from publishStable import get_filtered_dependencies_from_view_registry
+from publishStable import best_view_registry
+from publishStable import parseArgumentList
 
+import publishStable
+import subprocess
 import semver
 
 class TestGetPackagesFolder(TestCase):
@@ -146,13 +151,11 @@ class TestVersionInRegistry(TestCase):
     def test_mock_npm_cmd_ProvideExistingPackageInRegistry_ReturnExpectedVersion(self):
         self.assertEquals(_get_version_in_registry('package1', 'registry'), '0.0.1')
 
-    def test_mock_npm_cmd_ProvideNonExistingPackageInExistingRegistry_RaiseExceptionAndReturnEmptyVersion(self):
-        with self.assertRaises(Exception):
-            self.assertEquals(_get_version_in_registry('package1', 'empty_registry'), '')
+    def test_mock_npm_cmd_ProvideNonExistingPackageInExistingRegistry_ReturnEmptyVersion(self):
+        self.assertEquals(_get_version_in_registry('package1', 'empty_registry'), '')
 
     def test_mock_npm_cmd_ProvideNonExistingRegistry_RaiseException(self):
-        self.assertRaises(Exception, _get_version_in_registry, 'package1', 'wrong_registry')
-
+        self.assertRaises(subprocess.CalledProcessError, _get_version_in_registry, 'package1', 'wrong_registry')
 
 class TestIsPreview(TestCase):
     def test_is_preview_VersionIsStableRelease_ReturnFalse(self):
@@ -244,3 +247,26 @@ class TestIncreaseVersion(TestCase):
 
     def test_increase_version_PreviewFlagAndRelease_ReturnSameVersion(self):
         self.assertEquals(increase_version('1.2.3-preview.2', BumpVersion.RELEASE), '1.2.3')
+
+class TestisPackageChanged(TestCase):
+    pass
+
+class TestGetFilteredDependenciesFromViewRegistry(TestCase):
+    def setUp(self):
+        patch = mock.patch('publishStable.npm_cmd')
+        self.npm_mock = patch.start()
+        self.npm_mock.side_effect = npm_mock.npm_cmd
+
+    def tearDown(self):
+        mock.patch.stopall()
+
+    def test_get_filtered_dependencies_from_view_registry_ExistingPackageAndTrackedDependency_ReturnsDependencies(self):
+        publishStable.best_view_registry = 'registry'
+        publishStable.args.add_package_as_dependency_to_package = ['package1:package3']
+        dependencies = {'package3' : '0.2.1'}
+        self.assertEquals(get_filtered_dependencies_from_view_registry('package1', '0.0.1'), dependencies)
+
+    def test_get_filtered_dependencies_from_view_registry_ExistingPackageAndNonTrackedDependency_ReturnsDependencies(self):
+        publishStable.best_view_registry = 'registry'
+        publishStable.args.add_package_as_dependency_to_package = ['package1:package2']
+        self.assertEquals(get_filtered_dependencies_from_view_registry('package1', '0.0.1'), {})

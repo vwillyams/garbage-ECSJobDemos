@@ -3,7 +3,7 @@ using NUnit.Framework;
 using Unity.Entities.Tests;
 using UnityEditor.IMGUI.Controls;
 
-namespace Unity.Entities.Editor
+namespace Unity.Entities.Editor.Tests
 {
     public class ListViewTests : ECSTestsFixture
     {

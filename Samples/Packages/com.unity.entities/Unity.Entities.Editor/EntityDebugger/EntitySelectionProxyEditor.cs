@@ -30,7 +30,7 @@ namespace Unity.Entities.Editor
 
             GUI.enabled = true;
             
-            inclusionList.OnGUI(targetProxy.EntityManager, targetProxy.Entity);
+            inclusionList.OnGUI(targetProxy.World, targetProxy.Entity);
         }
 
         public override bool RequiresConstantRepaint()

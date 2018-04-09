@@ -19,7 +19,7 @@ namespace Unity.Entities.Editor
 
         [SerializeField] private bool showSystems;
 
-        public void OnGUI(EntityManager entityManager, Entity entity)
+        public void OnGUI(World world, Entity entity)
         {
             ++EditorGUI.indentLevel;
             GUILayout.BeginVertical(GUI.skin.box);
@@ -30,7 +30,7 @@ namespace Unity.Entities.Editor
                 if (repainted == true)
                 {
                     cachedMatches.Clear();
-                    CollectMatches(entityManager, entity, cachedMatches);
+                    WorldDebuggingTools.MatchEntityInComponentGroups(world, entity, cachedMatches);
                     repainted = false;
                 }
 
@@ -44,7 +44,7 @@ namespace Unity.Entities.Editor
                         GUILayout.BeginHorizontal();
                         if (GUILayout.Button(string.Join(", ", from x in componentGroup.Types.Skip(1) select x.ToString())))
                         {
-                            EntityDebugger.SetAllSelections(World.Active, pair.Item1 as ComponentSystemBase, componentGroup, entity);
+                            EntityDebugger.SetAllSelections(world, pair.Item1 as ComponentSystemBase, componentGroup, entity);
                         }
                         GUILayout.FlexibleSpace();
                         GUILayout.EndHorizontal();
@@ -61,50 +61,6 @@ namespace Unity.Entities.Editor
             GUILayout.EndVertical();
 
             --EditorGUI.indentLevel;
-        }
-
-        internal static void CollectMatches(EntityManager entityManager, Entity entity, List<Tuple<ScriptBehaviourManager, List<ComponentGroup>>> matchList)
-        {
-            using (var entityComponentTypes = entityManager.GetComponentTypes(entity, Allocator.Temp))
-            {
-                foreach (var manager in World.Active.BehaviourManagers)
-                {
-                    var componentGroupList = new List<ComponentGroup>();
-                    var system = manager as ComponentSystemBase;
-                    if (system == null) continue;
-                    foreach (var componentGroup in system.ComponentGroups)
-                    {
-                        if (Match(componentGroup, entityComponentTypes))
-                            componentGroupList.Add(componentGroup);
-                    }
-
-                    if (componentGroupList.Count > 0)
-                    {
-                        matchList.Add(new Tuple<ScriptBehaviourManager, List<ComponentGroup>>(manager, componentGroupList));
-                    }
-                }
-            }
-        }
-
-        private static bool Match(ComponentGroup group, NativeArray<ComponentType> entityComponentTypes)
-        {
-
-            foreach (var groupType in group.Types.Skip(1))
-            {
-                var found = false;
-                foreach (var type in entityComponentTypes)
-                {
-                    if (type.TypeIndex != groupType.TypeIndex)
-                        continue;
-                    found = true;
-                    break;
-                }
-
-                if (found == (groupType.AccessModeType == ComponentType.AccessMode.Subtractive))
-                    return false;
-            }
-
-            return true;
         }
     }
 }

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using Unity.Entities.Tests;
 
-namespace Unity.Entities.Editor
+namespace Unity.Entities.Tests
 {
-    public class SystemInclusionListTests : ECSTestsFixture
+    public class WorldDebuggingToolsTests : ECSTestsFixture
     {
 
         class RegularSystem : ComponentSystem
@@ -50,7 +50,7 @@ namespace Unity.Entities.Editor
 
             var matchList = new List<Tuple<ScriptBehaviourManager, List<ComponentGroup>>>();
             
-            SystemInclusionList.CollectMatches(m_Manager, entity, matchList);
+            WorldDebuggingTools.MatchEntityInComponentGroups(World.Active, entity, matchList);
             
             Assert.AreEqual(1, matchList.Count);
             Assert.AreEqual(system, matchList[0].Item1);
@@ -66,7 +66,7 @@ namespace Unity.Entities.Editor
 
             var matchList = new List<Tuple<ScriptBehaviourManager, List<ComponentGroup>>>();
             
-            SystemInclusionList.CollectMatches(m_Manager, entity, matchList);
+            WorldDebuggingTools.MatchEntityInComponentGroups(World.Active, entity, matchList);
             
             Assert.AreEqual(0, matchList.Count);
         }

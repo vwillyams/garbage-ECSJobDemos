@@ -24,7 +24,7 @@ namespace Unity.Entities.Editor
             if (gameObjectEntity.EntityManager == null || !gameObjectEntity.EntityManager.IsCreated || !gameObjectEntity.EntityManager.Exists(gameObjectEntity.Entity))
                 return;
 
-            inclusionList.OnGUI(gameObjectEntity.EntityManager, gameObjectEntity.Entity);
+            inclusionList.OnGUI(World.Active, gameObjectEntity.Entity);
         }
 
         public override bool RequiresConstantRepaint()

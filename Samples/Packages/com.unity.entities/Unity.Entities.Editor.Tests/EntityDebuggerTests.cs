@@ -4,7 +4,7 @@ using Unity.Entities.Tests;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.Entities.Editor
+namespace Unity.Entities.Editor.Tests
 {
     public class EntityDebuggerTests : ECSTestsFixture
     {

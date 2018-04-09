@@ -8,9 +8,9 @@ public class NativeMultiHashMapTests_InJobs : NativeMultiHashMapTestsFixture
 	[Test]
 	public void Read_And_Write()
 	{
-		var hashMap = new NativeMultiHashMap<int, int>(hashMapSize, Allocator.Temp);
-		var writeStatus = new NativeArray<int>(hashMapSize, Allocator.Temp);
-		var readValues = new NativeArray<int>(hashMapSize, Allocator.Temp);
+		var hashMap = new NativeMultiHashMap<int, int>(hashMapSize, Allocator.TempJob);
+		var writeStatus = new NativeArray<int>(hashMapSize, Allocator.TempJob);
+		var readValues = new NativeArray<int>(hashMapSize, Allocator.TempJob);
 
 		var writeData = new MultiHashMapWriteParallelForJob();
 		writeData.hashMap = hashMap;
@@ -38,9 +38,9 @@ public class NativeMultiHashMapTests_InJobs : NativeMultiHashMapTestsFixture
 	[Test]
 	public void Read_And_Write_Full()
 	{
-		var hashMap = new NativeMultiHashMap<int, int>(hashMapSize/2, Allocator.Temp);
-		var writeStatus = new NativeArray<int>(hashMapSize, Allocator.Temp);
-		var readValues = new NativeArray<int>(hashMapSize, Allocator.Temp);
+		var hashMap = new NativeMultiHashMap<int, int>(hashMapSize/2, Allocator.TempJob);
+		var writeStatus = new NativeArray<int>(hashMapSize, Allocator.TempJob);
+		var readValues = new NativeArray<int>(hashMapSize, Allocator.TempJob);
 
 		var writeData = new MultiHashMapWriteParallelForJob();
 		writeData.hashMap = hashMap;
@@ -78,9 +78,9 @@ public class NativeMultiHashMapTests_InJobs : NativeMultiHashMapTestsFixture
 	[Test]
 	public void Key_Collisions()
 	{
-		var hashMap = new NativeMultiHashMap<int, int>(hashMapSize, Allocator.Temp);
-		var writeStatus = new NativeArray<int>(hashMapSize, Allocator.Temp);
-		var readValues = new NativeArray<int>(hashMapSize, Allocator.Temp);
+		var hashMap = new NativeMultiHashMap<int, int>(hashMapSize, Allocator.TempJob);
+		var writeStatus = new NativeArray<int>(hashMapSize, Allocator.TempJob);
+		var readValues = new NativeArray<int>(hashMapSize, Allocator.TempJob);
 
 		var writeData = new MultiHashMapWriteParallelForJob();
 		writeData.hashMap = hashMap;

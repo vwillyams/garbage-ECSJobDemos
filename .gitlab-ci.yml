@@ -12,6 +12,7 @@ validation:2018.1:
   script:
     - python Tools/CI/validation.py "2018.1.*&latest=true"
   only:
+    - schedules
   artifacts:
     when: always
     paths:
@@ -734,6 +735,7 @@ validation:2018.1:
   script:
     - python Tools/CI/validation.py '2018.1.*&latest=true'
   only:
+    - schedules
   artifacts:
     when: always
     paths:
@@ -1456,6 +1458,7 @@ validation:2018.2:
   script:
     - python Tools/CI/validation.py "2018.2.*&latest=true"
   only:
+    - schedules
   artifacts:
     when: always
     paths:
@@ -2178,6 +2181,7 @@ validation:2018.2:
   script:
     - python Tools/CI/validation.py '2018.2.*&latest=true'
   only:
+    - schedules
   artifacts:
     when: always
     paths:
@@ -2900,6 +2904,7 @@ validation:2018.1_staging:
   script:
     - python Tools/CI/validation.py "2018.1/staging&latest=true"
   except:
+    - schedules
   artifacts:
     when: always
     paths:
@@ -3622,6 +3627,7 @@ validation:2018.1_staging:
   script:
     - python Tools/CI/validation.py '2018.1/staging&latest=true'
   except:
+    - schedules
   artifacts:
     when: always
     paths:
@@ -4344,6 +4350,7 @@ validation:trunk:
   script:
     - python Tools/CI/validation.py "trunk&latest=true"
   except:
+    - schedules
   artifacts:
     when: always
     paths:
@@ -5066,6 +5073,7 @@ validation:trunk:
   script:
     - python Tools/CI/validation.py 'trunk&latest=true'
   except:
+    - schedules
   artifacts:
     when: always
     paths:

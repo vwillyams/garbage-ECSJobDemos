@@ -34,8 +34,11 @@
 
 ### Unity at GDC 2018
 
-* [GDC 2018 - Evolving Unity by Joachim Ante [FULL VIDEO] ](https://www.twitch.tv/videos/241945353)
-* [GDC 2018 - Unity Job System and Entity Component System by Tim Johansson [FULL VIDEO]](https://www.twitch.tv/videos/241981630)
+* [GDC 2018 - Evolving Unity by Joachim Ante [FULL VIDEO] ](https://www.youtube.com/watch?v=aFFLEiDr3T0)
+* [GDC 2018 - Unity Job System and Entity Component System by Tim Johansson [FULL VIDEO]](https://www.youtube.com/watch?v=kwnb9Clh2Is)
+* [GDC 2018 - Democratizing Data-Oriented Design: A Data-Oriented Approach to Using Component Systems by Mike Acton [FULL VIDEO]](https://www.youtube.com/watch?v=p65Yt20pw0g)
+* [GDC 2018 - C# Sharp to Machine Code by Andreas Fredriksson [FULL VIDEO]](https://www.youtube.com/watch?v=NF6kcNS6U80)
+* [GDC 2018 - ECS for Small Things by Vladimir Vukicevic [FULL VIDEO]](https://www.youtube.com/watch?v=EWVU6cFdmr0)
 * [MCV 2018 - Exclusive: Unity takes a principled step into triple-A performance at GDC](https://www.mcvuk.com/development/exclusive-unity-takes-a-principled-step-into-triple-a-performance-at-gdc)
 
 ### Unity at Unite Austin 2017

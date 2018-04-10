@@ -72,7 +72,8 @@ namespace Unity.Entities.Editor
 
         public override void VisitEnum<TContainer, TValue>(ref TContainer container, VisitContext<TValue> context)
         {
-            VisitSetup(ref context);
+            VisitSetup(ref container, ref context);
+
             var t = typeof(TValue);
             if (t.IsEnum)
             {
@@ -86,7 +87,7 @@ namespace Unity.Entities.Editor
 
         public override bool BeginContainer<TContainer, TValue>(ref TContainer container, VisitContext<TValue> context)
         {
-            VisitSetup(ref context);
+            VisitSetup(ref container, ref context);
             EditorGUI.indentLevel++;
 
             _currentPath.Push(Property.Name, context.Index);
@@ -109,7 +110,7 @@ namespace Unity.Entities.Editor
 
         public override void EndContainer<TContainer, TValue>(ref TContainer container, VisitContext<TValue> context)
         {
-            VisitSetup(ref context);
+            VisitSetup(ref container, ref context);
             _currentPath.Pop();
 
             EditorGUI.indentLevel--;
@@ -117,13 +118,13 @@ namespace Unity.Entities.Editor
 
         public override bool BeginList<TContainer, TValue>(ref TContainer container, VisitContext<TValue> context)
         {
-            VisitSetup(ref context);
+            VisitSetup(ref container, ref context);
             return true;
         }
 
         public override void EndList<TContainer, TValue>(ref TContainer container, VisitContext<TValue> context)
         {
-            VisitSetup(ref context);
+            VisitSetup(ref container, ref context);
         }
 
         void ICustomVisit<Unity.Mathematics.quaternion>.CustomVisit(Unity.Mathematics.quaternion q)

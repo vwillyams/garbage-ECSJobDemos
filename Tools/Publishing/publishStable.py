@@ -91,15 +91,7 @@ def _get_all_files_in_package(path):
     files = [f for f in files if "node_modules" not in f]
     return files
 
-def download_package_tarball(package_name, current_version):
-    print "Downloading {0} from {1} to see if we have changed anything".format(package_name, best_view_registry)
-    tar_url = npm_cmd("view {0}@{1} dist.tarball".format(package_name, current_version), best_view_registry).strip()
-    download_path = tempfile.gettempdir()
-    print "  Getting tarball from {0} and saving to {1}".format(tar_url, download_path)
-    file_path = os.path.join(download_path, "{0}.{1}.tar.gz".format(package_name, current_version))
-    if os.path.exists(file_path):
-        os.remove(file_path)
-
+def get_package_from_url(tar_url, file_path): # pragma: no cover
     max_retries = 10
     attempt = 0
     retry_delay = 0.1
@@ -109,18 +101,34 @@ def download_package_tarball(package_name, current_version):
             response = urllib2.urlopen(tar_url)
             with open(file_path, 'wb') as f:
                 f.write(response.read())
-            break  # Everything is fine so we can skip the retry
+            return True
         except:
             if attempt < max_retries:
-                print "  Got exception while downloading {0}. Retrying in {0}sec. (Attempt {1}/{2}".format(tar_url, retry_delay, attempt, max_retries)
+                print "  Got exception while downloading {0}. Retrying in {0}sec. (Attempt {1}/{2}".format(tar_url,
+                                                                                                           retry_delay,
+                                                                                                           attempt,
+                                                                                                           max_retries)
                 time.sleep(retry_delay)
                 retry_delay = retry_delay * 2
             else:
                 print "  Reached maximum retries"
                 raise
-    return file_path
 
-def get_current_package_extracted(package_name, current_version):
+def download_package_tarball(package_name, current_version): # pragma: no cover
+    print "Downloading {0} from {1} to see if we have changed anything".format(package_name, best_view_registry)
+    tar_url = npm_cmd("view {0}@{1} dist.tarball".format(package_name, current_version), best_view_registry).strip()
+    download_path = tempfile.gettempdir()
+    print "  Getting tarball from {0} and saving to {1}".format(tar_url, download_path)
+    file_path = os.path.join(download_path, "{0}.{1}.tar.gz".format(package_name, current_version))
+    if os.path.exists(file_path):
+        os.remove(file_path)
+
+    if get_package_from_url(tar_url, file_path):
+        return file_path
+
+    raise Exception("Something went wrong with the download of the tarball.")
+
+def get_current_package_extracted(package_name, current_version): # pragma: no cover
     file_path = download_package_tarball(package_name, current_version)
     print "  Extracting tarball"
     download_path = os.path.join(os.path.dirname(file_path), "{0}.{1}".format(package_name, current_version))
@@ -250,7 +258,7 @@ def _get_version_in_registry(package_name, registry):
             raise e
     return version
 
-def is_local_package(package_name):
+def is_local_package(package_name): # pragma: no cover
     return os.path.isdir("{0}/{1}".format(args.packages_path, package_name))
 
 def get_package_version(package_name):
@@ -591,21 +599,18 @@ def process_package(package_path, package_name, root_clone):
     os.chdir(root_clone)
     print ''.ljust(80, '#')
 
-
-def publish_modified_packages():
+def publish_modified_packages(): # pragma: no cover
     for package_name, version in modified_packages.iteritems():
         if not args.dry_run:
             publish_new_package(package_name, version)
 
-
-def remove_package_folders():
+def remove_package_folders(): # pragma: no cover
     if args.dry_run:
         return
     for package_name, version in local_packages.iteritems():
         shutil.rmtree("./{0}/{1}".format(args.packages_path, package_name))
 
-
-def get_version_from_manifest(package_name):
+def get_version_from_manifest(package_name): # pragma: no cover
     with open("{0}/manifest.json".format(args.packages_path), 'r') as f:
         manifest = json.load(f)
 
@@ -615,13 +620,11 @@ def get_version_from_manifest(package_name):
 
     return manifest["dependencies"][package_name]
 
-
-def get_registry_from_manifest():
+def get_registry_from_manifest(): # pragma: no cover
     with open("{0}/manifest.json".format(args.packages_path), 'r') as f:
         manifest = json.load(f)
 
     return manifest["registry"]
-
 
 def get_filtered_dependencies_from_view_registry(package_name, package_version):
     dependencies = {}
@@ -635,8 +638,7 @@ def get_filtered_dependencies_from_view_registry(package_name, package_version):
         dependencies[key] = value
     return dependencies
 
-
-def main():
+def main():     # pragma: no cover
     global source_branch
     root_dir = os.getcwd()
     repo_dir = args.source_repo
@@ -786,7 +788,7 @@ def main():
 
         os.chdir(root_dir)
 
-def parseArgumentList(argList):
+def parseArgumentList(argList): # pragma: no cover
     parser = argparse.ArgumentParser(description="A tool which finds all internal packages in a Unity project, "
                                                  "publishes them and updates the repo to use them from the upm repo "
                                                  "it gets uploaded to instead and then pushes that to some other repo "
@@ -840,6 +842,6 @@ def parseArgumentList(argList):
                                                                           "files or folders")
     return parser.parse_args(argList)
 
-if __name__ == "__main__":
+if __name__ == "__main__":      # pragma: no cover
     args = parseArgumentList(args)
     main()

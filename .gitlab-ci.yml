@@ -1,7 +1,24 @@
 stages:
+  - validation
   - test
   - build
   - run
+
+################################################################################
+# windows validation for 2018.1
+################################################################################
+validation:2018.1:
+  stage: validation
+  script:
+    - python Tools/CI/validation.py "2018.1.*&latest=true"
+  only:
+  artifacts:
+    when: always
+    paths:
+      - "unity_revision.txt"
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
 
 ################################################################################
 # windows test for 2018.1
@@ -22,10 +39,14 @@ windows:test:2018.1:
     name: "artifacts-windows-test"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
     expire_in: 1 week
+  dependencies:
+    - validation:2018.1
+
 
 ################################################################################
 # windows build for 2018.1
@@ -46,6 +67,7 @@ windows:build:boids:mono:2018.1:
     name: "artifacts-windows-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -70,6 +92,7 @@ windows:build:chains:mono:2018.1:
     name: "artifacts-windows-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -94,6 +117,7 @@ windows:build:hierarchy:mono:2018.1:
     name: "artifacts-windows-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -118,6 +142,7 @@ windows:build:rotation:mono:2018.1:
     name: "artifacts-windows-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -142,6 +167,7 @@ windows:build:twostickshooter-classic:mono:2018.1:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -166,6 +192,7 @@ windows:build:twostickshooter-hybrid:mono:2018.1:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -190,6 +217,7 @@ windows:build:twostickshooter-pure:mono:2018.1:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -214,6 +242,7 @@ windows:build:boids:il2cpp:2018.1:
     name: "artifacts-windows-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -238,6 +267,7 @@ windows:build:chains:il2cpp:2018.1:
     name: "artifacts-windows-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -262,6 +292,7 @@ windows:build:hierarchy:il2cpp:2018.1:
     name: "artifacts-windows-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -286,6 +317,7 @@ windows:build:rotation:il2cpp:2018.1:
     name: "artifacts-windows-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -310,6 +342,7 @@ windows:build:twostickshooter-classic:il2cpp:2018.1:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -334,6 +367,7 @@ windows:build:twostickshooter-hybrid:il2cpp:2018.1:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -358,6 +392,7 @@ windows:build:twostickshooter-pure:il2cpp:2018.1:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -383,6 +418,7 @@ windows:run:boids:mono:2018.1:
     name: "artifacts-windows-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -405,6 +441,7 @@ windows:run:chains:mono:2018.1:
     name: "artifacts-windows-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -427,6 +464,7 @@ windows:run:hierarchy:mono:2018.1:
     name: "artifacts-windows-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -449,6 +487,7 @@ windows:run:rotation:mono:2018.1:
     name: "artifacts-windows-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -471,6 +510,7 @@ windows:run:twostickshooter-classic:mono:2018.1:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -493,6 +533,7 @@ windows:run:twostickshooter-hybrid:mono:2018.1:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -515,6 +556,7 @@ windows:run:twostickshooter-pure:mono:2018.1:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -537,6 +579,7 @@ windows:run:boids:il2cpp:2018.1:
     name: "artifacts-windows-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -559,6 +602,7 @@ windows:run:chains:il2cpp:2018.1:
     name: "artifacts-windows-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -581,6 +625,7 @@ windows:run:hierarchy:il2cpp:2018.1:
     name: "artifacts-windows-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -603,6 +648,7 @@ windows:run:rotation:il2cpp:2018.1:
     name: "artifacts-windows-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -625,6 +671,7 @@ windows:run:twostickshooter-classic:il2cpp:2018.1:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -647,6 +694,7 @@ windows:run:twostickshooter-hybrid:il2cpp:2018.1:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -669,6 +717,7 @@ windows:run:twostickshooter-pure:il2cpp:2018.1:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -676,6 +725,22 @@ windows:run:twostickshooter-pure:il2cpp:2018.1:
   dependencies:
     - windows:build:twostickshooter-pure:il2cpp:2018.1
 
+
+################################################################################
+# macOS validation for 2018.1
+################################################################################
+validation:2018.1:
+  stage: validation
+  script:
+    - python Tools/CI/validation.py '2018.1.*&latest=true'
+  only:
+  artifacts:
+    when: always
+    paths:
+      - "unity_revision.txt"
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
 
 ################################################################################
 # macOS test for 2018.1
@@ -696,10 +761,14 @@ macOS:test:2018.1:
     name: "artifacts-macOS-test"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
     expire_in: 1 week
+  dependencies:
+    - validation:2018.1
+
 
 ################################################################################
 # macOS build for 2018.1
@@ -720,6 +789,7 @@ macOS:build:boids:mono:2018.1:
     name: "artifacts-macOS-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -744,6 +814,7 @@ macOS:build:chains:mono:2018.1:
     name: "artifacts-macOS-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -768,6 +839,7 @@ macOS:build:hierarchy:mono:2018.1:
     name: "artifacts-macOS-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -792,6 +864,7 @@ macOS:build:rotation:mono:2018.1:
     name: "artifacts-macOS-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -816,6 +889,7 @@ macOS:build:twostickshooter-classic:mono:2018.1:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -840,6 +914,7 @@ macOS:build:twostickshooter-hybrid:mono:2018.1:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -864,6 +939,7 @@ macOS:build:twostickshooter-pure:mono:2018.1:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -888,6 +964,7 @@ macOS:build:boids:il2cpp:2018.1:
     name: "artifacts-macOS-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -912,6 +989,7 @@ macOS:build:chains:il2cpp:2018.1:
     name: "artifacts-macOS-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -936,6 +1014,7 @@ macOS:build:hierarchy:il2cpp:2018.1:
     name: "artifacts-macOS-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -960,6 +1039,7 @@ macOS:build:rotation:il2cpp:2018.1:
     name: "artifacts-macOS-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -984,6 +1064,7 @@ macOS:build:twostickshooter-classic:il2cpp:2018.1:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -1008,6 +1089,7 @@ macOS:build:twostickshooter-hybrid:il2cpp:2018.1:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -1032,6 +1114,7 @@ macOS:build:twostickshooter-pure:il2cpp:2018.1:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -1057,6 +1140,7 @@ macOS:run:boids:mono:2018.1:
     name: "artifacts-macOS-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1079,6 +1163,7 @@ macOS:run:chains:mono:2018.1:
     name: "artifacts-macOS-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1101,6 +1186,7 @@ macOS:run:hierarchy:mono:2018.1:
     name: "artifacts-macOS-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1123,6 +1209,7 @@ macOS:run:rotation:mono:2018.1:
     name: "artifacts-macOS-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1145,6 +1232,7 @@ macOS:run:twostickshooter-classic:mono:2018.1:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -1167,6 +1255,7 @@ macOS:run:twostickshooter-hybrid:mono:2018.1:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -1189,6 +1278,7 @@ macOS:run:twostickshooter-pure:mono:2018.1:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -1211,6 +1301,7 @@ macOS:run:boids:il2cpp:2018.1:
     name: "artifacts-macOS-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1233,6 +1324,7 @@ macOS:run:chains:il2cpp:2018.1:
     name: "artifacts-macOS-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1255,6 +1347,7 @@ macOS:run:hierarchy:il2cpp:2018.1:
     name: "artifacts-macOS-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1277,6 +1370,7 @@ macOS:run:rotation:il2cpp:2018.1:
     name: "artifacts-macOS-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1299,6 +1393,7 @@ macOS:run:twostickshooter-classic:il2cpp:2018.1:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -1321,6 +1416,7 @@ macOS:run:twostickshooter-hybrid:il2cpp:2018.1:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -1343,6 +1439,7 @@ macOS:run:twostickshooter-pure:il2cpp:2018.1:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -1350,6 +1447,22 @@ macOS:run:twostickshooter-pure:il2cpp:2018.1:
   dependencies:
     - macOS:build:twostickshooter-pure:il2cpp:2018.1
 
+
+################################################################################
+# windows validation for 2018.2
+################################################################################
+validation:2018.2:
+  stage: validation
+  script:
+    - python Tools/CI/validation.py "2018.2.*&latest=true"
+  only:
+  artifacts:
+    when: always
+    paths:
+      - "unity_revision.txt"
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
 
 ################################################################################
 # windows test for 2018.2
@@ -1370,10 +1483,14 @@ windows:test:2018.2:
     name: "artifacts-windows-test"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
     expire_in: 1 week
+  dependencies:
+    - validation:2018.2
+
 
 ################################################################################
 # windows build for 2018.2
@@ -1394,6 +1511,7 @@ windows:build:boids:mono:2018.2:
     name: "artifacts-windows-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1418,6 +1536,7 @@ windows:build:chains:mono:2018.2:
     name: "artifacts-windows-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1442,6 +1561,7 @@ windows:build:hierarchy:mono:2018.2:
     name: "artifacts-windows-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1466,6 +1586,7 @@ windows:build:rotation:mono:2018.2:
     name: "artifacts-windows-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1490,6 +1611,7 @@ windows:build:twostickshooter-classic:mono:2018.2:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -1514,6 +1636,7 @@ windows:build:twostickshooter-hybrid:mono:2018.2:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -1538,6 +1661,7 @@ windows:build:twostickshooter-pure:mono:2018.2:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -1562,6 +1686,7 @@ windows:build:boids:il2cpp:2018.2:
     name: "artifacts-windows-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1586,6 +1711,7 @@ windows:build:chains:il2cpp:2018.2:
     name: "artifacts-windows-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1610,6 +1736,7 @@ windows:build:hierarchy:il2cpp:2018.2:
     name: "artifacts-windows-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1634,6 +1761,7 @@ windows:build:rotation:il2cpp:2018.2:
     name: "artifacts-windows-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1658,6 +1786,7 @@ windows:build:twostickshooter-classic:il2cpp:2018.2:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -1682,6 +1811,7 @@ windows:build:twostickshooter-hybrid:il2cpp:2018.2:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -1706,6 +1836,7 @@ windows:build:twostickshooter-pure:il2cpp:2018.2:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -1731,6 +1862,7 @@ windows:run:boids:mono:2018.2:
     name: "artifacts-windows-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1753,6 +1885,7 @@ windows:run:chains:mono:2018.2:
     name: "artifacts-windows-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1775,6 +1908,7 @@ windows:run:hierarchy:mono:2018.2:
     name: "artifacts-windows-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1797,6 +1931,7 @@ windows:run:rotation:mono:2018.2:
     name: "artifacts-windows-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1819,6 +1954,7 @@ windows:run:twostickshooter-classic:mono:2018.2:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -1841,6 +1977,7 @@ windows:run:twostickshooter-hybrid:mono:2018.2:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -1863,6 +2000,7 @@ windows:run:twostickshooter-pure:mono:2018.2:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -1885,6 +2023,7 @@ windows:run:boids:il2cpp:2018.2:
     name: "artifacts-windows-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1907,6 +2046,7 @@ windows:run:chains:il2cpp:2018.2:
     name: "artifacts-windows-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1929,6 +2069,7 @@ windows:run:hierarchy:il2cpp:2018.2:
     name: "artifacts-windows-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1951,6 +2092,7 @@ windows:run:rotation:il2cpp:2018.2:
     name: "artifacts-windows-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -1973,6 +2115,7 @@ windows:run:twostickshooter-classic:il2cpp:2018.2:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -1995,6 +2138,7 @@ windows:run:twostickshooter-hybrid:il2cpp:2018.2:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -2017,6 +2161,7 @@ windows:run:twostickshooter-pure:il2cpp:2018.2:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -2024,6 +2169,22 @@ windows:run:twostickshooter-pure:il2cpp:2018.2:
   dependencies:
     - windows:build:twostickshooter-pure:il2cpp:2018.2
 
+
+################################################################################
+# macOS validation for 2018.2
+################################################################################
+validation:2018.2:
+  stage: validation
+  script:
+    - python Tools/CI/validation.py '2018.2.*&latest=true'
+  only:
+  artifacts:
+    when: always
+    paths:
+      - "unity_revision.txt"
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
 
 ################################################################################
 # macOS test for 2018.2
@@ -2044,10 +2205,14 @@ macOS:test:2018.2:
     name: "artifacts-macOS-test"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
     expire_in: 1 week
+  dependencies:
+    - validation:2018.2
+
 
 ################################################################################
 # macOS build for 2018.2
@@ -2068,6 +2233,7 @@ macOS:build:boids:mono:2018.2:
     name: "artifacts-macOS-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2092,6 +2258,7 @@ macOS:build:chains:mono:2018.2:
     name: "artifacts-macOS-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2116,6 +2283,7 @@ macOS:build:hierarchy:mono:2018.2:
     name: "artifacts-macOS-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2140,6 +2308,7 @@ macOS:build:rotation:mono:2018.2:
     name: "artifacts-macOS-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2164,6 +2333,7 @@ macOS:build:twostickshooter-classic:mono:2018.2:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -2188,6 +2358,7 @@ macOS:build:twostickshooter-hybrid:mono:2018.2:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -2212,6 +2383,7 @@ macOS:build:twostickshooter-pure:mono:2018.2:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -2236,6 +2408,7 @@ macOS:build:boids:il2cpp:2018.2:
     name: "artifacts-macOS-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2260,6 +2433,7 @@ macOS:build:chains:il2cpp:2018.2:
     name: "artifacts-macOS-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2284,6 +2458,7 @@ macOS:build:hierarchy:il2cpp:2018.2:
     name: "artifacts-macOS-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2308,6 +2483,7 @@ macOS:build:rotation:il2cpp:2018.2:
     name: "artifacts-macOS-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2332,6 +2508,7 @@ macOS:build:twostickshooter-classic:il2cpp:2018.2:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -2356,6 +2533,7 @@ macOS:build:twostickshooter-hybrid:il2cpp:2018.2:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -2380,6 +2558,7 @@ macOS:build:twostickshooter-pure:il2cpp:2018.2:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -2405,6 +2584,7 @@ macOS:run:boids:mono:2018.2:
     name: "artifacts-macOS-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2427,6 +2607,7 @@ macOS:run:chains:mono:2018.2:
     name: "artifacts-macOS-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2449,6 +2630,7 @@ macOS:run:hierarchy:mono:2018.2:
     name: "artifacts-macOS-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2471,6 +2653,7 @@ macOS:run:rotation:mono:2018.2:
     name: "artifacts-macOS-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2493,6 +2676,7 @@ macOS:run:twostickshooter-classic:mono:2018.2:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -2515,6 +2699,7 @@ macOS:run:twostickshooter-hybrid:mono:2018.2:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -2537,6 +2722,7 @@ macOS:run:twostickshooter-pure:mono:2018.2:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -2559,6 +2745,7 @@ macOS:run:boids:il2cpp:2018.2:
     name: "artifacts-macOS-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2581,6 +2768,7 @@ macOS:run:chains:il2cpp:2018.2:
     name: "artifacts-macOS-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2603,6 +2791,7 @@ macOS:run:hierarchy:il2cpp:2018.2:
     name: "artifacts-macOS-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2625,6 +2814,7 @@ macOS:run:rotation:il2cpp:2018.2:
     name: "artifacts-macOS-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2647,6 +2837,7 @@ macOS:run:twostickshooter-classic:il2cpp:2018.2:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -2669,6 +2860,7 @@ macOS:run:twostickshooter-hybrid:il2cpp:2018.2:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -2691,6 +2883,7 @@ macOS:run:twostickshooter-pure:il2cpp:2018.2:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -2698,6 +2891,22 @@ macOS:run:twostickshooter-pure:il2cpp:2018.2:
   dependencies:
     - macOS:build:twostickshooter-pure:il2cpp:2018.2
 
+
+################################################################################
+# windows validation for 2018.1_staging
+################################################################################
+validation:2018.1_staging:
+  stage: validation
+  script:
+    - python Tools/CI/validation.py "2018.1/staging&latest=true"
+  except:
+  artifacts:
+    when: always
+    paths:
+      - "unity_revision.txt"
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
 
 ################################################################################
 # windows test for 2018.1_staging
@@ -2718,10 +2927,14 @@ windows:test:2018.1_staging:
     name: "artifacts-windows-test"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
     expire_in: 1 week
+  dependencies:
+    - validation:2018.1_staging
+
 
 ################################################################################
 # windows build for 2018.1_staging
@@ -2742,6 +2955,7 @@ windows:build:boids:mono:2018.1_staging:
     name: "artifacts-windows-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2766,6 +2980,7 @@ windows:build:chains:mono:2018.1_staging:
     name: "artifacts-windows-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2790,6 +3005,7 @@ windows:build:hierarchy:mono:2018.1_staging:
     name: "artifacts-windows-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2814,6 +3030,7 @@ windows:build:rotation:mono:2018.1_staging:
     name: "artifacts-windows-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2838,6 +3055,7 @@ windows:build:twostickshooter-classic:mono:2018.1_staging:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -2862,6 +3080,7 @@ windows:build:twostickshooter-hybrid:mono:2018.1_staging:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -2886,6 +3105,7 @@ windows:build:twostickshooter-pure:mono:2018.1_staging:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -2910,6 +3130,7 @@ windows:build:boids:il2cpp:2018.1_staging:
     name: "artifacts-windows-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2934,6 +3155,7 @@ windows:build:chains:il2cpp:2018.1_staging:
     name: "artifacts-windows-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2958,6 +3180,7 @@ windows:build:hierarchy:il2cpp:2018.1_staging:
     name: "artifacts-windows-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -2982,6 +3205,7 @@ windows:build:rotation:il2cpp:2018.1_staging:
     name: "artifacts-windows-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3006,6 +3230,7 @@ windows:build:twostickshooter-classic:il2cpp:2018.1_staging:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -3030,6 +3255,7 @@ windows:build:twostickshooter-hybrid:il2cpp:2018.1_staging:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -3054,6 +3280,7 @@ windows:build:twostickshooter-pure:il2cpp:2018.1_staging:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -3079,6 +3306,7 @@ windows:run:boids:mono:2018.1_staging:
     name: "artifacts-windows-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3101,6 +3329,7 @@ windows:run:chains:mono:2018.1_staging:
     name: "artifacts-windows-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3123,6 +3352,7 @@ windows:run:hierarchy:mono:2018.1_staging:
     name: "artifacts-windows-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3145,6 +3375,7 @@ windows:run:rotation:mono:2018.1_staging:
     name: "artifacts-windows-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3167,6 +3398,7 @@ windows:run:twostickshooter-classic:mono:2018.1_staging:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -3189,6 +3421,7 @@ windows:run:twostickshooter-hybrid:mono:2018.1_staging:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -3211,6 +3444,7 @@ windows:run:twostickshooter-pure:mono:2018.1_staging:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -3233,6 +3467,7 @@ windows:run:boids:il2cpp:2018.1_staging:
     name: "artifacts-windows-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3255,6 +3490,7 @@ windows:run:chains:il2cpp:2018.1_staging:
     name: "artifacts-windows-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3277,6 +3513,7 @@ windows:run:hierarchy:il2cpp:2018.1_staging:
     name: "artifacts-windows-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3299,6 +3536,7 @@ windows:run:rotation:il2cpp:2018.1_staging:
     name: "artifacts-windows-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3321,6 +3559,7 @@ windows:run:twostickshooter-classic:il2cpp:2018.1_staging:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -3343,6 +3582,7 @@ windows:run:twostickshooter-hybrid:il2cpp:2018.1_staging:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -3365,6 +3605,7 @@ windows:run:twostickshooter-pure:il2cpp:2018.1_staging:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -3372,6 +3613,22 @@ windows:run:twostickshooter-pure:il2cpp:2018.1_staging:
   dependencies:
     - windows:build:twostickshooter-pure:il2cpp:2018.1_staging
 
+
+################################################################################
+# macOS validation for 2018.1_staging
+################################################################################
+validation:2018.1_staging:
+  stage: validation
+  script:
+    - python Tools/CI/validation.py '2018.1/staging&latest=true'
+  except:
+  artifacts:
+    when: always
+    paths:
+      - "unity_revision.txt"
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
 
 ################################################################################
 # macOS test for 2018.1_staging
@@ -3392,10 +3649,14 @@ macOS:test:2018.1_staging:
     name: "artifacts-macOS-test"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
     expire_in: 1 week
+  dependencies:
+    - validation:2018.1_staging
+
 
 ################################################################################
 # macOS build for 2018.1_staging
@@ -3416,6 +3677,7 @@ macOS:build:boids:mono:2018.1_staging:
     name: "artifacts-macOS-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3440,6 +3702,7 @@ macOS:build:chains:mono:2018.1_staging:
     name: "artifacts-macOS-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3464,6 +3727,7 @@ macOS:build:hierarchy:mono:2018.1_staging:
     name: "artifacts-macOS-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3488,6 +3752,7 @@ macOS:build:rotation:mono:2018.1_staging:
     name: "artifacts-macOS-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3512,6 +3777,7 @@ macOS:build:twostickshooter-classic:mono:2018.1_staging:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -3536,6 +3802,7 @@ macOS:build:twostickshooter-hybrid:mono:2018.1_staging:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -3560,6 +3827,7 @@ macOS:build:twostickshooter-pure:mono:2018.1_staging:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -3584,6 +3852,7 @@ macOS:build:boids:il2cpp:2018.1_staging:
     name: "artifacts-macOS-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3608,6 +3877,7 @@ macOS:build:chains:il2cpp:2018.1_staging:
     name: "artifacts-macOS-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3632,6 +3902,7 @@ macOS:build:hierarchy:il2cpp:2018.1_staging:
     name: "artifacts-macOS-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3656,6 +3927,7 @@ macOS:build:rotation:il2cpp:2018.1_staging:
     name: "artifacts-macOS-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3680,6 +3952,7 @@ macOS:build:twostickshooter-classic:il2cpp:2018.1_staging:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -3704,6 +3977,7 @@ macOS:build:twostickshooter-hybrid:il2cpp:2018.1_staging:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -3728,6 +4002,7 @@ macOS:build:twostickshooter-pure:il2cpp:2018.1_staging:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -3753,6 +4028,7 @@ macOS:run:boids:mono:2018.1_staging:
     name: "artifacts-macOS-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3775,6 +4051,7 @@ macOS:run:chains:mono:2018.1_staging:
     name: "artifacts-macOS-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3797,6 +4074,7 @@ macOS:run:hierarchy:mono:2018.1_staging:
     name: "artifacts-macOS-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3819,6 +4097,7 @@ macOS:run:rotation:mono:2018.1_staging:
     name: "artifacts-macOS-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3841,6 +4120,7 @@ macOS:run:twostickshooter-classic:mono:2018.1_staging:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -3863,6 +4143,7 @@ macOS:run:twostickshooter-hybrid:mono:2018.1_staging:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -3885,6 +4166,7 @@ macOS:run:twostickshooter-pure:mono:2018.1_staging:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -3907,6 +4189,7 @@ macOS:run:boids:il2cpp:2018.1_staging:
     name: "artifacts-macOS-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3929,6 +4212,7 @@ macOS:run:chains:il2cpp:2018.1_staging:
     name: "artifacts-macOS-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3951,6 +4235,7 @@ macOS:run:hierarchy:il2cpp:2018.1_staging:
     name: "artifacts-macOS-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3973,6 +4258,7 @@ macOS:run:rotation:il2cpp:2018.1_staging:
     name: "artifacts-macOS-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -3995,6 +4281,7 @@ macOS:run:twostickshooter-classic:il2cpp:2018.1_staging:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -4017,6 +4304,7 @@ macOS:run:twostickshooter-hybrid:il2cpp:2018.1_staging:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -4039,6 +4327,7 @@ macOS:run:twostickshooter-pure:il2cpp:2018.1_staging:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -4046,6 +4335,22 @@ macOS:run:twostickshooter-pure:il2cpp:2018.1_staging:
   dependencies:
     - macOS:build:twostickshooter-pure:il2cpp:2018.1_staging
 
+
+################################################################################
+# windows validation for trunk
+################################################################################
+validation:trunk:
+  stage: validation
+  script:
+    - python Tools/CI/validation.py "trunk&latest=true"
+  except:
+  artifacts:
+    when: always
+    paths:
+      - "unity_revision.txt"
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
 
 ################################################################################
 # windows test for trunk
@@ -4066,10 +4371,14 @@ windows:test:trunk:
     name: "artifacts-windows-test"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
     expire_in: 1 week
+  dependencies:
+    - validation:trunk
+
 
 ################################################################################
 # windows build for trunk
@@ -4090,6 +4399,7 @@ windows:build:boids:mono:trunk:
     name: "artifacts-windows-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -4114,6 +4424,7 @@ windows:build:chains:mono:trunk:
     name: "artifacts-windows-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -4138,6 +4449,7 @@ windows:build:hierarchy:mono:trunk:
     name: "artifacts-windows-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -4162,6 +4474,7 @@ windows:build:rotation:mono:trunk:
     name: "artifacts-windows-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -4186,6 +4499,7 @@ windows:build:twostickshooter-classic:mono:trunk:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -4210,6 +4524,7 @@ windows:build:twostickshooter-hybrid:mono:trunk:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -4234,6 +4549,7 @@ windows:build:twostickshooter-pure:mono:trunk:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -4258,6 +4574,7 @@ windows:build:boids:il2cpp:trunk:
     name: "artifacts-windows-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -4282,6 +4599,7 @@ windows:build:chains:il2cpp:trunk:
     name: "artifacts-windows-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -4306,6 +4624,7 @@ windows:build:hierarchy:il2cpp:trunk:
     name: "artifacts-windows-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -4330,6 +4649,7 @@ windows:build:rotation:il2cpp:trunk:
     name: "artifacts-windows-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -4354,6 +4674,7 @@ windows:build:twostickshooter-classic:il2cpp:trunk:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -4378,6 +4699,7 @@ windows:build:twostickshooter-hybrid:il2cpp:trunk:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -4402,6 +4724,7 @@ windows:build:twostickshooter-pure:il2cpp:trunk:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -4427,6 +4750,7 @@ windows:run:boids:mono:trunk:
     name: "artifacts-windows-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -4449,6 +4773,7 @@ windows:run:chains:mono:trunk:
     name: "artifacts-windows-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -4471,6 +4796,7 @@ windows:run:hierarchy:mono:trunk:
     name: "artifacts-windows-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -4493,6 +4819,7 @@ windows:run:rotation:mono:trunk:
     name: "artifacts-windows-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -4515,6 +4842,7 @@ windows:run:twostickshooter-classic:mono:trunk:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -4537,6 +4865,7 @@ windows:run:twostickshooter-hybrid:mono:trunk:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -4559,6 +4888,7 @@ windows:run:twostickshooter-pure:mono:trunk:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -4581,6 +4911,7 @@ windows:run:boids:il2cpp:trunk:
     name: "artifacts-windows-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -4603,6 +4934,7 @@ windows:run:chains:il2cpp:trunk:
     name: "artifacts-windows-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -4625,6 +4957,7 @@ windows:run:hierarchy:il2cpp:trunk:
     name: "artifacts-windows-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -4647,6 +4980,7 @@ windows:run:rotation:il2cpp:trunk:
     name: "artifacts-windows-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -4669,6 +5003,7 @@ windows:run:twostickshooter-classic:il2cpp:trunk:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -4691,6 +5026,7 @@ windows:run:twostickshooter-hybrid:il2cpp:trunk:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -4713,6 +5049,7 @@ windows:run:twostickshooter-pure:il2cpp:trunk:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -4720,6 +5057,22 @@ windows:run:twostickshooter-pure:il2cpp:trunk:
   dependencies:
     - windows:build:twostickshooter-pure:il2cpp:trunk
 
+
+################################################################################
+# macOS validation for trunk
+################################################################################
+validation:trunk:
+  stage: validation
+  script:
+    - python Tools/CI/validation.py 'trunk&latest=true'
+  except:
+  artifacts:
+    when: always
+    paths:
+      - "unity_revision.txt"
+      - "*.log"
+      - "*.xml"
+    expire_in: 1 week
 
 ################################################################################
 # macOS test for trunk
@@ -4740,10 +5093,14 @@ macOS:test:trunk:
     name: "artifacts-macOS-test"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
     expire_in: 1 week
+  dependencies:
+    - validation:trunk
+
 
 ################################################################################
 # macOS build for trunk
@@ -4764,6 +5121,7 @@ macOS:build:boids:mono:trunk:
     name: "artifacts-macOS-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -4788,6 +5146,7 @@ macOS:build:chains:mono:trunk:
     name: "artifacts-macOS-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -4812,6 +5171,7 @@ macOS:build:hierarchy:mono:trunk:
     name: "artifacts-macOS-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -4836,6 +5196,7 @@ macOS:build:rotation:mono:trunk:
     name: "artifacts-macOS-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -4860,6 +5221,7 @@ macOS:build:twostickshooter-classic:mono:trunk:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -4884,6 +5246,7 @@ macOS:build:twostickshooter-hybrid:mono:trunk:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -4908,6 +5271,7 @@ macOS:build:twostickshooter-pure:mono:trunk:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -4932,6 +5296,7 @@ macOS:build:boids:il2cpp:trunk:
     name: "artifacts-macOS-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -4956,6 +5321,7 @@ macOS:build:chains:il2cpp:trunk:
     name: "artifacts-macOS-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -4980,6 +5346,7 @@ macOS:build:hierarchy:il2cpp:trunk:
     name: "artifacts-macOS-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -5004,6 +5371,7 @@ macOS:build:rotation:il2cpp:trunk:
     name: "artifacts-macOS-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -5028,6 +5396,7 @@ macOS:build:twostickshooter-classic:il2cpp:trunk:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -5052,6 +5421,7 @@ macOS:build:twostickshooter-hybrid:il2cpp:trunk:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -5076,6 +5446,7 @@ macOS:build:twostickshooter-pure:il2cpp:trunk:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -5101,6 +5472,7 @@ macOS:run:boids:mono:trunk:
     name: "artifacts-macOS-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -5123,6 +5495,7 @@ macOS:run:chains:mono:trunk:
     name: "artifacts-macOS-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -5145,6 +5518,7 @@ macOS:run:hierarchy:mono:trunk:
     name: "artifacts-macOS-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -5167,6 +5541,7 @@ macOS:run:rotation:mono:trunk:
     name: "artifacts-macOS-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -5189,6 +5564,7 @@ macOS:run:twostickshooter-classic:mono:trunk:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -5211,6 +5587,7 @@ macOS:run:twostickshooter-hybrid:mono:trunk:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -5233,6 +5610,7 @@ macOS:run:twostickshooter-pure:mono:trunk:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"
@@ -5255,6 +5633,7 @@ macOS:run:boids:il2cpp:trunk:
     name: "artifacts-macOS-boids"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -5277,6 +5656,7 @@ macOS:run:chains:il2cpp:trunk:
     name: "artifacts-macOS-chains"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -5299,6 +5679,7 @@ macOS:run:hierarchy:il2cpp:trunk:
     name: "artifacts-macOS-hierarchy"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -5321,6 +5702,7 @@ macOS:run:rotation:il2cpp:trunk:
     name: "artifacts-macOS-rotation"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "Samples/build"
@@ -5343,6 +5725,7 @@ macOS:run:twostickshooter-classic:il2cpp:trunk:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Classic/build"
@@ -5365,6 +5748,7 @@ macOS:run:twostickshooter-hybrid:il2cpp:trunk:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Hybrid/build"
@@ -5387,6 +5771,7 @@ macOS:run:twostickshooter-pure:il2cpp:trunk:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
     paths:
+      - "unity_revision.txt"
       - "*.log"
       - "*.xml"
       - "TwoStickShooter/Pure/build"

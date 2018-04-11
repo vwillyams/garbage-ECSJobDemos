@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Threading;
 using Unity.Collections.LowLevel.Unsafe;
 
@@ -97,6 +100,13 @@ namespace Unity.Entities
                     return i;
             }
             return -1;
+        }
+
+        public static int TypesCount => s_Count;
+
+        public static IEnumerable<ComponentType> AllTypes()
+        {
+            return s_Types.Take(s_Count);
         }
 
         static int CreateTypeIndexThreadSafe(Type type)

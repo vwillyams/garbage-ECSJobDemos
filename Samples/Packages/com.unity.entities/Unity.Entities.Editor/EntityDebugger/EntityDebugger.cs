@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -300,6 +301,25 @@ namespace Unity.Entities.Editor
             GUILayout.EndHorizontal();
         }
 
+        private readonly List<bool> selectedFilterTypes = new List<bool>();
+        private readonly List<Type> filterTypes = new List<Type>();
+
+        void GetTypes()
+        {
+            if (selectedFilterTypes.Count != TypeManager.TypesCount)
+            {
+                filterTypes.Clear();
+                selectedFilterTypes.Clear();
+                filterTypes.Capacity = TypeManager.TypesCount;
+                selectedFilterTypes.Capacity = TypeManager.TypesCount;
+                foreach (var type in TypeManager.AllTypes())
+                {
+                    filterTypes.Add(type.Type);
+                    selectedFilterTypes.Add(false);
+                }
+            }
+        }
+
         void ComponentGroupList()
         {
             if (SystemSelection is ComponentSystemBase)
@@ -308,6 +328,15 @@ namespace Unity.Entities.Editor
 
                 componentGroupListView.OnGUI(GUIHelpers.GetExpandingRect());
                 GUILayout.EndVertical();
+            }
+            else
+            {
+                GetTypes();
+                for (var i = 0; i < selectedFilterTypes.Count; ++i)
+                {
+                    if (filterTypes[i] != null)
+                        selectedFilterTypes[i] = GUILayout.Toggle(selectedFilterTypes[i], filterTypes[i].Name);
+                }
             }
         }
 

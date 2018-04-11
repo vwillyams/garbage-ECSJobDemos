@@ -10,7 +10,7 @@ stages:
 validation:2018.1:
   stage: validation
   script:
-    - python Tools/CI/validation.py "2018.1.*&latest=true"
+    - python Tools/CI/validation.py --build-version "2018.1.*&latest=true" --project-path Samples --project-path TwoStickShooter/Classic --project-path TwoStickShooter/Hybrid --project-path TwoStickShooter/Pure 
   only:
     - schedules
   artifacts:
@@ -733,7 +733,7 @@ windows:run:twostickshooter-pure:il2cpp:2018.1:
 validation:2018.1:
   stage: validation
   script:
-    - python Tools/CI/validation.py '2018.1.*&latest=true'
+    - python Tools/CI/validation.py --build-version '2018.1.*&latest=true' --project-path Samples --project-path TwoStickShooter/Classic --project-path TwoStickShooter/Hybrid --project-path TwoStickShooter/Pure 
   only:
     - schedules
   artifacts:
@@ -1456,7 +1456,7 @@ macOS:run:twostickshooter-pure:il2cpp:2018.1:
 validation:2018.2:
   stage: validation
   script:
-    - python Tools/CI/validation.py "2018.2.*&latest=true"
+    - python Tools/CI/validation.py --build-version "2018.2.*&latest=true" --project-path Samples --project-path TwoStickShooter/Classic --project-path TwoStickShooter/Hybrid --project-path TwoStickShooter/Pure 
   only:
     - schedules
   artifacts:
@@ -2179,7 +2179,7 @@ windows:run:twostickshooter-pure:il2cpp:2018.2:
 validation:2018.2:
   stage: validation
   script:
-    - python Tools/CI/validation.py '2018.2.*&latest=true'
+    - python Tools/CI/validation.py --build-version '2018.2.*&latest=true' --project-path Samples --project-path TwoStickShooter/Classic --project-path TwoStickShooter/Hybrid --project-path TwoStickShooter/Pure 
   only:
     - schedules
   artifacts:
@@ -2902,7 +2902,7 @@ macOS:run:twostickshooter-pure:il2cpp:2018.2:
 validation:2018.1_staging:
   stage: validation
   script:
-    - python Tools/CI/validation.py "2018.1/staging&latest=true"
+    - python Tools/CI/validation.py --build-version "2018.1/staging&latest=true" --project-path Samples --project-path TwoStickShooter/Classic --project-path TwoStickShooter/Hybrid --project-path TwoStickShooter/Pure 
   except:
     - schedules
   artifacts:
@@ -3625,7 +3625,7 @@ windows:run:twostickshooter-pure:il2cpp:2018.1_staging:
 validation:2018.1_staging:
   stage: validation
   script:
-    - python Tools/CI/validation.py '2018.1/staging&latest=true'
+    - python Tools/CI/validation.py --build-version '2018.1/staging&latest=true' --project-path Samples --project-path TwoStickShooter/Classic --project-path TwoStickShooter/Hybrid --project-path TwoStickShooter/Pure 
   except:
     - schedules
   artifacts:
@@ -4348,7 +4348,7 @@ macOS:run:twostickshooter-pure:il2cpp:2018.1_staging:
 validation:trunk:
   stage: validation
   script:
-    - python Tools/CI/validation.py "trunk&latest=true"
+    - python Tools/CI/validation.py --build-version "trunk&latest=true" --project-path Samples --project-path TwoStickShooter/Classic --project-path TwoStickShooter/Hybrid --project-path TwoStickShooter/Pure 
   except:
     - schedules
   artifacts:
@@ -5071,7 +5071,7 @@ windows:run:twostickshooter-pure:il2cpp:trunk:
 validation:trunk:
   stage: validation
   script:
-    - python Tools/CI/validation.py 'trunk&latest=true'
+    - python Tools/CI/validation.py --build-version 'trunk&latest=true' --project-path Samples --project-path TwoStickShooter/Classic --project-path TwoStickShooter/Hybrid --project-path TwoStickShooter/Pure 
   except:
     - schedules
   artifacts:

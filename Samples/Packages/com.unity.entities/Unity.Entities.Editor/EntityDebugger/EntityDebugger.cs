@@ -148,7 +148,10 @@ namespace Unity.Entities.Editor
             {
                 worldSelection = selection;
                 if (worldSelection != null)
+                {
                     lastSelectedWorldName = worldSelection.Name;
+                    searchSystem = worldSelection.GetOrCreateManager<RecentSearches>();
+                }
                     
                 CreateSystemListView();
                 systemListView.multiColumnHeader.ResizeToFit();
@@ -302,8 +305,19 @@ namespace Unity.Entities.Editor
         }
 
         private readonly List<bool> selectedFilterTypes = new List<bool>();
-        private readonly List<Type> filterTypes = new List<Type>();
+        private readonly List<ComponentType> filterTypes = new List<ComponentType>();
+        
+        [DisableAutoCreation]
+        class RecentSearches : ComponentSystem
+        {
+            protected override void OnUpdate()
+            {
+                throw new NotImplementedException();
+            }
+        }
 
+        private RecentSearches searchSystem;
+        
         void GetTypes()
         {
             if (selectedFilterTypes.Count != TypeManager.TypesCount)
@@ -314,7 +328,8 @@ namespace Unity.Entities.Editor
                 selectedFilterTypes.Capacity = TypeManager.TypesCount;
                 foreach (var type in TypeManager.AllTypes())
                 {
-                    filterTypes.Add(type.Type);
+                    var typeIndex = TypeManager.GetTypeIndex(type.Type);
+                    filterTypes.Add(ComponentType.FromTypeIndex(typeIndex));
                     selectedFilterTypes.Add(false);
                 }
             }
@@ -332,10 +347,25 @@ namespace Unity.Entities.Editor
             else
             {
                 GetTypes();
+                EditorGUI.BeginChangeCheck();
                 for (var i = 0; i < selectedFilterTypes.Count; ++i)
                 {
                     if (filterTypes[i] != null)
-                        selectedFilterTypes[i] = GUILayout.Toggle(selectedFilterTypes[i], filterTypes[i].Name);
+                        selectedFilterTypes[i] = GUILayout.Toggle(selectedFilterTypes[i], filterTypes[i].GetManagedType().Name);
+                }
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (selectedFilterTypes.Any())
+                    {
+                        var selectedTypes = new List<ComponentType>();
+                        for (var i = 0; i < selectedFilterTypes.Count; ++i)
+                        {
+                            if (selectedFilterTypes[i])
+                                selectedTypes.Add(filterTypes[i]);
+                        }
+                        SetComponentGroupSelection(searchSystem.GetComponentGroupInternal(selectedTypes.ToArray()), true, true);
+                    }
                 }
             }
         }

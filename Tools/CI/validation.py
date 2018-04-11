@@ -71,7 +71,7 @@ def generate_unity_revisions_file(editor, mono, il2cpp):
     for key in il2cpp:
         json_data[key] = il2cpp[key]
 
-    with open('../../unity_revisions.txt', 'wb') as f:
+    with open('../../unity_revision.txt', 'wb') as f:
         json.dump(json_data, f, indent = 4)
 
 def main():

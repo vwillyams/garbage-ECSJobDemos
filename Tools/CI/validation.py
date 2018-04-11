@@ -82,7 +82,7 @@ def main():
     generate_unity_revisions_file(editor_artifacts, standalone_artifacts_mono, standalone_artifacts_il2cpp)
 
     for project_path in args.project_path:
-        packages_folder = get_packages_folder(project_path)
+        packages_folder = get_packages_folder(project_path[0])
         packages = get_packages(packages_folder)
         for package in packages:
             if not check_metafiles_in_package(package):
@@ -95,7 +95,7 @@ def parse_argument_list():
     parser = argparse.ArgumentParser(description="A tool which performs sanity checks against the packages and demo "
                                                  "that are going to be tested published in the next CI steps.")
 
-    parser.add_argument('--project-path', required=True, help="Path to where the projects exist. It should be a folder "
+    parser.add_argument('--project-path', nargs='*', action='append', required=True, help="Path to where the projects exist. It should be a folder "
                                                               "where there exists a Package/manifest.json")
 
     parser.add_argument('--build-version', required=True, help="Unity build version. If it contains a '/' we treat "

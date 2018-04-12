@@ -42,7 +42,7 @@ namespace Unity.Entities.Properties.Tests
                 m_Manager = null;
             }
         }
-        
+
         /// <summary>
         /// Serializes 100,000 entities as json
         /// </summary>
@@ -241,7 +241,7 @@ namespace Unity.Entities.Properties.Tests
                 m_Manager.SetComponentData(entity, comp);
             }
 
-            using (var entities = m_Manager.GetAllEntities())
+            using (var entities = m_Manager.GetAllEntities(Allocator.TempJob))
             {
                 // Since we are testing raw serialization performance we pre warm the property type bag
                 // This builds a property tree for each type

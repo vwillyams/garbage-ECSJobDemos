@@ -170,7 +170,9 @@ namespace Unity.Collections
 		{
 		    if (m_ListData != null)
 		    {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 		        sentinel.Dispose();
+#endif
 
 		        UnsafeUtility.Free (m_ListData->buffer, m_MemoryAllocator.Label);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -204,20 +206,27 @@ namespace Unity.Collections
 			m_ListData->length = length;
 		}
 
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 	    public NativeListImpl<T, TMemManager, TSentinel> Clone()
 	    {
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
 	        var clone = new NativeListImpl<T, TMemManager, TSentinel>( Capacity, m_MemoryAllocator.Label, sentinel);
-#else
-	        var clone = new NativeListImpl<T, TMemManager>(Capacity, m_NativeBuffer.m_AllocatorLabel);
-#endif
             UnsafeUtility.MemCpy(clone.m_ListData->buffer, m_ListData->buffer, m_ListData->length * UnsafeUtility.SizeOf<T>());
 	        clone.m_ListData->length = m_ListData->length;
 
 	        return clone;
 	    }
+#else
+	    public NativeListImpl<T, TMemManager> Clone()
+	    {
+	        var clone = new NativeListImpl<T, TMemManager>(Capacity, m_MemoryAllocator.Label);
+	        UnsafeUtility.MemCpy(clone.m_ListData->buffer, m_ListData->buffer, m_ListData->length * UnsafeUtility.SizeOf<T>());
+	        clone.m_ListData->length = m_ListData->length;
 
-	    public NativeArray<T> CopyToNativeArray(Allocator label)
+	        return clone;
+	    }
+#endif
+
+        public NativeArray<T> CopyToNativeArray(Allocator label)
 	    {
 	        var buffer = UnsafeUtility.Malloc( UnsafeUtility.SizeOf<T>(), UnsafeUtility.AlignOf<T>(), label);
 	        UnsafeUtility.MemCpy( buffer, m_ListData->buffer, Length * UnsafeUtility.SizeOf<T>());

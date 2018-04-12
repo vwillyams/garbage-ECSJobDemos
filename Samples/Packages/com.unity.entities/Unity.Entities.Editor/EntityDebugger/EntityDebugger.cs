@@ -48,7 +48,12 @@ namespace Unity.Entities.Editor
                 systemListView.SetSystemSelection(manager);
             CreateComponentGroupListView();
             if (propagate)
-                componentGroupListView.TouchSelection();
+            {
+                if (systemSelection is ComponentSystemBase)
+                    componentGroupListView.TouchSelection();
+                else
+                    SetAllEntitiesFilter();
+            }
         }
 
         private ScriptBehaviourManager systemSelection;
@@ -195,6 +200,7 @@ namespace Unity.Entities.Editor
             Instance = this;
             selectionProxy = ScriptableObject.CreateInstance<EntitySelectionProxy>();
             selectionProxy.hideFlags = HideFlags.HideAndDontSave;
+            GetTypes();
             CreateSystemListView();
             CreateComponentGroupListView();
             CreateEntityListView();
@@ -227,6 +233,7 @@ namespace Unity.Entities.Editor
             systemListView.UpdateIfNecessary();
             componentGroupListView.UpdateIfNecessary();
             entityListView.UpdateIfNecessary();
+            GetTypes();
             
             if (Time.realtimeSinceStartup > lastUpdate + 0.5f) 
             { 
@@ -346,28 +353,31 @@ namespace Unity.Entities.Editor
             }
             else
             {
-                GetTypes();
                 EditorGUI.BeginChangeCheck();
                 for (var i = 0; i < selectedFilterTypes.Count; ++i)
                 {
-                    if (filterTypes[i] != null)
+                    if (filterTypes[i] != null && filterTypes[i].GetManagedType() != typeof(Entity))
                         selectedFilterTypes[i] = GUILayout.Toggle(selectedFilterTypes[i], filterTypes[i].GetManagedType().Name);
                 }
 
                 if (EditorGUI.EndChangeCheck())
                 {
-                    if (selectedFilterTypes.Any())
-                    {
-                        var selectedTypes = new List<ComponentType>();
-                        for (var i = 0; i < selectedFilterTypes.Count; ++i)
-                        {
-                            if (selectedFilterTypes[i])
-                                selectedTypes.Add(filterTypes[i]);
-                        }
-                        SetComponentGroupSelection(searchSystem.GetComponentGroupInternal(selectedTypes.ToArray()), true, true);
-                    }
+                    SetAllEntitiesFilter();
                 }
             }
+        }
+
+        private void SetAllEntitiesFilter()
+        {
+            if (WorldSelection == null || SystemSelection is ComponentSystemBase)
+                return;
+            var selectedTypes = new List<ComponentType>();
+            for (var i = 0; i < selectedFilterTypes.Count; ++i)
+            {
+                if (selectedFilterTypes[i])
+                    selectedTypes.Add(filterTypes[i]);
+            }
+            SetComponentGroupSelection(searchSystem.GetComponentGroupInternal(selectedTypes.ToArray()), false, true);
         }
 
         void EntityList()

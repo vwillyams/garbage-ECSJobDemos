@@ -10,7 +10,7 @@ stages:
 schedule:validation:2018.1:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version "2018.1.*&latest=true" --packages-path "Samples"
+    - python Tools/CI/validation.py --build-version "2018.1.*&latest=true" --project-path "Samples"
   only:
     - schedules
   artifacts:
@@ -733,7 +733,7 @@ schedule:windows:run:twostickshooter-pure:il2cpp:2018.1:
 schedule:validation:2018.1:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version '2018.1.*&latest=true' --packages-path "Samples"
+    - python Tools/CI/validation.py --build-version '2018.1.*&latest=true' --project-path "Samples"
   only:
     - schedules
   artifacts:
@@ -1456,7 +1456,7 @@ schedule:macOS:run:twostickshooter-pure:il2cpp:2018.1:
 schedule:validation:2018.2:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version "2018.2.*&latest=true" --packages-path "Samples"
+    - python Tools/CI/validation.py --build-version "2018.2.*&latest=true" --project-path "Samples"
   only:
     - schedules
   artifacts:
@@ -2179,7 +2179,7 @@ schedule:windows:run:twostickshooter-pure:il2cpp:2018.2:
 schedule:validation:2018.2:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version '2018.2.*&latest=true' --packages-path "Samples"
+    - python Tools/CI/validation.py --build-version '2018.2.*&latest=true' --project-path "Samples"
   only:
     - schedules
   artifacts:
@@ -2902,7 +2902,7 @@ schedule:macOS:run:twostickshooter-pure:il2cpp:2018.2:
 schedule:validation:2018.1_staging:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version "2018.1/staging&latest=true" --packages-path "Samples"
+    - python Tools/CI/validation.py --build-version "2018.1/staging&latest=true" --project-path "Samples"
   only:
     - schedules
   artifacts:
@@ -3625,7 +3625,7 @@ schedule:windows:run:twostickshooter-pure:il2cpp:2018.1_staging:
 schedule:validation:2018.1_staging:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version '2018.1/staging&latest=true' --packages-path "Samples"
+    - python Tools/CI/validation.py --build-version '2018.1/staging&latest=true' --project-path "Samples"
   only:
     - schedules
   artifacts:
@@ -4348,7 +4348,7 @@ schedule:macOS:run:twostickshooter-pure:il2cpp:2018.1_staging:
 schedule:validation:trunk:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version "trunk&latest=true" --packages-path "Samples"
+    - python Tools/CI/validation.py --build-version "trunk&latest=true" --project-path "Samples"
   only:
     - schedules
   artifacts:
@@ -5071,7 +5071,7 @@ schedule:windows:run:twostickshooter-pure:il2cpp:trunk:
 schedule:validation:trunk:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version 'trunk&latest=true' --packages-path "Samples"
+    - python Tools/CI/validation.py --build-version 'trunk&latest=true' --project-path "Samples"
   only:
     - schedules
   artifacts:
@@ -5794,7 +5794,7 @@ schedule:macOS:run:twostickshooter-pure:il2cpp:trunk:
 validation:2018.1_staging:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version "2018.1/staging&latest=true" --packages-path "Samples"
+    - python Tools/CI/validation.py --build-version "2018.1/staging&latest=true" --project-path "Samples"
   except:
     - schedules
   artifacts:
@@ -6229,7 +6229,7 @@ windows:run:twostickshooter-pure:il2cpp:2018.1_staging:
 validation:2018.1_staging:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version '2018.1/staging&latest=true' --packages-path "Samples"
+    - python Tools/CI/validation.py --build-version '2018.1/staging&latest=true' --project-path "Samples"
   except:
     - schedules
   artifacts:
@@ -6664,7 +6664,7 @@ macOS:run:twostickshooter-pure:il2cpp:2018.1_staging:
 validation:trunk:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version "trunk&latest=true" --packages-path "Samples"
+    - python Tools/CI/validation.py --build-version "trunk&latest=true" --project-path "Samples"
   except:
     - schedules
   artifacts:
@@ -7099,7 +7099,7 @@ windows:run:twostickshooter-pure:il2cpp:trunk:
 validation:trunk:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version 'trunk&latest=true' --packages-path "Samples"
+    - python Tools/CI/validation.py --build-version 'trunk&latest=true' --project-path "Samples"
   except:
     - schedules
   artifacts:

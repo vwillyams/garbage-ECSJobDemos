@@ -5,14 +5,16 @@ stages:
   - run
 
 ################################################################################
-# windows validation for 2018.1
+# macOS validation for 2018.1
 ################################################################################
 schedule:validation:2018.1:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version "2018.1.*&latest=true" --project-path "Samples"
+    - python Tools/CI/validation.py --build-version '2018.1.*&latest=true' --project-path "Samples"
   only:
     - schedules
+  tags:
+  - macOS
   artifacts:
     when: always
     paths:
@@ -728,23 +730,6 @@ schedule:windows:run:twostickshooter-pure:il2cpp:2018.1:
 
 
 ################################################################################
-# macOS validation for 2018.1
-################################################################################
-schedule:validation:2018.1:
-  stage: validation
-  script:
-    - python Tools/CI/validation.py --build-version '2018.1.*&latest=true' --project-path "Samples"
-  only:
-    - schedules
-  artifacts:
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-    expire_in: 1 week
-
-################################################################################
 # macOS test for 2018.1
 ################################################################################
 schedule:macOS:test:2018.1:
@@ -1451,14 +1436,16 @@ schedule:macOS:run:twostickshooter-pure:il2cpp:2018.1:
 
 
 ################################################################################
-# windows validation for 2018.2
+# macOS validation for 2018.2
 ################################################################################
 schedule:validation:2018.2:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version "2018.2.*&latest=true" --project-path "Samples"
+    - python Tools/CI/validation.py --build-version '2018.2.*&latest=true' --project-path "Samples"
   only:
     - schedules
+  tags:
+  - macOS
   artifacts:
     when: always
     paths:
@@ -2175,23 +2162,6 @@ schedule:windows:run:twostickshooter-pure:il2cpp:2018.2:
 
 
 ################################################################################
-# macOS validation for 2018.2
-################################################################################
-schedule:validation:2018.2:
-  stage: validation
-  script:
-    - python Tools/CI/validation.py --build-version '2018.2.*&latest=true' --project-path "Samples"
-  only:
-    - schedules
-  artifacts:
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-    expire_in: 1 week
-
-################################################################################
 # macOS test for 2018.2
 ################################################################################
 schedule:macOS:test:2018.2:
@@ -2899,14 +2869,16 @@ schedule:macOS:run:twostickshooter-pure:il2cpp:2018.2:
 
 
 ################################################################################
-# windows validation for 2018.1_staging
+# macOS validation for 2018.1_staging
 ################################################################################
 schedule:validation:2018.1_staging:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version "2018.1/staging&latest=true" --project-path "Samples"
+    - python Tools/CI/validation.py --build-version '2018.1/staging&latest=true' --project-path "Samples"
   only:
     - schedules
+  tags:
+  - macOS
   artifacts:
     when: always
     paths:
@@ -3622,23 +3594,6 @@ schedule:windows:run:twostickshooter-pure:il2cpp:2018.1_staging:
 
 
 ################################################################################
-# macOS validation for 2018.1_staging
-################################################################################
-schedule:validation:2018.1_staging:
-  stage: validation
-  script:
-    - python Tools/CI/validation.py --build-version '2018.1/staging&latest=true' --project-path "Samples"
-  only:
-    - schedules
-  artifacts:
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-    expire_in: 1 week
-
-################################################################################
 # macOS test for 2018.1_staging
 ################################################################################
 schedule:macOS:test:2018.1_staging:
@@ -4345,14 +4300,16 @@ schedule:macOS:run:twostickshooter-pure:il2cpp:2018.1_staging:
 
 
 ################################################################################
-# windows validation for trunk
+# macOS validation for trunk
 ################################################################################
 schedule:validation:trunk:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version "trunk&latest=true" --project-path "Samples"
+    - python Tools/CI/validation.py --build-version 'trunk&latest=true' --project-path "Samples"
   only:
     - schedules
+  tags:
+  - macOS
   artifacts:
     when: always
     paths:
@@ -5069,23 +5026,6 @@ schedule:windows:run:twostickshooter-pure:il2cpp:trunk:
 
 
 ################################################################################
-# macOS validation for trunk
-################################################################################
-schedule:validation:trunk:
-  stage: validation
-  script:
-    - python Tools/CI/validation.py --build-version 'trunk&latest=true' --project-path "Samples"
-  only:
-    - schedules
-  artifacts:
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-    expire_in: 1 week
-
-################################################################################
 # macOS test for trunk
 ################################################################################
 schedule:macOS:test:trunk:
@@ -5793,14 +5733,16 @@ schedule:macOS:run:twostickshooter-pure:il2cpp:trunk:
 
 
 ################################################################################
-# windows validation for 2018.1_staging
+# macOS validation for 2018.1_staging
 ################################################################################
 validation:2018.1_staging:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version "2018.1/staging&latest=true" --project-path "Samples"
+    - python Tools/CI/validation.py --build-version '2018.1/staging&latest=true' --project-path "Samples"
   except:
     - schedules
+  tags:
+  - macOS
   artifacts:
     when: always
     paths:
@@ -6228,23 +6170,6 @@ windows:run:twostickshooter-pure:il2cpp:2018.1_staging:
 
 
 ################################################################################
-# macOS validation for 2018.1_staging
-################################################################################
-validation:2018.1_staging:
-  stage: validation
-  script:
-    - python Tools/CI/validation.py --build-version '2018.1/staging&latest=true' --project-path "Samples"
-  except:
-    - schedules
-  artifacts:
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-    expire_in: 1 week
-
-################################################################################
 # macOS test for 2018.1_staging
 ################################################################################
 macOS:test:2018.1_staging:
@@ -6663,14 +6588,16 @@ macOS:run:twostickshooter-pure:il2cpp:2018.1_staging:
 
 
 ################################################################################
-# windows validation for trunk
+# macOS validation for trunk
 ################################################################################
 validation:trunk:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version "trunk&latest=true" --project-path "Samples"
+    - python Tools/CI/validation.py --build-version 'trunk&latest=true' --project-path "Samples"
   except:
     - schedules
+  tags:
+  - macOS
   artifacts:
     when: always
     paths:
@@ -7097,23 +7024,6 @@ windows:run:twostickshooter-pure:il2cpp:trunk:
   dependencies:
     - windows:build:twostickshooter-pure:il2cpp:trunk
 
-
-################################################################################
-# macOS validation for trunk
-################################################################################
-validation:trunk:
-  stage: validation
-  script:
-    - python Tools/CI/validation.py --build-version 'trunk&latest=true' --project-path "Samples"
-  except:
-    - schedules
-  artifacts:
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-    expire_in: 1 week
 
 ################################################################################
 # macOS test for trunk

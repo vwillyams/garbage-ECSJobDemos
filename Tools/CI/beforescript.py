@@ -6,7 +6,6 @@ import sys
 
 artifactory_url = "https://artifactory.eu-cph-1.unityops.net/"
 artifactory_repository = "core-automation"
-build_version = None
 
 
 def get_current_os():
@@ -31,16 +30,13 @@ def download_url(url, filename):
     urllib.urlretrieve(url, filename)
 
 
-def artifactory_search(type):
-    # If the build_version contains a slash we treat it as a branch instead of as a version and will use a custom
-    # branch build instead
-
-    if '/' not in build_version and not build_version.startswith("trunk"):
-        return get_url_json("{0}/{1}".format(artifactory_url, "api/search/prop?build={1}&os={2}&type={3}&custom=False&repos={0}".format(artifactory_repository, build_version, get_current_os(), type)))
-
-    return get_url_json("{0}/{1}".format(artifactory_url,
-                                         "api/search/prop?build=&os={0}&type={1}&custom=True&branch={2}&repos={3}".format(
-                                             get_current_os(), type, build_version, artifactory_repository, )))
+def artifactory_search(type, revision):
+    result = get_url_json("{0}/{1}".format(artifactory_url,
+                                         "api/search/prop?&os={0}&type={1}&revision={2}&repos={3}".format(
+                                             get_current_os(), type, revision, artifactory_repository)))['results']
+    if len(result) != 1:
+        raise Exception("Expected to find exactly 1 {0} for revision {1} build to use. Found: {2}".format(type, revision, len(result)))
+    return result
 
 
 def extract_tarball(download_path, extract_path):
@@ -72,18 +68,23 @@ def extract_zip(archive, destination):
     zip_ref.close()
 
 
+def get_unity_revision():
+    f = open("unity_revision.txt", 'r')
+    revision = f.read().strip()
+    print "Unity revision to use is: {0}".format(revision)
+    if not revision:
+        raise Exception("Could not find a valid revision in unity_revision.txt")
+    return revision
+
+
 def main():
+    revision = get_unity_revision()
     if not os.path.exists("temp"):
         os.mkdir("temp")
 
-    editor_artifacts = artifactory_search("editor")['results']
-    standalone_artifacts = [artifactory_search("standalone-mono")['results'],
-                            artifactory_search("standalone-il2cpp")['results']]
-
-    if len(editor_artifacts) != 1:
-        raise Exception("Expected to find exactly 1 editor build to use. Found: {0}".format(editor_artifacts))
-    if len(standalone_artifacts) != 2:
-        raise Exception("Expected to find exactly 2 standalonesupport build to use. Found: {0}".format(standalone_artifacts))
+    editor_artifacts = artifactory_search("editor", revision)
+    standalone_artifacts = [artifactory_search("standalone-mono", revision),
+                            artifactory_search("standalone-il2cpp", revision)]
 
     download_artifact(editor_artifacts[0]['uri'], ".Editor")
 
@@ -101,5 +102,4 @@ def main():
 
 
 if __name__ == "__main__":
-    build_version = sys.argv[1]
     main()

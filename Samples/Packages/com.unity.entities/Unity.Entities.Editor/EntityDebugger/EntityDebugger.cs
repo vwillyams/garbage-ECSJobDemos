@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -155,7 +154,6 @@ namespace Unity.Entities.Editor
                 if (worldSelection != null)
                 {
                     lastSelectedWorldName = worldSelection.Name;
-                    searchSystem = worldSelection.GetOrCreateManager<RecentSearches>();
                 }
                     
                 CreateSystemListView();
@@ -313,17 +311,8 @@ namespace Unity.Entities.Editor
 
         private readonly List<bool> selectedFilterTypes = new List<bool>();
         private readonly List<ComponentType> filterTypes = new List<ComponentType>();
-        
-        [DisableAutoCreation]
-        class RecentSearches : ComponentSystem
-        {
-            protected override void OnUpdate()
-            {
-                throw new NotImplementedException();
-            }
-        }
 
-        private RecentSearches searchSystem;
+        private readonly List<ComponentGroup> componentGroups = new List<ComponentGroup>();
         
         void GetTypes()
         {
@@ -367,6 +356,21 @@ namespace Unity.Entities.Editor
             }
         }
 
+        private ComponentGroup GetComponentGroup(ComponentType[] components)
+        {
+            foreach (var existingGroup in componentGroups)
+            {
+                if (existingGroup.CompareComponents(components))
+                    return existingGroup;
+            }
+
+            var group = WorldSelection.GetExistingManager<EntityManager>()
+                .CreateComponentGroup(components);
+            componentGroups.Add(group);
+
+            return group;
+        }
+
         private void SetAllEntitiesFilter()
         {
             if (WorldSelection == null || SystemSelection is ComponentSystemBase)
@@ -377,7 +381,7 @@ namespace Unity.Entities.Editor
                 if (selectedFilterTypes[i])
                     selectedTypes.Add(filterTypes[i]);
             }
-            SetComponentGroupSelection(searchSystem.GetComponentGroupInternal(selectedTypes.ToArray()), false, true);
+            SetComponentGroupSelection(GetComponentGroup(selectedTypes.ToArray()), false, true);
         }
 
         void EntityList()

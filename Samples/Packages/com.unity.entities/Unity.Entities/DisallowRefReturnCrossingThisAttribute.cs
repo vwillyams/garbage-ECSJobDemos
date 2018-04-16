@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Unity.Entities.Collections
+namespace Unity.Entities
 {
     /// <summary>
     /// What is this : Attribute signaling that ref returned values, of a type that has this attribute, cannot intersect with

@@ -1685,6 +1685,7 @@ schedule:windows:build:boids:il2cpp:2018.2:
   - windows
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-boids-build-il2cpp.log -cleanedLogFile output-windows-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-windows-boids"
     when: always
@@ -1710,6 +1711,7 @@ schedule:windows:build:chains:il2cpp:2018.2:
   - windows
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-chains-build-il2cpp.log -cleanedLogFile output-windows-chains-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-windows-chains"
     when: always
@@ -1735,6 +1737,7 @@ schedule:windows:build:hierarchy:il2cpp:2018.2:
   - windows
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-hierarchy-build-il2cpp.log -cleanedLogFile output-windows-hierarchy-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-windows-hierarchy"
     when: always
@@ -1760,6 +1763,7 @@ schedule:windows:build:rotation:il2cpp:2018.2:
   - windows
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-rotation-build-il2cpp.log -cleanedLogFile output-windows-rotation-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-windows-rotation"
     when: always
@@ -1785,6 +1789,7 @@ schedule:windows:build:twostickshooter-classic:il2cpp:2018.2:
   - windows
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -1810,6 +1815,7 @@ schedule:windows:build:twostickshooter-hybrid:il2cpp:2018.2:
   - windows
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -1835,6 +1841,7 @@ schedule:windows:build:twostickshooter-pure:il2cpp:2018.2:
   - windows
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -2408,6 +2415,7 @@ schedule:macOS:build:boids:il2cpp:2018.2:
   - macOS
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-boids-build-il2cpp.log -cleanedLogFile output-macOS-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-macOS-boids"
     when: always
@@ -2433,6 +2441,7 @@ schedule:macOS:build:chains:il2cpp:2018.2:
   - macOS
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-chains-build-il2cpp.log -cleanedLogFile output-macOS-chains-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-macOS-chains"
     when: always
@@ -2458,6 +2467,7 @@ schedule:macOS:build:hierarchy:il2cpp:2018.2:
   - macOS
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-hierarchy-build-il2cpp.log -cleanedLogFile output-macOS-hierarchy-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-macOS-hierarchy"
     when: always
@@ -2483,6 +2493,7 @@ schedule:macOS:build:rotation:il2cpp:2018.2:
   - macOS
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-rotation-build-il2cpp.log -cleanedLogFile output-macOS-rotation-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-macOS-rotation"
     when: always
@@ -2508,6 +2519,7 @@ schedule:macOS:build:twostickshooter-classic:il2cpp:2018.2:
   - macOS
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -2533,6 +2545,7 @@ schedule:macOS:build:twostickshooter-hybrid:il2cpp:2018.2:
   - macOS
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -2558,6 +2571,7 @@ schedule:macOS:build:twostickshooter-pure:il2cpp:2018.2:
   - macOS
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -4577,6 +4591,7 @@ schedule:windows:build:boids:il2cpp:trunk:
   - windows
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-boids-build-il2cpp.log -cleanedLogFile output-windows-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-windows-boids"
     when: always
@@ -4602,6 +4617,7 @@ schedule:windows:build:chains:il2cpp:trunk:
   - windows
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-chains-build-il2cpp.log -cleanedLogFile output-windows-chains-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-windows-chains"
     when: always
@@ -4627,6 +4643,7 @@ schedule:windows:build:hierarchy:il2cpp:trunk:
   - windows
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-hierarchy-build-il2cpp.log -cleanedLogFile output-windows-hierarchy-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-windows-hierarchy"
     when: always
@@ -4652,6 +4669,7 @@ schedule:windows:build:rotation:il2cpp:trunk:
   - windows
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-rotation-build-il2cpp.log -cleanedLogFile output-windows-rotation-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-windows-rotation"
     when: always
@@ -4677,6 +4695,7 @@ schedule:windows:build:twostickshooter-classic:il2cpp:trunk:
   - windows
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -4702,6 +4721,7 @@ schedule:windows:build:twostickshooter-hybrid:il2cpp:trunk:
   - windows
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -4727,6 +4747,7 @@ schedule:windows:build:twostickshooter-pure:il2cpp:trunk:
   - windows
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -5300,6 +5321,7 @@ schedule:macOS:build:boids:il2cpp:trunk:
   - macOS
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-boids-build-il2cpp.log -cleanedLogFile output-macOS-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-macOS-boids"
     when: always
@@ -5325,6 +5347,7 @@ schedule:macOS:build:chains:il2cpp:trunk:
   - macOS
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-chains-build-il2cpp.log -cleanedLogFile output-macOS-chains-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-macOS-chains"
     when: always
@@ -5350,6 +5373,7 @@ schedule:macOS:build:hierarchy:il2cpp:trunk:
   - macOS
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-hierarchy-build-il2cpp.log -cleanedLogFile output-macOS-hierarchy-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-macOS-hierarchy"
     when: always
@@ -5375,6 +5399,7 @@ schedule:macOS:build:rotation:il2cpp:trunk:
   - macOS
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-rotation-build-il2cpp.log -cleanedLogFile output-macOS-rotation-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-macOS-rotation"
     when: always
@@ -5400,6 +5425,7 @@ schedule:macOS:build:twostickshooter-classic:il2cpp:trunk:
   - macOS
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -5425,6 +5451,7 @@ schedule:macOS:build:twostickshooter-hybrid:il2cpp:trunk:
   - macOS
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -5450,6 +5477,7 @@ schedule:macOS:build:twostickshooter-pure:il2cpp:trunk:
   - macOS
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -6818,6 +6846,7 @@ windows:build:boids:il2cpp:trunk:
   - windows
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-boids-build-il2cpp.log -cleanedLogFile output-windows-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-windows-boids"
     when: always
@@ -6843,6 +6872,7 @@ windows:build:twostickshooter-classic:il2cpp:trunk:
   - windows
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -6868,6 +6898,7 @@ windows:build:twostickshooter-hybrid:il2cpp:trunk:
   - windows
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -6893,6 +6924,7 @@ windows:build:twostickshooter-pure:il2cpp:trunk:
   - windows
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -7253,6 +7285,7 @@ macOS:build:boids:il2cpp:trunk:
   - macOS
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-boids-build-il2cpp.log -cleanedLogFile output-macOS-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-macOS-boids"
     when: always
@@ -7278,6 +7311,7 @@ macOS:build:twostickshooter-classic:il2cpp:trunk:
   - macOS
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -7303,6 +7337,7 @@ macOS:build:twostickshooter-hybrid:il2cpp:trunk:
   - macOS
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -7328,6 +7363,7 @@ macOS:build:twostickshooter-pure:il2cpp:trunk:
   - macOS
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+  allow_failure: true
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always

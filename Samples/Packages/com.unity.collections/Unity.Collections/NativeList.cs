@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using Unity.Collections.LowLevel.Unsafe;
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
 using System.Diagnostics;
-#endif
 
 namespace Unity.Collections
 {
@@ -14,13 +12,15 @@ namespace Unity.Collections
 	public struct NativeList<T> : IDisposable
         where T : struct
 	{
-	    internal NativeListImpl<T, DefaultMemoryManager, NativeBufferSentinel> m_Impl;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
+	    internal NativeListImpl<T, DefaultMemoryManager, NativeBufferSentinel> m_Impl;
 	    internal AtomicSafetyHandle m_Safety;
+#else
+	    internal NativeListImpl<T, DefaultMemoryManager> m_Impl;
 #endif
 
-	    public unsafe NativeList(Allocator i_label) : this (1, i_label, 1) { }
+        public unsafe NativeList(Allocator i_label) : this (1, i_label, 1) { }
 	    public unsafe NativeList(int capacity, Allocator i_label) : this (capacity, i_label, 1) { }
 
 	    unsafe NativeList(int capacity, Allocator i_label, int stackDepth)
@@ -30,7 +30,7 @@ namespace Unity.Collections
 	        m_Impl = new NativeListImpl<T, DefaultMemoryManager, NativeBufferSentinel>(capacity, i_label, guardian);
 	        m_Safety = AtomicSafetyHandle.Create();
 #else
-	        m_Impl = new NativeListImpl<T, DefaultMemoryManager, NativeBufferSentinel>(capacity, i_label);
+            m_Impl = new NativeListImpl<T, DefaultMemoryManager>(capacity, i_label);
 #endif
 	    }
 

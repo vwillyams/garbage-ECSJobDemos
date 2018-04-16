@@ -1,6 +1,6 @@
 {
 	"dependencies": {
-		"com.unity.incrementalcompiler": "0.0.29"
+		"com.unity.incrementalcompiler": "0.0.33"
 	},
 	"testables": [
         "com.unity.collections",

@@ -1797,7 +1797,6 @@ schedule:windows:build:twostickshooter-hybrid:il2cpp:2018.2:
   - windows
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  allow_failure: true
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -2504,7 +2503,6 @@ schedule:macOS:build:twostickshooter-hybrid:il2cpp:2018.2:
   - macOS
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  allow_failure: true
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -4661,7 +4659,6 @@ schedule:windows:build:twostickshooter-hybrid:il2cpp:trunk:
   - windows
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  allow_failure: true
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -5368,7 +5365,6 @@ schedule:macOS:build:twostickshooter-hybrid:il2cpp:trunk:
   - macOS
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  allow_failure: true
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -6799,7 +6795,6 @@ windows:build:twostickshooter-hybrid:il2cpp:trunk:
   - windows
   script:
     - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  allow_failure: true
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -7218,7 +7213,6 @@ macOS:build:twostickshooter-hybrid:il2cpp:trunk:
   - macOS
   script:
     - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  allow_failure: true
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always

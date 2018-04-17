@@ -311,7 +311,7 @@ Lastly you can also inject a reference to another system. This will populate the
 
 ## ComponentGroup
 
-The ComponentGroup is foundation class on top of which all iteration methods are built (Injection, foreach, IJobProcessComponetnData etc)
+The ComponentGroup is foundation class on top of which all iteration methods are built (Injection, foreach, IJobProcessComponentData etc)
 
 Essentially a ComponentGroup is constructed with a set of required components, subtractive components. 
 

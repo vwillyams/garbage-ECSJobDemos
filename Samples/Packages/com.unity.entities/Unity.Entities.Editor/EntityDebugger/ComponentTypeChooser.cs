@@ -9,13 +9,6 @@ using UnityEngine.Tizen;
 namespace Unity.Entities.Editor
 {
 
-    public enum ComponentMatchMode
-    {
-        Ignore,
-        Require,
-        Subtract
-    }
-
     public interface IComponentTypeQueryWindow
     {
         void ComponentFilterChanged();
@@ -25,18 +18,18 @@ namespace Unity.Entities.Editor
     {
 
         private static List<ComponentType> types;
-        private static List<ComponentMatchMode> typeModes;
+        private static List<bool> typeSelections;
 
         private static ComponentTypeChooser chooserWindow;
         private static IComponentTypeQueryWindow callbackWindow;
 
         private static readonly Vector2 kDefaultSize = new Vector2(300f, 400f);
 
-        public static void Open(Vector2 screenPosition, List<ComponentType> types, List<ComponentMatchMode> typeModes, IComponentTypeQueryWindow window)
+        public static void Open(Vector2 screenPosition, List<ComponentType> types, List<bool> typeSelections, IComponentTypeQueryWindow window)
         {
             callbackWindow = window;
             ComponentTypeChooser.types = types;
-            ComponentTypeChooser.typeModes = typeModes;
+            ComponentTypeChooser.typeSelections = typeSelections;
             chooserWindow = GetWindowWithRect<ComponentTypeChooser>(new Rect(screenPosition, kDefaultSize), true, "Choose Component", true);
         }
 
@@ -44,7 +37,7 @@ namespace Unity.Entities.Editor
 
         private void OnEnable()
         {
-            typeListView = new ComponentTypeListView(new TreeViewState(), types, typeModes, this);
+            typeListView = new ComponentTypeListView(new TreeViewState(), types, typeSelections, this);
         }
 
         public void ComponentFilterChanged()

@@ -365,7 +365,9 @@ class PositionToRigidbodySystem : ComponentSystem
 The Entity struct identifies an Entity. If you need to access component data on another Entity, the only stable way of referencing that component data is via the Entity ID. EntityManager provides a simple get & set component data API for it.
 ```cs
 Entity myEntity = ...;
-var position = EntityManager.SetComponentData<LocalPosition>(entity);
+var position = EntityManager.GetComponentData<LocalPosition>(entity);
+...
+EntityManager.SetComponentData(entity, position);
 ```
 
 However EntityManager can't be used on a C# job. __ComponentDataFromEntity__ gives you a simple API that can also be safely used in a job.

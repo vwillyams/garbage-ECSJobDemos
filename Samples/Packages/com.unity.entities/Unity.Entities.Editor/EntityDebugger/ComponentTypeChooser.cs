@@ -33,10 +33,14 @@ namespace Unity.Entities.Editor
             chooserWindow = GetWindowWithRect<ComponentTypeChooser>(new Rect(screenPosition, kDefaultSize), true, "Choose Component", true);
         }
 
+        private SearchField searchField;
         private ComponentTypeListView typeListView;
+        private readonly string kSearchFieldName = "_ComponentTypeChooser SearchField";
 
         private void OnEnable()
         {
+            searchField = new SearchField();
+            searchField.SetFocus();
             typeListView = new ComponentTypeListView(new TreeViewState(), types, typeSelections, this);
         }
 
@@ -47,7 +51,8 @@ namespace Unity.Entities.Editor
 
         private void OnGUI()
         {
-            typeListView.OnGUI(new Rect(Vector2.zero, position.size));
+            typeListView.searchString = searchField.OnGUI(typeListView.searchString, GUILayout.Height(20f), GUILayout.ExpandWidth(true));
+            typeListView.OnGUI(GUIHelpers.GetExpandingRect());
         }
 
         private void OnLostFocus()

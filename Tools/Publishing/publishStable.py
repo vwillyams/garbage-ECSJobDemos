@@ -143,7 +143,7 @@ def get_current_package_extracted(package_name, current_version): # pragma: no c
 def is_package_changed(package_folder, package_name, current_version):
     # type: (str) -> bool
 
-    download_path = get_current_package_extracted(current_version, package_name)
+    download_path = get_current_package_extracted(package_name, current_version)
     print "Comparing files between {0} and {1}".format(download_path, package_folder)
 
     package_files = _get_all_files_in_package(download_path)
@@ -583,7 +583,7 @@ def process_package(package_path, package_name, root_clone):
             print "--only-publish-existing-packages is set but we found modification for {0} that we wanted to push. " \
                   "Failing run ".format(package_name)
             raise Exception("Tried to publish modified packages when --only-publish-existing-packages was set")
-        new_package_version = increase_version(current_package_version, False, False, False, True)
+        new_package_version = increase_version(current_package_version, BumpVersion.PREVIEW)
         local_packages[package_name] = new_package_version
         modified_packages[package_name] = new_package_version
         modify_json(package_name, new_package_version)
@@ -842,8 +842,8 @@ def parseArgumentList(argList): # pragma: no cover
                                                                           "starting with a . in the repo. If you want"
                                                                           " these in you need to whitelist these "
                                                                           "files or folders")
-    return parser.parse_args(argList)
+    return parser.parse_args()
 
 if __name__ == "__main__":      # pragma: no cover
-    args = parseArgumentList(args)
+    args = parseArgumentList(sys.argv)
     main()

@@ -6,7 +6,8 @@ using UnityEditor.IMGUI.Controls;
 
 namespace Unity.Entities.Editor
 {
-    public class EntityDebugger : EditorWindow, ISystemSelectionWindow, IEntitySelectionWindow, IComponentGroupSelectionWindow {
+    public class EntityDebugger : EditorWindow, ISystemSelectionWindow, IEntitySelectionWindow, IComponentGroupSelectionWindow, IComponentTypeQueryWindow
+    {
         private const float kSystemListWidth = 350f;
 
         [MenuItem("Window/Entity Debugger", false, 2017)]
@@ -309,7 +310,7 @@ namespace Unity.Entities.Editor
             GUILayout.EndHorizontal();
         }
 
-        private readonly List<bool> selectedFilterTypes = new List<bool>();
+        private readonly List<ComponentMatchMode> selectedFilterTypes = new List<ComponentMatchMode>();
         private readonly List<ComponentType> filterTypes = new List<ComponentType>();
 
         private readonly List<ComponentGroup> componentGroups = new List<ComponentGroup>();
@@ -326,7 +327,7 @@ namespace Unity.Entities.Editor
                 {
                     var typeIndex = TypeManager.GetTypeIndex(type.Type);
                     filterTypes.Add(ComponentType.FromTypeIndex(typeIndex));
-                    selectedFilterTypes.Add(false);
+                    selectedFilterTypes.Add(ComponentMatchMode.Ignore);
                 }
             }
         }
@@ -342,18 +343,25 @@ namespace Unity.Entities.Editor
             }
             else
             {
-                EditorGUI.BeginChangeCheck();
+                GUI.enabled = false;
                 for (var i = 0; i < selectedFilterTypes.Count; ++i)
                 {
                     if (filterTypes[i] != null && filterTypes[i].GetManagedType() != typeof(Entity))
-                        selectedFilterTypes[i] = GUILayout.Toggle(selectedFilterTypes[i], filterTypes[i].GetManagedType().Name);
+                        GUILayout.Label(selectedFilterTypes[i].ToString() + filterTypes[i].GetManagedType().Name);
                 }
 
-                if (EditorGUI.EndChangeCheck())
+                GUI.enabled = true;
+
+                if (GUILayout.Button("+"))
                 {
-                    SetAllEntitiesFilter();
+                    ComponentTypeChooser.Open(GUIUtility.GUIToScreenPoint(GUILayoutUtility.GetLastRect().position), filterTypes, selectedFilterTypes, this);
                 }
             }
+        }
+
+        public void ComponentFilterChanged()
+        {
+            SetAllEntitiesFilter();
         }
 
         private ComponentGroup GetComponentGroup(ComponentType[] components)
@@ -378,8 +386,13 @@ namespace Unity.Entities.Editor
             var selectedTypes = new List<ComponentType>();
             for (var i = 0; i < selectedFilterTypes.Count; ++i)
             {
-                if (selectedFilterTypes[i])
-                    selectedTypes.Add(filterTypes[i]);
+                if (selectedFilterTypes[i] == ComponentMatchMode.Ignore)
+                    continue;
+                var componentType = ComponentType.FromTypeIndex(filterTypes[i].TypeIndex);
+                if (selectedFilterTypes[i] == ComponentMatchMode.Subtract)
+                    componentType.AccessModeType = ComponentType.AccessMode.Subtractive;
+                
+                selectedTypes.Add(componentType);
             }
             SetComponentGroupSelection(GetComponentGroup(selectedTypes.ToArray()), false, true);
         }

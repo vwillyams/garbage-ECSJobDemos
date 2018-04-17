@@ -242,6 +242,8 @@ def increase_version(version, bumpFlag):
         bumpFlag = BumpVersion.PREVIEW
 
     if bumpFlag == BumpVersion.PREVIEW:
+        if not "preview" in version:
+            new_version = semver.bump_patch(new_version)
         new_version = semver.bump_prerelease(new_version, 'preview')
 
     return new_version

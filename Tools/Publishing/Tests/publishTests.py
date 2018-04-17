@@ -216,7 +216,7 @@ class TestIncreaseVersion(TestCase):
         self.assertEquals(increase_version('1.2.3', BumpVersion.NONE), '1.2.3')
 
     def test_increase_version_NoPreviewFlagAndIncreasePreview_ReturnSameVersion(self):
-        self.assertEquals(increase_version('1.2.3', BumpVersion.PREVIEW), '1.2.3-preview.1')
+        self.assertEquals(increase_version('1.2.3', BumpVersion.PREVIEW), '1.2.4-preview.1')
 
     def test_increase_version_NoPreviewFlagAndBumpPatchVersion_ReturnNewVersion(self):
         self.assertEquals(increase_version('1.2.3', BumpVersion.PATCH), '1.2.4-preview.1')

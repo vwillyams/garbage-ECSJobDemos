@@ -98,7 +98,7 @@ The ComponentData for each Entity is stored in what we internally refer to as a 
 
 A chunk is always linked to a specific EntityArchetype. Thus all Entities in one chunk follow the exact same memory layout. When iterating over components, memory access of components within a chunk is always completely linear, with no waste loaded into cache lines. This is a hard guarantee.
 
-__ComponentDataArray__ is essentially an convenience index based iterator for a single component type;
+__ComponentDataArray__ is essentially a convenience index based iterator for a single component type;
 First we iterate over all EntityArchetypes compatible with the ComponentGroup; for each EntityArchetype iterating over all chunks compatible with it and for each chunk iterating over all Entities in that chunk.
 
 Once all Entities of a chunk have been visited, we find the next matching chunk and iterate through those Entities.

@@ -54,7 +54,7 @@ schedule:windows:test:2018.1:
 ################################################################################
 # windows build for 2018.1
 ################################################################################
-schedule:windows:build:boids:mono:2018.1:
+schedule:windows:build:Samples:mono:2018.1:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -65,84 +65,9 @@ schedule:windows:build:boids:mono:2018.1:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-boids-build-mono.log -cleanedLogFile output-windows-boids-build-mono-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-windows-boids"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.1
-
-
-schedule:windows:build:chains:mono:2018.1:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-chains-build-mono.log -cleanedLogFile output-windows-chains-build-mono-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.1
-
-
-schedule:windows:build:hierarchy:mono:2018.1:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-hierarchy-build-mono.log -cleanedLogFile output-windows-hierarchy-build-mono-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.1
-
-
-schedule:windows:build:rotation:mono:2018.1:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-rotation-build-mono.log -cleanedLogFile output-windows-rotation-build-mono-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-rotation"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -229,7 +154,7 @@ schedule:windows:build:twostickshooter-pure:mono:2018.1:
     - schedule:windows:test:2018.1
 
 
-schedule:windows:build:boids:il2cpp:2018.1:
+schedule:windows:build:Samples:il2cpp:2018.1:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -240,84 +165,9 @@ schedule:windows:build:boids:il2cpp:2018.1:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-boids-build-il2cpp.log -cleanedLogFile output-windows-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-windows-boids"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.1
-
-
-schedule:windows:build:chains:il2cpp:2018.1:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-chains-build-il2cpp.log -cleanedLogFile output-windows-chains-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.1
-
-
-schedule:windows:build:hierarchy:il2cpp:2018.1:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-hierarchy-build-il2cpp.log -cleanedLogFile output-windows-hierarchy-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.1
-
-
-schedule:windows:build:rotation:il2cpp:2018.1:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-rotation-build-il2cpp.log -cleanedLogFile output-windows-rotation-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-rotation"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -407,7 +257,7 @@ schedule:windows:build:twostickshooter-pure:il2cpp:2018.1:
 ################################################################################
 # windows run for 2018.1
 ################################################################################
-schedule:windows:run:boids:mono:2018.1:
+schedule:windows:run:Samples:mono:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -416,9 +266,9 @@ schedule:windows:run:boids:mono:2018.1:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-boids-run-mono.log -cleanedLogFile output-windows-boids-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-windows-boids"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -427,76 +277,7 @@ schedule:windows:run:boids:mono:2018.1:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:build:boids:mono:2018.1
-
-
-schedule:windows:run:chains:mono:2018.1:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-chains-run-mono.log -cleanedLogFile output-windows-chains-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:chains:mono:2018.1
-
-
-schedule:windows:run:hierarchy:mono:2018.1:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-hierarchy-run-mono.log -cleanedLogFile output-windows-hierarchy-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:hierarchy:mono:2018.1
-
-
-schedule:windows:run:rotation:mono:2018.1:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-rotation-run-mono.log -cleanedLogFile output-windows-rotation-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-rotation"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:rotation:mono:2018.1
+    - schedule:windows:build:Samples:mono:2018.1
 
 
 schedule:windows:run:twostickshooter-classic:mono:2018.1:
@@ -568,7 +349,7 @@ schedule:windows:run:twostickshooter-pure:mono:2018.1:
     - schedule:windows:build:twostickshooter-pure:mono:2018.1
 
 
-schedule:windows:run:boids:il2cpp:2018.1:
+schedule:windows:run:Samples:il2cpp:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -577,9 +358,9 @@ schedule:windows:run:boids:il2cpp:2018.1:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-boids-run-il2cpp.log -cleanedLogFile output-windows-boids-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-windows-boids"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -588,76 +369,7 @@ schedule:windows:run:boids:il2cpp:2018.1:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:build:boids:il2cpp:2018.1
-
-
-schedule:windows:run:chains:il2cpp:2018.1:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-chains-run-il2cpp.log -cleanedLogFile output-windows-chains-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:chains:il2cpp:2018.1
-
-
-schedule:windows:run:hierarchy:il2cpp:2018.1:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-hierarchy-run-il2cpp.log -cleanedLogFile output-windows-hierarchy-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:hierarchy:il2cpp:2018.1
-
-
-schedule:windows:run:rotation:il2cpp:2018.1:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-rotation-run-il2cpp.log -cleanedLogFile output-windows-rotation-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-rotation"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:rotation:il2cpp:2018.1
+    - schedule:windows:build:Samples:il2cpp:2018.1
 
 
 schedule:windows:run:twostickshooter-classic:il2cpp:2018.1:
@@ -760,7 +472,7 @@ schedule:macOS:test:2018.1:
 ################################################################################
 # macOS build for 2018.1
 ################################################################################
-schedule:macOS:build:boids:mono:2018.1:
+schedule:macOS:build:Samples:mono:2018.1:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -771,84 +483,9 @@ schedule:macOS:build:boids:mono:2018.1:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-boids-build-mono.log -cleanedLogFile output-macOS-boids-build-mono-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-mono.log -cleanedLogFile output-macOS-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-macOS-boids"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.1
-
-
-schedule:macOS:build:chains:mono:2018.1:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-chains-build-mono.log -cleanedLogFile output-macOS-chains-build-mono-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.1
-
-
-schedule:macOS:build:hierarchy:mono:2018.1:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-hierarchy-build-mono.log -cleanedLogFile output-macOS-hierarchy-build-mono-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.1
-
-
-schedule:macOS:build:rotation:mono:2018.1:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-rotation-build-mono.log -cleanedLogFile output-macOS-rotation-build-mono-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-rotation"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -935,7 +572,7 @@ schedule:macOS:build:twostickshooter-pure:mono:2018.1:
     - schedule:macOS:test:2018.1
 
 
-schedule:macOS:build:boids:il2cpp:2018.1:
+schedule:macOS:build:Samples:il2cpp:2018.1:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -946,84 +583,9 @@ schedule:macOS:build:boids:il2cpp:2018.1:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-boids-build-il2cpp.log -cleanedLogFile output-macOS-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-il2cpp.log -cleanedLogFile output-macOS-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-macOS-boids"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.1
-
-
-schedule:macOS:build:chains:il2cpp:2018.1:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-chains-build-il2cpp.log -cleanedLogFile output-macOS-chains-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.1
-
-
-schedule:macOS:build:hierarchy:il2cpp:2018.1:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-hierarchy-build-il2cpp.log -cleanedLogFile output-macOS-hierarchy-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.1
-
-
-schedule:macOS:build:rotation:il2cpp:2018.1:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-rotation-build-il2cpp.log -cleanedLogFile output-macOS-rotation-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-rotation"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -1113,7 +675,7 @@ schedule:macOS:build:twostickshooter-pure:il2cpp:2018.1:
 ################################################################################
 # macOS run for 2018.1
 ################################################################################
-schedule:macOS:run:boids:mono:2018.1:
+schedule:macOS:run:Samples:mono:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1122,9 +684,9 @@ schedule:macOS:run:boids:mono:2018.1:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-boids-run-mono.log -cleanedLogFile output-macOS-boids-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-macOS-boids"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -1133,76 +695,7 @@ schedule:macOS:run:boids:mono:2018.1:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:build:boids:mono:2018.1
-
-
-schedule:macOS:run:chains:mono:2018.1:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-chains-run-mono.log -cleanedLogFile output-macOS-chains-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:chains:mono:2018.1
-
-
-schedule:macOS:run:hierarchy:mono:2018.1:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-hierarchy-run-mono.log -cleanedLogFile output-macOS-hierarchy-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:hierarchy:mono:2018.1
-
-
-schedule:macOS:run:rotation:mono:2018.1:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-rotation-run-mono.log -cleanedLogFile output-macOS-rotation-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-rotation"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:rotation:mono:2018.1
+    - schedule:macOS:build:Samples:mono:2018.1
 
 
 schedule:macOS:run:twostickshooter-classic:mono:2018.1:
@@ -1274,7 +767,7 @@ schedule:macOS:run:twostickshooter-pure:mono:2018.1:
     - schedule:macOS:build:twostickshooter-pure:mono:2018.1
 
 
-schedule:macOS:run:boids:il2cpp:2018.1:
+schedule:macOS:run:Samples:il2cpp:2018.1:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1283,9 +776,9 @@ schedule:macOS:run:boids:il2cpp:2018.1:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-boids-run-il2cpp.log -cleanedLogFile output-macOS-boids-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-macOS-boids"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -1294,76 +787,7 @@ schedule:macOS:run:boids:il2cpp:2018.1:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:build:boids:il2cpp:2018.1
-
-
-schedule:macOS:run:chains:il2cpp:2018.1:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-chains-run-il2cpp.log -cleanedLogFile output-macOS-chains-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:chains:il2cpp:2018.1
-
-
-schedule:macOS:run:hierarchy:il2cpp:2018.1:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-hierarchy-run-il2cpp.log -cleanedLogFile output-macOS-hierarchy-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:hierarchy:il2cpp:2018.1
-
-
-schedule:macOS:run:rotation:il2cpp:2018.1:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-rotation-run-il2cpp.log -cleanedLogFile output-macOS-rotation-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-rotation"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:rotation:il2cpp:2018.1
+    - schedule:macOS:build:Samples:il2cpp:2018.1
 
 
 schedule:macOS:run:twostickshooter-classic:il2cpp:2018.1:
@@ -1485,7 +909,7 @@ schedule:windows:test:2018.2:
 ################################################################################
 # windows build for 2018.2
 ################################################################################
-schedule:windows:build:boids:mono:2018.2:
+schedule:windows:build:Samples:mono:2018.2:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -1496,84 +920,9 @@ schedule:windows:build:boids:mono:2018.2:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-boids-build-mono.log -cleanedLogFile output-windows-boids-build-mono-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-windows-boids"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.2
-
-
-schedule:windows:build:chains:mono:2018.2:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-chains-build-mono.log -cleanedLogFile output-windows-chains-build-mono-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.2
-
-
-schedule:windows:build:hierarchy:mono:2018.2:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-hierarchy-build-mono.log -cleanedLogFile output-windows-hierarchy-build-mono-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.2
-
-
-schedule:windows:build:rotation:mono:2018.2:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-rotation-build-mono.log -cleanedLogFile output-windows-rotation-build-mono-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-rotation"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -1660,7 +1009,7 @@ schedule:windows:build:twostickshooter-pure:mono:2018.2:
     - schedule:windows:test:2018.2
 
 
-schedule:windows:build:boids:il2cpp:2018.2:
+schedule:windows:build:Samples:il2cpp:2018.2:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -1671,84 +1020,9 @@ schedule:windows:build:boids:il2cpp:2018.2:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-boids-build-il2cpp.log -cleanedLogFile output-windows-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-windows-boids"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.2
-
-
-schedule:windows:build:chains:il2cpp:2018.2:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-chains-build-il2cpp.log -cleanedLogFile output-windows-chains-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.2
-
-
-schedule:windows:build:hierarchy:il2cpp:2018.2:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-hierarchy-build-il2cpp.log -cleanedLogFile output-windows-hierarchy-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.2
-
-
-schedule:windows:build:rotation:il2cpp:2018.2:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-rotation-build-il2cpp.log -cleanedLogFile output-windows-rotation-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-rotation"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -1838,7 +1112,7 @@ schedule:windows:build:twostickshooter-pure:il2cpp:2018.2:
 ################################################################################
 # windows run for 2018.2
 ################################################################################
-schedule:windows:run:boids:mono:2018.2:
+schedule:windows:run:Samples:mono:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1847,9 +1121,9 @@ schedule:windows:run:boids:mono:2018.2:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-boids-run-mono.log -cleanedLogFile output-windows-boids-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-windows-boids"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -1858,76 +1132,7 @@ schedule:windows:run:boids:mono:2018.2:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:build:boids:mono:2018.2
-
-
-schedule:windows:run:chains:mono:2018.2:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-chains-run-mono.log -cleanedLogFile output-windows-chains-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:chains:mono:2018.2
-
-
-schedule:windows:run:hierarchy:mono:2018.2:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-hierarchy-run-mono.log -cleanedLogFile output-windows-hierarchy-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:hierarchy:mono:2018.2
-
-
-schedule:windows:run:rotation:mono:2018.2:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-rotation-run-mono.log -cleanedLogFile output-windows-rotation-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-rotation"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:rotation:mono:2018.2
+    - schedule:windows:build:Samples:mono:2018.2
 
 
 schedule:windows:run:twostickshooter-classic:mono:2018.2:
@@ -1999,7 +1204,7 @@ schedule:windows:run:twostickshooter-pure:mono:2018.2:
     - schedule:windows:build:twostickshooter-pure:mono:2018.2
 
 
-schedule:windows:run:boids:il2cpp:2018.2:
+schedule:windows:run:Samples:il2cpp:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2008,9 +1213,9 @@ schedule:windows:run:boids:il2cpp:2018.2:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-boids-run-il2cpp.log -cleanedLogFile output-windows-boids-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-windows-boids"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -2019,76 +1224,7 @@ schedule:windows:run:boids:il2cpp:2018.2:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:build:boids:il2cpp:2018.2
-
-
-schedule:windows:run:chains:il2cpp:2018.2:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-chains-run-il2cpp.log -cleanedLogFile output-windows-chains-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:chains:il2cpp:2018.2
-
-
-schedule:windows:run:hierarchy:il2cpp:2018.2:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-hierarchy-run-il2cpp.log -cleanedLogFile output-windows-hierarchy-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:hierarchy:il2cpp:2018.2
-
-
-schedule:windows:run:rotation:il2cpp:2018.2:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-rotation-run-il2cpp.log -cleanedLogFile output-windows-rotation-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-rotation"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:rotation:il2cpp:2018.2
+    - schedule:windows:build:Samples:il2cpp:2018.2
 
 
 schedule:windows:run:twostickshooter-classic:il2cpp:2018.2:
@@ -2191,7 +1327,7 @@ schedule:macOS:test:2018.2:
 ################################################################################
 # macOS build for 2018.2
 ################################################################################
-schedule:macOS:build:boids:mono:2018.2:
+schedule:macOS:build:Samples:mono:2018.2:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -2202,84 +1338,9 @@ schedule:macOS:build:boids:mono:2018.2:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-boids-build-mono.log -cleanedLogFile output-macOS-boids-build-mono-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-mono.log -cleanedLogFile output-macOS-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-macOS-boids"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.2
-
-
-schedule:macOS:build:chains:mono:2018.2:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-chains-build-mono.log -cleanedLogFile output-macOS-chains-build-mono-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.2
-
-
-schedule:macOS:build:hierarchy:mono:2018.2:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-hierarchy-build-mono.log -cleanedLogFile output-macOS-hierarchy-build-mono-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.2
-
-
-schedule:macOS:build:rotation:mono:2018.2:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-rotation-build-mono.log -cleanedLogFile output-macOS-rotation-build-mono-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-rotation"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -2366,7 +1427,7 @@ schedule:macOS:build:twostickshooter-pure:mono:2018.2:
     - schedule:macOS:test:2018.2
 
 
-schedule:macOS:build:boids:il2cpp:2018.2:
+schedule:macOS:build:Samples:il2cpp:2018.2:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -2377,84 +1438,9 @@ schedule:macOS:build:boids:il2cpp:2018.2:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-boids-build-il2cpp.log -cleanedLogFile output-macOS-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-il2cpp.log -cleanedLogFile output-macOS-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-macOS-boids"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.2
-
-
-schedule:macOS:build:chains:il2cpp:2018.2:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-chains-build-il2cpp.log -cleanedLogFile output-macOS-chains-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.2
-
-
-schedule:macOS:build:hierarchy:il2cpp:2018.2:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-hierarchy-build-il2cpp.log -cleanedLogFile output-macOS-hierarchy-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.2
-
-
-schedule:macOS:build:rotation:il2cpp:2018.2:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-rotation-build-il2cpp.log -cleanedLogFile output-macOS-rotation-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-rotation"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -2544,7 +1530,7 @@ schedule:macOS:build:twostickshooter-pure:il2cpp:2018.2:
 ################################################################################
 # macOS run for 2018.2
 ################################################################################
-schedule:macOS:run:boids:mono:2018.2:
+schedule:macOS:run:Samples:mono:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2553,9 +1539,9 @@ schedule:macOS:run:boids:mono:2018.2:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-boids-run-mono.log -cleanedLogFile output-macOS-boids-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-macOS-boids"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -2564,76 +1550,7 @@ schedule:macOS:run:boids:mono:2018.2:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:build:boids:mono:2018.2
-
-
-schedule:macOS:run:chains:mono:2018.2:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-chains-run-mono.log -cleanedLogFile output-macOS-chains-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:chains:mono:2018.2
-
-
-schedule:macOS:run:hierarchy:mono:2018.2:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-hierarchy-run-mono.log -cleanedLogFile output-macOS-hierarchy-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:hierarchy:mono:2018.2
-
-
-schedule:macOS:run:rotation:mono:2018.2:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-rotation-run-mono.log -cleanedLogFile output-macOS-rotation-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-rotation"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:rotation:mono:2018.2
+    - schedule:macOS:build:Samples:mono:2018.2
 
 
 schedule:macOS:run:twostickshooter-classic:mono:2018.2:
@@ -2705,7 +1622,7 @@ schedule:macOS:run:twostickshooter-pure:mono:2018.2:
     - schedule:macOS:build:twostickshooter-pure:mono:2018.2
 
 
-schedule:macOS:run:boids:il2cpp:2018.2:
+schedule:macOS:run:Samples:il2cpp:2018.2:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2714,9 +1631,9 @@ schedule:macOS:run:boids:il2cpp:2018.2:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-boids-run-il2cpp.log -cleanedLogFile output-macOS-boids-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-macOS-boids"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -2725,76 +1642,7 @@ schedule:macOS:run:boids:il2cpp:2018.2:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:build:boids:il2cpp:2018.2
-
-
-schedule:macOS:run:chains:il2cpp:2018.2:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-chains-run-il2cpp.log -cleanedLogFile output-macOS-chains-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:chains:il2cpp:2018.2
-
-
-schedule:macOS:run:hierarchy:il2cpp:2018.2:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-hierarchy-run-il2cpp.log -cleanedLogFile output-macOS-hierarchy-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:hierarchy:il2cpp:2018.2
-
-
-schedule:macOS:run:rotation:il2cpp:2018.2:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-rotation-run-il2cpp.log -cleanedLogFile output-macOS-rotation-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-rotation"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:rotation:il2cpp:2018.2
+    - schedule:macOS:build:Samples:il2cpp:2018.2
 
 
 schedule:macOS:run:twostickshooter-classic:il2cpp:2018.2:
@@ -2916,7 +1764,7 @@ schedule:windows:test:2018.1_staging:
 ################################################################################
 # windows build for 2018.1_staging
 ################################################################################
-schedule:windows:build:boids:mono:2018.1_staging:
+schedule:windows:build:Samples:mono:2018.1_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -2927,84 +1775,9 @@ schedule:windows:build:boids:mono:2018.1_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-boids-build-mono.log -cleanedLogFile output-windows-boids-build-mono-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-windows-boids"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.1_staging
-
-
-schedule:windows:build:chains:mono:2018.1_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-chains-build-mono.log -cleanedLogFile output-windows-chains-build-mono-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.1_staging
-
-
-schedule:windows:build:hierarchy:mono:2018.1_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-hierarchy-build-mono.log -cleanedLogFile output-windows-hierarchy-build-mono-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.1_staging
-
-
-schedule:windows:build:rotation:mono:2018.1_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-rotation-build-mono.log -cleanedLogFile output-windows-rotation-build-mono-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-rotation"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -3091,7 +1864,7 @@ schedule:windows:build:twostickshooter-pure:mono:2018.1_staging:
     - schedule:windows:test:2018.1_staging
 
 
-schedule:windows:build:boids:il2cpp:2018.1_staging:
+schedule:windows:build:Samples:il2cpp:2018.1_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -3102,84 +1875,9 @@ schedule:windows:build:boids:il2cpp:2018.1_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-boids-build-il2cpp.log -cleanedLogFile output-windows-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-windows-boids"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.1_staging
-
-
-schedule:windows:build:chains:il2cpp:2018.1_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-chains-build-il2cpp.log -cleanedLogFile output-windows-chains-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.1_staging
-
-
-schedule:windows:build:hierarchy:il2cpp:2018.1_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-hierarchy-build-il2cpp.log -cleanedLogFile output-windows-hierarchy-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.1_staging
-
-
-schedule:windows:build:rotation:il2cpp:2018.1_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-rotation-build-il2cpp.log -cleanedLogFile output-windows-rotation-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-rotation"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -3269,7 +1967,7 @@ schedule:windows:build:twostickshooter-pure:il2cpp:2018.1_staging:
 ################################################################################
 # windows run for 2018.1_staging
 ################################################################################
-schedule:windows:run:boids:mono:2018.1_staging:
+schedule:windows:run:Samples:mono:2018.1_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -3278,9 +1976,9 @@ schedule:windows:run:boids:mono:2018.1_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-boids-run-mono.log -cleanedLogFile output-windows-boids-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-windows-boids"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -3289,76 +1987,7 @@ schedule:windows:run:boids:mono:2018.1_staging:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:build:boids:mono:2018.1_staging
-
-
-schedule:windows:run:chains:mono:2018.1_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-chains-run-mono.log -cleanedLogFile output-windows-chains-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:chains:mono:2018.1_staging
-
-
-schedule:windows:run:hierarchy:mono:2018.1_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-hierarchy-run-mono.log -cleanedLogFile output-windows-hierarchy-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:hierarchy:mono:2018.1_staging
-
-
-schedule:windows:run:rotation:mono:2018.1_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-rotation-run-mono.log -cleanedLogFile output-windows-rotation-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-rotation"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:rotation:mono:2018.1_staging
+    - schedule:windows:build:Samples:mono:2018.1_staging
 
 
 schedule:windows:run:twostickshooter-classic:mono:2018.1_staging:
@@ -3430,7 +2059,7 @@ schedule:windows:run:twostickshooter-pure:mono:2018.1_staging:
     - schedule:windows:build:twostickshooter-pure:mono:2018.1_staging
 
 
-schedule:windows:run:boids:il2cpp:2018.1_staging:
+schedule:windows:run:Samples:il2cpp:2018.1_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -3439,9 +2068,9 @@ schedule:windows:run:boids:il2cpp:2018.1_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-boids-run-il2cpp.log -cleanedLogFile output-windows-boids-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-windows-boids"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -3450,76 +2079,7 @@ schedule:windows:run:boids:il2cpp:2018.1_staging:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:build:boids:il2cpp:2018.1_staging
-
-
-schedule:windows:run:chains:il2cpp:2018.1_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-chains-run-il2cpp.log -cleanedLogFile output-windows-chains-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:chains:il2cpp:2018.1_staging
-
-
-schedule:windows:run:hierarchy:il2cpp:2018.1_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-hierarchy-run-il2cpp.log -cleanedLogFile output-windows-hierarchy-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:hierarchy:il2cpp:2018.1_staging
-
-
-schedule:windows:run:rotation:il2cpp:2018.1_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-rotation-run-il2cpp.log -cleanedLogFile output-windows-rotation-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-rotation"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:rotation:il2cpp:2018.1_staging
+    - schedule:windows:build:Samples:il2cpp:2018.1_staging
 
 
 schedule:windows:run:twostickshooter-classic:il2cpp:2018.1_staging:
@@ -3622,7 +2182,7 @@ schedule:macOS:test:2018.1_staging:
 ################################################################################
 # macOS build for 2018.1_staging
 ################################################################################
-schedule:macOS:build:boids:mono:2018.1_staging:
+schedule:macOS:build:Samples:mono:2018.1_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -3633,84 +2193,9 @@ schedule:macOS:build:boids:mono:2018.1_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-boids-build-mono.log -cleanedLogFile output-macOS-boids-build-mono-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-mono.log -cleanedLogFile output-macOS-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-macOS-boids"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.1_staging
-
-
-schedule:macOS:build:chains:mono:2018.1_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-chains-build-mono.log -cleanedLogFile output-macOS-chains-build-mono-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.1_staging
-
-
-schedule:macOS:build:hierarchy:mono:2018.1_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-hierarchy-build-mono.log -cleanedLogFile output-macOS-hierarchy-build-mono-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.1_staging
-
-
-schedule:macOS:build:rotation:mono:2018.1_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-rotation-build-mono.log -cleanedLogFile output-macOS-rotation-build-mono-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-rotation"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -3797,7 +2282,7 @@ schedule:macOS:build:twostickshooter-pure:mono:2018.1_staging:
     - schedule:macOS:test:2018.1_staging
 
 
-schedule:macOS:build:boids:il2cpp:2018.1_staging:
+schedule:macOS:build:Samples:il2cpp:2018.1_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -3808,84 +2293,9 @@ schedule:macOS:build:boids:il2cpp:2018.1_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-boids-build-il2cpp.log -cleanedLogFile output-macOS-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-il2cpp.log -cleanedLogFile output-macOS-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-macOS-boids"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.1_staging
-
-
-schedule:macOS:build:chains:il2cpp:2018.1_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-chains-build-il2cpp.log -cleanedLogFile output-macOS-chains-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.1_staging
-
-
-schedule:macOS:build:hierarchy:il2cpp:2018.1_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-hierarchy-build-il2cpp.log -cleanedLogFile output-macOS-hierarchy-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.1_staging
-
-
-schedule:macOS:build:rotation:il2cpp:2018.1_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-rotation-build-il2cpp.log -cleanedLogFile output-macOS-rotation-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-rotation"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -3975,7 +2385,7 @@ schedule:macOS:build:twostickshooter-pure:il2cpp:2018.1_staging:
 ################################################################################
 # macOS run for 2018.1_staging
 ################################################################################
-schedule:macOS:run:boids:mono:2018.1_staging:
+schedule:macOS:run:Samples:mono:2018.1_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -3984,9 +2394,9 @@ schedule:macOS:run:boids:mono:2018.1_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-boids-run-mono.log -cleanedLogFile output-macOS-boids-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-macOS-boids"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -3995,76 +2405,7 @@ schedule:macOS:run:boids:mono:2018.1_staging:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:build:boids:mono:2018.1_staging
-
-
-schedule:macOS:run:chains:mono:2018.1_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-chains-run-mono.log -cleanedLogFile output-macOS-chains-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:chains:mono:2018.1_staging
-
-
-schedule:macOS:run:hierarchy:mono:2018.1_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-hierarchy-run-mono.log -cleanedLogFile output-macOS-hierarchy-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:hierarchy:mono:2018.1_staging
-
-
-schedule:macOS:run:rotation:mono:2018.1_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-rotation-run-mono.log -cleanedLogFile output-macOS-rotation-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-rotation"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:rotation:mono:2018.1_staging
+    - schedule:macOS:build:Samples:mono:2018.1_staging
 
 
 schedule:macOS:run:twostickshooter-classic:mono:2018.1_staging:
@@ -4136,7 +2477,7 @@ schedule:macOS:run:twostickshooter-pure:mono:2018.1_staging:
     - schedule:macOS:build:twostickshooter-pure:mono:2018.1_staging
 
 
-schedule:macOS:run:boids:il2cpp:2018.1_staging:
+schedule:macOS:run:Samples:il2cpp:2018.1_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -4145,9 +2486,9 @@ schedule:macOS:run:boids:il2cpp:2018.1_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-boids-run-il2cpp.log -cleanedLogFile output-macOS-boids-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-macOS-boids"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -4156,76 +2497,7 @@ schedule:macOS:run:boids:il2cpp:2018.1_staging:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:build:boids:il2cpp:2018.1_staging
-
-
-schedule:macOS:run:chains:il2cpp:2018.1_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-chains-run-il2cpp.log -cleanedLogFile output-macOS-chains-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:chains:il2cpp:2018.1_staging
-
-
-schedule:macOS:run:hierarchy:il2cpp:2018.1_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-hierarchy-run-il2cpp.log -cleanedLogFile output-macOS-hierarchy-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:hierarchy:il2cpp:2018.1_staging
-
-
-schedule:macOS:run:rotation:il2cpp:2018.1_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-rotation-run-il2cpp.log -cleanedLogFile output-macOS-rotation-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-rotation"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:rotation:il2cpp:2018.1_staging
+    - schedule:macOS:build:Samples:il2cpp:2018.1_staging
 
 
 schedule:macOS:run:twostickshooter-classic:il2cpp:2018.1_staging:
@@ -4347,7 +2619,7 @@ schedule:windows:test:2018.2_staging:
 ################################################################################
 # windows build for 2018.2_staging
 ################################################################################
-schedule:windows:build:boids:mono:2018.2_staging:
+schedule:windows:build:Samples:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -4358,84 +2630,9 @@ schedule:windows:build:boids:mono:2018.2_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-boids-build-mono.log -cleanedLogFile output-windows-boids-build-mono-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-windows-boids"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.2_staging
-
-
-schedule:windows:build:chains:mono:2018.2_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-chains-build-mono.log -cleanedLogFile output-windows-chains-build-mono-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.2_staging
-
-
-schedule:windows:build:hierarchy:mono:2018.2_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-hierarchy-build-mono.log -cleanedLogFile output-windows-hierarchy-build-mono-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.2_staging
-
-
-schedule:windows:build:rotation:mono:2018.2_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-rotation-build-mono.log -cleanedLogFile output-windows-rotation-build-mono-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-rotation"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -4522,7 +2719,7 @@ schedule:windows:build:twostickshooter-pure:mono:2018.2_staging:
     - schedule:windows:test:2018.2_staging
 
 
-schedule:windows:build:boids:il2cpp:2018.2_staging:
+schedule:windows:build:Samples:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -4533,84 +2730,9 @@ schedule:windows:build:boids:il2cpp:2018.2_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-boids-build-il2cpp.log -cleanedLogFile output-windows-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-windows-boids"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.2_staging
-
-
-schedule:windows:build:chains:il2cpp:2018.2_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-chains-build-il2cpp.log -cleanedLogFile output-windows-chains-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.2_staging
-
-
-schedule:windows:build:hierarchy:il2cpp:2018.2_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-hierarchy-build-il2cpp.log -cleanedLogFile output-windows-hierarchy-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:test:2018.2_staging
-
-
-schedule:windows:build:rotation:il2cpp:2018.2_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-rotation-build-il2cpp.log -cleanedLogFile output-windows-rotation-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-windows-rotation"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -4700,7 +2822,7 @@ schedule:windows:build:twostickshooter-pure:il2cpp:2018.2_staging:
 ################################################################################
 # windows run for 2018.2_staging
 ################################################################################
-schedule:windows:run:boids:mono:2018.2_staging:
+schedule:windows:run:Samples:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -4709,9 +2831,9 @@ schedule:windows:run:boids:mono:2018.2_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-boids-run-mono.log -cleanedLogFile output-windows-boids-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-windows-boids"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -4720,76 +2842,7 @@ schedule:windows:run:boids:mono:2018.2_staging:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:build:boids:mono:2018.2_staging
-
-
-schedule:windows:run:chains:mono:2018.2_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-chains-run-mono.log -cleanedLogFile output-windows-chains-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:chains:mono:2018.2_staging
-
-
-schedule:windows:run:hierarchy:mono:2018.2_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-hierarchy-run-mono.log -cleanedLogFile output-windows-hierarchy-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:hierarchy:mono:2018.2_staging
-
-
-schedule:windows:run:rotation:mono:2018.2_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-rotation-run-mono.log -cleanedLogFile output-windows-rotation-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-rotation"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:rotation:mono:2018.2_staging
+    - schedule:windows:build:Samples:mono:2018.2_staging
 
 
 schedule:windows:run:twostickshooter-classic:mono:2018.2_staging:
@@ -4861,7 +2914,7 @@ schedule:windows:run:twostickshooter-pure:mono:2018.2_staging:
     - schedule:windows:build:twostickshooter-pure:mono:2018.2_staging
 
 
-schedule:windows:run:boids:il2cpp:2018.2_staging:
+schedule:windows:run:Samples:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -4870,9 +2923,9 @@ schedule:windows:run:boids:il2cpp:2018.2_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-boids-run-il2cpp.log -cleanedLogFile output-windows-boids-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-windows-boids"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -4881,76 +2934,7 @@ schedule:windows:run:boids:il2cpp:2018.2_staging:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:build:boids:il2cpp:2018.2_staging
-
-
-schedule:windows:run:chains:il2cpp:2018.2_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-chains-run-il2cpp.log -cleanedLogFile output-windows-chains-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:chains:il2cpp:2018.2_staging
-
-
-schedule:windows:run:hierarchy:il2cpp:2018.2_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-hierarchy-run-il2cpp.log -cleanedLogFile output-windows-hierarchy-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:hierarchy:il2cpp:2018.2_staging
-
-
-schedule:windows:run:rotation:il2cpp:2018.2_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - windows
-  script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-rotation-run-il2cpp.log -cleanedLogFile output-windows-rotation-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-windows-rotation"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:windows:build:rotation:il2cpp:2018.2_staging
+    - schedule:windows:build:Samples:il2cpp:2018.2_staging
 
 
 schedule:windows:run:twostickshooter-classic:il2cpp:2018.2_staging:
@@ -5053,7 +3037,7 @@ schedule:macOS:test:2018.2_staging:
 ################################################################################
 # macOS build for 2018.2_staging
 ################################################################################
-schedule:macOS:build:boids:mono:2018.2_staging:
+schedule:macOS:build:Samples:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -5064,84 +3048,9 @@ schedule:macOS:build:boids:mono:2018.2_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-boids-build-mono.log -cleanedLogFile output-macOS-boids-build-mono-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-mono.log -cleanedLogFile output-macOS-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-macOS-boids"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.2_staging
-
-
-schedule:macOS:build:chains:mono:2018.2_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-chains-build-mono.log -cleanedLogFile output-macOS-chains-build-mono-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.2_staging
-
-
-schedule:macOS:build:hierarchy:mono:2018.2_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-hierarchy-build-mono.log -cleanedLogFile output-macOS-hierarchy-build-mono-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.2_staging
-
-
-schedule:macOS:build:rotation:mono:2018.2_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-rotation-build-mono.log -cleanedLogFile output-macOS-rotation-build-mono-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend mono -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-rotation"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -5228,7 +3137,7 @@ schedule:macOS:build:twostickshooter-pure:mono:2018.2_staging:
     - schedule:macOS:test:2018.2_staging
 
 
-schedule:macOS:build:boids:il2cpp:2018.2_staging:
+schedule:macOS:build:Samples:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -5239,84 +3148,9 @@ schedule:macOS:build:boids:il2cpp:2018.2_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-boids-build-il2cpp.log -cleanedLogFile output-macOS-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-il2cpp.log -cleanedLogFile output-macOS-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-macOS-boids"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.2_staging
-
-
-schedule:macOS:build:chains:il2cpp:2018.2_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-chains-build-il2cpp.log -cleanedLogFile output-macOS-chains-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/ChainExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.2_staging
-
-
-schedule:macOS:build:hierarchy:il2cpp:2018.2_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-hierarchy-build-il2cpp.log -cleanedLogFile output-macOS-hierarchy-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/HierarchyExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:test:2018.2_staging
-
-
-schedule:macOS:build:rotation:il2cpp:2018.2_staging:
-  stage: build
-  before_script:
-    - python Tools/CI/beforescript.py
-  after_script:
-    - python Tools/CI/afterscript.py
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-rotation-build-il2cpp.log -cleanedLogFile output-macOS-rotation-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/RotationExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
-  artifacts:
-    name: "artifacts-macOS-rotation"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -5406,7 +3240,7 @@ schedule:macOS:build:twostickshooter-pure:il2cpp:2018.2_staging:
 ################################################################################
 # macOS run for 2018.2_staging
 ################################################################################
-schedule:macOS:run:boids:mono:2018.2_staging:
+schedule:macOS:run:Samples:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -5415,9 +3249,9 @@ schedule:macOS:run:boids:mono:2018.2_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-boids-run-mono.log -cleanedLogFile output-macOS-boids-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-macOS-boids"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -5426,76 +3260,7 @@ schedule:macOS:run:boids:mono:2018.2_staging:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:build:boids:mono:2018.2_staging
-
-
-schedule:macOS:run:chains:mono:2018.2_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-chains-run-mono.log -cleanedLogFile output-macOS-chains-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:chains:mono:2018.2_staging
-
-
-schedule:macOS:run:hierarchy:mono:2018.2_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-hierarchy-run-mono.log -cleanedLogFile output-macOS-hierarchy-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:hierarchy:mono:2018.2_staging
-
-
-schedule:macOS:run:rotation:mono:2018.2_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-rotation-run-mono.log -cleanedLogFile output-macOS-rotation-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-rotation"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:rotation:mono:2018.2_staging
+    - schedule:macOS:build:Samples:mono:2018.2_staging
 
 
 schedule:macOS:run:twostickshooter-classic:mono:2018.2_staging:
@@ -5567,7 +3332,7 @@ schedule:macOS:run:twostickshooter-pure:mono:2018.2_staging:
     - schedule:macOS:build:twostickshooter-pure:mono:2018.2_staging
 
 
-schedule:macOS:run:boids:il2cpp:2018.2_staging:
+schedule:macOS:run:Samples:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -5576,9 +3341,9 @@ schedule:macOS:run:boids:il2cpp:2018.2_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-boids-run-il2cpp.log -cleanedLogFile output-macOS-boids-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-macOS-boids"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -5587,76 +3352,7 @@ schedule:macOS:run:boids:il2cpp:2018.2_staging:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:build:boids:il2cpp:2018.2_staging
-
-
-schedule:macOS:run:chains:il2cpp:2018.2_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-chains-run-il2cpp.log -cleanedLogFile output-macOS-chains-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-chains"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:chains:il2cpp:2018.2_staging
-
-
-schedule:macOS:run:hierarchy:il2cpp:2018.2_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-hierarchy-run-il2cpp.log -cleanedLogFile output-macOS-hierarchy-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-hierarchy"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:hierarchy:il2cpp:2018.2_staging
-
-
-schedule:macOS:run:rotation:il2cpp:2018.2_staging:
-  variables:
-    GIT_STRATEGY: fetch
-  stage: run
-  only:
-    - schedules
-  tags:
-  - macOS
-  script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-rotation-run-il2cpp.log -cleanedLogFile output-macOS-rotation-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
-  artifacts:
-    name: "artifacts-macOS-rotation"
-    when: always
-    paths:
-      - "unity_revision.txt"
-      - "*.log"
-      - "*.xml"
-      - "Samples/build"
-    expire_in: 1 week
-  dependencies:
-    - schedule:macOS:build:rotation:il2cpp:2018.2_staging
+    - schedule:macOS:build:Samples:il2cpp:2018.2_staging
 
 
 schedule:macOS:run:twostickshooter-classic:il2cpp:2018.2_staging:
@@ -5778,7 +3474,7 @@ windows:test:2018.1_staging:
 ################################################################################
 # windows build for 2018.1_staging
 ################################################################################
-windows:build:boids:mono:2018.1_staging:
+windows:build:Samples:mono:2018.1_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -5789,9 +3485,9 @@ windows:build:boids:mono:2018.1_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-boids-build-mono.log -cleanedLogFile output-windows-boids-build-mono-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-windows-boids"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -5878,7 +3574,7 @@ windows:build:twostickshooter-pure:mono:2018.1_staging:
     - windows:test:2018.1_staging
 
 
-windows:build:boids:il2cpp:2018.1_staging:
+windows:build:Samples:il2cpp:2018.1_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -5889,9 +3585,9 @@ windows:build:boids:il2cpp:2018.1_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-boids-build-il2cpp.log -cleanedLogFile output-windows-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-windows-boids"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -5981,7 +3677,7 @@ windows:build:twostickshooter-pure:il2cpp:2018.1_staging:
 ################################################################################
 # windows run for 2018.1_staging
 ################################################################################
-windows:run:boids:mono:2018.1_staging:
+windows:run:Samples:mono:2018.1_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -5990,9 +3686,9 @@ windows:run:boids:mono:2018.1_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-boids-run-mono.log -cleanedLogFile output-windows-boids-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-windows-boids"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -6001,7 +3697,7 @@ windows:run:boids:mono:2018.1_staging:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:boids:mono:2018.1_staging
+    - windows:build:Samples:mono:2018.1_staging
 
 
 windows:run:twostickshooter-classic:mono:2018.1_staging:
@@ -6073,7 +3769,7 @@ windows:run:twostickshooter-pure:mono:2018.1_staging:
     - windows:build:twostickshooter-pure:mono:2018.1_staging
 
 
-windows:run:boids:il2cpp:2018.1_staging:
+windows:run:Samples:il2cpp:2018.1_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -6082,9 +3778,9 @@ windows:run:boids:il2cpp:2018.1_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-boids-run-il2cpp.log -cleanedLogFile output-windows-boids-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-windows-boids"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -6093,7 +3789,7 @@ windows:run:boids:il2cpp:2018.1_staging:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:boids:il2cpp:2018.1_staging
+    - windows:build:Samples:il2cpp:2018.1_staging
 
 
 windows:run:twostickshooter-classic:il2cpp:2018.1_staging:
@@ -6196,7 +3892,7 @@ macOS:test:2018.1_staging:
 ################################################################################
 # macOS build for 2018.1_staging
 ################################################################################
-macOS:build:boids:mono:2018.1_staging:
+macOS:build:Samples:mono:2018.1_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -6207,9 +3903,9 @@ macOS:build:boids:mono:2018.1_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-boids-build-mono.log -cleanedLogFile output-macOS-boids-build-mono-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-mono.log -cleanedLogFile output-macOS-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-macOS-boids"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -6296,7 +3992,7 @@ macOS:build:twostickshooter-pure:mono:2018.1_staging:
     - macOS:test:2018.1_staging
 
 
-macOS:build:boids:il2cpp:2018.1_staging:
+macOS:build:Samples:il2cpp:2018.1_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -6307,9 +4003,9 @@ macOS:build:boids:il2cpp:2018.1_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-boids-build-il2cpp.log -cleanedLogFile output-macOS-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-il2cpp.log -cleanedLogFile output-macOS-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-macOS-boids"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -6399,7 +4095,7 @@ macOS:build:twostickshooter-pure:il2cpp:2018.1_staging:
 ################################################################################
 # macOS run for 2018.1_staging
 ################################################################################
-macOS:run:boids:mono:2018.1_staging:
+macOS:run:Samples:mono:2018.1_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -6408,9 +4104,9 @@ macOS:run:boids:mono:2018.1_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-boids-run-mono.log -cleanedLogFile output-macOS-boids-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-macOS-boids"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -6419,7 +4115,7 @@ macOS:run:boids:mono:2018.1_staging:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:boids:mono:2018.1_staging
+    - macOS:build:Samples:mono:2018.1_staging
 
 
 macOS:run:twostickshooter-classic:mono:2018.1_staging:
@@ -6491,7 +4187,7 @@ macOS:run:twostickshooter-pure:mono:2018.1_staging:
     - macOS:build:twostickshooter-pure:mono:2018.1_staging
 
 
-macOS:run:boids:il2cpp:2018.1_staging:
+macOS:run:Samples:il2cpp:2018.1_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -6500,9 +4196,9 @@ macOS:run:boids:il2cpp:2018.1_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-boids-run-il2cpp.log -cleanedLogFile output-macOS-boids-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-macOS-boids"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -6511,7 +4207,7 @@ macOS:run:boids:il2cpp:2018.1_staging:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:boids:il2cpp:2018.1_staging
+    - macOS:build:Samples:il2cpp:2018.1_staging
 
 
 macOS:run:twostickshooter-classic:il2cpp:2018.1_staging:
@@ -6633,7 +4329,7 @@ windows:test:2018.2_staging:
 ################################################################################
 # windows build for 2018.2_staging
 ################################################################################
-windows:build:boids:mono:2018.2_staging:
+windows:build:Samples:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -6644,9 +4340,9 @@ windows:build:boids:mono:2018.2_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-boids-build-mono.log -cleanedLogFile output-windows-boids-build-mono-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-windows-boids"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -6733,7 +4429,7 @@ windows:build:twostickshooter-pure:mono:2018.2_staging:
     - windows:test:2018.2_staging
 
 
-windows:build:boids:il2cpp:2018.2_staging:
+windows:build:Samples:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -6744,9 +4440,9 @@ windows:build:boids:il2cpp:2018.2_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-boids-build-il2cpp.log -cleanedLogFile output-windows-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-windows-boids"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -6836,7 +4532,7 @@ windows:build:twostickshooter-pure:il2cpp:2018.2_staging:
 ################################################################################
 # windows run for 2018.2_staging
 ################################################################################
-windows:run:boids:mono:2018.2_staging:
+windows:run:Samples:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -6845,9 +4541,9 @@ windows:run:boids:mono:2018.2_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-boids-run-mono.log -cleanedLogFile output-windows-boids-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-windows-boids"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -6856,7 +4552,7 @@ windows:run:boids:mono:2018.2_staging:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:boids:mono:2018.2_staging
+    - windows:build:Samples:mono:2018.2_staging
 
 
 windows:run:twostickshooter-classic:mono:2018.2_staging:
@@ -6928,7 +4624,7 @@ windows:run:twostickshooter-pure:mono:2018.2_staging:
     - windows:build:twostickshooter-pure:mono:2018.2_staging
 
 
-windows:run:boids:il2cpp:2018.2_staging:
+windows:run:Samples:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -6937,9 +4633,9 @@ windows:run:boids:il2cpp:2018.2_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-boids-run-il2cpp.log -cleanedLogFile output-windows-boids-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-windows-boids"
+    name: "artifacts-windows-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -6948,7 +4644,7 @@ windows:run:boids:il2cpp:2018.2_staging:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:boids:il2cpp:2018.2_staging
+    - windows:build:Samples:il2cpp:2018.2_staging
 
 
 windows:run:twostickshooter-classic:il2cpp:2018.2_staging:
@@ -7051,7 +4747,7 @@ macOS:test:2018.2_staging:
 ################################################################################
 # macOS build for 2018.2_staging
 ################################################################################
-macOS:build:boids:mono:2018.2_staging:
+macOS:build:Samples:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -7062,9 +4758,9 @@ macOS:build:boids:mono:2018.2_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-boids-build-mono.log -cleanedLogFile output-macOS-boids-build-mono-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-mono.log -cleanedLogFile output-macOS-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-macOS-boids"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -7151,7 +4847,7 @@ macOS:build:twostickshooter-pure:mono:2018.2_staging:
     - macOS:test:2018.2_staging
 
 
-macOS:build:boids:il2cpp:2018.2_staging:
+macOS:build:Samples:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -7162,9 +4858,9 @@ macOS:build:boids:il2cpp:2018.2_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-boids-build-il2cpp.log -cleanedLogFile output-macOS-boids-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/BoidExample.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-il2cpp.log -cleanedLogFile output-macOS-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
-    name: "artifacts-macOS-boids"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -7254,7 +4950,7 @@ macOS:build:twostickshooter-pure:il2cpp:2018.2_staging:
 ################################################################################
 # macOS run for 2018.2_staging
 ################################################################################
-macOS:run:boids:mono:2018.2_staging:
+macOS:run:Samples:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -7263,9 +4959,9 @@ macOS:run:boids:mono:2018.2_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-boids-run-mono.log -cleanedLogFile output-macOS-boids-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-macOS-boids"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -7274,7 +4970,7 @@ macOS:run:boids:mono:2018.2_staging:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:boids:mono:2018.2_staging
+    - macOS:build:Samples:mono:2018.2_staging
 
 
 macOS:run:twostickshooter-classic:mono:2018.2_staging:
@@ -7346,7 +5042,7 @@ macOS:run:twostickshooter-pure:mono:2018.2_staging:
     - macOS:build:twostickshooter-pure:mono:2018.2_staging
 
 
-macOS:run:boids:il2cpp:2018.2_staging:
+macOS:run:Samples:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -7355,9 +5051,9 @@ macOS:run:boids:il2cpp:2018.2_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-boids-run-il2cpp.log -cleanedLogFile output-macOS-boids-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
   artifacts:
-    name: "artifacts-macOS-boids"
+    name: "artifacts-macOS-Samples"
     when: always
     paths:
       - "unity_revision.txt"
@@ -7366,7 +5062,7 @@ macOS:run:boids:il2cpp:2018.2_staging:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:boids:il2cpp:2018.2_staging
+    - macOS:build:Samples:il2cpp:2018.2_staging
 
 
 macOS:run:twostickshooter-classic:il2cpp:2018.2_staging:

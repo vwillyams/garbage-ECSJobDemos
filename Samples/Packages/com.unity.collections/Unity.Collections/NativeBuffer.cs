@@ -12,7 +12,7 @@ namespace Unity.Collections
     public interface INativeBufferMemoryManager
     {
         unsafe void* Init<T>(Allocator allocatorLabel) where T : struct;
-        Allocator Label { get; }
+        Allocator Label { get; set; }
         unsafe void Dispose(void * buffer);
     }
 
@@ -22,7 +22,7 @@ namespace Unity.Collections
     /// </summary>
     public unsafe struct DefaultMemoryManager : INativeBufferMemoryManager
     {
-        public Allocator Label { get; private set; }
+        public Allocator Label { get; set; }
 
         public void Dispose(void * buffer)
         {

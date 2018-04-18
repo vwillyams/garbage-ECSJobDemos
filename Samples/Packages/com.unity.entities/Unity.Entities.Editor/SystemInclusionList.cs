@@ -2,12 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using Unity.Collections;
 using UnityEditor;
 using UnityEngine;
-
-[assembly:InternalsVisibleTo("Unity.Entities.Editor.Tests")]
 
 namespace Unity.Entities.Editor
 {

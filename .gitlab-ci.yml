@@ -4298,12 +4298,12 @@ schedule:macOS:run:twostickshooter-pure:il2cpp:2018.1_staging:
 
 
 ################################################################################
-# macOS validation for trunk
+# macOS validation for 2018.2_staging
 ################################################################################
-schedule:validation:trunk:
+schedule:validation:2018.2_staging:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version 'trunk&latest=true' --project-path "Samples"
+    - python Tools/CI/validation.py --build-version '2018.2/staging&latest=true' --project-path "Samples"
   only:
     - schedules
   tags:
@@ -4317,9 +4317,9 @@ schedule:validation:trunk:
     expire_in: 1 week
 
 ################################################################################
-# windows test for trunk
+# windows test for 2018.2_staging
 ################################################################################
-schedule:windows:test:trunk:
+schedule:windows:test:2018.2_staging:
   stage: test
   before_script:
     - python Tools/CI/beforescript.py
@@ -4341,13 +4341,13 @@ schedule:windows:test:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:validation:trunk
+    - schedule:validation:2018.2_staging
 
 
 ################################################################################
-# windows build for trunk
+# windows build for 2018.2_staging
 ################################################################################
-schedule:windows:build:boids:mono:trunk:
+schedule:windows:build:boids:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -4369,10 +4369,10 @@ schedule:windows:build:boids:mono:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:test:trunk
+    - schedule:windows:test:2018.2_staging
 
 
-schedule:windows:build:chains:mono:trunk:
+schedule:windows:build:chains:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -4394,10 +4394,10 @@ schedule:windows:build:chains:mono:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:test:trunk
+    - schedule:windows:test:2018.2_staging
 
 
-schedule:windows:build:hierarchy:mono:trunk:
+schedule:windows:build:hierarchy:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -4419,10 +4419,10 @@ schedule:windows:build:hierarchy:mono:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:test:trunk
+    - schedule:windows:test:2018.2_staging
 
 
-schedule:windows:build:rotation:mono:trunk:
+schedule:windows:build:rotation:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -4444,10 +4444,10 @@ schedule:windows:build:rotation:mono:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:test:trunk
+    - schedule:windows:test:2018.2_staging
 
 
-schedule:windows:build:twostickshooter-classic:mono:trunk:
+schedule:windows:build:twostickshooter-classic:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -4469,10 +4469,10 @@ schedule:windows:build:twostickshooter-classic:mono:trunk:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:test:trunk
+    - schedule:windows:test:2018.2_staging
 
 
-schedule:windows:build:twostickshooter-hybrid:mono:trunk:
+schedule:windows:build:twostickshooter-hybrid:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -4494,10 +4494,10 @@ schedule:windows:build:twostickshooter-hybrid:mono:trunk:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:test:trunk
+    - schedule:windows:test:2018.2_staging
 
 
-schedule:windows:build:twostickshooter-pure:mono:trunk:
+schedule:windows:build:twostickshooter-pure:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -4519,10 +4519,10 @@ schedule:windows:build:twostickshooter-pure:mono:trunk:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:test:trunk
+    - schedule:windows:test:2018.2_staging
 
 
-schedule:windows:build:boids:il2cpp:trunk:
+schedule:windows:build:boids:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -4544,10 +4544,10 @@ schedule:windows:build:boids:il2cpp:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:test:trunk
+    - schedule:windows:test:2018.2_staging
 
 
-schedule:windows:build:chains:il2cpp:trunk:
+schedule:windows:build:chains:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -4569,10 +4569,10 @@ schedule:windows:build:chains:il2cpp:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:test:trunk
+    - schedule:windows:test:2018.2_staging
 
 
-schedule:windows:build:hierarchy:il2cpp:trunk:
+schedule:windows:build:hierarchy:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -4594,10 +4594,10 @@ schedule:windows:build:hierarchy:il2cpp:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:test:trunk
+    - schedule:windows:test:2018.2_staging
 
 
-schedule:windows:build:rotation:il2cpp:trunk:
+schedule:windows:build:rotation:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -4619,10 +4619,10 @@ schedule:windows:build:rotation:il2cpp:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:test:trunk
+    - schedule:windows:test:2018.2_staging
 
 
-schedule:windows:build:twostickshooter-classic:il2cpp:trunk:
+schedule:windows:build:twostickshooter-classic:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -4644,10 +4644,10 @@ schedule:windows:build:twostickshooter-classic:il2cpp:trunk:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:test:trunk
+    - schedule:windows:test:2018.2_staging
 
 
-schedule:windows:build:twostickshooter-hybrid:il2cpp:trunk:
+schedule:windows:build:twostickshooter-hybrid:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -4669,10 +4669,10 @@ schedule:windows:build:twostickshooter-hybrid:il2cpp:trunk:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:test:trunk
+    - schedule:windows:test:2018.2_staging
 
 
-schedule:windows:build:twostickshooter-pure:il2cpp:trunk:
+schedule:windows:build:twostickshooter-pure:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -4694,13 +4694,13 @@ schedule:windows:build:twostickshooter-pure:il2cpp:trunk:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:test:trunk
+    - schedule:windows:test:2018.2_staging
 
 
 ################################################################################
-# windows run for trunk
+# windows run for 2018.2_staging
 ################################################################################
-schedule:windows:run:boids:mono:trunk:
+schedule:windows:run:boids:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -4720,10 +4720,10 @@ schedule:windows:run:boids:mono:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:build:boids:mono:trunk
+    - schedule:windows:build:boids:mono:2018.2_staging
 
 
-schedule:windows:run:chains:mono:trunk:
+schedule:windows:run:chains:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -4743,10 +4743,10 @@ schedule:windows:run:chains:mono:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:build:chains:mono:trunk
+    - schedule:windows:build:chains:mono:2018.2_staging
 
 
-schedule:windows:run:hierarchy:mono:trunk:
+schedule:windows:run:hierarchy:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -4766,10 +4766,10 @@ schedule:windows:run:hierarchy:mono:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:build:hierarchy:mono:trunk
+    - schedule:windows:build:hierarchy:mono:2018.2_staging
 
 
-schedule:windows:run:rotation:mono:trunk:
+schedule:windows:run:rotation:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -4789,10 +4789,10 @@ schedule:windows:run:rotation:mono:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:build:rotation:mono:trunk
+    - schedule:windows:build:rotation:mono:2018.2_staging
 
 
-schedule:windows:run:twostickshooter-classic:mono:trunk:
+schedule:windows:run:twostickshooter-classic:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -4812,10 +4812,10 @@ schedule:windows:run:twostickshooter-classic:mono:trunk:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:build:twostickshooter-classic:mono:trunk
+    - schedule:windows:build:twostickshooter-classic:mono:2018.2_staging
 
 
-schedule:windows:run:twostickshooter-hybrid:mono:trunk:
+schedule:windows:run:twostickshooter-hybrid:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -4835,10 +4835,10 @@ schedule:windows:run:twostickshooter-hybrid:mono:trunk:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:build:twostickshooter-hybrid:mono:trunk
+    - schedule:windows:build:twostickshooter-hybrid:mono:2018.2_staging
 
 
-schedule:windows:run:twostickshooter-pure:mono:trunk:
+schedule:windows:run:twostickshooter-pure:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -4858,10 +4858,10 @@ schedule:windows:run:twostickshooter-pure:mono:trunk:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:build:twostickshooter-pure:mono:trunk
+    - schedule:windows:build:twostickshooter-pure:mono:2018.2_staging
 
 
-schedule:windows:run:boids:il2cpp:trunk:
+schedule:windows:run:boids:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -4881,10 +4881,10 @@ schedule:windows:run:boids:il2cpp:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:build:boids:il2cpp:trunk
+    - schedule:windows:build:boids:il2cpp:2018.2_staging
 
 
-schedule:windows:run:chains:il2cpp:trunk:
+schedule:windows:run:chains:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -4904,10 +4904,10 @@ schedule:windows:run:chains:il2cpp:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:build:chains:il2cpp:trunk
+    - schedule:windows:build:chains:il2cpp:2018.2_staging
 
 
-schedule:windows:run:hierarchy:il2cpp:trunk:
+schedule:windows:run:hierarchy:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -4927,10 +4927,10 @@ schedule:windows:run:hierarchy:il2cpp:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:build:hierarchy:il2cpp:trunk
+    - schedule:windows:build:hierarchy:il2cpp:2018.2_staging
 
 
-schedule:windows:run:rotation:il2cpp:trunk:
+schedule:windows:run:rotation:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -4950,10 +4950,10 @@ schedule:windows:run:rotation:il2cpp:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:build:rotation:il2cpp:trunk
+    - schedule:windows:build:rotation:il2cpp:2018.2_staging
 
 
-schedule:windows:run:twostickshooter-classic:il2cpp:trunk:
+schedule:windows:run:twostickshooter-classic:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -4973,10 +4973,10 @@ schedule:windows:run:twostickshooter-classic:il2cpp:trunk:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:build:twostickshooter-classic:il2cpp:trunk
+    - schedule:windows:build:twostickshooter-classic:il2cpp:2018.2_staging
 
 
-schedule:windows:run:twostickshooter-hybrid:il2cpp:trunk:
+schedule:windows:run:twostickshooter-hybrid:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -4996,10 +4996,10 @@ schedule:windows:run:twostickshooter-hybrid:il2cpp:trunk:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:build:twostickshooter-hybrid:il2cpp:trunk
+    - schedule:windows:build:twostickshooter-hybrid:il2cpp:2018.2_staging
 
 
-schedule:windows:run:twostickshooter-pure:il2cpp:trunk:
+schedule:windows:run:twostickshooter-pure:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -5019,13 +5019,13 @@ schedule:windows:run:twostickshooter-pure:il2cpp:trunk:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - schedule:windows:build:twostickshooter-pure:il2cpp:trunk
+    - schedule:windows:build:twostickshooter-pure:il2cpp:2018.2_staging
 
 
 ################################################################################
-# macOS test for trunk
+# macOS test for 2018.2_staging
 ################################################################################
-schedule:macOS:test:trunk:
+schedule:macOS:test:2018.2_staging:
   stage: test
   before_script:
     - python Tools/CI/beforescript.py
@@ -5047,13 +5047,13 @@ schedule:macOS:test:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:validation:trunk
+    - schedule:validation:2018.2_staging
 
 
 ################################################################################
-# macOS build for trunk
+# macOS build for 2018.2_staging
 ################################################################################
-schedule:macOS:build:boids:mono:trunk:
+schedule:macOS:build:boids:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -5075,10 +5075,10 @@ schedule:macOS:build:boids:mono:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:test:trunk
+    - schedule:macOS:test:2018.2_staging
 
 
-schedule:macOS:build:chains:mono:trunk:
+schedule:macOS:build:chains:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -5100,10 +5100,10 @@ schedule:macOS:build:chains:mono:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:test:trunk
+    - schedule:macOS:test:2018.2_staging
 
 
-schedule:macOS:build:hierarchy:mono:trunk:
+schedule:macOS:build:hierarchy:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -5125,10 +5125,10 @@ schedule:macOS:build:hierarchy:mono:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:test:trunk
+    - schedule:macOS:test:2018.2_staging
 
 
-schedule:macOS:build:rotation:mono:trunk:
+schedule:macOS:build:rotation:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -5150,10 +5150,10 @@ schedule:macOS:build:rotation:mono:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:test:trunk
+    - schedule:macOS:test:2018.2_staging
 
 
-schedule:macOS:build:twostickshooter-classic:mono:trunk:
+schedule:macOS:build:twostickshooter-classic:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -5175,10 +5175,10 @@ schedule:macOS:build:twostickshooter-classic:mono:trunk:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:test:trunk
+    - schedule:macOS:test:2018.2_staging
 
 
-schedule:macOS:build:twostickshooter-hybrid:mono:trunk:
+schedule:macOS:build:twostickshooter-hybrid:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -5200,10 +5200,10 @@ schedule:macOS:build:twostickshooter-hybrid:mono:trunk:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:test:trunk
+    - schedule:macOS:test:2018.2_staging
 
 
-schedule:macOS:build:twostickshooter-pure:mono:trunk:
+schedule:macOS:build:twostickshooter-pure:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -5225,10 +5225,10 @@ schedule:macOS:build:twostickshooter-pure:mono:trunk:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:test:trunk
+    - schedule:macOS:test:2018.2_staging
 
 
-schedule:macOS:build:boids:il2cpp:trunk:
+schedule:macOS:build:boids:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -5250,10 +5250,10 @@ schedule:macOS:build:boids:il2cpp:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:test:trunk
+    - schedule:macOS:test:2018.2_staging
 
 
-schedule:macOS:build:chains:il2cpp:trunk:
+schedule:macOS:build:chains:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -5275,10 +5275,10 @@ schedule:macOS:build:chains:il2cpp:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:test:trunk
+    - schedule:macOS:test:2018.2_staging
 
 
-schedule:macOS:build:hierarchy:il2cpp:trunk:
+schedule:macOS:build:hierarchy:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -5300,10 +5300,10 @@ schedule:macOS:build:hierarchy:il2cpp:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:test:trunk
+    - schedule:macOS:test:2018.2_staging
 
 
-schedule:macOS:build:rotation:il2cpp:trunk:
+schedule:macOS:build:rotation:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -5325,10 +5325,10 @@ schedule:macOS:build:rotation:il2cpp:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:test:trunk
+    - schedule:macOS:test:2018.2_staging
 
 
-schedule:macOS:build:twostickshooter-classic:il2cpp:trunk:
+schedule:macOS:build:twostickshooter-classic:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -5350,10 +5350,10 @@ schedule:macOS:build:twostickshooter-classic:il2cpp:trunk:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:test:trunk
+    - schedule:macOS:test:2018.2_staging
 
 
-schedule:macOS:build:twostickshooter-hybrid:il2cpp:trunk:
+schedule:macOS:build:twostickshooter-hybrid:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -5375,10 +5375,10 @@ schedule:macOS:build:twostickshooter-hybrid:il2cpp:trunk:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:test:trunk
+    - schedule:macOS:test:2018.2_staging
 
 
-schedule:macOS:build:twostickshooter-pure:il2cpp:trunk:
+schedule:macOS:build:twostickshooter-pure:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -5400,13 +5400,13 @@ schedule:macOS:build:twostickshooter-pure:il2cpp:trunk:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:test:trunk
+    - schedule:macOS:test:2018.2_staging
 
 
 ################################################################################
-# macOS run for trunk
+# macOS run for 2018.2_staging
 ################################################################################
-schedule:macOS:run:boids:mono:trunk:
+schedule:macOS:run:boids:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -5426,10 +5426,10 @@ schedule:macOS:run:boids:mono:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:build:boids:mono:trunk
+    - schedule:macOS:build:boids:mono:2018.2_staging
 
 
-schedule:macOS:run:chains:mono:trunk:
+schedule:macOS:run:chains:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -5449,10 +5449,10 @@ schedule:macOS:run:chains:mono:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:build:chains:mono:trunk
+    - schedule:macOS:build:chains:mono:2018.2_staging
 
 
-schedule:macOS:run:hierarchy:mono:trunk:
+schedule:macOS:run:hierarchy:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -5472,10 +5472,10 @@ schedule:macOS:run:hierarchy:mono:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:build:hierarchy:mono:trunk
+    - schedule:macOS:build:hierarchy:mono:2018.2_staging
 
 
-schedule:macOS:run:rotation:mono:trunk:
+schedule:macOS:run:rotation:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -5495,10 +5495,10 @@ schedule:macOS:run:rotation:mono:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:build:rotation:mono:trunk
+    - schedule:macOS:build:rotation:mono:2018.2_staging
 
 
-schedule:macOS:run:twostickshooter-classic:mono:trunk:
+schedule:macOS:run:twostickshooter-classic:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -5518,10 +5518,10 @@ schedule:macOS:run:twostickshooter-classic:mono:trunk:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:build:twostickshooter-classic:mono:trunk
+    - schedule:macOS:build:twostickshooter-classic:mono:2018.2_staging
 
 
-schedule:macOS:run:twostickshooter-hybrid:mono:trunk:
+schedule:macOS:run:twostickshooter-hybrid:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -5541,10 +5541,10 @@ schedule:macOS:run:twostickshooter-hybrid:mono:trunk:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:build:twostickshooter-hybrid:mono:trunk
+    - schedule:macOS:build:twostickshooter-hybrid:mono:2018.2_staging
 
 
-schedule:macOS:run:twostickshooter-pure:mono:trunk:
+schedule:macOS:run:twostickshooter-pure:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -5564,10 +5564,10 @@ schedule:macOS:run:twostickshooter-pure:mono:trunk:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:build:twostickshooter-pure:mono:trunk
+    - schedule:macOS:build:twostickshooter-pure:mono:2018.2_staging
 
 
-schedule:macOS:run:boids:il2cpp:trunk:
+schedule:macOS:run:boids:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -5587,10 +5587,10 @@ schedule:macOS:run:boids:il2cpp:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:build:boids:il2cpp:trunk
+    - schedule:macOS:build:boids:il2cpp:2018.2_staging
 
 
-schedule:macOS:run:chains:il2cpp:trunk:
+schedule:macOS:run:chains:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -5610,10 +5610,10 @@ schedule:macOS:run:chains:il2cpp:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:build:chains:il2cpp:trunk
+    - schedule:macOS:build:chains:il2cpp:2018.2_staging
 
 
-schedule:macOS:run:hierarchy:il2cpp:trunk:
+schedule:macOS:run:hierarchy:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -5633,10 +5633,10 @@ schedule:macOS:run:hierarchy:il2cpp:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:build:hierarchy:il2cpp:trunk
+    - schedule:macOS:build:hierarchy:il2cpp:2018.2_staging
 
 
-schedule:macOS:run:rotation:il2cpp:trunk:
+schedule:macOS:run:rotation:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -5656,10 +5656,10 @@ schedule:macOS:run:rotation:il2cpp:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:build:rotation:il2cpp:trunk
+    - schedule:macOS:build:rotation:il2cpp:2018.2_staging
 
 
-schedule:macOS:run:twostickshooter-classic:il2cpp:trunk:
+schedule:macOS:run:twostickshooter-classic:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -5679,10 +5679,10 @@ schedule:macOS:run:twostickshooter-classic:il2cpp:trunk:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:build:twostickshooter-classic:il2cpp:trunk
+    - schedule:macOS:build:twostickshooter-classic:il2cpp:2018.2_staging
 
 
-schedule:macOS:run:twostickshooter-hybrid:il2cpp:trunk:
+schedule:macOS:run:twostickshooter-hybrid:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -5702,10 +5702,10 @@ schedule:macOS:run:twostickshooter-hybrid:il2cpp:trunk:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:build:twostickshooter-hybrid:il2cpp:trunk
+    - schedule:macOS:build:twostickshooter-hybrid:il2cpp:2018.2_staging
 
 
-schedule:macOS:run:twostickshooter-pure:il2cpp:trunk:
+schedule:macOS:run:twostickshooter-pure:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -5725,7 +5725,7 @@ schedule:macOS:run:twostickshooter-pure:il2cpp:trunk:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - schedule:macOS:build:twostickshooter-pure:il2cpp:trunk
+    - schedule:macOS:build:twostickshooter-pure:il2cpp:2018.2_staging
 
 
 ################################################################################
@@ -6584,12 +6584,12 @@ macOS:run:twostickshooter-pure:il2cpp:2018.1_staging:
 
 
 ################################################################################
-# macOS validation for trunk
+# macOS validation for 2018.2_staging
 ################################################################################
-validation:trunk:
+validation:2018.2_staging:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version 'trunk&latest=true' --project-path "Samples"
+    - python Tools/CI/validation.py --build-version '2018.2/staging&latest=true' --project-path "Samples"
   except:
     - schedules
   tags:
@@ -6603,9 +6603,9 @@ validation:trunk:
     expire_in: 1 week
 
 ################################################################################
-# windows test for trunk
+# windows test for 2018.2_staging
 ################################################################################
-windows:test:trunk:
+windows:test:2018.2_staging:
   stage: test
   before_script:
     - python Tools/CI/beforescript.py
@@ -6627,13 +6627,13 @@ windows:test:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - validation:trunk
+    - validation:2018.2_staging
 
 
 ################################################################################
-# windows build for trunk
+# windows build for 2018.2_staging
 ################################################################################
-windows:build:boids:mono:trunk:
+windows:build:boids:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -6655,10 +6655,10 @@ windows:build:boids:mono:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:trunk
+    - windows:test:2018.2_staging
 
 
-windows:build:twostickshooter-classic:mono:trunk:
+windows:build:twostickshooter-classic:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -6680,10 +6680,10 @@ windows:build:twostickshooter-classic:mono:trunk:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:trunk
+    - windows:test:2018.2_staging
 
 
-windows:build:twostickshooter-hybrid:mono:trunk:
+windows:build:twostickshooter-hybrid:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -6705,10 +6705,10 @@ windows:build:twostickshooter-hybrid:mono:trunk:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:trunk
+    - windows:test:2018.2_staging
 
 
-windows:build:twostickshooter-pure:mono:trunk:
+windows:build:twostickshooter-pure:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -6730,10 +6730,10 @@ windows:build:twostickshooter-pure:mono:trunk:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:trunk
+    - windows:test:2018.2_staging
 
 
-windows:build:boids:il2cpp:trunk:
+windows:build:boids:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -6755,10 +6755,10 @@ windows:build:boids:il2cpp:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:trunk
+    - windows:test:2018.2_staging
 
 
-windows:build:twostickshooter-classic:il2cpp:trunk:
+windows:build:twostickshooter-classic:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -6780,10 +6780,10 @@ windows:build:twostickshooter-classic:il2cpp:trunk:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:trunk
+    - windows:test:2018.2_staging
 
 
-windows:build:twostickshooter-hybrid:il2cpp:trunk:
+windows:build:twostickshooter-hybrid:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -6805,10 +6805,10 @@ windows:build:twostickshooter-hybrid:il2cpp:trunk:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:trunk
+    - windows:test:2018.2_staging
 
 
-windows:build:twostickshooter-pure:il2cpp:trunk:
+windows:build:twostickshooter-pure:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -6830,13 +6830,13 @@ windows:build:twostickshooter-pure:il2cpp:trunk:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - windows:test:trunk
+    - windows:test:2018.2_staging
 
 
 ################################################################################
-# windows run for trunk
+# windows run for 2018.2_staging
 ################################################################################
-windows:run:boids:mono:trunk:
+windows:run:boids:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -6856,10 +6856,10 @@ windows:run:boids:mono:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:boids:mono:trunk
+    - windows:build:boids:mono:2018.2_staging
 
 
-windows:run:twostickshooter-classic:mono:trunk:
+windows:run:twostickshooter-classic:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -6879,10 +6879,10 @@ windows:run:twostickshooter-classic:mono:trunk:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-classic:mono:trunk
+    - windows:build:twostickshooter-classic:mono:2018.2_staging
 
 
-windows:run:twostickshooter-hybrid:mono:trunk:
+windows:run:twostickshooter-hybrid:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -6902,10 +6902,10 @@ windows:run:twostickshooter-hybrid:mono:trunk:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-hybrid:mono:trunk
+    - windows:build:twostickshooter-hybrid:mono:2018.2_staging
 
 
-windows:run:twostickshooter-pure:mono:trunk:
+windows:run:twostickshooter-pure:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -6925,10 +6925,10 @@ windows:run:twostickshooter-pure:mono:trunk:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-pure:mono:trunk
+    - windows:build:twostickshooter-pure:mono:2018.2_staging
 
 
-windows:run:boids:il2cpp:trunk:
+windows:run:boids:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -6948,10 +6948,10 @@ windows:run:boids:il2cpp:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:boids:il2cpp:trunk
+    - windows:build:boids:il2cpp:2018.2_staging
 
 
-windows:run:twostickshooter-classic:il2cpp:trunk:
+windows:run:twostickshooter-classic:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -6971,10 +6971,10 @@ windows:run:twostickshooter-classic:il2cpp:trunk:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-classic:il2cpp:trunk
+    - windows:build:twostickshooter-classic:il2cpp:2018.2_staging
 
 
-windows:run:twostickshooter-hybrid:il2cpp:trunk:
+windows:run:twostickshooter-hybrid:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -6994,10 +6994,10 @@ windows:run:twostickshooter-hybrid:il2cpp:trunk:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-hybrid:il2cpp:trunk
+    - windows:build:twostickshooter-hybrid:il2cpp:2018.2_staging
 
 
-windows:run:twostickshooter-pure:il2cpp:trunk:
+windows:run:twostickshooter-pure:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -7017,13 +7017,13 @@ windows:run:twostickshooter-pure:il2cpp:trunk:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - windows:build:twostickshooter-pure:il2cpp:trunk
+    - windows:build:twostickshooter-pure:il2cpp:2018.2_staging
 
 
 ################################################################################
-# macOS test for trunk
+# macOS test for 2018.2_staging
 ################################################################################
-macOS:test:trunk:
+macOS:test:2018.2_staging:
   stage: test
   before_script:
     - python Tools/CI/beforescript.py
@@ -7045,13 +7045,13 @@ macOS:test:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - validation:trunk
+    - validation:2018.2_staging
 
 
 ################################################################################
-# macOS build for trunk
+# macOS build for 2018.2_staging
 ################################################################################
-macOS:build:boids:mono:trunk:
+macOS:build:boids:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -7073,10 +7073,10 @@ macOS:build:boids:mono:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:trunk
+    - macOS:test:2018.2_staging
 
 
-macOS:build:twostickshooter-classic:mono:trunk:
+macOS:build:twostickshooter-classic:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -7098,10 +7098,10 @@ macOS:build:twostickshooter-classic:mono:trunk:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:trunk
+    - macOS:test:2018.2_staging
 
 
-macOS:build:twostickshooter-hybrid:mono:trunk:
+macOS:build:twostickshooter-hybrid:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -7123,10 +7123,10 @@ macOS:build:twostickshooter-hybrid:mono:trunk:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:trunk
+    - macOS:test:2018.2_staging
 
 
-macOS:build:twostickshooter-pure:mono:trunk:
+macOS:build:twostickshooter-pure:mono:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -7148,10 +7148,10 @@ macOS:build:twostickshooter-pure:mono:trunk:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:trunk
+    - macOS:test:2018.2_staging
 
 
-macOS:build:boids:il2cpp:trunk:
+macOS:build:boids:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -7173,10 +7173,10 @@ macOS:build:boids:il2cpp:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:trunk
+    - macOS:test:2018.2_staging
 
 
-macOS:build:twostickshooter-classic:il2cpp:trunk:
+macOS:build:twostickshooter-classic:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -7198,10 +7198,10 @@ macOS:build:twostickshooter-classic:il2cpp:trunk:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:trunk
+    - macOS:test:2018.2_staging
 
 
-macOS:build:twostickshooter-hybrid:il2cpp:trunk:
+macOS:build:twostickshooter-hybrid:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -7223,10 +7223,10 @@ macOS:build:twostickshooter-hybrid:il2cpp:trunk:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:trunk
+    - macOS:test:2018.2_staging
 
 
-macOS:build:twostickshooter-pure:il2cpp:trunk:
+macOS:build:twostickshooter-pure:il2cpp:2018.2_staging:
   stage: build
   before_script:
     - python Tools/CI/beforescript.py
@@ -7248,13 +7248,13 @@ macOS:build:twostickshooter-pure:il2cpp:trunk:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - macOS:test:trunk
+    - macOS:test:2018.2_staging
 
 
 ################################################################################
-# macOS run for trunk
+# macOS run for 2018.2_staging
 ################################################################################
-macOS:run:boids:mono:trunk:
+macOS:run:boids:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -7274,10 +7274,10 @@ macOS:run:boids:mono:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:boids:mono:trunk
+    - macOS:build:boids:mono:2018.2_staging
 
 
-macOS:run:twostickshooter-classic:mono:trunk:
+macOS:run:twostickshooter-classic:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -7297,10 +7297,10 @@ macOS:run:twostickshooter-classic:mono:trunk:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-classic:mono:trunk
+    - macOS:build:twostickshooter-classic:mono:2018.2_staging
 
 
-macOS:run:twostickshooter-hybrid:mono:trunk:
+macOS:run:twostickshooter-hybrid:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -7320,10 +7320,10 @@ macOS:run:twostickshooter-hybrid:mono:trunk:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-hybrid:mono:trunk
+    - macOS:build:twostickshooter-hybrid:mono:2018.2_staging
 
 
-macOS:run:twostickshooter-pure:mono:trunk:
+macOS:run:twostickshooter-pure:mono:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -7343,10 +7343,10 @@ macOS:run:twostickshooter-pure:mono:trunk:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-pure:mono:trunk
+    - macOS:build:twostickshooter-pure:mono:2018.2_staging
 
 
-macOS:run:boids:il2cpp:trunk:
+macOS:run:boids:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -7366,10 +7366,10 @@ macOS:run:boids:il2cpp:trunk:
       - "Samples/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:boids:il2cpp:trunk
+    - macOS:build:boids:il2cpp:2018.2_staging
 
 
-macOS:run:twostickshooter-classic:il2cpp:trunk:
+macOS:run:twostickshooter-classic:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -7389,10 +7389,10 @@ macOS:run:twostickshooter-classic:il2cpp:trunk:
       - "TwoStickShooter/Classic/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-classic:il2cpp:trunk
+    - macOS:build:twostickshooter-classic:il2cpp:2018.2_staging
 
 
-macOS:run:twostickshooter-hybrid:il2cpp:trunk:
+macOS:run:twostickshooter-hybrid:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -7412,10 +7412,10 @@ macOS:run:twostickshooter-hybrid:il2cpp:trunk:
       - "TwoStickShooter/Hybrid/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-hybrid:il2cpp:trunk
+    - macOS:build:twostickshooter-hybrid:il2cpp:2018.2_staging
 
 
-macOS:run:twostickshooter-pure:il2cpp:trunk:
+macOS:run:twostickshooter-pure:il2cpp:2018.2_staging:
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -7435,6 +7435,6 @@ macOS:run:twostickshooter-pure:il2cpp:trunk:
       - "TwoStickShooter/Pure/build"
     expire_in: 1 week
   dependencies:
-    - macOS:build:twostickshooter-pure:il2cpp:trunk
+    - macOS:build:twostickshooter-pure:il2cpp:2018.2_staging
 
 

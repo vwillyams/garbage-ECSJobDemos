@@ -310,6 +310,21 @@ namespace Unity.Entities.Editor
             GUILayout.EndHorizontal();
         }
 
+        void ComponentGroupList()
+        {
+            if (SystemSelection is ComponentSystemBase)
+            {
+                GUILayout.BeginVertical(Box, GUILayout.Height(componentGroupListView.Height + 4f));
+
+                componentGroupListView.OnGUI(GUIHelpers.GetExpandingRect());
+                GUILayout.EndVertical();
+            }
+            else
+            {
+                ComponentTypeFilterUI();
+            }
+        }
+
         private readonly List<bool> selectedFilterTypes = new List<bool>();
         private readonly List<ComponentType> filterTypes = new List<ComponentType>();
 
@@ -338,43 +353,28 @@ namespace Unity.Entities.Editor
             }
         }
 
-        void ComponentGroupList()
+        void ComponentTypeFilterUI()
         {
-            if (SystemSelection is ComponentSystemBase)
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Filter: ");
+            var filterCount = 0;
+            for (var i = 0; i < selectedFilterTypes.Count; ++i)
             {
-                GUILayout.BeginVertical(Box, GUILayout.Height(componentGroupListView.Height + 4f));
-
-                componentGroupListView.OnGUI(GUIHelpers.GetExpandingRect());
-                GUILayout.EndVertical();
+                if (selectedFilterTypes[i])
+                {
+                    ++filterCount;
+                    var style = filterTypes[i].AccessModeType == ComponentType.AccessMode.Subtractive ? EntityDebuggerStyles.ComponentSubtractive : EntityDebuggerStyles.ComponentRequired;
+                    GUILayout.Label(filterTypes[i].GetManagedType().Name, style);
+                }
             }
-            else
+            if (filterCount == 0)
+                GUILayout.Label("none");
+            if (GUILayout.Button("Edit"))
             {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Filter: ");
-                var filterCount = 0;
-                for (var i = 0; i < selectedFilterTypes.Count; ++i)
-                {
-                    if (selectedFilterTypes[i])
-                    {
-                        ++filterCount;
-                        var style = filterTypes[i].AccessModeType == ComponentType.AccessMode.Subtractive ? EntityDebuggerStyles.ComponentSubtractive : EntityDebuggerStyles.ComponentRequired;
-                        GUILayout.Label(filterTypes[i].GetManagedType().Name, style);
-                    }
-                }
-                if (filterCount == 0)
-                    GUILayout.Label("none");
-                if (GUILayout.Button("Edit"))
-                {
-                    ComponentTypeChooser.Open(GUIUtility.GUIToScreenPoint(GUILayoutUtility.GetLastRect().position), filterTypes, selectedFilterTypes, this);
-                }
-                GUILayout.FlexibleSpace();
-                GUILayout.EndHorizontal();
+                ComponentTypeChooser.Open(GUIUtility.GUIToScreenPoint(GUILayoutUtility.GetLastRect().position), filterTypes, selectedFilterTypes, this);
             }
-        }
-
-        public void ComponentFilterChanged()
-        {
-            SetAllEntitiesFilter();
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
         }
 
         private ComponentGroup GetComponentGroup(ComponentType[] components)
@@ -392,17 +392,30 @@ namespace Unity.Entities.Editor
             return group;
         }
 
-        private void SetAllEntitiesFilter()
+        public void ComponentFilterChanged()
         {
-            if (WorldSelection == null || SystemSelection is ComponentSystemBase)
-                return;
             var selectedTypes = new List<ComponentType>();
             for (var i = 0; i < selectedFilterTypes.Count; ++i)
             {
                 if (selectedFilterTypes[i])
                     selectedTypes.Add(filterTypes[i]);
             }
-            SetComponentGroupSelection(GetComponentGroup(selectedTypes.ToArray()), false, true);
+            var group = GetComponentGroup(selectedTypes.ToArray());
+            ChangeAllEntitiesFilter(group);
+        }
+
+        private ComponentGroup filterGroup;
+
+        public void ChangeAllEntitiesFilter(ComponentGroup componentGroup)
+        {
+            filterGroup = componentGroup;
+            if (WorldSelection == null || SystemSelection is ComponentSystemBase)
+                return;
+        }
+        
+        private void SetAllEntitiesFilter()
+        {
+            SetComponentGroupSelection(filterGroup, false, true);
         }
 
         void EntityList()

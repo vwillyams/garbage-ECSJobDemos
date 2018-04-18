@@ -22,7 +22,10 @@ public class SceneSwitcher : MonoBehaviour
         var sceneCount = SceneManager.sceneCountInBuildSettings;
         var nextIndex = CurrentSceneIndex + 1;
         if (nextIndex >= sceneCount)
-            nextIndex = 1;
+        {
+            Quit();
+            return;
+        }
 
         bool firstTime = CurrentSceneIndex == -1;
         TimeUntilNextSwitch = SceneSwitchInterval;
@@ -38,6 +41,16 @@ public class SceneSwitcher : MonoBehaviour
         
         SceneManager.LoadScene(nextIndex);
         
+        
+    }
+
+    private void Quit()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
         
     }
 

@@ -266,7 +266,7 @@ schedule:windows:run:Samples:mono:2018.1:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -358,7 +358,7 @@ schedule:windows:run:Samples:il2cpp:2018.1:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -684,7 +684,7 @@ schedule:macOS:run:Samples:mono:2018.1:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -776,7 +776,7 @@ schedule:macOS:run:Samples:il2cpp:2018.1:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -1121,7 +1121,7 @@ schedule:windows:run:Samples:mono:2018.2:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -1213,7 +1213,7 @@ schedule:windows:run:Samples:il2cpp:2018.2:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -1539,7 +1539,7 @@ schedule:macOS:run:Samples:mono:2018.2:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -1631,7 +1631,7 @@ schedule:macOS:run:Samples:il2cpp:2018.2:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -1976,7 +1976,7 @@ schedule:windows:run:Samples:mono:2018.1_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -2068,7 +2068,7 @@ schedule:windows:run:Samples:il2cpp:2018.1_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -2394,7 +2394,7 @@ schedule:macOS:run:Samples:mono:2018.1_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -2486,7 +2486,7 @@ schedule:macOS:run:Samples:il2cpp:2018.1_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -2831,7 +2831,7 @@ schedule:windows:run:Samples:mono:2018.2_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -2923,7 +2923,7 @@ schedule:windows:run:Samples:il2cpp:2018.2_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -3249,7 +3249,7 @@ schedule:macOS:run:Samples:mono:2018.2_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -3341,7 +3341,7 @@ schedule:macOS:run:Samples:il2cpp:2018.2_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -3536,7 +3536,7 @@ windows:run:Samples:mono:2018.1_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -3559,7 +3559,7 @@ windows:run:Samples:il2cpp:2018.1_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -3666,7 +3666,7 @@ macOS:run:Samples:mono:2018.1_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -3689,7 +3689,7 @@ macOS:run:Samples:il2cpp:2018.1_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -3815,7 +3815,7 @@ windows:run:Samples:mono:2018.2_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -3838,7 +3838,7 @@ windows:run:Samples:il2cpp:2018.2_staging:
   tags:
   - windows
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -3945,7 +3945,7 @@ macOS:run:Samples:mono:2018.2_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -3968,7 +3968,7 @@ macOS:run:Samples:il2cpp:2018.2_staging:
   tags:
   - macOS
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 600 -timeoutIgnore
+    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always

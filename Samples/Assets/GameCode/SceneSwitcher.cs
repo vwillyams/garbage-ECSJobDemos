@@ -9,7 +9,7 @@ public class SceneSwitcher : MonoBehaviour
 
     public float TimeUntilNextSwitch = 0.0f;
 
-    public int CurrentSceneIndex = -1;
+    public int CurrentSceneIndex = 0;
 	// Use this for initialization
 	void Start ()
 	{
@@ -22,20 +22,18 @@ public class SceneSwitcher : MonoBehaviour
         var sceneCount = SceneManager.sceneCountInBuildSettings;
         var nextIndex = CurrentSceneIndex + 1;
         if (nextIndex >= sceneCount)
-            nextIndex = 0;
-        if (SceneManager.GetSceneByBuildIndex(nextIndex).name == "SceneSwitcher")
-            nextIndex++;
+            nextIndex = 1;
 
-        Debug.Log(sceneCount);
-        Debug.Log("Changing to scene: " + nextIndex);
         bool firstTime = CurrentSceneIndex == -1;
         TimeUntilNextSwitch = SceneSwitchInterval;
         CurrentSceneIndex = nextIndex;
 
         if (!firstTime)
         {
-            World.Active.Dispose();
-            DefaultWorldInitialization.Initialize(SceneManager.GetSceneByBuildIndex(nextIndex).name, false);
+            var entityManager = World.Active.GetExistingManager<EntityManager>();
+            var entities = entityManager.GetAllEntities();
+            entityManager.DestroyEntity(entities);
+            entities.Dispose();
         }
         
         SceneManager.LoadScene(nextIndex);

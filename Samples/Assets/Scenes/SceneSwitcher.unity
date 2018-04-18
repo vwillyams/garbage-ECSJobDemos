@@ -140,7 +140,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5db787c63c8124a7291c505ceeb02ceb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SceneSwitchInterval: 5
+  SceneSwitchInterval: 60
   TimeUntilNextSwitch: 5
   CurrentSceneIndex: 0
 --- !u!4 &1841332245

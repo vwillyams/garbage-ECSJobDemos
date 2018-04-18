@@ -44,10 +44,17 @@ namespace Unity.Entities.Editor
 
         protected override void RowGUI(RowGUIArgs args)
         {
-            base.RowGUI(args);
-
             EditorGUI.BeginChangeCheck();
             typeSelections[args.item.id] = EditorGUI.Toggle(args.rowRect, typeSelections[args.item.id]);
+            var style = types[args.item.id].AccessModeType == ComponentType.AccessMode.Subtractive
+                ? EntityDebuggerStyles.ComponentSubtractive
+                : EntityDebuggerStyles.ComponentRequired;
+            var indent = GetContentIndent(args.item);
+            var content = new GUIContent(types[args.item.id].GetManagedType().Name);
+            var labelRect = args.rowRect;
+            labelRect.xMin = labelRect.xMin + indent;
+            labelRect.size = style.CalcSize(content);
+            GUI.Label(labelRect, content, style);
             if (EditorGUI.EndChangeCheck())
             {
                 window.ComponentFilterChanged();

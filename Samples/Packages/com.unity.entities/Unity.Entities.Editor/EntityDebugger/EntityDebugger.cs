@@ -357,7 +357,8 @@ namespace Unity.Entities.Editor
                     if (selectedFilterTypes[i])
                     {
                         ++filterCount;
-                        GUILayout.Label((filterTypes[i].AccessModeType == ComponentType.AccessMode.Subtractive ? "-" : "") + filterTypes[i].GetManagedType().Name);
+                        var style = filterTypes[i].AccessModeType == ComponentType.AccessMode.Subtractive ? EntityDebuggerStyles.ComponentSubtractive : EntityDebuggerStyles.ComponentRequired;
+                        GUILayout.Label(filterTypes[i].GetManagedType().Name, style);
                     }
                 }
                 if (filterCount == 0)

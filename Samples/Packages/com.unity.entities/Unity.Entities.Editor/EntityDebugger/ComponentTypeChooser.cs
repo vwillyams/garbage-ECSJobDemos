@@ -1,10 +1,8 @@
 ﻿
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using UnityEngine.Tizen;
 
 namespace Unity.Entities.Editor
 {

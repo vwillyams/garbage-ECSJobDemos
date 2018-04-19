@@ -1,12 +1,13 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEngine;
 using UnityEditor.IMGUI.Controls;
 
 namespace Unity.Entities.Editor
 {
-    public class EntityDebugger : EditorWindow, ISystemSelectionWindow, IEntitySelectionWindow, IComponentGroupSelectionWindow, IComponentTypeQueryWindow
+    public class EntityDebugger : EditorWindow, ISystemSelectionWindow, IEntitySelectionWindow, IComponentGroupSelectionWindow, IComponentTypeFilterWindow
     {
         private const float kSystemListWidth = 350f;
 
@@ -120,6 +121,8 @@ namespace Unity.Entities.Editor
 
         [SerializeField] private TreeViewState entityListState = new TreeViewState();
         private EntityListView entityListView;
+
+        private ComponentTypeFilterUI filterUI;
         
         private string[] worldNames => (from x in World.AllWorlds select x.Name).ToArray();
 
@@ -199,7 +202,8 @@ namespace Unity.Entities.Editor
             Instance = this;
             selectionProxy = ScriptableObject.CreateInstance<EntitySelectionProxy>();
             selectionProxy.hideFlags = HideFlags.HideAndDontSave;
-            GetTypes();
+            filterUI = new ComponentTypeFilterUI(this);
+            filterUI.GetTypes();
             CreateSystemListView();
             CreateComponentGroupListView();
             CreateEntityListView();
@@ -232,7 +236,7 @@ namespace Unity.Entities.Editor
             systemListView.UpdateIfNecessary();
             componentGroupListView.UpdateIfNecessary();
             entityListView.UpdateIfNecessary();
-            GetTypes();
+            filterUI.GetTypes();
             
             if (Time.realtimeSinceStartup > lastUpdate + 0.5f) 
             { 
@@ -321,92 +325,13 @@ namespace Unity.Entities.Editor
             }
             else
             {
-                ComponentTypeFilterUI();
+                filterUI.OnGUI();
             }
-        }
-
-        private readonly List<bool> selectedFilterTypes = new List<bool>();
-        private readonly List<ComponentType> filterTypes = new List<ComponentType>();
-
-        private readonly List<ComponentGroup> componentGroups = new List<ComponentGroup>();
-        
-        void GetTypes()
-        {
-            if (selectedFilterTypes.Count != 2* (TypeManager.TypesCount - 2)) // First two entries are not ComponentTypes
-            {
-                filterTypes.Clear();
-                selectedFilterTypes.Clear();
-                filterTypes.Capacity = TypeManager.TypesCount;
-                selectedFilterTypes.Capacity = TypeManager.TypesCount;
-                foreach (var type in TypeManager.AllTypes())
-                {
-                    if (type.Type == typeof(Entity)) continue;
-                    var typeIndex = TypeManager.GetTypeIndex(type.Type);
-                    var componentType = ComponentType.FromTypeIndex(typeIndex);
-                    if (componentType.GetManagedType() == null) continue;
-                    filterTypes.Add(componentType);
-                    selectedFilterTypes.Add(false);
-                    componentType.AccessModeType = ComponentType.AccessMode.Subtractive;
-                    filterTypes.Add(componentType);
-                    selectedFilterTypes.Add(false);
-                }
-            }
-        }
-
-        void ComponentTypeFilterUI()
-        {
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Filter: ");
-            var filterCount = 0;
-            for (var i = 0; i < selectedFilterTypes.Count; ++i)
-            {
-                if (selectedFilterTypes[i])
-                {
-                    ++filterCount;
-                    var style = filterTypes[i].AccessModeType == ComponentType.AccessMode.Subtractive ? EntityDebuggerStyles.ComponentSubtractive : EntityDebuggerStyles.ComponentRequired;
-                    GUILayout.Label(filterTypes[i].GetManagedType().Name, style);
-                }
-            }
-            if (filterCount == 0)
-                GUILayout.Label("none");
-            if (GUILayout.Button("Edit"))
-            {
-                ComponentTypeChooser.Open(GUIUtility.GUIToScreenPoint(GUILayoutUtility.GetLastRect().position), filterTypes, selectedFilterTypes, this);
-            }
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
-        }
-
-        private ComponentGroup GetComponentGroup(ComponentType[] components)
-        {
-            foreach (var existingGroup in componentGroups)
-            {
-                if (existingGroup.CompareComponents(components))
-                    return existingGroup;
-            }
-
-            var group = WorldSelection.GetExistingManager<EntityManager>()
-                .CreateComponentGroup(components);
-            componentGroups.Add(group);
-
-            return group;
-        }
-
-        public void ComponentFilterChanged()
-        {
-            var selectedTypes = new List<ComponentType>();
-            for (var i = 0; i < selectedFilterTypes.Count; ++i)
-            {
-                if (selectedFilterTypes[i])
-                    selectedTypes.Add(filterTypes[i]);
-            }
-            var group = GetComponentGroup(selectedTypes.ToArray());
-            ChangeAllEntitiesFilter(group);
         }
 
         private ComponentGroup filterGroup;
 
-        public void ChangeAllEntitiesFilter(ComponentGroup componentGroup)
+        public void SetFilter(ComponentGroup componentGroup)
         {
             filterGroup = componentGroup;
             if (WorldSelection == null || SystemSelection is ComponentSystemBase)

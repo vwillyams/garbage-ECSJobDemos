@@ -33,7 +33,6 @@ namespace Unity.Entities.Editor
 
         private SearchField searchField;
         private ComponentTypeListView typeListView;
-        private readonly string kSearchFieldName = "_ComponentTypeChooser SearchField";
 
         private void OnEnable()
         {

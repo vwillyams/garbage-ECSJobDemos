@@ -74,7 +74,7 @@ namespace Unity.Rendering
                 {
                     int length = math.min(m_MatricesArray.Length, transforms.Length - beginIndex);
                     CopyMatrices(transforms, beginIndex, length, m_MatricesArray);
-                    Graphics.DrawMeshInstanced(renderer.mesh, 0, renderer.material, m_MatricesArray, length, null, renderer.castShadows, renderer.receiveShadows);
+                    Graphics.DrawMeshInstanced(renderer.mesh, renderer.subMesh, renderer.material, m_MatricesArray, length, null, renderer.castShadows, renderer.receiveShadows);
 
                     beginIndex += length;
                 }

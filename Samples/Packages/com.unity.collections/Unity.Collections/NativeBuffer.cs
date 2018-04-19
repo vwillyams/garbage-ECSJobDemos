@@ -11,8 +11,8 @@ namespace Unity.Collections
     /// </summary>
     public interface INativeBufferMemoryManager
     {
-        unsafe void* Init<T>(Allocator allocatorLabel) where T : struct;
-        Allocator Label { get; set; }
+        unsafe void* Init(int size, int aligment, Allocator allocatorLabel);
+        Allocator Label { get; }
         unsafe void Dispose(void * buffer);
     }
 
@@ -22,14 +22,14 @@ namespace Unity.Collections
     /// </summary>
     public unsafe struct DefaultMemoryManager : INativeBufferMemoryManager
     {
-        public Allocator Label { get; set; }
+        public Allocator Label { get; private set; }
 
         public void Dispose(void * buffer)
         {
             UnsafeUtility.Free(buffer, Label);
         }
 
-        public void * Init<T>(Allocator allocatorLabel) where T : struct
+        public void * Init(int size, int aligment, Allocator allocatorLabel)
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
             if( allocatorLabel == Allocator.Invalid )
@@ -38,7 +38,7 @@ namespace Unity.Collections
 
             Label = allocatorLabel;
 
-            var buffer = UnsafeUtility.Malloc( UnsafeUtility.SizeOf<T>(), UnsafeUtility.AlignOf<T>(), allocatorLabel);
+            var buffer = UnsafeUtility.Malloc( size, aligment, allocatorLabel);
             return buffer;
         }
     }

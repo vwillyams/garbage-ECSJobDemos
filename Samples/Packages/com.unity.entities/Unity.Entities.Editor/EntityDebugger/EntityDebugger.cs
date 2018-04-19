@@ -203,7 +203,6 @@ namespace Unity.Entities.Editor
             selectionProxy = ScriptableObject.CreateInstance<EntitySelectionProxy>();
             selectionProxy.hideFlags = HideFlags.HideAndDontSave;
             filterUI = new ComponentTypeFilterUI(this);
-            filterUI.GetTypes();
             CreateSystemListView();
             CreateComponentGroupListView();
             CreateEntityListView();
@@ -318,7 +317,7 @@ namespace Unity.Entities.Editor
         {
             if (SystemSelection is ComponentSystemBase)
             {
-                GUILayout.BeginVertical(Box, GUILayout.Height(componentGroupListView.Height + 4f));
+                GUILayout.BeginVertical(Box, GUILayout.Height(componentGroupListView.Height + Box.padding.bottom + Box.padding.top));
 
                 componentGroupListView.OnGUI(GUIHelpers.GetExpandingRect());
                 GUILayout.EndVertical();

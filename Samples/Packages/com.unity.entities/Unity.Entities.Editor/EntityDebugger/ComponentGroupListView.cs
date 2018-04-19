@@ -1,4 +1,5 @@
-﻿using UnityEditor.IMGUI.Controls;
+﻿using System;
+using UnityEditor.IMGUI.Controls;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -12,6 +13,8 @@ namespace Unity.Entities.Editor
     
     public class ComponentGroupListView : TreeView {
         private readonly Dictionary<int, ComponentGroup> componentGroupsById = new Dictionary<int, ComponentGroup>();
+        private readonly Dictionary<int, string[]> componentGroupTypeNamesById = new Dictionary<int, string[]>();
+        private readonly Dictionary<int, ComponentType.AccessMode[]> componentGroupTypeModesById = new Dictionary<int, ComponentType.AccessMode[]>();
 
         public ComponentSystemBase SelectedSystem
         {
@@ -27,7 +30,7 @@ namespace Unity.Entities.Editor
         }
         private ComponentSystemBase selectedSystem;
 
-        IComponentGroupSelectionWindow window;
+        readonly IComponentGroupSelectionWindow window;
 
         private static TreeViewState GetStateForSystem(ComponentSystemBase system, List<TreeViewState> states, List<string> stateNames)
         {
@@ -59,14 +62,38 @@ namespace Unity.Entities.Editor
         {
             this.window = window;
             selectedSystem = system;
+            rowHeight += 1;
             Reload();
         }
 
         public float Height => Mathf.Max(selectedSystem?.ComponentGroups?.Length ?? 0, 1)*rowHeight;
 
+        private static int CompareTypes(ComponentType x, ComponentType y)
+        {
+            var accessModeOrder = SortOrderFromAccessMode(x.AccessModeType).CompareTo(SortOrderFromAccessMode(y.AccessModeType));
+            return accessModeOrder != 0 ? accessModeOrder : string.Compare(x.GetType().Name, y.GetType().Name, StringComparison.InvariantCulture);
+        }
+
+        private static int SortOrderFromAccessMode(ComponentType.AccessMode mode)
+        {
+            switch (mode)
+            {
+                    case ComponentType.AccessMode.ReadOnly:
+                        return 0;
+                    case ComponentType.AccessMode.ReadWrite:
+                        return 1;
+                    case ComponentType.AccessMode.Subtractive:
+                        return 2;
+                    default:
+                        throw new ArgumentException("Unrecognized AccessMode");
+            }
+        }
+
         protected override TreeViewItem BuildRoot()
         {
             componentGroupsById.Clear();
+            componentGroupTypeModesById.Clear();
+            componentGroupTypeNamesById.Clear();
             var currentId = 0;
             var root  = new TreeViewItem { id = currentId++, depth = -1, displayName = "Root" };
             if (window?.WorldSelection == null)
@@ -86,10 +113,12 @@ namespace Unity.Entities.Editor
                 foreach (var group in SelectedSystem.ComponentGroups)
                 {
                     componentGroupsById.Add(currentId, group);
-                    var types = group.Types;
-                    var groupName = string.Join(", ", (from x in types.Skip(types.Length > 1 ? 1 : 0) select x.ToString()).ToArray());
+                    var types = new List<ComponentType>(group.Types.Skip(1)); // Skip Entity
+                    types.Sort(CompareTypes);
+                    componentGroupTypeNamesById.Add(currentId, (from t in types select t.GetManagedType().Name).ToArray());
+                    componentGroupTypeModesById.Add(currentId, (from t in types select t.AccessModeType).ToArray());
 
-                    var groupItem = new TreeViewItem { id = currentId++, displayName = groupName };
+                    var groupItem = new TreeViewItem { id = currentId++ };
                     root.AddChild(groupItem);
                 }
                 SetupDepthsFromParentsAndChildren(root);
@@ -103,12 +132,51 @@ namespace Unity.Entities.Editor
                 base.OnGUI(rect);
         }
 
+        private void DrawTypeAndMovePosition(ref Vector2 position, string name, ComponentType.AccessMode mode)
+        {
+            var style = StyleForAccessMode(mode);
+            var content = new GUIContent(name);
+            position.x += style.margin.left;
+            var labelRect = new Rect(position, style.CalcSize(content));
+            GUI.Label(labelRect, content, style);
+            position.x += labelRect.width + style.margin.right;
+        }
+
+        private GUIStyle StyleForAccessMode(ComponentType.AccessMode mode)
+        {
+            switch (mode)
+            {
+                case ComponentType.AccessMode.ReadOnly:
+                    return EntityDebuggerStyles.ComponentReadOnly;
+                case ComponentType.AccessMode.ReadWrite:
+                    return EntityDebuggerStyles.ComponentReadWrite;
+                case ComponentType.AccessMode.Subtractive:
+                    return EntityDebuggerStyles.ComponentSubtractive;
+                default:
+                    throw new ArgumentException("Unrecognized access mode");
+            }
+        }
+
         protected override void RowGUI(RowGUIArgs args)
         {
             base.RowGUI(args);
             if (!componentGroupsById.ContainsKey(args.item.id))
                 return;
-            var countString = componentGroupsById[args.item.id].CalculateLength().ToString();
+
+            var componentGroup = componentGroupsById[args.item.id];
+            var names = componentGroupTypeNamesById[args.item.id];
+            var modes = componentGroupTypeModesById[args.item.id];
+
+            var position = args.rowRect.position;
+            position.x = GetContentIndent(args.item);
+            position.y += 1;
+            
+            for (var i = 0; i < names.Length; ++i)
+            {
+                DrawTypeAndMovePosition(ref position, names[i], modes[i]);
+            }
+            
+            var countString = componentGroup.CalculateLength().ToString();
             DefaultGUI.LabelRightAligned(args.rowRect, countString, args.selected, args.focused);
         }
 

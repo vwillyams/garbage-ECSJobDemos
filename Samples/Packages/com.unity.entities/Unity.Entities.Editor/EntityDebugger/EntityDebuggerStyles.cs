@@ -10,6 +10,8 @@ namespace Unity.Entities.Editor
 
         public static GUIStyle ComponentRequired => StyleAsset.styles[0];
         public static GUIStyle ComponentSubtractive => StyleAsset.styles[1];
+        public static GUIStyle ComponentReadOnly => StyleAsset.styles[2];
+        public static GUIStyle ComponentReadWrite => StyleAsset.styles[3];
 
         private static GUIStyleAsset StyleAsset
         {

@@ -125,9 +125,7 @@ namespace Unity.Collections
 		    }
 #endif
 		    m_MemoryAllocator = default(TMemManager);
-		    // FIXME: Init should set the allocator label, but when compiling with il2cpp it does not
-		    m_MemoryAllocator.Label = allocatorLabel;
-		    m_ListData = (NativeListData*)m_MemoryAllocator.Init<NativeListData>( allocatorLabel );
+		    m_ListData = (NativeListData*)m_MemoryAllocator.Init( UnsafeUtility.SizeOf<NativeListData>(), UnsafeUtility.AlignOf<NativeListData>(), allocatorLabel );
 
 			var elementSize = UnsafeUtility.SizeOf<T> ();
 

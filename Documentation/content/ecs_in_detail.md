@@ -98,7 +98,8 @@ The ComponentData for each Entity is stored in what we internally refer to as a 
 
 A chunk is always linked to a specific EntityArchetype. Thus all Entities in one chunk follow the exact same memory layout. When iterating over components, memory access of components within a chunk is always completely linear, with no waste loaded into cache lines. This is a hard guarantee.
 
-__ComponentDataArray__ is essentially an iterator over all EntityArchetypes compatible with the set of required components; for each EntityArchetype iterating over all chunks compatible with it and for each chunk iterating over all Entities in that chunk.
+__ComponentDataArray__ is essentially a convenience index based iterator for a single component type;
+First we iterate over all EntityArchetypes compatible with the ComponentGroup; for each EntityArchetype iterating over all chunks compatible with it and for each chunk iterating over all Entities in that chunk.
 
 Once all Entities of a chunk have been visited, we find the next matching chunk and iterate through those Entities.
 
@@ -310,7 +311,7 @@ Lastly you can also inject a reference to another system. This will populate the
 
 ## ComponentGroup
 
-The ComponentGroup is foundation class on top of which all iteration methods are built (Injection, foreach, IJobProcessComponetnData etc)
+The ComponentGroup is foundation class on top of which all iteration methods are built (Injection, foreach, IJobProcessComponentData etc)
 
 Essentially a ComponentGroup is constructed with a set of required components, subtractive components. 
 
@@ -364,7 +365,9 @@ class PositionToRigidbodySystem : ComponentSystem
 The Entity struct identifies an Entity. If you need to access component data on another Entity, the only stable way of referencing that component data is via the Entity ID. EntityManager provides a simple get & set component data API for it.
 ```cs
 Entity myEntity = ...;
-var position = EntityManager.SetComponentData<LocalPosition>(entity);
+var position = EntityManager.GetComponentData<LocalPosition>(entity);
+...
+EntityManager.SetComponentData(entity, position);
 ```
 
 However EntityManager can't be used on a C# job. __ComponentDataFromEntity__ gives you a simple API that can also be safely used in a job.

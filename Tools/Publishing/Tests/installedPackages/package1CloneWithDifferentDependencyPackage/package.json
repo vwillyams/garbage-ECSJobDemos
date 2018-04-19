@@ -1,0 +1,12 @@
+{
+  "name": "package1",
+  "version": "0.0.1",
+  "dependencies": {
+	  "package2":"0.0.1"
+  },
+  "description": "package1",
+  "keywords": [
+    "test_package",
+    "unity"
+  ]
+}

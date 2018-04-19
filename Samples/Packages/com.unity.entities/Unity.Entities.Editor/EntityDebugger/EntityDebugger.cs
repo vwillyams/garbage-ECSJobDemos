@@ -7,7 +7,7 @@ using UnityEditor.IMGUI.Controls;
 
 namespace Unity.Entities.Editor
 {
-    public class EntityDebugger : EditorWindow, ISystemSelectionWindow, IEntitySelectionWindow, IComponentGroupSelectionWindow, IComponentTypeFilterWindow
+    public class EntityDebugger : EditorWindow
     {
         private const float kSystemListWidth = 350f;
 
@@ -53,7 +53,7 @@ namespace Unity.Entities.Editor
                 if (systemSelection is ComponentSystemBase)
                     componentGroupListView.TouchSelection();
                 else
-                    SetAllEntitiesFilter();
+                    ApplyAllEntitiesFilter();
             }
         }
 
@@ -169,17 +169,17 @@ namespace Unity.Entities.Editor
 
         private void CreateEntityListView()
         {
-            entityListView = new EntityListView(entityListState, ComponentGroupSelection, this);
+            entityListView = new EntityListView(entityListState, ComponentGroupSelection, SetEntitySelection, () => WorldSelection);
         }
 
         private void CreateSystemListView()
         {
-            systemListView = SystemListView.CreateList(systemListStates, systemListStateNames, this);
+            systemListView = SystemListView.CreateList(systemListStates, systemListStateNames, SetSystemSelection, () => WorldSelection);
         }
 
         private void CreateComponentGroupListView()
         {
-            componentGroupListView = ComponentGroupListView.CreateList(SystemSelection as ComponentSystemBase, componentGroupListStates, componentGroupListStateNames, this);
+            componentGroupListView = ComponentGroupListView.CreateList(SystemSelection as ComponentSystemBase, componentGroupListStates, componentGroupListStateNames, SetComponentGroupSelection, () => WorldSelection);
         }
 
         private World worldSelection;
@@ -202,7 +202,7 @@ namespace Unity.Entities.Editor
             Instance = this;
             selectionProxy = ScriptableObject.CreateInstance<EntitySelectionProxy>();
             selectionProxy.hideFlags = HideFlags.HideAndDontSave;
-            filterUI = new ComponentTypeFilterUI(this);
+            filterUI = new ComponentTypeFilterUI(SetAllEntitiesFilter, () => WorldSelection);
             CreateSystemListView();
             CreateComponentGroupListView();
             CreateEntityListView();
@@ -330,14 +330,15 @@ namespace Unity.Entities.Editor
 
         private ComponentGroup filterGroup;
 
-        public void SetFilter(ComponentGroup componentGroup)
+        public void SetAllEntitiesFilter(ComponentGroup componentGroup)
         {
             filterGroup = componentGroup;
             if (WorldSelection == null || SystemSelection is ComponentSystemBase)
                 return;
+            ApplyAllEntitiesFilter();
         }
         
-        private void SetAllEntitiesFilter()
+        private void ApplyAllEntitiesFilter()
         {
             SetComponentGroupSelection(filterGroup, false, true);
         }

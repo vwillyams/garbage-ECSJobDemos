@@ -5,23 +5,23 @@ using UnityEngine;
 
 namespace Unity.Entities.Editor
 {
-    public interface IComponentTypeFilterWindow : IWorldSelectionWindow
-    {
-        void SetFilter(ComponentGroup group);
-    }
+    
+    public delegate void SetFilter(ComponentGroup group);
     
     public class ComponentTypeFilterUI : IComponentTypeQueryWindow
     {
-        private readonly IComponentTypeFilterWindow window;
+        private readonly WorldSelectionGetter getWorldSelection;
+        private readonly SetFilter setFilter;
 
         private readonly List<bool> selectedFilterTypes = new List<bool>();
         private readonly List<ComponentType> filterTypes = new List<ComponentType>();
 
         private readonly List<ComponentGroup> componentGroups = new List<ComponentGroup>();
 
-        public ComponentTypeFilterUI(IComponentTypeFilterWindow window)
+        public ComponentTypeFilterUI(SetFilter setFilter, WorldSelectionGetter worldSelectionGetter)
         {
-            this.window = window;
+            getWorldSelection = worldSelectionGetter;
+            this.setFilter = setFilter;
         }
         
         public void GetTypes()
@@ -84,7 +84,7 @@ namespace Unity.Entities.Editor
                     return existingGroup;
             }
 
-            var group = window.WorldSelection.GetExistingManager<EntityManager>()
+            var group = getWorldSelection().GetExistingManager<EntityManager>()
                 .CreateComponentGroup(components);
             componentGroups.Add(group);
 
@@ -100,7 +100,7 @@ namespace Unity.Entities.Editor
                     selectedTypes.Add(filterTypes[i]);
             }
             var group = GetComponentGroup(selectedTypes.ToArray());
-            window.SetFilter(group);
+            setFilter(group);
         }
     }
 }

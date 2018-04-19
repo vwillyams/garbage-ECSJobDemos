@@ -7,10 +7,8 @@ using UnityEngine.Profiling;
 
 namespace Unity.Entities.Editor
 {
-    public interface ISystemSelectionWindow : IWorldSelectionWindow
-    {
-        void SetSystemSelection(ScriptBehaviourManager manager, bool updateList, bool propagate);
-    }
+    
+    public delegate void SystemSelectionCallback(ScriptBehaviourManager manager, bool updateList, bool propagate);
     
     public class SystemListView : TreeView
     {
@@ -51,7 +49,8 @@ namespace Unity.Entities.Editor
         private const float kToggleWidth = 22f;
         private const float kTimingWidth = 70f;
 
-        private readonly ISystemSelectionWindow window;
+        private readonly SystemSelectionCallback systemSelectionCallback;
+        private readonly WorldSelectionGetter getWorldSelection;
 
         private int systemVersion;
 
@@ -133,16 +132,17 @@ namespace Unity.Entities.Editor
             return stateForCurrentWorld;
         }
 
-        public static SystemListView CreateList(List<TreeViewState> states, List<string> stateNames, ISystemSelectionWindow window)
+        public static SystemListView CreateList(List<TreeViewState> states, List<string> stateNames, SystemSelectionCallback systemSelectionCallback, WorldSelectionGetter worldSelectionGetter)
         {
-            var state = GetStateForWorld(window.WorldSelection, states, stateNames);
+            var state = GetStateForWorld(worldSelectionGetter(), states, stateNames);
             var header = new MultiColumnHeader(GetHeaderState());
-            return new SystemListView(state, header, window);
+            return new SystemListView(state, header, systemSelectionCallback, worldSelectionGetter);
         }
         
-        private SystemListView(TreeViewState state, MultiColumnHeader header, ISystemSelectionWindow window) : base(state, header)
+        private SystemListView(TreeViewState state, MultiColumnHeader header, SystemSelectionCallback systemSelectionCallback, WorldSelectionGetter worldSelectionGetter) : base(state, header)
         {
-            this.window = window;
+            this.getWorldSelection = worldSelectionGetter;
+            this.systemSelectionCallback = systemSelectionCallback;
             columnIndexForTreeFoldouts = 1;
             Reload();
         }
@@ -164,7 +164,7 @@ namespace Unity.Entities.Editor
         private TreeViewItem CreateManagerItem(int id, ScriptBehaviourManager manager)
         {
             managersById.Add(id, manager);
-            var recorder = Recorder.Get($"{window.WorldSelection.Name} {manager.GetType().FullName}");
+            var recorder = Recorder.Get($"{getWorldSelection().Name} {manager.GetType().FullName}");
             recordersByManager.Add(manager, new AverageRecorder(recorder));
             recorder.enabled = true;
             return new TreeViewItem { id = id, displayName = manager.GetType().Name.ToString() };
@@ -178,14 +178,14 @@ namespace Unity.Entities.Editor
             recordersByManager.Clear();
 
             systemVersion = -1;
-            if (window.WorldSelection != null)
+            if (getWorldSelection() != null)
             {
-                systemVersion = window.WorldSelection.Version;
+                systemVersion = getWorldSelection().Version;
                 Dictionary<Type, ScriptBehaviourUpdateOrder.ScriptBehaviourGroup> allGroups;
                 Dictionary<Type, ScriptBehaviourUpdateOrder.DependantBehavior> dependencies;
-                ScriptBehaviourUpdateOrder.CollectGroups(window.WorldSelection.BehaviourManagers, out allGroups, out dependencies);
+                ScriptBehaviourUpdateOrder.CollectGroups(getWorldSelection().BehaviourManagers, out allGroups, out dependencies);
             
-                foreach (var manager in window.WorldSelection.BehaviourManagers)
+                foreach (var manager in getWorldSelection().BehaviourManagers)
                 {
                     var hasGroup = false;
                     foreach (var attributeData in manager.GetType().GetCustomAttributesData())
@@ -270,11 +270,11 @@ namespace Unity.Entities.Editor
         {
             if (selectedIds.Count > 0 && managersById.ContainsKey(selectedIds[0]))
             {
-                window.SetSystemSelection(managersById[selectedIds[0]], false, true);
+                systemSelectionCallback(managersById[selectedIds[0]], false, true);
             }
             else
             {
-                window.SetSystemSelection(null, false, true);
+                systemSelectionCallback(null, false, true);
             }
         }
 
@@ -290,9 +290,9 @@ namespace Unity.Entities.Editor
 
         public void UpdateIfNecessary()
         {
-            if (window.WorldSelection == null)
+            if (getWorldSelection() == null)
                 return;
-            if (window.WorldSelection.Version != systemVersion)
+            if (getWorldSelection().Version != systemVersion)
                 Reload();
         }
 

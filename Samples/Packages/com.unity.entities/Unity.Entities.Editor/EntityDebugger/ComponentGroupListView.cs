@@ -6,10 +6,8 @@ using UnityEngine;
 
 namespace Unity.Entities.Editor
 {
-    public interface IComponentGroupSelectionWindow : IWorldSelectionWindow
-    {
-        void SetComponentGroupSelection(ComponentGroup group, bool updateList, bool propagate);
-    }
+    
+    public delegate void SetComponentGroupSelection(ComponentGroup group, bool updateList, bool propagate);
     
     public class ComponentGroupListView : TreeView {
         private readonly Dictionary<int, ComponentGroup> componentGroupsById = new Dictionary<int, ComponentGroup>();
@@ -30,7 +28,8 @@ namespace Unity.Entities.Editor
         }
         private ComponentSystemBase selectedSystem;
 
-        readonly IComponentGroupSelectionWindow window;
+        private readonly WorldSelectionGetter getWorldSelection;
+        private readonly SetComponentGroupSelection componentGroupSelectionCallback;
 
         private static TreeViewState GetStateForSystem(ComponentSystemBase system, List<TreeViewState> states, List<string> stateNames)
         {
@@ -52,15 +51,16 @@ namespace Unity.Entities.Editor
         }
 
         public static ComponentGroupListView CreateList(ComponentSystemBase system, List<TreeViewState> states, List<string> stateNames,
-            IComponentGroupSelectionWindow window)
+            SetComponentGroupSelection componentGroupSelectionCallback, WorldSelectionGetter worldSelectionGetter)
         {
             var state = GetStateForSystem(system, states, stateNames);
-            return new ComponentGroupListView(state, system, window);
+            return new ComponentGroupListView(state, system, componentGroupSelectionCallback, worldSelectionGetter);
         }
 
-        public ComponentGroupListView(TreeViewState state, ComponentSystemBase system, IComponentGroupSelectionWindow window) : base(state)
+        public ComponentGroupListView(TreeViewState state, ComponentSystemBase system, SetComponentGroupSelection componentGroupSelectionCallback, WorldSelectionGetter worldSelectionGetter) : base(state)
         {
-            this.window = window;
+            this.getWorldSelection = worldSelectionGetter;
+            this.componentGroupSelectionCallback = componentGroupSelectionCallback;
             selectedSystem = system;
             rowHeight += 1;
             Reload();
@@ -96,7 +96,7 @@ namespace Unity.Entities.Editor
             componentGroupTypeNamesById.Clear();
             var currentId = 0;
             var root  = new TreeViewItem { id = currentId++, depth = -1, displayName = "Root" };
-            if (window?.WorldSelection == null)
+            if (getWorldSelection() == null)
             {
                 root.AddChild(new TreeViewItem { id = currentId, displayName = "No world selected"});
             }
@@ -128,7 +128,7 @@ namespace Unity.Entities.Editor
 
         public override void OnGUI(Rect rect)
         {
-            if (window?.WorldSelection?.GetExistingManager<EntityManager>()?.IsCreated == true)
+            if (getWorldSelection()?.GetExistingManager<EntityManager>()?.IsCreated == true)
                 base.OnGUI(rect);
         }
 
@@ -182,15 +182,13 @@ namespace Unity.Entities.Editor
 
         protected override void SelectionChanged(IList<int> selectedIds)
         {
-            if (window == null)
-                return;
             if (selectedIds.Count > 0 && componentGroupsById.ContainsKey(selectedIds[0]))
             {
-                window.SetComponentGroupSelection(componentGroupsById[selectedIds[0]], false, true);
+                componentGroupSelectionCallback(componentGroupsById[selectedIds[0]], false, true);
             }
             else
             {
-                window.SetComponentGroupSelection(null, false, true);
+                componentGroupSelectionCallback(null, false, true);
             }
         }
 

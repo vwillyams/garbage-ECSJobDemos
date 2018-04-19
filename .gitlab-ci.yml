@@ -10,7 +10,7 @@ stages:
 schedule:validation:2018.1:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version '2018.1.*&latest=true' --project-path "Samples"
+    - python Tools/CI/validation.py --build-version '2018.1.*&latest=true' --package-path Samples/Packages/com.unity.entities --package-path Samples/Packages/com.unity.jobs --package-path Samples/Packages/com.unity.collections
   only:
     - schedules
   tags:
@@ -865,7 +865,7 @@ schedule:macOS:run:twostickshooter-pure:il2cpp:2018.1:
 schedule:validation:2018.2:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version '2018.2.*&latest=true' --project-path "Samples"
+    - python Tools/CI/validation.py --build-version '2018.2.*&latest=true' --package-path Samples/Packages/com.unity.entities --package-path Samples/Packages/com.unity.jobs --package-path Samples/Packages/com.unity.collections
   only:
     - schedules
   tags:
@@ -1720,7 +1720,7 @@ schedule:macOS:run:twostickshooter-pure:il2cpp:2018.2:
 schedule:validation:2018.1_staging:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version '2018.1/staging&latest=true' --project-path "Samples"
+    - python Tools/CI/validation.py --build-version '2018.1/staging&latest=true' --package-path Samples/Packages/com.unity.entities --package-path Samples/Packages/com.unity.jobs --package-path Samples/Packages/com.unity.collections
   only:
     - schedules
   tags:
@@ -2575,7 +2575,7 @@ schedule:macOS:run:twostickshooter-pure:il2cpp:2018.1_staging:
 schedule:validation:2018.2_staging:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version '2018.2/staging&latest=true' --project-path "Samples"
+    - python Tools/CI/validation.py --build-version '2018.2/staging&latest=true' --package-path Samples/Packages/com.unity.entities --package-path Samples/Packages/com.unity.jobs --package-path Samples/Packages/com.unity.collections
   only:
     - schedules
   tags:
@@ -3430,7 +3430,7 @@ schedule:macOS:run:twostickshooter-pure:il2cpp:2018.2_staging:
 validation:2018.1_staging:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version '2018.1/staging&latest=true' --project-path "Samples"
+    - python Tools/CI/validation.py --build-version '2018.1/staging&latest=true' --package-path Samples/Packages/com.unity.entities --package-path Samples/Packages/com.unity.jobs --package-path Samples/Packages/com.unity.collections
   except:
     - schedules
   tags:
@@ -3709,7 +3709,7 @@ macOS:run:Samples:il2cpp:2018.1_staging:
 validation:2018.2_staging:
   stage: validation
   script:
-    - python Tools/CI/validation.py --build-version '2018.2/staging&latest=true' --project-path "Samples"
+    - python Tools/CI/validation.py --build-version '2018.2/staging&latest=true' --package-path Samples/Packages/com.unity.entities --package-path Samples/Packages/com.unity.jobs --package-path Samples/Packages/com.unity.collections
   except:
     - schedules
   tags:

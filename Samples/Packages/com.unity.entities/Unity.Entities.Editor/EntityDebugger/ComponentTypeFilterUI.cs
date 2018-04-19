@@ -1,5 +1,6 @@
 ﻿
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Unity.Entities.Editor
@@ -29,6 +30,8 @@ namespace Unity.Entities.Editor
             {
                 filterTypes.Clear();
                 selectedFilterTypes.Clear();
+                var requiredTypes = new List<ComponentType>();
+                var subtractiveTypes = new List<ComponentType>();
                 filterTypes.Capacity = TypeManager.TypesCount;
                 selectedFilterTypes.Capacity = TypeManager.TypesCount;
                 foreach (var type in TypeManager.AllTypes())
@@ -37,12 +40,15 @@ namespace Unity.Entities.Editor
                     var typeIndex = TypeManager.GetTypeIndex(type.Type);
                     var componentType = ComponentType.FromTypeIndex(typeIndex);
                     if (componentType.GetManagedType() == null) continue;
-                    filterTypes.Add(componentType);
-                    selectedFilterTypes.Add(false);
+                    requiredTypes.Add(componentType);
                     componentType.AccessModeType = ComponentType.AccessMode.Subtractive;
-                    filterTypes.Add(componentType);
+                    subtractiveTypes.Add(componentType);
+                    selectedFilterTypes.Add(false);
                     selectedFilterTypes.Add(false);
                 }
+
+                filterTypes.AddRange(requiredTypes);
+                filterTypes.AddRange(subtractiveTypes);
             }
         }
 

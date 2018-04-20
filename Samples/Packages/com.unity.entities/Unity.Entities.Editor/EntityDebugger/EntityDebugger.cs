@@ -221,6 +221,8 @@ namespace Unity.Entities.Editor
 
         void OnPlayModeStateChange(PlayModeStateChange change)
         {
+            if (change == PlayModeStateChange.ExitingPlayMode)
+                SetAllEntitiesFilter(null);
             if (change == PlayModeStateChange.ExitingPlayMode && Selection.activeObject == selectionProxy)
                 Selection.activeObject = null;
         }

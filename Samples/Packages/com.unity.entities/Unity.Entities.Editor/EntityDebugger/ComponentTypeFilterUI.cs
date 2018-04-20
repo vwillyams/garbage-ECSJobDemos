@@ -1,24 +1,21 @@
-﻿
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace Unity.Entities.Editor
 {
+    public delegate void SetFilterAction(ComponentGroup componentGroup);
     
-    public delegate void SetFilter(ComponentGroup group);
-    
-    public class ComponentTypeFilterUI : IComponentTypeQueryWindow
+    public class ComponentTypeFilterUI
     {
         private readonly WorldSelectionGetter getWorldSelection;
-        private readonly SetFilter setFilter;
+        private readonly SetFilterAction setFilter;
 
         private readonly List<bool> selectedFilterTypes = new List<bool>();
         private readonly List<ComponentType> filterTypes = new List<ComponentType>();
 
         private readonly List<ComponentGroup> componentGroups = new List<ComponentGroup>();
 
-        public ComponentTypeFilterUI(SetFilter setFilter, WorldSelectionGetter worldSelectionGetter)
+        public ComponentTypeFilterUI(SetFilterAction setFilter, WorldSelectionGetter worldSelectionGetter)
         {
             getWorldSelection = worldSelectionGetter;
             this.setFilter = setFilter;
@@ -70,7 +67,7 @@ namespace Unity.Entities.Editor
                 GUILayout.Label("none");
             if (GUILayout.Button("Edit"))
             {
-                ComponentTypeChooser.Open(GUIUtility.GUIToScreenPoint(GUILayoutUtility.GetLastRect().position), filterTypes, selectedFilterTypes, this);
+                ComponentTypeChooser.Open(GUIUtility.GUIToScreenPoint(GUILayoutUtility.GetLastRect().position), filterTypes, selectedFilterTypes, ComponentFilterChanged);
             }
             if (filterCount > 0)
             {

@@ -1,5 +1,4 @@
-﻿
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -7,28 +6,25 @@ using UnityEngine;
 namespace Unity.Entities.Editor
 {
 
-    public interface IComponentTypeQueryWindow
-    {
-        void ComponentFilterChanged();
-    }
+    public delegate void CallbackAction();
 
-    public class ComponentTypeChooser : EditorWindow, IComponentTypeQueryWindow
+    public class ComponentTypeChooser : EditorWindow
     {
 
         private static List<ComponentType> types;
         private static List<bool> typeSelections;
 
         private static ComponentTypeChooser chooserWindow;
-        private static IComponentTypeQueryWindow callbackWindow;
+        private static CallbackAction callback;
 
         private static readonly Vector2 kDefaultSize = new Vector2(300f, 400f);
 
-        public static void Open(Vector2 screenPosition, List<ComponentType> types, List<bool> typeSelections, IComponentTypeQueryWindow window)
+        public static void Open(Vector2 screenPosition, List<ComponentType> types, List<bool> typeSelections, CallbackAction callback)
         {
-            callbackWindow = window;
+            ComponentTypeChooser.callback = callback;
             ComponentTypeChooser.types = types;
             ComponentTypeChooser.typeSelections = typeSelections;
-            chooserWindow = GetWindowWithRect<ComponentTypeChooser>(new Rect(screenPosition, kDefaultSize), true, "Choose Component", true);
+            ComponentTypeChooser.chooserWindow = GetWindowWithRect<ComponentTypeChooser>(new Rect(screenPosition, kDefaultSize), true, "Choose Component", true);
         }
 
         private SearchField searchField;
@@ -38,12 +34,12 @@ namespace Unity.Entities.Editor
         {
             searchField = new SearchField();
             searchField.SetFocus();
-            typeListView = new ComponentTypeListView(new TreeViewState(), types, typeSelections, this);
+            typeListView = new ComponentTypeListView(new TreeViewState(), types, typeSelections, ComponentFilterChanged);
         }
 
         public void ComponentFilterChanged()
         {
-            callbackWindow.ComponentFilterChanged();
+            callback();
         }
 
         private void OnGUI()

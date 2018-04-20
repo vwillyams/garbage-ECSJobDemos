@@ -1,22 +1,21 @@
-﻿
-using System.Collections.Generic;
-using Unity.Collections;
+﻿using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
 namespace Unity.Entities.Editor
 {
+    
     public class ComponentTypeListView : TreeView
     {
         private List<ComponentType> types;
         private List<bool> typeSelections;
 
-        private IComponentTypeQueryWindow window;
+        private CallbackAction callback;
 
-        public ComponentTypeListView(TreeViewState state, List<ComponentType> types, List<bool> typeSelections, IComponentTypeQueryWindow window) : base(state)
+        public ComponentTypeListView(TreeViewState state, List<ComponentType> types, List<bool> typeSelections, CallbackAction callback) : base(state)
         {
-            this.window = window;
+            this.callback = callback;
             this.types = types;
             this.typeSelections = typeSelections;
             Reload();
@@ -57,7 +56,7 @@ namespace Unity.Entities.Editor
             GUI.Label(labelRect, content, style);
             if (EditorGUI.EndChangeCheck())
             {
-                window.ComponentFilterChanged();
+                callback();
             }
         }
     }

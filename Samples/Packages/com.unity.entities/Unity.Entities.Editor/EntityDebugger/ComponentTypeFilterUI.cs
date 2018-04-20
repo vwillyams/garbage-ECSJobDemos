@@ -72,6 +72,17 @@ namespace Unity.Entities.Editor
             {
                 ComponentTypeChooser.Open(GUIUtility.GUIToScreenPoint(GUILayoutUtility.GetLastRect().position), filterTypes, selectedFilterTypes, this);
             }
+            if (filterCount > 0)
+            {
+                if (GUILayout.Button("Clear"))
+                {
+                    for (var i = 0; i < selectedFilterTypes.Count; ++i)
+                    {
+                        selectedFilterTypes[i] = false;
+                    }
+                    ComponentFilterChanged();
+                }
+            }
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
         }

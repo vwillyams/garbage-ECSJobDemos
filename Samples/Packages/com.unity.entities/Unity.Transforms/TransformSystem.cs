@@ -151,7 +151,6 @@ namespace Unity.Transforms
             [NativeDisableContainerSafetyRestriction]
             public ComponentDataArray<TransformMatrix> transforms;
 
-            private float deltaTIme;
             public void Execute(int index)
             {
                 float4x4 matrix = math.rottrans(rotations[index].Value, positions[index].Value);

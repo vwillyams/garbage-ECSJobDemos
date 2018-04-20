@@ -51,8 +51,10 @@ namespace Unity.Entities
 
         struct ObjectOffsetType
         {
+#pragma warning disable 0169 // "never used" warning
             void* v0;
             void* v1;
+#pragma warning restore 0169
         }
 
         public static void Initialize()

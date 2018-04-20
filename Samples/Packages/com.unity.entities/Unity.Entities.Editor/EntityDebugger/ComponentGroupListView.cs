@@ -68,7 +68,7 @@ namespace Unity.Entities.Editor
 
         public float Height => Mathf.Max(selectedSystem?.ComponentGroups?.Length ?? 0, 1)*rowHeight;
 
-        private static int CompareTypes(ComponentType x, ComponentType y)
+        internal static int CompareTypes(ComponentType x, ComponentType y)
         {
             var accessModeOrder = SortOrderFromAccessMode(x.AccessModeType).CompareTo(SortOrderFromAccessMode(y.AccessModeType));
             return accessModeOrder != 0 ? accessModeOrder : string.Compare(x.GetType().Name, y.GetType().Name, StringComparison.InvariantCulture);
@@ -136,13 +136,12 @@ namespace Unity.Entities.Editor
         {
             var style = StyleForAccessMode(mode);
             var content = new GUIContent(name);
-            position.x += style.margin.left;
             var labelRect = new Rect(position, style.CalcSize(content));
             GUI.Label(labelRect, content, style);
-            position.x += labelRect.width + style.margin.right;
+            position.x += labelRect.width + 2f;
         }
 
-        private GUIStyle StyleForAccessMode(ComponentType.AccessMode mode)
+        internal static GUIStyle StyleForAccessMode(ComponentType.AccessMode mode)
         {
             switch (mode)
             {

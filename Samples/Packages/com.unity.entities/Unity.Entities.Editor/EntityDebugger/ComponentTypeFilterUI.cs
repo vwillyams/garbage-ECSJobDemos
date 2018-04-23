@@ -89,7 +89,7 @@ namespace Unity.Entities.Editor
             GUILayout.EndHorizontal();
         }
 
-        private ComponentGroup GetComponentGroup(ComponentType[] components)
+        internal ComponentGroup GetExistingGroup(ComponentType[] components)
         {
             foreach (var existingGroup in componentGroups)
             {
@@ -97,14 +97,21 @@ namespace Unity.Entities.Editor
                     return existingGroup;
             }
 
-            var group = getWorldSelection().GetExistingManager<EntityManager>()
-                .CreateComponentGroup(components);
+            return null;
+        }
+
+        internal ComponentGroup GetComponentGroup(ComponentType[] components)
+        {
+            var group = GetExistingGroup(components);
+            if (group != null)
+                return group;
+            group = getWorldSelection().GetExistingManager<EntityManager>().CreateComponentGroup(components);
             componentGroups.Add(group);
 
             return group;
         }
 
-        public void ComponentFilterChanged()
+        private void ComponentFilterChanged()
         {
             var selectedTypes = new List<ComponentType>();
             for (var i = 0; i < selectedFilterTypes.Count; ++i)

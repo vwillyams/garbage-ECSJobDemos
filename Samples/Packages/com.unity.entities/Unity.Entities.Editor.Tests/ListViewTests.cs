@@ -52,6 +52,24 @@ namespace Unity.Entities.Editor.Tests
                 listView.Reload();
             });
         }
+
+        [Test]
+        public void ComponentGroupListView_SortOrderExpected()
+        {
+            var typeList = new List<ComponentType>();
+            var subtractive = ComponentType.Subtractive<EcsTestData>();
+            var readWrite = ComponentType.Create<EcsTestData2>();
+            var readOnly = ComponentType.ReadOnly<EcsTestData3>();
+            
+            typeList.Add(subtractive);
+            typeList.Add(readOnly);
+            typeList.Add(readWrite);
+            typeList.Sort(ComponentGroupListView.CompareTypes);
+            
+            Assert.AreEqual(readOnly, typeList[0]);
+            Assert.AreEqual(readWrite, typeList[1]);
+            Assert.AreEqual(subtractive, typeList[2]);
+        }
         
     }
 }

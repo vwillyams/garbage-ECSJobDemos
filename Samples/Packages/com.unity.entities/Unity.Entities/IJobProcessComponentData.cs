@@ -8,8 +8,6 @@ using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Collections.LowLevel.Unsafe;
 
-[assembly:InternalsVisibleTo("Unity.Entities.Editor")]
-
 namespace Unity.Entities
 {
     [AttributeUsage(AttributeTargets.Struct)]

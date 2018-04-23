@@ -20,12 +20,23 @@ namespace Unity.Entities.Editor.Tests
         }
         
         [Test]
-        public void EntityDebugger_SetAllEntitiesFilter()
+        public void ComponentTypeFilterUI_ComparisonToTypeManagerCorrect()
         {
             var filterUI = new ComponentTypeFilterUI(SetFilterDummy, WorldSelectionGetter);
             Assert.IsFalse(filterUI.TypeListValid());
             filterUI.GetTypes();
             Assert.IsTrue(filterUI.TypeListValid());
+        }
+
+        [Test]
+        public void ComponentTypeFilterUI_ComponentGroupCaches()
+        {
+            var filterUI = new ComponentTypeFilterUI(SetFilterDummy, WorldSelectionGetter);
+            var types = new ComponentType[]
+                {ComponentType.Create<EcsTestData>(), ComponentType.ReadOnly<EcsTestData2>()};
+            Assert.IsNull(filterUI.GetExistingGroup(types));
+            var group = filterUI.GetComponentGroup(types);
+            Assert.AreEqual(group, filterUI.GetExistingGroup(types));
         }
     }
 }

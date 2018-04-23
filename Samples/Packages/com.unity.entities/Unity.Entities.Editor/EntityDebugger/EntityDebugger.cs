@@ -10,7 +10,11 @@ namespace Unity.Entities.Editor
     {
         private const float kSystemListWidth = 350f;
 
+#if UNITY_2018_2_OR_NEWER
+        [MenuItem("Window/Debug/Entity Debugger", false)]
+#else
         [MenuItem("Window/Entity Debugger", false, 2017)]
+#endif
         static void OpenWindow()
         {
             GetWindow<EntityDebugger>("Entity Debugger");

@@ -196,7 +196,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
                     {
                         SpawnData spawn;
                         spawn.Position = intersection;
-                        for (int i = 0;i<50;i++)
+                        for (int i = 0;i<10;i++)
                             SpawnLocations.Add(spawn);
                     }
                 }

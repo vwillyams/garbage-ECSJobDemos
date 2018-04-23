@@ -54,7 +54,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
 
     protected override void OnCreateManager(int capacity)
     {
-        m_AllChunksGroup = EntityManager.CreateComponentGroup(typeof(ProceduralChunkScene));
+        m_AllChunksGroup = GetComponentGroup(typeof(ProceduralChunkScene));
 
         m_CreatedChunks = new NativeList<int2>(capacity, Allocator.Persistent);
         m_SpawnLocationCaches = new NativeList<SpawnData>[MaxCreateChunksPerFrame];
@@ -74,8 +74,6 @@ public class ProceduralSpawnSystem : JobComponentSystem
 
     protected override void OnDestroyManager()
     {
-        m_AllChunksGroup.Dispose();
-
         m_ConstructionWorld.Dispose();
 
         m_CreatedChunks.Dispose();
@@ -206,7 +204,8 @@ public class ProceduralSpawnSystem : JobComponentSystem
         }
     }
 
-    [ComputeJobOptimization]
+    //@TODO: For some reason this don't run in Burst..
+    //[ComputeJobOptimization]
     struct CalculateToCreateAndDestroyChunks : IJob
     {
         //@TODO: Would be nice if this could be a local variable in the job...

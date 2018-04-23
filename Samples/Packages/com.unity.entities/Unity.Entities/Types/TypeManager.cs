@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using Unity.Collections.LowLevel.Unsafe;
 
@@ -100,6 +101,15 @@ namespace Unity.Entities
             }
             return -1;
         }
+        
+#if UNITY_EDITOR
+        public static int TypesCount => s_Count;
+
+        public static IEnumerable<ComponentType> AllTypes()
+        {
+            return System.Linq.Enumerable.Take(s_Types, s_Count);
+        }
+#endif //UNITY_EDITOR
 
         static int CreateTypeIndexThreadSafe(Type type)
         {

@@ -7,70 +7,37 @@ namespace Unity.Entities.Editor.Tests
 {
     public class ListViewTests : ECSTestsFixture
     {
-
-        class FakeWindow : IEntitySelectionWindow, IWorldSelectionWindow, IComponentGroupSelectionWindow, ISystemSelectionWindow
+        public static void SetEntitySelection(Entity s, bool updateList)
         {
-            public Entity EntitySelection { get; private set; }
+        }
 
-            public void SetEntitySelection(Entity s, bool updateList)
-            {
-                EntitySelection = s;
-            }
+        public World GetWorldSelection()
+        {
+            return World.Active;
+        }
 
-            public World WorldSelection { get; set; }
-            public ComponentGroup ComponentGroupSelection { get; private set; }
+        public static void SetComponentGroupSelection(ComponentGroup group, bool updateList, bool propagate)
+        {
+        }
 
-            public void SetComponentGroupSelection(ComponentGroup group, bool updateList, bool propagate)
-            {
-                ComponentGroupSelection = group;
-            }
-            public ScriptBehaviourManager SystemSelection { get; private set; }
-
-            public void SetSystemSelection(ScriptBehaviourManager system, bool updateList, bool propagate)
-            {
-                SystemSelection = system;
-            }
+        public static void SetSystemSelection(ScriptBehaviourManager system, bool updateList, bool propagate)
+        {
         }
 
         [Test]
         public void EntityListView_CanSetNullGroup()
         {
-
-            var listView = new EntityListView(new TreeViewState(), null, new FakeWindow());
+            var listView = new EntityListView(new TreeViewState(), null, SetEntitySelection, GetWorldSelection);
             
             Assert.DoesNotThrow( () => listView.SelectedComponentGroup = null );
-        }
-        
-        [Test]
-        public void EntityListView_CanCreateWithNullWindow()
-        {
-            EntityListView listView;
-            
-            Assert.DoesNotThrow( () =>
-            {
-                listView = new EntityListView(new TreeViewState(), null, null);
-                listView.Reload();
-            });
         }
 
         [Test]
         public void ComponentGroupListView_CanSetNullSystem()
         {
-            var listView = new ComponentGroupListView(new TreeViewState(), EmptySystem, new FakeWindow());
+            var listView = new ComponentGroupListView(new TreeViewState(), EmptySystem, SetComponentGroupSelection, GetWorldSelection);
 
             Assert.DoesNotThrow(() => listView.SelectedSystem = null);
-        }
-        
-        [Test]
-        public void ComponentGroupListView_CanCreateWithNullWindow()
-        {
-            ComponentGroupListView listView;
-            
-            Assert.DoesNotThrow( () =>
-            {
-                listView = new ComponentGroupListView(new TreeViewState(), null, null);
-                listView.Reload();
-            });
         }
 
         [Test]
@@ -81,9 +48,27 @@ namespace Unity.Entities.Editor.Tests
             var stateNames = new List<string>();
             Assert.DoesNotThrow(() =>
             {
-                listView = SystemListView.CreateList(states, stateNames, new FakeWindow());
+                listView = SystemListView.CreateList(states, stateNames, SetSystemSelection, GetWorldSelection);
                 listView.Reload();
             });
+        }
+
+        [Test]
+        public void ComponentGroupListView_SortOrderExpected()
+        {
+            var typeList = new List<ComponentType>();
+            var subtractive = ComponentType.Subtractive<EcsTestData>();
+            var readWrite = ComponentType.Create<EcsTestData2>();
+            var readOnly = ComponentType.ReadOnly<EcsTestData3>();
+            
+            typeList.Add(subtractive);
+            typeList.Add(readOnly);
+            typeList.Add(readWrite);
+            typeList.Sort(ComponentGroupListView.CompareTypes);
+            
+            Assert.AreEqual(readOnly, typeList[0]);
+            Assert.AreEqual(readWrite, typeList[1]);
+            Assert.AreEqual(subtractive, typeList[2]);
         }
         
     }

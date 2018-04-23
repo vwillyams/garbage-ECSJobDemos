@@ -2,12 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using Unity.Collections;
 using UnityEditor;
 using UnityEngine;
-
-[assembly:InternalsVisibleTo("Unity.Entities.Editor.Tests")]
 
 namespace Unity.Entities.Editor
 {
@@ -41,13 +37,11 @@ namespace Unity.Entities.Editor
                     ++EditorGUI.indentLevel;
                     foreach (var componentGroup in pair.Item2)
                     {
-                        GUILayout.BeginHorizontal();
-                        if (GUILayout.Button(string.Join(", ", from x in componentGroup.Types.Skip(1) select x.ToString())))
+                        ComponentList(componentGroup.Types, EditorGUIUtility.currentViewWidth - 30f);
+                        if (GUILayout.Button("Show", GUILayout.ExpandWidth(false)))
                         {
                             EntityDebugger.SetAllSelections(world, pair.Item1 as ComponentSystemBase, componentGroup, entity);
                         }
-                        GUILayout.FlexibleSpace();
-                        GUILayout.EndHorizontal();
                     }
 
                     --EditorGUI.indentLevel;
@@ -61,6 +55,47 @@ namespace Unity.Entities.Editor
             GUILayout.EndVertical();
 
             --EditorGUI.indentLevel;
+        }
+
+        void ComponentList(ComponentType[] types, float width)
+        {
+            var sortedTypes = new List<ComponentType>(types.Skip(1));
+            sortedTypes.Sort(ComponentGroupListView.CompareTypes);
+            var styles = new List<GUIStyle>(sortedTypes.Count);
+            var names = new List<GUIContent>(sortedTypes.Count);
+            var rects = new List<Rect>(sortedTypes.Count);
+            var x = 0f;
+            var y = 0f;
+            for (var i = 0; i < sortedTypes.Count; ++i) // Skip Entity
+            {
+                var type = sortedTypes[i];
+                var style = ComponentGroupListView.StyleForAccessMode(type.AccessModeType);
+                var content = new GUIContent(type.GetManagedType().Name);
+                var rect = new Rect(new Vector2(x, y), style.CalcSize(content));
+                if (rect.xMax > width && x != 0f)
+                {
+                    rect.x = 0f;
+                    rect.y += rect.height + 2f;
+                }
+
+                x = rect.xMax + 2f;
+                y = rect.y;
+
+                styles.Add(style);
+                names.Add(content);
+                rects.Add(rect);
+            }
+
+            var wholeRect = GUILayoutUtility.GetRect(width, rects.Last().yMax);
+            if (Event.current.type == EventType.Repaint)
+            {
+                for (var i = 0; i < rects.Count; ++i)
+                {
+                    var rect = rects[i];
+                    rect.position += wholeRect.position;
+                    styles[i].Draw(rect, names[i], false, false, false, false);
+                }
+            }
         }
     }
 }

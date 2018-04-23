@@ -89,6 +89,41 @@ namespace Unity.Entities.Editor.Tests
             Assert.AreEqual(m_ComponentGroup, m_Window.ComponentGroupSelection);
             Assert.AreEqual(m_Entity, m_Window.EntitySelection);
         }
+
+        [Test]
+        public void EntityDebugger_SetAllEntitiesFilter()
+        {
+            var components = new ComponentType[] {ComponentType.Create<EcsTestData>() };
+            var componentGroup = World.Active.GetExistingManager<EntityManager>().CreateComponentGroup(components);
+            
+            m_Window.SetWorldSelection(World.Active, true);
+            m_Window.SetSystemSelection(null, true, true);
+            m_Window.SetAllEntitiesFilter(componentGroup);
+            Assert.AreEqual(componentGroup, m_Window.ComponentGroupSelection);
+            
+            m_Window.SetComponentGroupSelection(null, true, true);
+            m_Window.SetSystemSelection(World.Active.GetExistingManager<EntityManager>(), true, true);
+            m_Window.SetAllEntitiesFilter(componentGroup);
+            Assert.AreEqual(componentGroup, m_Window.ComponentGroupSelection);
+            
+            m_Window.SetSystemSelection(m_System, true, true);
+            m_Window.SetAllEntitiesFilter(componentGroup);
+            Assert.AreNotEqual(componentGroup, m_Window.ComponentGroupSelection);
+        }
+
+        [Test]
+        public void EntityDebugger_StylesIntact()
+        {
+            Assert.IsNotNull(EntityDebuggerStyles.ComponentRequired);
+            Assert.IsNotNull(EntityDebuggerStyles.ComponentSubtractive);
+            Assert.IsNotNull(EntityDebuggerStyles.ComponentReadOnly);
+            Assert.IsNotNull(EntityDebuggerStyles.ComponentReadWrite);
+            
+            Assert.IsNotNull(EntityDebuggerStyles.ComponentRequired.normal.background);
+            Assert.IsNotNull(EntityDebuggerStyles.ComponentSubtractive.normal.background);
+            Assert.IsNotNull(EntityDebuggerStyles.ComponentReadOnly.normal.background);
+            Assert.IsNotNull(EntityDebuggerStyles.ComponentReadWrite.normal.background);
+        }
         
     }
 }

@@ -6,7 +6,8 @@ using UnityEditor.IMGUI.Controls;
 
 namespace Unity.Entities.Editor
 {
-    public class EntityDebugger : EditorWindow, ISystemSelectionWindow, IEntitySelectionWindow, IComponentGroupSelectionWindow {
+    public class EntityDebugger : EditorWindow
+    {
         private const float kSystemListWidth = 350f;
 
         [MenuItem("Window/Entity Debugger", false, 2017)]
@@ -47,7 +48,12 @@ namespace Unity.Entities.Editor
                 systemListView.SetSystemSelection(manager);
             CreateComponentGroupListView();
             if (propagate)
-                componentGroupListView.TouchSelection();
+            {
+                if (systemSelection is ComponentSystemBase)
+                    componentGroupListView.TouchSelection();
+                else
+                    ApplyAllEntitiesFilter();
+            }
         }
 
         private ScriptBehaviourManager systemSelection;
@@ -114,6 +120,8 @@ namespace Unity.Entities.Editor
 
         [SerializeField] private TreeViewState entityListState = new TreeViewState();
         private EntityListView entityListView;
+
+        private ComponentTypeFilterUI filterUI;
         
         private string[] worldNames => (from x in World.AllWorlds select x.Name).ToArray();
 
@@ -147,7 +155,9 @@ namespace Unity.Entities.Editor
             {
                 worldSelection = selection;
                 if (worldSelection != null)
+                {
                     lastSelectedWorldName = worldSelection.Name;
+                }
                     
                 CreateSystemListView();
                 systemListView.multiColumnHeader.ResizeToFit();
@@ -158,17 +168,17 @@ namespace Unity.Entities.Editor
 
         private void CreateEntityListView()
         {
-            entityListView = new EntityListView(entityListState, ComponentGroupSelection, this);
+            entityListView = new EntityListView(entityListState, ComponentGroupSelection, SetEntitySelection, () => WorldSelection);
         }
 
         private void CreateSystemListView()
         {
-            systemListView = SystemListView.CreateList(systemListStates, systemListStateNames, this);
+            systemListView = SystemListView.CreateList(systemListStates, systemListStateNames, SetSystemSelection, () => WorldSelection);
         }
 
         private void CreateComponentGroupListView()
         {
-            componentGroupListView = ComponentGroupListView.CreateList(SystemSelection as ComponentSystemBase, componentGroupListStates, componentGroupListStateNames, this);
+            componentGroupListView = ComponentGroupListView.CreateList(SystemSelection as ComponentSystemBase, componentGroupListStates, componentGroupListStateNames, SetComponentGroupSelection, () => WorldSelection);
         }
 
         private World worldSelection;
@@ -191,6 +201,7 @@ namespace Unity.Entities.Editor
             Instance = this;
             selectionProxy = ScriptableObject.CreateInstance<EntitySelectionProxy>();
             selectionProxy.hideFlags = HideFlags.HideAndDontSave;
+            filterUI = new ComponentTypeFilterUI(SetAllEntitiesFilter, () => WorldSelection);
             CreateSystemListView();
             CreateComponentGroupListView();
             CreateEntityListView();
@@ -210,6 +221,8 @@ namespace Unity.Entities.Editor
 
         void OnPlayModeStateChange(PlayModeStateChange change)
         {
+            if (change == PlayModeStateChange.ExitingPlayMode)
+                SetAllEntitiesFilter(null);
             if (change == PlayModeStateChange.ExitingPlayMode && Selection.activeObject == selectionProxy)
                 Selection.activeObject = null;
         }
@@ -223,6 +236,7 @@ namespace Unity.Entities.Editor
             systemListView.UpdateIfNecessary();
             componentGroupListView.UpdateIfNecessary();
             entityListView.UpdateIfNecessary();
+            filterUI.GetTypes();
             
             if (Time.realtimeSinceStartup > lastUpdate + 0.5f) 
             { 
@@ -304,11 +318,30 @@ namespace Unity.Entities.Editor
         {
             if (SystemSelection is ComponentSystemBase)
             {
-                GUILayout.BeginVertical(Box, GUILayout.Height(componentGroupListView.Height + 4f));
+                GUILayout.BeginVertical(Box, GUILayout.Height(componentGroupListView.Height + Box.padding.bottom + Box.padding.top));
 
                 componentGroupListView.OnGUI(GUIHelpers.GetExpandingRect());
                 GUILayout.EndVertical();
             }
+            else
+            {
+                filterUI.OnGUI();
+            }
+        }
+
+        private ComponentGroup filterGroup;
+
+        public void SetAllEntitiesFilter(ComponentGroup componentGroup)
+        {
+            filterGroup = componentGroup;
+            if (WorldSelection == null || SystemSelection is ComponentSystemBase)
+                return;
+            ApplyAllEntitiesFilter();
+        }
+        
+        private void ApplyAllEntitiesFilter()
+        {
+            SetComponentGroupSelection(filterGroup, false, true);
         }
 
         void EntityList()

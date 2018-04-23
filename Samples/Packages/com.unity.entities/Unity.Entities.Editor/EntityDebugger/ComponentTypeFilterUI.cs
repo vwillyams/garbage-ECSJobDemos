@@ -20,10 +20,15 @@ namespace Unity.Entities.Editor
             getWorldSelection = worldSelectionGetter;
             this.setFilter = setFilter;
         }
-        
-        public void GetTypes()
+
+        internal bool TypeListValid()
         {
-            if (selectedFilterTypes.Count != 2* (TypeManager.TypesCount - 2)) // First two entries are not ComponentTypes
+            return selectedFilterTypes.Count == 2 * (TypeManager.TypesCount - 2); // First two entries are not ComponentTypes
+        }
+        
+        internal void GetTypes()
+        {
+            if (!TypeListValid())
             {
                 filterTypes.Clear();
                 selectedFilterTypes.Clear();

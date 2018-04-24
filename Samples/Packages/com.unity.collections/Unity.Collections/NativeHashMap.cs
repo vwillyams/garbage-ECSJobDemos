@@ -127,7 +127,7 @@ namespace Unity.Collections
                 {
                     int curEntry = buckets[bucket];
                     buckets[bucket] = nextPtrs[curEntry];
-                    int newBucket = Math.Abs(UnsafeUtility.ReadArrayElement<TKey>(data->keys, curEntry).GetHashCode()) &
+                    int newBucket = UnsafeUtility.ReadArrayElement<TKey>(data->keys, curEntry).GetHashCode() &
                                     (newBucketCapacity - 1);
                     nextPtrs[curEntry] = ((int*) newBuckets)[newBucket];
                     ((int*) newBuckets)[newBucket] = curEntry;

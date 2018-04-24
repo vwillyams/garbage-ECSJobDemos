@@ -10,8 +10,6 @@ namespace Unity.Entities.Editor
     {
         private EntityIMGUIVisitor visitor;
 
-        private readonly List<Tuple<ScriptBehaviourManager, List<ComponentGroup>>> cachedMatches = new List<Tuple<ScriptBehaviourManager, List<ComponentGroup>>>();
-
         [SerializeField] private SystemInclusionList inclusionList;
         
         void OnEnable()

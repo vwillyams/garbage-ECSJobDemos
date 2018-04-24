@@ -9,8 +9,6 @@ namespace Unity.Entities.Editor
     [CustomEditor(typeof(GameObjectEntity))]
     public class GameObjectEntityEditor : UnityEditor.Editor
     {
-        private readonly List<Tuple<ScriptBehaviourManager, List<ComponentGroup>>> cachedMatches = new List<Tuple<ScriptBehaviourManager, List<ComponentGroup>>>();
-
         [SerializeField] private SystemInclusionList inclusionList;
 
         private void OnEnable()

@@ -14,7 +14,6 @@ namespace Unity.Entities.Editor
         private static List<ComponentType> types;
         private static List<bool> typeSelections;
 
-        private static ComponentTypeChooser chooserWindow;
         private static CallbackAction callback;
 
         private static readonly Vector2 kDefaultSize = new Vector2(300f, 400f);
@@ -24,7 +23,7 @@ namespace Unity.Entities.Editor
             ComponentTypeChooser.callback = callback;
             ComponentTypeChooser.types = types;
             ComponentTypeChooser.typeSelections = typeSelections;
-            ComponentTypeChooser.chooserWindow = GetWindowWithRect<ComponentTypeChooser>(new Rect(screenPosition, kDefaultSize), true, "Choose Component", true);
+            GetWindowWithRect<ComponentTypeChooser>(new Rect(screenPosition, kDefaultSize), true, "Choose Component", true);
         }
 
         private SearchField searchField;

@@ -18,6 +18,13 @@ namespace Unity.Entities.Editor.Tests
         {
             return World.Active;
         }
+
+        [Test]
+        public void ComponentTypeFilterUI_GetTypesIgnoresNullWorld()
+        {
+            var filterUI = new ComponentTypeFilterUI(SetFilterDummy, () => null);
+            Assert.DoesNotThrow(filterUI.GetTypes);
+        }
         
         [Test]
         public void ComponentTypeFilterUI_ComparisonToTypeManagerCorrect()

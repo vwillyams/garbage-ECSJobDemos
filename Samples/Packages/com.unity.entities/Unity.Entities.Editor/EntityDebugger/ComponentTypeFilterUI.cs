@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Unity.Entities.Editor
 {
     public delegate void SetFilterAction(ComponentGroup componentGroup);
-    
+
     public class ComponentTypeFilterUI
     {
         private readonly WorldSelectionGetter getWorldSelection;
@@ -25,9 +25,10 @@ namespace Unity.Entities.Editor
         {
             return selectedFilterTypes.Count == 2 * (TypeManager.TypesCount - 2); // First two entries are not ComponentTypes
         }
-        
+
         internal void GetTypes()
         {
+            if (getWorldSelection() == null) return;
             if (!TypeListValid())
             {
                 filterTypes.Clear();

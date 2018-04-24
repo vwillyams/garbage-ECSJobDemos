@@ -327,7 +327,7 @@ namespace Unity.Entities.Editor
                 componentGroupListView.OnGUI(GUIHelpers.GetExpandingRect());
                 GUILayout.EndVertical();
             }
-            else
+            else if (WorldSelection != null)
             {
                 filterUI.OnGUI();
             }

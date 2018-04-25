@@ -7,6 +7,27 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace Unity.Entities
 {
+    public struct ForEachComponentGroupFilter : IDisposable
+    {
+        internal NativeArray<ComponentChunkIterator> ItemIterator;
+        internal NativeArray<int> ItemLength;
+
+        internal int IndexInComponentGroup;
+        internal NativeArray<int> SharedComponentIndex;
+
+        internal ArchetypeManager TypeManager;
+
+        public int Length => ItemIterator.Length;
+
+        public void Dispose()
+        {
+            for (int i = 0; i < SharedComponentIndex.Length; ++i)
+                TypeManager.GetSharedComponentDataManager().RemoveReference(SharedComponentIndex[i]);
+            ItemIterator.Dispose();
+            ItemLength.Dispose();
+            SharedComponentIndex.Dispose();
+        }
+    }
     unsafe struct ComponentGroupData
     {
         readonly EntityGroupData*             m_GroupData;
@@ -71,6 +92,29 @@ namespace Unity.Entities
             
             ComponentChunkIterator.CalculateInitialChunkIterator(m_GroupData->FirstMatchingArchetype, ref m_Filter, out firstArchetype, out firstNonEmptyChunk, out outLength);
             outIterator = new ComponentChunkIterator(firstArchetype, firstNonEmptyChunk, ref m_Filter);
+        }
+
+        internal void GetComponentChunkIterators(ForEachComponentGroupFilter forEachFilter)
+        {
+            var numFilters = forEachFilter.SharedComponentIndex.Length;
+
+            var firstArchetype = new NativeArray<IntPtr>(numFilters, Allocator.Temp);
+            var firstNonEmptyChunk = new NativeArray<IntPtr>(numFilters, Allocator.Temp);
+
+            ComponentChunkIterator.CalculateInitialChunkIterators(m_GroupData->FirstMatchingArchetype, forEachFilter.IndexInComponentGroup, forEachFilter.SharedComponentIndex,
+                firstArchetype, firstNonEmptyChunk, forEachFilter.ItemLength);
+            var filter = new ComponentGroupFilter();
+            filter.SharedComponentFilterCount = 1;
+            filter.IndexInComponentGroup[0] = forEachFilter.IndexInComponentGroup;
+            for (int i = 0; i < numFilters; ++i)
+            {
+                filter.SharedComponentIndex[0] = forEachFilter.SharedComponentIndex[i];
+                forEachFilter.ItemIterator[i] = new ComponentChunkIterator((MatchingArchetypes*) firstArchetype[i],
+                    (Chunk*) firstNonEmptyChunk[i], ref filter);
+            }
+
+            firstArchetype.Dispose();
+            firstNonEmptyChunk.Dispose();
         }
 
         internal int GetIndexInComponentGroup(int componentType)
@@ -243,6 +287,16 @@ namespace Unity.Entities
             return res;
         }
 
+        public ComponentDataArray<T> GetComponentDataArray<T>(ForEachComponentGroupFilter filter, int filterIdx) where T : struct, IComponentData
+        {
+            var indexInComponentGroup = GetIndexInComponentGroup(TypeManager.GetTypeIndex<T>());
+
+            ComponentDataArray<T> res;
+            ComponentChunkIterator iterator = filter.ItemIterator[filterIdx];
+            GetComponentDataArray<T>(ref iterator, indexInComponentGroup, filter.ItemLength[filterIdx], out res);
+            return res;
+        }
+
         internal void GetSharedComponentDataArray<T>(ref ComponentChunkIterator iterator, int indexInComponentGroup, int length, out SharedComponentDataArray<T> output) where T : struct, ISharedComponentData
         {
             iterator.IndexInComponentGroup = indexInComponentGroup;
@@ -342,6 +396,25 @@ namespace Unity.Entities
             filter.SharedComponentIndex[0] = m_TypeManager.GetSharedComponentDataManager().InsertSharedComponent(sharedComponent1);
 
             m_ComponentGroupData.SetFilter(m_TypeManager, ref filter);
+        }
+        public ForEachComponentGroupFilter CreateForEachFilter<SharedComponent1>(List<SharedComponent1> sharedComponent1)
+            where SharedComponent1 : struct, ISharedComponentData
+        {
+            var forEachFilter = new ForEachComponentGroupFilter();
+            forEachFilter.TypeManager = m_TypeManager;
+            forEachFilter.ItemIterator = new NativeArray<ComponentChunkIterator>(sharedComponent1.Count, Allocator.Temp);
+            forEachFilter.ItemLength = new NativeArray<int>(sharedComponent1.Count, Allocator.Temp);
+            forEachFilter.SharedComponentIndex = new NativeArray<int>(sharedComponent1.Count, Allocator.Temp);
+            forEachFilter.IndexInComponentGroup = GetIndexInComponentGroup(TypeManager.GetTypeIndex<SharedComponent1>());
+            for (int i = 0; i < sharedComponent1.Count; ++i)
+            {
+                forEachFilter.SharedComponentIndex[i] = m_TypeManager.GetSharedComponentDataManager()
+                    .InsertSharedComponent(sharedComponent1[i]);
+            }
+
+            m_ComponentGroupData.GetComponentChunkIterators(forEachFilter);
+
+            return forEachFilter;
         }
 
         internal void SetFilter<SharedComponent1,SharedComponent2>(SharedComponent1 sharedComponent1, SharedComponent2 sharedComponent2)

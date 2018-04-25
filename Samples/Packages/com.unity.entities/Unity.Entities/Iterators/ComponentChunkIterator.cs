@@ -1,5 +1,7 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 using Unity.Assertions;
+using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
 namespace Unity.Entities
@@ -129,6 +131,43 @@ namespace Unity.Entities
             outFirstArchetype = first;
         }
 
+        public static void CalculateInitialChunkIterators(MatchingArchetypes* firstMatchingArchetype, int indexInComponentGroup, NativeArray<int> sharedComponentIndex, 
+            NativeArray<IntPtr> outFirstArchetype, NativeArray<IntPtr> outFirstChunk, NativeArray<int> outLength)
+        {
+            var lookup = new NativeHashMap<int, int>(sharedComponentIndex.Length, Allocator.Temp);
+            for (int f = 0; f < sharedComponentIndex.Length; ++f)
+            {
+                lookup.TryAdd(sharedComponentIndex[f], f);
+            }
+            for (var match = firstMatchingArchetype; match != null; match = match->Next)
+            {
+                if (match->Archetype->EntityCount <= 0)
+                    continue;
+
+                var archeType = match->Archetype;
+                for (var c = (Chunk*) archeType->ChunkList.Begin;
+                    c != archeType->ChunkList.End;
+                    c = (Chunk*) c->ChunkListNode.Next)
+                {
+                    if (c->Count <= 0)
+                        continue;
+
+                    int chunkSharedComponentIndex = c->GetSharedComponentIndex(match, indexInComponentGroup);
+                    int filterIndex;
+                    if (!lookup.TryGetValue(chunkSharedComponentIndex, out filterIndex))
+                        continue;
+
+
+                    outLength[filterIndex] = outLength[filterIndex] + c->Count;
+                    if (outFirstChunk[filterIndex] != IntPtr.Zero)
+                        continue;
+                    outFirstArchetype[filterIndex] = (IntPtr) match;
+                    outFirstChunk[filterIndex] = (IntPtr) c;
+                }
+            }
+
+            lookup.Dispose();
+        }
         
         void MoveToNextMatchingChunk()
         {

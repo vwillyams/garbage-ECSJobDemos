@@ -143,6 +143,14 @@ namespace Unity.Entities
 
             return true;
         }
+        public int GetSharedComponentIndex(MatchingArchetypes* match, int indexInComponentGroup)
+        {
+            var sharedComponentsInChunk = SharedComponentValueArray;
+
+            var componentIndexInArcheType = match->TypeIndexInArchetypeArray[indexInComponentGroup];
+            var componentIndexInChunk = match->Archetype->SharedComponentOffset[componentIndexInArcheType];
+            return sharedComponentsInChunk[componentIndexInChunk];
+        }
     }
 
     unsafe struct Archetype

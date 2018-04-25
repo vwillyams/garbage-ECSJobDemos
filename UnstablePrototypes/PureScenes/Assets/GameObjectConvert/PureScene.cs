@@ -64,20 +64,25 @@ class MeshEntityConversionRule : EntityConvertionRule
 
     public bool Convert(EntityManager entityManager, Entity ent, GameObject go)
     {
-        this.EnsurePosition(entityManager, ent, go);
-        //this.EnsureRotation(entityManager, ent, go);
-        this.EnsureTransformMatrix(entityManager, ent, go);
-
-        var rend = new MeshInstanceRenderer();
         MeshRenderer meshRenderer = go.GetComponent<MeshRenderer>();
         MeshFilter mesh = go.GetComponent<MeshFilter>();
-        rend.mesh = mesh.mesh;
+        if (meshRenderer == null || mesh == null)
+            return false;
+        this.EnsurePosition(entityManager, ent, go);
+        this.EnsureRotation(entityManager, ent, go);
+        //this.EnsureTransformMatrix(entityManager, ent, go);
+
+        var rend = new MeshInstanceRenderer();
+        rend.mesh = mesh.sharedMesh;
+
         rend.castShadows = meshRenderer.shadowCastingMode;
         rend.receiveShadows = meshRenderer.receiveShadows;
-        for (int i = 0; i < meshRenderer.materials.Length; ++i)
+
+        for (int i = 0; i < meshRenderer.sharedMaterials.Length; ++i)
         {
-            rend.material = meshRenderer.materials[i];
+            rend.material = meshRenderer.sharedMaterials[i];
             rend.subMesh = i;
+            rend.material.enableInstancing = true;
             if (!rend.material.enableInstancing)
             {
                 Debug.LogWarning("Object contains a Material which does not support instancing and cannot be converted to ECS", go);
@@ -85,9 +90,11 @@ class MeshEntityConversionRule : EntityConvertionRule
             }
             var meshEnt = entityManager.CreateEntity();
             this.EnsureTransformMatrix(entityManager, meshEnt, null);
-            this.EnsureTransformParent(entityManager, meshEnt, ent);
-            entityManager.AddComponentData(meshEnt, new LocalPosition());
-            entityManager.AddComponentData(meshEnt, new LocalRotation());
+            //this.EnsureTransformParent(entityManager, meshEnt, ent);
+            //entityManager.AddComponentData(meshEnt, new LocalPosition());
+            //entityManager.AddComponentData(meshEnt, new LocalRotation());
+            this.EnsurePosition(entityManager, meshEnt, go);
+            this.EnsureRotation(entityManager, meshEnt, go);
 
             entityManager.AddSharedComponentData(meshEnt, rend);
         }
@@ -152,9 +159,11 @@ public class PureScene : MonoBehaviour {
         for (int i = 0; i < go.transform.childCount; ++i)
         {
             var entGo = go.transform.GetChild(i).gameObject;
+            if (!entGo.activeSelf)
+                continue;
             var ent = entityManager.CreateEntity();
 
-            if (go != gameObject)
+            /*if (go != gameObject)
             {
                 entityManager.AddComponentData(ent, new TransformParent(parent));
                 entityManager.AddComponentData(ent, new LocalPosition(entGo.transform.localPosition));
@@ -164,7 +173,7 @@ public class PureScene : MonoBehaviour {
             {
                 converter.EnsurePosition(entityManager, ent, entGo);
                 converter.EnsureRotation(entityManager, ent, entGo);
-            }
+            }*/
 
             converter.Convert(entityManager, ent, entGo);
 #if HAVE_BOIDS

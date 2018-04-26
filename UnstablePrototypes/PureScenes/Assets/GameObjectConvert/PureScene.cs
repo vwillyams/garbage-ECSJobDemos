@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Reflection.Emit;
+﻿using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
@@ -43,14 +41,7 @@ static public class EntityConvertionExtensions
     {
         if (!entityManager.HasComponent(ent, typeof(TransformMatrix)))
         {
-            entityManager.AddComponentData(ent, new TransformMatrix());
-        }
-    }
-    public static void EnsureTransformParent(this EntityConvertionRule rule, EntityManager entityManager, Entity ent, Entity parent)
-    {
-        if (!entityManager.HasComponent(ent, typeof(TransformParent)))
-        {
-            entityManager.AddComponentData(ent, new TransformParent(parent));
+            entityManager.AddComponentData(ent, new TransformMatrix {Value = go.transform.localToWorldMatrix});
         }
     }
 }
@@ -66,11 +57,13 @@ class MeshEntityConversionRule : EntityConvertionRule
     {
         MeshRenderer meshRenderer = go.GetComponent<MeshRenderer>();
         MeshFilter mesh = go.GetComponent<MeshFilter>();
-        if (meshRenderer == null || mesh == null)
-            return false;
-        this.EnsurePosition(entityManager, ent, go);
-        this.EnsureRotation(entityManager, ent, go);
-        //this.EnsureTransformMatrix(entityManager, ent, go);
+        if (!go.isStatic)
+        {
+            if (go.transform.position != Vector3.zero)
+                this.EnsurePosition(entityManager, ent, go);
+            if (go.transform.rotation != Quaternion.identity)
+                this.EnsureRotation(entityManager, ent, go);
+        }
 
         var rend = new MeshInstanceRenderer();
         rend.mesh = mesh.sharedMesh;
@@ -89,12 +82,15 @@ class MeshEntityConversionRule : EntityConvertionRule
                 continue;
             }
             var meshEnt = entityManager.CreateEntity();
-            this.EnsureTransformMatrix(entityManager, meshEnt, null);
-            //this.EnsureTransformParent(entityManager, meshEnt, ent);
-            //entityManager.AddComponentData(meshEnt, new LocalPosition());
-            //entityManager.AddComponentData(meshEnt, new LocalRotation());
-            this.EnsurePosition(entityManager, meshEnt, go);
-            this.EnsureRotation(entityManager, meshEnt, go);
+            if (go.isStatic)
+                entityManager.AddComponentData(meshEnt, new TransformMatrix {Value = go.transform.localToWorldMatrix});
+            else
+            {
+                entityManager.AddComponentData(meshEnt, new TransformMatrix());
+                entityManager.AddComponentData(meshEnt, new TransformParent(ent));
+                entityManager.AddComponentData(meshEnt, new LocalPosition());
+                entityManager.AddComponentData(meshEnt, new LocalRotation(quaternion.identity));
+            }
 
             entityManager.AddSharedComponentData(meshEnt, rend);
         }
@@ -131,59 +127,107 @@ class BoidEntityConversionRule : EntityConvertionRule
 public class PureScene : MonoBehaviour {
 
 	// Use this for initialization
+    private List<EntityConvertionRule> conversionRules;
 	void Start ()
 	{
+	    conversionRules = new List<EntityConvertionRule>();
+	    conversionRules.Add(new MeshEntityConversionRule());
+#if HAVE_BOIDS
+	    conversionRules.Add(new BoidEntityConversionRule());
+#endif
+
 	    var entityManager = World.Active.GetOrCreateManager<EntityManager>();
 
-        ConvertChildren(entityManager, gameObject, new Entity());
-	    /*entityManager.AddComponentData(ent, new Position(gameObject.transform.position));
-	    entityManager.AddComponentData(ent, new Rotation(gameObject.transform.rotation));
-	    entityManager.AddComponentData(ent, new TransformMatrix());
-
-	    var rend = new MeshInstanceRenderer();
-	    rend.mesh = gameObject.GetComponent<MeshFilter>().mesh;
-	    rend.material = gameObject.GetComponent<MeshRenderer>().material;
-	    entityManager.AddSharedComponentData(ent, rend);
-
-	    Destroy(gameObject);
-	    //gameObject.GetComponent<MeshRenderer>().enabled = false;
-	    */
+        ConvertChildren(entityManager, gameObject, Entity.Null);
+        gameObject.SetActive(false);
 	}
 
-    void ConvertChildren(EntityManager entityManager, GameObject go, Entity parent)
+    void ConvertChildren(EntityManager entityManager, GameObject go, Entity transformParent)
     {
-        var converter = new MeshEntityConversionRule();
-#if HAVE_BOIDS
-	    var bconv = new BoidEntityConversionRule();
-#endif
         for (int i = 0; i < go.transform.childCount; ++i)
         {
+            var nextTransParent = Entity.Null;
             var entGo = go.transform.GetChild(i).gameObject;
             if (!entGo.activeSelf)
                 continue;
             var ent = entityManager.CreateEntity();
 
-            /*if (go != gameObject)
+            if (transformParent != Entity.Null && !entGo.isStatic)
             {
-                entityManager.AddComponentData(ent, new TransformParent(parent));
+                entityManager.AddComponentData(ent, new TransformParent(transformParent));
                 entityManager.AddComponentData(ent, new LocalPosition(entGo.transform.localPosition));
                 entityManager.AddComponentData(ent, new LocalRotation(entGo.transform.localRotation));
+                nextTransParent = ent;
             }
-            else if (go.transform.childCount > 0)
+            var allComponents = new HashSet<Component>(entGo.GetComponents<Component>());
+            // No one is allowed to convert the transform directly since it is already added
+            allComponents.Remove(entGo.transform);
+            bool wasConverted = false;
+            foreach (var converter in conversionRules)
             {
-                converter.EnsurePosition(entityManager, ent, entGo);
-                converter.EnsureRotation(entityManager, ent, entGo);
+                bool validRule = true;
+                for (int comp = 0; comp < converter.ConvertedComponents().Length; ++comp)
+                {
+                    var component = entGo.GetComponent(converter.ConvertedComponents()[comp]);
+                    validRule &= component != null && allComponents.Contains(component);
+                }
+
+                if (validRule)
+                {
+                    if (converter.Convert(entityManager, ent, entGo))
+                    {
+                        for (int comp = 0; comp < converter.ConvertedComponents().Length; ++comp)
+                        {
+                            var component = entGo.GetComponent(converter.ConvertedComponents()[comp]);
+                            allComponents.Remove(component);
+                        }
+                        wasConverted = true;
+                    }
+                }
+            }
+
+            if (!wasConverted)
+            {
+                // Entity was now converted and is either not a heiarachy parent or can be skipped in the hierarchy
+                if (transformParent == Entity.Null || entGo.isStatic ||
+                    (entGo.transform.localPosition == Vector3.zero) &&
+                    entGo.transform.localRotation == Quaternion.identity)
+                {
+                    entityManager.DestroyEntity(ent);
+                    nextTransParent = transformParent;
+                }
+            }
+
+            // This entity contains something and is the root of a transform, so make sure it has a proper transform setup
+            if (wasConverted && transformParent == Entity.Null && !entGo.isStatic)
+            {
+                if (entGo.transform.position != Vector3.zero)
+                {
+                    if (!entityManager.HasComponent<Position>(ent))
+                        entityManager.AddComponentData(ent, new Position(entGo.transform.position));
+                }
+                if (entGo.transform.rotation != Quaternion.identity)
+                {
+                    if (!entityManager.HasComponent<Rotation>(ent))
+                        entityManager.AddComponentData(ent, new Rotation(entGo.transform.rotation));
+                }
+                // FIXME: scale
+
+                // If there is any component which can modify the transform of this entity it needs to be a transform parent for its children
+                if (entityManager.HasComponent<Position>(ent) || entityManager.HasComponent<Rotation>(ent) ||
+                    entityManager.HasComponent<TransformMatrix>(ent))
+                    nextTransParent = ent;
+            }
+
+            /*if (allComponents.Count > 0)
+            {
+                Debug.LogError("Object containes components which cannot not be converted", entGo);
             }*/
 
-            converter.Convert(entityManager, ent, entGo);
-#if HAVE_BOIDS
-	        bconv.Convert(entityManager, ent, entGo);
-#endif
-
             if (entGo.transform.childCount > 0)
-                ConvertChildren(entityManager, entGo, ent);
+                ConvertChildren(entityManager, entGo, nextTransParent);
 
-            Destroy(entGo);
+            //Destroy(entGo);
         }
     }
 

@@ -1,18 +1,11 @@
 import argparse
 import os
 import glob
-import json
+import utils
 
 artifactory_url = "https://artifactory.eu-cph-1.unityops.net/"
 artifactory_repository = "core-automation"
 args = None
-
-
-def get_url_json(url):
-    print "  Getting json from {0}".format(url)
-    import urllib2
-    response = urllib2.urlopen(url)
-    return json.loads(response.read())
 
 
 def artifactory_search_for_revision(type):
@@ -22,11 +15,11 @@ def artifactory_search_for_revision(type):
 
     # First we get all the artifacts that match our query
     if '/' not in args.build_version and not args.build_version.startswith("trunk"):
-        artifact_uri = get_url_json("{0}/{1}".format(artifactory_url,
+        artifact_uri = utils.get_url_json("{0}/{1}".format(artifactory_url,
                                                      "api/search/prop?build={1}&type={2}&custom=False&repos={0}".format(
                                                          artifactory_repository, args.build_version, type)))['results']
     else:
-        artifact_uri = get_url_json("{0}/{1}".format(artifactory_url,
+        artifact_uri = utils.get_url_json("{0}/{1}".format(artifactory_url,
                                                      "api/search/prop?build=&type={0}&custom=True&branch={1}&repos={2}".format(
                                                          type, args.build_version, artifactory_repository)))['results']
 
@@ -36,7 +29,7 @@ def artifactory_search_for_revision(type):
     # Here we do a new api request which requests the revision property. Sadly this has to be two separte api calls
     for artifact in artifact_uri:
         # /api/storage/libs-release-local/org/acme?properties\[=x[,y]\]
-        revision_result = get_url_json("{0}?properties=revision".format(artifact['uri']))
+        revision_result = utils.get_url_json("{0}?properties=revision".format(artifact['uri']))
         if revision is None:
             revision = revision_result['properties']['revision'][0]
             continue

@@ -290,7 +290,7 @@ schedule:macOS:run:Samples:mono:2018.1:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -317,7 +317,7 @@ schedule:macOS:run:twostickshooter-classic:mono:2018.1:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Classic/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Classic/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -344,7 +344,7 @@ schedule:macOS:run:twostickshooter-hybrid:mono:2018.1:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Hybrid/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Hybrid/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -371,7 +371,7 @@ schedule:macOS:run:twostickshooter-pure:mono:2018.1:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Pure/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Pure/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -398,7 +398,7 @@ schedule:macOS:run:Samples:il2cpp:2018.1:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -425,7 +425,7 @@ schedule:macOS:run:twostickshooter-classic:il2cpp:2018.1:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Classic/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Classic/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -452,7 +452,7 @@ schedule:macOS:run:twostickshooter-hybrid:il2cpp:2018.1:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Hybrid/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Hybrid/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -479,7 +479,7 @@ schedule:macOS:run:twostickshooter-pure:il2cpp:2018.1:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Pure/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Pure/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -779,7 +779,7 @@ schedule:macOS:run:Samples:mono:2018.2:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -806,7 +806,7 @@ schedule:macOS:run:twostickshooter-classic:mono:2018.2:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Classic/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Classic/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -833,7 +833,7 @@ schedule:macOS:run:twostickshooter-hybrid:mono:2018.2:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Hybrid/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Hybrid/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -860,7 +860,7 @@ schedule:macOS:run:twostickshooter-pure:mono:2018.2:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Pure/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Pure/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -887,7 +887,7 @@ schedule:macOS:run:Samples:il2cpp:2018.2:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -914,7 +914,7 @@ schedule:macOS:run:twostickshooter-classic:il2cpp:2018.2:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Classic/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Classic/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -941,7 +941,7 @@ schedule:macOS:run:twostickshooter-hybrid:il2cpp:2018.2:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Hybrid/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Hybrid/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -968,7 +968,7 @@ schedule:macOS:run:twostickshooter-pure:il2cpp:2018.2:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Pure/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Pure/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -1268,7 +1268,7 @@ schedule:macOS:run:Samples:mono:2018.1_staging:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -1295,7 +1295,7 @@ schedule:macOS:run:twostickshooter-classic:mono:2018.1_staging:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Classic/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Classic/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -1322,7 +1322,7 @@ schedule:macOS:run:twostickshooter-hybrid:mono:2018.1_staging:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Hybrid/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Hybrid/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -1349,7 +1349,7 @@ schedule:macOS:run:twostickshooter-pure:mono:2018.1_staging:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Pure/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Pure/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -1376,7 +1376,7 @@ schedule:macOS:run:Samples:il2cpp:2018.1_staging:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -1403,7 +1403,7 @@ schedule:macOS:run:twostickshooter-classic:il2cpp:2018.1_staging:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Classic/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Classic/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -1430,7 +1430,7 @@ schedule:macOS:run:twostickshooter-hybrid:il2cpp:2018.1_staging:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Hybrid/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Hybrid/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -1457,7 +1457,7 @@ schedule:macOS:run:twostickshooter-pure:il2cpp:2018.1_staging:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Pure/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Pure/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -1757,7 +1757,7 @@ schedule:macOS:run:Samples:mono:2018.2_staging:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -1784,7 +1784,7 @@ schedule:macOS:run:twostickshooter-classic:mono:2018.2_staging:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Classic/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Classic/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -1811,7 +1811,7 @@ schedule:macOS:run:twostickshooter-hybrid:mono:2018.2_staging:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Hybrid/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Hybrid/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -1838,7 +1838,7 @@ schedule:macOS:run:twostickshooter-pure:mono:2018.2_staging:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Pure/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Pure/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -1865,7 +1865,7 @@ schedule:macOS:run:Samples:il2cpp:2018.2_staging:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -1892,7 +1892,7 @@ schedule:macOS:run:twostickshooter-classic:il2cpp:2018.2_staging:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Classic/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Classic/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -1919,7 +1919,7 @@ schedule:macOS:run:twostickshooter-hybrid:il2cpp:2018.2_staging:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Hybrid/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Hybrid/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -1946,7 +1946,7 @@ schedule:macOS:run:twostickshooter-pure:il2cpp:2018.2_staging:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable TwoStickShooter/Pure/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Pure/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -2084,7 +2084,7 @@ macOS:run:Samples:mono:2018.1_staging:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -2111,7 +2111,7 @@ macOS:run:Samples:il2cpp:2018.1_staging:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -2249,7 +2249,7 @@ macOS:run:Samples:mono:2018.2_staging:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -2276,7 +2276,7 @@ macOS:run:Samples:il2cpp:2018.2_staging:
   - buildfarm
   - 10.13.3
   script:
-    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Editor -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always

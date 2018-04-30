@@ -246,7 +246,11 @@ class ValidationStage():
         file.write(name_prefix + "validation:" + _clean_variation(variation) + ":\n")
         file.write("  stage: validation\n")
         file.write("  script:\n")
-        file.write("    - python Tools/CI/validation.py --build-version '{0}' --project-path \"Samples\"\n".format(variation))
+        file.write("    - python Tools/CI/validation.py --build-version '{0}' "
+                   "--package-path Samples/Packages/com.unity.entities "
+                   "--package-path Samples/Packages/com.unity.jobs "
+                   "--package-path Samples/Packages/com.unity.collections\n".format(variation))
+
         if schedule_only:
             file.write("  only:\n")
         else:

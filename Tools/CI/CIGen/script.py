@@ -4,6 +4,8 @@
 import json
 from abc import ABCMeta, abstractmethod
 
+import os
+
 
 def _get_os_argument_delimiter(os):
     os_argument_delimiter = "'"
@@ -52,7 +54,7 @@ class BuildStage(IStage):
             variation) + ":\n")
         file.write("  stage: build\n")
         file.write("  before_script:\n")
-        file.write("    - python Tools/CI/beforescript.py\n")
+        file.write("    - python Tools/CI/beforescript.py Editor\n")
         file.write("  after_script:\n")
         file.write("    - python Tools/CI/afterscript.py\n")
         if schedule_only:
@@ -60,10 +62,12 @@ class BuildStage(IStage):
         else:
             file.write("  except:\n")
         file.write("    - schedules\n")
-        file.write("  tags:\n  - " + tag["name"] + "\n")
+        file.write("  tags:\n")
+        for t in tag['tags']:
+            file.write("  - %s\n" % t)
 
         file.write("  script:\n")
-        file.write("    - dotnet " + tag["unity-launcher-editor"])
+        file.write("    - " + tag["unity-launcher-editor"])
         file.write(" -unityexecutable \"" + tag["unity-path"] + "\"")
         file.write(" -projectpath " + project["path"])
         file.write(" -batchmode")
@@ -132,6 +136,9 @@ class RunStage(IStage):
         file.write(name_prefix + tag["name"] + ":run" + scene_job_name + ":" + backend + ":" + _clean_variation(
             variation) + ":\n")
 
+        file.write("  before_script:\n")
+        file.write("    - python Tools/CI/beforescript.py Player\n")
+
         file.write("  variables:\n    GIT_STRATEGY: fetch\n")
         file.write("  stage: run\n")
         if schedule_only:
@@ -139,10 +146,12 @@ class RunStage(IStage):
         else:
             file.write("  except:\n")
         file.write("    - schedules\n")
-        file.write("  tags:\n  - " + tag["name"] + "\n")
+        file.write("  tags:\n")
+        for t in tag['tags']:
+            file.write("  - %s\n" % t)
 
         file.write("  script:\n")
-        file.write("    - dotnet " + tag["unity-launcher-player"])
+        file.write("    - " + tag["unity-launcher-player"])
         file.write(" -executable " + project["path"] + "/build/" + backend + "/" + tag["name"] + "-standalone" + tag[
             "exe-format"])
 
@@ -186,7 +195,7 @@ class TestStage(IStage):
             file.write(name_prefix + tag["name"] + ":test:" + _clean_variation(variation) + ":\n")
             file.write("  stage: test\n")
             file.write("  before_script:\n")
-            file.write("    - python Tools/CI/beforescript.py\n")
+            file.write("    - python Tools/CI/beforescript.py Editor\n")
             file.write("  after_script:\n")
             file.write("    - python Tools/CI/afterscript.py\n")
             if schedule_only:
@@ -194,9 +203,11 @@ class TestStage(IStage):
             else:
                 file.write("  except:\n")
             file.write("    - schedules\n")
-            file.write("  tags:\n  - " + tag["name"] + "\n")
+            file.write("  tags:\n")
+            for t in tag['tags']:
+                file.write("  - %s\n" % t)
             file.write("  script:\n")
-            file.write("    - dotnet " + tag["unity-launcher-editor"])
+            file.write("    - " + tag["unity-launcher-editor"])
             file.write(" -unityexecutable \"" + tag["unity-path"] + "\"")
             file.write(" -projectpath " + project["path"])
             file.write(" -batchmode")
@@ -241,7 +252,11 @@ class ValidationStage():
         else:
             file.write("  except:\n")
         file.write("    - schedules\n")
-        file.write("  tags:\n  - macOS\n")
+        file.write("  tags:\n")
+        file.write("  - darwin\n")
+        file.write("  - buildfarm\n")
+        file.write("  - 10.13.3\n")
+
         file.write("  artifacts:\n")
         file.write("    when: always\n")
         file.write("    paths:\n")
@@ -329,10 +344,10 @@ def _clean_variation(variation):
     return variation
 
 def main():
-    jsonFile = open("file.json").read()
+    jsonFile = open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "file.json")).read()
     configData = json.loads(jsonFile)
 
-    file=open("gitlab-ci.yml","w")
+    file=open(".gitlab-ci.yml","w")
 
     generate(file, configData)
 

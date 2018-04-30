@@ -15,14 +15,16 @@ def _get_os_argument_delimiter(os):
 class IStage(object):
     __metaclass__ = metaclass = ABCMeta
 
-    _name=""
+    _name = ""
 
     @abstractmethod
     def generate(self, file, tag, variation, projects, backends, schedule_only, dependencyStage):
         pass
 
+
 class BuildStage(IStage):
-    _name="build"
+    _name = "build"
+
     def generate(self, file, tag, variation, projects, backends, schedule_only, dependencyStage):
         for backend in backends:
             for project in projects:
@@ -79,7 +81,8 @@ class BuildStage(IStage):
             scene_log_argument = "-%s" % scene_name
         file.write(
             " -logfile " + "output-" + tag["name"] + scene_log_argument + "-build-" + backend + ".log")
-        file.write(" -cleanedLogFile " + "output-" + tag["name"] + scene_log_argument + "-build-" + backend + "-cleaned.log")
+        file.write(
+            " -cleanedLogFile " + "output-" + tag["name"] + scene_log_argument + "-build-" + backend + "-cleaned.log")
         file.write(" -quit")
         if scene:
             file.write(" -scene " + scene["path"])
@@ -104,7 +107,8 @@ class BuildStage(IStage):
 
 
 class RunStage(IStage):
-    _name="run"
+    _name = "run"
+
     def generate(self, file, tag, variation, projects, backends, schedule_only, dependencyStage):
         for backend in backends:
             for project in projects:
@@ -151,7 +155,8 @@ class RunStage(IStage):
             scene_log_argument = "-%s" % scene_name
         file.write(
             " -logfile " + "output-" + tag["name"] + scene_log_argument + "-run-" + backend + ".log")
-        file.write(" -cleanedLogFile " + "output-" + tag["name"] + scene_log_argument + "-run-" + backend + "-cleaned.log")
+        file.write(
+            " -cleanedLogFile " + "output-" + tag["name"] + scene_log_argument + "-run-" + backend + "-cleaned.log")
         if scene:
             file.write(" -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore\n")
         else:
@@ -168,14 +173,17 @@ class RunStage(IStage):
         file.write("    expire_in: 1 week\n")
         if dependencyStage:
             file.write("  dependencies:\n")
-            file.write("    - " + name_prefix + tag["name"] + ":" + dependencyStage + scene_job_name + ":" + backend + ":" + _clean_variation(variation) + "\n")
+            file.write("    - " + name_prefix + tag[
+                "name"] + ":" + dependencyStage + scene_job_name + ":" + backend + ":" + _clean_variation(
+                variation) + "\n")
             file.write("\n")
         file.write("\n")
         pass
 
 
 class TestStage(IStage):
-    _name="test"
+    _name = "test"
+
     def generate(self, file, tag, variation, projects, backends, schedule_only, dependencyStage):
         for project in projects:
             if self._name in project["skip-stage"]:
@@ -200,8 +208,8 @@ class TestStage(IStage):
             file.write(" -unityexecutable \"" + tag["unity-path"] + "\"")
             file.write(" -projectpath " + project["path"])
             file.write(" -batchmode")
-            # TODO: Figure out why this one has started casuing test execution to fail if it is set
-            #file.write(" -nographics")
+            # TODO: Figure out why this one has started causing test execution to fail if it is set
+            # file.write(" -nographics")
             file.write(" -silentcrashes")
             file.write(" -automated")
             file.write(" -logfile " + "output-" + tag["name"] + "-test.log")
@@ -219,14 +227,14 @@ class TestStage(IStage):
             file.write("    expire_in: 1 week\n")
             if dependencyStage:
                 file.write("  dependencies:\n")
-                file.write("    - " + name_prefix + dependencyStage + ":" +_clean_variation(variation) + "\n")
+                file.write("    - " + name_prefix + dependencyStage + ":" + _clean_variation(variation) + "\n")
                 file.write("\n")
 
             file.write("\n")
 
 
 class ValidationStage():
-    _name="validation"
+    _name = "validation"
 
     def generate(self, file, tag, variation, projects, backends, schedule_only, dependencyStage):
         name_prefix = ""
@@ -235,13 +243,17 @@ class ValidationStage():
         file.write(name_prefix + "validation:" + _clean_variation(variation) + ":\n")
         file.write("  stage: validation\n")
         file.write("  script:\n")
-        file.write("    - python Tools/CI/validation.py --build-version '{0}' --project-path \"Samples\"\n".format(variation))
+        file.write("    - python Tools/CI/validation.py --build-version '{0}' "
+                   "--package-path Samples/Packages/com.unity.entities "
+                   "--package-path Samples/Packages/com.unity.jobs "
+                   "--package-path Samples/Packages/com.unity.collections\n".format(variation))
+
         if schedule_only:
             file.write("  only:\n")
         else:
             file.write("  except:\n")
         file.write("    - schedules\n")
-        file.write("  tags:\n  - macOS\n")
+        file.write("  tags:\n    - macOS\n")
         file.write("  artifacts:\n")
         file.write("    when: always\n")
         file.write("    paths:\n")
@@ -251,6 +263,7 @@ class ValidationStage():
         file.write("    expire_in: 1 week\n")
 
         file.write("\n")
+
 
 class StageFactory(object):
     def produce(stageName):
@@ -328,11 +341,12 @@ def _clean_variation(variation):
         i += 1
     return variation
 
+
 def main():
     jsonFile = open("file.json").read()
     configData = json.loads(jsonFile)
 
-    file=open("gitlab-ci.yml","w")
+    file = open("gitlab-ci.yml", "w")
 
     generate(file, configData)
 

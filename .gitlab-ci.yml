@@ -14,7 +14,9 @@ schedule:validation:2018.1:
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   artifacts:
     when: always
     paths:
@@ -29,15 +31,16 @@ schedule:validation:2018.1:
 schedule:windows:test:2018.1:
   stage: test
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-windows-test.log -runtests -testresults results.xml
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-windows-test.log -runtests -testresults results.xml
   artifacts:
     name: "artifacts-windows-test"
     when: always
@@ -57,15 +60,17 @@ schedule:windows:test:2018.1:
 schedule:windows:build:Samples:mono:2018.1:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -82,15 +87,17 @@ schedule:windows:build:Samples:mono:2018.1:
 schedule:windows:build:twostickshooter-classic:mono:2018.1:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-mono.log -cleanedLogFile output-windows-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-mono.log -cleanedLogFile output-windows-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -107,15 +114,17 @@ schedule:windows:build:twostickshooter-classic:mono:2018.1:
 schedule:windows:build:twostickshooter-hybrid:mono:2018.1:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -132,15 +141,17 @@ schedule:windows:build:twostickshooter-hybrid:mono:2018.1:
 schedule:windows:build:twostickshooter-pure:mono:2018.1:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-mono.log -cleanedLogFile output-windows-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-mono.log -cleanedLogFile output-windows-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -157,15 +168,17 @@ schedule:windows:build:twostickshooter-pure:mono:2018.1:
 schedule:windows:build:Samples:il2cpp:2018.1:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -182,15 +195,17 @@ schedule:windows:build:Samples:il2cpp:2018.1:
 schedule:windows:build:twostickshooter-classic:il2cpp:2018.1:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -207,15 +222,17 @@ schedule:windows:build:twostickshooter-classic:il2cpp:2018.1:
 schedule:windows:build:twostickshooter-hybrid:il2cpp:2018.1:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -232,15 +249,17 @@ schedule:windows:build:twostickshooter-hybrid:il2cpp:2018.1:
 schedule:windows:build:twostickshooter-pure:il2cpp:2018.1:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -258,6 +277,8 @@ schedule:windows:build:twostickshooter-pure:il2cpp:2018.1:
 # windows run for 2018.1
 ################################################################################
 schedule:windows:run:Samples:mono:2018.1:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -265,8 +286,9 @@ schedule:windows:run:Samples:mono:2018.1:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -281,6 +303,8 @@ schedule:windows:run:Samples:mono:2018.1:
 
 
 schedule:windows:run:twostickshooter-classic:mono:2018.1:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -288,8 +312,9 @@ schedule:windows:run:twostickshooter-classic:mono:2018.1:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-mono.log -cleanedLogFile output-windows-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Classic/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-mono.log -cleanedLogFile output-windows-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -304,6 +329,8 @@ schedule:windows:run:twostickshooter-classic:mono:2018.1:
 
 
 schedule:windows:run:twostickshooter-hybrid:mono:2018.1:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -311,8 +338,9 @@ schedule:windows:run:twostickshooter-hybrid:mono:2018.1:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Hybrid/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -327,6 +355,8 @@ schedule:windows:run:twostickshooter-hybrid:mono:2018.1:
 
 
 schedule:windows:run:twostickshooter-pure:mono:2018.1:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -334,8 +364,9 @@ schedule:windows:run:twostickshooter-pure:mono:2018.1:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-mono.log -cleanedLogFile output-windows-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Pure/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-mono.log -cleanedLogFile output-windows-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -350,6 +381,8 @@ schedule:windows:run:twostickshooter-pure:mono:2018.1:
 
 
 schedule:windows:run:Samples:il2cpp:2018.1:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -357,8 +390,9 @@ schedule:windows:run:Samples:il2cpp:2018.1:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -373,6 +407,8 @@ schedule:windows:run:Samples:il2cpp:2018.1:
 
 
 schedule:windows:run:twostickshooter-classic:il2cpp:2018.1:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -380,8 +416,9 @@ schedule:windows:run:twostickshooter-classic:il2cpp:2018.1:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Classic/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -396,6 +433,8 @@ schedule:windows:run:twostickshooter-classic:il2cpp:2018.1:
 
 
 schedule:windows:run:twostickshooter-hybrid:il2cpp:2018.1:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -403,8 +442,9 @@ schedule:windows:run:twostickshooter-hybrid:il2cpp:2018.1:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Hybrid/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -419,6 +459,8 @@ schedule:windows:run:twostickshooter-hybrid:il2cpp:2018.1:
 
 
 schedule:windows:run:twostickshooter-pure:il2cpp:2018.1:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -426,8 +468,9 @@ schedule:windows:run:twostickshooter-pure:il2cpp:2018.1:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Pure/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -447,15 +490,17 @@ schedule:windows:run:twostickshooter-pure:il2cpp:2018.1:
 schedule:macOS:test:2018.1:
   stage: test
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-macOS-test.log -runtests -testresults results.xml
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-macOS-test.log -runtests -testresults results.xml
   artifacts:
     name: "artifacts-macOS-test"
     when: always
@@ -475,15 +520,17 @@ schedule:macOS:test:2018.1:
 schedule:macOS:build:Samples:mono:2018.1:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-mono.log -cleanedLogFile output-macOS-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-mono.log -cleanedLogFile output-macOS-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -500,15 +547,17 @@ schedule:macOS:build:Samples:mono:2018.1:
 schedule:macOS:build:twostickshooter-classic:mono:2018.1:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -525,15 +574,17 @@ schedule:macOS:build:twostickshooter-classic:mono:2018.1:
 schedule:macOS:build:twostickshooter-hybrid:mono:2018.1:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -550,15 +601,17 @@ schedule:macOS:build:twostickshooter-hybrid:mono:2018.1:
 schedule:macOS:build:twostickshooter-pure:mono:2018.1:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -575,15 +628,17 @@ schedule:macOS:build:twostickshooter-pure:mono:2018.1:
 schedule:macOS:build:Samples:il2cpp:2018.1:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-il2cpp.log -cleanedLogFile output-macOS-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-il2cpp.log -cleanedLogFile output-macOS-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -600,15 +655,17 @@ schedule:macOS:build:Samples:il2cpp:2018.1:
 schedule:macOS:build:twostickshooter-classic:il2cpp:2018.1:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -625,15 +682,17 @@ schedule:macOS:build:twostickshooter-classic:il2cpp:2018.1:
 schedule:macOS:build:twostickshooter-hybrid:il2cpp:2018.1:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -650,15 +709,17 @@ schedule:macOS:build:twostickshooter-hybrid:il2cpp:2018.1:
 schedule:macOS:build:twostickshooter-pure:il2cpp:2018.1:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -676,15 +737,19 @@ schedule:macOS:build:twostickshooter-pure:il2cpp:2018.1:
 # macOS run for 2018.1
 ################################################################################
 schedule:macOS:run:Samples:mono:2018.1:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -699,15 +764,19 @@ schedule:macOS:run:Samples:mono:2018.1:
 
 
 schedule:macOS:run:twostickshooter-classic:mono:2018.1:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Classic/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -722,15 +791,19 @@ schedule:macOS:run:twostickshooter-classic:mono:2018.1:
 
 
 schedule:macOS:run:twostickshooter-hybrid:mono:2018.1:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Hybrid/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -745,15 +818,19 @@ schedule:macOS:run:twostickshooter-hybrid:mono:2018.1:
 
 
 schedule:macOS:run:twostickshooter-pure:mono:2018.1:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Pure/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -768,15 +845,19 @@ schedule:macOS:run:twostickshooter-pure:mono:2018.1:
 
 
 schedule:macOS:run:Samples:il2cpp:2018.1:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -791,15 +872,19 @@ schedule:macOS:run:Samples:il2cpp:2018.1:
 
 
 schedule:macOS:run:twostickshooter-classic:il2cpp:2018.1:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Classic/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -814,15 +899,19 @@ schedule:macOS:run:twostickshooter-classic:il2cpp:2018.1:
 
 
 schedule:macOS:run:twostickshooter-hybrid:il2cpp:2018.1:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Hybrid/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -837,15 +926,19 @@ schedule:macOS:run:twostickshooter-hybrid:il2cpp:2018.1:
 
 
 schedule:macOS:run:twostickshooter-pure:il2cpp:2018.1:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Pure/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -869,7 +962,9 @@ schedule:validation:2018.2:
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   artifacts:
     when: always
     paths:
@@ -884,15 +979,16 @@ schedule:validation:2018.2:
 schedule:windows:test:2018.2:
   stage: test
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-windows-test.log -runtests -testresults results.xml
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-windows-test.log -runtests -testresults results.xml
   artifacts:
     name: "artifacts-windows-test"
     when: always
@@ -912,15 +1008,17 @@ schedule:windows:test:2018.2:
 schedule:windows:build:Samples:mono:2018.2:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -937,15 +1035,17 @@ schedule:windows:build:Samples:mono:2018.2:
 schedule:windows:build:twostickshooter-classic:mono:2018.2:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-mono.log -cleanedLogFile output-windows-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-mono.log -cleanedLogFile output-windows-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -962,15 +1062,17 @@ schedule:windows:build:twostickshooter-classic:mono:2018.2:
 schedule:windows:build:twostickshooter-hybrid:mono:2018.2:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -987,15 +1089,17 @@ schedule:windows:build:twostickshooter-hybrid:mono:2018.2:
 schedule:windows:build:twostickshooter-pure:mono:2018.2:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-mono.log -cleanedLogFile output-windows-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-mono.log -cleanedLogFile output-windows-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -1012,15 +1116,17 @@ schedule:windows:build:twostickshooter-pure:mono:2018.2:
 schedule:windows:build:Samples:il2cpp:2018.2:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -1037,15 +1143,17 @@ schedule:windows:build:Samples:il2cpp:2018.2:
 schedule:windows:build:twostickshooter-classic:il2cpp:2018.2:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -1062,15 +1170,17 @@ schedule:windows:build:twostickshooter-classic:il2cpp:2018.2:
 schedule:windows:build:twostickshooter-hybrid:il2cpp:2018.2:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -1087,15 +1197,17 @@ schedule:windows:build:twostickshooter-hybrid:il2cpp:2018.2:
 schedule:windows:build:twostickshooter-pure:il2cpp:2018.2:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -1113,6 +1225,8 @@ schedule:windows:build:twostickshooter-pure:il2cpp:2018.2:
 # windows run for 2018.2
 ################################################################################
 schedule:windows:run:Samples:mono:2018.2:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1120,8 +1234,9 @@ schedule:windows:run:Samples:mono:2018.2:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -1136,6 +1251,8 @@ schedule:windows:run:Samples:mono:2018.2:
 
 
 schedule:windows:run:twostickshooter-classic:mono:2018.2:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1143,8 +1260,9 @@ schedule:windows:run:twostickshooter-classic:mono:2018.2:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-mono.log -cleanedLogFile output-windows-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Classic/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-mono.log -cleanedLogFile output-windows-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -1159,6 +1277,8 @@ schedule:windows:run:twostickshooter-classic:mono:2018.2:
 
 
 schedule:windows:run:twostickshooter-hybrid:mono:2018.2:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1166,8 +1286,9 @@ schedule:windows:run:twostickshooter-hybrid:mono:2018.2:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Hybrid/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -1182,6 +1303,8 @@ schedule:windows:run:twostickshooter-hybrid:mono:2018.2:
 
 
 schedule:windows:run:twostickshooter-pure:mono:2018.2:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1189,8 +1312,9 @@ schedule:windows:run:twostickshooter-pure:mono:2018.2:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-mono.log -cleanedLogFile output-windows-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Pure/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-mono.log -cleanedLogFile output-windows-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -1205,6 +1329,8 @@ schedule:windows:run:twostickshooter-pure:mono:2018.2:
 
 
 schedule:windows:run:Samples:il2cpp:2018.2:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1212,8 +1338,9 @@ schedule:windows:run:Samples:il2cpp:2018.2:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -1228,6 +1355,8 @@ schedule:windows:run:Samples:il2cpp:2018.2:
 
 
 schedule:windows:run:twostickshooter-classic:il2cpp:2018.2:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1235,8 +1364,9 @@ schedule:windows:run:twostickshooter-classic:il2cpp:2018.2:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Classic/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -1251,6 +1381,8 @@ schedule:windows:run:twostickshooter-classic:il2cpp:2018.2:
 
 
 schedule:windows:run:twostickshooter-hybrid:il2cpp:2018.2:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1258,8 +1390,9 @@ schedule:windows:run:twostickshooter-hybrid:il2cpp:2018.2:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Hybrid/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -1274,6 +1407,8 @@ schedule:windows:run:twostickshooter-hybrid:il2cpp:2018.2:
 
 
 schedule:windows:run:twostickshooter-pure:il2cpp:2018.2:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1281,8 +1416,9 @@ schedule:windows:run:twostickshooter-pure:il2cpp:2018.2:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Pure/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -1302,15 +1438,17 @@ schedule:windows:run:twostickshooter-pure:il2cpp:2018.2:
 schedule:macOS:test:2018.2:
   stage: test
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-macOS-test.log -runtests -testresults results.xml
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-macOS-test.log -runtests -testresults results.xml
   artifacts:
     name: "artifacts-macOS-test"
     when: always
@@ -1330,15 +1468,17 @@ schedule:macOS:test:2018.2:
 schedule:macOS:build:Samples:mono:2018.2:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-mono.log -cleanedLogFile output-macOS-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-mono.log -cleanedLogFile output-macOS-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -1355,15 +1495,17 @@ schedule:macOS:build:Samples:mono:2018.2:
 schedule:macOS:build:twostickshooter-classic:mono:2018.2:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -1380,15 +1522,17 @@ schedule:macOS:build:twostickshooter-classic:mono:2018.2:
 schedule:macOS:build:twostickshooter-hybrid:mono:2018.2:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -1405,15 +1549,17 @@ schedule:macOS:build:twostickshooter-hybrid:mono:2018.2:
 schedule:macOS:build:twostickshooter-pure:mono:2018.2:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -1430,15 +1576,17 @@ schedule:macOS:build:twostickshooter-pure:mono:2018.2:
 schedule:macOS:build:Samples:il2cpp:2018.2:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-il2cpp.log -cleanedLogFile output-macOS-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-il2cpp.log -cleanedLogFile output-macOS-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -1455,15 +1603,17 @@ schedule:macOS:build:Samples:il2cpp:2018.2:
 schedule:macOS:build:twostickshooter-classic:il2cpp:2018.2:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -1480,15 +1630,17 @@ schedule:macOS:build:twostickshooter-classic:il2cpp:2018.2:
 schedule:macOS:build:twostickshooter-hybrid:il2cpp:2018.2:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -1505,15 +1657,17 @@ schedule:macOS:build:twostickshooter-hybrid:il2cpp:2018.2:
 schedule:macOS:build:twostickshooter-pure:il2cpp:2018.2:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -1531,15 +1685,19 @@ schedule:macOS:build:twostickshooter-pure:il2cpp:2018.2:
 # macOS run for 2018.2
 ################################################################################
 schedule:macOS:run:Samples:mono:2018.2:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -1554,15 +1712,19 @@ schedule:macOS:run:Samples:mono:2018.2:
 
 
 schedule:macOS:run:twostickshooter-classic:mono:2018.2:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Classic/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -1577,15 +1739,19 @@ schedule:macOS:run:twostickshooter-classic:mono:2018.2:
 
 
 schedule:macOS:run:twostickshooter-hybrid:mono:2018.2:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Hybrid/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -1600,15 +1766,19 @@ schedule:macOS:run:twostickshooter-hybrid:mono:2018.2:
 
 
 schedule:macOS:run:twostickshooter-pure:mono:2018.2:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Pure/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -1623,15 +1793,19 @@ schedule:macOS:run:twostickshooter-pure:mono:2018.2:
 
 
 schedule:macOS:run:Samples:il2cpp:2018.2:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -1646,15 +1820,19 @@ schedule:macOS:run:Samples:il2cpp:2018.2:
 
 
 schedule:macOS:run:twostickshooter-classic:il2cpp:2018.2:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Classic/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -1669,15 +1847,19 @@ schedule:macOS:run:twostickshooter-classic:il2cpp:2018.2:
 
 
 schedule:macOS:run:twostickshooter-hybrid:il2cpp:2018.2:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Hybrid/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -1692,15 +1874,19 @@ schedule:macOS:run:twostickshooter-hybrid:il2cpp:2018.2:
 
 
 schedule:macOS:run:twostickshooter-pure:il2cpp:2018.2:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Pure/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -1724,7 +1910,9 @@ schedule:validation:2018.1_staging:
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   artifacts:
     when: always
     paths:
@@ -1739,15 +1927,16 @@ schedule:validation:2018.1_staging:
 schedule:windows:test:2018.1_staging:
   stage: test
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-windows-test.log -runtests -testresults results.xml
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-windows-test.log -runtests -testresults results.xml
   artifacts:
     name: "artifacts-windows-test"
     when: always
@@ -1767,15 +1956,17 @@ schedule:windows:test:2018.1_staging:
 schedule:windows:build:Samples:mono:2018.1_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -1792,15 +1983,17 @@ schedule:windows:build:Samples:mono:2018.1_staging:
 schedule:windows:build:twostickshooter-classic:mono:2018.1_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-mono.log -cleanedLogFile output-windows-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-mono.log -cleanedLogFile output-windows-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -1817,15 +2010,17 @@ schedule:windows:build:twostickshooter-classic:mono:2018.1_staging:
 schedule:windows:build:twostickshooter-hybrid:mono:2018.1_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -1842,15 +2037,17 @@ schedule:windows:build:twostickshooter-hybrid:mono:2018.1_staging:
 schedule:windows:build:twostickshooter-pure:mono:2018.1_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-mono.log -cleanedLogFile output-windows-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-mono.log -cleanedLogFile output-windows-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -1867,15 +2064,17 @@ schedule:windows:build:twostickshooter-pure:mono:2018.1_staging:
 schedule:windows:build:Samples:il2cpp:2018.1_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -1892,15 +2091,17 @@ schedule:windows:build:Samples:il2cpp:2018.1_staging:
 schedule:windows:build:twostickshooter-classic:il2cpp:2018.1_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -1917,15 +2118,17 @@ schedule:windows:build:twostickshooter-classic:il2cpp:2018.1_staging:
 schedule:windows:build:twostickshooter-hybrid:il2cpp:2018.1_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -1942,15 +2145,17 @@ schedule:windows:build:twostickshooter-hybrid:il2cpp:2018.1_staging:
 schedule:windows:build:twostickshooter-pure:il2cpp:2018.1_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -1968,6 +2173,8 @@ schedule:windows:build:twostickshooter-pure:il2cpp:2018.1_staging:
 # windows run for 2018.1_staging
 ################################################################################
 schedule:windows:run:Samples:mono:2018.1_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1975,8 +2182,9 @@ schedule:windows:run:Samples:mono:2018.1_staging:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -1991,6 +2199,8 @@ schedule:windows:run:Samples:mono:2018.1_staging:
 
 
 schedule:windows:run:twostickshooter-classic:mono:2018.1_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -1998,8 +2208,9 @@ schedule:windows:run:twostickshooter-classic:mono:2018.1_staging:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-mono.log -cleanedLogFile output-windows-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Classic/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-mono.log -cleanedLogFile output-windows-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -2014,6 +2225,8 @@ schedule:windows:run:twostickshooter-classic:mono:2018.1_staging:
 
 
 schedule:windows:run:twostickshooter-hybrid:mono:2018.1_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2021,8 +2234,9 @@ schedule:windows:run:twostickshooter-hybrid:mono:2018.1_staging:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Hybrid/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -2037,6 +2251,8 @@ schedule:windows:run:twostickshooter-hybrid:mono:2018.1_staging:
 
 
 schedule:windows:run:twostickshooter-pure:mono:2018.1_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2044,8 +2260,9 @@ schedule:windows:run:twostickshooter-pure:mono:2018.1_staging:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-mono.log -cleanedLogFile output-windows-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Pure/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-mono.log -cleanedLogFile output-windows-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -2060,6 +2277,8 @@ schedule:windows:run:twostickshooter-pure:mono:2018.1_staging:
 
 
 schedule:windows:run:Samples:il2cpp:2018.1_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2067,8 +2286,9 @@ schedule:windows:run:Samples:il2cpp:2018.1_staging:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -2083,6 +2303,8 @@ schedule:windows:run:Samples:il2cpp:2018.1_staging:
 
 
 schedule:windows:run:twostickshooter-classic:il2cpp:2018.1_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2090,8 +2312,9 @@ schedule:windows:run:twostickshooter-classic:il2cpp:2018.1_staging:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Classic/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -2106,6 +2329,8 @@ schedule:windows:run:twostickshooter-classic:il2cpp:2018.1_staging:
 
 
 schedule:windows:run:twostickshooter-hybrid:il2cpp:2018.1_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2113,8 +2338,9 @@ schedule:windows:run:twostickshooter-hybrid:il2cpp:2018.1_staging:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Hybrid/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -2129,6 +2355,8 @@ schedule:windows:run:twostickshooter-hybrid:il2cpp:2018.1_staging:
 
 
 schedule:windows:run:twostickshooter-pure:il2cpp:2018.1_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2136,8 +2364,9 @@ schedule:windows:run:twostickshooter-pure:il2cpp:2018.1_staging:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Pure/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -2157,15 +2386,17 @@ schedule:windows:run:twostickshooter-pure:il2cpp:2018.1_staging:
 schedule:macOS:test:2018.1_staging:
   stage: test
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-macOS-test.log -runtests -testresults results.xml
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-macOS-test.log -runtests -testresults results.xml
   artifacts:
     name: "artifacts-macOS-test"
     when: always
@@ -2185,15 +2416,17 @@ schedule:macOS:test:2018.1_staging:
 schedule:macOS:build:Samples:mono:2018.1_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-mono.log -cleanedLogFile output-macOS-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-mono.log -cleanedLogFile output-macOS-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -2210,15 +2443,17 @@ schedule:macOS:build:Samples:mono:2018.1_staging:
 schedule:macOS:build:twostickshooter-classic:mono:2018.1_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -2235,15 +2470,17 @@ schedule:macOS:build:twostickshooter-classic:mono:2018.1_staging:
 schedule:macOS:build:twostickshooter-hybrid:mono:2018.1_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -2260,15 +2497,17 @@ schedule:macOS:build:twostickshooter-hybrid:mono:2018.1_staging:
 schedule:macOS:build:twostickshooter-pure:mono:2018.1_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -2285,15 +2524,17 @@ schedule:macOS:build:twostickshooter-pure:mono:2018.1_staging:
 schedule:macOS:build:Samples:il2cpp:2018.1_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-il2cpp.log -cleanedLogFile output-macOS-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-il2cpp.log -cleanedLogFile output-macOS-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -2310,15 +2551,17 @@ schedule:macOS:build:Samples:il2cpp:2018.1_staging:
 schedule:macOS:build:twostickshooter-classic:il2cpp:2018.1_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -2335,15 +2578,17 @@ schedule:macOS:build:twostickshooter-classic:il2cpp:2018.1_staging:
 schedule:macOS:build:twostickshooter-hybrid:il2cpp:2018.1_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -2360,15 +2605,17 @@ schedule:macOS:build:twostickshooter-hybrid:il2cpp:2018.1_staging:
 schedule:macOS:build:twostickshooter-pure:il2cpp:2018.1_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -2386,15 +2633,19 @@ schedule:macOS:build:twostickshooter-pure:il2cpp:2018.1_staging:
 # macOS run for 2018.1_staging
 ################################################################################
 schedule:macOS:run:Samples:mono:2018.1_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -2409,15 +2660,19 @@ schedule:macOS:run:Samples:mono:2018.1_staging:
 
 
 schedule:macOS:run:twostickshooter-classic:mono:2018.1_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Classic/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -2432,15 +2687,19 @@ schedule:macOS:run:twostickshooter-classic:mono:2018.1_staging:
 
 
 schedule:macOS:run:twostickshooter-hybrid:mono:2018.1_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Hybrid/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -2455,15 +2714,19 @@ schedule:macOS:run:twostickshooter-hybrid:mono:2018.1_staging:
 
 
 schedule:macOS:run:twostickshooter-pure:mono:2018.1_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Pure/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -2478,15 +2741,19 @@ schedule:macOS:run:twostickshooter-pure:mono:2018.1_staging:
 
 
 schedule:macOS:run:Samples:il2cpp:2018.1_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -2501,15 +2768,19 @@ schedule:macOS:run:Samples:il2cpp:2018.1_staging:
 
 
 schedule:macOS:run:twostickshooter-classic:il2cpp:2018.1_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Classic/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -2524,15 +2795,19 @@ schedule:macOS:run:twostickshooter-classic:il2cpp:2018.1_staging:
 
 
 schedule:macOS:run:twostickshooter-hybrid:il2cpp:2018.1_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Hybrid/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -2547,15 +2822,19 @@ schedule:macOS:run:twostickshooter-hybrid:il2cpp:2018.1_staging:
 
 
 schedule:macOS:run:twostickshooter-pure:il2cpp:2018.1_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Pure/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -2579,7 +2858,9 @@ schedule:validation:2018.2_staging:
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   artifacts:
     when: always
     paths:
@@ -2594,15 +2875,16 @@ schedule:validation:2018.2_staging:
 schedule:windows:test:2018.2_staging:
   stage: test
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-windows-test.log -runtests -testresults results.xml
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-windows-test.log -runtests -testresults results.xml
   artifacts:
     name: "artifacts-windows-test"
     when: always
@@ -2622,15 +2904,17 @@ schedule:windows:test:2018.2_staging:
 schedule:windows:build:Samples:mono:2018.2_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -2647,15 +2931,17 @@ schedule:windows:build:Samples:mono:2018.2_staging:
 schedule:windows:build:twostickshooter-classic:mono:2018.2_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-mono.log -cleanedLogFile output-windows-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-mono.log -cleanedLogFile output-windows-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -2672,15 +2958,17 @@ schedule:windows:build:twostickshooter-classic:mono:2018.2_staging:
 schedule:windows:build:twostickshooter-hybrid:mono:2018.2_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -2697,15 +2985,17 @@ schedule:windows:build:twostickshooter-hybrid:mono:2018.2_staging:
 schedule:windows:build:twostickshooter-pure:mono:2018.2_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-mono.log -cleanedLogFile output-windows-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-mono.log -cleanedLogFile output-windows-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -2722,15 +3012,17 @@ schedule:windows:build:twostickshooter-pure:mono:2018.2_staging:
 schedule:windows:build:Samples:il2cpp:2018.2_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -2747,15 +3039,17 @@ schedule:windows:build:Samples:il2cpp:2018.2_staging:
 schedule:windows:build:twostickshooter-classic:il2cpp:2018.2_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -2772,15 +3066,17 @@ schedule:windows:build:twostickshooter-classic:il2cpp:2018.2_staging:
 schedule:windows:build:twostickshooter-hybrid:il2cpp:2018.2_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -2797,15 +3093,17 @@ schedule:windows:build:twostickshooter-hybrid:il2cpp:2018.2_staging:
 schedule:windows:build:twostickshooter-pure:il2cpp:2018.2_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -2823,6 +3121,8 @@ schedule:windows:build:twostickshooter-pure:il2cpp:2018.2_staging:
 # windows run for 2018.2_staging
 ################################################################################
 schedule:windows:run:Samples:mono:2018.2_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2830,8 +3130,9 @@ schedule:windows:run:Samples:mono:2018.2_staging:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -2846,6 +3147,8 @@ schedule:windows:run:Samples:mono:2018.2_staging:
 
 
 schedule:windows:run:twostickshooter-classic:mono:2018.2_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2853,8 +3156,9 @@ schedule:windows:run:twostickshooter-classic:mono:2018.2_staging:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-mono.log -cleanedLogFile output-windows-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Classic/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-mono.log -cleanedLogFile output-windows-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -2869,6 +3173,8 @@ schedule:windows:run:twostickshooter-classic:mono:2018.2_staging:
 
 
 schedule:windows:run:twostickshooter-hybrid:mono:2018.2_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2876,8 +3182,9 @@ schedule:windows:run:twostickshooter-hybrid:mono:2018.2_staging:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Hybrid/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -2892,6 +3199,8 @@ schedule:windows:run:twostickshooter-hybrid:mono:2018.2_staging:
 
 
 schedule:windows:run:twostickshooter-pure:mono:2018.2_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2899,8 +3208,9 @@ schedule:windows:run:twostickshooter-pure:mono:2018.2_staging:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-mono.log -cleanedLogFile output-windows-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Pure/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-mono.log -cleanedLogFile output-windows-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -2915,6 +3225,8 @@ schedule:windows:run:twostickshooter-pure:mono:2018.2_staging:
 
 
 schedule:windows:run:Samples:il2cpp:2018.2_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2922,8 +3234,9 @@ schedule:windows:run:Samples:il2cpp:2018.2_staging:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -2938,6 +3251,8 @@ schedule:windows:run:Samples:il2cpp:2018.2_staging:
 
 
 schedule:windows:run:twostickshooter-classic:il2cpp:2018.2_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2945,8 +3260,9 @@ schedule:windows:run:twostickshooter-classic:il2cpp:2018.2_staging:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Classic/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -2961,6 +3277,8 @@ schedule:windows:run:twostickshooter-classic:il2cpp:2018.2_staging:
 
 
 schedule:windows:run:twostickshooter-hybrid:il2cpp:2018.2_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2968,8 +3286,9 @@ schedule:windows:run:twostickshooter-hybrid:il2cpp:2018.2_staging:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Hybrid/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -2984,6 +3303,8 @@ schedule:windows:run:twostickshooter-hybrid:il2cpp:2018.2_staging:
 
 
 schedule:windows:run:twostickshooter-pure:il2cpp:2018.2_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -2991,8 +3312,9 @@ schedule:windows:run:twostickshooter-pure:il2cpp:2018.2_staging:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Pure/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -3012,15 +3334,17 @@ schedule:windows:run:twostickshooter-pure:il2cpp:2018.2_staging:
 schedule:macOS:test:2018.2_staging:
   stage: test
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-macOS-test.log -runtests -testresults results.xml
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-macOS-test.log -runtests -testresults results.xml
   artifacts:
     name: "artifacts-macOS-test"
     when: always
@@ -3040,15 +3364,17 @@ schedule:macOS:test:2018.2_staging:
 schedule:macOS:build:Samples:mono:2018.2_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-mono.log -cleanedLogFile output-macOS-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-mono.log -cleanedLogFile output-macOS-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -3065,15 +3391,17 @@ schedule:macOS:build:Samples:mono:2018.2_staging:
 schedule:macOS:build:twostickshooter-classic:mono:2018.2_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -3090,15 +3418,17 @@ schedule:macOS:build:twostickshooter-classic:mono:2018.2_staging:
 schedule:macOS:build:twostickshooter-hybrid:mono:2018.2_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -3115,15 +3445,17 @@ schedule:macOS:build:twostickshooter-hybrid:mono:2018.2_staging:
 schedule:macOS:build:twostickshooter-pure:mono:2018.2_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -3140,15 +3472,17 @@ schedule:macOS:build:twostickshooter-pure:mono:2018.2_staging:
 schedule:macOS:build:Samples:il2cpp:2018.2_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-il2cpp.log -cleanedLogFile output-macOS-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-il2cpp.log -cleanedLogFile output-macOS-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -3165,15 +3499,17 @@ schedule:macOS:build:Samples:il2cpp:2018.2_staging:
 schedule:macOS:build:twostickshooter-classic:il2cpp:2018.2_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Classic -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -3190,15 +3526,17 @@ schedule:macOS:build:twostickshooter-classic:il2cpp:2018.2_staging:
 schedule:macOS:build:twostickshooter-hybrid:il2cpp:2018.2_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Hybrid -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -3215,15 +3553,17 @@ schedule:macOS:build:twostickshooter-hybrid:il2cpp:2018.2_staging:
 schedule:macOS:build:twostickshooter-pure:il2cpp:2018.2_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath TwoStickShooter/Pure -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -3241,15 +3581,19 @@ schedule:macOS:build:twostickshooter-pure:il2cpp:2018.2_staging:
 # macOS run for 2018.2_staging
 ################################################################################
 schedule:macOS:run:Samples:mono:2018.2_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -3264,15 +3608,19 @@ schedule:macOS:run:Samples:mono:2018.2_staging:
 
 
 schedule:macOS:run:twostickshooter-classic:mono:2018.2_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Classic/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-mono.log -cleanedLogFile output-macOS-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -3287,15 +3635,19 @@ schedule:macOS:run:twostickshooter-classic:mono:2018.2_staging:
 
 
 schedule:macOS:run:twostickshooter-hybrid:mono:2018.2_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Hybrid/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -3310,15 +3662,19 @@ schedule:macOS:run:twostickshooter-hybrid:mono:2018.2_staging:
 
 
 schedule:macOS:run:twostickshooter-pure:mono:2018.2_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Pure/build/mono/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-mono.log -cleanedLogFile output-macOS-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -3333,15 +3689,19 @@ schedule:macOS:run:twostickshooter-pure:mono:2018.2_staging:
 
 
 schedule:macOS:run:Samples:il2cpp:2018.2_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -3356,15 +3716,19 @@ schedule:macOS:run:Samples:il2cpp:2018.2_staging:
 
 
 schedule:macOS:run:twostickshooter-classic:il2cpp:2018.2_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Classic/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Classic/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-classic"
     when: always
@@ -3379,15 +3743,19 @@ schedule:macOS:run:twostickshooter-classic:il2cpp:2018.2_staging:
 
 
 schedule:macOS:run:twostickshooter-hybrid:il2cpp:2018.2_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Hybrid/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Hybrid/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-hybrid"
     when: always
@@ -3402,15 +3770,19 @@ schedule:macOS:run:twostickshooter-hybrid:il2cpp:2018.2_staging:
 
 
 schedule:macOS:run:twostickshooter-pure:il2cpp:2018.2_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   only:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable TwoStickShooter/Pure/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable TwoStickShooter/Pure/build/il2cpp/macOS-standalone.app -logfile output-macOS-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-macOS-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-macOS-twostickshooter-pure"
     when: always
@@ -3434,7 +3806,9 @@ validation:2018.1_staging:
   except:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   artifacts:
     when: always
     paths:
@@ -3449,15 +3823,16 @@ validation:2018.1_staging:
 windows:test:2018.1_staging:
   stage: test
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   except:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-windows-test.log -runtests -testresults results.xml
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-windows-test.log -runtests -testresults results.xml
   artifacts:
     name: "artifacts-windows-test"
     when: always
@@ -3477,15 +3852,17 @@ windows:test:2018.1_staging:
 windows:build:Samples:mono:2018.1_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   except:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -3502,15 +3879,17 @@ windows:build:Samples:mono:2018.1_staging:
 windows:build:Samples:il2cpp:2018.1_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   except:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -3528,6 +3907,8 @@ windows:build:Samples:il2cpp:2018.1_staging:
 # windows run for 2018.1_staging
 ################################################################################
 windows:run:Samples:mono:2018.1_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -3535,8 +3916,9 @@ windows:run:Samples:mono:2018.1_staging:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -3551,6 +3933,8 @@ windows:run:Samples:mono:2018.1_staging:
 
 
 windows:run:Samples:il2cpp:2018.1_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -3558,8 +3942,9 @@ windows:run:Samples:il2cpp:2018.1_staging:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -3579,15 +3964,17 @@ windows:run:Samples:il2cpp:2018.1_staging:
 macOS:test:2018.1_staging:
   stage: test
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   except:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-macOS-test.log -runtests -testresults results.xml
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-macOS-test.log -runtests -testresults results.xml
   artifacts:
     name: "artifacts-macOS-test"
     when: always
@@ -3607,15 +3994,17 @@ macOS:test:2018.1_staging:
 macOS:build:Samples:mono:2018.1_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   except:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-mono.log -cleanedLogFile output-macOS-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-mono.log -cleanedLogFile output-macOS-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -3632,15 +4021,17 @@ macOS:build:Samples:mono:2018.1_staging:
 macOS:build:Samples:il2cpp:2018.1_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   except:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-il2cpp.log -cleanedLogFile output-macOS-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-il2cpp.log -cleanedLogFile output-macOS-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -3658,15 +4049,19 @@ macOS:build:Samples:il2cpp:2018.1_staging:
 # macOS run for 2018.1_staging
 ################################################################################
 macOS:run:Samples:mono:2018.1_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   except:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -3681,15 +4076,19 @@ macOS:run:Samples:mono:2018.1_staging:
 
 
 macOS:run:Samples:il2cpp:2018.1_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   except:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -3713,7 +4112,9 @@ validation:2018.2_staging:
   except:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   artifacts:
     when: always
     paths:
@@ -3728,15 +4129,16 @@ validation:2018.2_staging:
 windows:test:2018.2_staging:
   stage: test
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   except:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-windows-test.log -runtests -testresults results.xml
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-windows-test.log -runtests -testresults results.xml
   artifacts:
     name: "artifacts-windows-test"
     when: always
@@ -3756,15 +4158,17 @@ windows:test:2018.2_staging:
 windows:build:Samples:mono:2018.2_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   except:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -3781,15 +4185,17 @@ windows:build:Samples:mono:2018.2_staging:
 windows:build:Samples:il2cpp:2018.2_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   except:
     - schedules
   tags:
   - windows
+  - buildfarm
+  - "10"
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -3807,6 +4213,8 @@ windows:build:Samples:il2cpp:2018.2_staging:
 # windows run for 2018.2_staging
 ################################################################################
 windows:run:Samples:mono:2018.2_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -3814,8 +4222,9 @@ windows:run:Samples:mono:2018.2_staging:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -3830,6 +4239,8 @@ windows:run:Samples:mono:2018.2_staging:
 
 
 windows:run:Samples:il2cpp:2018.2_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
@@ -3837,8 +4248,9 @@ windows:run:Samples:il2cpp:2018.2_staging:
     - schedules
   tags:
   - windows
+  - gamecode
   script:
-    - dotnet C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -3858,15 +4270,17 @@ windows:run:Samples:il2cpp:2018.2_staging:
 macOS:test:2018.2_staging:
   stage: test
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   except:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-macOS-test.log -runtests -testresults results.xml
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -silentcrashes -automated -logfile output-macOS-test.log -runtests -testresults results.xml
   artifacts:
     name: "artifacts-macOS-test"
     when: always
@@ -3886,15 +4300,17 @@ macOS:test:2018.2_staging:
 macOS:build:Samples:mono:2018.2_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   except:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-mono.log -cleanedLogFile output-macOS-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/mono/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-mono.log -cleanedLogFile output-macOS-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -3911,15 +4327,17 @@ macOS:build:Samples:mono:2018.2_staging:
 macOS:build:Samples:il2cpp:2018.2_staging:
   stage: build
   before_script:
-    - python Tools/CI/beforescript.py
+    - python Tools/CI/beforescript.py Editor
   after_script:
     - python Tools/CI/afterscript.py
   except:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-il2cpp.log -cleanedLogFile output-macOS-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
+    - ./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor -unityexecutable ".Editor/Unity.app/Contents/MacOS/Unity" -projectpath Samples -batchmode -buildOSXUniversalPlayer build/il2cpp/macOS-standalone.app -nographics -silentcrashes -automated -logfile output-macOS-Samples-build-il2cpp.log -cleanedLogFile output-macOS-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -3937,15 +4355,19 @@ macOS:build:Samples:il2cpp:2018.2_staging:
 # macOS run for 2018.2_staging
 ################################################################################
 macOS:run:Samples:mono:2018.2_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   except:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/mono/macOS-standalone.app -logfile output-macOS-Samples-run-mono.log -cleanedLogFile output-macOS-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always
@@ -3960,15 +4382,19 @@ macOS:run:Samples:mono:2018.2_staging:
 
 
 macOS:run:Samples:il2cpp:2018.2_staging:
+  before_script:
+    - python Tools/CI/beforescript.py Player
   variables:
     GIT_STRATEGY: fetch
   stage: run
   except:
     - schedules
   tags:
-  - macOS
+  - darwin
+  - buildfarm
+  - 10.13.3
   script:
-    - dotnet ~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - ./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player -executable Samples/build/il2cpp/macOS-standalone.app -logfile output-macOS-Samples-run-il2cpp.log -cleanedLogFile output-macOS-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-macOS-Samples"
     when: always

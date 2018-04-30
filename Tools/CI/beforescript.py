@@ -1,71 +1,62 @@
-import json
 import os
-import tarfile
-
 import sys
+
+import utils
 
 artifactory_url = "https://artifactory.eu-cph-1.unityops.net/"
 artifactory_repository = "core-automation"
 
 
-def get_current_os():
-    import sys
-    p = sys.platform
-    if p == "darwin":
-        return "macOS"
-    if p == "win32":
-        return "windows"
-    return "linux"
+def download_unity_launcher(type):
+    if not os.path.exists(".tmp"):
+        os.mkdir(".tmp")
+    utils.download_url("https://artifactory.eu-cph-1.unityops.net/core-automation/tools/unity-launcher/UnityLauncher.%s.zip" % type,
+                       ".tmp/UnityLauncher.%s.zip" % type)
 
 
-def get_url_json(url):
-    print "  Getting json from {0}".format(url)
-    import urllib2
-    response = urllib2.urlopen(url)
-    return json.loads(response.read())
+def extract_unity_launcher(type):
+    utils.extract_zip(".tmp/UnityLauncher.%s.zip" % type,
+                      ".UnityLauncher.%s" % type)
+    current_os = utils.get_current_os()
+    if current_os == "macOS":
+        os.chmod('.UnityLauncher.{0}/osx.10.12-x64/publish/UnityLauncher.{0}'.format(type), 0755)
+    elif current_os == "linux":
+        os.chmod('.UnityLauncher.{0}/linux-x64/publish/UnityLauncher.{0}'.format(type), 0755)
 
 
-def download_url(url, filename):
-    import urllib
-    urllib.urlretrieve(url, filename)
+if __name__ == "__main__":
+    type = sys.argv[1]
+
+
+def prepare_unity_launcher(run_type):
+
+    download_unity_launcher(run_type)
+    extract_unity_launcher(run_type)
 
 
 def artifactory_search(type, revision):
-    result = get_url_json("{0}/{1}".format(artifactory_url,
+    result = utils.get_url_json("{0}/{1}".format(artifactory_url,
                                          "api/search/prop?&os={0}&type={1}&revision={2}&repos={3}".format(
-                                             get_current_os(), type, revision, artifactory_repository)))['results']
+                                             utils.get_current_os(), type, revision, artifactory_repository)))['results']
     if len(result) != 1:
         raise Exception("Expected to find exactly 1 {0} for revision {1} build to use. Found: {2}".format(type, revision, len(result)))
     return result
 
 
-def extract_tarball(download_path, extract_path):
-    tar = tarfile.open(download_path, "r:gz")
-    tar.extractall(extract_path)
-    tar.close()
-
-
 def download_artifact(url, extract_path):
     if not os.path.exists(extract_path):
         os.makedirs(extract_path)
-    data = get_url_json(url)
+    data = utils.get_url_json(url)
     print "Downloading {0} and extracting it in {1}".format(url, extract_path)
     download_path = os.path.join("temp", data['downloadUri'].split('/')[-1])
-    download_url(data['downloadUri'], download_path)
+    utils.download_url(data['downloadUri'], download_path)
     print "Extracting {0} to {1}".format(download_path, extract_path)
     if data['downloadUri'].endswith(".zip"):
-        extract_zip(download_path, extract_path)
+        utils.extract_zip(download_path, extract_path)
     elif data['downloadUri'].endswith(".tar.gz"):
-        extract_tarball(download_path, extract_path)
+        utils.extract_tarball(download_path, extract_path)
     else:
         raise Exception("Wanted to extract file with unknown file ending: {0}".format(data['downloadUri']))
-
-
-def extract_zip(archive, destination):
-    import zipfile
-    zip_ref = zipfile.ZipFile(archive, 'r')
-    zip_ref.extractall(destination)
-    zip_ref.close()
 
 
 def get_unity_revision():
@@ -78,6 +69,11 @@ def get_unity_revision():
 
 
 def main():
+    run_type = sys.argv[1]
+    prepare_unity_launcher(run_type)
+    if run_type != "Editor":
+        return
+
     revision = get_unity_revision()
     if not os.path.exists("temp"):
         os.mkdir("temp")
@@ -88,7 +84,7 @@ def main():
 
     download_artifact(editor_artifacts[0]['uri'], ".Editor")
 
-    current_os = get_current_os()
+    current_os = utils.get_current_os()
 
     for standalone in standalone_artifacts:
         if len(standalone) != 1:

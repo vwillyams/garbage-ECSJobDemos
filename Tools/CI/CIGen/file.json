@@ -15,17 +15,33 @@
     "tags": [
         {
             "name": "windows",
+            "tags": {
+                    "default": [
+                    "windows",
+                    "gamecode"
+                ],
+                "build": [
+                    "windows",
+                    "buildfarm",
+                    "\"10\""
+                ]
+            },
             "unity-path": ".Editor/Unity.exe",
-            "unity-launcher-editor": "C:/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll",
-            "unity-launcher-player": "C:/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll",
+            "unity-launcher-editor": ".UnityLauncher.Editor\\win10-x64\\publish\\UnityLauncher.Editor.exe",
+            "unity-launcher-player": ".UnityLauncher.Player\\win10-x64\\publish\\UnityLauncher.Player.exe",
             "unity-build-player": "-buildWindows64Player",
             "exe-format": ".exe"
         },
         {
             "name": "macOS",
+            "tags": [
+                "darwin",
+                "buildfarm",
+                "10.13.3"
+            ],
             "unity-path": ".Editor/Unity.app/Contents/MacOS/Unity",
-            "unity-launcher-editor": "~/unity-log-wrapper/UnityLauncher.Editor/bin/Debug/netcoreapp2.0/UnityLauncher.Editor.dll",
-            "unity-launcher-player": "~/unity-log-wrapper/UnityLauncher.Player/bin/Debug/netcoreapp2.0/UnityLauncher.Player.dll",
+            "unity-launcher-editor": "./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor",
+            "unity-launcher-player": "./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player",
             "unity-build-player": "-buildOSXUniversalPlayer",
             "exe-format": ".app"
         }

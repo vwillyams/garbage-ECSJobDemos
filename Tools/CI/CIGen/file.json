@@ -15,10 +15,17 @@
     "tags": [
         {
             "name": "windows",
-            "tags": [
-                "windows",
-                "gamecode"
-            ],
+            "tags": {
+                    "default": [
+                    "windows",
+                    "gamecode"
+                ],
+                "build": [
+                    "windows",
+                    "buildfarm",
+                    "\"10\""
+                ]
+            },
             "unity-path": ".Editor/Unity.exe",
             "unity-launcher-editor": ".UnityLauncher.Editor\\win10-x64\\publish\\UnityLauncher.Editor.exe",
             "unity-launcher-player": ".UnityLauncher.Player\\win10-x64\\publish\\UnityLauncher.Editor.exe",

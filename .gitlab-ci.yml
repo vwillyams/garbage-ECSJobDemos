@@ -67,7 +67,8 @@ schedule:windows:build:Samples:mono:2018.1:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
@@ -93,7 +94,8 @@ schedule:windows:build:twostickshooter-classic:mono:2018.1:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-mono.log -cleanedLogFile output-windows-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
@@ -119,7 +121,8 @@ schedule:windows:build:twostickshooter-hybrid:mono:2018.1:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
@@ -145,7 +148,8 @@ schedule:windows:build:twostickshooter-pure:mono:2018.1:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-mono.log -cleanedLogFile output-windows-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
@@ -171,7 +175,8 @@ schedule:windows:build:Samples:il2cpp:2018.1:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
@@ -197,7 +202,8 @@ schedule:windows:build:twostickshooter-classic:il2cpp:2018.1:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
@@ -223,7 +229,8 @@ schedule:windows:build:twostickshooter-hybrid:il2cpp:2018.1:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
@@ -249,7 +256,8 @@ schedule:windows:build:twostickshooter-pure:il2cpp:2018.1:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
@@ -1007,7 +1015,8 @@ schedule:windows:build:Samples:mono:2018.2:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
@@ -1033,7 +1042,8 @@ schedule:windows:build:twostickshooter-classic:mono:2018.2:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-mono.log -cleanedLogFile output-windows-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
@@ -1059,7 +1069,8 @@ schedule:windows:build:twostickshooter-hybrid:mono:2018.2:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
@@ -1085,7 +1096,8 @@ schedule:windows:build:twostickshooter-pure:mono:2018.2:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-mono.log -cleanedLogFile output-windows-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
@@ -1111,7 +1123,8 @@ schedule:windows:build:Samples:il2cpp:2018.2:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
@@ -1137,7 +1150,8 @@ schedule:windows:build:twostickshooter-classic:il2cpp:2018.2:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
@@ -1163,7 +1177,8 @@ schedule:windows:build:twostickshooter-hybrid:il2cpp:2018.2:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
@@ -1189,7 +1204,8 @@ schedule:windows:build:twostickshooter-pure:il2cpp:2018.2:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
@@ -1947,7 +1963,8 @@ schedule:windows:build:Samples:mono:2018.1_staging:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
@@ -1973,7 +1990,8 @@ schedule:windows:build:twostickshooter-classic:mono:2018.1_staging:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-mono.log -cleanedLogFile output-windows-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
@@ -1999,7 +2017,8 @@ schedule:windows:build:twostickshooter-hybrid:mono:2018.1_staging:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
@@ -2025,7 +2044,8 @@ schedule:windows:build:twostickshooter-pure:mono:2018.1_staging:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-mono.log -cleanedLogFile output-windows-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
@@ -2051,7 +2071,8 @@ schedule:windows:build:Samples:il2cpp:2018.1_staging:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
@@ -2077,7 +2098,8 @@ schedule:windows:build:twostickshooter-classic:il2cpp:2018.1_staging:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
@@ -2103,7 +2125,8 @@ schedule:windows:build:twostickshooter-hybrid:il2cpp:2018.1_staging:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
@@ -2129,7 +2152,8 @@ schedule:windows:build:twostickshooter-pure:il2cpp:2018.1_staging:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
@@ -2887,7 +2911,8 @@ schedule:windows:build:Samples:mono:2018.2_staging:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
@@ -2913,7 +2938,8 @@ schedule:windows:build:twostickshooter-classic:mono:2018.2_staging:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-mono.log -cleanedLogFile output-windows-twostickshooter-classic-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
@@ -2939,7 +2965,8 @@ schedule:windows:build:twostickshooter-hybrid:mono:2018.2_staging:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
@@ -2965,7 +2992,8 @@ schedule:windows:build:twostickshooter-pure:mono:2018.2_staging:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-mono.log -cleanedLogFile output-windows-twostickshooter-pure-build-mono-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
@@ -2991,7 +3019,8 @@ schedule:windows:build:Samples:il2cpp:2018.2_staging:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
@@ -3017,7 +3046,8 @@ schedule:windows:build:twostickshooter-classic:il2cpp:2018.2_staging:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Classic -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-classic-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickClassic.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
@@ -3043,7 +3073,8 @@ schedule:windows:build:twostickshooter-hybrid:il2cpp:2018.2_staging:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Hybrid -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-hybrid-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickHybrid.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
@@ -3069,7 +3100,8 @@ schedule:windows:build:twostickshooter-pure:il2cpp:2018.2_staging:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath TwoStickShooter/Pure -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-twostickshooter-pure-build-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-build-il2cpp-cleaned.log -quit -scene Assets/Scenes/TwoStickPure.unity -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
@@ -3827,7 +3859,8 @@ windows:build:Samples:mono:2018.1_staging:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
@@ -3853,7 +3886,8 @@ windows:build:Samples:il2cpp:2018.1_staging:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:
@@ -4131,7 +4165,8 @@ windows:build:Samples:mono:2018.2_staging:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/mono/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-mono.log -cleanedLogFile output-windows-Samples-build-mono-cleaned.log -quit -scriptingBackend mono -displayResolutionDialog disabled
   artifacts:
@@ -4157,7 +4192,8 @@ windows:build:Samples:il2cpp:2018.2_staging:
     - schedules
   tags:
   - windows
-  - gamecode
+  - buildfarm
+  - "10"
   script:
     - .UnityLauncher.Editor\win10-x64\publish\UnityLauncher.Editor.exe -unityexecutable ".Editor/Unity.exe" -projectpath Samples -batchmode -buildWindows64Player build/il2cpp/windows-standalone.exe -nographics -silentcrashes -automated -logfile output-windows-Samples-build-il2cpp.log -cleanedLogFile output-windows-Samples-build-il2cpp-cleaned.log -quit -scriptingBackend il2cpp -displayResolutionDialog disabled
   artifacts:

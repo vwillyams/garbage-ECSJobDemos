@@ -300,11 +300,19 @@ def generateJobs(file, configData):
         for variation in branches:
             generate_stage(file, {'name': 'macOS'}, 'validation', variation, configData, frequency, prevStage)
             prevStage = 'validation'
-            for tag in configData["tags"]:
+            for tag_original in configData["tags"]:
                 for stage in configData["stages"]:
                     if stage == 'validation':
                         prevStage = 'validation'
                         continue
+                    # Todo: When we can use the buildfarm fully remove this whole section down to the next comment
+                    tag = tag_original.copy()
+                    if isinstance(tag['tags'], dict):
+                        if stage in tag['tags']:
+                            tag['tags'] = tag['tags'][stage]
+                        else:
+                            tag['tags'] = tag['tags']['default']
+                    # Todo: Down to here
                     generate_stage(file, tag, stage, variation, configData, frequency, prevStage)
                     prevStage = stage
             # Validation is untagged so we just generate it once

@@ -152,6 +152,18 @@ namespace Unity.Entities.Tests
         }
 	    
 	    [Test]
+	    public void CreateEntityWithNullTypeThrows()
+	    {
+	        Assert.Throws<System.NullReferenceException>(() => m_Manager.CreateEntity(null));
+	    }
+	    
+	    [Test]
+	    public void CreateEntityWithOneNullTypeThrows()
+	    {
+	        Assert.Throws<System.ArgumentException>(() => m_Manager.CreateEntity(null, typeof(EcsTestData)));
+	    }
+	    
+	    [Test]
 	    public void CreateTooBigArchetypeThrows()
 	    {
 	        Assert.Throws<System.ArgumentException>(() =>

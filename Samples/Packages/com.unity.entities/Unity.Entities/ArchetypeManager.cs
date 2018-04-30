@@ -265,6 +265,8 @@ namespace Unity.Entities
         {
             if (count < 1)
                 throw new ArgumentException($"Invalid component count");
+            if (types[0].TypeIndex == 0)
+                throw new ArgumentException($"Component type may not be null");
             if (types[0].TypeIndex != TypeManager.GetTypeIndex<Entity>())
                 throw new ArgumentException($"The Entity ID must always be the first component");
 

@@ -288,7 +288,7 @@ schedule:windows:run:Samples:mono:2018.1:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -314,7 +314,7 @@ schedule:windows:run:twostickshooter-classic:mono:2018.1:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Classic/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-mono.log -cleanedLogFile output-windows-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Classic/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-mono.log -cleanedLogFile output-windows-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -340,7 +340,7 @@ schedule:windows:run:twostickshooter-hybrid:mono:2018.1:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Hybrid/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Hybrid/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -366,7 +366,7 @@ schedule:windows:run:twostickshooter-pure:mono:2018.1:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Pure/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-mono.log -cleanedLogFile output-windows-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Pure/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-mono.log -cleanedLogFile output-windows-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -392,7 +392,7 @@ schedule:windows:run:Samples:il2cpp:2018.1:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -418,7 +418,7 @@ schedule:windows:run:twostickshooter-classic:il2cpp:2018.1:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Classic/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Classic/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -444,7 +444,7 @@ schedule:windows:run:twostickshooter-hybrid:il2cpp:2018.1:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Hybrid/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Hybrid/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -470,7 +470,7 @@ schedule:windows:run:twostickshooter-pure:il2cpp:2018.1:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Pure/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Pure/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -1236,7 +1236,7 @@ schedule:windows:run:Samples:mono:2018.2:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -1262,7 +1262,7 @@ schedule:windows:run:twostickshooter-classic:mono:2018.2:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Classic/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-mono.log -cleanedLogFile output-windows-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Classic/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-mono.log -cleanedLogFile output-windows-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -1288,7 +1288,7 @@ schedule:windows:run:twostickshooter-hybrid:mono:2018.2:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Hybrid/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Hybrid/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -1314,7 +1314,7 @@ schedule:windows:run:twostickshooter-pure:mono:2018.2:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Pure/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-mono.log -cleanedLogFile output-windows-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Pure/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-mono.log -cleanedLogFile output-windows-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -1340,7 +1340,7 @@ schedule:windows:run:Samples:il2cpp:2018.2:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -1366,7 +1366,7 @@ schedule:windows:run:twostickshooter-classic:il2cpp:2018.2:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Classic/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Classic/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -1392,7 +1392,7 @@ schedule:windows:run:twostickshooter-hybrid:il2cpp:2018.2:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Hybrid/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Hybrid/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -1418,7 +1418,7 @@ schedule:windows:run:twostickshooter-pure:il2cpp:2018.2:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Pure/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Pure/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -2184,7 +2184,7 @@ schedule:windows:run:Samples:mono:2018.1_staging:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -2210,7 +2210,7 @@ schedule:windows:run:twostickshooter-classic:mono:2018.1_staging:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Classic/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-mono.log -cleanedLogFile output-windows-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Classic/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-mono.log -cleanedLogFile output-windows-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -2236,7 +2236,7 @@ schedule:windows:run:twostickshooter-hybrid:mono:2018.1_staging:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Hybrid/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Hybrid/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -2262,7 +2262,7 @@ schedule:windows:run:twostickshooter-pure:mono:2018.1_staging:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Pure/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-mono.log -cleanedLogFile output-windows-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Pure/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-mono.log -cleanedLogFile output-windows-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -2288,7 +2288,7 @@ schedule:windows:run:Samples:il2cpp:2018.1_staging:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -2314,7 +2314,7 @@ schedule:windows:run:twostickshooter-classic:il2cpp:2018.1_staging:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Classic/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Classic/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -2340,7 +2340,7 @@ schedule:windows:run:twostickshooter-hybrid:il2cpp:2018.1_staging:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Hybrid/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Hybrid/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -2366,7 +2366,7 @@ schedule:windows:run:twostickshooter-pure:il2cpp:2018.1_staging:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Pure/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Pure/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -3132,7 +3132,7 @@ schedule:windows:run:Samples:mono:2018.2_staging:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -3158,7 +3158,7 @@ schedule:windows:run:twostickshooter-classic:mono:2018.2_staging:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Classic/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-mono.log -cleanedLogFile output-windows-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Classic/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-mono.log -cleanedLogFile output-windows-twostickshooter-classic-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -3184,7 +3184,7 @@ schedule:windows:run:twostickshooter-hybrid:mono:2018.2_staging:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Hybrid/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Hybrid/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-mono.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -3210,7 +3210,7 @@ schedule:windows:run:twostickshooter-pure:mono:2018.2_staging:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Pure/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-mono.log -cleanedLogFile output-windows-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Pure/build/mono/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-mono.log -cleanedLogFile output-windows-twostickshooter-pure-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -3236,7 +3236,7 @@ schedule:windows:run:Samples:il2cpp:2018.2_staging:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -3262,7 +3262,7 @@ schedule:windows:run:twostickshooter-classic:il2cpp:2018.2_staging:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Classic/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Classic/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-classic-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-classic-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-classic"
     when: always
@@ -3288,7 +3288,7 @@ schedule:windows:run:twostickshooter-hybrid:il2cpp:2018.2_staging:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Hybrid/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Hybrid/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-hybrid-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-hybrid-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-hybrid"
     when: always
@@ -3314,7 +3314,7 @@ schedule:windows:run:twostickshooter-pure:il2cpp:2018.2_staging:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable TwoStickShooter/Pure/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable TwoStickShooter/Pure/build/il2cpp/windows-standalone.exe -logfile output-windows-twostickshooter-pure-run-il2cpp.log -cleanedLogFile output-windows-twostickshooter-pure-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 120 -timeoutIgnore
   artifacts:
     name: "artifacts-windows-twostickshooter-pure"
     when: always
@@ -3918,7 +3918,7 @@ windows:run:Samples:mono:2018.1_staging:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -3944,7 +3944,7 @@ windows:run:Samples:il2cpp:2018.1_staging:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -4224,7 +4224,7 @@ windows:run:Samples:mono:2018.2_staging:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/mono/windows-standalone.exe -logfile output-windows-Samples-run-mono.log -cleanedLogFile output-windows-Samples-run-mono-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always
@@ -4250,7 +4250,7 @@ windows:run:Samples:il2cpp:2018.2_staging:
   - windows
   - gamecode
   script:
-    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Editor.exe -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
+    - .UnityLauncher.Player\win10-x64\publish\UnityLauncher.Player.exe -executable Samples/build/il2cpp/windows-standalone.exe -logfile output-windows-Samples-run-il2cpp.log -cleanedLogFile output-windows-Samples-run-il2cpp-cleaned.log -enforceEmptyCleanedLogFile -timeout 1800
   artifacts:
     name: "artifacts-windows-Samples"
     when: always

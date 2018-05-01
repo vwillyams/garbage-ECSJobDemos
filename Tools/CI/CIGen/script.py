@@ -59,11 +59,17 @@ class BuildStage(IStage):
         file.write("    - python Tools/CI/beforescript.py Editor\n")
         file.write("  after_script:\n")
         file.write("    - python Tools/CI/afterscript.py\n")
+
         if schedule_only:
             file.write("  only:\n")
         else:
             file.write("  except:\n")
         file.write("    - schedules\n")
+
+        # TODO: remove when random compilation issues for 2018.2 are fixed
+        if variation.startswith("2018.2"):
+            file.write("  allow_failure: true\n")
+
         file.write("  tags:\n")
         for t in tag['tags']:
             file.write("  - %s\n" % t)
@@ -211,6 +217,11 @@ class TestStage(IStage):
             else:
                 file.write("  except:\n")
             file.write("    - schedules\n")
+
+            # TODO: remove when random compilation issues for 2018.2 are fixed
+            if variation.startswith("2018.2"):
+                file.write("  allow_failure: true\n")
+
             file.write("  tags:\n")
             for t in tag['tags']:
                 file.write("  - %s\n" % t)

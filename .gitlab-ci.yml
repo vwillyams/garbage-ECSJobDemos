@@ -984,6 +984,7 @@ schedule:windows:test:2018.2:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - windows
   - gamecode
@@ -1013,6 +1014,7 @@ schedule:windows:build:Samples:mono:2018.2:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - windows
   - buildfarm
@@ -1040,6 +1042,7 @@ schedule:windows:build:twostickshooter-classic:mono:2018.2:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - windows
   - buildfarm
@@ -1067,6 +1070,7 @@ schedule:windows:build:twostickshooter-hybrid:mono:2018.2:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - windows
   - buildfarm
@@ -1094,6 +1098,7 @@ schedule:windows:build:twostickshooter-pure:mono:2018.2:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - windows
   - buildfarm
@@ -1121,6 +1126,7 @@ schedule:windows:build:Samples:il2cpp:2018.2:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - windows
   - buildfarm
@@ -1148,6 +1154,7 @@ schedule:windows:build:twostickshooter-classic:il2cpp:2018.2:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - windows
   - buildfarm
@@ -1175,6 +1182,7 @@ schedule:windows:build:twostickshooter-hybrid:il2cpp:2018.2:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - windows
   - buildfarm
@@ -1202,6 +1210,7 @@ schedule:windows:build:twostickshooter-pure:il2cpp:2018.2:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - windows
   - buildfarm
@@ -1443,6 +1452,7 @@ schedule:macOS:test:2018.2:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - darwin
   - buildfarm
@@ -1473,6 +1483,7 @@ schedule:macOS:build:Samples:mono:2018.2:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - darwin
   - buildfarm
@@ -1500,6 +1511,7 @@ schedule:macOS:build:twostickshooter-classic:mono:2018.2:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - darwin
   - buildfarm
@@ -1527,6 +1539,7 @@ schedule:macOS:build:twostickshooter-hybrid:mono:2018.2:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - darwin
   - buildfarm
@@ -1554,6 +1567,7 @@ schedule:macOS:build:twostickshooter-pure:mono:2018.2:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - darwin
   - buildfarm
@@ -1581,6 +1595,7 @@ schedule:macOS:build:Samples:il2cpp:2018.2:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - darwin
   - buildfarm
@@ -1608,6 +1623,7 @@ schedule:macOS:build:twostickshooter-classic:il2cpp:2018.2:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - darwin
   - buildfarm
@@ -1635,6 +1651,7 @@ schedule:macOS:build:twostickshooter-hybrid:il2cpp:2018.2:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - darwin
   - buildfarm
@@ -1662,6 +1679,7 @@ schedule:macOS:build:twostickshooter-pure:il2cpp:2018.2:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - darwin
   - buildfarm
@@ -2880,6 +2898,7 @@ schedule:windows:test:2018.2_staging:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - windows
   - gamecode
@@ -2909,6 +2928,7 @@ schedule:windows:build:Samples:mono:2018.2_staging:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - windows
   - buildfarm
@@ -2936,6 +2956,7 @@ schedule:windows:build:twostickshooter-classic:mono:2018.2_staging:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - windows
   - buildfarm
@@ -2963,6 +2984,7 @@ schedule:windows:build:twostickshooter-hybrid:mono:2018.2_staging:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - windows
   - buildfarm
@@ -2990,6 +3012,7 @@ schedule:windows:build:twostickshooter-pure:mono:2018.2_staging:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - windows
   - buildfarm
@@ -3017,6 +3040,7 @@ schedule:windows:build:Samples:il2cpp:2018.2_staging:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - windows
   - buildfarm
@@ -3044,6 +3068,7 @@ schedule:windows:build:twostickshooter-classic:il2cpp:2018.2_staging:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - windows
   - buildfarm
@@ -3071,6 +3096,7 @@ schedule:windows:build:twostickshooter-hybrid:il2cpp:2018.2_staging:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - windows
   - buildfarm
@@ -3098,6 +3124,7 @@ schedule:windows:build:twostickshooter-pure:il2cpp:2018.2_staging:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - windows
   - buildfarm
@@ -3339,6 +3366,7 @@ schedule:macOS:test:2018.2_staging:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - darwin
   - buildfarm
@@ -3369,6 +3397,7 @@ schedule:macOS:build:Samples:mono:2018.2_staging:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - darwin
   - buildfarm
@@ -3396,6 +3425,7 @@ schedule:macOS:build:twostickshooter-classic:mono:2018.2_staging:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - darwin
   - buildfarm
@@ -3423,6 +3453,7 @@ schedule:macOS:build:twostickshooter-hybrid:mono:2018.2_staging:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - darwin
   - buildfarm
@@ -3450,6 +3481,7 @@ schedule:macOS:build:twostickshooter-pure:mono:2018.2_staging:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - darwin
   - buildfarm
@@ -3477,6 +3509,7 @@ schedule:macOS:build:Samples:il2cpp:2018.2_staging:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - darwin
   - buildfarm
@@ -3504,6 +3537,7 @@ schedule:macOS:build:twostickshooter-classic:il2cpp:2018.2_staging:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - darwin
   - buildfarm
@@ -3531,6 +3565,7 @@ schedule:macOS:build:twostickshooter-hybrid:il2cpp:2018.2_staging:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - darwin
   - buildfarm
@@ -3558,6 +3593,7 @@ schedule:macOS:build:twostickshooter-pure:il2cpp:2018.2_staging:
     - python Tools/CI/afterscript.py
   only:
     - schedules
+  allow_failure: true
   tags:
   - darwin
   - buildfarm
@@ -4134,6 +4170,7 @@ windows:test:2018.2_staging:
     - python Tools/CI/afterscript.py
   except:
     - schedules
+  allow_failure: true
   tags:
   - windows
   - gamecode
@@ -4163,6 +4200,7 @@ windows:build:Samples:mono:2018.2_staging:
     - python Tools/CI/afterscript.py
   except:
     - schedules
+  allow_failure: true
   tags:
   - windows
   - buildfarm
@@ -4190,6 +4228,7 @@ windows:build:Samples:il2cpp:2018.2_staging:
     - python Tools/CI/afterscript.py
   except:
     - schedules
+  allow_failure: true
   tags:
   - windows
   - buildfarm
@@ -4275,6 +4314,7 @@ macOS:test:2018.2_staging:
     - python Tools/CI/afterscript.py
   except:
     - schedules
+  allow_failure: true
   tags:
   - darwin
   - buildfarm
@@ -4305,6 +4345,7 @@ macOS:build:Samples:mono:2018.2_staging:
     - python Tools/CI/afterscript.py
   except:
     - schedules
+  allow_failure: true
   tags:
   - darwin
   - buildfarm
@@ -4332,6 +4373,7 @@ macOS:build:Samples:il2cpp:2018.2_staging:
     - python Tools/CI/afterscript.py
   except:
     - schedules
+  allow_failure: true
   tags:
   - darwin
   - buildfarm

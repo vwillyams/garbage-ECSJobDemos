@@ -17,7 +17,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
     public GameObject prefab;
 
     const float                        GridSize = 1.0F;
-    const float                        PlantDensity = 0.5F;
+    const float                        PlantDensity = 0.2F;
     const int                          MaxCreateChunksPerFrame = 8;
     const int                          MaxDestroyChunksPerFrame = 12;
     const bool                         Deterministic = false;
@@ -54,7 +54,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
 
     protected override void OnCreateManager(int capacity)
     {
-        m_AllChunksGroup = EntityManager.CreateComponentGroup(typeof(ProceduralChunkScene));
+        m_AllChunksGroup = GetComponentGroup(typeof(ProceduralChunkScene));
 
         m_CreatedChunks = new NativeList<int2>(capacity, Allocator.Persistent);
         m_SpawnLocationCaches = new NativeList<SpawnData>[MaxCreateChunksPerFrame];
@@ -74,8 +74,6 @@ public class ProceduralSpawnSystem : JobComponentSystem
 
     protected override void OnDestroyManager()
     {
-        m_AllChunksGroup.Dispose();
-
         m_ConstructionWorld.Dispose();
 
         m_CreatedChunks.Dispose();
@@ -198,14 +196,16 @@ public class ProceduralSpawnSystem : JobComponentSystem
                     {
                         SpawnData spawn;
                         spawn.Position = intersection;
-                        SpawnLocations.Add(spawn);
+                        for (int i = 0;i<10;i++)
+                            SpawnLocations.Add(spawn);
                     }
                 }
             }
         }
     }
 
-    [ComputeJobOptimization]
+    //@TODO: For some reason this don't run in Burst..
+    //[ComputeJobOptimization]
     struct CalculateToCreateAndDestroyChunks : IJob
     {
         //@TODO: Would be nice if this could be a local variable in the job...
@@ -220,6 +220,7 @@ public class ProceduralSpawnSystem : JobComponentSystem
         public float  MaxDistance;
         public float  GridSize;
 
+        
         public void Execute()
         {
             CalculateVisibleGridPositions(CameraPosition, MaxDistance, GridSize, visibleGridPositions);
@@ -280,21 +281,10 @@ public class ProceduralSpawnSystem : JobComponentSystem
         m_AllChunksGroup.SetFilter(chunkScene);
         Profiler.EndSample();
 
-        //@TODO: This is highly inconvenient...
-        Profiler.BeginSample("DestroyChunk.GetEntities");
-        var entityGroupArray = m_AllChunksGroup.GetEntityArray();
-        var entityArray = new NativeArray<Entity>(entityGroupArray.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-        entityGroupArray.CopyTo(entityArray);
-        Profiler.EndSample();
-
         Profiler.BeginSample("DestroyChunk.DestroyEntity");
-        if (entityArray.Length != 0)
-            EntityManager.DestroyEntity(entityArray);
+        EntityManager.DestroyEntity(m_AllChunksGroup);
         Profiler.EndSample();
 
-        entityArray.Dispose();
-
-        //@TODO: Need value based search function...
         m_CreatedChunks.RemoveAtSwapBack(m_CreatedChunks.IndexOf(position));
     }
 

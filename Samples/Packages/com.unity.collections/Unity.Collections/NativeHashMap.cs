@@ -127,7 +127,7 @@ namespace Unity.Collections
                 {
                     int curEntry = buckets[bucket];
                     buckets[bucket] = nextPtrs[curEntry];
-                    int newBucket = Math.Abs(UnsafeUtility.ReadArrayElement<TKey>(data->keys, curEntry).GetHashCode()) &
+                    int newBucket = UnsafeUtility.ReadArrayElement<TKey>(data->keys, curEntry).GetHashCode() &
                                     (newBucketCapacity - 1);
                     nextPtrs[curEntry] = ((int*) newBuckets)[newBucket];
                     ((int*) newBuckets)[newBucket] = curEntry;
@@ -570,8 +570,8 @@ namespace Unity.Collections
 #endif
 
                 NativeHashMapData* data = m_Buffer;
-                NativeHashMapData.ReallocateHashMap<TKey, TValue>(data, value,
-                    NativeHashMapData.GetBucketSize(value), m_AllocatorLabel);
+                NativeHashMapData.ReallocateHashMap<TKey, TValue>(data, value, NativeHashMapData.GetBucketSize(value),
+                    m_AllocatorLabel);
             }
         }
 
@@ -738,8 +738,8 @@ namespace Unity.Collections
 #endif
 
                 NativeHashMapData* data = m_Buffer;
-                NativeHashMapData.ReallocateHashMap<TKey, TValue>(data, value,
-                    NativeHashMapData.GetBucketSize(value), m_AllocatorLabel);
+                NativeHashMapData.ReallocateHashMap<TKey, TValue>(data, value, NativeHashMapData.GetBucketSize(value),
+                    m_AllocatorLabel);
             }
         }
 
@@ -951,8 +951,8 @@ namespace Unity.Collections
             }
         }
 
-        public static unsafe JobHandle Schedule<TJob, TKey>(this TJob jobData,
-            NativeMultiHashMap<TKey, int> hashMap, int minIndicesPerJobCount, JobHandle dependsOn = new JobHandle())
+        public static unsafe JobHandle Schedule<TJob, TKey>(this TJob jobData, NativeMultiHashMap<TKey, int> hashMap,
+            int minIndicesPerJobCount, JobHandle dependsOn = new JobHandle())
             where TJob : struct, IJobNativeMultiHashMapMergedSharedKeyIndices
             where TKey : struct, IEquatable<TKey>
         {

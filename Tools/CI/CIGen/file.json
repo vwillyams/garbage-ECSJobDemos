@@ -1,0 +1,101 @@
+{
+    "editorVariations": {
+        "always" : [
+            "2018.1/staging&latest=true",
+            "2018.2/staging&latest=true"
+        ],
+        "scheduled" : [
+            "2018.1.*&latest=true",
+            "2018.2.*&latest=true",
+            "2018.1/staging&latest=true",
+            "2018.2/staging&latest=true"
+        ]
+
+    },
+    "tags": [
+        {
+            "name": "windows",
+            "tags": {
+                    "default": [
+                    "windows",
+                    "gamecode"
+                ],
+                "build": [
+                    "windows",
+                    "buildfarm",
+                    "\"10\""
+                ]
+            },
+            "unity-path": ".Editor/Unity.exe",
+            "unity-launcher-editor": ".UnityLauncher.Editor\\win10-x64\\publish\\UnityLauncher.Editor.exe",
+            "unity-launcher-player": ".UnityLauncher.Player\\win10-x64\\publish\\UnityLauncher.Player.exe",
+            "unity-build-player": "-buildWindows64Player",
+            "exe-format": ".exe"
+        },
+        {
+            "name": "macOS",
+            "tags": [
+                "darwin",
+                "buildfarm",
+                "10.13.3"
+            ],
+            "unity-path": ".Editor/Unity.app/Contents/MacOS/Unity",
+            "unity-launcher-editor": "./.UnityLauncher.Editor/osx.10.12-x64/publish/UnityLauncher.Editor",
+            "unity-launcher-player": "./.UnityLauncher.Player/osx.10.12-x64/publish/UnityLauncher.Player",
+            "unity-build-player": "-buildOSXUniversalPlayer",
+            "exe-format": ".app"
+        }
+    ],
+
+    "stages": [
+        "validation",
+        "test",
+        "build",
+        "run"
+    ],
+
+    "backends": [
+        "mono",
+        "il2cpp"
+    ],
+
+    "projects": [
+        {
+            "path": "Samples",
+            "skip-stage" : []
+        },
+        {
+            "schedule_only": true,
+            "path": "TwoStickShooter/Classic",
+            "scenes": [
+                {
+                    "name": "twostickshooter-classic",
+                    "path": "Assets/Scenes/TwoStickClassic.unity"
+                }
+            ],
+            "skip-stage" : ["test"]
+        },
+        {
+            "schedule_only": true,
+            "path": "TwoStickShooter/Hybrid",
+            "scenes": [
+                {
+                    "name": "twostickshooter-hybrid",
+                    "path": "Assets/Scenes/TwoStickHybrid.unity"
+                }
+            ],
+            "skip-stage": ["test"]
+        },
+        {
+            "schedule_only": true,
+            "path": "TwoStickShooter/Pure",
+            "scenes": [
+                {
+                    "name": "twostickshooter-pure",
+                    "path": "Assets/Scenes/TwoStickPure.unity"
+                }
+            ],
+            "skip-stage" : ["test"]
+        }
+    ]
+}

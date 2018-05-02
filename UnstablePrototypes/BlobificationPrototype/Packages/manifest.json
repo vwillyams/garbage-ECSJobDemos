@@ -4,8 +4,7 @@
     "com.unity.jobs": "file:../../../Samples/Packages/com.unity.jobs",
     "com.unity.mathematics": "0.0.7",
     "com.unity.collections": "file:../../../Samples/Packages/com.unity.collections",
-    "com.unity.burst": "0.2.1",
-    "com.unity.incrementalcompiler": "0.0.23"
+    "com.unity.incrementalcompiler": "0.0.29"
   },
   "testables": [
         "com.unity.collections",

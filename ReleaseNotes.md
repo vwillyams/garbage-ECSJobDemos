@@ -1,3 +1,8 @@
+# 0.0.5
+## Changes
+* Throw ArgumentException when creating an entity with component data exceeding chunk size (64kb)
+* EntityManager.CreateComponentGroup is no longer public, use ComponentSystem.GetComponentGroup instead
+
 # 0.0.4
 
 ## New Features
